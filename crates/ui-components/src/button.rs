@@ -41,11 +41,11 @@ pub fn Button(
             class:ui-button--focus-visible=is_focus_visible
             disabled=disabled
             aria-disabled=move || if disabled { Some("true") } else { None }
-            on:pointerdown=move |_| (aria.handlers.press.on_pointer_down)()
-            on:pointerup=move |_| (aria.handlers.press.on_pointer_up)()
-            on:pointercancel=move |_| (aria.handlers.press.on_pointer_cancel)()
-            on:click=move |_| (aria.handlers.press.on_click)()
-            on:keydown=move |ev| (aria.handlers.on_key_down)(ev.key())
+            on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
+            on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
+            on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())
+            on:click=move |_| aria.handlers.press.on_click.run(())
+            on:keydown=move |ev| aria.handlers.on_key_down.run(ev.key())
             on:focus=move |_| set_focused.set(true)
             on:blur=move |_| set_focused.set(false)
         >

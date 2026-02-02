@@ -1,7 +1,6 @@
 use crate::focus_visible::use_focus_visible;
 use crate::press::{use_press, OnPress, PressHandlers, PressOptions};
 use leptos::prelude::*;
-use std::rc::Rc;
 
 #[derive(Clone, Default)]
 pub struct ButtonOptions {
@@ -12,7 +11,7 @@ pub struct ButtonOptions {
 #[derive(Clone)]
 pub struct ButtonHandlers {
     pub press: PressHandlers,
-    pub on_key_down: Rc<dyn Fn(String)>,
+    pub on_key_down: Callback<String>,
 }
 
 #[derive(Clone)]
@@ -25,7 +24,7 @@ pub struct ButtonAria {
 pub fn use_button(options: ButtonOptions) -> ButtonAria {
     let press = use_press(PressOptions {
         is_disabled: options.is_disabled,
-        on_press: options.on_press.clone(),
+        on_press: options.on_press,
     });
 
     let is_focus_visible = use_focus_visible()
@@ -36,13 +35,13 @@ pub fn use_button(options: ButtonOptions) -> ButtonAria {
     let on_key_down = {
         let is_disabled = options.is_disabled;
         let on_press = options.on_press;
-        Rc::new(move |key: String| {
+        Callback::new(move |key: String| {
             if is_disabled {
                 return;
             }
             if key == "Enter" || key == " " {
-                if let Some(on_press) = &on_press {
-                    on_press();
+                if let Some(on_press) = on_press {
+                    on_press.run(());
                 }
             }
         })

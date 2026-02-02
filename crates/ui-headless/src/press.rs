@@ -1,14 +1,13 @@
 use leptos::prelude::*;
-use std::rc::Rc;
 
-pub type OnPress = Rc<dyn Fn()>;
+pub type OnPress = Callback<()>;
 
 #[derive(Clone)]
 pub struct PressHandlers {
-    pub on_pointer_down: Rc<dyn Fn()>,
-    pub on_pointer_up: Rc<dyn Fn()>,
-    pub on_pointer_cancel: Rc<dyn Fn()>,
-    pub on_click: Rc<dyn Fn()>,
+    pub on_pointer_down: Callback<()>,
+    pub on_pointer_up: Callback<()>,
+    pub on_pointer_cancel: Callback<()>,
+    pub on_click: Callback<()>,
 }
 
 #[derive(Clone)]
@@ -29,7 +28,7 @@ pub fn use_press(options: PressOptions) -> PressState {
 
     let on_pointer_down = {
         let is_disabled = options.is_disabled;
-        Rc::new(move || {
+        Callback::new(move |_| {
             if is_disabled {
                 return;
             }
@@ -40,20 +39,20 @@ pub fn use_press(options: PressOptions) -> PressState {
 
     let on_pointer_up = {
         let is_disabled = options.is_disabled;
-        let on_press = options.on_press.clone();
-        Rc::new(move || {
+        let on_press = options.on_press;
+        Callback::new(move |_| {
             if is_disabled {
                 return;
             }
             set_pressed.set(false);
-            if let Some(on_press) = &on_press {
-                on_press();
+            if let Some(on_press) = on_press {
+                on_press.run(());
             }
         })
     };
 
     let on_pointer_cancel = {
-        Rc::new(move || {
+        Callback::new(move |_| {
             set_pressed.set(false);
             set_did_pointer_press.set(false);
         })
@@ -62,7 +61,7 @@ pub fn use_press(options: PressOptions) -> PressState {
     let on_click = {
         let is_disabled = options.is_disabled;
         let on_press = options.on_press;
-        Rc::new(move || {
+        Callback::new(move |_| {
             if is_disabled {
                 return;
             }
@@ -70,8 +69,8 @@ pub fn use_press(options: PressOptions) -> PressState {
                 set_did_pointer_press.set(false);
                 return;
             }
-            if let Some(on_press) = &on_press {
-                on_press();
+            if let Some(on_press) = on_press {
+                on_press.run(());
             }
         })
     };
