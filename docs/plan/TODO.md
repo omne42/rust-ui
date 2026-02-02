@@ -26,26 +26,26 @@
 
 ## 0) 冻结输入（不做这个会反复返工）
 
-- [ ] `t00` 复核并更新 `docs/spec/mvp.md`（把默认 Button→Popover 换成你的真实流程也行）
-- [ ] 确认 demo 目录策略：
-  - [ ] 默认：可提交 demo 放 `apps/`；upstream 参考放 `examples/_upstream/` 且不提交
+- [x] `t00` 复核并更新 `docs/spec/mvp.md`（把默认 Button→Popover 换成你的真实流程也行）
+- [x] 确认 demo 目录策略：
+  - [x] 默认：可提交 demo 放 `apps/`；upstream 参考放 `examples/_upstream/` 且不提交
   - [ ] 若坚持 `examples/` 也要提交 demo：调整 `.gitignore` 仅忽略 `examples/_upstream/`
-- [ ] `t03` 确保 `docs/plan/task_dag.json` 与 `docs/plan/TODO.md` 同步（计划变化必须同步）
+- [x] `t03` 确保 `docs/plan/task_dag.json` 与 `docs/plan/TODO.md` 同步（计划变化必须同步）
 
 ## 1) 工程骨架（Workspace → crates → apps）
 
 ### 1.1 Workspace 与目录结构
 
-- [ ] `t01` 创建 workspace（根 `Cargo.toml`）
-- [ ] `t01` 创建目录：
-  - [ ] `crates/ui-core`
-  - [ ] `crates/ui-headless`
-  - [ ] `crates/ui-theme`
-  - [ ] `crates/ui-components`
-  - [ ] `apps/web-demo`
-  - [ ] `apps/tauri-demo`（Phase 2，可先占位）
-- [ ] `t01` 为每个 crate 建立最小 `src/lib.rs`（只导出占位模块，先不实现逻辑）
-- [ ] `t01` 统一 crate metadata（edition、license、repository、publish = false（先不开源发布））
+- [x] `t01` 创建 workspace（根 `Cargo.toml`）
+- [x] `t01` 创建目录：
+  - [x] `crates/ui-core`
+  - [x] `crates/ui-headless`
+  - [x] `crates/ui-theme`
+  - [x] `crates/ui-components`
+  - [x] `apps/web-demo`
+  - [x] `apps/tauri-demo`（Phase 2，可先占位）
+- [x] `t01` 为每个 crate 建立最小 `src/lib.rs`（只导出占位模块，先不实现逻辑）
+- [x] `t01` 统一 crate metadata（edition、license、repository、publish = false（先不开源发布））
 
 **Stop Gate**
 - [ ] `cargo check --workspace`
@@ -64,7 +64,7 @@
 
 ## 2) 门禁与开发体验（把质量变成默认）
 
-- [ ] `t02` 新增 `scripts/check.sh`：顺序跑 Gate A→B→C→D→E→F（失败即退出）
+- [x] `t02` 新增 `scripts/check.sh`：顺序跑 Gate A→B→C→D→E→F（失败即退出）
 - [ ] （可选）新增 `rust-toolchain.toml` 固定 toolchain（降低环境差异）
 - [ ] （可选）新增 `scripts/ci.sh`（CI 用；本地同样可跑）
 - [ ] （可选）添加 `.gitignore` 条目：`target/`（等 workspace 落地后再加）
@@ -118,12 +118,12 @@
 
 ### 4.1 ToggleState
 
-- [ ] `t10` 实现 `use_toggle_state`：
+- [x] `t10` 实现 `use_toggle_state`：
   - [ ] 支持受控/非受控（controlled/uncontrolled）
   - [ ] 支持 `is_read_only`
   - [ ] 提供 `toggle()` / `set_selected(bool)`
   - [ ] 明确默认值行为（对齐 React Stately 的 `defaultSelected` 思路）
-- [ ] `t10` 单测覆盖：只读不变更、受控回调被调用、非受控内部更新
+- [x] `t10` 单测覆盖：只读不变更、受控回调被调用、非受控内部更新
 
 **Stop Gate**
 - [ ] `cargo test -p ui-core`
@@ -134,10 +134,10 @@
 
 ### 5.1 Feature 与边界（必须先完成）
 
-- [ ] `t20-pre` 定义 feature：
-  - [ ] `default-features = ["web"]`
-  - [ ] `web` 才能依赖 `web-sys`（或 leptos DOM 相关 API）
-  - [ ] `ssr` 下提供降级实现（保证能编译）
+- [x] `t20-pre` 定义 feature：
+  - [x] `default-features = ["web"]`
+  - [x] `web` 才能依赖 `web-sys`（或 leptos DOM 相关 API）
+  - [x] `ssr` 下提供降级实现（保证能编译）
 
 **Stop Gate**
 - [ ] `cargo check -p ui-headless`（默认 web）
@@ -146,35 +146,35 @@
 
 ### 5.2 Interaction Modality / FocusVisible（第一优先）
 
-- [ ] `t20` 实现全局 `Modality`（keyboard/pointer/virtual）：
+- [x] `t20` 实现全局 `Modality`（keyboard/pointer/virtual）：
   - [ ] 事件来源（MVP）：`keydown`, `pointerdown`, `click`, `focus`, `blur`
   - [ ] 最小策略：keydown → keyboard；pointerdown → pointer；无前置事件的 focus → virtual（可先简化）
   - [ ] 用 Leptos Context 提供/读取（`provide_*` / `use_*`）
-- [ ] `t20` `is_focus_visible`：由 modality 推导（keyboard/virtual → true；pointer → false）
-- [ ] `t20` 清理策略：组件卸载时移除全局监听（避免重复注册）
+- [x] `t20` `is_focus_visible`：由 modality 推导（keyboard/virtual → true；pointer → false）
+- [x] `t20` 清理策略：组件卸载时移除全局监听（避免重复注册）
 
 **Stop Gate**
 - [ ] `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
 
 ### 5.3 Press（第二优先）
 
-- [ ] `t21` 实现 `use_press`（MVP 先覆盖 keyboard + pointer）：
-  - [ ] 输出 `is_pressed`
-  - [ ] pointer 路径：按下→pressed=true；抬起→pressed=false；触发 `on_press`
-  - [ ] keyboard 路径：Enter/Space 触发（并避免页面滚动/默认行为）
-  - [ ] 防重复：避免 pointer/click 双触发（以 pointer 为主，click 只兜底）
-  - [ ] 支持 `disabled`（直接短路）
-  - [ ] `prevent_focus_on_press`（v0 可先占位，但要定义语义）
+- [x] `t21` 实现 `use_press`（MVP 先覆盖 keyboard + pointer）：
+  - [x] 输出 `is_pressed`
+  - [x] pointer 路径：按下→pressed=true；抬起→pressed=false；触发 `on_press`
+  - [x] keyboard 路径：Enter/Space 触发（并避免页面滚动/默认行为）
+  - [x] 防重复：避免 pointer/click 双触发（以 pointer 为主，click 只兜底）
+  - [x] 支持 `disabled`（直接短路）
+  - [x] `prevent_focus_on_press`（v0 可先占位，但要定义语义）
 
 **Stop Gate**
 - [ ] `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
 
 ### 5.4 use_button（组合层）
 
-- [ ] `t22` 实现 `use_button`（组合 press + focusable + aria）：
-  - [ ] `<button>`：使用原生 `disabled/type`
-  - [ ] 自定义元素：提供 `role="button"`、`tabindex`、`aria-disabled`
-  - [ ] 键盘：Enter/Space 可触发 press（并满足基本 A11y）
+- [x] `t22` 实现 `use_button`（组合 press + focusable + aria）：
+  - [x] `<button>`：使用原生 `disabled/type`
+  - [x] 自定义元素：提供 `role="button"`、`tabindex`、`aria-disabled`
+  - [x] 键盘：Enter/Space 可触发 press（并满足基本 A11y）
 
 **Stop Gate**
 - [ ] `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
@@ -183,10 +183,10 @@
 
 目标：把“样式数据”与“组件实现”解耦。
 
-- [ ] `t11` 定义 tokens（最小集）：`color/radius/space/shadow`
-- [ ] `t11` 提供 1 套 light theme（变量命名 v0 冻结）
-- [ ] `t11` 输出 base CSS variables（字符串常量/生成函数二选一）
-- [ ] （可选）safe-area CSS：作为可选片段导出，不强制所有组件启用
+- [x] `t11` 定义 tokens（最小集）：`color/radius/space/shadow`
+- [x] `t11` 提供 1 套 light theme（变量命名 v0 冻结）
+- [x] `t11` 输出 base CSS variables（字符串常量/生成函数二选一）
+- [x] （可选）safe-area CSS：作为可选片段导出，不强制所有组件启用
 
 **Stop Gate**
 - [ ] `cargo test -p ui-theme`
@@ -197,54 +197,54 @@
 
 ### 7.1 Button v0
 
-- [ ] `t30` 实现 `<Button>`：
-  - [ ] props：`disabled`, `variant`（先少量）, `on_press`
-  - [ ] 内部消费 `ui_headless::use_button` 并显式挂载 handlers/attrs
-  - [ ] focus-visible 状态驱动 class（不要在 headless 里写样式）
-  - [ ] 禁止把 `ui-headless` 的内部结构体透传给 app
+- [x] `t30` 实现 `<Button>`：
+  - [x] props：`disabled`, `variant`（先少量）, `on_press`
+  - [x] 内部消费 `ui_headless::use_button` 并显式挂载 handlers/attrs
+  - [x] focus-visible 状态驱动 class（不要在 headless 里写样式）
+  - [x] 禁止把 `ui-headless` 的内部结构体透传给 app
 
 **Stop Gate**
 - [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
 
 ### 7.2 Overlay v1（Popover/Modal 任选其一，先做一个）
 
-- [ ] `t40` 实现 Overlay v1（最小闭环）：
-  - [ ] Portal 渲染（Leptos `Portal`）
-  - [ ] topmost：只允许顶层 overlay 响应 Esc（维护最小 stack）
-  - [ ] Esc 关闭
-  - [ ] click-outside 关闭（可用 `leptos-use`）
-  - [ ] focus trap v0：Tab 不逃逸；关闭后把焦点还给触发元素（如可获取）
+- [x] `t40` 实现 Overlay v1（最小闭环）：
+  - [x] Portal 渲染（Leptos `Portal`）
+  - [x] topmost：只允许顶层 overlay 响应 Esc（维护最小 stack）
+  - [x] Esc 关闭
+  - [x] click-outside 关闭（可用 `leptos-use`）
+  - [x] focus trap v0：Tab 不逃逸；关闭后把焦点还给触发元素（如可获取）
 
 **Stop Gate**
 - [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
 
 ## 8) apps/web-demo（可见的验证入口）
 
-- [ ] `t31` 选择构建方式（先选一个，避免反复切换）：
-  - [ ] 方案 A：trunk（CSR）
+- [x] `t31` 选择构建方式（先选一个，避免反复切换）：
+  - [x] 方案 A：trunk（CSR）
   - [ ] 方案 B：cargo-leptos
-- [ ] `t31` Demo 页面：
-  - [ ] 展示 Button states：disabled/pressed/focus-visible
-  - [ ] 展示 Overlay v1：打开/关闭（click/Esc/click-outside）
-  - [ ] 页面内写明“验收步骤”（按键操作说明）
+- [x] `t31` Demo 页面：
+  - [x] 展示 Button states：disabled/pressed/focus-visible
+  - [x] 展示 Overlay v1：打开/关闭（click/Esc/click-outside）
+  - [x] 页面内写明“验收步骤”（按键操作说明）
 
 **Stop Gate**
 - [ ] `cargo check -p web-demo --target wasm32-unknown-unknown`
 
 ## 9) Phase 2：Tauri desktop demo（可选，但建议尽早验证）
 
-- [ ] `t50` `apps/tauri-demo` 壳：
-  - [ ] 能编译通过（优先）
-  - [ ] 复用 web-demo 资源（后续再优化打包）
+- [x] `t50` `apps/tauri-demo` 壳：
+  - [x] 能编译通过（优先）
+  - [x] 复用 web-demo 资源（后续再优化打包）
 
 **Stop Gate**
 - [ ] `cargo check -p tauri-demo`
 
 ## 10) Phase 3：Android Spike（可选）
 
-- [ ] `t60` 写 `docs/research/android-spike.md`：
-  - [ ] safe-area / 输入法 / pointer events 的差异结论
-  - [ ] go/no-go 决策与阻塞点（明确下一步要不要投入正式适配）
+- [x] `t60` 写 `docs/research/android-spike.md`：
+  - [x] safe-area / 输入法 / pointer events 的差异结论
+  - [x] go/no-go 决策与阻塞点（明确下一步要不要投入正式适配）
 
 ## 11) Phase 4：工程化（发布前再做，先占坑）
 
@@ -261,11 +261,11 @@
 - [ ] `use_controlled_state` 完整化（支持 value/defaultValue/onChange 的通用模式）
 - [ ] `use_list_state`（items + filtered/sorted + selection）
 - [ ] `use_single_selection_state` / `use_multiple_selection_state`
-- [ ] `use_overlay_trigger_state`（open/close/toggle + 受控/非受控）
+- [x] `use_overlay_trigger_state`（open/close/toggle + 受控/非受控）
 
 ### 12.2 ui-headless（交互/A11y 能力扩展）
 
-- [ ] `use_focus_ring`（组件级：focus/blur + 全局 focus-visible）
+- [x] `use_focus_ring`（组件级：focus/blur + 全局 focus-visible）
 - [ ] `use_focus_within`（容器级 focus 管理）
 - [ ] `use_hover`（pointer fine/coarse 的差异策略；移动端降级）
 - [ ] roving tabindex（Menu/ListBox/Toolbar 等键盘导航基础设施）

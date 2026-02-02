@@ -11,7 +11,9 @@ pub mod modality;
 pub mod overlay_stack;
 pub mod press;
 
-pub use button::{use_button, ButtonAria, ButtonHandlers, ButtonOptions};
+pub use button::{
+    use_button, ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions,
+};
 pub use focus_ring::{use_focus_ring, FocusRingHandlers, FocusRingOptions, FocusRingState};
 pub use focus_trap::{use_focus_trap, FocusTrapHandlers, FocusTrapOptions};
 pub use focus_visible::{provide_focus_visible, use_focus_visible, FocusVisibleState};

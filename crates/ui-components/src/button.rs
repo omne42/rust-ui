@@ -27,6 +27,7 @@ pub fn Button(
     let aria = use_button(ButtonOptions {
         is_disabled: disabled,
         on_press,
+        ..Default::default()
     });
 
     let focus_ring = use_focus_ring(FocusRingOptions {
@@ -41,14 +42,30 @@ pub fn Button(
             class:ui-button--pressed=move || aria.is_pressed.get()
             class:ui-button--focus-visible=move || focus_ring.is_focus_visible.get()
             disabled=disabled
-            aria-disabled=move || if disabled { Some("true") } else { None }
+            role=aria.attrs.role
+            tabindex=aria.attrs.tabindex
+            aria-disabled=aria.attrs.aria_disabled
             on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
             on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
             on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())
             on:click=move |_| aria.handlers.press.on_click.run(())
-            on:keydown=move |ev| aria.handlers.on_key_down.run(ev.key())
+            on:keydown=move |ev| {
+                let key = ev.key();
+                if aria.handlers.press.on_key_down.run(key) {
+                    ev.prevent_default();
+                }
+            }
+            on:keyup=move |ev| {
+                let key = ev.key();
+                if aria.handlers.press.on_key_up.run(key) {
+                    ev.prevent_default();
+                }
+            }
             on:focus=move |_| focus_ring.handlers.on_focus.run(())
-            on:blur=move |_| focus_ring.handlers.on_blur.run(())
+            on:blur=move |_| {
+                aria.handlers.press.on_blur.run(());
+                focus_ring.handlers.on_blur.run(());
+            }
         >
             {children()}
         </button>
