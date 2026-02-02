@@ -14,5 +14,5 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: initial interaction primitives (focus-visible modality, press handling, button behavior) with `web`/`ssr` feature gating.
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives.
-- Dev tooling: `scripts/check.sh` gate runner and `scripts/fetch_upstream.sh` for cloning upstream reference repos into `examples/` (ignored by git).
+- Dev tooling: `githooks/` (Conventional Commits + pre-commit gates) with `scripts/setup-githooks.sh`, plus gate runner scripts (`scripts/gate.sh`, `scripts/check.sh`) and `scripts/fetch_upstream.sh` for cloning upstream reference repos into `examples/` (ignored by git).
 - Project docs: MVP/spec notes and a TODO/DAG-based implementation plan.
