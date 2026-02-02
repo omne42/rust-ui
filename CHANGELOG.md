@@ -18,6 +18,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Overlay).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
+- `apps/tauri-demo`: Tauri v2 shell scaffold (config + build script + minimal command) for desktop verification.
 - Dev tooling: `githooks/` (Conventional Commits + pre-commit gates) with `scripts/setup-githooks.sh`, plus gate runner scripts (`scripts/gate.sh`, `scripts/check.sh`) and `scripts/fetch_upstream.sh` for cloning upstream reference repos into `examples/` (ignored by git).
 - Project docs: MVP/spec notes and a TODO/DAG-based implementation plan.
 
