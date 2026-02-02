@@ -1,0 +1,186 @@
+{
+  "version": 2,
+  "default_assumptions": {
+    "mvp_flow": "Button -> Popover -> select/close",
+    "demo_location": "apps/",
+    "upstream_location": "examples/_upstream (ignored by .gitignore)"
+  },
+  "stop_gates": {
+    "fmt": "cargo fmt --all -- --check",
+    "clippy": "cargo clippy --workspace --all-targets -- -D warnings",
+    "test": "cargo test --workspace",
+    "wasm_check": [
+      "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
+      "cargo check -p ui-components --target wasm32-unknown-unknown",
+      "cargo check -p web-demo --target wasm32-unknown-unknown"
+    ],
+    "ssr_check": [
+      "cargo check -p ui-headless --no-default-features --features ssr"
+    ]
+  },
+  "parallel_groups": [
+    ["t00", "t01", "t02", "t03"],
+    ["t10", "t11"],
+    ["t20-pre", "t20", "t21", "t22"],
+    ["t30", "t31"],
+    ["t40"],
+    ["t50"],
+    ["t60"]
+  ],
+  "tasks": [
+    {
+      "id": "t00",
+      "title": "Freeze MVP spec",
+      "outputs": ["docs/spec/mvp.md"],
+      "depends_on": [],
+      "acceptance": ["Spec is <= 1 page", "At least 10 DoD checkboxes"],
+      "verify": []
+    },
+    {
+      "id": "t01",
+      "title": "Workspace + crate skeletons",
+      "outputs": [
+        "Cargo.toml",
+        "crates/ui-core/Cargo.toml",
+        "crates/ui-headless/Cargo.toml",
+        "crates/ui-theme/Cargo.toml",
+        "crates/ui-components/Cargo.toml",
+        "apps/web-demo/Cargo.toml"
+      ],
+      "depends_on": ["t00"],
+      "acceptance": ["cargo check --workspace passes"],
+      "verify": ["cargo check --workspace"]
+    },
+    {
+      "id": "t02",
+      "title": "Add quality gates",
+      "outputs": ["scripts/check.sh (or justfile)"],
+      "depends_on": ["t01"],
+      "acceptance": ["fmt/clippy/test gates are green"],
+      "verify": [
+        "cargo fmt --all -- --check",
+        "cargo clippy --workspace --all-targets -- -D warnings",
+        "cargo test --workspace",
+        "cargo check -p ui-headless --no-default-features --features ssr",
+        "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
+        "cargo check -p ui-components --target wasm32-unknown-unknown",
+        "cargo check -p web-demo --target wasm32-unknown-unknown"
+      ]
+    },
+    {
+      "id": "t03",
+      "title": "Persist machine-readable DAG",
+      "outputs": ["docs/plan/task_dag.json"],
+      "depends_on": ["t00"],
+      "acceptance": ["Has id/depends_on/verify fields", "Matches docs/plan/IMPLEMENTATION_PLAN.md"],
+      "verify": []
+    },
+    {
+      "id": "t10",
+      "title": "ui-core: state primitives v0",
+      "outputs": ["ui-core::toggle::{use_toggle_state, ToggleState}"],
+      "depends_on": ["t01"],
+      "acceptance": ["cargo test -p ui-core passes"],
+      "verify": ["cargo test -p ui-core"]
+    },
+    {
+      "id": "t11",
+      "title": "ui-theme: tokens + CSS variables v0",
+      "outputs": ["ui-theme tokens model", "ui-theme base CSS variables"],
+      "depends_on": ["t01"],
+      "acceptance": ["cargo test -p ui-theme passes"],
+      "verify": ["cargo test -p ui-theme"]
+    },
+    {
+      "id": "t20-pre",
+      "title": "ui-headless: feature gating (web/ssr) v0",
+      "outputs": ["ui-headless Cargo features: web/ssr"],
+      "depends_on": ["t01"],
+      "acceptance": ["web + ssr builds compile (native + wasm)"],
+      "verify": [
+        "cargo check -p ui-headless",
+        "cargo check -p ui-headless --no-default-features --features ssr",
+        "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web"
+      ]
+    },
+    {
+      "id": "t20",
+      "title": "ui-headless: focus-visible + modality v0",
+      "outputs": ["ui-headless::focus_visible + provide_/use_ API"],
+      "depends_on": ["t20-pre"],
+      "acceptance": ["web + ssr builds compile (native + wasm)"],
+      "verify": [
+        "cargo check -p ui-headless",
+        "cargo check -p ui-headless --no-default-features --features ssr",
+        "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web"
+      ]
+    },
+    {
+      "id": "t21",
+      "title": "ui-headless: press v0",
+      "outputs": ["ui-headless::press::use_press"],
+      "depends_on": ["t20"],
+      "acceptance": ["web + ssr builds compile (native + wasm)"],
+      "verify": [
+        "cargo check -p ui-headless",
+        "cargo check -p ui-headless --no-default-features --features ssr",
+        "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web"
+      ]
+    },
+    {
+      "id": "t22",
+      "title": "ui-headless: use_button v0",
+      "outputs": ["ui-headless::button::use_button"],
+      "depends_on": ["t21"],
+      "acceptance": ["web + ssr builds compile (native + wasm)"],
+      "verify": [
+        "cargo check -p ui-headless",
+        "cargo check -p ui-headless --no-default-features --features ssr",
+        "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web"
+      ]
+    },
+    {
+      "id": "t30",
+      "title": "ui-components: Button v0",
+      "outputs": ["ui-components::Button"],
+      "depends_on": ["t22", "t11"],
+      "acceptance": ["native + wasm cargo check passes"],
+      "verify": [
+        "cargo check -p ui-components",
+        "cargo check -p ui-components --target wasm32-unknown-unknown"
+      ]
+    },
+    {
+      "id": "t31",
+      "title": "apps/web-demo: demo page v0",
+      "outputs": ["apps/web-demo"],
+      "depends_on": ["t30"],
+      "acceptance": ["wasm cargo check passes"],
+      "verify": ["cargo check -p web-demo --target wasm32-unknown-unknown"]
+    },
+    {
+      "id": "t40",
+      "title": "Overlay v1 (Popover or Modal)",
+      "outputs": ["ui-components overlay v1 + demo usage"],
+      "depends_on": ["t22", "t31"],
+      "acceptance": ["ui-components wasm cargo check passes"],
+      "verify": ["cargo check -p ui-components --target wasm32-unknown-unknown"]
+    },
+    {
+      "id": "t50",
+      "title": "Tauri desktop demo (Phase 2)",
+      "outputs": ["apps/tauri-demo skeleton"],
+      "depends_on": ["t31"],
+      "acceptance": ["cargo check -p tauri-demo passes"],
+      "verify": ["cargo check -p tauri-demo"]
+    },
+    {
+      "id": "t60",
+      "title": "Android spike (Phase 3)",
+      "outputs": ["docs/research/android-spike.md"],
+      "depends_on": ["t50"],
+      "acceptance": ["Written conclusions + blockers + go/no-go decision"],
+      "verify": []
+    }
+  ]
+}

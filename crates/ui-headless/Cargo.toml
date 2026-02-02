@@ -1,0 +1,20 @@
+[package]
+name = "ui-headless"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = ["web"]
+web = ["leptos/csr"]
+ssr = ["leptos/ssr"]
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.108"
+web-sys = { version = "0.3.85", features = ["Document", "EventTarget", "FocusEvent", "KeyboardEvent", "PointerEvent", "Window"] }

@@ -1,0 +1,13 @@
+[package]
+name = "ui-components"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../ui-headless" }
+ui-theme = { path = "../ui-theme" }
