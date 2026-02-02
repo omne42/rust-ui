@@ -14,6 +14,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: initial interaction primitives (focus-visible modality, press handling, button behavior) with `web`/`ssr` feature gating.
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
+- `ui-headless`: `use_focus_ring` hook for per-component focus ring handling.
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Overlay).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
