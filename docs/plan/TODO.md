@@ -267,7 +267,7 @@
 
 - [x] `use_focus_ring`（组件级：focus/blur + 全局 focus-visible）
 - [ ] `use_focus_within`（容器级 focus 管理）
-- [ ] `use_hover`（pointer fine/coarse 的差异策略；移动端降级）
+- [x] `use_hover`（pointer fine/coarse 的差异策略；移动端降级）
 - [ ] roving tabindex（Menu/ListBox/Toolbar 等键盘导航基础设施）
 - [ ] `use_listbox`（对齐 WAI-ARIA practices：role/listbox/option/aria-activedescendant）
 - [ ] `use_menu` / `use_menu_item`（含 typeahead）
