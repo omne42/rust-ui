@@ -258,7 +258,7 @@
 
 ### 12.1 ui-core（集合/选择/受控工具）
 
-- [ ] `use_controlled_state` 完整化（支持 value/defaultValue/onChange 的通用模式）
+- [x] `use_controlled_state` 完整化（支持 value/defaultValue/onChange 的通用模式）
 - [ ] `use_list_state`（items + filtered/sorted + selection）
 - [ ] `use_single_selection_state` / `use_multiple_selection_state`
 - [x] `use_overlay_trigger_state`（open/close/toggle + 受控/非受控）

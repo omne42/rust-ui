@@ -1,13 +1,12 @@
-use std::sync::Arc;
+use crate::controlled::{
+    use_controlled_state, ControlledOnChange, ControlledState, ControlledStateOptions,
+};
 
-pub type OverlayOnOpenChange = Arc<dyn Fn(bool) + Send + Sync>;
+pub type OverlayOnOpenChange = ControlledOnChange<bool>;
 
 #[derive(Clone)]
 pub struct OverlayTriggerState {
-    is_open: bool,
-    default_open: bool,
-    is_controlled: bool,
-    on_open_change: Option<OverlayOnOpenChange>,
+    open: ControlledState<bool>,
 }
 
 #[derive(Clone, Default)]
@@ -18,35 +17,33 @@ pub struct OverlayTriggerStateOptions {
 }
 
 pub fn use_overlay_trigger_state(options: OverlayTriggerStateOptions) -> OverlayTriggerState {
-    let is_controlled = options.is_open.is_some();
-    let initial_open = options.is_open.or(options.default_open).unwrap_or(false);
-
     OverlayTriggerState {
-        is_open: initial_open,
-        default_open: options.default_open.unwrap_or(initial_open),
-        is_controlled,
-        on_open_change: options.on_open_change,
+        open: use_controlled_state(
+            false,
+            ControlledStateOptions {
+                value: options.is_open,
+                default_value: options.default_open,
+                on_change: options.on_open_change,
+            },
+        ),
     }
 }
 
 impl OverlayTriggerState {
     pub fn is_open(&self) -> bool {
-        self.is_open
+        *self.open.value()
     }
 
     pub fn default_open(&self) -> bool {
-        self.default_open
+        *self.open.default_value()
     }
 
     pub fn is_controlled(&self) -> bool {
-        self.is_controlled
+        self.open.is_controlled()
     }
 
     pub fn sync_controlled(&mut self, is_open: Option<bool>) {
-        self.is_controlled = is_open.is_some();
-        if let Some(is_open) = is_open {
-            self.is_open = is_open;
-        }
+        self.open.sync_controlled(is_open);
     }
 
     pub fn open(&mut self) {
@@ -58,22 +55,12 @@ impl OverlayTriggerState {
     }
 
     pub fn toggle(&mut self) {
-        let next = !self.is_open;
+        let next = !self.is_open();
         self.set_open(next);
     }
 
     pub fn set_open(&mut self, is_open: bool) {
-        if is_open == self.is_open {
-            return;
-        }
-
-        if let Some(on_open_change) = &self.on_open_change {
-            on_open_change(is_open);
-        }
-
-        if !self.is_controlled {
-            self.is_open = is_open;
-        }
+        self.open.set_value(is_open);
     }
 }
 

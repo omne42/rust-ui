@@ -1,14 +1,13 @@
-use std::sync::Arc;
+use crate::controlled::{
+    use_controlled_state, ControlledOnChange, ControlledState, ControlledStateOptions,
+};
 
-pub type ToggleOnChange = Arc<dyn Fn(bool) + Send + Sync>;
+pub type ToggleOnChange = ControlledOnChange<bool>;
 
 #[derive(Clone)]
 pub struct ToggleState {
-    is_selected: bool,
-    default_selected: bool,
+    selected: ControlledState<bool>,
     is_read_only: bool,
-    is_controlled: bool,
-    on_change: Option<ToggleOnChange>,
 }
 
 #[derive(Clone, Default)]
@@ -20,28 +19,26 @@ pub struct ToggleStateOptions {
 }
 
 pub fn use_toggle_state(options: ToggleStateOptions) -> ToggleState {
-    let is_controlled = options.is_selected.is_some();
-    let initial_selected = options
-        .is_selected
-        .or(options.default_selected)
-        .unwrap_or(false);
-
     ToggleState {
-        is_selected: initial_selected,
-        default_selected: options.default_selected.unwrap_or(initial_selected),
+        selected: use_controlled_state(
+            false,
+            ControlledStateOptions {
+                value: options.is_selected,
+                default_value: options.default_selected,
+                on_change: options.on_change,
+            },
+        ),
         is_read_only: options.is_read_only,
-        is_controlled,
-        on_change: options.on_change,
     }
 }
 
 impl ToggleState {
     pub fn is_selected(&self) -> bool {
-        self.is_selected
+        *self.selected.value()
     }
 
     pub fn default_selected(&self) -> bool {
-        self.default_selected
+        *self.selected.default_value()
     }
 
     pub fn is_read_only(&self) -> bool {
@@ -49,32 +46,23 @@ impl ToggleState {
     }
 
     pub fn is_controlled(&self) -> bool {
-        self.is_controlled
+        self.selected.is_controlled()
     }
 
     pub fn sync_controlled(&mut self, is_selected: Option<bool>) {
-        self.is_controlled = is_selected.is_some();
-        if let Some(is_selected) = is_selected {
-            self.is_selected = is_selected;
-        }
+        self.selected.sync_controlled(is_selected);
     }
 
     pub fn set_selected(&mut self, is_selected: bool) {
-        if self.is_read_only || is_selected == self.is_selected {
+        if self.is_read_only {
             return;
         }
 
-        if let Some(on_change) = &self.on_change {
-            on_change(is_selected);
-        }
-
-        if !self.is_controlled {
-            self.is_selected = is_selected;
-        }
+        self.selected.set_value(is_selected);
     }
 
     pub fn toggle(&mut self) {
-        let next = !self.is_selected;
+        let next = !self.is_selected();
         self.set_selected(next);
     }
 }
