@@ -1,2 +1,14 @@
-examples/
+# Rust
 target/
+**/target/
+
+# Upstream references (not committed)
+examples/
+
+# Dist (release artifacts)
+dist/
+.trunk/
+
+# OS / tooling
+.DS_Store
+.github-agent-data/

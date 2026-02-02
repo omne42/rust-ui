@@ -1,6 +1,5 @@
 use leptos::{mount::mount_to_body, prelude::*};
-use ui_components::{Button, Overlay};
-use ui_headless::{provide_focus_visible, provide_overlay_stack, OnPress};
+use ui_components::{provide_focus_visible, provide_overlay_stack, Button, OnPress, Overlay};
 
 #[component]
 fn App() -> impl IntoView {
