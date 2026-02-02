@@ -7,3 +7,4 @@ publish = false
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-components = { path = "../../crates/ui-components" }
+ui-core = { path = "../../crates/ui-core" }

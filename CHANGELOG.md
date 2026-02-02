@@ -10,6 +10,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - Cargo workspace scaffold with layered crates (`ui-core`, `ui-headless`, `ui-theme`, `ui-components`) and demo apps (`web-demo`, `tauri-demo`).
 - `ui-core`: initial headless state primitive `use_toggle_state` with unit tests.
+- `ui-core`: `use_overlay_trigger_state` (open/close/toggle + controlled/uncontrolled) with unit tests.
 - `ui-theme`: design tokens + CSS variable emitter, plus base/safe-area CSS helpers and unit tests.
 - `ui-headless`: initial interaction primitives (focus-visible modality, press handling, button behavior) with `web`/`ssr` feature gating.
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
@@ -27,3 +28,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-components`: re-exports `provide_focus_visible`, `provide_overlay_stack`, and `OnPress` to reduce app-layer coupling.
+- `ui-core`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).

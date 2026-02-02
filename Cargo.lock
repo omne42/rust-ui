@@ -4877,6 +4877,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "ui-components",
+ "ui-core",
 ]
 
 [[package]]

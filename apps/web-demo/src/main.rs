@@ -1,5 +1,6 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{provide_focus_visible, provide_overlay_stack, Button, OnPress, Overlay};
+use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
 #[component]
 fn App() -> impl IntoView {
@@ -9,9 +10,11 @@ fn App() -> impl IntoView {
     let (count, set_count) = signal(0_i32);
     let on_press: OnPress = Callback::new(move |_| set_count.update(|n| *n += 1));
 
-    let (is_overlay_open, set_overlay_open) = signal(false);
-    let open_overlay: OnPress = Callback::new(move |_| set_overlay_open.set(true));
-    let close_overlay: OnPress = Callback::new(move |_| set_overlay_open.set(false));
+    let (overlay_state, set_overlay_state) = signal(use_overlay_trigger_state(
+        OverlayTriggerStateOptions::default(),
+    ));
+    let open_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.open()));
+    let close_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.close()));
 
     view! {
         <main style="padding: 24px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
@@ -23,7 +26,7 @@ fn App() -> impl IntoView {
                 <span>"count: " {count}</span>
             </div>
 
-            <Show when=move || is_overlay_open.get()>
+            <Show when=move || overlay_state.get().is_open()>
                 <Overlay on_close=close_overlay>
                     <h2 style="margin: 0 0 8px 0; font-size: 16px;">"Overlay v1"</h2>
                     <p style="margin: 0 0 12px 0; line-height: 1.4;">

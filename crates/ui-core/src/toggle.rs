@@ -1,6 +1,6 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
-pub type ToggleOnChange = Rc<dyn Fn(bool)>;
+pub type ToggleOnChange = Arc<dyn Fn(bool) + Send + Sync>;
 
 #[derive(Clone)]
 pub struct ToggleState {
@@ -82,7 +82,7 @@ impl ToggleState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::cell::Cell;
+    use std::sync::{Arc, Mutex};
 
     #[test]
     fn uncontrolled_updates_internal_state() {
@@ -110,17 +110,17 @@ mod tests {
 
     #[test]
     fn controlled_calls_on_change_but_does_not_update_internal() {
-        let called = Rc::new(Cell::new(None));
-        let called2 = Rc::clone(&called);
+        let called: Arc<Mutex<Option<bool>>> = Arc::new(Mutex::new(None));
+        let called2 = Arc::clone(&called);
 
         let mut state = use_toggle_state(ToggleStateOptions {
             is_selected: Some(false),
-            on_change: Some(Rc::new(move |v| called2.set(Some(v)))),
+            on_change: Some(Arc::new(move |v| *called2.lock().unwrap() = Some(v))),
             ..Default::default()
         });
 
         state.set_selected(true);
-        assert_eq!(called.get(), Some(true));
+        assert_eq!(*called.lock().unwrap(), Some(true));
         assert!(!state.is_selected());
 
         state.sync_controlled(Some(true));
