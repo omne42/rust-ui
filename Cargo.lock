@@ -4582,6 +4582,7 @@ version = "0.0.0"
 name = "ui-headless"
 version = "0.0.0"
 dependencies = [
+ "js-sys",
  "leptos",
  "wasm-bindgen",
  "web-sys",
