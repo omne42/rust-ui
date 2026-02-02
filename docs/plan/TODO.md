@@ -260,7 +260,7 @@
 
 - [x] `use_controlled_state` 完整化（支持 value/defaultValue/onChange 的通用模式）
 - [ ] `use_list_state`（items + filtered/sorted + selection）
-- [ ] `use_single_selection_state` / `use_multiple_selection_state`
+- [x] `use_single_selection_state` / `use_multiple_selection_state`
 - [x] `use_overlay_trigger_state`（open/close/toggle + 受控/非受控）
 
 ### 12.2 ui-headless（交互/A11y 能力扩展）

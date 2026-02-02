@@ -2,4 +2,5 @@
 
 pub mod controlled;
 pub mod overlay_trigger;
+pub mod selection;
 pub mod toggle;
