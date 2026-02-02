@@ -13,6 +13,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-core`: `use_overlay_trigger_state` (open/close/toggle + controlled/uncontrolled) with unit tests.
 - `ui-core`: `use_controlled_state` helper (value/default + on_change pattern) for building controlled/uncontrolled primitives.
 - `ui-core`: `use_single_selection_state` / `use_multiple_selection_state` for selection modeling.
+- `ui-core`: `use_list_state` (items + selection) for list-based components.
 - `ui-theme`: design tokens + CSS variable emitter, plus base/safe-area CSS helpers and unit tests.
 - `ui-headless`: initial interaction primitives (focus-visible modality, press handling, button behavior) with `web`/`ssr` feature gating.
 - `ui-headless`: `use_hover` (hover state + handlers).
