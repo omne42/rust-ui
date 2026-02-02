@@ -12,6 +12,7 @@ pub mod hover;
 pub mod modality;
 pub mod overlay_stack;
 pub mod press;
+pub mod roving_tabindex;
 
 pub use button::{
     use_button, ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions,
@@ -28,3 +29,7 @@ pub use overlay_stack::{
     provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration, OverlayRegistration,
 };
 pub use press::{use_press, OnPress, PressHandlers, PressOptions, PressState};
+pub use roving_tabindex::{
+    use_roving_tabindex, RovingOrientation, RovingTabIndexHandlers, RovingTabIndexOptions,
+    RovingTabIndexState,
+};

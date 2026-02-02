@@ -18,6 +18,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: initial interaction primitives (focus-visible modality, press handling, button behavior) with `web`/`ssr` feature gating.
 - `ui-headless`: `use_hover` (hover state + handlers).
 - `ui-headless`: `use_focus_within` (container focus tracking).
+- `ui-headless`: `use_roving_tabindex` (roving tabindex state + handlers).
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
 - `ui-headless`: `use_focus_ring` hook for per-component focus ring handling.
