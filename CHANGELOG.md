@@ -95,6 +95,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds a typography/utilities demo section for Link/Breadcrumbs/Code/Kbd/Spacer/ProgressBar.
 - `ui-components`: adds new components: `ButtonGroup`, `CheckboxGroup`, `LinkButton`, `SearchField`, `Snippet`, and `StatusLight`.
 - `apps/web-demo`: adds demo sections for ButtonGroup/CheckboxGroup/LinkButton/SearchField/Snippet/StatusLight.
+- `ui-components`: adds new components: `Accordion`, `Disclosure`, `Pagination`, `TagGroup`, `ToggleButton`, and `ToggleButtonGroup`.
+- `apps/web-demo`: adds demo sections for Pagination/TagGroup and Disclosure/Accordion; Button demo now includes ToggleButtonGroup.
 
 ### Changed
 

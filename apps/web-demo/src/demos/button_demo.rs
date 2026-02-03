@@ -1,12 +1,17 @@
 use leptos::prelude::*;
 use ui_components::{
-    Button, ButtonGroup, ButtonSize, ButtonVariant, IconButton, LinkButton, OnPress,
+    Button, ButtonGroup, ButtonSize, ButtonVariant, IconButton, LinkButton, OnPress, ToggleButton,
+    ToggleButtonGroup, ToggleButtonVariant,
 };
 
 #[component]
 pub fn ButtonDemo() -> impl IntoView {
     let (count, set_count) = signal(0_i32);
     let on_press: OnPress = Callback::new(move |_| set_count.update(|n| *n += 1));
+
+    let (bold, set_bold) = signal(false);
+    let (italic, set_italic) = signal(true);
+    let (underline, set_underline) = signal(false);
 
     view! {
         <section id="button" class="demo-card">
@@ -51,6 +56,40 @@ pub fn ButtonDemo() -> impl IntoView {
                 >
                     "LinkButton"
                 </LinkButton>
+            </div>
+
+            <div class="demo-divider"></div>
+            <div class="demo-row">
+                <ToggleButtonGroup attached=true aria_label="Formatting toggles">
+                    <ToggleButton
+                        selected=bold
+                        set_selected=set_bold
+                        variant=ToggleButtonVariant::Outline
+                        size=ui_components::ToggleButtonSize::Sm
+                    >
+                        "Bold"
+                    </ToggleButton>
+                    <ToggleButton
+                        selected=italic
+                        set_selected=set_italic
+                        variant=ToggleButtonVariant::Outline
+                        size=ui_components::ToggleButtonSize::Sm
+                    >
+                        "Italic"
+                    </ToggleButton>
+                    <ToggleButton
+                        selected=underline
+                        set_selected=set_underline
+                        variant=ToggleButtonVariant::Outline
+                        size=ui_components::ToggleButtonSize::Sm
+                    >
+                        "Underline"
+                    </ToggleButton>
+                </ToggleButtonGroup>
+                <span class="demo-kv">
+                    "selected: "
+                    {move || format!("bold={}, italic={}, underline={}", bold.get(), italic.get(), underline.get())}
+                </span>
             </div>
         </section>
     }
