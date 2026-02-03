@@ -10,15 +10,38 @@ fn App() -> impl IntoView {
     provide_focus_visible();
     provide_overlay_stack();
 
-    let (is_dark, set_is_dark) = signal(false);
-    let theme = Signal::derive(move || {
-        if is_dark.get() {
-            Theme::dark()
-        } else {
-            Theme::light()
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    enum DemoTheme {
+        Light,
+        Dark,
+        Oled,
+    }
+
+    impl DemoTheme {
+        fn next(self) -> Self {
+            match self {
+                Self::Light => Self::Dark,
+                Self::Dark => Self::Oled,
+                Self::Oled => Self::Light,
+            }
         }
+
+        fn label(self) -> &'static str {
+            match self {
+                Self::Light => "Light",
+                Self::Dark => "Dark",
+                Self::Oled => "OLED",
+            }
+        }
+    }
+
+    let (demo_theme, set_demo_theme) = signal(DemoTheme::Light);
+    let theme = Signal::derive(move || match demo_theme.get() {
+        DemoTheme::Light => Theme::light(),
+        DemoTheme::Dark => Theme::dark(),
+        DemoTheme::Oled => Theme::oled(),
     });
-    let toggle_theme: OnPress = Callback::new(move |_| set_is_dark.update(|v| *v = !*v));
+    let toggle_theme: OnPress = Callback::new(move |_| set_demo_theme.update(|t| *t = t.next()));
 
     let (count, set_count) = signal(0_i32);
     let on_press: OnPress = Callback::new(move |_| set_count.update(|n| *n += 1));
@@ -123,7 +146,10 @@ fn App() -> impl IntoView {
                     </div>
                 </div>
                 <Button on_press=toggle_theme>
-                    {move || if is_dark.get() { "Light theme" } else { "Dark theme" }}
+                    {move || {
+                        let current = demo_theme.get();
+                        format!("Theme: {} → {}", current.label(), current.next().label())
+                    }}
                 </Button>
             </header>
 
