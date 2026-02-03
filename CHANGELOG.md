@@ -17,6 +17,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-theme`: design tokens + CSS variable emitter, plus base/safe-area CSS helpers and unit tests.
 - `ui-theme`: adds a dark theme preset and additional color tokens (`fg-muted`, `bg-muted`, `accent-soft`).
 - `ui-theme`: switches preset colors to `oklch(...)` and adds an OLED theme preset (`Theme::oled()`).
+- `ui-theme`: adds danger tokens (`--ui-danger`, `--ui-danger-fg`) for destructive UI.
 - `ui-headless`: initial interaction primitives (focus-visible modality, press handling, button behavior) with `web`/`ssr` feature gating.
 - `ui-headless`: `use_hover` (hover state + handlers).
 - `ui-headless`: `use_focus_within` (container focus tracking).
@@ -50,6 +51,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds Checkbox/Switch demo section (Tab focus + Space toggle + focus-visible).
 - `apps/web-demo`: adds a light/dark theme toggle powered by `<UiRoot>`.
 - `apps/web-demo`: theme toggle now cycles Light/Dark/OLED.
+- `apps/web-demo`: showcases bb-style Button variants and sizes.
 - `apps/web-demo`: demonstrates per-item disabled options in Menu/ListBox/Select.
 - `apps/web-demo`: demonstrates checkbox/radio menu items (role + aria-checked + stays-open behavior).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
@@ -65,7 +67,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-motion`: adds a physics-based spring runtime (`SpringAnimator`) for Framer/HeroUI-style micro-interactions.
 - `ui-components`: button styles moved into a dedicated style module and injected via `<UiRoot>`.
 - `ui-components`: button motion interface reserved via `ButtonMotion` (no CSS transitions).
-- `ui-components`: `Button` press feedback now defaults to spring motion (WAAPI remains available as an option).
+- `ui-components`: `Button` hover/tap scale now defaults to a spring (bb defaults: 1.05 / 0.95).
+- `ui-components`: `Button` API aligned to bb-style variants/sizes.
 
 ### Changed
 

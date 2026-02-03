@@ -7,6 +7,8 @@ pub struct ColorTokens {
     pub accent: &'static str,
     pub accent_fg: &'static str,
     pub accent_soft: &'static str,
+    pub danger: &'static str,
+    pub danger_fg: &'static str,
     pub border: &'static str,
     pub focus_ring: &'static str,
 }

@@ -1,7 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
-    provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuItemKind,
-    MenuTrigger, Modal, OnPress, Select, Switch, Theme, UiRoot,
+    provide_focus_visible, provide_overlay_stack, Button, ButtonSize, ButtonVariant, Checkbox,
+    ListBox, MenuItemKind, MenuTrigger, Modal, OnPress, Select, Switch, Theme, UiRoot,
 };
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
@@ -191,6 +191,24 @@ fn App() -> impl IntoView {
                             <Button disabled=true>"Disabled"</Button>
                             <Button on_press=open_overlay>"Open Overlay"</Button>
                             <span class="demo-kv">"count: " {count}</span>
+                        </div>
+                        <div class="demo-divider"></div>
+                        <div class="demo-row">
+                            <Button>"Default"</Button>
+                            <Button variant=ButtonVariant::Accent>"Accent"</Button>
+                            <Button variant=ButtonVariant::Secondary>"Secondary"</Button>
+                            <Button variant=ButtonVariant::Outline>"Outline"</Button>
+                            <Button variant=ButtonVariant::Ghost>"Ghost"</Button>
+                            <Button variant=ButtonVariant::Link>"Link"</Button>
+                            <Button variant=ButtonVariant::Destructive>"Destructive"</Button>
+                        </div>
+                        <div class="demo-row">
+                            <Button size=ButtonSize::Sm>"Small"</Button>
+                            <Button size=ButtonSize::Default>"Default"</Button>
+                            <Button size=ButtonSize::Lg>"Large"</Button>
+                            <Button size=ButtonSize::Icon aria_label="Star button">"★"</Button>
+                            <Button size=ButtonSize::IconSm aria_label="Small star button">"☆"</Button>
+                            <Button size=ButtonSize::IconLg aria_label="Large star button">"✦"</Button>
                         </div>
                     </section>
 

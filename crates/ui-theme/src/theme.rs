@@ -27,6 +27,8 @@ impl Theme {
                 accent: "oklch(54.61% 0.2152 262.88)",
                 accent_fg: "oklch(100% 0 0)",
                 accent_soft: "oklch(97.05% 0.0142 254.60)",
+                danger: "oklch(61.92% 0.2419 11.33)",
+                danger_fg: "oklch(100% 0 0)",
                 border: "oklch(87.17% 0.0093 258.34)",
                 focus_ring: "oklch(54.61% 0.2152 262.88)",
             },
@@ -59,6 +61,8 @@ impl Theme {
                 accent: "oklch(71.37% 0.1434 254.62)",
                 accent_fg: "oklch(18.31% 0.0309 263.38)",
                 accent_soft: "oklch(71.37% 0.1434 254.62 / 0.18)",
+                danger: "oklch(61.92% 0.2419 11.33)",
+                danger_fg: "oklch(100% 0 0)",
                 border: "oklch(37.17% 0.0392 257.29)",
                 focus_ring: "oklch(80.91% 0.0956 251.81)",
             },
@@ -91,6 +95,8 @@ impl Theme {
                 accent: "oklch(71.37% 0.1434 254.62)",
                 accent_fg: "oklch(0% 0 0)",
                 accent_soft: "oklch(71.37% 0.1434 254.62 / 0.18)",
+                danger: "oklch(61.92% 0.2419 11.33)",
+                danger_fg: "oklch(100% 0 0)",
                 border: "oklch(32.58% 0.0404 257.29)",
                 focus_ring: "oklch(80.91% 0.0956 251.81)",
             },
@@ -127,6 +133,8 @@ impl Theme {
   --ui-accent: {accent};
   --ui-accent-fg: {accent_fg};
   --ui-accent-soft: {accent_soft};
+  --ui-danger: {danger};
+  --ui-danger-fg: {danger_fg};
   --ui-border: {border};
   --ui-focus-ring: {focus_ring};
 
@@ -151,6 +159,8 @@ impl Theme {
             accent = self.colors.accent,
             accent_fg = self.colors.accent_fg,
             accent_soft = self.colors.accent_soft,
+            danger = self.colors.danger,
+            danger_fg = self.colors.danger_fg,
             border = self.colors.border,
             focus_ring = self.colors.focus_ring,
             radius_sm = self.radius.sm_px,
@@ -179,6 +189,7 @@ mod tests {
         assert!(css.contains("--ui-fg-muted:"));
         assert!(css.contains("--ui-bg-muted:"));
         assert!(css.contains("--ui-accent-fg:"));
+        assert!(css.contains("--ui-danger:"));
         assert!(css.contains("--ui-radius-md:"));
         assert!(css.contains("--ui-shadow-md:"));
     }

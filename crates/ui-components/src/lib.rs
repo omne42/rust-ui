@@ -15,6 +15,7 @@ pub mod select;
 pub mod switch;
 
 pub use button::Button;
+pub use button::{ButtonSize, ButtonVariant};
 pub use checkbox::Checkbox;
 pub use listbox::ListBox;
 pub use menu::Menu;
