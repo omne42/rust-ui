@@ -3,12 +3,16 @@
 pub mod button;
 pub mod checkbox;
 pub mod listbox;
+pub mod menu;
+pub mod menu_trigger;
 pub mod overlay;
 pub mod switch;
 
 pub use button::Button;
 pub use checkbox::Checkbox;
 pub use listbox::ListBox;
+pub use menu::Menu;
+pub use menu_trigger::MenuTrigger;
 pub use overlay::Overlay;
 pub use switch::Switch;
 pub use ui_headless::{provide_focus_visible, provide_overlay_stack, OnPress};

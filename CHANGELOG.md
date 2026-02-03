@@ -20,14 +20,17 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_focus_within` (container focus tracking).
 - `ui-headless`: `use_roving_tabindex` (roving tabindex state + handlers).
 - `ui-headless`: `use_listbox` (aria-activedescendant listbox semantics).
+- `ui-headless`: `use_menu` (menu semantics + aria-activedescendant + keyboard navigation/activation).
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `ui-components`: `ListBox` (v0 demo component built on `use_listbox`).
+- `ui-components`: `Menu` / `MenuTrigger` (v0 overlay-based menu composition).
 - `ui-headless`: `use_checkbox` / `use_switch` (role + `aria-checked` + keyboard press handling via `PressActivationKeys`).
 - `ui-components`: `<Checkbox>` / `<Switch>` components (built on headless press + focus ring).
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
 - `ui-headless`: `use_focus_ring` hook for per-component focus ring handling.
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Overlay).
+- `apps/web-demo`: adds MenuTrigger demo section (open/navigate/select).
 - `apps/web-demo`: adds Checkbox/Switch demo section (Tab focus + Space toggle + focus-visible).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
 - `apps/tauri-demo`: Tauri v2 shell scaffold (config + build script + minimal command) for desktop verification.

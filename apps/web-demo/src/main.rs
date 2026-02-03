@@ -1,7 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
-    provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, OnPress, Overlay,
-    Switch,
+    provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuTrigger, OnPress,
+    Overlay, Switch,
 };
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
@@ -20,6 +20,24 @@ fn App() -> impl IntoView {
     let close_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.close()));
 
     let (selected_index, set_selected_index) = signal(None::<usize>);
+
+    let menu_items = vec![
+        "New".to_string(),
+        "Open".to_string(),
+        "Save".to_string(),
+        "Close".to_string(),
+    ];
+    let (menu_selected, set_menu_selected) = signal(None::<usize>);
+    let menu_selected_label = {
+        let menu_items = menu_items.clone();
+        move || {
+            menu_selected
+                .get()
+                .and_then(|i| menu_items.get(i).cloned())
+                .unwrap_or_else(|| "<none>".to_string())
+        }
+    };
+    let on_menu_action = Callback::new(move |index: usize| set_menu_selected.set(Some(index)));
 
     let (checkbox_enabled, set_checkbox_enabled) = signal(false);
     let (checkbox_checked, set_checkbox_checked) = signal(true);
@@ -66,6 +84,26 @@ fn App() -> impl IntoView {
             <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
                 "selected_index: " {move || format!("{:?}", selected_index.get())}
             </div>
+
+            <section style="margin-top: 24px;">
+                <h2 style="margin: 0 0 8px 0; font-size: 14px;">"MenuTrigger"</h2>
+                <div style="font-size: 12px; color: #6b7280; margin: 0 0 12px 0;">
+                    "Tab to focus the trigger; Enter/Space to open; Arrow keys to navigate; Enter/Space to activate."
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <MenuTrigger
+                        id_base="demo-menu".to_string()
+                        items=menu_items.clone()
+                        on_action=on_menu_action
+                    >
+                        "Open Menu"
+                    </MenuTrigger>
+                    <div style="font-size: 12px; color: #6b7280;">
+                        "selected: " {menu_selected_label}
+                    </div>
+                </div>
+            </section>
 
             <section style="margin-top: 24px;">
                 <h2 style="margin: 0 0 8px 0; font-size: 14px;">"Checkbox / Switch"</h2>

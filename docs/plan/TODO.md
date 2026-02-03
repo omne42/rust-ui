@@ -271,7 +271,8 @@
 - [x] `use_hover`（pointer fine/coarse 的差异策略；移动端降级）
 - [x] roving tabindex（Menu/ListBox/Toolbar 等键盘导航基础设施）
 - [x] `use_listbox`（role/listbox/option/aria-activedescendant，v0）
-- [ ] `use_menu` / `use_menu_item`（含 typeahead）
+- [x] `use_menu`（v0：aria-activedescendant + Arrow/Home/End 导航 + Enter/Space 激活）
+- [ ] `use_menu_item`（含 typeahead、per-item disabled、checkbox/radio menu item）
 - [ ] Overlay v2：aria-hidden 管理、scroll lock、嵌套 overlay、返回焦点策略完善
 
 ### 12.3 ui-components（从原子到复合）
@@ -281,7 +282,7 @@
 - [ ] `IconButton`（Button 变体）
 - [ ] `Popover`（在 Overlay v1 基础上做定位/箭头）
 - [ ] `Dialog` / `Modal`（Overlay + focus trap 完整版）
-- [ ] `Menu` / `MenuTrigger`（与 Popover 组合）
+- [x] `Menu` / `MenuTrigger`（v0：基于 Overlay v1，定位/箭头留给 Popover）
 - [ ] `Select`（Button + Popover + ListBox）
 - [ ] `ComboBox`（Input + ListBox + Overlay）
 - [ ] `Tooltip`（hover/focus + overlay）
