@@ -1,4 +1,4 @@
-use crate::{Button, Menu, OnPress, Popover};
+use crate::{Button, Menu, MenuItemKind, OnPress, Popover};
 use leptos::{html, prelude::*};
 use ui_headless::PopoverPlacement;
 
@@ -8,11 +8,14 @@ pub fn MenuTrigger(
     items: Vec<String>,
     on_action: Callback<usize>,
     #[prop(optional)] disabled_indices: Vec<usize>,
+    #[prop(optional)] item_kinds: Vec<MenuItemKind>,
+    #[prop(default = true)] close_on_action: bool,
     children: Children,
 ) -> impl IntoView {
     let (id_base, _set_id_base) = signal(id_base);
     let (items, _set_items) = signal(items);
     let (disabled_indices, _set_disabled_indices) = signal(disabled_indices);
+    let (item_kinds, _set_item_kinds) = signal(item_kinds);
     let (is_open, set_open) = signal(false);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
@@ -20,9 +23,11 @@ pub fn MenuTrigger(
     let on_trigger_press: OnPress = Callback::new(move |_| set_open.update(|v| *v = !*v));
     let on_close: OnPress = Callback::new(move |_| set_open.set(false));
 
-    let on_action_and_close = Callback::new(move |index: usize| {
+    let on_action_wrapped = Callback::new(move |index: usize| {
         on_action.run(index);
-        set_open.set(false);
+        if close_on_action {
+            set_open.set(false);
+        }
     });
 
     view! {
@@ -40,8 +45,9 @@ pub fn MenuTrigger(
                     <Menu
                         id_base=id_base.get_untracked()
                         items=items.get_untracked()
-                        on_action=on_action_and_close
+                        on_action=on_action_wrapped
                         disabled_indices=disabled_indices.get_untracked()
+                        item_kinds=item_kinds.get_untracked()
                     />
                 </Popover>
             </Show>

@@ -1,7 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
-    provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuTrigger, OnPress,
-    Overlay, Select, Switch,
+    provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuItemKind,
+    MenuTrigger, OnPress, Overlay, Select, Switch,
 };
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
@@ -38,6 +38,51 @@ fn App() -> impl IntoView {
         }
     };
     let on_menu_action = Callback::new(move |index: usize| set_menu_selected.set(Some(index)));
+
+    let checkbox_menu_items = vec![
+        "Show Grid".to_string(),
+        "Show Rulers".to_string(),
+        "Snap to Grid".to_string(),
+    ];
+    let (show_grid, set_show_grid) = signal(false);
+    let (show_rulers, set_show_rulers) = signal(true);
+    let (snap_to_grid, set_snap_to_grid) = signal(false);
+    let on_checkbox_menu_action = Callback::new(move |index: usize| match index {
+        0 => set_show_grid.update(|v| *v = !*v),
+        1 => set_show_rulers.update(|v| *v = !*v),
+        2 => set_snap_to_grid.update(|v| *v = !*v),
+        _ => {}
+    });
+    let checkbox_menu_kinds = vec![
+        MenuItemKind::Checkbox {
+            is_checked: show_grid.into(),
+        },
+        MenuItemKind::Checkbox {
+            is_checked: show_rulers.into(),
+        },
+        MenuItemKind::Checkbox {
+            is_checked: snap_to_grid.into(),
+        },
+    ];
+
+    let radio_menu_items = vec![
+        "Align Left".to_string(),
+        "Align Center".to_string(),
+        "Align Right".to_string(),
+    ];
+    let (alignment, set_alignment) = signal(0_usize);
+    let on_radio_menu_action = Callback::new(move |index: usize| set_alignment.set(index));
+    let radio_menu_kinds = vec![
+        MenuItemKind::Radio {
+            is_checked: Signal::derive(move || alignment.get() == 0),
+        },
+        MenuItemKind::Radio {
+            is_checked: Signal::derive(move || alignment.get() == 1),
+        },
+        MenuItemKind::Radio {
+            is_checked: Signal::derive(move || alignment.get() == 2),
+        },
+    ];
 
     let select_items = vec![
         "Apple".to_string(),
@@ -111,6 +156,44 @@ fn App() -> impl IntoView {
                     </MenuTrigger>
                     <div style="font-size: 12px; color: #6b7280;">
                         "selected: " {menu_selected_label}
+                    </div>
+                </div>
+
+                <div style="height: 16px;"></div>
+
+                <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+                    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px;">
+                        <div style="font-size: 12px; color: #6b7280;">"Checkbox Menu (stays open)"</div>
+                        <MenuTrigger
+                            id_base="demo-menu-checkbox".to_string()
+                            items=checkbox_menu_items.clone()
+                            item_kinds=checkbox_menu_kinds.clone()
+                            on_action=on_checkbox_menu_action
+                            close_on_action=false
+                        >
+                            "Options"
+                        </MenuTrigger>
+                        <div style="font-size: 12px; color: #6b7280;">
+                            "grid: " {move || show_grid.get().to_string()}
+                            ", rulers: " {move || show_rulers.get().to_string()}
+                            ", snap: " {move || snap_to_grid.get().to_string()}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px;">
+                        <div style="font-size: 12px; color: #6b7280;">"Radio Menu (stays open)"</div>
+                        <MenuTrigger
+                            id_base="demo-menu-radio".to_string()
+                            items=radio_menu_items.clone()
+                            item_kinds=radio_menu_kinds.clone()
+                            on_action=on_radio_menu_action
+                            close_on_action=false
+                        >
+                            "Alignment"
+                        </MenuTrigger>
+                        <div style="font-size: 12px; color: #6b7280;">
+                            "selected: " {move || alignment.get().to_string()}
+                        </div>
                     </div>
                 </div>
             </section>

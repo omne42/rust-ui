@@ -19,4 +19,4 @@ pub use overlay::Overlay;
 pub use popover::Popover;
 pub use select::Select;
 pub use switch::Switch;
-pub use ui_headless::{provide_focus_visible, provide_overlay_stack, OnPress};
+pub use ui_headless::{provide_focus_visible, provide_overlay_stack, MenuItemKind, OnPress};

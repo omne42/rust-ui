@@ -274,7 +274,7 @@
 - [x] `use_menu`（v0：aria-activedescendant + Arrow/Home/End 导航 + Enter/Space 激活）
 - [x] typeahead（Menu/ListBox：500ms buffer + prefix match + loop；通过 `item_text`）
 - [x] per-item disabled（Menu/ListBox：跳过 focus/activation/typeahead；通过 `is_item_disabled`）
-- [ ] `use_menu_item`（checkbox/radio menu item）
+- [x] `use_menu_item`（Action/Checkbox/Radio：role + aria-checked + handlers）
 - [ ] Overlay v2：aria-hidden 管理、scroll lock、嵌套 overlay、返回焦点策略完善
 
 ### 12.3 ui-components（从原子到复合）
@@ -284,7 +284,7 @@
 - [ ] `IconButton`（Button 变体）
 - [x] `Popover`（v0：基于 anchor rect 的定位；箭头/flip/scroll lock 后续）
 - [ ] `Dialog` / `Modal`（Overlay + focus trap 完整版）
-- [x] `Menu` / `MenuTrigger`（v0：基于 Popover v0；typeahead + disabled items 已支持）
+- [x] `Menu` / `MenuTrigger`（v0：基于 Popover v0；typeahead + disabled items + checkbox/radio items；`close_on_action` 可选）
 - [x] `Select`（v0：Button + Popover + ListBox，选择后自动关闭）
 - [ ] `ComboBox`（Input + ListBox + Overlay）
 - [ ] `Tooltip`（hover/focus + overlay）

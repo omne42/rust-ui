@@ -23,6 +23,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_menu` (menu semantics + aria-activedescendant + keyboard navigation/activation).
 - `ui-headless`: `use_menu` / `use_listbox` typeahead navigation when `item_text` is provided.
 - `ui-headless`: per-item disabled support for roving navigation, activation, and typeahead (`is_item_disabled`).
+- `ui-headless`: `use_menu_item` (Action/Checkbox/Radio roles + `aria-checked` + per-item handlers).
 - `ui-headless`: `use_popover_position` (anchor-rect positioning; fixed layout).
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `ui-components`: `ListBox` (v0 demo component built on `use_listbox`).
@@ -31,6 +32,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Select` (v0 Button + Popover + ListBox composition).
 - `ui-components`: `Menu` / `ListBox` / `Select` provide `item_text` to enable typeahead navigation.
 - `ui-components`: `Menu` / `MenuTrigger` / `ListBox` / `Select` support per-item disabled via `disabled_indices`.
+- `ui-components`: `Menu` / `MenuTrigger` support checkbox/radio menu items via `item_kinds`, plus `close_on_action` for checkbox-style menus.
 - `ui-headless`: `use_checkbox` / `use_switch` (role + `aria-checked` + keyboard press handling via `PressActivationKeys`).
 - `ui-components`: `<Checkbox>` / `<Switch>` components (built on headless press + focus ring).
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
@@ -41,6 +43,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds Select demo section (Button -> Popover -> ListBox).
 - `apps/web-demo`: adds Checkbox/Switch demo section (Tab focus + Space toggle + focus-visible).
 - `apps/web-demo`: demonstrates per-item disabled options in Menu/ListBox/Select.
+- `apps/web-demo`: demonstrates checkbox/radio menu items (role + aria-checked + stays-open behavior).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
 - `apps/tauri-demo`: Tauri v2 shell scaffold (config + build script + minimal command) for desktop verification.
 - Dev tooling: `githooks/` (Conventional Commits + pre-commit gates) with `scripts/setup-githooks.sh`, plus gate runner scripts (`scripts/gate.sh`, `scripts/check.sh`) and `scripts/fetch_upstream.sh` for cloning upstream reference repos into `examples/` (ignored by git).

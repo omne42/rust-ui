@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use std::{collections::HashSet, sync::Arc};
-use ui_headless::{use_menu, MenuOptions};
+use ui_headless::{use_menu, use_menu_item, MenuItemKind, MenuItemOptions, MenuOptions};
 
 #[component]
 pub fn Menu(
@@ -9,6 +9,7 @@ pub fn Menu(
     on_action: Callback<usize>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
+    #[prop(optional)] item_kinds: Vec<MenuItemKind>,
 ) -> impl IntoView {
     let items: Arc<Vec<String>> = Arc::new(items);
     let (item_count, _set_item_count) = signal(items.len());
@@ -16,6 +17,8 @@ pub fn Menu(
     let disabled_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_set.is_empty();
     let disabled_items: Arc<HashSet<usize>> = Arc::new(disabled_set);
+
+    let item_kinds: Arc<Vec<MenuItemKind>> = Arc::new(item_kinds);
 
     let item_text = {
         let items = items.clone();
@@ -36,6 +39,7 @@ pub fn Menu(
         is_item_disabled,
         item_text: Some(item_text),
     });
+    let menu = aria.clone();
 
     let on_key_down = move |ev: leptos::ev::KeyboardEvent| {
         if aria.handlers.on_key_down.run(ev.key()) {
@@ -56,25 +60,50 @@ pub fn Menu(
                 .iter()
                 .cloned()
                 .enumerate()
-                .map(|(index, label)| {
-                    let id = aria.option_id.run(index);
-                    let is_active = move || aria.active_index.get() == index;
-                    let is_disabled = disabled_items.contains(&index);
+                .map(move |(index, label)| {
+                    let kind = item_kinds
+                        .get(index)
+                        .copied()
+                        .unwrap_or(MenuItemKind::Action);
+                    let is_disabled = disabled || disabled_items.contains(&index);
+                    let item = use_menu_item(
+                        &menu,
+                        MenuItemOptions {
+                            index,
+                            kind,
+                            is_disabled,
+                        },
+                    );
+
+                    let is_active = move || menu.active_index.get() == index;
+                    let indicator = move || match kind {
+                        MenuItemKind::Action => None,
+                        MenuItemKind::Checkbox { is_checked } => {
+                            is_checked.get().then_some("✓")
+                        }
+                        MenuItemKind::Radio { is_checked } => {
+                            is_checked.get().then_some("●")
+                        }
+                    };
 
                     view! {
                         <div
-                            id=id
-                            role="menuitem"
-                            aria-disabled=if is_disabled { Some("true") } else { None }
+                            id=item.attrs.id
+                            role=item.attrs.role
+                            aria-checked=move || item.attrs.aria_checked.get()
+                            aria-disabled=item.attrs.aria_disabled
                             class="ui-menu__item"
                             class:ui-menu__item--active=is_active
                             class:ui-menu__item--disabled=is_disabled
-                            on:pointermove=move |_| aria.handlers.on_item_pointer_move.run(index)
-                            on:click=move |_| aria.handlers.on_item_click.run(index)
+                            on:pointermove=move |_| item.handlers.on_pointer_move.run(())
+                            on:click=move |_| item.handlers.on_click.run(())
                             style="padding: 6px 10px; border-radius: 8px; cursor: default;"
                             style:opacity=if is_disabled { "0.5" } else { "1" }
                             style:background-color=move || if is_active() { "#eff6ff" } else { "transparent" }
                         >
+                            <span style="display: inline-block; width: 16px;">
+                                {indicator}
+                            </span>
                             {label}
                         </div>
                     }
