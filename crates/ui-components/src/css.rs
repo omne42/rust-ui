@@ -14,6 +14,12 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::alert::styles::CSS);
     out.push_str(crate::chip::styles::CSS);
     out.push_str(crate::skeleton::styles::CSS);
+    out.push_str(crate::link::styles::CSS);
+    out.push_str(crate::breadcrumbs::styles::CSS);
+    out.push_str(crate::code::styles::CSS);
+    out.push_str(crate::kbd::styles::CSS);
+    out.push_str(crate::spacer::styles::CSS);
+    out.push_str(crate::progress_bar::styles::CSS);
     out.push_str(crate::combo_box::styles::CSS);
     out.push_str(crate::text_field::styles::CSS);
     out.push_str(crate::text_area::styles::CSS);

@@ -15,6 +15,7 @@ pub mod tabs_demo;
 pub mod text_area_demo;
 pub mod text_field_demo;
 pub mod tooltip_demo;
+pub mod typography_demo;
 
 pub use architecture::ArchitectureDemo;
 pub use avatar_demo::AvatarDemo;
@@ -33,3 +34,4 @@ pub use tabs_demo::TabsDemo;
 pub use text_area_demo::TextAreaDemo;
 pub use text_field_demo::TextFieldDemo;
 pub use tooltip_demo::TooltipDemo;
+pub use typography_demo::TypographyDemo;

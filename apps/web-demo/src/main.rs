@@ -3,7 +3,7 @@ mod demos;
 use demos::{
     ArchitectureDemo, AvatarDemo, ButtonDemo, ComboBoxDemo, DividerDemo, FormsDemo, ListBoxDemo,
     MenuDemo, MiscDemo, OverlayDemo, RadioDemo, SelectDemo, StatusDemo, TabsDemo, TextAreaDemo,
-    TextFieldDemo, TooltipDemo,
+    TextFieldDemo, TooltipDemo, TypographyDemo,
 };
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{Button, OnPress, Theme, UiRoot, provide_focus_visible, provide_overlay_stack};
@@ -72,6 +72,7 @@ fn App() -> impl IntoView {
                     <a href="#avatar">"Avatar"</a>
                     <a href="#status">"Badge / Spinner"</a>
                     <a href="#misc">"Card / Alert / Chip / Skeleton"</a>
+                    <a href="#typography">"Link / Code / Progress"</a>
                     <a href="#tooltip">"Tooltip"</a>
                     <a href="#overlay">"Overlay"</a>
                     <a href="#listbox">"ListBox"</a>
@@ -92,6 +93,7 @@ fn App() -> impl IntoView {
                     <AvatarDemo />
                     <StatusDemo />
                     <MiscDemo />
+                    <TypographyDemo />
                     <TooltipDemo />
                     <OverlayDemo />
                     <ListBoxDemo />

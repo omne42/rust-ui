@@ -91,6 +91,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: adds a Leptos CSR docs site with a minimal playground (preview + code) and a rendered `docs/RULES_ZH.md` page.
 - `ui-components`: adds new components: `Card`, `Alert`, `Chip`, `AvatarGroup`, `Skeleton`, and `Spinner`.
 - `apps/web-demo`: adds a misc demo section covering Card/Alert/Chip/Skeleton/AvatarGroup/Spinner.
+- `ui-components`: adds utility components: `Link`, `Breadcrumbs`, `Code`, `Kbd`, `Spacer`, and `ProgressBar`.
+- `apps/web-demo`: adds a typography/utilities demo section for Link/Breadcrumbs/Code/Kbd/Spacer/ProgressBar.
 
 ### Changed
 

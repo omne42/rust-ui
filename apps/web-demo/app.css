@@ -185,6 +185,17 @@ code {
   height: 32px;
 }
 
+.demo-code-block {
+  max-width: 420px;
+}
+
+.demo-progress-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 320px;
+}
+
 .demo-hero {
   background: linear-gradient(180deg, var(--ui-accent-soft), transparent),
     var(--ui-bg-muted);
