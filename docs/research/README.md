@@ -20,6 +20,10 @@
 - Leptos：`examples/_upstream/leptos`
 - Tauri：`examples/_upstream/tauri`
 - leptos-use：`examples/_upstream/leptos-use`
+- Motion（Framer Motion）：`examples/_upstream/motion`
+- HeroUI：`examples/_upstream/heroui`
+- shadcn/ui：`examples/_upstream/shadcn-ui`
+- animate-ui：`examples/_upstream/animate-ui`
 - WAI-ARIA Authoring Practices：`examples/_upstream/w3c-aria-practices`
 
 ## React Spectrum 关键文件定位（第一批）

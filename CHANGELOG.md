@@ -53,6 +53,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
 - `apps/tauri-demo`: Tauri v2 shell scaffold (config + build script + minimal command) for desktop verification.
 - Dev tooling: `githooks/` (Conventional Commits + pre-commit gates) with `scripts/setup-githooks.sh`, plus gate runner scripts (`scripts/gate.sh`, `scripts/check.sh`) and `scripts/fetch_upstream.sh` for cloning upstream reference repos into `examples/` (ignored by git).
+- Dev tooling: `scripts/fetch_upstream.sh` now also clones motion/heroui/shadcn-ui/animate-ui into `examples/_upstream` (ignored by git).
 - Dev tooling: `scripts/dev-web-demo.sh` to run the web demo with sane defaults (unsets `NO_COLOR`, ensures wasm target/tooling).
 - Project docs: MVP/spec notes and a TODO/DAG-based implementation plan.
 - Research: Android spike checklist and go/no-go criteria (`docs/research/android-spike.md`).

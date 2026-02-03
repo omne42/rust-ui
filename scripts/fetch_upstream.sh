@@ -18,7 +18,30 @@ clone_depth1() {
   fi
 
   printf 'clone: %s\n' "$name"
-  git clone --depth 1 "$url" "$dest"
+  # Prevent interactive credential prompts in unattended environments.
+  GIT_TERMINAL_PROMPT=0 git clone --depth 1 --single-branch --no-tags "$url" "$dest"
+}
+
+clone_sparse_depth1() {
+  local url="$1"
+  local name="$2"
+  shift 2
+  local dest="$DEST_DIR/$name"
+
+  if [[ -d "$dest/.git" ]]; then
+    printf 'skip: %s (already cloned)\n' "$name"
+    return 0
+  fi
+
+  printf 'clone (sparse): %s\n' "$name"
+  GIT_TERMINAL_PROMPT=0 git clone --depth 1 --single-branch --no-tags --filter=blob:none --no-checkout "$url" "$dest"
+
+  (
+    cd "$dest"
+    git sparse-checkout init --cone
+    git sparse-checkout set "$@"
+    git checkout
+  )
 }
 
 clone_depth1 https://github.com/adobe/react-spectrum.git adobe-react-spectrum
@@ -34,3 +57,8 @@ clone_depth1 https://github.com/Synphonyte/leptos-use.git leptos-use
 
 clone_depth1 https://github.com/w3c/aria-practices.git w3c-aria-practices
 
+# UI / Motion references (React ecosystem)
+clone_sparse_depth1 https://github.com/motiondivision/motion.git motion packages
+clone_depth1 https://github.com/heroui-inc/heroui.git heroui
+clone_depth1 https://github.com/shadcn-ui/ui.git shadcn-ui
+clone_depth1 https://github.com/imskyleen/animate-ui.git animate-ui
