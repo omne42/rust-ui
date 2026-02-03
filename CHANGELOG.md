@@ -80,8 +80,11 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - CI: adds a GitHub Actions workflow that runs `cargo fmt`, `cargo clippy`, and `cargo test`.
 - `apps/web-demo`: adds `dev-overrides.css` as a hot-reload-friendly place to prototype component style changes.
 - `ui-headless`: adds `use_text_field` hook (+ unit tests) for wiring input `aria-describedby`/`aria-invalid`/`aria-required`.
+- `ui-headless`: expands hook test coverage (focus-within, press cancel/blur, listbox selection sync, menu item roles).
 - `ui-components`: adds new components: `IconButton`, `Badge`, `CircularProgress`, `TextField`, `Tabs`, and `Tooltip`.
+- `ui-components`: adds tests enforcing styling rules (`style:` forbidden; `style=` allowlist) and validating CSS aggregation.
 - `apps/web-demo`: adds demo sections for Badge/Spinner, Tooltip, Tabs, and TextField.
+- `ui-motion`: adds reduced-motion unit tests for `SpringAnimator` (immediate apply + on-rest callbacks).
 
 ### Changed
 

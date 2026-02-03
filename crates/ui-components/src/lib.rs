@@ -50,3 +50,8 @@ pub use tooltip::Tooltip;
 pub use tooltip::TooltipMotion;
 pub use ui_headless::{MenuItemKind, OnPress, provide_focus_visible, provide_overlay_stack};
 pub use ui_theme::Theme;
+
+#[doc(hidden)]
+pub fn push_components_css(out: &mut String) {
+    css::push_components_css(out);
+}
