@@ -276,8 +276,8 @@ pub fn use_press(options: PressOptions) -> PressState {
 mod tests {
     use super::*;
     use std::sync::{
-        atomic::{AtomicUsize, Ordering},
         Arc,
+        atomic::{AtomicUsize, Ordering},
     };
 
     #[test]

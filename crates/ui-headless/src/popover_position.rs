@@ -42,7 +42,7 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
     {
         use send_wrapper::SendWrapper;
         use std::rc::Rc;
-        use wasm_bindgen::{closure::Closure, JsCast};
+        use wasm_bindgen::{JsCast, closure::Closure};
 
         let compute: Rc<dyn Fn()> = Rc::new({
             let anchor_ref = _options.anchor_ref;

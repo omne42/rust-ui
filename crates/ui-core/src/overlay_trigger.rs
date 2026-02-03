@@ -1,5 +1,5 @@
 use crate::controlled::{
-    use_controlled_state, ControlledOnChange, ControlledState, ControlledStateOptions,
+    ControlledOnChange, ControlledState, ControlledStateOptions, use_controlled_state,
 };
 
 pub type OverlayOnOpenChange = ControlledOnChange<bool>;

@@ -1,5 +1,5 @@
 use crate::focus_visible::use_focus_visible;
-use crate::press::{use_press, OnPress, PressHandlers, PressOptions};
+use crate::press::{OnPress, PressHandlers, PressOptions, use_press};
 use leptos::prelude::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

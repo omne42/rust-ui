@@ -7,6 +7,7 @@
 
 pub mod keyframes;
 pub mod options;
+pub mod presets;
 pub mod spring;
 
 #[cfg(target_arch = "wasm32")]

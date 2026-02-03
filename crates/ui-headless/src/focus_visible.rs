@@ -70,8 +70,8 @@ impl FocusVisibleState {
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
 fn setup_global_listeners(state: FocusVisibleState) {
     use send_wrapper::SendWrapper;
-    use wasm_bindgen::closure::Closure;
     use wasm_bindgen::JsCast;
+    use wasm_bindgen::closure::Closure;
 
     let Some(window) = web_sys::window() else {
         return;

@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_theme::{css, Theme};
+use ui_theme::{Theme, css};
 
 #[component]
 pub fn UiRoot(

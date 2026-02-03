@@ -1,0 +1,105 @@
+# Styling / CSS 规格（v0）
+
+目标：在 **可发布（crate 用户零配置可用）** 与 **开发体验（快速微调样式）** 之间取得平衡，并保证分层与可维护性。
+
+> TL;DR
+> - 发布默认：组件 CSS 仍由 `ui-components` 统一注入（开箱即用）。
+> - 开发体验：不要在开发阶段频繁改 `styles.rs`；用应用侧热更新 CSS 覆盖来迭代，收敛后再回填到 `styles.rs`。
+
+## 背景与现状
+
+当前仓库的样式来源分三层：
+
+1. **Theme tokens → CSS variables**：`ui-theme` 生成 `--ui-*`，由 `<UiRoot>` 注入（支持运行时切换主题）。
+2. **组件样式（ui-components）**：每个组件的 `styles.rs` 产出 `pub const CSS: &str`，经 `ui-components/src/css.rs` 聚合，由 `<UiRoot>` 注入。
+3. **应用布局（apps/*）**：页面布局/排版（grid/flex/响应式）由应用侧 CSS 决定（例如 `apps/web-demo/app.css`）。
+
+这种设计对 crate 用户友好（只加依赖、用 `<UiRoot>` 即可），但对开发者有一个明显痛点：**改 `styles.rs` 必须重新编译（尤其 wasm）**，微调成本高。
+
+## 关键困难（为什么“不直接改成静态资源”）
+
+把 `ui-components` 的 CSS 变成静态资源（`*.css`）确实能带来更快的样式迭代，但会引入发布与集成成本：
+
+- **对外部项目不透明**：使用者必须知道要额外引入某个 CSS 文件（Trunk/Vite/Webpack/Tauri/路径/顺序等）。
+- **打包与版本同步**：CSS 文件与 crate 版本需要强绑定，否则容易出现“升级依赖但没升级样式文件”的错配。
+- **注入顺序与覆盖规则**：应用要能覆盖组件样式，必须处理好 CSS 加载顺序；而 `<UiRoot>` 注入 `<style>` 往往出现在 document 末尾，天然更容易压过应用侧 CSS。
+
+因此：**发布默认不建议强制静态资源**；更现实的做法是同时满足“零配置发布”和“开发热更新”。
+
+## 方案对比（思考）
+
+### 方案 A：CSS 继续以 `styles.rs` 注入（当前）
+
+优点：
+- 对外部项目：零配置、最稳定。
+- 对仓库内：分层清晰，主题 tokens 与组件 CSS 统一由 `<UiRoot>` 注入。
+
+缺点：
+- 开发时微调样式需要重新编译（尤其 wasm）。
+- 应用侧想覆盖组件样式，需要更高 specificity 或 `!important`（因为注入顺序靠后）。
+
+### 方案 B：组件 CSS 纯静态资源（`ui-components.css`）
+
+优点：
+- CSS 可以热更新；微调快。
+- 可以接入 PostCSS、CSS Modules、Tailwind 等生态（如需要）。
+
+缺点：
+- 破坏开箱即用：对外部项目有额外集成要求。
+- 打包/路径/版本/注入顺序增加复杂度（尤其多平台：Web + Tauri）。
+
+### 方案 C：Hybrid（推荐）
+
+核心：**默认保持注入以保证发布友好**，同时提供一条 **应用侧热更新覆盖** 的开发路径（必要时再提供 feature 关闭注入）。
+
+## 推荐决策（解决方式）
+
+### 1) 发布默认：保持注入（不强制静态资源）
+
+- `ui-theme`：继续由 `<UiRoot>` 注入主题变量（运行时切换主题必需）。
+- `ui-components`：组件 CSS 继续由 `<UiRoot>` 注入（crate 用户零配置可用）。
+
+### 2) 开发时：用应用侧 CSS 覆盖进行热更新迭代
+
+建议工作流：
+
+1. 在 `apps/*` 增加一个开发覆盖文件（例如 `dev-overrides.css`），通过 Trunk/Vite 等热更新机制加载。
+2. 先在 `dev-overrides.css` 里快速试样式（不改 Rust，不触发 wasm 重新编译）。
+3. 样式稳定后，再把规则回填到对应组件的 `styles.rs`，并删除/收敛 overrides。
+
+> 注意：如果不做额外处理，由于 `<UiRoot>` 注入的 `<style>` 往往出现在文档更靠后位置，
+> 应用侧 CSS 想覆盖组件 CSS 通常需要更高 specificity 或 `!important`。
+
+### 3) 让覆盖更干净：使用 CSS Cascade Layers（建议引入）
+
+为避免 `!important`/高 specificity，建议把 `ui-components` 注入的 CSS 包进 `@layer ui { ... }`：
+
+- 组件 CSS 在 `@layer ui` 中（低优先级层）。
+- 应用侧 overrides 不放进 layer（默认是“未分层样式”），即使加载顺序更早，也能自然覆盖组件样式。
+
+这能显著提升“开发覆盖”的体验，同时不影响对外发布的零配置特性。
+
+## 规范（必须遵守）
+
+> 该部分与 `docs/RULES_ZH.md` 保持一致；这里给出更具体的落地约束与建议。
+
+- **组件禁止 inline CSS**：
+  - `ui-components` 中禁止写“普通属性”的 inline style（`top/left/padding/background/...`）。
+  - 允许传递运行时数值时使用 custom properties（`--*`）：
+    - 推荐：`style:--x=...`（如果语法可用）
+    - 允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值（禁止普通属性）
+  - 禁止使用 `style:<prop>=...` 绑定普通 CSS 属性（`padding/background/position/...` 等）。
+- **组件样式必须集中**：
+  - 所有样式 selector/声明必须位于组件的 `styles.rs`（`pub const CSS: &str`）。
+  - `ui-components/src/css.rs` 负责聚合，最终由 `<UiRoot>` 统一注入。
+- **状态表达优先 class/data-attrs**：
+  - 离散状态（hover/pressed/selected/disabled/open 等）用 `class:` 或 `data-*`，由 `styles.rs` 控制样式。
+- **运行时数值只允许用 CSS variables（custom properties）**：
+  - 例如 popover 定位、motion 参数、测量结果等，只能通过 `--*` 变量传入，再在 CSS 中消费（如 `top: var(--ui-popover-top)`）。
+  - 具体绑定方式依赖 Leptos attribute 语法（可用 `style:` 或 `attr:style` 等）；但语义必须是“只写变量，不写普通样式属性”。
+
+## 迁移与验收建议（落地路线）
+
+- 迁移顺序建议：`Overlay/Popover`（定位/portal）→ `ListBox/Menu/Select`（高频交互状态）→ 其它组件。
+- 快速排查违规：在仓库中搜索 `style=` 与 `style:`（目标：`ui-components` 里不存在普通 inline style）。
+- 统一收敛：当 overrides 稳定后，把规则回填 `styles.rs`，删除 `dev-overrides.css` 中对应内容，避免长期分叉。

@@ -22,32 +22,32 @@ pub mod roving_tabindex;
 pub mod switch;
 
 pub use button::{
-    use_button, ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions,
+    ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions, use_button,
 };
-pub use checkbox::{use_checkbox, CheckboxAria, CheckboxAttrs, CheckboxHandlers, CheckboxOptions};
-pub use focus_ring::{use_focus_ring, FocusRingHandlers, FocusRingOptions, FocusRingState};
-pub use focus_trap::{use_focus_trap, FocusTrapHandlers, FocusTrapOptions};
-pub use focus_visible::{provide_focus_visible, use_focus_visible, FocusVisibleState};
+pub use checkbox::{CheckboxAria, CheckboxAttrs, CheckboxHandlers, CheckboxOptions, use_checkbox};
+pub use focus_ring::{FocusRingHandlers, FocusRingOptions, FocusRingState, use_focus_ring};
+pub use focus_trap::{FocusTrapHandlers, FocusTrapOptions, use_focus_trap};
+pub use focus_visible::{FocusVisibleState, provide_focus_visible, use_focus_visible};
 pub use focus_within::{
-    use_focus_within, FocusWithinHandlers, FocusWithinOptions, FocusWithinState,
+    FocusWithinHandlers, FocusWithinOptions, FocusWithinState, use_focus_within,
 };
-pub use hover::{use_hover, HoverHandlers, HoverOptions, HoverState};
-pub use listbox::{use_listbox, ListBoxAria, ListBoxAttrs, ListBoxHandlers, ListBoxOptions};
-pub use menu::{use_menu, MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOptions};
+pub use hover::{HoverHandlers, HoverOptions, HoverState, use_hover};
+pub use listbox::{ListBoxAria, ListBoxAttrs, ListBoxHandlers, ListBoxOptions, use_listbox};
+pub use menu::{MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOptions, use_menu};
 pub use menu_item::{
-    use_menu_item, MenuItemAria, MenuItemAttrs, MenuItemHandlers, MenuItemKind, MenuItemOptions,
+    MenuItemAria, MenuItemAttrs, MenuItemHandlers, MenuItemKind, MenuItemOptions, use_menu_item,
 };
-pub use modal::{use_modal, ModalOptions};
+pub use modal::{ModalOptions, use_modal};
 pub use modality::Modality;
 pub use overlay_stack::{
-    provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration, OverlayRegistration,
+    OverlayRegistration, provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration,
 };
 pub use popover_position::{
-    use_popover_position, PopoverPlacement, PopoverPositionOptions, PopoverPositionState,
+    PopoverPlacement, PopoverPositionOptions, PopoverPositionState, use_popover_position,
 };
-pub use press::{use_press, OnPress, PressActivationKeys, PressHandlers, PressOptions, PressState};
+pub use press::{OnPress, PressActivationKeys, PressHandlers, PressOptions, PressState, use_press};
 pub use roving_tabindex::{
-    use_roving_tabindex, RovingOrientation, RovingTabIndexHandlers, RovingTabIndexOptions,
-    RovingTabIndexState,
+    RovingOrientation, RovingTabIndexHandlers, RovingTabIndexOptions, RovingTabIndexState,
+    use_roving_tabindex,
 };
-pub use switch::{use_switch, SwitchAria, SwitchAttrs, SwitchHandlers, SwitchOptions};
+pub use switch::{SwitchAria, SwitchAttrs, SwitchHandlers, SwitchOptions, use_switch};

@@ -69,6 +69,12 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: button motion interface reserved via `ButtonMotion` (no CSS transitions).
 - `ui-components`: `Button` hover/tap scale now defaults to a spring (bb defaults: 1.05 / 0.95).
 - `ui-components`: `Button` API aligned to bb-style variants/sizes.
+- `ui-components`: refactors `<Checkbox>` / `<Switch>` into `logic/styles/motion/view` modules and adds spring-driven micro-interactions.
+- `ui-motion`: adds spring presets (`ui_motion::presets`) and `SpringAnimator` rest callbacks (`set_on_rest`/`clear_on_rest`) for presence-style flows.
+- `ui-components`: refactors `<Overlay>` / `<Popover>` / `<Modal>` into `logic/styles/motion/view` modules and adds spring enter/exit motion with `on_exit_complete` for presence.
+- `ui-components`: adds spring-driven active highlight motion for `<ListBox>` / `<Menu>` / `<Select>` (HeroUI-style feel).
+- `ui-components`: `Select` now composes `ListBox` and uses popover presence internally.
+- `ui-components`: adds `aria_haspopup` / `aria_expanded` / `aria_controls` support on `Button` for trigger-style components.
 
 ### Changed
 

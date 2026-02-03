@@ -200,8 +200,8 @@
 - [x] 新增 `ui-motion` crate（Web: WAAPI；SSR/no-op），作为“高级 motion（非 CSS）”的执行后端
 - [x] `Button`：拆分为 `logic.rs` / `styles.rs` / `motion.rs` / `view.rs`
 - [x] `<UiRoot>`：统一注入组件 CSS（先从 Button 开始）
-- [ ] 其余组件逐步迁移到相同结构（每次迁移都要保持对外 API 不变）
-- [ ] 逐步清理 `ui-components` 的 inline style（迁移到 `styles.rs` 的 CSS 字符串 + tokens）
+- [x] 其余组件迁移到相同结构（Checkbox/Switch/Overlay/Popover/Modal/Menu/ListBox/Select/MenuTrigger）
+- [x] 清理 `ui-components` 的 inline style（改为 `styles.rs` + `data-*` + CSS variables）
 
 ### 7.1 Button v0
 

@@ -1,4 +1,4 @@
-use crate::roving_tabindex::{use_roving_tabindex, RovingOrientation, RovingTabIndexOptions};
+use crate::roving_tabindex::{RovingOrientation, RovingTabIndexOptions, use_roving_tabindex};
 use leptos::prelude::*;
 use std::time::{Duration, Instant};
 
@@ -130,10 +130,10 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
             if is_disabled {
                 return;
             }
-            if let Some(is_item_disabled) = is_item_disabled {
-                if is_item_disabled.run(index) {
-                    return;
-                }
+            if let Some(is_item_disabled) = is_item_disabled
+                && is_item_disabled.run(index)
+            {
+                return;
             }
             on_item_focus.run(index);
             if let Some(on_action) = on_action {
@@ -169,10 +169,10 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
                     return false;
                 }
                 let index = roving.active_index.get_untracked();
-                if let Some(is_item_disabled) = is_item_disabled {
-                    if is_item_disabled.run(index) {
-                        return true;
-                    }
+                if let Some(is_item_disabled) = is_item_disabled
+                    && is_item_disabled.run(index)
+                {
+                    return true;
                 }
                 if let Some(on_action) = on_action {
                     on_action.run(index);
@@ -180,57 +180,57 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
                 return true;
             }
 
-            if let Some(item_text) = item_text {
-                if let Some(ch) = typeahead_char(&key) {
-                    let now = Instant::now();
-                    let mut query = typeahead.get_untracked();
-                    if last_typed_at
-                        .get_untracked()
-                        .map(|t| now.duration_since(t) > timeout)
-                        .unwrap_or(true)
-                    {
-                        query.clear();
+            if let Some(item_text) = item_text
+                && let Some(ch) = typeahead_char(&key)
+            {
+                let now = Instant::now();
+                let mut query = typeahead.get_untracked();
+                if last_typed_at
+                    .get_untracked()
+                    .map(|t| now.duration_since(t) > timeout)
+                    .unwrap_or(true)
+                {
+                    query.clear();
+                }
+                query.push(ch);
+
+                let count = item_count.get_untracked();
+                if count == 0 {
+                    return false;
+                }
+
+                let start = (roving.active_index.get_untracked() + 1) % count;
+
+                let next = find_typeahead_match(
+                    &query,
+                    start,
+                    count,
+                    item_text,
+                    is_item_disabled.as_ref(),
+                )
+                .or_else(|| {
+                    if query.len() <= 1 {
+                        return None;
                     }
-                    query.push(ch);
-
-                    let count = item_count.get_untracked();
-                    if count == 0 {
-                        return false;
-                    }
-
-                    let start = (roving.active_index.get_untracked() + 1) % count;
-
-                    let next = find_typeahead_match(
-                        &query,
+                    let single = ch.to_string();
+                    let idx = find_typeahead_match(
+                        &single,
                         start,
                         count,
                         item_text,
                         is_item_disabled.as_ref(),
-                    )
-                    .or_else(|| {
-                        if query.len() <= 1 {
-                            return None;
-                        }
-                        let single = ch.to_string();
-                        let idx = find_typeahead_match(
-                            &single,
-                            start,
-                            count,
-                            item_text,
-                            is_item_disabled.as_ref(),
-                        )?;
-                        query = single;
-                        Some(idx)
-                    });
+                    )?;
+                    query = single;
+                    Some(idx)
+                });
 
-                    set_typeahead.set(query);
-                    set_last_typed_at.set(Some(now));
+                set_typeahead.set(query);
+                set_last_typed_at.set(Some(now));
 
-                    if let Some(next) = next {
-                        on_item_focus.run(next);
-                    }
-                    return true;
+                if let Some(next) = next {
+                    on_item_focus.run(next);
                 }
+                return true;
             }
 
             false

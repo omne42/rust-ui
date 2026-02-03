@@ -1,9 +1,10 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
-    provide_focus_visible, provide_overlay_stack, Button, ButtonSize, ButtonVariant, Checkbox,
-    ListBox, MenuItemKind, MenuTrigger, Modal, OnPress, Select, Switch, Theme, UiRoot,
+    Button, ButtonSize, ButtonVariant, Checkbox, CheckboxSize, CheckboxVariant, ListBox,
+    MenuItemKind, MenuTrigger, Modal, OnPress, Select, Switch, Theme, UiRoot,
+    provide_focus_visible, provide_overlay_stack,
 };
-use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
+use ui_core::overlay_trigger::{OverlayTriggerStateOptions, use_overlay_trigger_state};
 
 #[component]
 fn App() -> impl IntoView {
@@ -51,6 +52,16 @@ fn App() -> impl IntoView {
     ));
     let open_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.open()));
     let close_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.close()));
+    let is_modal_open = Signal::derive(move || overlay_state.get().is_open());
+    let (is_modal_present, set_modal_present) = signal(is_modal_open.get_untracked());
+
+    Effect::new(move |_| {
+        if is_modal_open.get() {
+            set_modal_present.set(true);
+        }
+    });
+
+    let on_modal_exit_complete: Callback<()> = Callback::new(move |_| set_modal_present.set(false));
 
     let (selected_index, set_selected_index) = signal(None::<usize>);
 
@@ -212,12 +223,14 @@ fn App() -> impl IntoView {
                         </div>
                     </section>
 
-                    <Show when=move || overlay_state.get().is_open()>
+                    <Show when=move || is_modal_present.get()>
                         <Modal
+                            open=is_modal_open
                             id_base="demo-modal".to_string()
                             title="Overlay v2".to_string()
                             description="Esc / click outside closes. Tab is trapped; close returns focus.".to_string()
                             on_close=close_overlay
+                            on_exit_complete=on_modal_exit_complete
                         >
                             <div class="demo-row" style="justify-content: flex-end;">
                                 <Button on_press=close_overlay>"Close"</Button>
@@ -339,14 +352,23 @@ fn App() -> impl IntoView {
                         <div class="demo-grid-2">
                             <div class="demo-stack">
                                 <div class="demo-kv">"Checkbox"</div>
-                                <Checkbox checked=checkbox_enabled set_checked=set_checkbox_enabled>
+                                <Checkbox
+                                    size=CheckboxSize::Sm
+                                    checked=checkbox_enabled
+                                    set_checked=set_checkbox_enabled
+                                >
                                     "Enabled (interactive)"
                                 </Checkbox>
-                                <Checkbox checked=checkbox_checked set_checked=set_checkbox_checked>
+                                <Checkbox
+                                    variant=CheckboxVariant::Accent
+                                    checked=checkbox_checked
+                                    set_checked=set_checkbox_checked
+                                >
                                     "Enabled (checked)"
                                 </Checkbox>
                                 <Checkbox
                                     disabled=true
+                                    size=CheckboxSize::Lg
                                     checked=checkbox_disabled_off
                                     set_checked=set_checkbox_disabled_off
                                 >
@@ -354,6 +376,8 @@ fn App() -> impl IntoView {
                                 </Checkbox>
                                 <Checkbox
                                     disabled=true
+                                    size=CheckboxSize::Lg
+                                    variant=CheckboxVariant::Accent
                                     checked=checkbox_disabled_on
                                     set_checked=set_checkbox_disabled_on
                                 >
@@ -369,7 +393,11 @@ fn App() -> impl IntoView {
                                 <Switch checked=switch_enabled set_checked=set_switch_enabled>
                                     "Enabled (interactive)"
                                 </Switch>
-                                <Switch checked=switch_checked set_checked=set_switch_checked>
+                                <Switch
+                                    pressed_width_px=22.0
+                                    checked=switch_checked
+                                    set_checked=set_switch_checked
+                                >
                                     "Enabled (checked)"
                                 </Switch>
                                 <Switch

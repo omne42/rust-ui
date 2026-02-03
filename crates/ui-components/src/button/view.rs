@@ -1,7 +1,7 @@
-use crate::button::{motion, ButtonMotion, ButtonSize, ButtonVariant};
+use crate::button::{ButtonMotion, ButtonSize, ButtonVariant, motion};
 use leptos::{html, prelude::*};
 use ui_headless::{
-    use_button, use_focus_ring, use_hover, ButtonOptions, FocusRingOptions, HoverOptions, OnPress,
+    ButtonOptions, FocusRingOptions, HoverOptions, OnPress, use_button, use_focus_ring, use_hover,
 };
 
 #[component]
@@ -13,6 +13,9 @@ pub fn Button(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] button_type: Option<&'static str>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional)] aria_haspopup: Option<&'static str>,
+    #[prop(optional)] aria_expanded: Option<Signal<bool>>,
+    #[prop(optional, into)] aria_controls: Option<String>,
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
@@ -59,6 +62,11 @@ pub fn Button(
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
             aria-label=aria_label
+            aria-haspopup=aria_haspopup
+            aria-controls=aria_controls
+            aria-expanded=move || {
+                aria_expanded.map(|signal| if signal.get() { "true" } else { "false" })
+            }
             on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
             on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
             on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())

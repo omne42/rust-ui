@@ -1,5 +1,5 @@
 use crate::selection::{
-    use_single_selection_state, Key, SelectedKey, SingleSelectionState, SingleSelectionStateOptions,
+    Key, SelectedKey, SingleSelectionState, SingleSelectionStateOptions, use_single_selection_state,
 };
 
 #[derive(Clone, Default)]

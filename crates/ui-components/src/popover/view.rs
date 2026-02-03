@@ -1,15 +1,21 @@
+use crate::popover::{PopoverMotion, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use ui_headless::{
-    use_focus_trap, use_overlay_stack_registration, use_popover_position, FocusTrapOptions,
-    OnPress, PopoverPlacement, PopoverPositionOptions,
+    FocusTrapOptions, OnPress, PopoverPlacement, PopoverPositionOptions, use_focus_trap,
+    use_overlay_stack_registration, use_popover_position,
 };
 
 #[component]
 pub fn Popover(
+    open: Signal<bool>,
     anchor_ref: NodeRef<html::Button>,
     on_close: OnPress,
     children: ChildrenFn,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] motion: PopoverMotion,
+    /// Called after the close animation finishes (useful for presence/unmount).
+    #[prop(optional)]
+    on_exit_complete: Option<Callback<()>>,
 ) -> impl IntoView {
     let registration = use_overlay_stack_registration();
 
@@ -23,9 +29,12 @@ pub fn Popover(
         ..Default::default()
     });
 
-    let panel_style = move || {
+    let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
+    motion::attach_motion(panel_ref, open, placement, on_exit_complete, motion);
+
+    let panel_vars = move || {
         format!(
-            "position: fixed; top: {}px; left: {}px; background: var(--ui-bg); color: var(--ui-fg); border: 1px solid var(--ui-border); border-radius: var(--ui-radius-lg); padding: var(--ui-space-md); min-width: 240px; box-shadow: var(--ui-shadow-md);",
+            "--ui-popover-top: {}px; --ui-popover-left: {}px;",
             position.top_px.get(),
             position.left_px.get()
         )
@@ -49,14 +58,13 @@ pub fn Popover(
             <div
                 class="ui-popover"
                 data-ui-overlay-portal=""
-                style="position: fixed; inset: 0;"
                 on:click=move |_| on_close.run(())
             >
                 <div
                     class="ui-popover__panel"
                     node_ref=panel_ref
                     tabindex="-1"
-                    style=panel_style
+                    style=panel_vars
                     on:click=move |ev| ev.stop_propagation()
                     on:pointerdown=move |ev| ev.stop_propagation()
                     on:keydown=on_key_down

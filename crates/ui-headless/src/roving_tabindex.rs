@@ -44,13 +44,11 @@ pub fn use_roving_tabindex(options: RovingTabIndexOptions) -> RovingTabIndexStat
             if *i >= count {
                 *i = count.saturating_sub(1);
             }
-            if let Some(is_item_disabled) = options.is_item_disabled {
-                if is_item_disabled.run(*i) {
-                    if let Some(first_enabled) = (0..count).find(|&idx| !is_item_disabled.run(idx))
-                    {
-                        *i = first_enabled;
-                    }
-                }
+            if let Some(is_item_disabled) = options.is_item_disabled
+                && is_item_disabled.run(*i)
+                && let Some(first_enabled) = (0..count).find(|&idx| !is_item_disabled.run(idx))
+            {
+                *i = first_enabled;
             }
         });
     });
@@ -59,10 +57,10 @@ pub fn use_roving_tabindex(options: RovingTabIndexOptions) -> RovingTabIndexStat
         if options.is_disabled {
             return;
         }
-        if let Some(is_item_disabled) = options.is_item_disabled {
-            if is_item_disabled.run(index) {
-                return;
-            }
+        if let Some(is_item_disabled) = options.is_item_disabled
+            && is_item_disabled.run(index)
+        {
+            return;
         }
         set_active_index.set(index);
     });

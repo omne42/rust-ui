@@ -1,4 +1,4 @@
-use crate::press::{use_press, OnPress, PressActivationKeys, PressHandlers, PressOptions};
+use crate::press::{OnPress, PressActivationKeys, PressHandlers, PressOptions, use_press};
 use leptos::prelude::*;
 
 #[derive(Clone)]

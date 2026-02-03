@@ -96,6 +96,13 @@ CSS 注入规则：
   - `ui-theme` 生成的 CSS variables
   - 组件 CSS
   - 最小全局 base（body 背景/字体）
+- **禁止 inline CSS（组件层）**：
+  - `ui-components` 中禁止在 `view!` 里写 `style="..."` / `style=...`（字符串形式的 inline style）。
+  - 组件所有样式规则（selector + 声明）必须位于该组件的 `styles.rs`，并通过 `ui-components/src/css.rs` 聚合后由 `<UiRoot>` 注入；组件内部不得写 `<style>` 标签。
+  - 禁止使用 `style:<prop>=...` 绑定普通 CSS 属性（`padding/background/position/...` 等）；样式切换通过 `class`/`data-*` + `styles.rs` 完成。
+  - 如必须传递运行时数值（例如 popover 位置 / motion 数值），只允许设置 **CSS variables（custom properties，`--*`）**：
+    - 推荐：`style:--x=...`（如果语法可用）
+    - 允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值（禁止出现 `top/left/padding/background/...` 等普通属性）
 
 ## 4. 颜色与主题（OKLCH + OLED）
 
@@ -145,14 +152,17 @@ CSS 注入规则：
 
 ### 5.3 组件侧用法模式（以 Button 为例）
 
-- `ButtonMotion` 定义 press 动效策略：
-  - `PressMotion::Spring { spring, pressed_scale, pressed_translate_y_px, pressed_brightness }`
-  - `PressMotion::Waapi { duration_ms, easing }`（备用/对比用）
-  - `PressMotion::None`
-- `attach_motion(node_ref, is_pressed, disabled, motion)`：
-  - 只在 `cfg(wasm32)` 生效
-  - per-frame 更新应尽量**直接写 style 或 CSS 变量**，避免触发组件重渲染
-  - 长生命周期、非 Send/Sync 的运行时对象必须用 `StoredValue::new_local(...)` 存放（避免跨线程约束问题）
+- 组件定义 motion contract：`XxxMotion`（默认值合理、对外可覆盖）。
+  - Button：`ButtonMotion { spring, hover_scale, tap_scale }`
+  - Checkbox：`CheckboxMotion { spring, hover_scale, tap_scale, indicator_spring }`
+  - Switch：`SwitchMotion { spring }`（thumb translate/width）
+  - Overlay/Popover：`OverlayMotion` / `PopoverMotion`（opacity/scale/translate）
+  - 列表类：`ActiveHighlightMotion`（active highlight 的 y/height/opacity）
+- `attach_motion(...)` 的硬规则：
+  - 只在 `cfg(wasm32)` 生效（SSR/非 wasm 为 no-op 或立即完成）。
+  - per-frame 更新应尽量**只写 CSS variables（custom properties）**，避免触发组件重渲染。
+  - 长生命周期、非 Send/Sync 的运行时对象必须用 `StoredValue::new_local(...)` 存放。
+  - 需要“exit 动画后再卸载”时：组件提供 `on_exit_complete` 回调，上层用 presence（例如 `use_presence`）决定何时 unmount。
 
 ### 5.4 动效准则（方向）
 

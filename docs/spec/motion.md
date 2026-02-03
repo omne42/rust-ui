@@ -13,12 +13,15 @@
 ## v0 现状（已落地）
 
 - 新增 crate：`crates/ui-motion`
-  - Web backend（`wasm32`）：通过调用 Web Animations API（WAAPI）执行 keyframes（绕过 web-sys unstable API 限制，直接反射调用 `element.animate(...)`）。
-  - `prefers-reduced-motion`：检测到 reduce 时跳过动画。
-- `ui-components::Button`
-  - 模块拆分：`logic.rs` / `styles.rs` / `motion.rs` / `view.rs`
-  - `styles.rs`：只产出 CSS（静态），由 `<UiRoot>` 统一注入
-  - `motion.rs`：暴露 `ButtonMotion`（v0），默认 press 反馈走 WAAPI（无 CSS transitions）
+  - Web backend（`wasm32`）：
+    - **WAAPI**：`ui_motion::web::animate(...)`（keyframes/options → `element.animate(...)`）。
+    - **Spring runtime**：`ui_motion::spring::SpringAnimator`（rAF 驱动；stiffness/damping/mass/precision）。
+    - **Spring presets**：`ui_motion::presets::*`（对齐 bb 的 motion token 风格：fast/soft/slide/flip3d）。
+  - `prefers-reduced-motion`：reduce 时跳过/降级到直接 set 目标值。
+- `ui-components`（已迁移的组件）
+  - `Button` / `Checkbox` / `Switch`：hover/tap 等交互反馈默认走 spring（按 bb 的手感参数）。
+  - `Overlay` / `Popover`：enter/exit 通过 spring 驱动 `opacity/scale/translate`；通过 `on_exit_complete` 与上层 presence 解耦。
+  - `ListBox` / `Menu` / `Select`：active highlight 使用 spring 驱动（类似 HeroUI/Framer 的“跟手高亮”）。
 
 ## API 形状（v0→v1 演进方向）
 
@@ -26,16 +29,19 @@
   - 每个组件在自己的 `motion.rs` 定义：
     - `XxxMotion`：对外可选配置（默认值合理）
     - `attach_motion(...)`：把 hook 状态与 DOM ref 连接到 motion 引擎（web 下启用，SSR/no-op）
+  - 列表类组件可复用统一的 highlight contract：
+    - `ui_components::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion}`
 - **Motion Engine（ui-motion）**
   - v0：keyframes + options → WAAPI（web）
-  - v1：补齐 spring/sequence/presence 等更高层能力（仍保持 contract 在组件层）
+  - v0：补齐 spring runtime（rAF）与 presets（tokens）
+  - v1：补齐 sequence/timeline/layout(FLIP)/gesture 等更高层能力（仍保持 contract 在组件层）
 
 ## TODO（下一步）
 
-- 把其他组件逐个迁移到 `logic/styles/motion/view`：
-  - `Popover`（open/close/presence）
-  - `Overlay/Modal`（enter/exit + focus trap 的视觉表现）
-  - `Select/Menu/ListBox`（highlight/selection 的 motion）
-- `ui-theme` 增加 motion tokens（durations/easings/springs），让“动效参数”可主题化。
-- `ui-motion` 增加 spring（物理）实现（Web：rAF 或生成 keyframes），以及可组合的 timeline/sequence API。
-
+- 继续把剩余组件迁移到 `logic/styles/motion/view`（按组件逐个推进，保持对外 API 稳定）。
+- 在 `ui-theme` 增加 motion tokens（durations/easings/springs/presets），让“动效参数”可主题化。
+- `ui-motion` 增加更高层能力：
+  - presence（统一 enter/exit 管理）
+  - sequence/timeline
+  - layout motion（FLIP / shared layout）
+  - gesture/drag（pointer → physics）

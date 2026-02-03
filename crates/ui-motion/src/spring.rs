@@ -77,6 +77,7 @@ struct SpringAnimatorInner {
     last_ts_ms: Cell<Option<f64>>,
     raf_handle: Cell<Option<i32>>,
     apply: RefCell<Box<dyn FnMut(f64)>>,
+    on_rest: RefCell<Option<Box<dyn FnMut()>>>,
     #[cfg(target_arch = "wasm32")]
     raf_closure: RefCell<Option<wasm_bindgen::closure::Closure<dyn FnMut(f64)>>>,
 }
@@ -95,10 +96,19 @@ impl SpringAnimator {
                 last_ts_ms: Cell::new(None),
                 raf_handle: Cell::new(None),
                 apply: RefCell::new(Box::new(apply)),
+                on_rest: RefCell::new(None),
                 #[cfg(target_arch = "wasm32")]
                 raf_closure: RefCell::new(None),
             }),
         }
+    }
+
+    pub fn set_on_rest(&self, on_rest: impl FnMut() + 'static) {
+        self.inner.on_rest.replace(Some(Box::new(on_rest)));
+    }
+
+    pub fn clear_on_rest(&self) {
+        self.inner.on_rest.replace(None);
     }
 
     pub fn set_target(&self, target: f64) {
@@ -157,11 +167,16 @@ impl SpringAnimator {
                 let is_at_rest = state.step(target, dt_s, inner.config);
                 inner.state.set(state);
 
-                (inner.apply.borrow_mut())(state.value);
+                {
+                    (inner.apply.borrow_mut())(state.value);
+                }
 
                 if is_at_rest {
                     inner.raf_handle.set(None);
                     inner.last_ts_ms.set(None);
+                    if let Some(on_rest) = inner.on_rest.borrow_mut().as_mut() {
+                        on_rest();
+                    }
                     return;
                 }
 
