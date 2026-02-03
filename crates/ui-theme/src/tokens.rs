@@ -1,8 +1,11 @@
 #[derive(Clone, Copy)]
 pub struct ColorTokens {
     pub fg: &'static str,
+    pub fg_muted: &'static str,
     pub bg: &'static str,
+    pub bg_muted: &'static str,
     pub accent: &'static str,
+    pub accent_soft: &'static str,
     pub border: &'static str,
     pub focus_ring: &'static str,
 }
