@@ -1,5 +1,6 @@
 use crate::{Button, OnPress, Popover};
 use leptos::{ev, html, prelude::*};
+use std::sync::Arc;
 use ui_headless::{use_listbox, ListBoxOptions};
 
 #[component]
@@ -12,6 +13,7 @@ pub fn Select(
     #[prop(optional)] placeholder: Option<String>,
 ) -> impl IntoView {
     let (id_base, _set_id_base) = signal(id_base);
+    let items: Arc<Vec<String>> = Arc::new(items);
     let (items, _set_items) = signal(items);
     let (is_open, set_open) = signal(false);
 
@@ -33,6 +35,13 @@ pub fn Select(
     });
 
     let (item_count, _set_item_count) = signal(items.get_untracked().len());
+    let item_text = Callback::new(move |index: usize| {
+        items
+            .get_untracked()
+            .get(index)
+            .cloned()
+            .unwrap_or_default()
+    });
 
     let aria = use_listbox(ListBoxOptions {
         is_disabled: disabled,
@@ -42,6 +51,7 @@ pub fn Select(
         selected_index,
         set_selected_index,
         on_action: Some(Callback::new(move |_| set_open.set(false))),
+        item_text: Some(item_text),
     });
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
@@ -69,7 +79,8 @@ pub fn Select(
                         >
                             {items
                                 .get_untracked()
-                                .into_iter()
+                                .iter()
+                                .cloned()
                                 .enumerate()
                                 .map(|(index, label)| {
                                     let id = aria.option_id.run(index);

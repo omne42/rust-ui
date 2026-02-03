@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use std::sync::Arc;
 use ui_headless::{use_listbox, ListBoxOptions};
 
 #[component]
@@ -8,7 +9,13 @@ pub fn ListBox(
     selected_index: ReadSignal<Option<usize>>,
     set_selected_index: WriteSignal<Option<usize>>,
 ) -> impl IntoView {
+    let items: Arc<Vec<String>> = Arc::new(items);
     let (item_count, _set_item_count) = signal(items.len());
+
+    let item_text = {
+        let items = items.clone();
+        Callback::new(move |index: usize| items.get(index).cloned().unwrap_or_default())
+    };
 
     let aria = use_listbox(ListBoxOptions {
         is_disabled: false,
@@ -18,6 +25,7 @@ pub fn ListBox(
         selected_index,
         set_selected_index,
         on_action: None,
+        item_text: Some(item_text),
     });
 
     let on_key_down = move |ev: leptos::ev::KeyboardEvent| {
@@ -36,11 +44,12 @@ pub fn ListBox(
             style="margin-top: 16px; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; width: 280px;"
         >
             <div style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">
-                "ListBox (Arrow keys + Enter/Space to select)"
+                "ListBox (Arrow keys + Enter/Space to select; typeahead supported)"
             </div>
 
             {items
-                .into_iter()
+                .iter()
+                .cloned()
                 .enumerate()
                 .map(|(index, label)| {
                     let id = aria.option_id.run(index);

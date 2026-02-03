@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use std::sync::Arc;
 use ui_headless::{use_menu, MenuOptions};
 
 #[component]
@@ -8,7 +9,13 @@ pub fn Menu(
     on_action: Callback<usize>,
     #[prop(optional)] disabled: bool,
 ) -> impl IntoView {
+    let items: Arc<Vec<String>> = Arc::new(items);
     let (item_count, _set_item_count) = signal(items.len());
+
+    let item_text = {
+        let items = items.clone();
+        Callback::new(move |index: usize| items.get(index).cloned().unwrap_or_default())
+    };
 
     let aria = use_menu(MenuOptions {
         is_disabled: disabled,
@@ -16,6 +23,7 @@ pub fn Menu(
         id_base,
         item_count,
         on_action: Some(on_action),
+        item_text: Some(item_text),
     });
 
     let on_key_down = move |ev: leptos::ev::KeyboardEvent| {
@@ -34,7 +42,8 @@ pub fn Menu(
             style="display: flex; flex-direction: column; gap: 4px;"
         >
             {items
-                .into_iter()
+                .iter()
+                .cloned()
                 .enumerate()
                 .map(|(index, label)| {
                     let id = aria.option_id.run(index);

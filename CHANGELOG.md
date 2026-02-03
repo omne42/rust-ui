@@ -21,12 +21,14 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_roving_tabindex` (roving tabindex state + handlers).
 - `ui-headless`: `use_listbox` (aria-activedescendant listbox semantics).
 - `ui-headless`: `use_menu` (menu semantics + aria-activedescendant + keyboard navigation/activation).
+- `ui-headless`: `use_menu` / `use_listbox` typeahead navigation when `item_text` is provided.
 - `ui-headless`: `use_popover_position` (anchor-rect positioning; fixed layout).
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `ui-components`: `ListBox` (v0 demo component built on `use_listbox`).
 - `ui-components`: `Popover` (v0 positioned popover using headless positioning + overlay stack + focus trap).
 - `ui-components`: `Menu` / `MenuTrigger` (v0 popover-based menu composition).
 - `ui-components`: `Select` (v0 Button + Popover + ListBox composition).
+- `ui-components`: `Menu` / `ListBox` / `Select` provide `item_text` to enable typeahead navigation.
 - `ui-headless`: `use_checkbox` / `use_switch` (role + `aria-checked` + keyboard press handling via `PressActivationKeys`).
 - `ui-components`: `<Checkbox>` / `<Switch>` components (built on headless press + focus ring).
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
