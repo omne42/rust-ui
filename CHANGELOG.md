@@ -75,6 +75,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds spring-driven active highlight motion for `<ListBox>` / `<Menu>` / `<Select>` (HeroUI-style feel).
 - `ui-components`: `Select` now composes `ListBox` and uses popover presence internally.
 - `ui-components`: adds `aria_haspopup` / `aria_expanded` / `aria_controls` support on `Button` for trigger-style components.
+- `ui-headless`: adds integration tests covering key hooks (hover, focus ring, press/button, checkbox/switch, listbox/menu, overlay stack).
+- Docs: adds per-crate `README.md` files describing responsibilities and usage (`ui-core`, `ui-headless`, `ui-theme`, `ui-motion`, `ui-components`).
+- CI: adds a GitHub Actions workflow that runs `cargo fmt`, `cargo clippy`, and `cargo test`.
 
 ### Changed
 
@@ -88,6 +91,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless` (wasm): `use_popover_position` now uses `Element::get_bounding_client_rect` (required by `web-sys`) for anchor/panel rects.
 - `ui-components`: core visuals now use CSS variables (`--ui-*`) for theming (Button, ListBox, Menu, Select, Popover, Overlay, Checkbox, Switch).
 - `apps/web-demo`: polished the demo page layout and added a Trunk-loaded stylesheet (`app.css`) with in-page navigation.
+- `apps/web-demo`: refactors `src/main.rs` into per-section demo components under `src/demos/` for readability.
 - `ui-components`: refactored `Button` into `logic/styles/motion/view` modules (ARCHITECTURE_ZH-style separation).
 - `ui-theme`: adds `--ui-accent-fg` token to avoid hard-coded foreground colors in components.
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
