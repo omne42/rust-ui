@@ -283,7 +283,7 @@
 - [x] `Popover`（v0：基于 anchor rect 的定位；箭头/flip/scroll lock 后续）
 - [ ] `Dialog` / `Modal`（Overlay + focus trap 完整版）
 - [x] `Menu` / `MenuTrigger`（v0：基于 Popover v0；typeahead/disabled items 后续）
-- [ ] `Select`（Button + Popover + ListBox）
+- [x] `Select`（v0：Button + Popover + ListBox，选择后自动关闭）
 - [ ] `ComboBox`（Input + ListBox + Overlay）
 - [ ] `Tooltip`（hover/focus + overlay）
 

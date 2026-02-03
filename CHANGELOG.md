@@ -26,6 +26,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `ListBox` (v0 demo component built on `use_listbox`).
 - `ui-components`: `Popover` (v0 positioned popover using headless positioning + overlay stack + focus trap).
 - `ui-components`: `Menu` / `MenuTrigger` (v0 popover-based menu composition).
+- `ui-components`: `Select` (v0 Button + Popover + ListBox composition).
 - `ui-headless`: `use_checkbox` / `use_switch` (role + `aria-checked` + keyboard press handling via `PressActivationKeys`).
 - `ui-components`: `<Checkbox>` / `<Switch>` components (built on headless press + focus ring).
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
@@ -33,6 +34,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Overlay).
 - `apps/web-demo`: adds MenuTrigger demo section (open/navigate/select).
+- `apps/web-demo`: adds Select demo section (Button -> Popover -> ListBox).
 - `apps/web-demo`: adds Checkbox/Switch demo section (Tab focus + Space toggle + focus-visible).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
 - `apps/tauri-demo`: Tauri v2 shell scaffold (config + build script + minimal command) for desktop verification.
@@ -47,4 +49,5 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-core`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).
 - `ui-headless`: `use_press` now supports keyboard Enter/Space (with click de-duping) and exposes key handlers that indicate when callers should `preventDefault` (for custom elements).
 - `ui-headless`: `use_button` now supports `ButtonElement` + returns `ButtonAttrs` (`role`/`tabindex`/`aria-disabled`) for custom button semantics.
+- `ui-headless`: `use_listbox` now supports `on_action` to react to selection activation.
 - Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).

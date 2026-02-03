@@ -1,7 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
     provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuTrigger, OnPress,
-    Overlay, Switch,
+    Overlay, Select, Switch,
 };
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
@@ -38,6 +38,14 @@ fn App() -> impl IntoView {
         }
     };
     let on_menu_action = Callback::new(move |index: usize| set_menu_selected.set(Some(index)));
+
+    let select_items = vec![
+        "Apple".to_string(),
+        "Banana".to_string(),
+        "Cherry".to_string(),
+        "Durian".to_string(),
+    ];
+    let (select_index, set_select_index) = signal(None::<usize>);
 
     let (checkbox_enabled, set_checkbox_enabled) = signal(false);
     let (checkbox_checked, set_checkbox_checked) = signal(true);
@@ -101,6 +109,25 @@ fn App() -> impl IntoView {
                     </MenuTrigger>
                     <div style="font-size: 12px; color: #6b7280;">
                         "selected: " {menu_selected_label}
+                    </div>
+                </div>
+            </section>
+
+            <section style="margin-top: 24px;">
+                <h2 style="margin: 0 0 8px 0; font-size: 14px;">"Select"</h2>
+                <div style="font-size: 12px; color: #6b7280; margin: 0 0 12px 0;">
+                    "Button -> Popover -> ListBox -> select/close."
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <Select
+                        id_base="demo-select".to_string()
+                        items=select_items.clone()
+                        selected_index=select_index
+                        set_selected_index=set_select_index
+                    />
+                    <div style="font-size: 12px; color: #6b7280;">
+                        "selected_index: " {move || format!("{:?}", select_index.get())}
                     </div>
                 </div>
             </section>

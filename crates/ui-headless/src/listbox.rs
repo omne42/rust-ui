@@ -37,6 +37,7 @@ pub struct ListBoxOptions {
     pub item_count: ReadSignal<usize>,
     pub selected_index: ReadSignal<Option<usize>>,
     pub set_selected_index: WriteSignal<Option<usize>>,
+    pub on_action: Option<Callback<usize>>,
 }
 
 pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
@@ -92,11 +93,15 @@ pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
     let on_option_click = {
         let is_disabled = options.is_disabled;
         let set_selected_index = options.set_selected_index;
+        let on_action = options.on_action;
         Callback::new(move |index: usize| {
             if is_disabled {
                 return;
             }
             set_selected_index.set(Some(index));
+            if let Some(on_action) = on_action {
+                on_action.run(index);
+            }
         })
     };
 
@@ -104,6 +109,7 @@ pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
         let is_disabled = options.is_disabled;
         let item_count = options.item_count;
         let set_selected_index = options.set_selected_index;
+        let on_action = options.on_action;
         let roving_key_down = roving.handlers.on_key_down;
         Callback::new(move |key: String| -> bool {
             if is_disabled {
@@ -120,7 +126,11 @@ pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
                 if count == 0 {
                     return false;
                 }
-                set_selected_index.set(Some(roving.active_index.get_untracked()));
+                let index = roving.active_index.get_untracked();
+                set_selected_index.set(Some(index));
+                if let Some(on_action) = on_action {
+                    on_action.run(index);
+                }
                 return true;
             }
 

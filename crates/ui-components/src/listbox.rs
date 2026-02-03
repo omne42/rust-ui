@@ -17,6 +17,7 @@ pub fn ListBox(
         item_count,
         selected_index,
         set_selected_index,
+        on_action: None,
     });
 
     let on_key_down = move |ev: leptos::ev::KeyboardEvent| {
