@@ -32,7 +32,7 @@ pub fn OverlayDemo() -> impl IntoView {
                     on_close=close_overlay
                     on_exit_complete=on_modal_exit_complete
                 >
-                    <div class="demo-row" style="justify-content: flex-end;">
+                    <div class="demo-row demo-row--end">
                         <Button on_press=close_overlay>"Close"</Button>
                     </div>
                 </Modal>

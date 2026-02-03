@@ -92,6 +92,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: core visuals now use CSS variables (`--ui-*`) for theming (Button, ListBox, Menu, Select, Popover, Overlay, Checkbox, Switch).
 - `apps/web-demo`: polished the demo page layout and added a Trunk-loaded stylesheet (`app.css`) with in-page navigation.
 - `apps/web-demo`: refactors `src/main.rs` into per-section demo components under `src/demos/` for readability.
+- `apps/web-demo`: removes inline styles from demo markup (keeps layout rules in `app.css`).
 - `ui-components`: refactored `Button` into `logic/styles/motion/view` modules (ARCHITECTURE_ZH-style separation).
 - `ui-theme`: adds `--ui-accent-fg` token to avoid hard-coded foreground colors in components.
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
