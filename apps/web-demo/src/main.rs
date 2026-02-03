@@ -1,5 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
-use ui_components::{provide_focus_visible, provide_overlay_stack, Button, OnPress, Overlay};
+use ui_components::{
+    provide_focus_visible, provide_overlay_stack, Button, ListBox, OnPress, Overlay,
+};
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
 #[component]
@@ -15,6 +17,8 @@ fn App() -> impl IntoView {
     ));
     let open_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.open()));
     let close_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.close()));
+
+    let (selected_index, set_selected_index) = signal(None::<usize>);
 
     view! {
         <main style="padding: 24px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
@@ -37,6 +41,20 @@ fn App() -> impl IntoView {
                     </div>
                 </Overlay>
             </Show>
+
+            <ListBox
+                id_base="demo-listbox".to_string()
+                items=vec![
+                    "First".to_string(),
+                    "Second".to_string(),
+                    "Third".to_string(),
+                ]
+                selected_index=selected_index
+                set_selected_index=set_selected_index
+            />
+            <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+                "selected_index: " {move || format!("{:?}", selected_index.get())}
+            </div>
         </main>
     }
 }

@@ -227,6 +227,7 @@
   - [x] 展示 Button states：disabled/pressed/focus-visible
   - [x] 展示 Overlay v1：打开/关闭（click/Esc/click-outside）
   - [x] 页面内写明“验收步骤”（按键操作说明）
+  - [x] （新增）ListBox v0：Arrow keys + Enter/Space 选择（aria-activedescendant）
 
 **Stop Gate**
 - [ ] `cargo check -p web-demo --target wasm32-unknown-unknown`
@@ -275,6 +276,7 @@
 
 ### 12.3 ui-components（从原子到复合）
 
+- [x] `ListBox`（v0：消费 `use_listbox`）
 - [ ] `Checkbox` / `Switch`（复用 toggle + press + focus）
 - [ ] `IconButton`（Button 变体）
 - [ ] `Popover`（在 Overlay v1 基础上做定位/箭头）
