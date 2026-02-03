@@ -269,7 +269,7 @@
 - [x] `use_focus_within`（容器级 focus 管理）
 - [x] `use_hover`（pointer fine/coarse 的差异策略；移动端降级）
 - [x] roving tabindex（Menu/ListBox/Toolbar 等键盘导航基础设施）
-- [ ] `use_listbox`（对齐 WAI-ARIA practices：role/listbox/option/aria-activedescendant）
+- [x] `use_listbox`（role/listbox/option/aria-activedescendant，v0）
 - [ ] `use_menu` / `use_menu_item`（含 typeahead）
 - [ ] Overlay v2：aria-hidden 管理、scroll lock、嵌套 overlay、返回焦点策略完善
 

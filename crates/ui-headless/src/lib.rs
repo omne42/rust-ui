@@ -9,6 +9,7 @@ pub mod focus_trap;
 pub mod focus_visible;
 pub mod focus_within;
 pub mod hover;
+pub mod listbox;
 pub mod modality;
 pub mod overlay_stack;
 pub mod press;
@@ -24,6 +25,7 @@ pub use focus_within::{
     use_focus_within, FocusWithinHandlers, FocusWithinOptions, FocusWithinState,
 };
 pub use hover::{use_hover, HoverHandlers, HoverOptions, HoverState};
+pub use listbox::{use_listbox, ListBoxAria, ListBoxAttrs, ListBoxHandlers, ListBoxOptions};
 pub use modality::Modality;
 pub use overlay_stack::{
     provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration, OverlayRegistration,
