@@ -4,6 +4,10 @@
 
 实施计划：见 `docs/plan/IMPLEMENTATION_PLAN.md`；MVP 规格：`docs/spec/mvp.md`。
 
+## 本机其它项目参考（设计/治理/文档）
+
+- `bb/packages/ui-web` 的架构/色彩/文档演进笔记：`docs/research/bb_ui-web_notes.md`
+
 ## Upstream 参考仓库（本地 clone）
 
 这些仓库被 clone 到 `examples/_upstream/`，并且整个 `examples/` 已在 `.gitignore` 中忽略（用于本地调研，不进版本库）。

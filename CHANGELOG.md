@@ -56,6 +56,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Dev tooling: `scripts/dev-web-demo.sh` to run the web demo with sane defaults (unsets `NO_COLOR`, ensures wasm target/tooling).
 - Project docs: MVP/spec notes and a TODO/DAG-based implementation plan.
 - Research: Android spike checklist and go/no-go criteria (`docs/research/android-spike.md`).
+- Research: notes mapping `bb/packages/ui-web` architecture/colors/docs practices into this repo (`docs/research/bb_ui-web_notes.md`).
 
 ### Changed
 
@@ -68,5 +69,6 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless` (wasm): wrap DOM/event handles in `send_wrapper::SendWrapper` to satisfy Leptos `on_cleanup` Send+Sync bounds.
 - `ui-headless` (wasm): `use_popover_position` now uses `Element::get_bounding_client_rect` (required by `web-sys`) for anchor/panel rects.
 - `ui-components`: core visuals now use CSS variables (`--ui-*`) for theming (Button, ListBox, Menu, Select, Popover, Overlay, Checkbox, Switch).
+- `apps/web-demo`: polished the demo page layout and added a Trunk-loaded stylesheet (`app.css`) with in-page navigation.
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
 - Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).
