@@ -14,6 +14,7 @@ pub mod listbox;
 pub mod menu;
 pub mod modality;
 pub mod overlay_stack;
+pub mod popover_position;
 pub mod press;
 pub mod roving_tabindex;
 pub mod switch;
@@ -34,6 +35,9 @@ pub use menu::{use_menu, MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOp
 pub use modality::Modality;
 pub use overlay_stack::{
     provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration, OverlayRegistration,
+};
+pub use popover_position::{
+    use_popover_position, PopoverPlacement, PopoverPositionOptions, PopoverPositionState,
 };
 pub use press::{use_press, OnPress, PressActivationKeys, PressHandlers, PressOptions, PressState};
 pub use roving_tabindex::{

@@ -280,9 +280,9 @@
 - [x] `ListBox`（v0：消费 `use_listbox`）
 - [x] `Checkbox` / `Switch`（复用 toggle + press + focus）
 - [ ] `IconButton`（Button 变体）
-- [ ] `Popover`（在 Overlay v1 基础上做定位/箭头）
+- [x] `Popover`（v0：基于 anchor rect 的定位；箭头/flip/scroll lock 后续）
 - [ ] `Dialog` / `Modal`（Overlay + focus trap 完整版）
-- [x] `Menu` / `MenuTrigger`（v0：基于 Overlay v1，定位/箭头留给 Popover）
+- [x] `Menu` / `MenuTrigger`（v0：基于 Popover v0；typeahead/disabled items 后续）
 - [ ] `Select`（Button + Popover + ListBox）
 - [ ] `ComboBox`（Input + ListBox + Overlay）
 - [ ] `Tooltip`（hover/focus + overlay）

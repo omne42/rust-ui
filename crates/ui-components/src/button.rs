@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 use ui_headless::{use_button, use_focus_ring, ButtonOptions, FocusRingOptions, OnPress};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -21,6 +21,7 @@ impl ButtonVariant {
 pub fn Button(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] variant: ButtonVariant,
+    #[prop(optional)] node_ref: NodeRef<html::Button>,
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
@@ -38,6 +39,7 @@ pub fn Button(
     view! {
         <button
             type="button"
+            node_ref=node_ref
             class=base_class
             class:ui-button--pressed=move || aria.is_pressed.get()
             class:ui-button--focus-visible=move || focus_ring.is_focus_visible.get()
