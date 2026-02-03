@@ -13,6 +13,37 @@ fn is_space_key(key: &str) -> bool {
     key == " " || key == "Space" || key == "Spacebar"
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PressActivationKeys {
+    pub enter: bool,
+    pub space: bool,
+}
+
+impl PressActivationKeys {
+    pub const ALL: Self = Self {
+        enter: true,
+        space: true,
+    };
+    pub const ENTER: Self = Self {
+        enter: true,
+        space: false,
+    };
+    pub const SPACE: Self = Self {
+        enter: false,
+        space: true,
+    };
+    pub const NONE: Self = Self {
+        enter: false,
+        space: false,
+    };
+}
+
+impl Default for PressActivationKeys {
+    fn default() -> Self {
+        Self::ALL
+    }
+}
+
 #[derive(Clone)]
 pub struct PressHandlers {
     pub on_pointer_down: Callback<()>,
@@ -34,6 +65,11 @@ pub struct PressState {
 pub struct PressOptions {
     pub is_disabled: bool,
     pub on_press: Option<OnPress>,
+    /// Which keyboard keys trigger press activation.
+    ///
+    /// - `Enter` triggers on key down.
+    /// - `Space` triggers on key up.
+    pub activation_keys: PressActivationKeys,
     /// When `true`, pointer presses should not move focus to the target element.
     ///
     /// This is typically implemented by `preventDefault` on pointer down. This option is reserved
@@ -55,6 +91,7 @@ impl Default for PressOptions {
         Self {
             is_disabled: false,
             on_press: None,
+            activation_keys: PressActivationKeys::ALL,
             prevent_focus_on_press: false,
             prevent_default_for_keyboard: false,
             ignore_click_after_keyboard: true,
@@ -134,6 +171,7 @@ pub fn use_press(options: PressOptions) -> PressState {
 
     let on_key_down = {
         let is_disabled = options.is_disabled;
+        let activation_keys = options.activation_keys;
         let prevent_default_for_keyboard = options.prevent_default_for_keyboard;
         let ignore_click_after_keyboard = options.ignore_click_after_keyboard;
         let on_press = options.on_press;
@@ -149,6 +187,9 @@ pub fn use_press(options: PressOptions) -> PressState {
             }
 
             if key == "Enter" {
+                if !activation_keys.enter {
+                    return false;
+                }
                 set_active_press.set(Some(ActivePress::KeyboardEnter));
                 set_pressed.set(true);
                 if let Some(on_press) = on_press {
@@ -159,6 +200,9 @@ pub fn use_press(options: PressOptions) -> PressState {
                 }
                 return prevent_default_for_keyboard;
             } else if is_space_key(&key) {
+                if !activation_keys.space {
+                    return false;
+                }
                 set_active_press.set(Some(ActivePress::KeyboardSpace));
                 set_pressed.set(true);
                 return prevent_default_for_keyboard;
@@ -170,6 +214,7 @@ pub fn use_press(options: PressOptions) -> PressState {
 
     let on_key_up = {
         let is_disabled = options.is_disabled;
+        let activation_keys = options.activation_keys;
         let prevent_default_for_keyboard = options.prevent_default_for_keyboard;
         let ignore_click_after_keyboard = options.ignore_click_after_keyboard;
         let on_press = options.on_press;
@@ -178,8 +223,9 @@ pub fn use_press(options: PressOptions) -> PressState {
                 return false;
             }
 
-            let should_prevent_default =
-                prevent_default_for_keyboard && (key == "Enter" || is_space_key(&key));
+            let should_prevent_default = prevent_default_for_keyboard
+                && ((activation_keys.enter && key == "Enter")
+                    || (activation_keys.space && is_space_key(&key)));
 
             match (active_press.get_untracked(), key.as_str()) {
                 (Some(ActivePress::KeyboardEnter), "Enter") => {
@@ -223,5 +269,52 @@ pub fn use_press(options: PressOptions) -> PressState {
             on_key_up,
             on_blur,
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    };
+
+    #[test]
+    fn enter_does_not_trigger_when_activation_keys_disallow_enter() {
+        let called = Arc::new(AtomicUsize::new(0));
+        let called2 = Arc::clone(&called);
+
+        let press = use_press(PressOptions {
+            on_press: Some(Callback::new(move |_| {
+                called2.fetch_add(1, Ordering::SeqCst);
+            })),
+            activation_keys: PressActivationKeys::SPACE,
+            ..Default::default()
+        });
+
+        press.handlers.on_key_down.run("Enter".to_string());
+        press.handlers.on_key_up.run("Enter".to_string());
+
+        assert_eq!(called.load(Ordering::SeqCst), 0);
+    }
+
+    #[test]
+    fn space_does_not_trigger_when_activation_keys_disallow_space() {
+        let called = Arc::new(AtomicUsize::new(0));
+        let called2 = Arc::clone(&called);
+
+        let press = use_press(PressOptions {
+            on_press: Some(Callback::new(move |_| {
+                called2.fetch_add(1, Ordering::SeqCst);
+            })),
+            activation_keys: PressActivationKeys::ENTER,
+            ..Default::default()
+        });
+
+        press.handlers.on_key_down.run(" ".to_string());
+        press.handlers.on_key_up.run(" ".to_string());
+
+        assert_eq!(called.load(Ordering::SeqCst), 0);
     }
 }

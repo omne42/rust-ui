@@ -277,7 +277,7 @@
 ### 12.3 ui-components（从原子到复合）
 
 - [x] `ListBox`（v0：消费 `use_listbox`）
-- [ ] `Checkbox` / `Switch`（复用 toggle + press + focus）
+- [x] `Checkbox` / `Switch`（复用 toggle + press + focus）
 - [ ] `IconButton`（Button 变体）
 - [ ] `Popover`（在 Overlay v1 基础上做定位/箭头）
 - [ ] `Dialog` / `Modal`（Overlay + focus trap 完整版）
