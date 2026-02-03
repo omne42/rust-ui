@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Button, ButtonSize, ButtonVariant, OnPress};
+use ui_components::{Button, ButtonSize, ButtonVariant, IconButton, OnPress};
 
 #[component]
 pub fn ButtonDemo() -> impl IntoView {
@@ -29,9 +29,9 @@ pub fn ButtonDemo() -> impl IntoView {
                 <Button size=ButtonSize::Sm>"Small"</Button>
                 <Button size=ButtonSize::Default>"Default"</Button>
                 <Button size=ButtonSize::Lg>"Large"</Button>
-                <Button size=ButtonSize::Icon aria_label="Star button">"★"</Button>
-                <Button size=ButtonSize::IconSm aria_label="Small star button">"☆"</Button>
-                <Button size=ButtonSize::IconLg aria_label="Large star button">"✦"</Button>
+                <IconButton aria_label="Star button">"★"</IconButton>
+                <IconButton size=ButtonSize::IconSm aria_label="Small star button">"☆"</IconButton>
+                <IconButton size=ButtonSize::IconLg aria_label="Large star button">"✦"</IconButton>
             </div>
         </section>
     }

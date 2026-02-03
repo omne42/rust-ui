@@ -119,6 +119,9 @@ impl SpringAnimator {
             self.inner.last_ts_ms.set(None);
             self.inner.raf_handle.set(None);
             (self.inner.apply.borrow_mut())(target);
+            if let Some(on_rest) = self.inner.on_rest.borrow_mut().as_mut() {
+                on_rest();
+            }
             return;
         }
 

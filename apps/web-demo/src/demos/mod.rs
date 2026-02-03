@@ -5,6 +5,10 @@ pub mod listbox_demo;
 pub mod menu_demo;
 pub mod overlay_demo;
 pub mod select_demo;
+pub mod status_demo;
+pub mod tabs_demo;
+pub mod text_field_demo;
+pub mod tooltip_demo;
 
 pub use architecture::ArchitectureDemo;
 pub use button_demo::ButtonDemo;
@@ -13,3 +17,7 @@ pub use listbox_demo::ListBoxDemo;
 pub use menu_demo::MenuDemo;
 pub use overlay_demo::OverlayDemo;
 pub use select_demo::SelectDemo;
+pub use status_demo::StatusDemo;
+pub use tabs_demo::TabsDemo;
+pub use text_field_demo::TextFieldDemo;
+pub use tooltip_demo::TooltipDemo;

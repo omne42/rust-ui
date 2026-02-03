@@ -20,6 +20,7 @@ pub mod popover_position;
 pub mod press;
 pub mod roving_tabindex;
 pub mod switch;
+pub mod text_field;
 
 pub use button::{
     ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions, use_button,
@@ -51,3 +52,7 @@ pub use roving_tabindex::{
     use_roving_tabindex,
 };
 pub use switch::{SwitchAria, SwitchAttrs, SwitchHandlers, SwitchOptions, use_switch};
+pub use text_field::{
+    TextFieldAria, TextFieldInputAttrs, TextFieldLabelAttrs, TextFieldMessageAttrs,
+    TextFieldOptions, use_text_field,
+};

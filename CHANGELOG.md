@@ -79,10 +79,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Docs: adds per-crate `README.md` files describing responsibilities and usage (`ui-core`, `ui-headless`, `ui-theme`, `ui-motion`, `ui-components`).
 - CI: adds a GitHub Actions workflow that runs `cargo fmt`, `cargo clippy`, and `cargo test`.
 - `apps/web-demo`: adds `dev-overrides.css` as a hot-reload-friendly place to prototype component style changes.
+- `ui-headless`: adds `use_text_field` hook (+ unit tests) for wiring input `aria-describedby`/`aria-invalid`/`aria-required`.
+- `ui-components`: adds new components: `IconButton`, `Badge`, `CircularProgress`, `TextField`, `Tabs`, and `Tooltip`.
+- `apps/web-demo`: adds demo sections for Badge/Spinner, Tooltip, Tabs, and TextField.
 
 ### Changed
 
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
+- `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
+- `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-components`: re-exports `provide_focus_visible`, `provide_overlay_stack`, and `OnPress` to reduce app-layer coupling.
 - `ui-core`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).
 - `ui-headless`: `use_press` now supports keyboard Enter/Space (with click de-duping) and exposes key handlers that indicate when callers should `preventDefault` (for custom elements).

@@ -50,10 +50,11 @@ pub fn attach_motion(
         let motion = motion.get_value();
 
         let open_now = is_open.get_untracked();
-        let backdrop_initial = if open_now { 1.0 } else { 0.0 };
-        let panel_opacity_initial = if open_now { 1.0 } else { 0.0 };
-        let panel_scale_initial = if open_now { 1.0 } else { motion.initial_scale };
-        let panel_y_initial = if open_now { 0.0 } else { motion.initial_y_px };
+        // Always initialize in the closed state so mounting while open animates in.
+        let backdrop_initial = 0.0;
+        let panel_opacity_initial = 0.0;
+        let panel_scale_initial = motion.initial_scale;
+        let panel_y_initial = motion.initial_y_px;
 
         let _ = style.set_property(
             "--ui-overlay-backdrop-opacity",
@@ -106,6 +107,13 @@ pub fn attach_motion(
                 y.stop();
             }
         });
+
+        if open_now {
+            backdrop.set_target(1.0);
+            panel_opacity.set_target(1.0);
+            panel_scale.set_target(1.0);
+            panel_y.set_target(0.0);
+        }
 
         springs.set_value(Some((backdrop, panel_opacity, panel_scale, panel_y)));
     });

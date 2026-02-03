@@ -65,9 +65,10 @@ pub fn attach_motion(
         let offset_y = placement_offset_y(placement, motion.offset_y_px);
 
         let open_now = is_open.get_untracked();
-        let opacity_initial = if open_now { 1.0 } else { 0.0 };
-        let scale_initial = if open_now { 1.0 } else { motion.initial_scale };
-        let y_initial = if open_now { 0.0 } else { offset_y };
+        // Always initialize in the closed state so mounting while open animates in.
+        let opacity_initial = 0.0;
+        let scale_initial = motion.initial_scale;
+        let y_initial = offset_y;
 
         let _ = style.set_property("--ui-popover-opacity", &format!("{opacity_initial}"));
         let _ = style.set_property("--ui-popover-scale", &format!("{scale_initial}"));
@@ -99,6 +100,12 @@ pub fn attach_motion(
                 y.stop();
             }
         });
+
+        if open_now {
+            opacity.set_target(1.0);
+            scale.set_target(1.0);
+            y.set_target(0.0);
+        }
 
         springs.set_value(Some((opacity, scale, y)));
     });
