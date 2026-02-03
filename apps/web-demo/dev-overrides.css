@@ -1,0 +1,14 @@
+/*
+  dev-overrides.css
+
+  Purpose:
+  - Fast, local styling iteration for `apps/web-demo`.
+  - Loaded after `app.css`, so rules here win by default.
+
+  Workflow:
+  1) Prototype styles here.
+  2) Once stable, move them into the relevant component `styles.rs` (source of truth).
+
+  Keep this file minimal and avoid committing temporary hacks.
+*/
+

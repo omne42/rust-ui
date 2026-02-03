@@ -78,6 +78,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: adds integration tests covering key hooks (hover, focus ring, press/button, checkbox/switch, listbox/menu, overlay stack).
 - Docs: adds per-crate `README.md` files describing responsibilities and usage (`ui-core`, `ui-headless`, `ui-theme`, `ui-motion`, `ui-components`).
 - CI: adds a GitHub Actions workflow that runs `cargo fmt`, `cargo clippy`, and `cargo test`.
+- `apps/web-demo`: adds `dev-overrides.css` as a hot-reload-friendly place to prototype component style changes.
 
 ### Changed
 
@@ -90,6 +91,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless` (wasm): wrap DOM/event handles in `send_wrapper::SendWrapper` to satisfy Leptos `on_cleanup` Send+Sync bounds.
 - `ui-headless` (wasm): `use_popover_position` now uses `Element::get_bounding_client_rect` (required by `web-sys`) for anchor/panel rects.
 - `ui-components`: core visuals now use CSS variables (`--ui-*`) for theming (Button, ListBox, Menu, Select, Popover, Overlay, Checkbox, Switch).
+- `ui-components`: injects component CSS under `@layer ui` so app styles can override without `!important`/high specificity.
 - `apps/web-demo`: polished the demo page layout and added a Trunk-loaded stylesheet (`app.css`) with in-page navigation.
 - `apps/web-demo`: refactors `src/main.rs` into per-section demo components under `src/demos/` for readability.
 - `apps/web-demo`: removes inline styles from demo markup (keeps layout rules in `app.css`).

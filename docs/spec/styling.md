@@ -4,6 +4,7 @@
 
 > TL;DR
 > - 发布默认：组件 CSS 仍由 `ui-components` 统一注入（开箱即用）。
+> - 覆盖策略：组件 CSS 注入在 `@layer ui`；应用侧样式（不分 layer，或放在更高优先级 layer）可直接覆盖，避免 `!important`/高 specificity。
 > - 开发体验：不要在开发阶段频繁改 `styles.rs`；用应用侧热更新 CSS 覆盖来迭代，收敛后再回填到 `styles.rs`。
 
 ## 背景与现状
@@ -22,7 +23,7 @@
 
 - **对外部项目不透明**：使用者必须知道要额外引入某个 CSS 文件（Trunk/Vite/Webpack/Tauri/路径/顺序等）。
 - **打包与版本同步**：CSS 文件与 crate 版本需要强绑定，否则容易出现“升级依赖但没升级样式文件”的错配。
-- **注入顺序与覆盖规则**：应用要能覆盖组件样式，必须处理好 CSS 加载顺序；而 `<UiRoot>` 注入 `<style>` 往往出现在 document 末尾，天然更容易压过应用侧 CSS。
+- **注入顺序与覆盖规则**：`<UiRoot>` 注入的 `<style>` 往往出现在 document 末尾；为保证应用侧可覆盖，组件 CSS 默认注入在 `@layer ui`（低优先级层）。
 
 因此：**发布默认不建议强制静态资源**；更现实的做法是同时满足“零配置发布”和“开发热更新”。
 
@@ -36,7 +37,7 @@
 
 缺点：
 - 开发时微调样式需要重新编译（尤其 wasm）。
-- 应用侧想覆盖组件样式，需要更高 specificity 或 `!important`（因为注入顺序靠后）。
+- 应用侧想覆盖组件样式：应通过 layer 规则实现（推荐不分 layer 的覆盖样式），不要依赖 `!important`/高 specificity。
 
 ### 方案 B：组件 CSS 纯静态资源（`ui-components.css`）
 
@@ -67,17 +68,26 @@
 2. 先在 `dev-overrides.css` 里快速试样式（不改 Rust，不触发 wasm 重新编译）。
 3. 样式稳定后，再把规则回填到对应组件的 `styles.rs`，并删除/收敛 overrides。
 
-> 注意：如果不做额外处理，由于 `<UiRoot>` 注入的 `<style>` 往往出现在文档更靠后位置，
-> 应用侧 CSS 想覆盖组件 CSS 通常需要更高 specificity 或 `!important`。
+> 注意：组件 CSS 默认注入在 `@layer ui`；应用侧 overrides **不分 layer**（或放在更高优先级 layer）即可覆盖，避免 `!important`/高 specificity。
 
-### 3) 让覆盖更干净：使用 CSS Cascade Layers（建议引入）
+### 3) 让覆盖更干净：CSS Cascade Layers（已采用）
 
-为避免 `!important`/高 specificity，建议把 `ui-components` 注入的 CSS 包进 `@layer ui { ... }`：
+为避免 `!important`/高 specificity，`ui-components` 注入的组件 CSS **默认包在** `@layer ui { ... }`：
 
 - 组件 CSS 在 `@layer ui` 中（低优先级层）。
-- 应用侧 overrides 不放进 layer（默认是“未分层样式”），即使加载顺序更早，也能自然覆盖组件样式。
+- 应用侧 overrides 推荐 **不放进任何 `@layer`**（未分层样式），即可自然覆盖 `@layer ui`（即使加载顺序更早）。
 
-这能显著提升“开发覆盖”的体验，同时不影响对外发布的零配置特性。
+如果应用本身也使用 layers，推荐显式声明顺序并放入更高优先级层：
+
+```css
+@layer ui, app;
+
+@layer app {
+  /* overrides */
+}
+```
+
+原则：`@layer ui` 只属于组件库；应用侧不要把自己的样式写进 `ui` layer（避免再次回到“比注入顺序/更高 specificity”来抢优先级）。
 
 ## 规范（必须遵守）
 

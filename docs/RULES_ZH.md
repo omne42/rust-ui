@@ -96,6 +96,9 @@ CSS 注入规则：
   - `ui-theme` 生成的 CSS variables
   - 组件 CSS
   - 最小全局 base（body 背景/字体）
+- **Cascade Layers（默认）**：
+  - 组件 CSS 注入在 `@layer ui`（低优先级层）。
+  - 应用侧覆盖推荐：不分 layer 直接写 overrides；如应用也使用 layers，则声明 `@layer ui, app;` 并把 overrides 放进 `@layer app`。
 - **禁止 inline CSS（组件层）**：
   - `ui-components` 中禁止在 `view!` 里写 `style="..."` / `style=...`（字符串形式的 inline style）。
   - 组件所有样式规则（selector + 声明）必须位于该组件的 `styles.rs`，并通过 `ui-components/src/css.rs` 聚合后由 `<UiRoot>` 注入；组件内部不得写 `<style>` 标签。
