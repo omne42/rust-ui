@@ -61,8 +61,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Research: Android spike checklist and go/no-go criteria (`docs/research/android-spike.md`).
 - Research: notes mapping `bb/packages/ui-web` architecture/colors/docs practices into this repo (`docs/research/bb_ui-web_notes.md`).
 - `ui-motion`: new crate providing native motion primitives (WAAPI-based on `wasm32`) with reduced-motion detection.
+- `ui-motion`: adds a physics-based spring runtime (`SpringAnimator`) for Framer/HeroUI-style micro-interactions.
 - `ui-components`: button styles moved into a dedicated style module and injected via `<UiRoot>`.
-- `ui-components`: button motion interface reserved via `ButtonMotion` (default uses WAAPI; no CSS transitions).
+- `ui-components`: button motion interface reserved via `ButtonMotion` (no CSS transitions).
+- `ui-components`: `Button` press feedback now defaults to spring motion (WAAPI remains available as an option).
 
 ### Changed
 

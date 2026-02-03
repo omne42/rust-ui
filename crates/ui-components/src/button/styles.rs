@@ -11,6 +11,8 @@ pub const CSS: &str = r#"
   font-size: 14px;
   line-height: 1;
   user-select: none;
+  transform-origin: center;
+  will-change: transform, filter;
 }
 
 .ui-button:disabled {
@@ -32,11 +34,6 @@ pub const CSS: &str = r#"
   background: var(--ui-accent);
   border-color: var(--ui-accent);
   color: var(--ui-accent-fg);
-}
-
-.ui-button--pressed:not(:disabled) {
-  transform: translateY(1px);
-  filter: brightness(0.96);
 }
 
 .ui-button--focus-visible {
