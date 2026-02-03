@@ -33,6 +33,10 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::text_field::styles::CSS);
     out.push_str(crate::search_field::styles::CSS);
     out.push_str(crate::text_area::styles::CSS);
+    out.push_str(crate::number_field::styles::CSS);
+    out.push_str(crate::input_otp::styles::CSS);
+    out.push_str(crate::segmented_control::styles::CSS);
+    out.push_str(crate::scroll_shadow::styles::CSS);
     out.push_str(crate::radio::styles::CSS);
     out.push_str(crate::tabs::styles::CSS);
     out.push_str(crate::accordion::styles::CSS);
@@ -41,6 +45,8 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::popover::styles::CSS);
     out.push_str(crate::tooltip::styles::CSS);
     out.push_str(crate::modal::styles::CSS);
+    out.push_str(crate::sheet::styles::CSS);
+    out.push_str(crate::meter::styles::CSS);
     out.push_str(crate::listbox::styles::CSS);
     out.push_str(crate::menu::styles::CSS);
     out.push_str(crate::select::styles::CSS);

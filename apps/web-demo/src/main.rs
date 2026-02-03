@@ -2,8 +2,8 @@ mod demos;
 
 use demos::{
     ArchitectureDemo, AvatarDemo, ButtonDemo, ComboBoxDemo, DisclosureDemo, DividerDemo, FormsDemo,
-    ListBoxDemo, MenuDemo, MiscDemo, OverlayDemo, PaginationDemo, RadioDemo, SelectDemo,
-    StatusDemo, TabsDemo, TextAreaDemo, TextFieldDemo, TooltipDemo, TypographyDemo,
+    ListBoxDemo, MenuDemo, MiscDemo, NewComponentsDemo, OverlayDemo, PaginationDemo, RadioDemo,
+    SelectDemo, StatusDemo, TabsDemo, TextAreaDemo, TextFieldDemo, TooltipDemo, TypographyDemo,
 };
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{Button, OnPress, Theme, UiRoot, provide_focus_visible, provide_overlay_stack};
@@ -68,6 +68,7 @@ fn App() -> impl IntoView {
                 <nav class="demo-nav">
                     <div class="demo-nav-title">"On this page"</div>
                     <a href="#architecture">"Architecture"</a>
+                    <a href="#new-components">"New components"</a>
                     <a href="#button">"Button"</a>
                     <a href="#pagination">"Pagination"</a>
                     <a href="#avatar">"Avatar"</a>
@@ -91,6 +92,7 @@ fn App() -> impl IntoView {
 
                 <main class="demo-main">
                     <ArchitectureDemo />
+                    <NewComponentsDemo />
                     <ButtonDemo />
                     <PaginationDemo />
                     <AvatarDemo />
