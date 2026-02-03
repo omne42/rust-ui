@@ -2,7 +2,7 @@ mod demos;
 
 use demos::{
     ArchitectureDemo, AvatarDemo, ButtonDemo, ComboBoxDemo, DividerDemo, FormsDemo, ListBoxDemo,
-    MenuDemo, OverlayDemo, RadioDemo, SelectDemo, StatusDemo, TabsDemo, TextAreaDemo,
+    MenuDemo, MiscDemo, OverlayDemo, RadioDemo, SelectDemo, StatusDemo, TabsDemo, TextAreaDemo,
     TextFieldDemo, TooltipDemo,
 };
 use leptos::{mount::mount_to_body, prelude::*};
@@ -71,6 +71,7 @@ fn App() -> impl IntoView {
                     <a href="#button">"Button"</a>
                     <a href="#avatar">"Avatar"</a>
                     <a href="#status">"Badge / Spinner"</a>
+                    <a href="#misc">"Card / Alert / Chip / Skeleton"</a>
                     <a href="#tooltip">"Tooltip"</a>
                     <a href="#overlay">"Overlay"</a>
                     <a href="#listbox">"ListBox"</a>
@@ -90,6 +91,7 @@ fn App() -> impl IntoView {
                     <ButtonDemo />
                     <AvatarDemo />
                     <StatusDemo />
+                    <MiscDemo />
                     <TooltipDemo />
                     <OverlayDemo />
                     <ListBoxDemo />

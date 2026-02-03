@@ -171,6 +171,20 @@ code {
   margin: 12px 0;
 }
 
+.demo-skeleton-line {
+  width: 140px;
+  height: 14px;
+}
+
+.demo-skeleton-line--sm {
+  width: 100px;
+}
+
+.demo-skeleton-circle {
+  width: 32px;
+  height: 32px;
+}
+
 .demo-hero {
   background: linear-gradient(180deg, var(--ui-accent-soft), transparent),
     var(--ui-bg-muted);

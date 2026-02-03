@@ -37,3 +37,4 @@ echo "[check] wasm"
 cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web
 cargo check -p ui-components --target wasm32-unknown-unknown
 cargo check -p web-demo --target wasm32-unknown-unknown
+cargo check -p docs-app --target wasm32-unknown-unknown

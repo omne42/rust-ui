@@ -1,0 +1,12 @@
+/*
+  dev-overrides.css
+
+  Purpose:
+  - Fast, local styling iteration for `apps/docs-app`.
+  - Loaded after `app.css`, so rules here win by default.
+
+  Workflow:
+  1) Prototype styles here.
+  2) Once stable, move them into the relevant component `styles.rs` (source of truth).
+*/
+

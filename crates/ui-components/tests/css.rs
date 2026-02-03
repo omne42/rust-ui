@@ -11,9 +11,13 @@ fn push_components_css_emits_expected_layer_and_selectors() {
     );
 
     let required_selectors = [
+        (".ui-alert", ".ui-alert {"),
         (".ui-avatar", ".ui-avatar {"),
+        (".ui-avatar-group", ".ui-avatar-group {"),
         (".ui-button", ".ui-button {"),
         (".ui-checkbox", ".ui-checkbox {"),
+        (".ui-chip", ".ui-chip {"),
+        (".ui-card", ".ui-card {"),
         (".ui-switch", ".ui-switch {"),
         (".ui-divider", ".ui-divider {"),
         (".ui-overlay", ".ui-overlay {"),
@@ -27,7 +31,9 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-select", ".ui-select {"),
         (".ui-badge", ".ui-badge {"),
         (".ui-circular-progress", ".ui-circular-progress {"),
+        (".ui-spinner", ".ui-spinner {"),
         (".ui-combo-box", ".ui-combo-box {"),
+        (".ui-skeleton", ".ui-skeleton {"),
         (".ui-text-field", ".ui-text-field {"),
         (".ui-text-area", ".ui-text-area {"),
         (".ui-radio", ".ui-radio {"),

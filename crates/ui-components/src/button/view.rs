@@ -1,4 +1,4 @@
-use crate::button::{ButtonMotion, ButtonSize, ButtonVariant, motion};
+use crate::button::{ButtonLoadingPlacement, ButtonMotion, ButtonSize, ButtonVariant, motion};
 use leptos::{html, prelude::*};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, OnPress, use_button, use_focus_ring, use_hover,
@@ -7,9 +7,11 @@ use ui_headless::{
 #[component]
 pub fn Button(
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_loading: bool,
     #[prop(optional)] variant: ButtonVariant,
     #[prop(optional)] size: ButtonSize,
     #[prop(optional)] motion: ButtonMotion,
+    #[prop(optional)] loading_placement: ButtonLoadingPlacement,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] button_type: Option<&'static str>,
     #[prop(optional, into)] aria_label: Option<String>,
@@ -20,25 +22,26 @@ pub fn Button(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
+    let effective_disabled = disabled || is_loading;
     let aria = use_button(ButtonOptions {
-        is_disabled: disabled,
+        is_disabled: effective_disabled,
         on_press,
         ..Default::default()
     });
 
     let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
+        is_disabled: effective_disabled,
     });
 
     let hover = use_hover(HoverOptions {
-        is_disabled: disabled,
+        is_disabled: effective_disabled,
     });
 
     motion::attach_motion(
         node_ref,
         hover.is_hovered,
         aria.is_pressed,
-        disabled,
+        effective_disabled,
         motion,
     );
 
@@ -55,15 +58,19 @@ pub fn Button(
             node_ref=node_ref
             class=class
             class:ui-button--focus-visible=move || focus_ring.is_focus_visible.get()
-            disabled=disabled
+            disabled=effective_disabled
             data-slot="button"
             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
+            data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
+            data-loading=is_loading.then_some("true")
+            data-loading-placement=loading_placement.as_attr()
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
             aria-label=aria_label
             aria-haspopup=aria_haspopup
             aria-controls=aria_controls
+            aria-busy=is_loading.then_some("true")
             aria-expanded=move || {
                 aria_expanded.map(|signal| if signal.get() { "true" } else { "false" })
             }
@@ -91,7 +98,21 @@ pub fn Button(
                 focus_ring.handlers.on_blur.run(());
             }
         >
-            {children()}
+            <Show when=move || is_loading && matches!(loading_placement, ButtonLoadingPlacement::Start)>
+                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
+            </Show>
+
+            <span class="ui-button__label" data-slot="button-label">
+                {children()}
+            </span>
+
+            <Show when=move || is_loading && matches!(loading_placement, ButtonLoadingPlacement::End)>
+                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
+            </Show>
+
+            <Show when=move || is_loading && matches!(loading_placement, ButtonLoadingPlacement::Center)>
+                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
+            </Show>
         </button>
     }
 }

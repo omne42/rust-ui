@@ -88,6 +88,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: adds `use_combo_box` and `use_radio_group` hooks with unit tests (combobox + radiogroup semantics).
 - `ui-components`: adds new components: `Avatar`, `Divider`, `TextArea`, `RadioGroup`/`Radio`, and `ComboBox`.
 - `apps/web-demo`: adds demo sections for Avatar, ComboBox, TextArea, RadioGroup, and Divider.
+- `apps/docs-app`: adds a Leptos CSR docs site with a minimal playground (preview + code) and a rendered `docs/RULES_ZH.md` page.
+- `ui-components`: adds new components: `Card`, `Alert`, `Chip`, `AvatarGroup`, `Skeleton`, and `Spinner`.
+- `apps/web-demo`: adds a misc demo section covering Card/Alert/Chip/Skeleton/AvatarGroup/Spinner.
 
 ### Changed
 
@@ -109,6 +112,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: refactors `src/main.rs` into per-section demo components under `src/demos/` for readability.
 - `apps/web-demo`: removes inline styles from demo markup (keeps layout rules in `app.css`).
 - `ui-components`: refactored `Button` into `logic/styles/motion/view` modules (ARCHITECTURE_ZH-style separation).
+- `ui-components`: `Button` now supports loading state (`is_loading`, `aria-busy`, and loading placement with a built-in spinner).
 - `ui-theme`: adds `--ui-accent-fg` token to avoid hard-coded foreground colors in components.
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
 - Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).
+- Dev tooling: `scripts/check.sh` now also checks `docs-app` for `wasm32-unknown-unknown`.

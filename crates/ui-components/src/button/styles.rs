@@ -5,6 +5,7 @@ pub const CSS: &str = r#"
   justify-content: center;
   gap: 8px;
   white-space: nowrap;
+  position: relative;
   border-radius: var(--ui-radius-md);
   border: 1px solid transparent;
   box-sizing: border-box;
@@ -18,6 +19,41 @@ pub const CSS: &str = r#"
   transform: scale(var(--ui-button-scale, 1));
   transform-origin: center;
   will-change: transform;
+}
+
+.ui-button__spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  box-sizing: border-box;
+
+  animation: ui-button-spin 0.8s linear infinite;
+}
+
+.ui-button[data-loading-placement="center"] .ui-button__spinner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+}
+
+.ui-button[data-loading="true"][data-loading-placement="center"] .ui-button__label {
+  visibility: hidden;
+}
+
+@keyframes ui-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-button__spinner {
+    animation: none;
+  }
 }
 
 .ui-button:not(:disabled) {

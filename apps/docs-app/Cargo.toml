@@ -1,0 +1,12 @@
+[package]
+name = "docs-app"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+pulldown-cmark = "0.13.0"
+ui-components = { path = "../../crates/ui-components" }
+ui-core = { path = "../../crates/ui-core" }
+

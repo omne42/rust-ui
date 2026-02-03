@@ -47,3 +47,21 @@ impl ButtonSize {
         }
     }
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum ButtonLoadingPlacement {
+    #[default]
+    Start,
+    End,
+    Center,
+}
+
+impl ButtonLoadingPlacement {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            ButtonLoadingPlacement::Start => "start",
+            ButtonLoadingPlacement::End => "end",
+            ButtonLoadingPlacement::Center => "center",
+        }
+    }
+}
