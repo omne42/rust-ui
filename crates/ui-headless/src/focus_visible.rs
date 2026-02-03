@@ -69,6 +69,7 @@ impl FocusVisibleState {
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
 fn setup_global_listeners(state: FocusVisibleState) {
+    use send_wrapper::SendWrapper;
     use wasm_bindgen::closure::Closure;
     use wasm_bindgen::JsCast;
 
@@ -79,23 +80,23 @@ fn setup_global_listeners(state: FocusVisibleState) {
         return;
     };
 
-    let target: web_sys::EventTarget = document.into();
+    let target: SendWrapper<web_sys::EventTarget> = SendWrapper::new(document.into());
 
-    let keydown = {
+    let keydown: SendWrapper<Closure<dyn FnMut(web_sys::KeyboardEvent)>> = SendWrapper::new({
         let state = state.clone();
         Closure::<dyn FnMut(web_sys::KeyboardEvent)>::wrap(Box::new(move |_evt| {
             state.set_modality_from_user_event(Modality::Keyboard);
         }))
-    };
+    });
 
-    let pointerdown = {
+    let pointerdown: SendWrapper<Closure<dyn FnMut(web_sys::PointerEvent)>> = SendWrapper::new({
         let state = state.clone();
         Closure::<dyn FnMut(web_sys::PointerEvent)>::wrap(Box::new(move |_evt| {
             state.set_modality_from_user_event(Modality::Pointer);
         }))
-    };
+    });
 
-    let focusin = {
+    let focusin: SendWrapper<Closure<dyn FnMut(web_sys::FocusEvent)>> = SendWrapper::new({
         let state = state.clone();
         Closure::<dyn FnMut(web_sys::FocusEvent)>::wrap(Box::new(move |_evt| {
             if !state.has_event_before_focus().get_untracked() {
@@ -103,7 +104,7 @@ fn setup_global_listeners(state: FocusVisibleState) {
             }
             state.clear_event_before_focus();
         }))
-    };
+    });
 
     // We use capture to catch focus-related events reliably and early.
     let _ = target.add_event_listener_with_callback_and_bool(

@@ -28,11 +28,13 @@ pub fn use_focus_trap(options: FocusTrapOptions) -> FocusTrapHandlers {
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
 fn setup_focus_trap(options: FocusTrapOptions) -> FocusTrapHandlers {
+    use send_wrapper::SendWrapper;
     use std::cell::RefCell;
     use std::rc::Rc;
     use wasm_bindgen::JsCast;
 
-    let previous_focus: Rc<RefCell<Option<web_sys::HtmlElement>>> = Rc::new(RefCell::new(None));
+    let previous_focus: SendWrapper<Rc<RefCell<Option<web_sys::HtmlElement>>>> =
+        SendWrapper::new(Rc::new(RefCell::new(None)));
 
     if options.is_enabled {
         let previous_focus = previous_focus.clone();
@@ -123,7 +125,7 @@ fn trap_tab_key(
     }
 
     let active = document.active_element();
-    let active_node = active.map(|el| el.into());
+    let active_node: Option<web_sys::Node> = active.as_ref().map(|el| el.clone().into());
 
     let mut active_index = None;
     if let Some(active_node) = active_node.as_ref() {
@@ -151,8 +153,8 @@ fn trap_tab_key(
     }
 
     // If focus is outside the overlay, pull it back in.
-    if let Some(active) = active {
-        if !container.contains(Some(&active.unchecked_into())) {
+    if let Some(active) = active.as_ref() {
+        if !container.contains(Some(active.unchecked_ref())) {
             if shift {
                 let last = focusable[last_index].clone();
                 let _ = last.focus();

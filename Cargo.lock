@@ -4585,6 +4585,7 @@ dependencies = [
  "any_spawner",
  "js-sys",
  "leptos",
+ "send_wrapper",
  "wasm-bindgen",
  "web-sys",
 ]

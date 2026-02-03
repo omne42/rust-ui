@@ -21,4 +21,5 @@ any_spawner = { version = "0.3", features = ["futures-executor"] }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2.108"
 js-sys = "0.3.85"
-web-sys = { version = "0.3.85", features = ["Document", "Element", "EventTarget", "FocusEvent", "HtmlDivElement", "HtmlElement", "KeyboardEvent", "Node", "NodeList", "PointerEvent", "Window"] }
+send_wrapper = "0.6"
+web-sys = { version = "0.3.85", features = ["Document", "DomRect", "Element", "EventTarget", "FocusEvent", "HtmlButtonElement", "HtmlDivElement", "HtmlElement", "KeyboardEvent", "Node", "NodeList", "PointerEvent", "Window"] }

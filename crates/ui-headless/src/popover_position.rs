@@ -40,6 +40,7 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
 
     #[cfg(all(feature = "web", target_arch = "wasm32"))]
     {
+        use send_wrapper::SendWrapper;
         use std::rc::Rc;
         use wasm_bindgen::{closure::Closure, JsCast};
 
@@ -71,8 +72,10 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
                     .and_then(|v| v.as_f64())
                     .unwrap_or(0.0);
 
-                let anchor_rect = anchor.get_bounding_client_rect();
-                let panel_rect = panel.get_bounding_client_rect();
+                let anchor_el: &web_sys::Element = anchor.as_ref();
+                let panel_el: &web_sys::Element = panel.as_ref();
+                let anchor_rect = anchor_el.get_bounding_client_rect();
+                let panel_rect = panel_el.get_bounding_client_rect();
 
                 let mut top = anchor_rect.bottom() + offset_px;
                 let mut left = match placement {
@@ -111,14 +114,16 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
 
         // Recompute on resize/scroll while mounted.
         if let Some(window) = web_sys::window() {
-            let on_resize = {
+            let window = SendWrapper::new(window);
+
+            let on_resize: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
                 let compute = compute.clone();
                 Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
-            };
-            let on_scroll = {
+            });
+            let on_scroll: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
                 let compute = compute.clone();
                 Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
-            };
+            });
 
             let _ = window
                 .add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
@@ -134,8 +139,6 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
                     "scroll",
                     on_scroll.as_ref().unchecked_ref(),
                 );
-                drop(on_resize);
-                drop(on_scroll);
             });
         }
     }
