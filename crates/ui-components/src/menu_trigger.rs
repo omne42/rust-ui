@@ -7,10 +7,12 @@ pub fn MenuTrigger(
     id_base: String,
     items: Vec<String>,
     on_action: Callback<usize>,
+    #[prop(optional)] disabled_indices: Vec<usize>,
     children: Children,
 ) -> impl IntoView {
     let (id_base, _set_id_base) = signal(id_base);
     let (items, _set_items) = signal(items);
+    let (disabled_indices, _set_disabled_indices) = signal(disabled_indices);
     let (is_open, set_open) = signal(false);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
@@ -39,6 +41,7 @@ pub fn MenuTrigger(
                         id_base=id_base.get_untracked()
                         items=items.get_untracked()
                         on_action=on_action_and_close
+                        disabled_indices=disabled_indices.get_untracked()
                     />
                 </Popover>
             </Show>

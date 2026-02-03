@@ -24,10 +24,14 @@ fn find_typeahead_match(
     start_index: usize,
     item_count: usize,
     item_text: Callback<usize, String>,
+    is_item_disabled: Option<&Callback<usize, bool>>,
 ) -> Option<usize> {
     let query = query.to_ascii_lowercase();
     for offset in 0..item_count {
         let index = (start_index + offset) % item_count;
+        if is_item_disabled.is_some_and(|cb| cb.run(index)) {
+            continue;
+        }
         if item_text
             .run(index)
             .trim()
@@ -72,6 +76,8 @@ pub struct MenuOptions {
     pub id_base: String,
     pub item_count: ReadSignal<usize>,
     pub on_action: Option<MenuOnAction>,
+    /// Optional: disables specific items.
+    pub is_item_disabled: Option<Callback<usize, bool>>,
     /// Optional: used for typeahead. When provided, typing alphanumeric keys will move the active
     /// item to the next match (prefix match, loops).
     pub item_text: Option<Callback<usize, String>>,
@@ -84,6 +90,7 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
         should_loop: options.should_loop,
         orientation: RovingOrientation::Vertical,
         item_count: options.item_count,
+        is_item_disabled: options.is_item_disabled,
     });
 
     let id_base = options.id_base;
@@ -117,10 +124,16 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
     let on_item_click = {
         let is_disabled = options.is_disabled;
         let on_action = options.on_action;
+        let is_item_disabled = options.is_item_disabled;
         let on_item_focus = roving.handlers.on_item_focus;
         Callback::new(move |index: usize| {
             if is_disabled {
                 return;
+            }
+            if let Some(is_item_disabled) = is_item_disabled {
+                if is_item_disabled.run(index) {
+                    return;
+                }
             }
             on_item_focus.run(index);
             if let Some(on_action) = on_action {
@@ -136,6 +149,7 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
         let roving_key_down = roving.handlers.on_key_down;
         let on_item_focus = roving.handlers.on_item_focus;
         let item_text = options.item_text;
+        let is_item_disabled = options.is_item_disabled;
         let (typeahead, set_typeahead) = signal(String::new());
         let (last_typed_at, set_last_typed_at) = signal(None::<Instant>);
         let timeout = Duration::from_millis(500);
@@ -154,8 +168,14 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
                 if count == 0 {
                     return false;
                 }
+                let index = roving.active_index.get_untracked();
+                if let Some(is_item_disabled) = is_item_disabled {
+                    if is_item_disabled.run(index) {
+                        return true;
+                    }
+                }
                 if let Some(on_action) = on_action {
-                    on_action.run(roving.active_index.get_untracked());
+                    on_action.run(index);
                 }
                 return true;
             }
@@ -180,16 +200,28 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
 
                     let start = (roving.active_index.get_untracked() + 1) % count;
 
-                    let next =
-                        find_typeahead_match(&query, start, count, item_text).or_else(|| {
-                            if query.len() <= 1 {
-                                return None;
-                            }
-                            let single = ch.to_string();
-                            let idx = find_typeahead_match(&single, start, count, item_text)?;
-                            query = single;
-                            Some(idx)
-                        });
+                    let next = find_typeahead_match(
+                        &query,
+                        start,
+                        count,
+                        item_text,
+                        is_item_disabled.as_ref(),
+                    )
+                    .or_else(|| {
+                        if query.len() <= 1 {
+                            return None;
+                        }
+                        let single = ch.to_string();
+                        let idx = find_typeahead_match(
+                            &single,
+                            start,
+                            count,
+                            item_text,
+                            is_item_disabled.as_ref(),
+                        )?;
+                        query = single;
+                        Some(idx)
+                    });
 
                     set_typeahead.set(query);
                     set_last_typed_at.set(Some(now));

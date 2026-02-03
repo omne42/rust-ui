@@ -88,6 +88,7 @@ fn App() -> impl IntoView {
                 ]
                 selected_index=selected_index
                 set_selected_index=set_selected_index
+                disabled_indices=vec![1]
             />
             <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
                 "selected_index: " {move || format!("{:?}", selected_index.get())}
@@ -104,6 +105,7 @@ fn App() -> impl IntoView {
                         id_base="demo-menu".to_string()
                         items=menu_items.clone()
                         on_action=on_menu_action
+                        disabled_indices=vec![2]
                     >
                         "Open Menu"
                     </MenuTrigger>
@@ -125,6 +127,7 @@ fn App() -> impl IntoView {
                         items=select_items.clone()
                         selected_index=select_index
                         set_selected_index=set_select_index
+                        disabled_indices=vec![3]
                     />
                     <div style="font-size: 12px; color: #6b7280;">
                         "selected_index: " {move || format!("{:?}", select_index.get())}
