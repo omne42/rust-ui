@@ -1,9 +1,10 @@
 use leptos::prelude::*;
-use ui_components::TextField;
+use ui_components::{SearchField, TextField};
 
 #[component]
 pub fn TextFieldDemo() -> impl IntoView {
     let (email, set_email) = signal(String::new());
+    let (query, set_query) = signal(String::new());
     let invalid = Signal::derive(move || {
         let value = email.get();
         !value.is_empty() && !value.contains('@')
@@ -27,6 +28,18 @@ pub fn TextFieldDemo() -> impl IntoView {
                     placeholder="name@example.com".to_string()
                 />
                 <div class="demo-kv">"value: " {move || email.get()}</div>
+
+                <div class="demo-divider"></div>
+
+                <SearchField
+                    id="demo-search".to_string()
+                    label="Search".to_string()
+                    value=query
+                    set_value=set_query
+                    placeholder="Type to search…".to_string()
+                    required=false
+                    invalid=false
+                />
             </div>
         </section>
     }

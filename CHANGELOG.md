@@ -93,6 +93,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds a misc demo section covering Card/Alert/Chip/Skeleton/AvatarGroup/Spinner.
 - `ui-components`: adds utility components: `Link`, `Breadcrumbs`, `Code`, `Kbd`, `Spacer`, and `ProgressBar`.
 - `apps/web-demo`: adds a typography/utilities demo section for Link/Breadcrumbs/Code/Kbd/Spacer/ProgressBar.
+- `ui-components`: adds new components: `ButtonGroup`, `CheckboxGroup`, `LinkButton`, `SearchField`, `Snippet`, and `StatusLight`.
+- `apps/web-demo`: adds demo sections for ButtonGroup/CheckboxGroup/LinkButton/SearchField/Snippet/StatusLight.
 
 ### Changed
 

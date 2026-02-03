@@ -4,8 +4,11 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::avatar::styles::CSS);
     out.push_str(crate::avatar_group::styles::CSS);
     out.push_str(crate::button::styles::CSS);
+    out.push_str(crate::button_group::styles::CSS);
     out.push_str(crate::badge::styles::CSS);
+    out.push_str(crate::status_light::styles::CSS);
     out.push_str(crate::checkbox::styles::CSS);
+    out.push_str(crate::checkbox_group::styles::CSS);
     out.push_str(crate::switch::styles::CSS);
     out.push_str(crate::circular_progress::styles::CSS);
     out.push_str(crate::spinner::styles::CSS);
@@ -17,11 +20,14 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::link::styles::CSS);
     out.push_str(crate::breadcrumbs::styles::CSS);
     out.push_str(crate::code::styles::CSS);
+    out.push_str(crate::snippet::styles::CSS);
     out.push_str(crate::kbd::styles::CSS);
     out.push_str(crate::spacer::styles::CSS);
     out.push_str(crate::progress_bar::styles::CSS);
+    out.push_str(crate::link_button::styles::CSS);
     out.push_str(crate::combo_box::styles::CSS);
     out.push_str(crate::text_field::styles::CSS);
+    out.push_str(crate::search_field::styles::CSS);
     out.push_str(crate::text_area::styles::CSS);
     out.push_str(crate::radio::styles::CSS);
     out.push_str(crate::tabs::styles::CSS);

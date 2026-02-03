@@ -1,5 +1,7 @@
 use leptos::prelude::*;
-use ui_components::{Button, ButtonSize, ButtonVariant, IconButton, OnPress};
+use ui_components::{
+    Button, ButtonGroup, ButtonSize, ButtonVariant, IconButton, LinkButton, OnPress,
+};
 
 #[component]
 pub fn ButtonDemo() -> impl IntoView {
@@ -32,6 +34,23 @@ pub fn ButtonDemo() -> impl IntoView {
                 <IconButton aria_label="Star button">"★"</IconButton>
                 <IconButton size=ButtonSize::IconSm aria_label="Small star button">"☆"</IconButton>
                 <IconButton size=ButtonSize::IconLg aria_label="Large star button">"✦"</IconButton>
+            </div>
+
+            <div class="demo-divider"></div>
+            <div class="demo-row">
+                <ButtonGroup attached=true aria_label="Attached button group">
+                    <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Left"</Button>
+                    <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Middle"</Button>
+                    <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Right"</Button>
+                </ButtonGroup>
+
+                <LinkButton
+                    href="https://example.com".to_string()
+                    target="_blank"
+                    variant=ButtonVariant::Outline
+                >
+                    "LinkButton"
+                </LinkButton>
             </div>
         </section>
     }

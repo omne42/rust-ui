@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Checkbox, CheckboxSize, CheckboxVariant, Switch};
+use ui_components::{Button, Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Switch};
 
 #[component]
 pub fn FormsDemo() -> impl IntoView {
@@ -12,6 +12,17 @@ pub fn FormsDemo() -> impl IntoView {
     let (switch_checked, set_switch_checked) = signal(true);
     let (switch_disabled_off, set_switch_disabled_off) = signal(false);
     let (switch_disabled_on, set_switch_disabled_on) = signal(true);
+
+    let (group_a, set_group_a) = signal(false);
+    let (group_b, set_group_b) = signal(true);
+    let (group_c, set_group_c) = signal(false);
+    let (group_required, set_group_required) = signal(true);
+    let group_invalid = Signal::derive(move || {
+        if !group_required.get() {
+            return false;
+        }
+        !(group_a.get() || group_b.get() || group_c.get())
+    });
 
     view! {
         <section id="forms" class="demo-card">
@@ -71,6 +82,28 @@ pub fn FormsDemo() -> impl IntoView {
                         "enabled checked: " {move || switch_enabled.get().to_string()}
                     </div>
                 </div>
+            </div>
+
+            <div class="demo-divider"></div>
+            <div class="demo-stack">
+                <div class="demo-row demo-row--end">
+                    <Button variant=ui_components::ButtonVariant::Secondary on_press=Callback::new(move |_| set_group_required.update(|v| *v = !*v))>
+                        {move || if group_required.get() { "Required: on" } else { "Required: off" }}
+                    </Button>
+                </div>
+
+                <CheckboxGroup
+                    id="demo-checkbox-group".to_string()
+                    label="Notifications".to_string()
+                    description="Pick at least one when required.".to_string()
+                    error="Select at least one option.".to_string()
+                    required=group_required
+                    invalid=group_invalid
+                >
+                    <Checkbox checked=group_a set_checked=set_group_a>"Email"</Checkbox>
+                    <Checkbox checked=group_b set_checked=set_group_b>"SMS"</Checkbox>
+                    <Checkbox checked=group_c set_checked=set_group_c>"Push"</Checkbox>
+                </CheckboxGroup>
             </div>
         </section>
     }

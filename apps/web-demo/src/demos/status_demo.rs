@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Badge, BadgeVariant, CircularProgress};
+use ui_components::{Badge, BadgeVariant, CircularProgress, StatusLight, StatusLightVariant};
 
 #[component]
 pub fn StatusDemo() -> impl IntoView {
@@ -19,6 +19,13 @@ pub fn StatusDemo() -> impl IntoView {
                 <CircularProgress />
                 <CircularProgress size_px=16.0 thickness_px=2.0 />
                 <CircularProgress size_px=28.0 thickness_px=3.0 />
+            </div>
+
+            <div class="demo-divider"></div>
+            <div class="demo-row">
+                <StatusLight>"Idle"</StatusLight>
+                <StatusLight variant=StatusLightVariant::Accent>"Online"</StatusLight>
+                <StatusLight variant=StatusLightVariant::Danger>"Error"</StatusLight>
             </div>
         </section>
     }
