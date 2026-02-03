@@ -24,6 +24,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_menu` / `use_listbox` typeahead navigation when `item_text` is provided.
 - `ui-headless`: per-item disabled support for roving navigation, activation, and typeahead (`is_item_disabled`).
 - `ui-headless`: `use_menu_item` (Action/Checkbox/Radio roles + `aria-checked` + per-item handlers).
+- `ui-headless`: `use_modal` (scroll lock + `aria-hidden` on non-portal content) for modal overlays.
 - `ui-headless`: `use_popover_position` (anchor-rect positioning; fixed layout).
 - `ui-components`: initial `<Button>` component integrating headless behavior + theme tokens.
 - `ui-components`: `ListBox` (v0 demo component built on `use_listbox`).
@@ -38,6 +39,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
 - `ui-headless`: `use_focus_ring` hook for per-component focus ring handling.
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
+- `ui-components`: `<Overlay>` now calls `use_modal`; `<Overlay>`/`<Popover>` mark portal content via `data-ui-overlay-portal` (used for `aria-hidden` exclusions).
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Overlay).
 - `apps/web-demo`: adds MenuTrigger demo section (open/navigate/select).
 - `apps/web-demo`: adds Select demo section (Button -> Popover -> ListBox).

@@ -13,6 +13,7 @@ pub mod hover;
 pub mod listbox;
 pub mod menu;
 pub mod menu_item;
+pub mod modal;
 pub mod modality;
 pub mod overlay_stack;
 pub mod popover_position;
@@ -36,6 +37,7 @@ pub use menu::{use_menu, MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOp
 pub use menu_item::{
     use_menu_item, MenuItemAria, MenuItemAttrs, MenuItemHandlers, MenuItemKind, MenuItemOptions,
 };
+pub use modal::{use_modal, ModalOptions};
 pub use modality::Modality;
 pub use overlay_stack::{
     provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration, OverlayRegistration,

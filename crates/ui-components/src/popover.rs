@@ -48,6 +48,7 @@ pub fn Popover(
         <Portal>
             <div
                 class="ui-popover"
+                data-ui-overlay-portal=""
                 style="position: fixed; inset: 0;"
                 on:click=move |_| on_close.run(())
             >

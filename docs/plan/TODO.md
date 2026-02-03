@@ -275,7 +275,8 @@
 - [x] typeahead（Menu/ListBox：500ms buffer + prefix match + loop；通过 `item_text`）
 - [x] per-item disabled（Menu/ListBox：跳过 focus/activation/typeahead；通过 `is_item_disabled`）
 - [x] `use_menu_item`（Action/Checkbox/Radio：role + aria-checked + handlers）
-- [ ] Overlay v2：aria-hidden 管理、scroll lock、嵌套 overlay、返回焦点策略完善
+- [x] Overlay v2（v0）：`use_modal`（scroll lock + aria-hidden；排除 overlay portal）
+- [ ] Overlay v2+：aria-hidden 进一步收敛到 topmost modal、inert/scroll lock 补全、嵌套 overlay 细节
 
 ### 12.3 ui-components（从原子到复合）
 
