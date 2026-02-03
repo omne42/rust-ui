@@ -42,10 +42,12 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
 - `ui-components`: `<Overlay>` now calls `use_modal`; `<Overlay>`/`<Popover>` mark portal content via `data-ui-overlay-portal` (used for `aria-hidden` exclusions).
 - `ui-components`: `<Overlay>` now supports `aria-labelledby` / `aria-describedby`, and adds a `<Modal>` composition component.
+- `ui-components`: adds `<UiRoot>` to inject theme CSS variables + base styles (including safe-area support).
 - `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Modal/Overlay).
 - `apps/web-demo`: adds MenuTrigger demo section (open/navigate/select).
 - `apps/web-demo`: adds Select demo section (Button -> Popover -> ListBox).
 - `apps/web-demo`: adds Checkbox/Switch demo section (Tab focus + Space toggle + focus-visible).
+- `apps/web-demo`: adds a light/dark theme toggle powered by `<UiRoot>`.
 - `apps/web-demo`: demonstrates per-item disabled options in Menu/ListBox/Select.
 - `apps/web-demo`: demonstrates checkbox/radio menu items (role + aria-checked + stays-open behavior).
 - `apps/web-demo`: Trunk entrypoint (`index.html`) and run instructions (`README.md`).
@@ -65,5 +67,6 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_listbox` now supports `on_action` to react to selection activation.
 - `ui-headless` (wasm): wrap DOM/event handles in `send_wrapper::SendWrapper` to satisfy Leptos `on_cleanup` Send+Sync bounds.
 - `ui-headless` (wasm): `use_popover_position` now uses `Element::get_bounding_client_rect` (required by `web-sys`) for anchor/panel rects.
+- `ui-components`: core visuals now use CSS variables (`--ui-*`) for theming (Button, ListBox, Menu, Select, Popover, Overlay, Checkbox, Switch).
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
 - Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).

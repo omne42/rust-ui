@@ -25,7 +25,7 @@ pub fn Popover(
 
     let panel_style = move || {
         format!(
-            "position: fixed; top: {}px; left: {}px; background: white; border-radius: 12px; padding: 12px; min-width: 240px; box-shadow: 0 10px 40px rgba(0,0,0,0.18);",
+            "position: fixed; top: {}px; left: {}px; background: var(--ui-bg); color: var(--ui-fg); border: 1px solid var(--ui-border); border-radius: var(--ui-radius-lg); padding: var(--ui-space-md); min-width: 240px; box-shadow: var(--ui-shadow-md);",
             position.top_px.get(),
             position.left_px.get()
         )

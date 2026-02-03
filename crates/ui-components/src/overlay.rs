@@ -49,7 +49,7 @@ pub fn Overlay(
                         aria-describedby=move || aria_describedby.get()
                         tabindex="-1"
                         node_ref=panel_ref
-                        style="background: white; border-radius: 12px; padding: 16px; min-width: 280px; max-width: 640px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);"
+                        style="background: var(--ui-bg); color: var(--ui-fg); border: 1px solid var(--ui-border); border-radius: var(--ui-radius-lg); padding: var(--ui-space-lg); min-width: 280px; max-width: 640px; box-shadow: var(--ui-shadow-md);"
                         on:click=move |ev| ev.stop_propagation()
                         on:pointerdown=move |ev| ev.stop_propagation()
                     on:keydown=on_key_down

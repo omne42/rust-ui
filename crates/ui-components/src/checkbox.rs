@@ -44,7 +44,7 @@ pub fn Checkbox(
             style="display: inline-flex; align-items: center; gap: 8px; user-select: none;"
             style:cursor=cursor
             style:opacity=opacity
-            style:outline=move || if focus_ring.is_focus_visible.get() { "2px solid #2563eb" } else { "none" }
+            style:outline=move || if focus_ring.is_focus_visible.get() { "2px solid var(--ui-focus-ring)" } else { "none" }
             style:outline-offset="2px"
             on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
             on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
@@ -68,9 +68,9 @@ pub fn Checkbox(
         >
             <div
                 class="ui-checkbox__box"
-                style="width: 16px; height: 16px; border-radius: 4px; border: 1px solid #9ca3af; display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1;"
-                style:background-color=move || if checked.get() { "#2563eb" } else { "white" }
-                style:border-color=move || if checked.get() { "#2563eb" } else { "#9ca3af" }
+                style="width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--ui-border); display: flex; align-items: center; justify-content: center; font-size: 12px; line-height: 1;"
+                style:background-color=move || if checked.get() { "var(--ui-accent)" } else { "var(--ui-bg)" }
+                style:border-color=move || if checked.get() { "var(--ui-accent)" } else { "var(--ui-border)" }
                 style:color=move || if checked.get() { "white" } else { "transparent" }
             >
                 "✓"

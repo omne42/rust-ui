@@ -99,7 +99,7 @@ pub fn Menu(
                             on:click=move |_| item.handlers.on_click.run(())
                             style="padding: 6px 10px; border-radius: 8px; cursor: default;"
                             style:opacity=if is_disabled { "0.5" } else { "1" }
-                            style:background-color=move || if is_active() { "#eff6ff" } else { "transparent" }
+                            style:background-color=move || if is_active() { "var(--ui-accent-soft)" } else { "transparent" }
                         >
                             <span style="display: inline-block; width: 16px;">
                                 {indicator}

@@ -1,7 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
     provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuItemKind,
-    MenuTrigger, Modal, OnPress, Select, Switch,
+    MenuTrigger, Modal, OnPress, Select, Switch, Theme, UiRoot,
 };
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
@@ -9,6 +9,16 @@ use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOpt
 fn App() -> impl IntoView {
     provide_focus_visible();
     provide_overlay_stack();
+
+    let (is_dark, set_is_dark) = signal(false);
+    let theme = Signal::derive(move || {
+        if is_dark.get() {
+            Theme::dark()
+        } else {
+            Theme::light()
+        }
+    });
+    let toggle_theme: OnPress = Callback::new(move |_| set_is_dark.update(|v| *v = !*v));
 
     let (count, set_count) = signal(0_i32);
     let on_press: OnPress = Callback::new(move |_| set_count.update(|n| *n += 1));
@@ -103,8 +113,20 @@ fn App() -> impl IntoView {
     let (switch_disabled_on, set_switch_disabled_on) = signal(true);
 
     view! {
-        <main style="padding: 24px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
-            <h1 style="margin: 0 0 12px 0; font-size: 18px;">"web-demo"</h1>
+        <UiRoot theme=theme safe_area=true>
+        <main style="padding: 24px; max-width: 980px; margin: 0 auto;">
+            <div style="display: flex; gap: 12px; align-items: center; justify-content: space-between; margin: 0 0 16px 0;">
+                <div>
+                    <h1 style="margin: 0; font-size: 18px;">"web-demo"</h1>
+                    <div style="margin-top: 4px; font-size: 12px; color: var(--ui-fg-muted);">
+                        "Leptos UI primitives (state/headless/components)"
+                    </div>
+                </div>
+                <Button on_press=toggle_theme>
+                    {move || if is_dark.get() { "Light theme" } else { "Dark theme" }}
+                </Button>
+            </div>
+
             <div style="display: flex; gap: 12px; align-items: center;">
                 <Button on_press=on_press>"Press Me"</Button>
                 <Button disabled=true>"Disabled"</Button>
@@ -136,13 +158,13 @@ fn App() -> impl IntoView {
                 set_selected_index=set_selected_index
                 disabled_indices=vec![1]
             />
-            <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+            <div style="margin-top: 8px; font-size: 12px; color: var(--ui-fg-muted);">
                 "selected_index: " {move || format!("{:?}", selected_index.get())}
             </div>
 
             <section style="margin-top: 24px;">
                 <h2 style="margin: 0 0 8px 0; font-size: 14px;">"MenuTrigger"</h2>
-                <div style="font-size: 12px; color: #6b7280; margin: 0 0 12px 0;">
+                <div style="font-size: 12px; color: var(--ui-fg-muted); margin: 0 0 12px 0;">
                     "Tab to focus the trigger; Enter/Space to open; Arrow keys to navigate; Enter/Space to activate."
                 </div>
 
@@ -155,7 +177,7 @@ fn App() -> impl IntoView {
                     >
                         "Open Menu"
                     </MenuTrigger>
-                    <div style="font-size: 12px; color: #6b7280;">
+                    <div style="font-size: 12px; color: var(--ui-fg-muted);">
                         "selected: " {menu_selected_label}
                     </div>
                 </div>
@@ -164,7 +186,7 @@ fn App() -> impl IntoView {
 
                 <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
                     <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px;">
-                        <div style="font-size: 12px; color: #6b7280;">"Checkbox Menu (stays open)"</div>
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">"Checkbox Menu (stays open)"</div>
                         <MenuTrigger
                             id_base="demo-menu-checkbox".to_string()
                             items=checkbox_menu_items.clone()
@@ -174,7 +196,7 @@ fn App() -> impl IntoView {
                         >
                             "Options"
                         </MenuTrigger>
-                        <div style="font-size: 12px; color: #6b7280;">
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">
                             "grid: " {move || show_grid.get().to_string()}
                             ", rulers: " {move || show_rulers.get().to_string()}
                             ", snap: " {move || snap_to_grid.get().to_string()}
@@ -182,7 +204,7 @@ fn App() -> impl IntoView {
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px;">
-                        <div style="font-size: 12px; color: #6b7280;">"Radio Menu (stays open)"</div>
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">"Radio Menu (stays open)"</div>
                         <MenuTrigger
                             id_base="demo-menu-radio".to_string()
                             items=radio_menu_items.clone()
@@ -192,7 +214,7 @@ fn App() -> impl IntoView {
                         >
                             "Alignment"
                         </MenuTrigger>
-                        <div style="font-size: 12px; color: #6b7280;">
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">
                             "selected: " {move || alignment.get().to_string()}
                         </div>
                     </div>
@@ -201,7 +223,7 @@ fn App() -> impl IntoView {
 
             <section style="margin-top: 24px;">
                 <h2 style="margin: 0 0 8px 0; font-size: 14px;">"Select"</h2>
-                <div style="font-size: 12px; color: #6b7280; margin: 0 0 12px 0;">
+                <div style="font-size: 12px; color: var(--ui-fg-muted); margin: 0 0 12px 0;">
                     "Button -> Popover -> ListBox -> select/close."
                 </div>
 
@@ -213,7 +235,7 @@ fn App() -> impl IntoView {
                         set_selected_index=set_select_index
                         disabled_indices=vec![3]
                     />
-                    <div style="font-size: 12px; color: #6b7280;">
+                    <div style="font-size: 12px; color: var(--ui-fg-muted);">
                         "selected_index: " {move || format!("{:?}", select_index.get())}
                     </div>
                 </div>
@@ -221,13 +243,13 @@ fn App() -> impl IntoView {
 
             <section style="margin-top: 24px;">
                 <h2 style="margin: 0 0 8px 0; font-size: 14px;">"Checkbox / Switch"</h2>
-                <div style="font-size: 12px; color: #6b7280; margin: 0 0 12px 0;">
+                <div style="font-size: 12px; color: var(--ui-fg-muted); margin: 0 0 12px 0;">
                     "Tab to focus; Space to toggle. Focus-visible shows an outline."
                 </div>
 
                 <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
                     <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px;">
-                        <div style="font-size: 12px; color: #6b7280;">"Checkbox"</div>
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">"Checkbox"</div>
                         <Checkbox checked=checkbox_enabled set_checked=set_checkbox_enabled>
                             "Enabled (interactive)"
                         </Checkbox>
@@ -248,13 +270,13 @@ fn App() -> impl IntoView {
                         >
                             "Disabled (checked)"
                         </Checkbox>
-                        <div style="font-size: 12px; color: #6b7280;">
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">
                             "enabled checked: " {move || checkbox_enabled.get().to_string()}
                         </div>
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 10px; min-width: 260px;">
-                        <div style="font-size: 12px; color: #6b7280;">"Switch"</div>
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">"Switch"</div>
                         <Switch checked=switch_enabled set_checked=set_switch_enabled>
                             "Enabled (interactive)"
                         </Switch>
@@ -275,13 +297,14 @@ fn App() -> impl IntoView {
                         >
                             "Disabled (checked)"
                         </Switch>
-                        <div style="font-size: 12px; color: #6b7280;">
+                        <div style="font-size: 12px; color: var(--ui-fg-muted);">
                             "enabled checked: " {move || switch_enabled.get().to_string()}
                         </div>
                     </div>
                 </div>
             </section>
         </main>
+        </UiRoot>
     }
 }
 

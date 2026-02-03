@@ -52,9 +52,9 @@ pub fn ListBox(
             aria-disabled=aria.attrs.aria_disabled
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             on:keydown=on_key_down
-            style="margin-top: 16px; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; width: 280px;"
+            style="margin-top: 16px; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-lg); padding: var(--ui-space-sm); width: 280px; background: var(--ui-bg); box-shadow: var(--ui-shadow-sm);"
         >
-            <div style="font-size: 12px; color: #6b7280; margin: 0 0 8px 0;">
+            <div style="font-size: 12px; color: var(--ui-fg-muted); margin: 0 0 8px 0;">
                 "ListBox (Arrow keys + Enter/Space to select; typeahead supported)"
             </div>
 
@@ -84,6 +84,8 @@ pub fn ListBox(
                                 aria.handlers.on_option_click.run(index);
                             }
                             style="padding: 6px 8px; border-radius: 6px; cursor: default;"
+                            style:background-color=move || if is_active() { "var(--ui-accent-soft)" } else { "transparent" }
+                            style:font-weight=move || if is_selected() { "600" } else { "400" }
                             style:opacity=if is_disabled { "0.5" } else { "1" }
                         >
                             {label}

@@ -44,7 +44,7 @@ pub fn Switch(
             style="display: inline-flex; align-items: center; gap: 10px; user-select: none;"
             style:cursor=cursor
             style:opacity=opacity
-            style:outline=move || if focus_ring.is_focus_visible.get() { "2px solid #2563eb" } else { "none" }
+            style:outline=move || if focus_ring.is_focus_visible.get() { "2px solid var(--ui-focus-ring)" } else { "none" }
             style:outline-offset="2px"
             on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
             on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
@@ -68,8 +68,8 @@ pub fn Switch(
         >
             <div
                 class="ui-switch__track"
-                style="position: relative; width: 36px; height: 20px; border-radius: 999px; background: #d1d5db; box-sizing: border-box; transition: background-color 120ms ease-out;"
-                style:background-color=move || if checked.get() { "#2563eb" } else { "#d1d5db" }
+                style="position: relative; width: 36px; height: 20px; border-radius: 999px; background: var(--ui-border); box-sizing: border-box; transition: background-color 120ms ease-out;"
+                style:background-color=move || if checked.get() { "var(--ui-accent)" } else { "var(--ui-border)" }
             >
                 <div
                     class="ui-switch__thumb"
