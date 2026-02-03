@@ -9,7 +9,7 @@ pub const CSS: &str = r#"
   position: fixed;
   top: var(--ui-popover-top, 0px);
   left: var(--ui-popover-left, 0px);
-  min-width: 240px;
+  min-width: max(240px, var(--ui-popover-anchor-width, 0px));
   padding: var(--ui-space-md);
   background: var(--ui-bg);
   color: var(--ui-fg);

@@ -85,12 +85,17 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds tests enforcing styling rules (`style:` forbidden; `style=` allowlist) and validating CSS aggregation.
 - `apps/web-demo`: adds demo sections for Badge/Spinner, Tooltip, Tabs, and TextField.
 - `ui-motion`: adds reduced-motion unit tests for `SpringAnimator` (immediate apply + on-rest callbacks).
+- `ui-headless`: adds `use_combo_box` and `use_radio_group` hooks with unit tests (combobox + radiogroup semantics).
+- `ui-components`: adds new components: `Avatar`, `Divider`, `TextArea`, `RadioGroup`/`Radio`, and `ComboBox`.
+- `apps/web-demo`: adds demo sections for Avatar, ComboBox, TextArea, RadioGroup, and Divider.
 
 ### Changed
 
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
+- `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.
+- `ui-components`: `Popover` now sets `--ui-popover-anchor-width` and uses it for the default min-width.
 - `ui-components`: re-exports `provide_focus_visible`, `provide_overlay_stack`, and `OnPress` to reduce app-layer coupling.
 - `ui-core`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).
 - `ui-headless`: `use_press` now supports keyboard Enter/Space (with click de-duping) and exposes key handlers that indicate when callers should `preventDefault` (for custom elements).

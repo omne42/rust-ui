@@ -32,11 +32,13 @@ impl Default for PopoverPositionOptions {
 pub struct PopoverPositionState {
     pub top_px: ReadSignal<f64>,
     pub left_px: ReadSignal<f64>,
+    pub anchor_width_px: ReadSignal<f64>,
 }
 
 pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPositionState {
     let (top_px, _set_top_px) = signal(0.0);
     let (left_px, _set_left_px) = signal(0.0);
+    let (anchor_width_px, _set_anchor_width_px) = signal(0.0);
 
     #[cfg(all(feature = "web", target_arch = "wasm32"))]
     {
@@ -76,6 +78,7 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
                 let panel_el: &web_sys::Element = panel.as_ref();
                 let anchor_rect = anchor_el.get_bounding_client_rect();
                 let panel_rect = panel_el.get_bounding_client_rect();
+                _set_anchor_width_px.set(anchor_rect.width());
 
                 let mut top = anchor_rect.bottom() + offset_px;
                 let mut left = match placement {
@@ -143,5 +146,9 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
         }
     }
 
-    PopoverPositionState { top_px, left_px }
+    PopoverPositionState {
+        top_px,
+        left_px,
+        anchor_width_px,
+    }
 }

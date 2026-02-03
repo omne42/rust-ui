@@ -1,0 +1,108 @@
+use leptos::prelude::*;
+use ui_headless::{ComboBoxOptions, use_combo_box};
+
+fn init_executor() {
+    let _ = any_spawner::Executor::init_futures_executor();
+}
+
+fn poll_effects() {
+    any_spawner::Executor::poll_local();
+}
+
+#[test]
+fn combobox_opens_on_arrow_down_and_commits_selection() {
+    init_executor();
+
+    let (open, set_open) = signal(false);
+    let (count, _set_count) = signal(3_usize);
+    let (selected, set_selected) = signal(None::<usize>);
+
+    let last_action: StoredValue<Option<usize>> = StoredValue::new(None);
+    let on_action = Callback::new(move |index: usize| last_action.set_value(Some(index)));
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "demo".to_string(),
+        is_open: open,
+        set_open,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: Some(on_action),
+        is_item_disabled: None,
+    });
+
+    assert!(!open.get_untracked());
+    assert_eq!(aria.input.aria_expanded.get_untracked(), Some("false"));
+    assert_eq!(aria.input.aria_activedescendant.get_untracked(), None);
+
+    // ArrowDown opens and focuses the first option.
+    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(open.get_untracked());
+    assert_eq!(aria.input.aria_expanded.get_untracked(), Some("true"));
+    assert_eq!(
+        aria.input.aria_activedescendant.get_untracked(),
+        Some("demo-option-0".to_string())
+    );
+
+    // Move active index and commit via Enter.
+    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(aria.handlers.on_input_key_down.run("Enter".to_string()));
+
+    assert_eq!(last_action.get_value(), Some(1));
+    assert!(!open.get_untracked());
+
+    // Sync active index from selected index.
+    set_selected.set(Some(2));
+    poll_effects();
+    assert_eq!(aria.active_index.get_untracked(), 2);
+}
+
+#[test]
+fn combobox_option_click_calls_on_action_and_closes() {
+    init_executor();
+
+    let (open, set_open) = signal(true);
+    let (count, _set_count) = signal(3_usize);
+    let (selected, _set_selected) = signal(None::<usize>);
+
+    let called: StoredValue<Vec<usize>> = StoredValue::new(Vec::new());
+    let on_action = Callback::new(move |index: usize| called.update_value(|v| v.push(index)));
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "demo".to_string(),
+        is_open: open,
+        set_open,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: Some(on_action),
+        is_item_disabled: None,
+    });
+
+    aria.handlers.on_option_click.run(2);
+    assert_eq!(called.get_value(), vec![2]);
+    assert!(!open.get_untracked());
+}
+
+#[test]
+fn disabled_combobox_ignores_input_events() {
+    init_executor();
+
+    let (open, set_open) = signal(false);
+    let (count, _set_count) = signal(3_usize);
+    let (selected, _set_selected) = signal(None::<usize>);
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: true,
+        id_base: "demo".to_string(),
+        is_open: open,
+        set_open,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: None,
+        is_item_disabled: None,
+    });
+
+    assert!(!aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(!open.get_untracked());
+}

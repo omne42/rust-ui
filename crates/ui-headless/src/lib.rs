@@ -5,6 +5,7 @@ compile_error!("features `web` and `ssr` are mutually exclusive; enable exactly 
 
 pub mod button;
 pub mod checkbox;
+pub mod combo_box;
 pub mod focus_ring;
 pub mod focus_trap;
 pub mod focus_visible;
@@ -18,6 +19,7 @@ pub mod modality;
 pub mod overlay_stack;
 pub mod popover_position;
 pub mod press;
+pub mod radio_group;
 pub mod roving_tabindex;
 pub mod switch;
 pub mod text_field;
@@ -26,6 +28,10 @@ pub use button::{
     ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions, use_button,
 };
 pub use checkbox::{CheckboxAria, CheckboxAttrs, CheckboxHandlers, CheckboxOptions, use_checkbox};
+pub use combo_box::{
+    ComboBoxAria, ComboBoxHandlers, ComboBoxInputAttrs, ComboBoxListBoxAttrs, ComboBoxOptions,
+    use_combo_box,
+};
 pub use focus_ring::{FocusRingHandlers, FocusRingOptions, FocusRingState, use_focus_ring};
 pub use focus_trap::{FocusTrapHandlers, FocusTrapOptions, use_focus_trap};
 pub use focus_visible::{FocusVisibleState, provide_focus_visible, use_focus_visible};
@@ -47,6 +53,7 @@ pub use popover_position::{
     PopoverPlacement, PopoverPositionOptions, PopoverPositionState, use_popover_position,
 };
 pub use press::{OnPress, PressActivationKeys, PressHandlers, PressOptions, PressState, use_press};
+pub use radio_group::{RadioGroupAria, RadioGroupHandlers, RadioGroupOptions, use_radio_group};
 pub use roving_tabindex::{
     RovingOrientation, RovingTabIndexHandlers, RovingTabIndexOptions, RovingTabIndexState,
     use_roving_tabindex,

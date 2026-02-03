@@ -11,9 +11,11 @@ fn push_components_css_emits_expected_layer_and_selectors() {
     );
 
     let required_selectors = [
+        (".ui-avatar", ".ui-avatar {"),
         (".ui-button", ".ui-button {"),
         (".ui-checkbox", ".ui-checkbox {"),
         (".ui-switch", ".ui-switch {"),
+        (".ui-divider", ".ui-divider {"),
         (".ui-overlay", ".ui-overlay {"),
         (".ui-popover", ".ui-popover {"),
         // Modal styles use `.ui-modal__*` selectors today, but we require the `.ui-modal` prefix to
@@ -25,7 +27,10 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-select", ".ui-select {"),
         (".ui-badge", ".ui-badge {"),
         (".ui-circular-progress", ".ui-circular-progress {"),
+        (".ui-combo-box", ".ui-combo-box {"),
         (".ui-text-field", ".ui-text-field {"),
+        (".ui-text-area", ".ui-text-area {"),
+        (".ui-radio", ".ui-radio {"),
         (".ui-tabs", ".ui-tabs {"),
         (".ui-tooltip", ".ui-tooltip {"),
     ];

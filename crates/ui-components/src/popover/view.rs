@@ -34,9 +34,10 @@ pub fn Popover(
 
     let panel_vars = move || {
         format!(
-            "--ui-popover-top: {}px; --ui-popover-left: {}px;",
+            "--ui-popover-top: {}px; --ui-popover-left: {}px; --ui-popover-anchor-width: {}px;",
             position.top_px.get(),
-            position.left_px.get()
+            position.left_px.get(),
+            position.anchor_width_px.get()
         )
     };
 

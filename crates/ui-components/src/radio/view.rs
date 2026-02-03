@@ -1,0 +1,258 @@
+use crate::radio::{RadioGroupOrientation, RadioMotion, motion};
+use leptos::{ev, html, prelude::*};
+use std::{collections::HashSet, sync::Arc};
+use ui_headless::{
+    FocusRingOptions, HoverOptions, PressOptions, RadioGroupOptions, use_focus_ring, use_hover,
+    use_press, use_radio_group,
+};
+
+#[cfg(target_arch = "wasm32")]
+fn focus_radio(radio_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
+    let Some(node_ref) = radio_refs.get(index) else {
+        return;
+    };
+    let Some(el) = node_ref.get_untracked() else {
+        return;
+    };
+    let _ = el.focus();
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn focus_radio(_radio_refs: &Arc<Vec<NodeRef<html::Button>>>, _index: usize) {}
+
+#[component]
+pub fn RadioGroup(
+    id_base: String,
+    options: Vec<String>,
+    selected_index: ReadSignal<Option<usize>>,
+    set_selected_index: WriteSignal<Option<usize>>,
+    #[prop(optional)] disabled: bool,
+    #[prop(optional)] disabled_indices: Vec<usize>,
+    #[prop(optional)] orientation: RadioGroupOrientation,
+    #[prop(optional, into)] label: Option<String>,
+    #[prop(optional)] motion: RadioMotion,
+    #[prop(optional, into)] class_name: Option<String>,
+) -> impl IntoView {
+    let options: StoredValue<Arc<[String]>> = StoredValue::new(options.into());
+    let (item_count, _set_item_count) = signal(options.get_value().len());
+
+    let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
+    let has_disabled = !disabled_index_set.is_empty();
+    let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
+
+    let is_item_disabled = has_disabled.then_some({
+        let disabled_indices = disabled_indices.clone();
+        Callback::new(move |index: usize| disabled_indices.contains(&index))
+    });
+
+    let aria = use_radio_group(RadioGroupOptions {
+        is_disabled: disabled,
+        id_base: id_base.clone(),
+        orientation: orientation.roving_orientation(),
+        item_count,
+        selected_index,
+        set_selected_index,
+        on_change: None,
+        is_item_disabled,
+    });
+
+    let radio_refs: Arc<Vec<NodeRef<html::Button>>> = Arc::new(
+        (0..item_count.get_untracked())
+            .map(|_| NodeRef::new())
+            .collect(),
+    );
+
+    let label_id = label.as_ref().map(|_| format!("{id_base}-label"));
+    let label_id = StoredValue::new(label_id);
+    let label = StoredValue::new(label);
+
+    let base_class = format!("ui-radio-group {}", orientation.class_name());
+    let class = class_name
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| format!("{base_class} {value}"))
+        .unwrap_or(base_class);
+
+    let radios = (0..item_count.get_untracked())
+        .map({
+            let aria = aria.clone();
+            let radio_refs = radio_refs.clone();
+            move |index| {
+                let label = options
+                    .get_value()
+                    .get(index)
+                    .cloned()
+                    .unwrap_or_default();
+                let node_ref = radio_refs[index];
+                let is_checked = move || aria.selected_index.get() == Some(index);
+                let is_disabled = disabled || disabled_indices.contains(&index);
+
+                let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
+                let hover = use_hover(HoverOptions { is_disabled });
+                let press = use_press(PressOptions {
+                    is_disabled,
+                    on_press: None,
+                    ..Default::default()
+                });
+
+                motion::attach_motion(node_ref, hover.is_hovered, press.is_pressed, is_disabled, motion);
+
+                let on_key_down = {
+                    let on_key_down = aria.handlers.on_key_down;
+                    let active_index = aria.active_index;
+                    let radio_refs = radio_refs.clone();
+                    move |ev: ev::KeyboardEvent| {
+                        if on_key_down.run(ev.key()) {
+                            ev.prevent_default();
+                            focus_radio(&radio_refs, active_index.get_untracked());
+                        }
+                    }
+                };
+
+                view! {
+                    <button
+                        type="button"
+                        class="ui-radio"
+                        class:ui-radio--focus-visible=move || focus_ring.is_focus_visible.get()
+                        node_ref=node_ref
+                        id=aria.radio_id.run(index)
+                        role="radio"
+                        tabindex=move || if is_disabled { -1 } else if aria.active_index.get() == index { 0 } else { -1 }
+                        aria-checked=move || if is_checked() { "true" } else { "false" }
+                        aria-disabled=if is_disabled { Some("true") } else { None }
+                        disabled=is_disabled
+                        data-checked=move || if is_checked() { Some("true") } else { None }
+                        data-disabled=if is_disabled { Some("true") } else { None }
+                        data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
+                        data-pressed=move || if press.is_pressed.get() { Some("true") } else { None }
+                        on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
+                        on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
+                        on:pointerdown=move |_| press.handlers.on_pointer_down.run(())
+                        on:pointerup=move |_| press.handlers.on_pointer_up.run(())
+                        on:pointercancel=move |_| press.handlers.on_pointer_cancel.run(())
+                        on:focus=move |_| {
+                            focus_ring.handlers.on_focus.run(());
+                            aria.handlers.on_radio_focus.run(index);
+                        }
+                        on:blur=move |_| {
+                            press.handlers.on_blur.run(());
+                            focus_ring.handlers.on_blur.run(());
+                        }
+                        on:click=move |_| aria.handlers.on_radio_click.run(index)
+                        on:keydown=on_key_down
+                    >
+                        <span class="ui-radio__indicator" aria-hidden="true">
+                            <span class="ui-radio__dot"></span>
+                        </span>
+                        <span class="ui-radio__label">{label}</span>
+                    </button>
+                }
+            }
+        })
+        .collect_view();
+
+    view! {
+        <div
+            class=class
+            role=aria.attrs.role
+            aria-disabled=aria.attrs.aria_disabled
+            aria-labelledby=label_id.get_value()
+            data-slot="radio-group"
+        >
+            {label.get_value().map(|label| {
+                let label_id = label_id.get_value();
+                view! {
+                    <div
+                        class="ui-radio-group__label"
+                        id=label_id
+                        data-slot="radio-group-label"
+                    >
+                        {label}
+                    </div>
+                }
+            })}
+            {radios}
+        </div>
+    }
+}
+
+#[component]
+pub fn Radio(
+    id: String,
+    label: String,
+    checked: Signal<bool>,
+    #[prop(optional)] disabled: bool,
+    #[prop(optional)] motion: RadioMotion,
+    #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] node_ref: NodeRef<html::Button>,
+    #[prop(optional)] on_change: Option<Callback<bool>>,
+) -> impl IntoView {
+    let focus_ring = use_focus_ring(FocusRingOptions {
+        is_disabled: disabled,
+    });
+    let hover = use_hover(HoverOptions {
+        is_disabled: disabled,
+    });
+    let press = use_press(PressOptions {
+        is_disabled: disabled,
+        on_press: None,
+        ..Default::default()
+    });
+
+    motion::attach_motion(
+        node_ref,
+        hover.is_hovered,
+        press.is_pressed,
+        disabled,
+        motion,
+    );
+
+    let base_class = "ui-radio".to_string();
+    let class = class_name
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| format!("{base_class} {value}"))
+        .unwrap_or(base_class);
+
+    let on_click = move |_| {
+        if disabled {
+            return;
+        }
+        if let Some(on_change) = on_change {
+            on_change.run(!checked.get_untracked());
+        }
+    };
+
+    view! {
+        <button
+            id=id
+            type="button"
+            class=class
+            class:ui-radio--focus-visible=move || focus_ring.is_focus_visible.get()
+            node_ref=node_ref
+            role="radio"
+            tabindex=if disabled { -1 } else { 0 }
+            aria-checked=move || if checked.get() { "true" } else { "false" }
+            aria-disabled=if disabled { Some("true") } else { None }
+            disabled=disabled
+            data-checked=move || if checked.get() { Some("true") } else { None }
+            data-disabled=if disabled { Some("true") } else { None }
+            data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
+            data-pressed=move || if press.is_pressed.get() { Some("true") } else { None }
+            on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
+            on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
+            on:pointerdown=move |_| press.handlers.on_pointer_down.run(())
+            on:pointerup=move |_| press.handlers.on_pointer_up.run(())
+            on:pointercancel=move |_| press.handlers.on_pointer_cancel.run(())
+            on:focus=move |_| focus_ring.handlers.on_focus.run(())
+            on:blur=move |_| {
+                press.handlers.on_blur.run(());
+                focus_ring.handlers.on_blur.run(());
+            }
+            on:click=on_click
+        >
+            <span class="ui-radio__indicator" aria-hidden="true">
+                <span class="ui-radio__dot"></span>
+            </span>
+            <span class="ui-radio__label">{label}</span>
+        </button>
+    }
+}

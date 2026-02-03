@@ -1,8 +1,9 @@
 mod demos;
 
 use demos::{
-    ArchitectureDemo, ButtonDemo, FormsDemo, ListBoxDemo, MenuDemo, OverlayDemo, SelectDemo,
-    StatusDemo, TabsDemo, TextFieldDemo, TooltipDemo,
+    ArchitectureDemo, AvatarDemo, ButtonDemo, ComboBoxDemo, DividerDemo, FormsDemo, ListBoxDemo,
+    MenuDemo, OverlayDemo, RadioDemo, SelectDemo, StatusDemo, TabsDemo, TextAreaDemo,
+    TextFieldDemo, TooltipDemo,
 };
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{Button, OnPress, Theme, UiRoot, provide_focus_visible, provide_overlay_stack};
@@ -68,28 +69,38 @@ fn App() -> impl IntoView {
                     <div class="demo-nav-title">"On this page"</div>
                     <a href="#architecture">"Architecture"</a>
                     <a href="#button">"Button"</a>
+                    <a href="#avatar">"Avatar"</a>
                     <a href="#status">"Badge / Spinner"</a>
                     <a href="#tooltip">"Tooltip"</a>
                     <a href="#overlay">"Overlay"</a>
                     <a href="#listbox">"ListBox"</a>
                     <a href="#menu">"MenuTrigger"</a>
                     <a href="#select">"Select"</a>
+                    <a href="#combo-box">"ComboBox"</a>
                     <a href="#tabs">"Tabs"</a>
                     <a href="#text-field">"TextField"</a>
+                    <a href="#text-area">"TextArea"</a>
+                    <a href="#radio">"RadioGroup"</a>
+                    <a href="#divider">"Divider"</a>
                     <a href="#forms">"Checkbox / Switch"</a>
                 </nav>
 
                 <main class="demo-main">
                     <ArchitectureDemo />
                     <ButtonDemo />
+                    <AvatarDemo />
                     <StatusDemo />
                     <TooltipDemo />
                     <OverlayDemo />
                     <ListBoxDemo />
                     <MenuDemo />
                     <SelectDemo />
+                    <ComboBoxDemo />
                     <TabsDemo />
                     <TextFieldDemo />
+                    <TextAreaDemo />
+                    <RadioDemo />
+                    <DividerDemo />
                     <FormsDemo />
                 </main>
             </div>

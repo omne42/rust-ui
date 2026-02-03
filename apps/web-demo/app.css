@@ -132,6 +132,10 @@ code {
   align-items: center;
 }
 
+.demo-row--tall {
+  height: 36px;
+}
+
 .demo-row--end {
   justify-content: flex-end;
 }
