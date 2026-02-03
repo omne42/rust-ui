@@ -5,9 +5,17 @@ use ui_headless::{
 };
 
 #[component]
-pub fn Overlay(on_close: OnPress, children: ChildrenFn) -> impl IntoView {
+pub fn Overlay(
+    on_close: OnPress,
+    children: ChildrenFn,
+    #[prop(optional)] aria_labelledby: Option<String>,
+    #[prop(optional)] aria_describedby: Option<String>,
+) -> impl IntoView {
     let registration = use_overlay_stack_registration();
     use_modal(ModalOptions::enabled());
+
+    let aria_labelledby: Signal<Option<String>> = aria_labelledby.into();
+    let aria_describedby: Signal<Option<String>> = aria_describedby.into();
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
     let focus_trap = use_focus_trap(FocusTrapOptions::enabled(panel_ref));
@@ -33,15 +41,17 @@ pub fn Overlay(on_close: OnPress, children: ChildrenFn) -> impl IntoView {
                 style="position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(0, 0, 0, 0.35);"
                 on:click=move |_| on_close.run(())
             >
-                <div
-                    class="ui-overlay__panel"
-                    role="dialog"
-                    aria-modal="true"
-                    tabindex="-1"
-                    node_ref=panel_ref
-                    style="background: white; border-radius: 12px; padding: 16px; min-width: 280px; max-width: 640px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);"
-                    on:click=move |ev| ev.stop_propagation()
-                    on:pointerdown=move |ev| ev.stop_propagation()
+                    <div
+                        class="ui-overlay__panel"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby=move || aria_labelledby.get()
+                        aria-describedby=move || aria_describedby.get()
+                        tabindex="-1"
+                        node_ref=panel_ref
+                        style="background: white; border-radius: 12px; padding: 16px; min-width: 280px; max-width: 640px; box-shadow: 0 10px 40px rgba(0,0,0,0.25);"
+                        on:click=move |ev| ev.stop_propagation()
+                        on:pointerdown=move |ev| ev.stop_propagation()
                     on:keydown=on_key_down
                 >
                     {children()}

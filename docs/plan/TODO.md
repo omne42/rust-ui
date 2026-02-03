@@ -284,7 +284,7 @@
 - [x] `Checkbox` / `Switch`（复用 toggle + press + focus）
 - [ ] `IconButton`（Button 变体）
 - [x] `Popover`（v0：基于 anchor rect 的定位；箭头/flip/scroll lock 后续）
-- [ ] `Dialog` / `Modal`（Overlay + focus trap 完整版）
+- [x] `Dialog` / `Modal`（v0：`Modal` 组合组件 + aria-labelledby/aria-describedby）
 - [x] `Menu` / `MenuTrigger`（v0：基于 Popover v0；typeahead + disabled items + checkbox/radio items；`close_on_action` 可选）
 - [x] `Select`（v0：Button + Popover + ListBox，选择后自动关闭）
 - [ ] `ComboBox`（Input + ListBox + Overlay）

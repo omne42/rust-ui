@@ -1,7 +1,7 @@
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{
     provide_focus_visible, provide_overlay_stack, Button, Checkbox, ListBox, MenuItemKind,
-    MenuTrigger, OnPress, Overlay, Select, Switch,
+    MenuTrigger, Modal, OnPress, Select, Switch,
 };
 use ui_core::overlay_trigger::{use_overlay_trigger_state, OverlayTriggerStateOptions};
 
@@ -113,15 +113,16 @@ fn App() -> impl IntoView {
             </div>
 
             <Show when=move || overlay_state.get().is_open()>
-                <Overlay on_close=close_overlay>
-                    <h2 style="margin: 0 0 8px 0; font-size: 16px;">"Overlay v1"</h2>
-                    <p style="margin: 0 0 12px 0; line-height: 1.4;">
-                        "Esc / click outside closes. Tab is trapped; close returns focus."
-                    </p>
+                <Modal
+                    id_base="demo-modal".to_string()
+                    title="Overlay v2".to_string()
+                    description="Esc / click outside closes. Tab is trapped; close returns focus.".to_string()
+                    on_close=close_overlay
+                >
                     <div style="display: flex; gap: 12px; justify-content: flex-end;">
                         <Button on_press=close_overlay>"Close"</Button>
                     </div>
-                </Overlay>
+                </Modal>
             </Show>
 
             <ListBox

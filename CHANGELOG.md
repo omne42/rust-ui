@@ -40,7 +40,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_focus_ring` hook for per-component focus ring handling.
 - `ui-components`: initial `<Overlay>` (portal + Esc/topmost + click-outside + focus trap).
 - `ui-components`: `<Overlay>` now calls `use_modal`; `<Overlay>`/`<Popover>` mark portal content via `data-ui-overlay-portal` (used for `aria-hidden` exclusions).
-- `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Overlay).
+- `ui-components`: `<Overlay>` now supports `aria-labelledby` / `aria-describedby`, and adds a `<Modal>` composition component.
+- `apps/web-demo`: minimal Leptos CSR demo showcasing the initial primitives (Button + Modal/Overlay).
 - `apps/web-demo`: adds MenuTrigger demo section (open/navigate/select).
 - `apps/web-demo`: adds Select demo section (Button -> Popover -> ListBox).
 - `apps/web-demo`: adds Checkbox/Switch demo section (Tab focus + Space toggle + focus-visible).
