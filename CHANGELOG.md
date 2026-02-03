@@ -60,6 +60,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Project docs: MVP/spec notes and a TODO/DAG-based implementation plan.
 - Research: Android spike checklist and go/no-go criteria (`docs/research/android-spike.md`).
 - Research: notes mapping `bb/packages/ui-web` architecture/colors/docs practices into this repo (`docs/research/bb_ui-web_notes.md`).
+- Docs: add a consolidated rulebook covering layering, theming (OKLCH/OLED), motion, and workflow (`docs/RULES_ZH.md`).
 - `ui-motion`: new crate providing native motion primitives (WAAPI-based on `wasm32`) with reduced-motion detection.
 - `ui-motion`: adds a physics-based spring runtime (`SpringAnimator`) for Framer/HeroUI-style micro-interactions.
 - `ui-components`: button styles moved into a dedicated style module and injected via `<UiRoot>`.
