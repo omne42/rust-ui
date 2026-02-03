@@ -5,6 +5,7 @@ pub struct ColorTokens {
     pub bg: &'static str,
     pub bg_muted: &'static str,
     pub accent: &'static str,
+    pub accent_fg: &'static str,
     pub accent_soft: &'static str,
     pub border: &'static str,
     pub focus_ring: &'static str,

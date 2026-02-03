@@ -4571,6 +4571,7 @@ version = "0.0.0"
 dependencies = [
  "leptos",
  "ui-headless",
+ "ui-motion",
  "ui-theme",
 ]
 
@@ -4586,6 +4587,15 @@ dependencies = [
  "js-sys",
  "leptos",
  "send_wrapper",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-motion"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
  "wasm-bindgen",
  "web-sys",
 ]

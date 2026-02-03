@@ -195,6 +195,14 @@
 
 目标：验证 headless + theme 的可组合性（先正确、再好看）。
 
+### 7.0 组件内部结构（ARCHITECTURE_ZH 风格：logic/styles/motion/view）
+
+- [x] 新增 `ui-motion` crate（Web: WAAPI；SSR/no-op），作为“高级 motion（非 CSS）”的执行后端
+- [x] `Button`：拆分为 `logic.rs` / `styles.rs` / `motion.rs` / `view.rs`
+- [x] `<UiRoot>`：统一注入组件 CSS（先从 Button 开始）
+- [ ] 其余组件逐步迁移到相同结构（每次迁移都要保持对外 API 不变）
+- [ ] 逐步清理 `ui-components` 的 inline style（迁移到 `styles.rs` 的 CSS 字符串 + tokens）
+
 ### 7.1 Button v0
 
 - [x] `t30` 实现 `<Button>`：

@@ -17,6 +17,7 @@ impl Theme {
                 bg: "#ffffff",
                 bg_muted: "#f3f4f6",
                 accent: "#2563eb",
+                accent_fg: "#ffffff",
                 accent_soft: "#eff6ff",
                 border: "#d1d5db",
                 focus_ring: "#2563eb",
@@ -47,6 +48,7 @@ impl Theme {
                 bg: "#0b1220",
                 bg_muted: "#111a2d",
                 accent: "#60a5fa",
+                accent_fg: "#0b1220",
                 accent_soft: "rgba(96, 165, 250, 0.18)",
                 border: "#334155",
                 focus_ring: "#93c5fd",
@@ -77,6 +79,7 @@ impl Theme {
   --ui-bg: {bg};
   --ui-bg-muted: {bg_muted};
   --ui-accent: {accent};
+  --ui-accent-fg: {accent_fg};
   --ui-accent-soft: {accent_soft};
   --ui-border: {border};
   --ui-focus-ring: {focus_ring};
@@ -99,6 +102,7 @@ impl Theme {
             bg = self.colors.bg,
             bg_muted = self.colors.bg_muted,
             accent = self.colors.accent,
+            accent_fg = self.colors.accent_fg,
             accent_soft = self.colors.accent_soft,
             border = self.colors.border,
             focus_ring = self.colors.focus_ring,
@@ -126,6 +130,7 @@ mod tests {
         assert!(css.contains("--ui-fg:"));
         assert!(css.contains("--ui-fg-muted:"));
         assert!(css.contains("--ui-bg-muted:"));
+        assert!(css.contains("--ui-accent-fg:"));
         assert!(css.contains("--ui-radius-md:"));
         assert!(css.contains("--ui-shadow-md:"));
     }

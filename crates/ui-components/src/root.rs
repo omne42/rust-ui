@@ -13,6 +13,7 @@ pub fn UiRoot(
         let mut out = String::new();
         out.push_str(css::BASE_CSS);
         out.push_str(&theme.get().to_css_variables());
+        crate::css::push_components_css(&mut out);
         out.push_str(
             r#"
 html, body { height: 100%; }

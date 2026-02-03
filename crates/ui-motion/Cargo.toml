@@ -1,0 +1,16 @@
+[package]
+name = "ui-motion"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2.108"
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["Animation", "Element", "MediaQueryList", "Window"] }
+
