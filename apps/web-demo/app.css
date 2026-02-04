@@ -220,3 +220,40 @@ code {
   font-size: 13px;
   color: var(--ui-fg);
 }
+
+.demo-stack--tight {
+  gap: 6px;
+}
+
+.demo-ripple-surface {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-fg);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.demo-ripple-label {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.demo-ripple-item {
+  color: var(--ui-accent);
+}
+
+.demo-auto-height {
+  padding: 10px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+}

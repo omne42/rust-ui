@@ -107,6 +107,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds a ports demo section showcasing the newly added components.
 - `ui-components`: ports bb/ui-web components: `ActionButton`, `ActionButtonGroup`, `ActionMenu`, `SearchInputButton`, `FlipButton`, and `ShareButton`.
 - `apps/web-demo`: extends the ports demo with action/share/search/flip components.
+- `ui-components`: adds new components: `Separator`, `AutoHeight`, `Progress`, `ProgressCircle`, `MotionRipple`, `StaticNumber`, and `SlidingNumber`.
+- `apps/web-demo`: extends the new components demo with separators, progress indicators, ripple surface, auto-height, and number formatting.
 
 ### Changed
 

@@ -1,7 +1,8 @@
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 use ui_components::{
-    Button, InputOtp, Meter, NumberField, OnPress, ScrollShadow, SegmentedControl,
-    SegmentedControlSize, Sheet, SheetPlacement,
+    AutoHeight, Button, InputOtp, Meter, MotionRipple, NumberField, OnPress, Progress,
+    ProgressCircle, RippleMotion, ScrollShadow, SegmentedControl, SegmentedControlSize, Separator,
+    SeparatorOrientation, Sheet, SheetPlacement, SlidingNumber, StaticNumber,
 };
 
 #[component]
@@ -34,6 +35,21 @@ pub fn NewComponentsDemo() -> impl IntoView {
     let open_sheet: OnPress = Callback::new(move |_| set_sheet_open.set(true));
     let on_sheet_exit_complete: Callback<()> = Callback::new(move |_| set_sheet_present.set(false));
 
+    // Progress + ProgressCircle reuse meter_value
+    let progress_value = Signal::derive(move || Some(meter_value.get() as f64));
+
+    // SlidingNumber
+    let (sliding_value, set_sliding_value) = signal(12345.67_f64);
+
+    // AutoHeight
+    let (auto_height_open, set_auto_height_open) = signal(false);
+
+    // Ripple demo surface
+    let ripple_ref: NodeRef<html::Span> = NodeRef::new();
+    let on_ripple_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple(ripple_ref, RippleMotion::default());
+    };
+
     view! {
         <>
             <Show when=move || is_sheet_present.get()>
@@ -61,7 +77,7 @@ pub fn NewComponentsDemo() -> impl IntoView {
 
             <section id="new-components" class="demo-card">
                 <h2>"New components"</h2>
-                <p>"InputOtp / NumberField / Meter / SegmentedControl / ScrollShadow / Sheet"</p>
+                <p>"InputOtp / NumberField / Meter / SegmentedControl / ScrollShadow / Sheet / Separator / Progress / MotionRipple / AutoHeight / Number"</p>
 
                 <div class="demo-grid-2">
                     <div class="demo-stack">
@@ -127,9 +143,108 @@ pub fn NewComponentsDemo() -> impl IntoView {
 
                 <div class="demo-divider"></div>
 
+                <div class="demo-grid-2">
+                    <div class="demo-stack">
+                        <div class="demo-kv">"Separator"</div>
+                        <div class="demo-stack demo-stack--tight">
+                            <span>"Above"</span>
+                            <Separator />
+                            <span>"Below"</span>
+                        </div>
+                        <div class="demo-row demo-row--tall">
+                            <span>"Left"</span>
+                            <Separator orientation=SeparatorOrientation::Vertical />
+                            <span>"Right"</span>
+                        </div>
+                    </div>
+
+                    <div class="demo-stack">
+                        <div class="demo-kv">"Progress / ProgressCircle"</div>
+                        <Progress aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
+                        <div class="demo-row">
+                            <ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
+                            <ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="demo-divider"></div>
+
                 <div class="demo-row">
                     <Button on_press=open_sheet>"Open Sheet"</Button>
                     <span class="demo-kv">"open: " {move || sheet_open.get().to_string()}</span>
+                </div>
+
+                <div class="demo-divider"></div>
+
+                <div class="demo-grid-2">
+                    <div class="demo-stack">
+                        <div class="demo-kv">"MotionRipple"</div>
+                        <button class="demo-ripple-surface" on:click=on_ripple_click type="button">
+                            <span class="demo-ripple-label">"Click for ripple"</span>
+                            <MotionRipple node_ref=ripple_ref class_name="demo-ripple-item".to_string() />
+                        </button>
+                    </div>
+
+                    <div class="demo-stack">
+                        <div class="demo-kv">"AutoHeight"</div>
+                        <Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_auto_height_open.update(|v| *v = !*v))
+                        >
+                            {move || if auto_height_open.get() { "Collapse" } else { "Expand" }}
+                        </Button>
+                        <AutoHeight class_name="demo-auto-height".to_string()>
+                            <Show when=move || auto_height_open.get()>
+                                <div class="demo-kv">
+                                    "Reserved for future layout-motion support (animates height changes)."
+                                </div>
+                                <div class="demo-kv">
+                                    "This content toggles without layout jitter thanks to overflow handling."
+                                </div>
+                            </Show>
+                        </AutoHeight>
+                    </div>
+                </div>
+
+                <div class="demo-divider"></div>
+
+                <div class="demo-grid-2">
+                    <div class="demo-stack">
+                        <div class="demo-kv">"StaticNumber"</div>
+                        <div class="demo-row">
+                            <StaticNumber
+                                number=12345.678
+                                decimal_places=2
+                                thousand_separator=",".to_string()
+                            />
+                            <StaticNumber number=-1.5 decimal_separator=",".to_string() />
+                        </div>
+                    </div>
+
+                    <div class="demo-stack">
+                        <div class="demo-kv">"SlidingNumber"</div>
+                        <div class="demo-row">
+                            <Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| set_sliding_value.update(|v| *v -= 1.0))
+                            >
+                                "-1"
+                            </Button>
+                            <Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| set_sliding_value.update(|v| *v += 1.0))
+                            >
+                                "+1"
+                            </Button>
+                            <span class="demo-kv">"value:"</span>
+                            <SlidingNumber
+                                number=sliding_value
+                                decimal_places=2
+                                thousand_separator=",".to_string()
+                            />
+                        </div>
+                    </div>
                 </div>
             </section>
         </>

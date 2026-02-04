@@ -12,6 +12,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::button_share::styles::CSS);
     out.push_str(crate::button_group::styles::CSS);
     out.push_str(crate::button_theme_toggle::styles::CSS);
+    out.push_str(crate::ripple::styles::CSS);
     out.push_str(crate::toggle_button::styles::CSS);
     out.push_str(crate::toggle_button_group::styles::CSS);
     out.push_str(crate::badge::styles::CSS);
@@ -22,6 +23,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::circular_progress::styles::CSS);
     out.push_str(crate::spinner::styles::CSS);
     out.push_str(crate::divider::styles::CSS);
+    out.push_str(crate::separator::styles::CSS);
     out.push_str(crate::card::styles::CSS);
     out.push_str(crate::alert::styles::CSS);
     out.push_str(crate::inline_alert::styles::CSS);
@@ -38,13 +40,17 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::kbd::styles::CSS);
     out.push_str(crate::spacer::styles::CSS);
     out.push_str(crate::progress_bar::styles::CSS);
+    out.push_str(crate::progress::styles::CSS);
+    out.push_str(crate::progress_circle::styles::CSS);
     out.push_str(crate::link_button::styles::CSS);
     out.push_str(crate::autocomplete::styles::CSS);
     out.push_str(crate::combo_box::styles::CSS);
     out.push_str(crate::text_field::styles::CSS);
     out.push_str(crate::search_field::styles::CSS);
     out.push_str(crate::text_area::styles::CSS);
+    out.push_str(crate::auto_height::styles::CSS);
     out.push_str(crate::number_field::styles::CSS);
+    out.push_str(crate::number::styles::CSS);
     out.push_str(crate::input::styles::CSS);
     out.push_str(crate::input_otp::styles::CSS);
     out.push_str(crate::file_trigger::styles::CSS);
