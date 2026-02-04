@@ -26,6 +26,7 @@ impl Default for PopoverMotion {
 fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
     match placement {
         PopoverPlacement::BottomStart | PopoverPlacement::BottomEnd => base.abs(),
+        PopoverPlacement::TopStart | PopoverPlacement::TopEnd => -base.abs(),
     }
 }
 
@@ -33,7 +34,7 @@ fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
 pub fn attach_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
-    placement: PopoverPlacement,
+    placement: leptos::prelude::Signal<PopoverPlacement>,
     on_exit_complete: leptos::prelude::Callback<()>,
     motion: PopoverMotion,
 ) {
@@ -62,7 +63,7 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
         let motion = motion.get_value();
-        let offset_y = placement_offset_y(placement, motion.offset_y_px);
+        let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
 
         let open_now = is_open.get_untracked();
         // Always initialize in the closed state so mounting while open animates in.
@@ -126,7 +127,7 @@ pub fn attach_motion(
         };
 
         let motion = motion.get_value();
-        let offset_y = placement_offset_y(placement, motion.offset_y_px);
+        let offset_y = placement_offset_y(placement.get_untracked(), motion.offset_y_px);
 
         if open {
             opacity.clear_on_rest();
@@ -152,7 +153,7 @@ pub fn attach_motion(
 pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
-    _placement: PopoverPlacement,
+    _placement: leptos::prelude::Signal<PopoverPlacement>,
     on_exit_complete: leptos::prelude::Callback<()>,
     _motion: PopoverMotion,
 ) {

@@ -116,7 +116,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.
+- `ui-headless`: `PopoverPlacement` now includes top placements; `use_popover_position` now resolves/flips placement based on viewport space.
 - `ui-components`: `Popover` now sets `--ui-popover-anchor-width` and uses it for the default min-width.
+- `ui-components`: `Popover` now supports `is_modal` (defaults true) and sets `data-placement` for correct transform origin and motion direction.
 - `ui-components`: re-exports `provide_focus_visible`, `provide_overlay_stack`, and `OnPress` to reduce app-layer coupling.
 - `ui-components`: `Tabs` now supports manual keyboard activation and a spring-driven selection indicator (HeroUI-style feel), with hover/press/focus-visible states.
 - `ui-core`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).

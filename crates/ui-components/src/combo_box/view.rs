@@ -21,7 +21,7 @@ fn ComboBoxPanel(
     crate::popover::motion::attach_motion(
         panel_ref,
         open,
-        ui_headless::PopoverPlacement::BottomStart,
+        Signal::derive(|| ui_headless::PopoverPlacement::BottomStart),
         on_exit_complete,
         Default::default(),
     );

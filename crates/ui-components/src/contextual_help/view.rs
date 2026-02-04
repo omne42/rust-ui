@@ -98,6 +98,7 @@ pub fn ContextualHelp(
                     on_close=on_close
                     placement=placement
                     motion=motion.popover
+                    is_modal=false
                     on_exit_complete=presence.finish_exit
                 >
                     {move || {

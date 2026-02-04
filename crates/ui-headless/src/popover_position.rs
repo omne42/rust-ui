@@ -5,6 +5,44 @@ pub enum PopoverPlacement {
     #[default]
     BottomStart,
     BottomEnd,
+    TopStart,
+    TopEnd,
+}
+
+impl PopoverPlacement {
+    pub const fn is_top(self) -> bool {
+        matches!(self, Self::TopStart | Self::TopEnd)
+    }
+
+    pub const fn is_bottom(self) -> bool {
+        matches!(self, Self::BottomStart | Self::BottomEnd)
+    }
+
+    pub const fn is_start(self) -> bool {
+        matches!(self, Self::BottomStart | Self::TopStart)
+    }
+
+    pub const fn is_end(self) -> bool {
+        matches!(self, Self::BottomEnd | Self::TopEnd)
+    }
+
+    pub const fn flip_vertical(self) -> Self {
+        match self {
+            Self::BottomStart => Self::TopStart,
+            Self::BottomEnd => Self::TopEnd,
+            Self::TopStart => Self::BottomStart,
+            Self::TopEnd => Self::BottomEnd,
+        }
+    }
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::BottomStart => "bottom-start",
+            Self::BottomEnd => "bottom-end",
+            Self::TopStart => "top-start",
+            Self::TopEnd => "top-end",
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -33,12 +71,113 @@ pub struct PopoverPositionState {
     pub top_px: ReadSignal<f64>,
     pub left_px: ReadSignal<f64>,
     pub anchor_width_px: ReadSignal<f64>,
+    pub placement: ReadSignal<PopoverPlacement>,
+}
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Rect {
+    top: f64,
+    left: f64,
+    width: f64,
+    height: f64,
+}
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+impl Rect {
+    fn right(self) -> f64 {
+        self.left + self.width
+    }
+
+    fn bottom(self) -> f64 {
+        self.top + self.height
+    }
+}
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Size {
+    width: f64,
+    height: f64,
+}
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct ComputedPosition {
+    top: f64,
+    left: f64,
+    anchor_width: f64,
+    placement: PopoverPlacement,
+}
+
+#[cfg(any(test, all(feature = "web", target_arch = "wasm32")))]
+fn compute_popover_position(
+    anchor: Rect,
+    panel: Size,
+    viewport: Size,
+    preferred: PopoverPlacement,
+    offset_px: f64,
+    padding_px: f64,
+) -> ComputedPosition {
+    let padding_px = padding_px.max(0.0);
+    let offset_px = offset_px.max(0.0);
+
+    let mut resolved = preferred;
+
+    if viewport.height > 0.0 && panel.height > 0.0 {
+        let space_above = (anchor.top - padding_px).max(0.0);
+        let space_below = (viewport.height - anchor.bottom() - padding_px).max(0.0);
+        let needed = panel.height + offset_px;
+
+        let fits_above = needed <= space_above;
+        let fits_below = needed <= space_below;
+
+        let should_flip =
+            (preferred.is_bottom() && !fits_below && (fits_above || space_above > space_below))
+                || (preferred.is_top() && !fits_above && (fits_below || space_below > space_above));
+
+        if should_flip {
+            resolved = preferred.flip_vertical();
+        }
+    }
+
+    let mut top = if resolved.is_bottom() {
+        anchor.bottom() + offset_px
+    } else {
+        anchor.top - offset_px - panel.height
+    };
+
+    let mut left = if resolved.is_start() {
+        anchor.left
+    } else {
+        anchor.right() - panel.width
+    };
+
+    if viewport.width > 0.0 && panel.width > 0.0 {
+        let min_left = padding_px;
+        let max_left = (viewport.width - panel.width - padding_px).max(min_left);
+        left = left.clamp(min_left, max_left);
+    }
+
+    if viewport.height > 0.0 && panel.height > 0.0 {
+        let min_top = padding_px;
+        let max_top = (viewport.height - panel.height - padding_px).max(min_top);
+        top = top.clamp(min_top, max_top);
+    }
+
+    ComputedPosition {
+        top,
+        left,
+        anchor_width: anchor.width,
+        placement: resolved,
+    }
 }
 
 pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPositionState {
     let (top_px, _set_top_px) = signal(0.0);
     let (left_px, _set_left_px) = signal(0.0);
     let (anchor_width_px, _set_anchor_width_px) = signal(0.0);
+    let (placement, _set_placement) = signal(_options.placement);
 
     #[cfg(all(feature = "web", target_arch = "wasm32"))]
     {
@@ -78,28 +217,31 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
                 let panel_el: &web_sys::Element = panel.as_ref();
                 let anchor_rect = anchor_el.get_bounding_client_rect();
                 let panel_rect = panel_el.get_bounding_client_rect();
-                _set_anchor_width_px.set(anchor_rect.width());
 
-                let mut top = anchor_rect.bottom() + offset_px;
-                let mut left = match placement {
-                    PopoverPlacement::BottomStart => anchor_rect.left(),
-                    PopoverPlacement::BottomEnd => anchor_rect.right() - panel_rect.width(),
-                };
+                let computed = compute_popover_position(
+                    Rect {
+                        top: anchor_rect.top(),
+                        left: anchor_rect.left(),
+                        width: anchor_rect.width(),
+                        height: anchor_rect.height(),
+                    },
+                    Size {
+                        width: panel_rect.width(),
+                        height: panel_rect.height(),
+                    },
+                    Size {
+                        width: viewport_w,
+                        height: viewport_h,
+                    },
+                    placement,
+                    offset_px,
+                    padding_px,
+                );
 
-                if viewport_w > 0.0 && panel_rect.width() > 0.0 {
-                    let min_left = padding_px;
-                    let max_left = (viewport_w - panel_rect.width() - padding_px).max(min_left);
-                    left = left.clamp(min_left, max_left);
-                }
-
-                if viewport_h > 0.0 && panel_rect.height() > 0.0 {
-                    let min_top = padding_px;
-                    let max_top = (viewport_h - panel_rect.height() - padding_px).max(min_top);
-                    top = top.clamp(min_top, max_top);
-                }
-
-                _set_top_px.set(top);
-                _set_left_px.set(left);
+                _set_anchor_width_px.set(computed.anchor_width);
+                _set_top_px.set(computed.top);
+                _set_left_px.set(computed.left);
+                _set_placement.set(computed.placement);
             }
         });
 
@@ -150,5 +292,161 @@ pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPosition
         top_px,
         left_px,
         anchor_width_px,
+        placement,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn pos(
+        anchor: Rect,
+        panel: Size,
+        viewport: Size,
+        preferred: PopoverPlacement,
+        offset_px: f64,
+        padding_px: f64,
+    ) -> ComputedPosition {
+        compute_popover_position(anchor, panel, viewport, preferred, offset_px, padding_px)
+    }
+
+    #[test]
+    fn bottom_start_positions_below_and_aligns_start() {
+        let out = pos(
+            Rect {
+                top: 10.0,
+                left: 20.0,
+                width: 100.0,
+                height: 40.0,
+            },
+            Size {
+                width: 200.0,
+                height: 120.0,
+            },
+            Size {
+                width: 800.0,
+                height: 600.0,
+            },
+            PopoverPlacement::BottomStart,
+            8.0,
+            8.0,
+        );
+
+        assert_eq!(out.placement, PopoverPlacement::BottomStart);
+        assert_eq!(out.anchor_width, 100.0);
+        assert!((out.top - 58.0).abs() < 0.0001);
+        assert!((out.left - 20.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn bottom_end_aligns_end() {
+        let out = pos(
+            Rect {
+                top: 0.0,
+                left: 300.0,
+                width: 120.0,
+                height: 40.0,
+            },
+            Size {
+                width: 200.0,
+                height: 100.0,
+            },
+            Size {
+                width: 800.0,
+                height: 600.0,
+            },
+            PopoverPlacement::BottomEnd,
+            8.0,
+            8.0,
+        );
+
+        assert_eq!(out.placement, PopoverPlacement::BottomEnd);
+        assert!((out.left - 220.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn flips_to_top_when_bottom_does_not_fit() {
+        let out = pos(
+            Rect {
+                top: 560.0,
+                left: 20.0,
+                width: 100.0,
+                height: 30.0,
+            },
+            Size {
+                width: 240.0,
+                height: 120.0,
+            },
+            Size {
+                width: 800.0,
+                height: 600.0,
+            },
+            PopoverPlacement::BottomStart,
+            8.0,
+            8.0,
+        );
+
+        assert_eq!(out.placement, PopoverPlacement::TopStart);
+        // top = anchor.top - offset - panel.height = 560 - 8 - 120
+        assert!((out.top - 432.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn clamps_left_within_viewport_padding() {
+        let out = pos(
+            Rect {
+                top: 10.0,
+                left: 760.0,
+                width: 60.0,
+                height: 40.0,
+            },
+            Size {
+                width: 200.0,
+                height: 100.0,
+            },
+            Size {
+                width: 800.0,
+                height: 600.0,
+            },
+            PopoverPlacement::BottomStart,
+            8.0,
+            8.0,
+        );
+
+        // max_left = 800 - 200 - 8 = 592
+        assert!((out.left - 592.0).abs() < 0.0001);
+    }
+
+    #[test]
+    fn clamps_top_when_panel_would_overflow() {
+        let out = pos(
+            Rect {
+                top: 580.0,
+                left: 20.0,
+                width: 100.0,
+                height: 10.0,
+            },
+            Size {
+                width: 240.0,
+                height: 200.0,
+            },
+            Size {
+                width: 800.0,
+                height: 600.0,
+            },
+            PopoverPlacement::TopStart,
+            8.0,
+            8.0,
+        );
+
+        // Preferred is top, but it doesn't fit above; it will choose bottom because more space below.
+        assert!(matches!(
+            out.placement,
+            PopoverPlacement::TopStart | PopoverPlacement::BottomStart
+        ));
+
+        assert!(out.top >= 8.0);
+        assert!(out.top <= 392.0); // 600 - 200 - 8
     }
 }

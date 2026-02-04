@@ -23,7 +23,22 @@ pub const CSS: &str = r#"
 
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));
-  transform-origin: top left;
   will-change: transform, opacity;
+}
+
+.ui-popover__panel[data-placement="bottom-start"] {
+  transform-origin: top left;
+}
+
+.ui-popover__panel[data-placement="bottom-end"] {
+  transform-origin: top right;
+}
+
+.ui-popover__panel[data-placement="top-start"] {
+  transform-origin: bottom left;
+}
+
+.ui-popover__panel[data-placement="top-end"] {
+  transform-origin: bottom right;
 }
 "#;

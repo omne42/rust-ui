@@ -135,7 +135,7 @@ pub fn HoverCard(
     motion::attach_motion(
         panel_ref,
         open_signal,
-        placement,
+        position.placement.into(),
         presence.finish_exit,
         motion,
     );
@@ -179,6 +179,7 @@ pub fn HoverCard(
                         node_ref=panel_ref
                         id=move || id.with_value(|id| id.clone())
                         role="tooltip"
+                        data-placement=move || position.placement.get().as_str()
                         data-slot="hover-card-panel"
                         on:pointerenter=move |_| panel_hover.handlers.on_pointer_enter.run(())
                         on:pointerleave=move |_| panel_hover.handlers.on_pointer_leave.run(())

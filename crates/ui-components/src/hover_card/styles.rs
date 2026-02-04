@@ -36,7 +36,22 @@ pub const CSS: &str = r#"
 
   opacity: var(--ui-hover-card-opacity, 0);
   transform: translateY(var(--ui-hover-card-y, 8px)) scale(var(--ui-hover-card-scale, 0.98));
-  transform-origin: top left;
   will-change: transform, opacity;
+}
+
+.ui-hover-card__panel[data-placement="bottom-start"] {
+  transform-origin: top left;
+}
+
+.ui-hover-card__panel[data-placement="bottom-end"] {
+  transform-origin: top right;
+}
+
+.ui-hover-card__panel[data-placement="top-start"] {
+  transform-origin: bottom left;
+}
+
+.ui-hover-card__panel[data-placement="top-end"] {
+  transform-origin: bottom right;
 }
 "#;
