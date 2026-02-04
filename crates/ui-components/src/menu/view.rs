@@ -12,6 +12,7 @@ pub fn Menu(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
+    #[prop(optional, default = 0)] default_index: usize,
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -38,6 +39,7 @@ pub fn Menu(
         should_loop: true,
         id_base,
         item_count,
+        default_index,
         on_action: Some(on_action),
         is_item_disabled,
         item_text: Some(item_text),

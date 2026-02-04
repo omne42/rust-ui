@@ -75,6 +75,7 @@ pub struct MenuOptions {
     pub should_loop: bool,
     pub id_base: String,
     pub item_count: ReadSignal<usize>,
+    pub default_index: usize,
     pub on_action: Option<MenuOnAction>,
     /// Optional: disables specific items.
     pub is_item_disabled: Option<Callback<usize, bool>>,
@@ -86,7 +87,7 @@ pub struct MenuOptions {
 pub fn use_menu(options: MenuOptions) -> MenuAria {
     let roving = use_roving_tabindex(RovingTabIndexOptions {
         is_disabled: options.is_disabled,
-        default_index: 0,
+        default_index: options.default_index,
         should_loop: options.should_loop,
         orientation: RovingOrientation::Vertical,
         item_count: options.item_count,

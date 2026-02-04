@@ -118,6 +118,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: roving tabindex now clamps disabled indices to the nearest enabled option (preferring previous when possible).
 - `ui-headless`: `use_combo_box` keyboard behavior now aligns better with React Spectrum (ArrowDown/ArrowUp open first/last; Enter/Tab commit; Space no longer commits).
 - `ui-components`: `ComboBox` popup panel is now positioned relative to the field control (fixes incorrect absolute positioning).
+- `ui-headless`: `use_menu` now supports `default_index` to enable menu trigger focus strategies (e.g. open + focus last item).
+- `ui-components`: `MenuTrigger` now supports Spectrum-style keyboard opening (ArrowDown opens focusing first; ArrowUp opens focusing last).
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.

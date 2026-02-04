@@ -99,6 +99,7 @@ fn menu_item_roles_and_aria_checked_match_kind() {
         should_loop: true,
         id_base: "demo".to_string(),
         item_count: count,
+        default_index: 0,
         on_action: None,
         is_item_disabled: None,
         item_text: None,
@@ -145,6 +146,7 @@ fn menu_item_disabled_short_circuits_handlers_and_sets_aria_disabled() {
         should_loop: true,
         id_base: "demo".to_string(),
         item_count: count,
+        default_index: 0,
         on_action: Some(on_action),
         is_item_disabled: None,
         item_text: None,
@@ -167,6 +169,26 @@ fn menu_item_disabled_short_circuits_handlers_and_sets_aria_disabled() {
     assert_eq!(menu.active_index.get_untracked(), 0);
     disabled.handlers.on_click.run(());
     assert_eq!(activated.get_value(), Vec::<usize>::new());
+}
+
+#[test]
+fn menu_default_index_skips_disabled_items() {
+    init_executor();
+
+    let (count, _set_count) = signal(4_usize);
+    let menu = use_menu(MenuOptions {
+        is_disabled: false,
+        should_loop: true,
+        id_base: "demo".to_string(),
+        item_count: count,
+        default_index: 3,
+        on_action: None,
+        is_item_disabled: Some(Callback::new(|index: usize| matches!(index, 0 | 3))),
+        item_text: None,
+    });
+
+    poll_effects();
+    assert_eq!(menu.active_index.get_untracked(), 2);
 }
 
 #[test]

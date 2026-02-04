@@ -313,6 +313,7 @@ fn menu_calls_on_action_for_active_item_and_menu_item_roles() {
         should_loop: true,
         id_base: "demo".to_string(),
         item_count: count,
+        default_index: 0,
         on_action: Some(on_action),
         is_item_disabled: Some(Callback::new(|index: usize| index == 1)),
         item_text: Some(Callback::new(|index: usize| match index {
