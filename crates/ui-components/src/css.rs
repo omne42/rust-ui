@@ -4,7 +4,9 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::avatar::styles::CSS);
     out.push_str(crate::avatar_group::styles::CSS);
     out.push_str(crate::button::styles::CSS);
+    out.push_str(crate::button_copy::styles::CSS);
     out.push_str(crate::button_group::styles::CSS);
+    out.push_str(crate::button_theme_toggle::styles::CSS);
     out.push_str(crate::toggle_button::styles::CSS);
     out.push_str(crate::toggle_button_group::styles::CSS);
     out.push_str(crate::badge::styles::CSS);
@@ -26,11 +28,13 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::link::styles::CSS);
     out.push_str(crate::breadcrumbs::styles::CSS);
     out.push_str(crate::code::styles::CSS);
+    out.push_str(crate::code_block::styles::CSS);
     out.push_str(crate::snippet::styles::CSS);
     out.push_str(crate::kbd::styles::CSS);
     out.push_str(crate::spacer::styles::CSS);
     out.push_str(crate::progress_bar::styles::CSS);
     out.push_str(crate::link_button::styles::CSS);
+    out.push_str(crate::autocomplete::styles::CSS);
     out.push_str(crate::combo_box::styles::CSS);
     out.push_str(crate::text_field::styles::CSS);
     out.push_str(crate::search_field::styles::CSS);
@@ -40,6 +44,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::input_otp::styles::CSS);
     out.push_str(crate::file_trigger::styles::CSS);
     out.push_str(crate::drop_zone::styles::CSS);
+    out.push_str(crate::form::styles::CSS);
     out.push_str(crate::segmented_control::styles::CSS);
     out.push_str(crate::scroll_shadow::styles::CSS);
     out.push_str(crate::radio::styles::CSS);
@@ -62,6 +67,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::listbox::styles::CSS);
     out.push_str(crate::menu::styles::CSS);
     out.push_str(crate::select::styles::CSS);
+    out.push_str(crate::dropdown_menu::styles::CSS);
     out.push_str(crate::menu_trigger::styles::CSS);
     out.push_str("\n}\n");
 }

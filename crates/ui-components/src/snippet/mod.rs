@@ -1,4 +1,4 @@
-mod logic;
+pub(crate) mod logic;
 pub mod styles;
 mod view;
 
