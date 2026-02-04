@@ -58,6 +58,96 @@ fn combobox_opens_on_arrow_down_and_commits_selection() {
 }
 
 #[test]
+fn combobox_opens_on_arrow_up_and_focuses_last_enabled_option() {
+    init_executor();
+
+    let (open, set_open) = signal(false);
+    let (count, _set_count) = signal(3_usize);
+    let (selected, _set_selected) = signal(Some(0_usize));
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "demo".to_string(),
+        is_open: open,
+        set_open,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: None,
+        is_item_disabled: Some(Callback::new(|index: usize| index == 2)),
+    });
+
+    poll_effects();
+    assert!(!open.get_untracked());
+
+    assert!(aria.handlers.on_input_key_down.run("ArrowUp".to_string()));
+    assert!(open.get_untracked());
+
+    // Option 2 is disabled, so ArrowUp should focus option 1.
+    assert_eq!(
+        aria.input.aria_activedescendant.get_untracked(),
+        Some("demo-option-1".to_string())
+    );
+    assert_eq!(aria.active_index.get_untracked(), 1);
+}
+
+#[test]
+fn combobox_home_does_not_interfere_with_text_editing_when_closed() {
+    init_executor();
+
+    let (open, set_open) = signal(false);
+    let (count, _set_count) = signal(3_usize);
+    let (selected, _set_selected) = signal(None::<usize>);
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "demo".to_string(),
+        is_open: open,
+        set_open,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: None,
+        is_item_disabled: None,
+    });
+
+    assert!(!aria.handlers.on_input_key_down.run("Home".to_string()));
+    assert!(!open.get_untracked());
+}
+
+#[test]
+fn combobox_tab_commits_active_option_and_allows_focus_to_move() {
+    init_executor();
+
+    let (open, set_open) = signal(false);
+    let (count, _set_count) = signal(3_usize);
+    let (selected, _set_selected) = signal(None::<usize>);
+
+    let last_action: StoredValue<Option<usize>> = StoredValue::new(None);
+    let on_action = Callback::new(move |index: usize| last_action.set_value(Some(index)));
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "demo".to_string(),
+        is_open: open,
+        set_open,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: Some(on_action),
+        is_item_disabled: None,
+    });
+
+    // Open, then move active to index 2.
+    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert_eq!(aria.active_index.get_untracked(), 2);
+
+    // Tab should commit but not request preventDefault.
+    assert!(!aria.handlers.on_input_key_down.run("Tab".to_string()));
+    assert_eq!(last_action.get_value(), Some(2));
+    assert!(!open.get_untracked());
+}
+
+#[test]
 fn combobox_option_click_calls_on_action_and_closes() {
     init_executor();
 

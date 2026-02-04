@@ -116,6 +116,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-headless`: `use_listbox` now supports `default_index` and optional `sync_active_index_to_selected` to enable Select focus strategies without mutating selection.
 - `ui-headless`: roving tabindex now clamps disabled indices to the nearest enabled option (preferring previous when possible).
+- `ui-headless`: `use_combo_box` keyboard behavior now aligns better with React Spectrum (ArrowDown/ArrowUp open first/last; Enter/Tab commit; Space no longer commits).
+- `ui-components`: `ComboBox` popup panel is now positioned relative to the field control (fixes incorrect absolute positioning).
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.

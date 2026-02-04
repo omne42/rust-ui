@@ -281,44 +281,59 @@ pub fn ComboBox(
                 {label}
             </label>
 
-            <div class="ui-combo-box__control" data-slot="combo-box-control">
-                <input
-                    class="ui-combo-box__input"
-                    data-slot="combo-box-input"
-                    id=aria.input.id.clone()
-                    prop:value=move || query.get()
-                    placeholder=move || {
-                        (selected_label.get().is_none() && !has_typed.get())
-                            .then(|| placeholder.get_value())
-                    }
-                    disabled=disabled
-                    required=move || required.get()
-                    role=aria.input.role
-                    aria-autocomplete=aria.input.aria_autocomplete
-                    aria-controls=aria.input.aria_controls.clone()
-                    aria-expanded=move || aria.input.aria_expanded.get()
-                    aria-activedescendant=move || aria.input.aria_activedescendant.get()
-                    aria-describedby=move || text_field.input.aria_describedby.get()
-                    aria-invalid=move || text_field.input.aria_invalid.get()
-                    aria-required=move || text_field.input.aria_required.get()
-                    aria-disabled=aria.input.aria_disabled
-                    on:input=on_input
-                    on:keydown=on_key_down
-                    on:focus=on_focus
-                    on:blur=on_blur
-                />
+            <div class="ui-combo-box__field" data-slot="combo-box-field">
+                <div class="ui-combo-box__control" data-slot="combo-box-control">
+                    <input
+                        class="ui-combo-box__input"
+                        data-slot="combo-box-input"
+                        id=aria.input.id.clone()
+                        prop:value=move || query.get()
+                        placeholder=move || {
+                            (selected_label.get().is_none() && !has_typed.get())
+                                .then(|| placeholder.get_value())
+                        }
+                        disabled=disabled
+                        required=move || required.get()
+                        role=aria.input.role
+                        aria-autocomplete=aria.input.aria_autocomplete
+                        aria-controls=aria.input.aria_controls.clone()
+                        aria-expanded=move || aria.input.aria_expanded.get()
+                        aria-activedescendant=move || aria.input.aria_activedescendant.get()
+                        aria-describedby=move || text_field.input.aria_describedby.get()
+                        aria-invalid=move || text_field.input.aria_invalid.get()
+                        aria-required=move || text_field.input.aria_required.get()
+                        aria-disabled=aria.input.aria_disabled
+                        on:input=on_input
+                        on:keydown=on_key_down
+                        on:focus=on_focus
+                        on:blur=on_blur
+                    />
 
-                <button
-                    class="ui-combo-box__trigger"
-                    type="button"
-                    aria-label="Toggle options"
-                    disabled=disabled
-                    tabindex="-1"
-                    on:pointerdown=on_trigger_pointer_down
-                    on:click=on_trigger_click
-                >
-                    "▾"
-                </button>
+                    <button
+                        class="ui-combo-box__trigger"
+                        type="button"
+                        aria-label="Toggle options"
+                        disabled=disabled
+                        tabindex="-1"
+                        on:pointerdown=on_trigger_pointer_down
+                        on:click=on_trigger_click
+                    >
+                        "▾"
+                    </button>
+                </div>
+
+                <Show when=move || presence.is_present.get()>
+                    <ComboBoxPanel
+                        open=is_open.into()
+                        aria=aria.clone()
+                        filtered_indices=filtered_indices
+                        items=items
+                        disabled_indices=disabled_indices.clone()
+                        selected_index=selected_index
+                        motion=motion
+                        on_exit_complete=presence.finish_exit
+                    />
+                </Show>
             </div>
 
             {description.map(|description| {
@@ -350,19 +365,6 @@ pub fn ComboBox(
                     </Show>
                 }
             })}
-
-            <Show when=move || presence.is_present.get()>
-                <ComboBoxPanel
-                    open=is_open.into()
-                    aria=aria.clone()
-                    filtered_indices=filtered_indices
-                    items=items
-                    disabled_indices=disabled_indices.clone()
-                    selected_index=selected_index
-                    motion=motion
-                    on_exit_complete=presence.finish_exit
-                />
-            </Show>
         </div>
     }
 }

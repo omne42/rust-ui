@@ -1,10 +1,6 @@
 use crate::roving_tabindex::{RovingOrientation, RovingTabIndexOptions, use_roving_tabindex};
 use leptos::prelude::*;
 
-fn is_space_key(key: &str) -> bool {
-    key == " " || key == "Space" || key == "Spacebar"
-}
-
 #[derive(Clone)]
 pub struct ComboBoxOptions {
     pub is_disabled: bool,
@@ -14,7 +10,7 @@ pub struct ComboBoxOptions {
     pub item_count: ReadSignal<usize>,
     /// Selected index in the same coordinate space as the rendered options (e.g. filtered list).
     pub selected_index: Signal<Option<usize>>,
-    /// Called when the user commits a selection (click or Enter/Space).
+    /// Called when the user commits a selection (click, Enter, or Tab while open).
     pub on_action: Option<Callback<usize>>,
     /// Optional: disables specific options.
     pub is_item_disabled: Option<Callback<usize, bool>>,
@@ -71,7 +67,11 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
     {
         let on_item_focus = roving.handlers.on_item_focus;
         let selected_index = options.selected_index;
+        let is_open = options.is_open;
         Effect::new(move |_| {
+            if is_open.get() {
+                return;
+            }
             if let Some(selected) = selected_index.get() {
                 on_item_focus.run(selected);
             }
@@ -165,7 +165,6 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
     let on_input_key_down = {
         let is_disabled = options.is_disabled;
         let item_count = options.item_count;
-        let selected_index = options.selected_index;
         let is_item_disabled = options.is_item_disabled;
         let on_action = options.on_action;
         let is_open = options.is_open;
@@ -177,43 +176,11 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                 return false;
             }
 
-            // When closed, the first navigation key should open without also stepping past the
-            // initial option.
+            // When closed, ArrowDown/ArrowUp open the list without interfering with text editing
+            // keys like Home/End.
             if !is_open.get_untracked() {
                 match key.as_str() {
                     "ArrowDown" => {
-                        set_open.set(true);
-                        if let Some(selected) = selected_index.get() {
-                            on_item_focus.run(selected);
-                        } else {
-                            on_item_focus.run(0);
-                        }
-                        return true;
-                    }
-                    "ArrowUp" => {
-                        set_open.set(true);
-                        let count = item_count.get_untracked();
-                        if count == 0 {
-                            return true;
-                        }
-                        if let Some(selected) = selected_index.get() {
-                            on_item_focus.run(selected);
-                            return true;
-                        }
-                        let mut candidate = count.saturating_sub(1);
-                        if let Some(is_item_disabled) = is_item_disabled {
-                            for _ in 0..count {
-                                if !is_item_disabled.run(candidate) {
-                                    on_item_focus.run(candidate);
-                                    return true;
-                                }
-                                candidate = candidate.saturating_sub(1);
-                            }
-                        }
-                        on_item_focus.run(candidate);
-                        return true;
-                    }
-                    "Home" => {
                         set_open.set(true);
                         let count = item_count.get_untracked();
                         if count == 0 {
@@ -230,7 +197,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                         }
                         return true;
                     }
-                    "End" => {
+                    "ArrowUp" => {
                         set_open.set(true);
                         let count = item_count.get_untracked();
                         if count == 0 {
@@ -247,7 +214,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                         }
                         return true;
                     }
-                    _ => {}
+                    _ => return false,
                 }
             }
 
@@ -260,28 +227,29 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                     return true;
                 }
                 "Tab" => {
-                    if is_open.get_untracked() {
-                        set_open.set(false);
+                    // Commit the active option and allow focus to move.
+                    let count = item_count.get_untracked();
+                    if count != 0 {
+                        let index = roving.active_index.get_untracked();
+                        if !is_item_disabled.as_ref().is_some_and(|cb| cb.run(index))
+                            && let Some(on_action) = on_action
+                        {
+                            on_action.run(index);
+                        }
                     }
+                    set_open.set(false);
                     return false;
                 }
-                "Enter" | " " | "Space" | "Spacebar" => {
-                    if !is_open.get_untracked() {
-                        return false;
-                    }
+                "Enter" => {
                     let count = item_count.get_untracked();
-                    if count == 0 {
-                        set_open.set(false);
-                        return true;
-                    }
-                    let index = roving.active_index.get_untracked();
-                    if let Some(is_item_disabled) = is_item_disabled
-                        && is_item_disabled.run(index)
-                    {
-                        return true;
-                    }
-                    if let Some(on_action) = on_action {
-                        on_action.run(index);
+                    if count != 0 {
+                        let index = roving.active_index.get_untracked();
+                        if is_item_disabled.as_ref().is_some_and(|cb| cb.run(index)) {
+                            return true;
+                        }
+                        if let Some(on_action) = on_action {
+                            on_action.run(index);
+                        }
                     }
                     set_open.set(false);
                     return true;
@@ -289,26 +257,8 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                 _ => {}
             }
 
-            // Open the list when navigating via keyboard.
-            if matches!(
-                key.as_str(),
-                "ArrowDown" | "ArrowUp" | "Home" | "End" | "PageDown" | "PageUp"
-            ) {
-                if roving_key_down.run(key) {
-                    return true;
-                }
-                return false;
-            }
-
-            // While open, allow Up/Down navigation even if the key isn't in the explicit open
-            // list above (roving_tabindex currently ignores PageUp/PageDown).
-            if is_open.get_untracked() && roving_key_down.run(key.clone()) {
-                return true;
-            }
-
-            // Space can also toggle selection while the popup is closed if the app chooses to
-            // interpret it as a commit.
-            if is_open.get_untracked() && is_space_key(&key) {
+            // Navigate the active option while open.
+            if roving_key_down.run(key.clone()) {
                 return true;
             }
 

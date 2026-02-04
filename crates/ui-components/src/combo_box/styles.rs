@@ -5,6 +5,10 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-combo-box__field {
+  position: relative;
+}
+
 .ui-combo-box__label {
   font-size: 14px;
   line-height: 1.2;
