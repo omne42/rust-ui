@@ -20,5 +20,5 @@ fi
 echo "gate: rust (scripts/check.sh)" >&2
 (
   cd "$repo_root"
-  ./scripts/check.sh
+  bash ./scripts/check.sh
 )

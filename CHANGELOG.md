@@ -135,3 +135,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
 - Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).
 - Dev tooling: `scripts/check.sh` now also checks `docs-app` for `wasm32-unknown-unknown`.
+- Dev tooling: gate scripts are now invoked via `bash` to avoid executable-bit issues on some checkouts.

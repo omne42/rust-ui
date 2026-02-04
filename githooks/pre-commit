@@ -105,9 +105,9 @@ EOF
 fi
 
 gate_script="$repo_root/scripts/gate.sh"
-if [[ ! -x "$gate_script" ]]; then
+if [[ ! -f "$gate_script" ]]; then
   echo "pre-commit: missing gate script: $gate_script" >&2
   exit 1
 fi
 
-"$gate_script"
+bash "$gate_script"
