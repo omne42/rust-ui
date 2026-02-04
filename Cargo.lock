@@ -4611,6 +4611,7 @@ dependencies = [
  "ui-headless",
  "ui-motion",
  "ui-theme",
+ "web-sys",
 ]
 
 [[package]]

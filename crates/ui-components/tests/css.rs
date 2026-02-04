@@ -21,6 +21,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-checkbox", ".ui-checkbox {"),
         (".ui-checkbox-group", ".ui-checkbox-group {"),
         (".ui-chip", ".ui-chip {"),
+        (".ui-image", ".ui-image {"),
         (".ui-tag-group", ".ui-tag-group {"),
         (".ui-card", ".ui-card {"),
         (".ui-switch", ".ui-switch {"),
@@ -54,6 +55,8 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-text-area", ".ui-text-area {"),
         (".ui-number-field", ".ui-number-field {"),
         (".ui-input-otp", ".ui-input-otp {"),
+        (".ui-file-trigger", ".ui-file-trigger {"),
+        (".ui-drop-zone", ".ui-drop-zone {"),
         (".ui-segmented-control", ".ui-segmented-control {"),
         (".ui-scroll-shadow", ".ui-scroll-shadow {"),
         (".ui-sheet", ".ui-sheet {"),
@@ -63,6 +66,9 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-accordion", ".ui-accordion {"),
         (".ui-disclosure", ".ui-disclosure {"),
         (".ui-tooltip", ".ui-tooltip {"),
+        (".ui-hover-card", ".ui-hover-card {"),
+        (".ui-illustrated-message", ".ui-illustrated-message {"),
+        (".ui-toast", ".ui-toast {"),
     ];
 
     let mut missing = Vec::new();

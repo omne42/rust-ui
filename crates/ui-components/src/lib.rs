@@ -21,7 +21,12 @@ pub mod code;
 pub mod combo_box;
 pub mod disclosure;
 pub mod divider;
+pub mod drop_zone;
+pub mod file_trigger;
+pub mod hover_card;
 pub mod icon_button;
+pub mod illustrated_message;
+pub mod image;
 pub mod input_otp;
 pub mod kbd;
 pub mod link;
@@ -53,6 +58,7 @@ pub mod tabs;
 pub mod tag_group;
 pub mod text_area;
 pub mod text_field;
+pub mod toast;
 pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod tooltip;
@@ -80,7 +86,14 @@ pub use combo_box::ComboBox;
 pub use disclosure::Disclosure;
 pub use disclosure::DisclosureMotion;
 pub use divider::{Divider, DividerOrientation};
+pub use drop_zone::{DropZone, DropZoneMotion, DroppedFile};
+pub use file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};
+pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon_button::IconButton;
+pub use illustrated_message::{
+    IllustratedMessage, IllustratedMessageMotion, IllustratedMessageOrientation,
+};
+pub use image::{Image, ImageMotion, ImageRadius, ImageShadow};
 pub use input_otp::InputOtp;
 pub use kbd::{Kbd, KbdSize};
 pub use link::Link;
@@ -117,6 +130,9 @@ pub use tabs::Tabs;
 pub use tag_group::{Tag, TagGroup};
 pub use text_area::TextArea;
 pub use text_field::TextField;
+pub use toast::{
+    ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
+};
 pub use toggle_button::{ToggleButton, ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant};
 pub use toggle_button_group::{ToggleButtonGroup, ToggleButtonGroupOrientation};
 pub use tooltip::Tooltip;
