@@ -12,6 +12,7 @@ pub fn Overlay(
     children: ChildrenFn,
     #[prop(optional)] aria_labelledby: Option<String>,
     #[prop(optional)] aria_describedby: Option<String>,
+    #[prop(optional, default = "dialog")] role: &'static str,
     #[prop(optional)] motion: OverlayMotion,
     /// Called after the close animation finishes (useful for presence/unmount).
     #[prop(optional)]
@@ -49,7 +50,7 @@ pub fn Overlay(
                 <div class="ui-overlay__backdrop" on:click=move |_| on_close.run(())></div>
                 <div
                     class="ui-overlay__panel"
-                    role="dialog"
+                    role=role
                     aria-modal="true"
                     aria-labelledby=move || aria_labelledby.get()
                     aria-describedby=move || aria_describedby.get()

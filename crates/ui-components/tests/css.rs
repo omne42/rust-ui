@@ -12,6 +12,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
 
     let required_selectors = [
         (".ui-alert", ".ui-alert {"),
+        (".ui-inline-alert", ".ui-inline-alert {"),
         (".ui-avatar", ".ui-avatar {"),
         (".ui-avatar-group", ".ui-avatar-group {"),
         (".ui-button", ".ui-button {"),
@@ -54,6 +55,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-text-field", ".ui-text-field {"),
         (".ui-text-area", ".ui-text-area {"),
         (".ui-number-field", ".ui-number-field {"),
+        (".ui-input", ".ui-input {"),
         (".ui-input-otp", ".ui-input-otp {"),
         (".ui-file-trigger", ".ui-file-trigger {"),
         (".ui-drop-zone", ".ui-drop-zone {"),
@@ -66,9 +68,13 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-accordion", ".ui-accordion {"),
         (".ui-disclosure", ".ui-disclosure {"),
         (".ui-tooltip", ".ui-tooltip {"),
+        (".ui-contextual-help", ".ui-contextual-help {"),
         (".ui-hover-card", ".ui-hover-card {"),
+        (".ui-dialog", ".ui-dialog {"),
+        (".ui-alert-dialog", ".ui-alert-dialog {"),
         (".ui-illustrated-message", ".ui-illustrated-message {"),
         (".ui-toast", ".ui-toast {"),
+        (".ui-drawer", ".ui-drawer {"),
     ];
 
     let mut missing = Vec::new();

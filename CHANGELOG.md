@@ -101,6 +101,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds a demo section for the new components (inputs + overlays).
 - `ui-components`: adds new components: `Image`, `IllustratedMessage`, `FileTrigger`, `DropZone`, `HoverCard`, and `Toast`.
 - `apps/web-demo`: adds an extras demo section (hover card + toasts + file picking + drag/drop + image + illustrated message).
+- `ui-components`: adds new components: `Input`, `InlineAlert`, `Dialog`, `Drawer`, `AlertDialog`, and `ContextualHelp`.
+- `apps/web-demo`: adds a demo section for dialogs/alerts and contextual help.
 
 ### Changed
 

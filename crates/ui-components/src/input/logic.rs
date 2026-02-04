@@ -1,0 +1,145 @@
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum InputLabelPlacement {
+    #[default]
+    Outside,
+    Inside,
+}
+
+impl InputLabelPlacement {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            InputLabelPlacement::Outside => "ui-input--label-outside",
+            InputLabelPlacement::Inside => "ui-input--label-inside",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum InputSize {
+    Sm,
+    #[default]
+    Md,
+    Lg,
+}
+
+impl InputSize {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            InputSize::Sm => "ui-input--size-sm",
+            InputSize::Md => "ui-input--size-md",
+            InputSize::Lg => "ui-input--size-lg",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum InputVariant {
+    #[default]
+    Bordered,
+    Flat,
+    Underlined,
+}
+
+impl InputVariant {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            InputVariant::Bordered => "ui-input--variant-bordered",
+            InputVariant::Flat => "ui-input--variant-flat",
+            InputVariant::Underlined => "ui-input--variant-underlined",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InputLogicState {
+    pub is_disabled: bool,
+    pub is_read_only: bool,
+    pub is_invalid: bool,
+    pub is_empty: bool,
+    pub is_focused: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct InputViewState {
+    pub show_label: bool,
+    pub show_description: bool,
+    pub show_error: bool,
+    pub show_start: bool,
+    pub show_end: bool,
+    pub show_clear: bool,
+    pub has_affix: bool,
+    pub is_filled: bool,
+    pub is_filled_within: bool,
+}
+
+pub fn resolve_view_state(
+    label: Option<&str>,
+    description: Option<&str>,
+    error: Option<&str>,
+    has_start: bool,
+    has_end: bool,
+    is_clearable: bool,
+    state: InputLogicState,
+) -> InputViewState {
+    let show_label = label.is_some_and(|v| !v.trim().is_empty());
+    let show_description = description.is_some_and(|v| !v.trim().is_empty());
+    let show_error = state.is_invalid && error.is_some_and(|v| !v.trim().is_empty());
+    let show_clear = is_clearable && !state.is_empty && !state.is_read_only && !state.is_disabled;
+    let has_affix = has_start || has_end || show_clear;
+    let is_filled = !state.is_empty;
+    let is_filled_within = is_filled || state.is_focused;
+
+    InputViewState {
+        show_label,
+        show_description,
+        show_error,
+        show_start: has_start,
+        show_end: has_end,
+        show_clear,
+        has_affix,
+        is_filled,
+        is_filled_within,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn base_state() -> InputLogicState {
+        InputLogicState {
+            is_disabled: false,
+            is_read_only: false,
+            is_invalid: false,
+            is_empty: true,
+            is_focused: false,
+        }
+    }
+
+    #[test]
+    fn clear_button_requires_non_empty_and_not_disabled() {
+        let mut state = base_state();
+        state.is_empty = false;
+        assert!(resolve_view_state(None, None, None, false, false, true, state).show_clear);
+
+        state.is_disabled = true;
+        assert!(!resolve_view_state(None, None, None, false, false, true, state).show_clear);
+    }
+
+    #[test]
+    fn label_hidden_does_not_remove_accessible_label() {
+        let state = base_state();
+        let view = resolve_view_state(Some("Label"), None, None, false, false, false, state);
+        assert!(view.show_label);
+    }
+
+    #[test]
+    fn error_requires_invalid_and_non_empty_error_text() {
+        let mut state = base_state();
+        state.is_invalid = true;
+        let view = resolve_view_state(None, None, Some(" "), false, false, false, state);
+        assert!(!view.show_error);
+        let view = resolve_view_state(None, None, Some("Bad"), false, false, false, state);
+        assert!(view.show_error);
+    }
+}

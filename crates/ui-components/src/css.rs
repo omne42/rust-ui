@@ -17,6 +17,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::divider::styles::CSS);
     out.push_str(crate::card::styles::CSS);
     out.push_str(crate::alert::styles::CSS);
+    out.push_str(crate::inline_alert::styles::CSS);
     out.push_str(crate::chip::styles::CSS);
     out.push_str(crate::image::styles::CSS);
     out.push_str(crate::tag_group::styles::CSS);
@@ -35,6 +36,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::search_field::styles::CSS);
     out.push_str(crate::text_area::styles::CSS);
     out.push_str(crate::number_field::styles::CSS);
+    out.push_str(crate::input::styles::CSS);
     out.push_str(crate::input_otp::styles::CSS);
     out.push_str(crate::file_trigger::styles::CSS);
     out.push_str(crate::drop_zone::styles::CSS);
@@ -47,9 +49,13 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::overlay::styles::CSS);
     out.push_str(crate::popover::styles::CSS);
     out.push_str(crate::tooltip::styles::CSS);
+    out.push_str(crate::contextual_help::styles::CSS);
     out.push_str(crate::hover_card::styles::CSS);
     out.push_str(crate::modal::styles::CSS);
+    out.push_str(crate::dialog::styles::CSS);
+    out.push_str(crate::alert_dialog::styles::CSS);
     out.push_str(crate::sheet::styles::CSS);
+    out.push_str(crate::drawer::styles::CSS);
     out.push_str(crate::meter::styles::CSS);
     out.push_str(crate::illustrated_message::styles::CSS);
     out.push_str(crate::toast::styles::CSS);
