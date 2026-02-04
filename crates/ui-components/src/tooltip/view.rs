@@ -1,45 +1,58 @@
 use crate::tooltip::{TooltipMotion, motion};
-use leptos::{children::ViewFn, html, prelude::*};
-use ui_headless::{FocusWithinOptions, HoverOptions, use_focus_within, use_hover};
-
-fn next_id() -> u64 {
-    use std::cell::Cell;
-    thread_local! {
-        static NEXT: Cell<u64> = const { Cell::new(1) };
-    }
-    NEXT.with(|cell| {
-        let id = cell.get();
-        cell.set(id + 1);
-        id
-    })
-}
+use leptos::{children::ViewFn, ev, html, portal::Portal, prelude::*};
+use ui_headless::{
+    TooltipPlacement, TooltipPositionOptions, TooltipTriggerMode, TooltipTriggerOptions,
+    use_tooltip_position, use_tooltip_trigger,
+};
 
 #[component]
 pub fn Tooltip(
     #[prop(into)] content: ViewFn,
     children: Children,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] placement: TooltipPlacement,
+    #[prop(optional, default = 1500)] delay_ms: u64,
+    #[prop(optional, default = 500)] close_delay_ms: u64,
+    #[prop(optional)] trigger: TooltipTriggerMode,
+    #[prop(optional, default = true)] should_close_on_press: bool,
     #[prop(optional)] motion: TooltipMotion,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
-    let hover = use_hover(HoverOptions {
-        is_disabled: disabled,
-    });
-    let focus_within = use_focus_within(FocusWithinOptions {
-        is_disabled: disabled,
-    });
+    let trigger = use_tooltip_trigger(
+        id,
+        TooltipTriggerOptions {
+            is_disabled: disabled,
+            delay_ms,
+            close_delay_ms,
+            trigger,
+            should_close_on_press,
+        },
+    );
 
-    let id = id.unwrap_or_else(|| format!("ui-tooltip-{}", next_id()));
-    let id = StoredValue::new(id);
+    let tooltip_id: StoredValue<String> = StoredValue::new(trigger.state.id().to_string());
 
-    let open = Signal::derive(move || hover.is_hovered.get() || focus_within.is_focus_within.get());
+    let open: Signal<bool> = trigger.state.is_open().into();
     let presence = crate::presence::use_presence(open);
 
     let content = StoredValue::new(content);
 
+    let anchor_ref: NodeRef<html::Button> = NodeRef::new();
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
-    motion::attach_motion(panel_ref, open, presence.finish_exit, motion);
+    let position = use_tooltip_position(TooltipPositionOptions {
+        anchor_ref,
+        panel_ref,
+        placement,
+        ..Default::default()
+    });
+
+    motion::attach_motion(
+        panel_ref,
+        open,
+        position.placement.into(),
+        presence.finish_exit,
+        motion,
+    );
 
     let base_class = "ui-tooltip".to_string();
     let class = class_name
@@ -56,30 +69,39 @@ pub fn Tooltip(
                 type="button"
                 class="ui-tooltip__trigger"
                 data-slot="tooltip-trigger"
+                node_ref=anchor_ref
                 disabled=disabled
                 aria-describedby=move || {
-                    presence
-                        .is_present
-                        .get()
-                        .then(|| id.with_value(|id| id.clone()))
+                    open.get().then(|| tooltip_id.with_value(|id| id.clone()))
                 }
-                on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
-                on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
-                on:focusin=move |_| focus_within.handlers.on_focus_in.run(())
-                on:focusout=move |_| focus_within.handlers.on_focus_out.run(())
+                on:pointerenter=move |_| trigger.handlers.on_pointer_enter.run(())
+                on:pointerleave=move |_| trigger.handlers.on_pointer_leave.run(())
+                on:focus=move |_| trigger.handlers.on_focus.run(())
+                on:blur=move |_| trigger.handlers.on_blur.run(())
+                on:pointerdown=move |_| trigger.handlers.on_pointer_down.run(())
+                on:keydown=move |ev: ev::KeyboardEvent| trigger.handlers.on_key_down.run(ev.key())
             >
                 {children()}
             </button>
             <Show when=move || presence.is_present.get()>
-                <div
-                    class="ui-tooltip__panel"
-                    node_ref=panel_ref
-                    id=move || id.with_value(|id| id.clone())
-                    role="tooltip"
-                    data-slot="tooltip-panel"
-                >
-                    {move || content.with_value(|content| content.run())}
-                </div>
+                <Portal>
+                    <div
+                        class="ui-tooltip__panel"
+                        data-ui-overlay-portal=""
+                        node_ref=panel_ref
+                        id=move || tooltip_id.with_value(|id| id.clone())
+                        role="tooltip"
+                        style=move || format!(
+                            "--ui-tooltip-top: {}px; --ui-tooltip-left: {}px;",
+                            position.top_px.get(),
+                            position.left_px.get()
+                        )
+                        data-placement=move || position.placement.get().as_str()
+                        data-slot="tooltip-panel"
+                    >
+                        {move || content.with_value(|content| content.run())}
+                    </div>
+                </Portal>
             </Show>
         </span>
     }

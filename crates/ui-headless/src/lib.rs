@@ -23,6 +23,8 @@ pub mod radio_group;
 pub mod roving_tabindex;
 pub mod switch;
 pub mod text_field;
+pub mod tooltip;
+pub mod tooltip_position;
 
 pub use button::{
     ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions, use_button,
@@ -62,4 +64,11 @@ pub use switch::{SwitchAria, SwitchAttrs, SwitchHandlers, SwitchOptions, use_swi
 pub use text_field::{
     TextFieldAria, TextFieldInputAttrs, TextFieldLabelAttrs, TextFieldMessageAttrs,
     TextFieldOptions, use_text_field,
+};
+pub use tooltip::{
+    TooltipTriggerAria, TooltipTriggerHandlers, TooltipTriggerMode, TooltipTriggerOptions,
+    TooltipTriggerState, use_tooltip_trigger,
+};
+pub use tooltip_position::{
+    TooltipPlacement, TooltipPositionOptions, TooltipPositionState, use_tooltip_position,
 };

@@ -1,0 +1,755 @@
+use leptos::prelude::*;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
+
+#[cfg(all(feature = "web", target_arch = "wasm32"))]
+use std::time::Duration;
+
+const DEFAULT_DELAY_MS: u64 = 1500;
+const DEFAULT_CLOSE_DELAY_MS: u64 = 500;
+const TOOLTIP_COOLDOWN_MS: u64 = 500;
+
+#[cfg(all(feature = "web", target_arch = "wasm32"))]
+type TooltipTimeoutHandle = TimeoutHandle;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+type TooltipTimeoutHandle = test_timers::TestTimeoutHandle;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum TooltipTriggerMode {
+    /// Open on hover and on focus-visible.
+    #[default]
+    Hover,
+    /// Open only on focus-visible.
+    Focus,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TooltipTriggerOptions {
+    pub is_disabled: bool,
+    pub delay_ms: u64,
+    pub close_delay_ms: u64,
+    pub trigger: TooltipTriggerMode,
+    pub should_close_on_press: bool,
+}
+
+impl Default for TooltipTriggerOptions {
+    fn default() -> Self {
+        Self {
+            is_disabled: false,
+            delay_ms: DEFAULT_DELAY_MS,
+            close_delay_ms: DEFAULT_CLOSE_DELAY_MS,
+            trigger: TooltipTriggerMode::Hover,
+            should_close_on_press: true,
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct TooltipTriggerHandlers {
+    pub on_pointer_enter: Callback<()>,
+    pub on_pointer_leave: Callback<()>,
+    pub on_focus: Callback<()>,
+    pub on_blur: Callback<()>,
+    pub on_pointer_down: Callback<()>,
+    pub on_key_down: Callback<String>,
+}
+
+#[derive(Clone)]
+pub struct TooltipTriggerState {
+    id: String,
+    delay_ms: u64,
+    close_delay_ms: u64,
+    is_open: ReadSignal<bool>,
+    set_open: WriteSignal<bool>,
+    timers: TooltipTimers,
+}
+
+impl TooltipTriggerState {
+    pub fn is_open(&self) -> ReadSignal<bool> {
+        self.is_open
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn open(&self, immediate: bool) {
+        if immediate || self.delay_ms == 0 || self.timers.is_close_pending() {
+            self.show_tooltip();
+            return;
+        }
+
+        let others = TOOLTIP_GLOBAL.with(|global| global.borrow_mut().take_other_hides(&self.id));
+        for hide in others {
+            hide(true);
+        }
+
+        let should_show_immediately = TOOLTIP_GLOBAL.with(|global| {
+            let mut global = global.borrow_mut();
+            global.ensure_entry(self.id.clone(), self.hide_fn());
+
+            if self.is_open.get_untracked() {
+                return false;
+            }
+
+            if global.warmup_pending() || global.warmed_up {
+                return true;
+            }
+
+            global.schedule_warmup(self.id.clone(), self.delay_ms, {
+                let state = self.clone();
+                move || {
+                    TOOLTIP_GLOBAL.with(|global| global.borrow_mut().warmed_up = true);
+                    state.show_tooltip();
+                }
+            });
+
+            false
+        });
+
+        if should_show_immediately {
+            self.show_tooltip();
+        }
+    }
+
+    pub fn close(&self, immediate: bool) {
+        let close_delay_ms = self.close_delay_ms;
+        let id = self.id.clone();
+
+        TOOLTIP_GLOBAL.with(|global| {
+            let mut global = global.borrow_mut();
+            global.clear_warmup();
+
+            if !global.warmed_up {
+                return;
+            }
+
+            global.clear_cooldown();
+            global.schedule_cooldown(TOOLTIP_COOLDOWN_MS.max(close_delay_ms), move || {
+                TOOLTIP_GLOBAL.with(|global| {
+                    let mut global = global.borrow_mut();
+                    global.tooltips.remove(&id);
+                    global.warmed_up = false;
+                    global.clear_cooldown();
+                });
+            });
+        });
+
+        self.timers.close(immediate, close_delay_ms, self.set_open);
+    }
+
+    fn show_tooltip(&self) {
+        let others = TOOLTIP_GLOBAL.with(|global| {
+            let mut global = global.borrow_mut();
+            global.clear_warmup();
+            global.clear_cooldown();
+            global.warmed_up = true;
+
+            global.take_other_hides(&self.id)
+        });
+
+        for hide in others {
+            hide(true);
+        }
+
+        TOOLTIP_GLOBAL.with(|global| {
+            let mut global = global.borrow_mut();
+            global.ensure_entry(self.id.clone(), self.hide_fn());
+        });
+
+        self.timers.clear_close();
+        self.set_open.set(true);
+    }
+
+    fn hide_fn(&self) -> Rc<dyn Fn(bool)> {
+        let state = self.clone();
+        Rc::new(move |immediate| state.close(immediate))
+    }
+}
+
+#[derive(Clone)]
+pub struct TooltipTriggerAria {
+    pub state: TooltipTriggerState,
+    pub handlers: TooltipTriggerHandlers,
+}
+
+pub fn use_tooltip_trigger(
+    id: Option<String>,
+    options: TooltipTriggerOptions,
+) -> TooltipTriggerAria {
+    let id = id.unwrap_or_else(next_tooltip_id);
+    let (is_open, set_open) = signal(false);
+    let timers = TooltipTimers::new();
+    let state = TooltipTriggerState {
+        id,
+        delay_ms: options.delay_ms,
+        close_delay_ms: options.close_delay_ms,
+        is_open,
+        set_open,
+        timers,
+    };
+
+    let (is_focused, set_focused) = signal(false);
+
+    let global_focus_visible = crate::use_focus_visible()
+        .map(|state| state.is_focus_visible())
+        .unwrap_or_else(|| signal(false).0);
+
+    let on_pointer_enter = {
+        let is_disabled = options.is_disabled;
+        let trigger = options.trigger;
+        let state = state.clone();
+        Callback::new(move |_| {
+            if is_disabled || matches!(trigger, TooltipTriggerMode::Focus) {
+                return;
+            }
+            state.open(is_focused.get_untracked());
+        })
+    };
+
+    let on_pointer_leave = {
+        let is_disabled = options.is_disabled;
+        let trigger = options.trigger;
+        let state = state.clone();
+        Callback::new(move |_| {
+            if is_disabled || matches!(trigger, TooltipTriggerMode::Focus) {
+                return;
+            }
+            set_focused.set(false);
+            state.close(false);
+        })
+    };
+
+    let on_focus = {
+        let is_disabled = options.is_disabled;
+        let state = state.clone();
+        Callback::new(move |_| {
+            if is_disabled {
+                return;
+            }
+            if !global_focus_visible.get_untracked() {
+                return;
+            }
+            set_focused.set(true);
+            state.open(true);
+        })
+    };
+
+    let on_blur = {
+        let state = state.clone();
+        Callback::new(move |_| {
+            set_focused.set(false);
+            state.close(true);
+        })
+    };
+
+    let on_press_start = {
+        let should_close_on_press = options.should_close_on_press;
+        let state = state.clone();
+        Callback::new(move |_| {
+            if !should_close_on_press {
+                return;
+            }
+            set_focused.set(false);
+            state.close(true);
+        })
+    };
+
+    let on_pointer_down = on_press_start;
+
+    let on_key_down = {
+        Callback::new(move |key: String| {
+            let _ = key;
+            on_press_start.run(());
+        })
+    };
+
+    #[cfg(all(feature = "web", target_arch = "wasm32"))]
+    attach_escape_listener(state.clone());
+
+    on_cleanup({
+        let id = state.id.clone();
+        let timers = state.timers.clone();
+        move || {
+            timers.clear_close();
+            TOOLTIP_GLOBAL.with(|global| {
+                let mut global = global.borrow_mut();
+                global.tooltips.remove(&id);
+                #[cfg(any(
+                    all(feature = "web", target_arch = "wasm32"),
+                    all(test, not(target_arch = "wasm32"))
+                ))]
+                {
+                    if global.warmup_owner.as_deref() == Some(id.as_str()) {
+                        global.clear_warmup();
+                    }
+                }
+            });
+        }
+    });
+
+    TooltipTriggerAria {
+        state,
+        handlers: TooltipTriggerHandlers {
+            on_pointer_enter,
+            on_pointer_leave,
+            on_focus,
+            on_blur,
+            on_pointer_down,
+            on_key_down,
+        },
+    }
+}
+
+#[cfg(all(feature = "web", target_arch = "wasm32"))]
+fn attach_escape_listener(state: TooltipTriggerState) {
+    use send_wrapper::SendWrapper;
+    use wasm_bindgen::JsCast;
+    use wasm_bindgen::closure::Closure;
+
+    Effect::new(move |_| {
+        if !state.is_open.get() {
+            return;
+        }
+
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let Some(document) = window.document() else {
+            return;
+        };
+
+        let target: SendWrapper<web_sys::EventTarget> = SendWrapper::new(document.into());
+
+        let keydown: SendWrapper<Closure<dyn FnMut(web_sys::KeyboardEvent)>> = SendWrapper::new({
+            let state = state.clone();
+            Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
+                if event.key() == "Escape" {
+                    event.stop_propagation();
+                    state.close(true);
+                }
+            }) as Box<dyn FnMut(_)>)
+        });
+
+        let _ = target.add_event_listener_with_callback_and_bool(
+            "keydown",
+            keydown.as_ref().unchecked_ref(),
+            true,
+        );
+
+        on_cleanup(move || {
+            let _ = target.remove_event_listener_with_callback_and_bool(
+                "keydown",
+                keydown.as_ref().unchecked_ref(),
+                true,
+            );
+        });
+    });
+}
+
+fn next_tooltip_id() -> String {
+    TOOLTIP_GLOBAL.with(|global| global.borrow_mut().alloc_id())
+}
+
+thread_local! {
+    static TOOLTIP_GLOBAL: RefCell<TooltipGlobal> = RefCell::new(TooltipGlobal::new());
+}
+
+struct TooltipGlobal {
+    next_id: u64,
+    warmed_up: bool,
+    tooltips: HashMap<String, Rc<dyn Fn(bool)>>,
+    #[cfg(any(
+        all(feature = "web", target_arch = "wasm32"),
+        all(test, not(target_arch = "wasm32"))
+    ))]
+    warmup_handle: Option<TooltipTimeoutHandle>,
+    #[cfg(any(
+        all(feature = "web", target_arch = "wasm32"),
+        all(test, not(target_arch = "wasm32"))
+    ))]
+    cooldown_handle: Option<TooltipTimeoutHandle>,
+    #[cfg(any(
+        all(feature = "web", target_arch = "wasm32"),
+        all(test, not(target_arch = "wasm32"))
+    ))]
+    warmup_owner: Option<String>,
+}
+
+impl TooltipGlobal {
+    fn new() -> Self {
+        Self {
+            next_id: 1,
+            warmed_up: false,
+            tooltips: HashMap::new(),
+            #[cfg(any(
+                all(feature = "web", target_arch = "wasm32"),
+                all(test, not(target_arch = "wasm32"))
+            ))]
+            warmup_handle: None,
+            #[cfg(any(
+                all(feature = "web", target_arch = "wasm32"),
+                all(test, not(target_arch = "wasm32"))
+            ))]
+            cooldown_handle: None,
+            #[cfg(any(
+                all(feature = "web", target_arch = "wasm32"),
+                all(test, not(target_arch = "wasm32"))
+            ))]
+            warmup_owner: None,
+        }
+    }
+
+    fn alloc_id(&mut self) -> String {
+        let id = self.next_id;
+        self.next_id = self.next_id.saturating_add(1);
+        format!("ui-tooltip-{id}")
+    }
+
+    fn ensure_entry(&mut self, id: String, hide: Rc<dyn Fn(bool)>) {
+        self.tooltips.insert(id, hide);
+    }
+
+    fn take_other_hides(&mut self, id: &str) -> Vec<Rc<dyn Fn(bool)>> {
+        let mut hides = Vec::new();
+        let mut keys = Vec::new();
+
+        for (key, hide) in &self.tooltips {
+            if key == id {
+                continue;
+            }
+            hides.push(hide.clone());
+            keys.push(key.clone());
+        }
+
+        for key in keys {
+            self.tooltips.remove(&key);
+        }
+
+        hides
+    }
+
+    fn warmup_pending(&self) -> bool {
+        #[cfg(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        ))]
+        {
+            self.warmup_handle.is_some()
+        }
+        #[cfg(not(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        )))]
+        {
+            false
+        }
+    }
+
+    fn clear_warmup(&mut self) {
+        #[cfg(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        ))]
+        {
+            if let Some(handle) = self.warmup_handle.take() {
+                handle.clear();
+            }
+            self.warmup_owner = None;
+        }
+    }
+
+    fn clear_cooldown(&mut self) {
+        #[cfg(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        ))]
+        {
+            if let Some(handle) = self.cooldown_handle.take() {
+                handle.clear();
+            }
+        }
+    }
+
+    fn schedule_warmup(&mut self, owner: String, delay_ms: u64, callback: impl FnOnce() + 'static) {
+        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+        {
+            if self.warmup_handle.is_some() {
+                return;
+            }
+
+            let Ok(handle) = set_timeout_with_handle(callback, Duration::from_millis(delay_ms))
+            else {
+                return;
+            };
+            self.warmup_owner = Some(owner);
+            self.warmup_handle = Some(handle);
+        }
+
+        #[cfg(all(test, not(target_arch = "wasm32")))]
+        {
+            if self.warmup_handle.is_some() {
+                return;
+            }
+
+            self.warmup_owner = Some(owner);
+            self.warmup_handle = Some(test_timers::set_timeout(delay_ms, callback));
+        }
+
+        #[cfg(not(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        )))]
+        {
+            let _ = (delay_ms, owner);
+            callback();
+        }
+    }
+
+    fn schedule_cooldown(&mut self, delay_ms: u64, callback: impl FnOnce() + 'static) {
+        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+        {
+            let Ok(handle) = set_timeout_with_handle(callback, Duration::from_millis(delay_ms))
+            else {
+                return;
+            };
+            self.cooldown_handle = Some(handle);
+        }
+
+        #[cfg(all(test, not(target_arch = "wasm32")))]
+        {
+            self.cooldown_handle = Some(test_timers::set_timeout(delay_ms, callback));
+        }
+
+        #[cfg(not(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        )))]
+        {
+            let _ = delay_ms;
+            callback();
+        }
+    }
+}
+
+#[derive(Clone)]
+struct TooltipTimers {
+    #[cfg(any(
+        all(feature = "web", target_arch = "wasm32"),
+        all(test, not(target_arch = "wasm32"))
+    ))]
+    close_handle: StoredValue<Option<TooltipTimeoutHandle>, LocalStorage>,
+}
+
+impl TooltipTimers {
+    fn new() -> Self {
+        #[cfg(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        ))]
+        {
+            Self {
+                close_handle: StoredValue::new_local(None),
+            }
+        }
+
+        #[cfg(not(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        )))]
+        {
+            Self {}
+        }
+    }
+
+    fn is_close_pending(&self) -> bool {
+        #[cfg(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        ))]
+        {
+            self.close_handle.get_value().is_some()
+        }
+        #[cfg(not(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        )))]
+        {
+            false
+        }
+    }
+
+    fn clear_close(&self) {
+        #[cfg(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        ))]
+        {
+            if let Some(handle) = self.close_handle.get_value() {
+                handle.clear();
+            }
+            self.close_handle.set_value(None);
+        }
+    }
+
+    fn close(&self, immediate: bool, close_delay_ms: u64, set_open: WriteSignal<bool>) {
+        #[cfg(all(feature = "web", target_arch = "wasm32"))]
+        {
+            if immediate || close_delay_ms == 0 {
+                self.clear_close();
+                set_open.set(false);
+                return;
+            }
+
+            if self.close_handle.get_value().is_some() {
+                return;
+            }
+
+            let Ok(handle) = set_timeout_with_handle(
+                move || set_open.set(false),
+                Duration::from_millis(close_delay_ms),
+            ) else {
+                set_open.set(false);
+                return;
+            };
+            self.close_handle.set_value(Some(handle));
+        }
+
+        #[cfg(all(test, not(target_arch = "wasm32")))]
+        {
+            if immediate || close_delay_ms == 0 {
+                self.clear_close();
+                set_open.set(false);
+                return;
+            }
+
+            if self.close_handle.get_value().is_some() {
+                return;
+            }
+
+            let handle = test_timers::set_timeout(close_delay_ms, move || set_open.set(false));
+            self.close_handle.set_value(Some(handle));
+        }
+
+        #[cfg(not(any(
+            all(feature = "web", target_arch = "wasm32"),
+            all(test, not(target_arch = "wasm32"))
+        )))]
+        {
+            let _ = (close_delay_ms, immediate);
+            set_open.set(false);
+        }
+    }
+}
+
+impl Default for TooltipTimers {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod test_timers {
+    use std::cell::RefCell;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct TestTimeoutHandle {
+        id: u64,
+    }
+
+    impl TestTimeoutHandle {
+        pub fn clear(self) {
+            TEST_SCHEDULER.with(|scheduler| scheduler.borrow_mut().cancel(self.id));
+        }
+    }
+
+    struct Task {
+        id: u64,
+        due_ms: u64,
+        callback: Option<Box<dyn FnOnce()>>,
+    }
+
+    struct Scheduler {
+        now_ms: u64,
+        next_id: u64,
+        tasks: Vec<Task>,
+    }
+
+    impl Scheduler {
+        fn new() -> Self {
+            Self {
+                now_ms: 0,
+                next_id: 1,
+                tasks: Vec::new(),
+            }
+        }
+
+        fn set_timeout(
+            &mut self,
+            delay_ms: u64,
+            callback: impl FnOnce() + 'static,
+        ) -> TestTimeoutHandle {
+            let id = self.next_id;
+            self.next_id = self.next_id.saturating_add(1);
+            let due_ms = self.now_ms.saturating_add(delay_ms);
+            self.tasks.push(Task {
+                id,
+                due_ms,
+                callback: Some(Box::new(callback)),
+            });
+            TestTimeoutHandle { id }
+        }
+
+        fn cancel(&mut self, id: u64) {
+            self.tasks.retain(|task| task.id != id);
+        }
+
+        fn take_due(&mut self) -> Vec<Box<dyn FnOnce()>> {
+            let now_ms = self.now_ms;
+            let mut callbacks = Vec::new();
+            self.tasks.retain_mut(|task| {
+                if task.due_ms <= now_ms {
+                    if let Some(callback) = task.callback.take() {
+                        callbacks.push(callback);
+                    }
+                    false
+                } else {
+                    true
+                }
+            });
+            callbacks
+        }
+    }
+
+    thread_local! {
+        static TEST_SCHEDULER: RefCell<Scheduler> = RefCell::new(Scheduler::new());
+    }
+
+    pub fn set_timeout(delay_ms: u64, callback: impl FnOnce() + 'static) -> TestTimeoutHandle {
+        TEST_SCHEDULER.with(|scheduler| scheduler.borrow_mut().set_timeout(delay_ms, callback))
+    }
+
+    pub fn advance_by(delta_ms: u64) {
+        TEST_SCHEDULER.with(|scheduler| {
+            let mut scheduler = scheduler.borrow_mut();
+            scheduler.now_ms = scheduler.now_ms.saturating_add(delta_ms);
+        });
+
+        loop {
+            let callbacks = TEST_SCHEDULER.with(|scheduler| scheduler.borrow_mut().take_due());
+            if callbacks.is_empty() {
+                break;
+            }
+            for callback in callbacks {
+                callback();
+            }
+        }
+    }
+
+    pub fn reset() {
+        TEST_SCHEDULER.with(|scheduler| *scheduler.borrow_mut() = Scheduler::new());
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+mod tests;

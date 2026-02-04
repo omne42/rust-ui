@@ -92,6 +92,7 @@ fn style_equals_is_only_used_in_approved_files() {
     let allowed_paths: HashSet<PathBuf> = [
         PathBuf::from("src/popover/view.rs"),
         PathBuf::from("src/circular_progress/view.rs"),
+        PathBuf::from("src/tooltip/view.rs"),
     ]
     .into_iter()
     .collect();

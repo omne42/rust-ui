@@ -1,6 +1,5 @@
 pub const CSS: &str = r#"
 .ui-tooltip {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -22,17 +21,20 @@ pub const CSS: &str = r#"
 }
 
 .ui-tooltip__panel {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%) scale(var(--ui-tooltip-scale, 0.98));
-  transform-origin: top center;
+  position: fixed;
+  top: var(--ui-tooltip-top, 0px);
+  left: var(--ui-tooltip-left, 0px);
 
-  opacity: var(--ui-tooltip-opacity, 0);
+  --ui-tooltip-opacity: 0;
+  --ui-tooltip-scale: 0.98;
+  --ui-tooltip-y: 6px;
+
+  opacity: var(--ui-tooltip-opacity);
+  transform: translateY(var(--ui-tooltip-y)) scale(var(--ui-tooltip-scale));
   will-change: transform, opacity;
 
   pointer-events: none;
-  z-index: 30;
+  z-index: 1100;
 
   padding: 8px 10px;
   border-radius: var(--ui-radius-md);
@@ -44,5 +46,13 @@ pub const CSS: &str = r#"
   font-size: 12px;
   line-height: 1.2;
   max-width: 280px;
+}
+
+.ui-tooltip__panel[data-placement="bottom"] {
+  transform-origin: top center;
+}
+
+.ui-tooltip__panel[data-placement="top"] {
+  transform-origin: bottom center;
 }
 "#;
