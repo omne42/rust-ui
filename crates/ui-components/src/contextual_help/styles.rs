@@ -24,6 +24,7 @@ pub const CSS: &str = r#"
   font-size: 13px;
   font-weight: 650;
   color: var(--ui-fg);
+  margin: 0;
 }
 
 .ui-contextual-help__content {

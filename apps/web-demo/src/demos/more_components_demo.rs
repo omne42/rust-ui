@@ -122,7 +122,10 @@ pub fn MoreComponentsDemo() -> impl IntoView {
             <section id="more-components" class="demo-card">
                 <div class="demo-row">
                     <h2>"More components"</h2>
-                    <ContextualHelp heading="Contextual help".to_string() footer="Popover-based".to_string()>
+                    <ContextualHelp
+                        heading="Contextual help".to_string()
+                        footer=move || view! { "Popover-based" }
+                    >
                         <div class="demo-stack">
                             <div>"Uses Button + Popover + spring motion."</div>
                             <div>"Works in Light/Dark/OLED via tokens."</div>

@@ -32,6 +32,13 @@ pub fn resolve_trigger_aria_label(
         .unwrap_or_else(|| variant.default_label().to_string())
 }
 
+pub fn normalize_optional_text(value: Option<&str>) -> Option<String> {
+    value
+        .map(str::trim)
+        .filter(|v| !v.is_empty())
+        .map(|v| v.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -61,6 +68,16 @@ mod tests {
         assert_eq!(
             resolve_trigger_aria_label(ContextualHelpVariant::Info, Some("   ")),
             "Info"
+        );
+    }
+
+    #[test]
+    fn normalize_optional_text_trims_and_filters() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some(" ")), None);
+        assert_eq!(
+            normalize_optional_text(Some(" hello ")),
+            Some("hello".to_string())
         );
     }
 }
