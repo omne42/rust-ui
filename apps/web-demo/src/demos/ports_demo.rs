@@ -1,7 +1,9 @@
 use leptos::prelude::*;
 use ui_components::{
-    Autocomplete, Button, ButtonCopy, ButtonVariant, CodeBlock, DropdownMenu, Form, Input,
-    InputSize, InputVariant, MenuItemKind, ThemeMode, ThemeToggleButton,
+    ActionButton, ActionButtonGroup, ActionButtonSize, ActionMenu, Autocomplete, Button,
+    ButtonCopy, ButtonSize, ButtonVariant, CodeBlock, DropdownMenu, FlipButton, FlipDirection,
+    Form, Input, InputSize, InputVariant, MenuItemKind, SearchInputButton, ShareButton,
+    SharePlatform, ThemeMode, ThemeToggleButton,
 };
 
 #[component]
@@ -47,10 +49,16 @@ pub fn PortsDemo() -> impl IntoView {
 
     let is_invalid = Signal::derive(move || invalid.get());
 
+    // ShareButton demo
+    let (share_platform, set_share_platform) = signal(None::<SharePlatform>);
+    let on_share_icon_press = Callback::new(move |platform: SharePlatform| {
+        set_share_platform.set(Some(platform));
+    });
+
     view! {
         <section id="ports" class="demo-card">
             <h2>"Ports (bb/ui-web)"</h2>
-            <p>"Form / Autocomplete / DropdownMenu / CodeBlock / ButtonCopy / ThemeToggleButton"</p>
+            <p>"Form / Autocomplete / DropdownMenu / CodeBlock / ButtonCopy / ThemeToggleButton / ActionButton* / ActionMenu / SearchInputButton / ShareButton / FlipButton"</p>
 
             <div class="demo-grid-2">
                 <div class="demo-stack">
@@ -73,8 +81,8 @@ pub fn PortsDemo() -> impl IntoView {
                     <div class="demo-row">
                         <DropdownMenu
                             id_base="demo-dropdown".to_string()
-                            items=menu_items
-                            item_kinds=menu_kinds
+                            items=menu_items.clone()
+                            item_kinds=menu_kinds.clone()
                             on_action=on_menu_action
                         >
                             "Actions"
@@ -142,6 +150,77 @@ pub fn PortsDemo() -> impl IntoView {
                             </div>
                         </div>
                     </Form>
+                </div>
+            </div>
+
+            <div class="demo-divider"></div>
+
+            <div class="demo-grid-2">
+                <div class="demo-stack">
+                    <div class="demo-kv">"ActionButton / ActionButtonGroup"</div>
+                    <ActionButtonGroup size=ActionButtonSize::M is_justified=true>
+                        <ActionButton>"Edit"</ActionButton>
+                        <ActionButton is_quiet=true>"Duplicate"</ActionButton>
+                        <ActionButton>"Delete"</ActionButton>
+                    </ActionButtonGroup>
+
+                    <div class="demo-divider"></div>
+
+                    <div class="demo-kv">"ActionMenu"</div>
+                    <div class="demo-row">
+                        <ActionMenu
+                            id_base="demo-action-menu".to_string()
+                            items=menu_items.clone()
+                            item_kinds=menu_kinds.clone()
+                            on_action=on_menu_action
+                            size=ActionButtonSize::M
+                            is_quiet=true
+                        />
+                        <span class="demo-kv">
+                            {move || last_action.get().map(|idx| format!("action: {idx}")).unwrap_or_else(|| "action: none".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="demo-divider"></div>
+
+                    <div class="demo-kv">"SearchInputButton"</div>
+                    <SearchInputButton
+                        placeholder="Search docs...".to_string()
+                        compact_placeholder="Search...".to_string()
+                        meta_key_label="⌘".to_string()
+                        key_label="K".to_string()
+                        class_name="demo-search-input-button".to_string()
+                    />
+                </div>
+
+                <div class="demo-stack">
+                    <div class="demo-kv">"ShareButton"</div>
+                    <ShareButton
+                        size=ButtonSize::Sm
+                        from=FlipDirection::Bottom
+                        on_icon_press=on_share_icon_press
+                    />
+                    <div class="demo-kv">
+                        {move || match share_platform.get() {
+                            None => "clicked: none".to_string(),
+                            Some(SharePlatform::Github) => "clicked: GitHub".to_string(),
+                            Some(SharePlatform::X) => "clicked: X".to_string(),
+                            Some(SharePlatform::Facebook) => "clicked: Facebook".to_string(),
+                        }}
+                    </div>
+
+                    <div class="demo-divider"></div>
+
+                    <div class="demo-kv">"FlipButton"</div>
+                    <FlipButton
+                        from=FlipDirection::Right
+                        front=move || view! {
+                            <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Front"</Button>
+                        }
+                        back=move || view! {
+                            <Button variant=ButtonVariant::Accent size=ButtonSize::Sm>"Back"</Button>
+                        }
+                    />
                 </div>
             </div>
         </section>

@@ -105,6 +105,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds a demo section for dialogs/alerts and contextual help.
 - `ui-components`: ports bb/ui-web components: `Form`, `Autocomplete`, `DropdownMenu`, `CodeBlock`, `ButtonCopy`, and `ThemeToggleButton`.
 - `apps/web-demo`: adds a ports demo section showcasing the newly added components.
+- `ui-components`: ports bb/ui-web components: `ActionButton`, `ActionButtonGroup`, `ActionMenu`, `SearchInputButton`, `FlipButton`, and `ShareButton`.
+- `apps/web-demo`: extends the ports demo with action/share/search/flip components.
 
 ### Changed
 

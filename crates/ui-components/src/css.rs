@@ -4,7 +4,12 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::avatar::styles::CSS);
     out.push_str(crate::avatar_group::styles::CSS);
     out.push_str(crate::button::styles::CSS);
+    out.push_str(crate::action_button::styles::CSS);
+    out.push_str(crate::action_button_group::styles::CSS);
     out.push_str(crate::button_copy::styles::CSS);
+    out.push_str(crate::button_search_input::styles::CSS);
+    out.push_str(crate::button_flip::styles::CSS);
+    out.push_str(crate::button_share::styles::CSS);
     out.push_str(crate::button_group::styles::CSS);
     out.push_str(crate::button_theme_toggle::styles::CSS);
     out.push_str(crate::toggle_button::styles::CSS);
@@ -68,6 +73,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::menu::styles::CSS);
     out.push_str(crate::select::styles::CSS);
     out.push_str(crate::dropdown_menu::styles::CSS);
+    out.push_str(crate::action_menu::styles::CSS);
     out.push_str(crate::menu_trigger::styles::CSS);
     out.push_str("\n}\n");
 }

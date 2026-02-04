@@ -5,6 +5,9 @@ mod css;
 mod presence;
 
 pub mod accordion;
+pub mod action_button;
+pub mod action_button_group;
+pub mod action_menu;
 pub mod alert;
 pub mod alert_dialog;
 pub mod autocomplete;
@@ -14,7 +17,10 @@ pub mod badge;
 pub mod breadcrumbs;
 pub mod button;
 pub mod button_copy;
+pub mod button_flip;
 pub mod button_group;
+pub mod button_search_input;
+pub mod button_share;
 pub mod button_theme_toggle;
 pub mod card;
 pub mod checkbox;
@@ -76,6 +82,13 @@ pub mod toggle_button_group;
 pub mod tooltip;
 
 pub use accordion::{Accordion, AccordionSelectionMode};
+pub use action_button::{
+    ActionButton, ActionButtonLoadingPlacement, ActionButtonMotion, ActionButtonSize,
+};
+pub use action_button_group::{
+    ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
+};
+pub use action_menu::{ActionMenu, ActionMenuMotion};
 pub use active_highlight::ActiveHighlightMotion;
 pub use alert::{Alert, AlertVariant};
 pub use alert_dialog::{AlertDialog, AlertDialogMotion, AlertDialogVariant};
@@ -88,7 +101,12 @@ pub use breadcrumbs::{BreadcrumbItem, Breadcrumbs};
 pub use button::Button;
 pub use button::{ButtonLoadingPlacement, ButtonMotion, ButtonSize, ButtonVariant};
 pub use button_copy::{ButtonCopy, ButtonCopyMotion};
+pub use button_flip::{FlipButton, FlipButtonMotion, FlipDirection};
 pub use button_group::{ButtonGroup, ButtonGroupOrientation};
+pub use button_search_input::{SearchInputButton, SearchInputButtonMotion};
+pub use button_share::{
+    ShareButton, ShareButtonIconPlacement, ShareButtonItem, ShareButtonMotion, SharePlatform,
+};
 pub use button_theme_toggle::{ThemeMode, ThemeToggleButton, ThemeToggleMotion};
 pub use card::{Card, CardVariant};
 pub use checkbox::Checkbox;
