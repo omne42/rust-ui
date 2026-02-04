@@ -180,7 +180,7 @@ pub use spinner::{Spinner, SpinnerSize};
 pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};
 pub use switch::Switch;
 pub use switch::SwitchMotion;
-pub use tabs::Tabs;
+pub use tabs::{Tabs, TabsKeyboardActivation, TabsMotion};
 pub use tag_group::{Tag, TagGroup};
 pub use text_area::TextArea;
 pub use text_field::TextField;

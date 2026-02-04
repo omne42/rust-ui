@@ -6,6 +6,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-tabs__list {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -16,8 +17,24 @@ pub const CSS: &str = r#"
   width: fit-content;
 }
 
+.ui-tabs__indicator {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  height: calc(100% - 8px);
+  width: var(--ui-tabs-indicator-w, 0px);
+  transform: translateX(var(--ui-tabs-indicator-x, 0px));
+  opacity: var(--ui-tabs-indicator-o, 0);
+  border-radius: calc(var(--ui-radius-md) - 2px);
+  background: var(--ui-bg);
+  box-shadow: var(--ui-shadow-sm);
+  pointer-events: none;
+  will-change: transform, width, opacity;
+}
+
 .ui-tabs__tab {
   position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -35,28 +52,28 @@ pub const CSS: &str = r#"
   -webkit-tap-highlight-color: transparent;
 }
 
-.ui-tabs__tab[data-active=\"true\"] {
+.ui-tabs__tab[data-selected=\"true\"] {
   color: var(--ui-fg);
-  background: var(--ui-bg);
-  box-shadow: var(--ui-shadow-sm);
 }
 
-.ui-tabs__tab[data-active=\"true\"]::after {
-  content: \"\";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 4px;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--ui-accent);
+.ui-tabs__tab[data-hovered=\"true\"]:not([data-disabled=\"true\"]) {
+  color: var(--ui-fg);
+}
+
+.ui-tabs__tab[data-pressed=\"true\"]:not([data-disabled=\"true\"]) {
+  transform: scale(0.98);
+}
+
+.ui-tabs__tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .ui-tabs__tab:focus {
   outline: none;
 }
 
-.ui-tabs__tab:focus-visible {
+.ui-tabs__tab--focus-visible {
   outline: 3px solid var(--ui-focus-ring);
   outline-offset: 2px;
 }
