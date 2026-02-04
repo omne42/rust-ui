@@ -73,6 +73,13 @@ pub struct ListBoxOptions {
     pub is_disabled: bool,
     pub should_loop: bool,
     pub id_base: String,
+    pub default_index: usize,
+    /// When `true` (default), the active option will be aligned with the selected option whenever
+    /// selection changes.
+    ///
+    /// Set to `false` to support focus strategies like "open and focus first/last" while keeping
+    /// selection unchanged.
+    pub sync_active_index_to_selected: bool,
     pub item_count: ReadSignal<usize>,
     pub selected_index: ReadSignal<Option<usize>>,
     pub set_selected_index: WriteSignal<Option<usize>>,
@@ -87,7 +94,7 @@ pub struct ListBoxOptions {
 pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
     let roving = use_roving_tabindex(RovingTabIndexOptions {
         is_disabled: options.is_disabled,
-        default_index: 0,
+        default_index: options.default_index,
         should_loop: options.should_loop,
         orientation: RovingOrientation::Vertical,
         item_count: options.item_count,
@@ -97,7 +104,7 @@ pub fn use_listbox(options: ListBoxOptions) -> ListBoxAria {
     // Keep the roving active index aligned with the selected option (when selection is present).
     // This is a minimal heuristic for v0, and can be refined with separate "focused" vs
     // "selected" state later.
-    {
+    if options.sync_active_index_to_selected {
         let on_item_focus = roving.handlers.on_item_focus;
         let selected_index = options.selected_index;
         Effect::new(move |_| {

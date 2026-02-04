@@ -37,6 +37,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Menu` / `ListBox` / `Select` provide `item_text` to enable typeahead navigation.
 - `ui-components`: `Menu` / `MenuTrigger` / `ListBox` / `Select` support per-item disabled via `disabled_indices`.
 - `ui-components`: `Menu` / `MenuTrigger` support checkbox/radio menu items via `item_kinds`, plus `close_on_action` for checkbox-style menus.
+- `ui-components`: `Select` trigger now supports React Spectrum-style keyboard navigation when closed (ArrowLeft/ArrowRight + typeahead), and focus strategies when opening (ArrowDown/ArrowUp/Enter/Space).
 - `ui-headless`: `use_checkbox` / `use_switch` (role + `aria-checked` + keyboard press handling via `PressActivationKeys`).
 - `ui-components`: `<Checkbox>` / `<Switch>` components (built on headless press + focus ring).
 - `ui-headless`: overlay primitives (topmost overlay stack + focus trap with focus restore).
@@ -113,6 +114,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Changed
 
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
+- `ui-headless`: `use_listbox` now supports `default_index` and optional `sync_active_index_to_selected` to enable Select focus strategies without mutating selection.
+- `ui-headless`: roving tabindex now clamps disabled indices to the nearest enabled option (preferring previous when possible).
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.

@@ -46,6 +46,8 @@ fn listbox_syncs_active_index_to_selected_index() {
         is_disabled: false,
         should_loop: true,
         id_base: "sync".to_string(),
+        default_index: 0,
+        sync_active_index_to_selected: true,
         item_count: count,
         selected_index: selected,
         set_selected_index: set_selected,
@@ -58,6 +60,31 @@ fn listbox_syncs_active_index_to_selected_index() {
     assert_eq!(aria.active_index.get_untracked(), 2);
 
     set_selected.set(Some(0));
+    poll_effects();
+    assert_eq!(aria.active_index.get_untracked(), 0);
+}
+
+#[test]
+fn listbox_can_disable_sync_to_support_focus_strategy() {
+    init_executor();
+
+    let (count, _set_count) = signal(3_usize);
+    let (selected, set_selected) = signal(Some(2_usize));
+
+    let aria = use_listbox(ListBoxOptions {
+        is_disabled: false,
+        should_loop: true,
+        id_base: "nosync".to_string(),
+        default_index: 0,
+        sync_active_index_to_selected: false,
+        item_count: count,
+        selected_index: selected,
+        set_selected_index: set_selected,
+        on_action: None,
+        is_item_disabled: None,
+        item_text: None,
+    });
+
     poll_effects();
     assert_eq!(aria.active_index.get_untracked(), 0);
 }

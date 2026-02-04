@@ -13,6 +13,8 @@ pub fn ListBox(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] on_action: Option<Callback<usize>>,
+    #[prop(optional, default = 0)] default_index: usize,
+    #[prop(optional, default = true)] sync_active_index_to_selected: bool,
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -36,6 +38,8 @@ pub fn ListBox(
         is_disabled: disabled,
         should_loop: true,
         id_base,
+        default_index,
+        sync_active_index_to_selected,
         item_count,
         selected_index,
         set_selected_index,

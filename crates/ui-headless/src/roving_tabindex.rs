@@ -46,9 +46,12 @@ pub fn use_roving_tabindex(options: RovingTabIndexOptions) -> RovingTabIndexStat
             }
             if let Some(is_item_disabled) = options.is_item_disabled
                 && is_item_disabled.run(*i)
-                && let Some(first_enabled) = (0..count).find(|&idx| !is_item_disabled.run(idx))
             {
-                *i = first_enabled;
+                let previous_enabled = (0..=*i).rev().find(|&idx| !is_item_disabled.run(idx));
+                let next_enabled = (*i..count).find(|&idx| !is_item_disabled.run(idx));
+                if let Some(enabled) = previous_enabled.or(next_enabled) {
+                    *i = enabled;
+                }
             }
         });
     });
@@ -224,6 +227,23 @@ mod tests {
 
         any_spawner::Executor::poll_local();
         assert_eq!(roving.active_index.get_untracked(), 1);
+    }
+
+    #[test]
+    fn default_index_last_skips_to_previous_enabled_item() {
+        init_executor();
+        let (count, _set_count) = signal(4_usize);
+        let roving = use_roving_tabindex(RovingTabIndexOptions {
+            is_disabled: false,
+            default_index: 3,
+            should_loop: true,
+            orientation: RovingOrientation::Vertical,
+            item_count: count,
+            is_item_disabled: Some(Callback::new(|index: usize| matches!(index, 0 | 3))),
+        });
+
+        any_spawner::Executor::poll_local();
+        assert_eq!(roving.active_index.get_untracked(), 2);
     }
 
     #[test]

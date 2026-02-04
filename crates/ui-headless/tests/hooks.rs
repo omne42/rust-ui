@@ -258,6 +258,8 @@ fn listbox_selects_active_option_and_calls_on_action() {
         is_disabled: false,
         should_loop: true,
         id_base: "demo".to_string(),
+        default_index: 0,
+        sync_active_index_to_selected: true,
         item_count: count,
         selected_index: selected,
         set_selected_index: set_selected,
