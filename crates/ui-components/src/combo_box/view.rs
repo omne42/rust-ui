@@ -320,6 +320,13 @@ pub fn ComboBox(
             class:ui-combo-box--invalid=move || invalid.get()
             class:ui-combo-box--disabled=disabled
             data-slot="combo-box"
+            data-focused=move || focus_ring.is_focused.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-required=move || required.get().then_some("true")
+            data-open=move || is_open.get().then_some("true")
+            data-empty=move || query.get().trim().is_empty().then_some("true")
         >
             <label
                 class="ui-combo-box__label"
