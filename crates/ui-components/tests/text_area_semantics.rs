@@ -8,6 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn text_area_uses_headless_text_field_and_focus_ring() {
+    let source = load_source("src/text_area/view.rs");
+
+    for needle in ["use_focus_ring", "use_text_field"] {
+        assert!(
+            source.contains(needle),
+            "TextArea should use headless `{needle}` hooks."
+        );
+    }
+}
+
+#[test]
 fn text_area_supports_read_only() {
     let source = load_source("src/text_area/view.rs");
 
@@ -20,4 +32,23 @@ fn text_area_supports_read_only() {
         source.contains("readonly=read_only"),
         "TextArea should forward `read_only` to the underlying <textarea readonly> attribute."
     );
+}
+
+#[test]
+fn text_area_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/text_area/view.rs");
+
+    for attr in [
+        "data-focused",
+        "data-focus-visible",
+        "data-invalid",
+        "data-disabled",
+        "data-read-only",
+        "data-required",
+    ] {
+        assert!(
+            source.contains(attr),
+            "TextArea should set `{attr}` to support Spectrum-style styling and state inspection."
+        );
+    }
 }
