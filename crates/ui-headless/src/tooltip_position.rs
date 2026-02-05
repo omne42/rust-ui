@@ -223,6 +223,11 @@ pub fn use_tooltip_position(_options: TooltipPositionOptions) -> TooltipPosition
             }
         });
 
+        let resize_observer = StoredValue::new_local(None::<web_sys::ResizeObserver>);
+        let resize_closure = StoredValue::new_local(
+            None::<Closure<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>>,
+        );
+
         Effect::new({
             let compute = compute.clone();
             let anchor_ref = _options.anchor_ref;
@@ -231,6 +236,46 @@ pub fn use_tooltip_position(_options: TooltipPositionOptions) -> TooltipPosition
                 let _ = anchor_ref.get();
                 let _ = panel_ref.get();
                 compute();
+
+                if resize_observer.get_value().is_some() {
+                    return;
+                }
+
+                let Some(anchor) = anchor_ref.get_untracked() else {
+                    return;
+                };
+                let Some(panel) = panel_ref.get_untracked() else {
+                    return;
+                };
+
+                let anchor_el: web_sys::Element = anchor.unchecked_into();
+                let panel_el: web_sys::Element = panel.unchecked_into();
+
+                let compute_for_resize = compute.clone();
+                let closure = Closure::wrap(Box::new(
+                    move |_: js_sys::Array, _: web_sys::ResizeObserver| {
+                        compute_for_resize();
+                    },
+                )
+                    as Box<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>);
+
+                if let Ok(observer) = web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref())
+                {
+                    observer.observe(&anchor_el);
+                    observer.observe(&panel_el);
+                    resize_observer.set_value(Some(observer));
+                    resize_closure.set_value(Some(closure));
+                }
+
+                let resize_observer_for_cleanup = resize_observer;
+                let resize_closure_for_cleanup = resize_closure;
+                on_cleanup(move || {
+                    if let Some(observer) = resize_observer_for_cleanup.get_value() {
+                        observer.disconnect();
+                    }
+                    resize_observer_for_cleanup.set_value(None);
+                    resize_closure_for_cleanup.set_value(None);
+                });
             }
         });
 
