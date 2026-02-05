@@ -98,3 +98,15 @@ pub fn attach_zoom_motion(
     _motion: ImageMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_has_reasonable_params() {
+        let motion = ImageMotion::default();
+        assert_eq!(motion.zoom_spring, ui_motion::presets::spring_soft());
+        assert!(motion.zoom_scale > 1.0);
+    }
+}

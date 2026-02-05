@@ -217,3 +217,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds Spectrum-compat regression coverage for `Button` (semantics, state normalization, motion defaults).
 - `ui-components`: simplifies `IconButton` composition and adds Spectrum-compat regression coverage.
 - `ui-components`: makes `Select` internal logic private and adds Spectrum-compat regression coverage.
+- `ui-components`: makes `Image` internal logic private and adds Spectrum-compat regression coverage.
