@@ -31,9 +31,12 @@ pub fn Link(
     view! {
         <a
             class=class
+            class:ui-link--focus-visible=move || focus_ring.is_focus_visible.get()
             data-slot="link"
             data-hovered=move || hover.is_hovered.get().then_some("true")
             data-disabled=disabled.then_some("true")
+            data-focused=move || focus_ring.is_focused.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
             href=(!disabled).then_some(href)
             target=target
             rel=rel

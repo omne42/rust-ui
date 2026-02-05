@@ -54,10 +54,35 @@ fn link_supports_disabled_semantics_without_navigation() {
 fn link_emits_spectrum_style_data_attributes() {
     let source = load_source("src/link/view.rs");
 
-    for needle in ["data-slot=\"link\"", "data-hovered"] {
+    for needle in [
+        "data-slot=\"link\"",
+        "data-hovered",
+        "data-focused",
+        "data-focus-visible",
+        "ui-link--focus-visible",
+    ] {
         assert!(
             source.contains(needle),
             "Link should include `{needle}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn link_styles_use_state_data_attributes_instead_of_pseudo_classes() {
+    let source = load_source("src/link/styles.rs");
+
+    for needle in ["data-hovered=\"true\"", "ui-link--focus-visible"] {
+        assert!(
+            source.contains(needle),
+            "Link styles should include `{needle}` to match the component's state contracts."
+        );
+    }
+
+    for forbidden in [":hover", ":focus-visible"] {
+        assert!(
+            !source.contains(forbidden),
+            "Link styles should not rely on `{forbidden}`; use headless-driven state attributes instead."
         );
     }
 }

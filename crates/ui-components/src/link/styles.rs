@@ -9,13 +9,13 @@ pub const CSS: &str = r#"
   -webkit-tap-highlight-color: transparent;
 }
 
-.ui-link:hover {
+.ui-link[data-hovered="true"] {
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
 }
 
-.ui-link:focus-visible {
+.ui-link--focus-visible {
   outline: 3px solid var(--ui-focus-ring);
   outline-offset: 2px;
   border-radius: var(--ui-radius-sm);
