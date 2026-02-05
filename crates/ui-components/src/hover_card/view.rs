@@ -40,7 +40,7 @@ pub fn HoverCard(
     let open_signal: Signal<bool> = trigger.state.is_open.into();
     let presence = crate::presence::use_presence(open_signal);
 
-    let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+    let anchor_ref: NodeRef<html::Span> = NodeRef::new();
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
 
     let position = use_popover_position(PopoverPositionOptions {
@@ -72,6 +72,73 @@ pub fn HoverCard(
         }
     };
 
+    #[cfg(target_arch = "wasm32")]
+    let focus_target = StoredValue::new_local(None::<leptos::web_sys::Element>);
+
+    #[cfg(target_arch = "wasm32")]
+    on_cleanup(move || {
+        if let Some(target) = focus_target.get_value() {
+            let _ = target.remove_attribute("aria-describedby");
+        }
+    });
+
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let is_open = open_signal.get();
+        let Some(target) = focus_target.get_value() else {
+            return;
+        };
+
+        let id = id.with_value(|id| id.clone());
+        if is_open {
+            let _ = target.set_attribute("aria-describedby", &id);
+        } else {
+            let _ = target.remove_attribute("aria-describedby");
+        }
+    });
+
+    let on_focus_in = move |_ev: ev::FocusEvent| {
+        trigger.handlers.on_trigger_focus_in.run(());
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use leptos::wasm_bindgen::JsCast;
+
+            if let Some(target) = focus_target.get_value() {
+                let _ = target.remove_attribute("aria-describedby");
+            }
+
+            let Some(target) = _ev.target() else {
+                focus_target.set_value(None);
+                return;
+            };
+
+            let Ok(target) = target.dyn_into::<leptos::web_sys::Element>() else {
+                focus_target.set_value(None);
+                return;
+            };
+
+            if open_signal.get_untracked() {
+                let id = id.with_value(|id| id.clone());
+                let _ = target.set_attribute("aria-describedby", &id);
+            }
+
+            focus_target.set_value(Some(target));
+        }
+    };
+
+    let on_focus_out = move |_ev: ev::FocusEvent| {
+        trigger.handlers.on_trigger_focus_out.run(());
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            if let Some(target) = focus_target.get_value() {
+                let _ = target.remove_attribute("aria-describedby");
+            }
+            focus_target.set_value(None);
+        }
+    };
+
     let panel_vars = move || {
         format!(
             "--ui-hover-card-top: {}px; --ui-hover-card-left: {}px; --ui-hover-card-anchor-width: {}px;",
@@ -83,21 +150,18 @@ pub fn HoverCard(
 
     view! {
         <span class=class data-slot="hover-card">
-            <button
-                type="button"
+            <span
                 class="ui-hover-card__trigger"
                 data-slot="hover-card-trigger"
                 node_ref=anchor_ref
-                disabled=disabled
-                aria-describedby=move || presence.is_present.get().then(|| id.with_value(|id| id.clone()))
                 on:pointerenter=move |_| trigger.handlers.on_trigger_pointer_enter.run(())
                 on:pointerleave=move |_| trigger.handlers.on_trigger_pointer_leave.run(())
-                on:focusin=move |_| trigger.handlers.on_trigger_focus_in.run(())
-                on:focusout=move |_| trigger.handlers.on_trigger_focus_out.run(())
+                on:focusin=on_focus_in
+                on:focusout=on_focus_out
                 on:keydown=on_key_down
             >
                 {children()}
-            </button>
+            </span>
 
             <Show when=move || presence.is_present.get()>
                 <Portal>

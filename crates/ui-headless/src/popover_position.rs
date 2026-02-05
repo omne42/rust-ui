@@ -46,15 +46,23 @@ impl PopoverPlacement {
 }
 
 #[derive(Clone, Copy)]
-pub struct PopoverPositionOptions {
-    pub anchor_ref: NodeRef<html::Button>,
+pub struct PopoverPositionOptions<Anchor = html::Button>
+where
+    Anchor: html::ElementType,
+    Anchor::Output: 'static,
+{
+    pub anchor_ref: NodeRef<Anchor>,
     pub panel_ref: NodeRef<html::Div>,
     pub placement: PopoverPlacement,
     pub offset_px: f64,
     pub padding_px: f64,
 }
 
-impl Default for PopoverPositionOptions {
+impl<Anchor> Default for PopoverPositionOptions<Anchor>
+where
+    Anchor: html::ElementType,
+    Anchor::Output: 'static,
+{
     fn default() -> Self {
         Self {
             anchor_ref: NodeRef::new(),
@@ -173,165 +181,184 @@ fn compute_popover_position(
     }
 }
 
-pub fn use_popover_position(_options: PopoverPositionOptions) -> PopoverPositionState {
+#[cfg(all(feature = "web", target_arch = "wasm32"))]
+pub fn use_popover_position<Anchor>(
+    _options: PopoverPositionOptions<Anchor>,
+) -> PopoverPositionState
+where
+    Anchor: html::ElementType,
+    Anchor::Output: wasm_bindgen::JsCast + AsRef<web_sys::Element> + Clone + 'static,
+{
+    use send_wrapper::SendWrapper;
+    use std::rc::Rc;
+    use wasm_bindgen::{JsCast, closure::Closure};
+
     let (top_px, _set_top_px) = signal(0.0);
     let (left_px, _set_left_px) = signal(0.0);
     let (anchor_width_px, _set_anchor_width_px) = signal(0.0);
     let (placement, _set_placement) = signal(_options.placement);
 
-    #[cfg(all(feature = "web", target_arch = "wasm32"))]
-    {
-        use send_wrapper::SendWrapper;
-        use std::rc::Rc;
-        use wasm_bindgen::{JsCast, closure::Closure};
+    let compute: Rc<dyn Fn()> = Rc::new({
+        let anchor_ref = _options.anchor_ref;
+        let panel_ref = _options.panel_ref;
+        let placement = _options.placement;
+        let offset_px = _options.offset_px;
+        let padding_px = _options.padding_px;
+        move || {
+            let Some(window) = web_sys::window() else {
+                return;
+            };
+            let Some(anchor) = anchor_ref.get_untracked() else {
+                return;
+            };
+            let Some(panel) = panel_ref.get_untracked() else {
+                return;
+            };
 
-        let compute: Rc<dyn Fn()> = Rc::new({
-            let anchor_ref = _options.anchor_ref;
-            let panel_ref = _options.panel_ref;
-            let placement = _options.placement;
-            let offset_px = _options.offset_px;
-            let padding_px = _options.padding_px;
-            move || {
-                let Some(window) = web_sys::window() else {
-                    return;
-                };
-                let Some(anchor) = anchor_ref.get_untracked() else {
-                    return;
-                };
-                let Some(panel) = panel_ref.get_untracked() else {
-                    return;
-                };
+            let viewport_w = window
+                .inner_width()
+                .ok()
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
+            let viewport_h = window
+                .inner_height()
+                .ok()
+                .and_then(|v| v.as_f64())
+                .unwrap_or(0.0);
 
-                let viewport_w = window
-                    .inner_width()
-                    .ok()
-                    .and_then(|v| v.as_f64())
-                    .unwrap_or(0.0);
-                let viewport_h = window
-                    .inner_height()
-                    .ok()
-                    .and_then(|v| v.as_f64())
-                    .unwrap_or(0.0);
+            let anchor_el: &web_sys::Element = anchor.as_ref();
+            let panel_el: &web_sys::Element = panel.as_ref();
+            let anchor_rect = anchor_el.get_bounding_client_rect();
+            let panel_rect = panel_el.get_bounding_client_rect();
 
-                let anchor_el: &web_sys::Element = anchor.as_ref();
-                let panel_el: &web_sys::Element = panel.as_ref();
-                let anchor_rect = anchor_el.get_bounding_client_rect();
-                let panel_rect = panel_el.get_bounding_client_rect();
+            let computed = compute_popover_position(
+                Rect {
+                    top: anchor_rect.top(),
+                    left: anchor_rect.left(),
+                    width: anchor_rect.width(),
+                    height: anchor_rect.height(),
+                },
+                Size {
+                    width: panel_rect.width(),
+                    height: panel_rect.height(),
+                },
+                Size {
+                    width: viewport_w,
+                    height: viewport_h,
+                },
+                placement,
+                offset_px,
+                padding_px,
+            );
 
-                let computed = compute_popover_position(
-                    Rect {
-                        top: anchor_rect.top(),
-                        left: anchor_rect.left(),
-                        width: anchor_rect.width(),
-                        height: anchor_rect.height(),
-                    },
-                    Size {
-                        width: panel_rect.width(),
-                        height: panel_rect.height(),
-                    },
-                    Size {
-                        width: viewport_w,
-                        height: viewport_h,
-                    },
-                    placement,
-                    offset_px,
-                    padding_px,
-                );
+            _set_anchor_width_px.set(computed.anchor_width);
+            _set_top_px.set(computed.top);
+            _set_left_px.set(computed.left);
+            _set_placement.set(computed.placement);
+        }
+    });
 
-                _set_anchor_width_px.set(computed.anchor_width);
-                _set_top_px.set(computed.top);
-                _set_left_px.set(computed.left);
-                _set_placement.set(computed.placement);
+    // Compute once when refs become available.
+    let resize_observer = StoredValue::new_local(None::<web_sys::ResizeObserver>);
+    let resize_closure =
+        StoredValue::new_local(None::<Closure<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>>);
+
+    Effect::new({
+        let compute = compute.clone();
+        let anchor_ref = _options.anchor_ref;
+        let panel_ref = _options.panel_ref;
+        move |_| {
+            let _ = anchor_ref.get();
+            let _ = panel_ref.get();
+            compute();
+
+            if resize_observer.get_value().is_some() {
+                return;
             }
-        });
 
-        // Compute once when refs become available.
-        let resize_observer = StoredValue::new_local(None::<web_sys::ResizeObserver>);
-        let resize_closure = StoredValue::new_local(
-            None::<Closure<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>>,
-        );
+            let Some(anchor) = anchor_ref.get_untracked() else {
+                return;
+            };
+            let Some(panel) = panel_ref.get_untracked() else {
+                return;
+            };
 
-        Effect::new({
-            let compute = compute.clone();
-            let anchor_ref = _options.anchor_ref;
-            let panel_ref = _options.panel_ref;
-            move |_| {
-                let _ = anchor_ref.get();
-                let _ = panel_ref.get();
-                compute();
+            let anchor_el: web_sys::Element = anchor.unchecked_into();
+            let panel_el: web_sys::Element = panel.unchecked_into();
 
-                if resize_observer.get_value().is_some() {
-                    return;
-                }
+            let compute_for_resize = compute.clone();
+            let closure = Closure::wrap(Box::new(
+                move |_: js_sys::Array, _: web_sys::ResizeObserver| {
+                    compute_for_resize();
+                },
+            )
+                as Box<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>);
 
-                let Some(anchor) = anchor_ref.get_untracked() else {
-                    return;
-                };
-                let Some(panel) = panel_ref.get_untracked() else {
-                    return;
-                };
-
-                let anchor_el: web_sys::Element = anchor.unchecked_into();
-                let panel_el: web_sys::Element = panel.unchecked_into();
-
-                let compute_for_resize = compute.clone();
-                let closure = Closure::wrap(Box::new(
-                    move |_: js_sys::Array, _: web_sys::ResizeObserver| {
-                        compute_for_resize();
-                    },
-                )
-                    as Box<dyn FnMut(js_sys::Array, web_sys::ResizeObserver)>);
-
-                if let Ok(observer) = web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref())
-                {
-                    observer.observe(&anchor_el);
-                    observer.observe(&panel_el);
-                    resize_observer.set_value(Some(observer));
-                    resize_closure.set_value(Some(closure));
-                }
-
-                let resize_observer_for_cleanup = resize_observer;
-                let resize_closure_for_cleanup = resize_closure;
-                on_cleanup(move || {
-                    if let Some(observer) = resize_observer_for_cleanup.get_value() {
-                        observer.disconnect();
-                    }
-                    resize_observer_for_cleanup.set_value(None);
-                    resize_closure_for_cleanup.set_value(None);
-                });
+            if let Ok(observer) = web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref()) {
+                observer.observe(&anchor_el);
+                observer.observe(&panel_el);
+                resize_observer.set_value(Some(observer));
+                resize_closure.set_value(Some(closure));
             }
-        });
 
-        // Recompute on resize/scroll while mounted.
-        if let Some(window) = web_sys::window() {
-            let window = SendWrapper::new(window);
-
-            let on_resize: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
-                let compute = compute.clone();
-                Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
-            });
-            let on_scroll: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
-                let compute = compute.clone();
-                Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
-            });
-
-            let _ = window
-                .add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
-            let _ = window
-                .add_event_listener_with_callback("scroll", on_scroll.as_ref().unchecked_ref());
-
+            let resize_observer_for_cleanup = resize_observer;
+            let resize_closure_for_cleanup = resize_closure;
             on_cleanup(move || {
-                let _ = window.remove_event_listener_with_callback(
-                    "resize",
-                    on_resize.as_ref().unchecked_ref(),
-                );
-                let _ = window.remove_event_listener_with_callback(
-                    "scroll",
-                    on_scroll.as_ref().unchecked_ref(),
-                );
+                if let Some(observer) = resize_observer_for_cleanup.get_value() {
+                    observer.disconnect();
+                }
+                resize_observer_for_cleanup.set_value(None);
+                resize_closure_for_cleanup.set_value(None);
             });
         }
+    });
+
+    // Recompute on resize/scroll while mounted.
+    if let Some(window) = web_sys::window() {
+        let window = SendWrapper::new(window);
+
+        let on_resize: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
+            let compute = compute.clone();
+            Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
+        });
+        let on_scroll: SendWrapper<Closure<dyn FnMut()>> = SendWrapper::new({
+            let compute = compute.clone();
+            Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
+        });
+
+        let _ =
+            window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
+        let _ =
+            window.add_event_listener_with_callback("scroll", on_scroll.as_ref().unchecked_ref());
+
+        on_cleanup(move || {
+            let _ = window
+                .remove_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
+            let _ = window
+                .remove_event_listener_with_callback("scroll", on_scroll.as_ref().unchecked_ref());
+        });
     }
+
+    PopoverPositionState {
+        top_px,
+        left_px,
+        anchor_width_px,
+        placement,
+    }
+}
+
+#[cfg(not(all(feature = "web", target_arch = "wasm32")))]
+pub fn use_popover_position<Anchor>(
+    _options: PopoverPositionOptions<Anchor>,
+) -> PopoverPositionState
+where
+    Anchor: html::ElementType,
+    Anchor::Output: 'static,
+{
+    let (top_px, _set_top_px) = signal(0.0);
+    let (left_px, _set_left_px) = signal(0.0);
+    let (anchor_width_px, _set_anchor_width_px) = signal(0.0);
+    let (placement, _set_placement) = signal(_options.placement);
 
     PopoverPositionState {
         top_px,

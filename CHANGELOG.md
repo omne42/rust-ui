@@ -137,8 +137,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: overlay trigger buttons now set `aria-controls` only when open (aligns with React Spectrum `useOverlayTrigger`), enabled via `Button`/`ActionButton` `aria_controls_signal`.
 - `ui-components`: `<Tooltip>` now uses headless trigger state and portal positioning, with HeroUI-style spring motion (opacity/scale/y).
 - `ui-components`: `<Tooltip>` no longer wraps children in a `<button>`; it listens via wrapper events and applies `aria-describedby` to the focused element, avoiding nested interactive markup.
+- `ui-headless`: `PopoverPositionOptions` is now generic over the anchor element type (defaults to `Button`), allowing non-button triggers to opt into popover positioning.
 - `ui-components`: `<ContextualHelp>` now supports `open/default_open/on_open_change`, adds proper dialog labeling (`aria-labelledby`/`aria-describedby`), and upgrades `footer` to a slot.
 - `ui-components`: `<HoverCard>` now uses headless trigger state, marks its panel as an overlay portal, and positions via CSS variables (no direct `web-sys`).
+- `ui-components`: `<HoverCard>` no longer wraps children in a `<button>`; it listens via a non-interactive wrapper and applies `aria-describedby` to the focused element, avoiding nested interactive markup.
 - `ui-headless`: `use_menu` now supports `default_index` to enable menu trigger focus strategies (e.g. open + focus last item).
 - `ui-components`: `MenuTrigger` now supports Spectrum-style keyboard opening (ArrowDown opens focusing first; ArrowUp opens focusing last).
 - `ui-components`: `MenuTrigger` now supports `open/default_open/on_open_change`, `disabled`, and labels its menu via `aria-labelledby` (trigger `id`).
