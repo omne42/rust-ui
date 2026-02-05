@@ -34,16 +34,18 @@ pub const CSS: &str = r#"
 .ui-segmented-control__indicator {
   position: absolute;
   top: 4px;
-  bottom: 4px;
   left: 4px;
   width: var(--ui-segmented-control-indicator-w, 0px);
-  transform: translateX(var(--ui-segmented-control-indicator-x, 0px));
+  height: var(--ui-segmented-control-indicator-h, 0px);
+  transform:
+    translateX(var(--ui-segmented-control-indicator-x, 0px))
+    translateY(var(--ui-segmented-control-indicator-y, 0px));
   opacity: var(--ui-segmented-control-indicator-o, 0);
   background: var(--ui-bg);
   border-radius: calc(var(--ui-radius-lg) - 4px);
   box-shadow: var(--ui-shadow-sm);
   pointer-events: none;
-  will-change: transform, width, opacity;
+  will-change: transform, width, height, opacity;
 }
 
 .ui-segmented-control__option {
