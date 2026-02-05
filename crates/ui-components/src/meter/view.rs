@@ -76,7 +76,7 @@ pub fn Meter(
             class=class
             class:ui-meter--indeterminate=move || is_indeterminate.get()
             data-slot="meter"
-            role="meter"
+            role="meter progressbar"
             aria-label=aria_label
             aria-labelledby=aria_labelledby
             aria-valuemin=range.min.to_string()

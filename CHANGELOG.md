@@ -126,6 +126,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Input` now clears on Escape when clearable, stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, and adds spring-driven clear-button reveal motion via CSS variables.
 - `ui-components`: `TextField` now supports `read_only` via the native `readonly` attribute.
 - `ui-components`: `TextArea` now supports `read_only` via the native `readonly` attribute.
+- `ui-components`: `<Meter>` now sets `role="meter progressbar"` to match React Spectrum's cross-browser fallback behavior, and adds a semantics regression test.
 - `ui-headless`: adds `use_number_field` (spinbutton semantics + raw input editing + keyboard stepping) and upgrades `<NumberField>` to match React Spectrum behavior more closely.
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-headless`: `use_listbox` now supports `default_index` and optional `sync_active_index_to_selected` to enable Select focus strategies without mutating selection.
