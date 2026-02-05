@@ -89,7 +89,7 @@ pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod tooltip;
 
-pub use accordion::{Accordion, AccordionSelectionMode};
+pub use accordion::{Accordion, AccordionMotion, AccordionSelectionMode};
 pub use action_button::{
     ActionButton, ActionButtonLoadingPlacement, ActionButtonMotion, ActionButtonSize,
 };

@@ -1,4 +1,4 @@
-use crate::accordion::{AccordionSelectionMode, logic};
+use crate::accordion::{AccordionMotion, AccordionSelectionMode, logic, motion};
 use crate::overlay_open;
 use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
 use std::{collections::BTreeSet, sync::Arc};
@@ -31,6 +31,7 @@ pub fn Accordion(
     #[prop(optional)] selection_mode: AccordionSelectionMode,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
+    #[prop(optional)] motion: AccordionMotion,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
@@ -116,6 +117,14 @@ pub fn Accordion(
                 let hover = use_hover(HoverOptions { is_disabled });
 
                 let is_open = move || open_indices.with(|set| set.contains(&index));
+                let open: Signal<bool> = Signal::derive(is_open);
+
+                let indicator_ref: NodeRef<html::Span> = NodeRef::new();
+                motion::attach_indicator_motion(indicator_ref, open, motion);
+
+                let panel_ref: NodeRef<html::Div> = NodeRef::new();
+                let panel_hidden = RwSignal::new(!open.get_untracked());
+                motion::attach_panel_motion(panel_ref, open, panel_hidden, motion);
 
                 let on_toggle = move |_| {
                     if is_disabled {
@@ -143,7 +152,7 @@ pub fn Accordion(
                     <div
                         class="ui-accordion__item"
                         data-slot="accordion-item"
-                        data-open=move || if is_open() { Some("true") } else { None }
+                        data-open=move || if open.get() { Some("true") } else { None }
                     >
                         <button
                             type="button"
@@ -161,7 +170,7 @@ pub fn Accordion(
                                     -1
                                 }
                             }
-                            aria-expanded=move || if is_open() { "true" } else { "false" }
+                            aria-expanded=move || if open.get() { "true" } else { "false" }
                             aria-controls=panel_id.clone()
                             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
                             on:focus=move |_| {
@@ -177,7 +186,12 @@ pub fn Accordion(
                             <span class="ui-accordion__label" data-slot="accordion-label">
                                 {label}
                             </span>
-                            <span class="ui-accordion__indicator" aria-hidden="true" data-slot="accordion-indicator">
+                            <span
+                                class="ui-accordion__indicator"
+                                node_ref=indicator_ref
+                                aria-hidden="true"
+                                data-slot="accordion-indicator"
+                            >
                                 "›"
                             </span>
                         </button>
@@ -185,12 +199,16 @@ pub fn Accordion(
                         <div
                             id=panel_id
                             class="ui-accordion__panel"
+                            node_ref=panel_ref
                             role="region"
                             aria-labelledby=trigger_id
-                            hidden=move || !is_open()
+                            hidden=move || panel_hidden.get()
+                            data-open=move || if open.get() { Some("true") } else { None }
                             data-slot="accordion-panel"
                         >
-                            {panel}
+                            <div class="ui-accordion__panel-surface" data-slot="accordion-panel-surface">
+                                {panel}
+                            </div>
                         </div>
                     </div>
                 }

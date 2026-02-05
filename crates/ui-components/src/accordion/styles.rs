@@ -58,15 +58,19 @@ pub const CSS: &str = r#"
   align-items: center;
   justify-content: center;
 
-  transform: rotate(0deg);
+  transform: rotate(var(--ui-accordion-indicator-rotation, 0deg));
   transform-origin: center;
 }
 
-.ui-accordion__item[data-open="true"] .ui-accordion__indicator {
-  transform: rotate(90deg);
+.ui-accordion__panel {
+  height: var(--ui-accordion-panel-height, auto);
+  opacity: var(--ui-accordion-panel-opacity, 1);
+  transform: translateY(var(--ui-accordion-panel-y, 0px));
+  overflow: hidden;
+  will-change: height, opacity, transform;
 }
 
-.ui-accordion__panel {
+.ui-accordion__panel-surface {
   border-top: 1px solid var(--ui-border);
   padding: var(--ui-space-md);
   color: var(--ui-fg);
