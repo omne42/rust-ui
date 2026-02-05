@@ -9,10 +9,10 @@ pub fn CircularProgress(
 ) -> impl IntoView {
     let vars = {
         let mut out = String::new();
-        if let Some(size_px) = size_px {
+        if let Some(size_px) = size_px.filter(|value| value.is_finite() && *value > 0.0) {
             out.push_str(&format!("--ui-cp-size: {size_px}px;"));
         }
-        if let Some(thickness_px) = thickness_px {
+        if let Some(thickness_px) = thickness_px.filter(|value| value.is_finite() && *value > 0.0) {
             if !out.is_empty() {
                 out.push(' ');
             }
@@ -32,8 +32,10 @@ pub fn CircularProgress(
             class=class
             style=vars
             data-slot="circular-progress"
-            role="status"
+            role="progressbar"
             aria-label=aria_label
+            aria-valuemin="0"
+            aria-valuemax="100"
         ></span>
     }
 }

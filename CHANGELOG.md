@@ -129,6 +129,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `<Meter>` now sets `role="meter progressbar"` to match React Spectrum's cross-browser fallback behavior, and adds a semantics regression test.
 - `ui-components`: `<Progress>` now sets `aria-valuetext` for determinate values (and treats non-finite inputs as min) to match React Spectrum `useProgressBar` semantics.
 - `ui-components`: `<ProgressCircle>` now sets `aria-valuetext` for determinate values (and treats non-finite inputs as min) to match React Spectrum `useProgressBar` semantics.
+- `ui-components`: `<CircularProgress>` now uses `role="progressbar"` (indeterminate) and sanitizes custom size/thickness CSS variables.
 - `ui-headless`: adds `use_number_field` (spinbutton semantics + raw input editing + keyboard stepping) and upgrades `<NumberField>` to match React Spectrum behavior more closely.
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-headless`: `use_listbox` now supports `default_index` and optional `sync_active_index_to_selected` to enable Select focus strategies without mutating selection.
