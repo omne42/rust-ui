@@ -41,6 +41,7 @@ pub const CSS: &str = r#"
   appearance: none;
   background: transparent;
   border: 0;
+  outline: none;
   color: var(--ui-fg-muted);
   padding: 8px 12px;
   border-radius: calc(var(--ui-radius-md) - 2px);
@@ -64,13 +65,9 @@ pub const CSS: &str = r#"
   transform: scale(0.98);
 }
 
-.ui-tabs__tab:disabled {
+.ui-tabs__tab[data-disabled=\"true\"] {
   cursor: not-allowed;
   opacity: 0.6;
-}
-
-.ui-tabs__tab:focus {
-  outline: none;
 }
 
 .ui-tabs__tab--focus-visible {

@@ -223,10 +223,13 @@ pub fn Tabs(
                         aria-selected=move || if is_selected() { "true" } else { "false" }
                         aria-controls=panel_id
                         aria-disabled=if is_disabled { Some("true") } else { None }
-                        data-selected=move || if is_selected() { Some("true") } else { None }
-                        data-disabled=if is_disabled { Some("true") } else { None }
-                        data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
-                        data-pressed=move || if press.is_pressed.get() { Some("true") } else { None }
+                        data-slot="tabs-tab"
+                        data-selected=move || is_selected().then_some("true")
+                        data-disabled=is_disabled.then_some("true")
+                        data-hovered=move || hover.is_hovered.get().then_some("true")
+                        data-pressed=move || press.is_pressed.get().then_some("true")
+                        data-focused=move || focus_ring.is_focused.get().then_some("true")
+                        data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
                         on:pointerdown=move |_| press.handlers.on_pointer_down.run(())
                         on:pointerup=move |_| press.handlers.on_pointer_up.run(())
                         on:pointercancel=move |_| press.handlers.on_pointer_cancel.run(())
@@ -263,6 +266,8 @@ pub fn Tabs(
                         role="tabpanel"
                         aria-labelledby=tab_id
                         hidden=move || !is_selected()
+                        data-slot="tabs-panel"
+                        data-selected=move || is_selected().then_some("true")
                     >
                         {panel}
                     </div>
@@ -278,6 +283,7 @@ pub fn Tabs(
                 .map(|value| format!("ui-tabs {value}"))
                 .unwrap_or_else(|| "ui-tabs".to_string())
             data-slot="tabs"
+            data-disabled=disabled.then_some("true")
         >
             <div
                 class="ui-tabs__list"
@@ -286,7 +292,12 @@ pub fn Tabs(
                 aria-label=aria_label
                 data-slot="tabs-list"
             >
-                <div class="ui-tabs__indicator" node_ref=indicator_ref aria-hidden="true"></div>
+                <div
+                    class="ui-tabs__indicator"
+                    node_ref=indicator_ref
+                    aria-hidden="true"
+                    data-slot="tabs-indicator"
+                ></div>
                 {tabs_view}
             </div>
             {panels_view}
