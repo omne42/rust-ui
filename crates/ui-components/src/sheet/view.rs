@@ -38,7 +38,19 @@ pub fn Sheet(
             if focus_trap.on_key_down.run((key.clone(), ev.shift_key())) {
                 ev.prevent_default();
             }
-            if key == "Escape" && is_topmost.get() {
+            #[cfg(target_arch = "wasm32")]
+            let is_composing = ev.is_composing();
+            #[cfg(not(target_arch = "wasm32"))]
+            let is_composing = false;
+
+            #[cfg(target_arch = "wasm32")]
+            let default_prevented = ev.default_prevented();
+            #[cfg(not(target_arch = "wasm32"))]
+            let default_prevented = false;
+
+            if key == "Escape" && is_topmost.get() && !is_composing && !default_prevented {
+                ev.stop_propagation();
+                ev.prevent_default();
                 on_close.run(());
             }
         }
