@@ -1,4 +1,6 @@
-use crate::button::{ButtonLoadingPlacement, ButtonMotion, ButtonSize, ButtonVariant, motion};
+use crate::button::{
+    ButtonLoadingPlacement, ButtonMotion, ButtonSize, ButtonVariant, logic, motion,
+};
 use leptos::{html, prelude::*};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, OnPress, use_button, use_focus_ring, use_hover,
@@ -24,26 +26,26 @@ pub fn Button(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
-    let effective_disabled = disabled || is_loading;
+    let state = logic::resolve_state(disabled, is_loading);
     let aria = use_button(ButtonOptions {
-        is_disabled: effective_disabled,
+        is_disabled: state.is_disabled,
         on_press,
         ..Default::default()
     });
 
     let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: effective_disabled,
+        is_disabled: state.is_disabled,
     });
 
     let hover = use_hover(HoverOptions {
-        is_disabled: effective_disabled,
+        is_disabled: state.is_disabled,
     });
 
     motion::attach_motion(
         node_ref,
         hover.is_hovered,
         aria.is_pressed,
-        effective_disabled,
+        state.is_disabled,
         motion,
     );
 
@@ -61,11 +63,11 @@ pub fn Button(
             node_ref=node_ref
             class=class
             class:ui-button--focus-visible=move || focus_ring.is_focus_visible.get()
-            disabled=effective_disabled
+            disabled=state.is_disabled
             data-slot="button"
             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
-            data-loading=is_loading.then_some("true")
+            data-loading=state.is_loading.then_some("true")
             data-loading-placement=loading_placement.as_attr()
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
@@ -77,7 +79,7 @@ pub fn Button(
                     .map(|signal| signal.get())
                     .unwrap_or_else(|| aria_controls.clone())
             }
-            aria-busy=is_loading.then_some("true")
+            aria-busy=state.is_loading.then_some("true")
             aria-expanded=move || {
                 aria_expanded.map(|signal| if signal.get() { "true" } else { "false" })
             }
@@ -105,7 +107,7 @@ pub fn Button(
                 focus_ring.handlers.on_blur.run(());
             }
         >
-            <Show when=move || is_loading && matches!(loading_placement, ButtonLoadingPlacement::Start)>
+            <Show when=move || state.is_loading && matches!(loading_placement, ButtonLoadingPlacement::Start)>
                 <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
             </Show>
 
@@ -113,11 +115,11 @@ pub fn Button(
                 {children()}
             </span>
 
-            <Show when=move || is_loading && matches!(loading_placement, ButtonLoadingPlacement::End)>
+            <Show when=move || state.is_loading && matches!(loading_placement, ButtonLoadingPlacement::End)>
                 <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
             </Show>
 
-            <Show when=move || is_loading && matches!(loading_placement, ButtonLoadingPlacement::Center)>
+            <Show when=move || state.is_loading && matches!(loading_placement, ButtonLoadingPlacement::Center)>
                 <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
             </Show>
         </button>

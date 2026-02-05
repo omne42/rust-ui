@@ -106,3 +106,24 @@ pub fn attach_motion(
     _motion: ButtonMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_matches_bb_params() {
+        let motion = ButtonMotion::default();
+        assert_eq!(
+            motion.spring,
+            ui_motion::spring::SpringConfig {
+                stiffness: 260.0,
+                damping: 16.0,
+                mass: 1.0,
+                ..Default::default()
+            }
+        );
+        assert_eq!(motion.hover_scale, 1.05);
+        assert_eq!(motion.tap_scale, 0.95);
+    }
+}
