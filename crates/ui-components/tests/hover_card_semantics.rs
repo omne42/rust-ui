@@ -38,3 +38,21 @@ fn hover_card_trigger_does_not_wrap_children_in_button() {
         "HoverCard trigger wrapper must be a non-interactive <span> to avoid nested interactive elements."
     );
 }
+
+#[test]
+fn hover_card_escape_stops_propagation_when_open() {
+    let source = load_source("src/hover_card/view.rs");
+
+    assert!(
+        source.contains("stop_propagation()"),
+        "HoverCard should stop Escape propagation while open so it doesn't dismiss parent overlays."
+    );
+    assert!(
+        source.contains("open_signal.get_untracked()"),
+        "HoverCard should only intercept Escape when open (otherwise allow Escape to bubble to parent overlays)."
+    );
+    assert!(
+        source.contains("is_composing"),
+        "HoverCard should ignore Escape while IME composition is active."
+    );
+}

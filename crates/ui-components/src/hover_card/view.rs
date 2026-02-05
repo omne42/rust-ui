@@ -67,9 +67,26 @@ pub fn HoverCard(
     let content = StoredValue::new(content);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if ev.key() == "Escape" {
-            trigger.state.dismiss.run(());
+        if ev.key() != "Escape" {
+            return;
         }
+
+        if !open_signal.get_untracked() {
+            return;
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        let is_composing = ev.is_composing();
+        #[cfg(not(target_arch = "wasm32"))]
+        let is_composing = false;
+
+        if is_composing {
+            return;
+        }
+
+        ev.stop_propagation();
+        ev.prevent_default();
+        trigger.state.dismiss.run(());
     };
 
     #[cfg(target_arch = "wasm32")]
