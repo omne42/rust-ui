@@ -168,7 +168,7 @@ pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
 pub use ripple::{MotionRipple, RippleMotion};
 pub use root::UiRoot;
 pub use scroll_shadow::ScrollShadow;
-pub use search_field::SearchField;
+pub use search_field::{SearchField, SearchFieldMotion};
 pub use segmented_control::{
     SegmentedControl, SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize,
 };

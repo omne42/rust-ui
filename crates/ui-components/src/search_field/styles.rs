@@ -84,6 +84,22 @@ pub const CSS: &str = r#"
   cursor: pointer;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+
+  --ui-search-field-clear-opacity: 0;
+  --ui-search-field-clear-scale: 0.85;
+
+  opacity: var(--ui-search-field-clear-opacity, 0);
+  transform: scale(var(--ui-search-field-clear-scale, 0.85));
+  transform-origin: center;
+  will-change: transform, opacity;
+
+  pointer-events: none;
+}
+
+.ui-search-field__clear[data-visible="true"] {
+  --ui-search-field-clear-opacity: 1;
+  --ui-search-field-clear-scale: 1;
+  pointer-events: auto;
 }
 
 .ui-search-field__clear:hover {
