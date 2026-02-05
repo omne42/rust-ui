@@ -124,6 +124,7 @@ pub fn SearchField(
             return;
         }
 
+        ev.stop_propagation();
         ev.prevent_default();
         set_value.set(String::new());
         if let Some(on_clear) = on_clear.get_value() {

@@ -26,6 +26,16 @@ fn search_field_clears_on_escape_when_not_empty() {
 }
 
 #[test]
+fn search_field_escape_clear_stops_propagation() {
+    let source = load_source("src/search_field/view.rs");
+
+    assert!(
+        source.contains("stop_propagation()"),
+        "SearchField should stop Escape propagation when clearing (Spectrum parity: Escape clears without dismissing parent overlays)."
+    );
+}
+
+#[test]
 fn search_field_clear_button_is_excluded_from_tab_order() {
     let source = load_source("src/search_field/view.rs");
 
