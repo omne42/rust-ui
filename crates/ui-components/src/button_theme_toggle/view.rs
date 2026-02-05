@@ -1,6 +1,6 @@
-use crate::button_theme_toggle::{ThemeMode, ThemeToggleMotion, logic};
+use crate::button_theme_toggle::{ThemeMode, ThemeToggleMotion, logic, motion};
 use crate::{Button, ButtonSize, ButtonVariant, OnPress};
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 fn icon_view(icon: logic::ThemeToggleIcon) -> impl IntoView {
     match icon {
@@ -63,8 +63,6 @@ pub fn ThemeToggleButton(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let _ = motion;
-
     let modes = if modes.is_empty() {
         vec![ThemeMode::Light, ThemeMode::Dark, ThemeMode::Oled]
     } else {
@@ -91,6 +89,9 @@ pub fn ThemeToggleButton(
         .filter(|value| !value.trim().is_empty())
         .unwrap_or_else(|| "Toggle theme".to_string());
 
+    let icon_ref: NodeRef<html::Span> = NodeRef::new();
+    motion::attach_motion(icon_ref, mode.into(), motion);
+
     view! {
         <Button
             aria_label=aria_label
@@ -100,10 +101,16 @@ pub fn ThemeToggleButton(
             disabled=disabled
             on_press=on_press
         >
-            {move || {
-                let view_state = logic::resolve_view_state(mode.get(), &modes.get_value());
-                icon_view(view_state.icon)
-            }}
+            <span
+                class="ui-theme-toggle-button__icon"
+                data-slot="theme-toggle-icon"
+                node_ref=icon_ref
+            >
+                {move || {
+                    let view_state = logic::resolve_view_state(mode.get(), &modes.get_value());
+                    icon_view(view_state.icon)
+                }}
+            </span>
         </Button>
     }
 }

@@ -117,6 +117,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: `SlidingNumber` now animates per-digit transitions via spring-driven CSS variables (animate-ui-style).
 - `ui-components`: `CodeBlock` now provides spring-driven copy feedback via CSS variables (`--ui-code-block-copy-flash`).
+- `ui-components`: `ThemeToggleButton` now animates icon micro-interactions via spring-driven CSS variables (`--ui-theme-toggle-*`).
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-headless`: `use_listbox` now supports `default_index` and optional `sync_active_index_to_selected` to enable Select focus strategies without mutating selection.
 - `ui-headless`: roving tabindex now clamps disabled indices to the nearest enabled option (preferring previous when possible).
