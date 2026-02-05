@@ -136,7 +136,7 @@ pub use drawer::{Drawer, DrawerMotion, DrawerPlacement};
 pub use drop_zone::{DropZone, DropZoneMotion, DroppedFile};
 pub use dropdown_menu::{DropdownMenu, DropdownMenuMotion};
 pub use file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};
-pub use form::{Form, FormLabelAlign, FormLabelPosition, FormMotion, use_form_context};
+pub use form::{Form, FormLabelAlign, FormLabelPosition, use_form_context};
 pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon_button::IconButton;
 pub use illustrated_message::{

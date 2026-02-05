@@ -1,4 +1,4 @@
-use crate::form::{FormLabelAlign, FormLabelPosition, FormMotion, logic};
+use crate::form::{FormLabelAlign, FormLabelPosition, logic};
 use leptos::prelude::*;
 
 #[component]
@@ -9,11 +9,8 @@ pub fn Form(
     #[prop(optional)] required: bool,
     #[prop(optional)] label_position: FormLabelPosition,
     #[prop(optional)] label_align: FormLabelAlign,
-    #[prop(optional)] motion: FormMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let _ = motion;
-
     provide_context(logic::FormContextValue {
         disabled,
         read_only,
