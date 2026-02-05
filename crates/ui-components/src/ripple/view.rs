@@ -1,14 +1,10 @@
-use crate::ripple::RippleMotion;
 use leptos::{html, prelude::*};
 
 #[component]
 pub fn MotionRipple(
-    #[prop(optional)] motion: RippleMotion,
     #[prop(optional)] node_ref: NodeRef<html::Span>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let _ = motion;
-
     let base_class = "ui-ripple".to_string();
     let class = class_name
         .filter(|value| !value.trim().is_empty())
