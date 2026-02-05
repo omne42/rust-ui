@@ -2,6 +2,7 @@
 
 mod active_highlight;
 mod css;
+mod overlay_open;
 mod presence;
 
 pub mod accordion;

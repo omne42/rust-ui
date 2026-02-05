@@ -1,4 +1,5 @@
 use crate::menu_trigger::logic;
+use crate::overlay_open;
 use crate::{Button, Menu, MenuItemKind, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
 use ui_headless::PopoverPlacement;
@@ -23,7 +24,7 @@ pub fn MenuTrigger(
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
     let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(item_kinds);
 
-    let open_state = logic::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 

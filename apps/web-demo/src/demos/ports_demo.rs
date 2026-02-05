@@ -22,8 +22,10 @@ pub fn PortsDemo() -> impl IntoView {
         MenuItemKind::Action,
         MenuItemKind::Action,
     ];
+    let (dropdown_open, set_dropdown_open) = signal(false);
     let (last_action, set_last_action) = signal(None::<usize>);
     let on_menu_action = Callback::new(move |index: usize| set_last_action.set(Some(index)));
+    let on_dropdown_open_change = Callback::new(move |next: bool| set_dropdown_open.set(next));
 
     // Autocomplete demo
     let autocomplete_items = vec![
@@ -84,11 +86,20 @@ pub fn PortsDemo() -> impl IntoView {
                             items=menu_items.clone()
                             item_kinds=menu_kinds.clone()
                             on_action=on_menu_action
+                            open=dropdown_open.into()
+                            on_open_change=on_dropdown_open_change
                         >
                             "Actions"
                         </DropdownMenu>
                         <span class="demo-kv">
-                            {move || last_action.get().map(|idx| format!("action: {idx}")).unwrap_or_else(|| "action: none".to_string())}
+                            {move || {
+                                let open = dropdown_open.get();
+                                let action = last_action
+                                    .get()
+                                    .map(|idx| format!("action: {idx}"))
+                                    .unwrap_or_else(|| "action: none".to_string());
+                                format!("open: {open}, {action}")
+                            }}
                         </span>
                     </div>
 
