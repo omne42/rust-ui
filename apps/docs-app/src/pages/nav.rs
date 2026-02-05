@@ -1,8 +1,18 @@
 use crate::pages::components::component_catalog;
 use leptos::prelude::*;
 
+const GROUP_ORDER: &[&str] = &[
+    "Actions",
+    "Forms",
+    "Layout",
+    "Display",
+    "Files",
+    "Collections",
+    "Overlays",
+];
+
 #[component]
-pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<&'static str>) -> impl IntoView {
+pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl IntoView {
     let (filter, set_filter) = signal(String::new());
     let filtered = Memo::new(move |_| {
         let q = filter.get().to_lowercase();
@@ -28,7 +38,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<&'static str>) -> i
                     data-active=move || (route.get() == "docs/welcome").then_some("true")
                     on:click=move |ev| {
                         ev.prevent_default();
-                        navigate.run("docs/welcome");
+                        navigate.run("docs/welcome".to_string());
                     }
                 >
                     "Welcome"
@@ -38,7 +48,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<&'static str>) -> i
                     data-active=move || (route.get() == "docs/rules").then_some("true")
                     on:click=move |ev| {
                         ev.prevent_default();
-                        navigate.run("docs/rules");
+                        navigate.run("docs/rules".to_string());
                     }
                 >
                     "Rules"
@@ -52,7 +62,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<&'static str>) -> i
                     data-active=move || (route.get() == "components").then_some("true")
                     on:click=move |ev| {
                         ev.prevent_default();
-                        navigate.run("components");
+                        navigate.run("components".to_string());
                     }
                 >
                     "All components"
@@ -86,6 +96,40 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<&'static str>) -> i
                             }
                         />
                     </div>
+                </Show>
+
+                <Show when=move || filter.get().trim().is_empty()>
+                    <For
+                        each=move || GROUP_ORDER.iter().copied()
+                        key=|group| *group
+                        children=move |group| {
+                            let items = component_catalog()
+                                .iter()
+                                .copied()
+                                .filter(|doc| doc.group == group)
+                                .collect::<Vec<_>>();
+
+                            view! {
+                                <div class="docs-nav-section">
+                                    <div class="docs-nav-title">{group}</div>
+                                    <For
+                                        each=move || items.clone()
+                                        key=|doc| doc.slug
+                                        children=move |doc| {
+                                            view! {
+                                                <a
+                                                    href=format!("#/components/{}", doc.slug)
+                                                    data-active=move || (route.get() == format!("components/{}", doc.slug)).then_some("true")
+                                                >
+                                                    {doc.name}
+                                                </a>
+                                            }
+                                        }
+                                    />
+                                </div>
+                            }
+                        }
+                    />
                 </Show>
             </div>
         </div>

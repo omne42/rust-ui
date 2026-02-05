@@ -1,9 +1,7 @@
-#![cfg(erase_components)]
-
 use tachys::html::attribute::{NextAttribute, custom::custom_attribute};
 
 #[test]
-fn attribute_tuples_can_grow_beyond_26_in_erase_components_mode() {
+fn attribute_tuples_can_grow_beyond_26() {
     let attrs = (
         custom_attribute("data-a", "1"),
         custom_attribute("data-b", "1"),

@@ -513,10 +513,6 @@ macro_rules! impl_attr_for_tuples_truncate_additional {
             $($ty: Attribute),*,
 
         {
-            #[cfg(not(erase_components))]
-            type Output<NewAttr: Attribute> = ($first, $($ty,)*);
-
-            #[cfg(erase_components)]
             type Output<NewAttr: Attribute> =
                 Vec<$crate::html::attribute::any_attribute::AnyAttribute>;
 
@@ -524,25 +520,16 @@ macro_rules! impl_attr_for_tuples_truncate_additional {
                 self,
                 new_attr: NewAttr,
             ) -> Self::Output<NewAttr> {
-                #[cfg(erase_components)]
-                {
-                    use crate::html::attribute::any_attribute::IntoAnyAttribute;
+                use crate::html::attribute::any_attribute::IntoAnyAttribute;
 
-                    #[allow(non_snake_case)]
-                    let ($first, $($ty,)*) = self;
+                #[allow(non_snake_case)]
+                let ($first, $($ty,)*) = self;
 
-                    let mut attrs = Vec::with_capacity(27);
-                    attrs.push($first.into_any_attr());
-                    $(attrs.push($ty.into_any_attr());)*
-                    attrs.push(new_attr.into_any_attr());
-                    attrs
-                }
-                #[cfg(not(erase_components))]
-                {
-                    let _ = new_attr;
-                todo!("adding more than 26 attributes is not supported");
-                //($first, $($ty,)*)
-                }
+                let mut attrs = Vec::with_capacity(27);
+                attrs.push($first.into_any_attr());
+                $(attrs.push($ty.into_any_attr());)*
+                attrs.push(new_attr.into_any_attr());
+                attrs
             }
         }
     };

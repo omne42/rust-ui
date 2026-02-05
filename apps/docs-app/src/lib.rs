@@ -3,46 +3,24 @@ pub mod pages;
 pub mod playground;
 pub mod route;
 
+mod command_menu;
+
 use leptos::prelude::*;
-use ui_components::{Button, OnPress, Theme, UiRoot, provide_focus_visible, provide_overlay_stack};
+use ui_components::{
+    Theme, ThemeMode, ThemeToggleButton, UiRoot, provide_focus_visible, provide_overlay_stack,
+};
 
 #[component]
 pub fn App() -> impl IntoView {
     provide_focus_visible();
     provide_overlay_stack();
 
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    enum DocsTheme {
-        Light,
-        Dark,
-        Oled,
-    }
-
-    impl DocsTheme {
-        fn next(self) -> Self {
-            match self {
-                Self::Light => Self::Dark,
-                Self::Dark => Self::Oled,
-                Self::Oled => Self::Light,
-            }
-        }
-
-        fn label(self) -> &'static str {
-            match self {
-                Self::Light => "Light",
-                Self::Dark => "Dark",
-                Self::Oled => "OLED",
-            }
-        }
-    }
-
-    let (docs_theme, set_docs_theme) = signal(DocsTheme::Light);
-    let theme = Signal::derive(move || match docs_theme.get() {
-        DocsTheme::Light => Theme::light(),
-        DocsTheme::Dark => Theme::dark(),
-        DocsTheme::Oled => Theme::oled(),
+    let (theme_mode, set_theme_mode) = signal(ThemeMode::Light);
+    let theme = Signal::derive(move || match theme_mode.get() {
+        ThemeMode::Light => Theme::light(),
+        ThemeMode::Dark => Theme::dark(),
+        ThemeMode::Oled => Theme::oled(),
     });
-    let toggle_theme: OnPress = Callback::new(move |_| set_docs_theme.update(|t| *t = t.next()));
 
     let (route, set_route) = route::use_hash_route();
 
@@ -58,12 +36,8 @@ pub fn App() -> impl IntoView {
                     </div>
 
                     <div class="docs-header__actions">
-                        <Button on_press=toggle_theme>
-                            {move || {
-                                let current = docs_theme.get();
-                                format!("Theme: {} → {}", current.label(), current.next().label())
-                            }}
-                        </Button>
+                        <command_menu::DocsCommandMenu navigate=set_route />
+                        <ThemeToggleButton mode=theme_mode set_mode=set_theme_mode />
                     </div>
                 </header>
 

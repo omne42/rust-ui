@@ -51,7 +51,7 @@ fn set_hash_route(_route: &str) {}
 ///
 /// - `route`: the current logical route, without `#/`.
 /// - `navigate`: sets the route and updates the URL hash.
-pub fn use_hash_route() -> (ReadSignal<String>, Callback<&'static str>) {
+pub fn use_hash_route() -> (ReadSignal<String>, Callback<String>) {
     let (route, set_route) = signal(read_hash_route());
 
     #[cfg(target_arch = "wasm32")]
@@ -61,7 +61,9 @@ pub fn use_hash_route() -> (ReadSignal<String>, Callback<&'static str>) {
         let Some(window) = web_sys::window() else {
             return (
                 route,
-                Callback::new(move |next| set_route.set(normalize_route(next))),
+                Callback::new(move |next: String| {
+                    set_route.set(normalize_route(&next));
+                }),
             );
         };
 
@@ -75,8 +77,8 @@ pub fn use_hash_route() -> (ReadSignal<String>, Callback<&'static str>) {
         on_cleanup(move || listener.set_value(None));
     }
 
-    let navigate = Callback::new(move |next: &'static str| {
-        let next = normalize_route(next);
+    let navigate = Callback::new(move |next: String| {
+        let next = normalize_route(&next);
         set_route.set(next.clone());
         set_hash_route(&next);
     });

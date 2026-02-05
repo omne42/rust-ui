@@ -118,6 +118,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Changed
 
 - `apps/docs-app`: rebuilds the docs site into a hash-routed component catalog (search + per-component playground pages) and adds a regression test that enforces 100% `ui-components` component coverage.
+- `apps/docs-app`: add a Cmd/Ctrl+K command menu (SearchInputButton trigger + Dialog results), and switch the header theme toggle to `<ThemeToggleButton>`.
+- `apps/docs-app`: add a regression test enforcing that every component doc page contains at least one `<Playground>` section.
 - `ui-components`: `<Accordion>` now emits Spectrum-style trigger state attributes (`data-open`, `data-focus-visible`, etc.) and adds a semantics regression test.
 - `ui-components`: `SlidingNumber` now animates per-digit transitions via spring-driven CSS variables (animate-ui-style).
 - `ui-components`: `CodeBlock` now provides spring-driven copy feedback via CSS variables (`--ui-code-block-copy-flash`).
@@ -159,7 +161,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: overlay trigger buttons now set `aria-controls` only when open (aligns with React Spectrum `useOverlayTrigger`), enabled via `Button`/`ActionButton` `aria_controls_signal`.
 - `ui-components`: `<Overlay>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
 - `ui-components`: `MenuTrigger` now supports `aria_label` and emits Spectrum-style root `data-*` state attributes, and adds a semantics regression test.
-- WASM CSR builds no longer abort when attribute spreading adds a 27th HTML attribute under `erase_components` (patched `tachys` and added a regression test).
+- WASM CSR builds no longer abort when attribute spreading adds a 27th HTML attribute (patched `tachys` and added a regression test).
 - `ui-components`: `<Popover>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
 - `ui-components`: `<Sheet>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
 - `ui-components`: `<ToastViewport>` now marks its portaled viewport as an overlay portal (`data-ui-overlay-portal`) so modal `aria-hidden` logic doesn't hide toasts.
