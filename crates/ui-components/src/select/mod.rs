@@ -1,4 +1,4 @@
-pub mod logic;
+mod logic;
 pub mod styles;
 mod view;
 
