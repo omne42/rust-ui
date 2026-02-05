@@ -88,6 +88,9 @@ fn hovering_panel_cancels_pending_close() {
 fn focus_keeps_hover_card_open() {
     let _owner = reset_owner();
 
+    let focus_visible = crate::provide_focus_visible();
+    focus_visible.set_modality(crate::Modality::Keyboard);
+
     let hover_card = use_hover_card_trigger(HoverCardTriggerOptions {
         open_delay_ms: 0,
         close_delay_ms: 60,
@@ -103,6 +106,23 @@ fn focus_keeps_hover_card_open() {
     assert!(hover_card.state.is_open.get_untracked());
 
     test_timers::advance_by(60);
+    any_spawner::Executor::poll_local();
+    assert!(!hover_card.state.is_open.get_untracked());
+}
+
+#[test]
+fn focus_does_not_open_when_focus_is_not_visible() {
+    let _owner = reset_owner();
+
+    let _focus_visible = crate::provide_focus_visible();
+
+    let hover_card = use_hover_card_trigger(HoverCardTriggerOptions {
+        open_delay_ms: 0,
+        close_delay_ms: 0,
+        ..Default::default()
+    });
+
+    hover_card.handlers.on_trigger_focus_in.run(());
     any_spawner::Executor::poll_local();
     assert!(!hover_card.state.is_open.get_untracked());
 }

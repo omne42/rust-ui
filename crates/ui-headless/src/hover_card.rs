@@ -67,6 +67,12 @@ pub fn use_hover_card_trigger(options: HoverCardTriggerOptions) -> HoverCardTrig
         is_disabled: options.is_disabled,
     });
 
+    let global_focus_visible = crate::use_focus_visible()
+        .map(|state| state.is_focus_visible())
+        .unwrap_or_else(|| signal(false).0);
+    let on_trigger_focus_in = trigger_focus.handlers.on_focus_in;
+    let on_trigger_focus_out = trigger_focus.handlers.on_focus_out;
+
     let (is_open, set_open) = signal(false);
     let (is_dismissed, set_dismissed) = signal(false);
     let timers = HoverCardTimers::new();
@@ -135,8 +141,13 @@ pub fn use_hover_card_trigger(options: HoverCardTriggerOptions) -> HoverCardTrig
         handlers: HoverCardTriggerHandlers {
             on_trigger_pointer_enter: trigger_hover.handlers.on_pointer_enter,
             on_trigger_pointer_leave: trigger_hover.handlers.on_pointer_leave,
-            on_trigger_focus_in: trigger_focus.handlers.on_focus_in,
-            on_trigger_focus_out: trigger_focus.handlers.on_focus_out,
+            on_trigger_focus_in: Callback::new(move |_| {
+                if !global_focus_visible.get_untracked() {
+                    return;
+                }
+                on_trigger_focus_in.run(());
+            }),
+            on_trigger_focus_out,
             on_panel_pointer_enter: panel_hover.handlers.on_pointer_enter,
             on_panel_pointer_leave: panel_hover.handlers.on_pointer_leave,
             on_panel_focus_in: panel_focus.handlers.on_focus_in,
