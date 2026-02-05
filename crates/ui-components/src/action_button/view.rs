@@ -10,6 +10,7 @@ use ui_headless::{
 
 #[component]
 pub fn ActionButton(
+    #[prop(optional, into)] id: Option<String>,
     #[prop(optional)] is_loading: bool,
     #[prop(optional)] disabled: Option<bool>,
     #[prop(optional)] size: Option<ActionButtonSize>,
@@ -92,6 +93,7 @@ pub fn ActionButton(
 
     view! {
         <button
+            id=id
             type=button_type
             node_ref=node_ref
             class=class
