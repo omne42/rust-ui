@@ -123,6 +123,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `SearchField` now clears on Escape (when non-empty), excludes its clear button from the tab order, and adds spring-driven clear-button motion.
 - `ui-components`: `Input` now clears on Escape when clearable, excludes its clear button from the tab order, and adds spring-driven clear-button reveal motion via CSS variables.
 - `ui-components`: `TextField` now supports `read_only` via the native `readonly` attribute.
+- `ui-components`: `TextArea` now supports `read_only` via the native `readonly` attribute.
 - `ui-headless`: callback/handler types now use Leptos `Callback` (Send+Sync) to support rendering inside `Portal`.
 - `ui-headless`: `use_listbox` now supports `default_index` and optional `sync_active_index_to_selected` to enable Select focus strategies without mutating selection.
 - `ui-headless`: roving tabindex now clamps disabled indices to the nearest enabled option (preferring previous when possible).
