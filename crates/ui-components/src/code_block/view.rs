@@ -1,6 +1,6 @@
-use crate::code_block::{CodeBlockMotion, logic};
+use crate::code_block::{CodeBlockMotion, logic, motion};
 use crate::{Button, ButtonSize, ButtonVariant};
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 fn copy_icon(copied: bool) -> impl IntoView {
     if copied {
@@ -49,8 +49,6 @@ pub fn CodeBlock(
     #[prop(optional)] motion: CodeBlockMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let _ = motion;
-
     let label = label.filter(|value| !value.trim().is_empty());
     let language = language.filter(|value| !value.trim().is_empty());
 
@@ -70,8 +68,17 @@ pub fn CodeBlock(
     let copy_logic = crate::snippet::logic::use_snippet_logic(code_value.get_value());
     let copied_label = StoredValue::new("Copied".to_string());
 
+    let root_ref: NodeRef<html::Div> = NodeRef::new();
+    motion::attach_motion(root_ref, copy_logic.copied.into(), motion);
+
     view! {
-        <div class=class data-slot="code-block" data-multiline=view_state.is_multiline.then_some("true")>
+        <div
+            class=class
+            data-slot="code-block"
+            data-multiline=view_state.is_multiline.then_some("true")
+            data-copyable=copyable.then_some("true")
+            node_ref=root_ref
+        >
             <Show when=move || view_state.show_header>
                 <div class="ui-code-block__header" data-slot="code-block-header">
                     <div class="ui-code-block__meta" data-slot="code-block-meta">

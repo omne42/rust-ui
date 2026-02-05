@@ -7,6 +7,24 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
   box-shadow: var(--ui-shadow-sm);
   overflow: hidden;
+  isolation: isolate;
+
+  --ui-code-block-copy-flash: 0;
+}
+
+.ui-code-block::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: color-mix(in oklch, var(--ui-accent-soft) 70%, var(--ui-bg));
+  opacity: calc(var(--ui-code-block-copy-flash) * 0.18);
+  pointer-events: none;
+}
+
+.ui-code-block > * {
+  position: relative;
+  z-index: 1;
 }
 
 .ui-code-block__header {
