@@ -47,6 +47,8 @@ pub fn PortsDemo() -> impl IntoView {
         "Watermelon".to_string(),
     ];
     let (auto_selected, set_auto_selected) = signal(None::<usize>);
+    let (auto_open, set_auto_open) = signal(false);
+    let on_auto_open_change = Callback::new(move |next: bool| set_auto_open.set(next));
 
     // Form demo
     let (name_value, set_name_value) = signal(String::new());
@@ -128,13 +130,17 @@ pub fn PortsDemo() -> impl IntoView {
                         items=autocomplete_items
                         selected_index=auto_selected
                         set_selected_index=set_auto_selected
+                        open=auto_open.into()
+                        on_open_change=on_auto_open_change
                     />
                     <div class="demo-kv">
                         {move || {
-                            auto_selected
+                            let open = auto_open.get();
+                            let selected = auto_selected
                                 .get()
                                 .map(|idx| format!("selected: {idx}"))
-                                .unwrap_or_else(|| "selected: none".to_string())
+                                .unwrap_or_else(|| "selected: none".to_string());
+                            format!("open: {open}, {selected}")
                         }}
                     </div>
                 </div>
