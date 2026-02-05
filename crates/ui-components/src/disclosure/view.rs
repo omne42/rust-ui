@@ -51,6 +51,10 @@ pub fn Disclosure(
     let indicator_ref: NodeRef<html::Span> = NodeRef::new();
     motion::attach_indicator_motion(indicator_ref, open, motion);
 
+    let panel_ref: NodeRef<html::Div> = NodeRef::new();
+    let panel_hidden = RwSignal::new(!open.get_untracked());
+    motion::attach_panel_motion(panel_ref, open, panel_hidden, motion);
+
     let base_class = "ui-disclosure".to_string();
     let class = class_name
         .filter(|value| !value.trim().is_empty())
@@ -114,12 +118,16 @@ pub fn Disclosure(
             <div
                 id=panel_id
                 class="ui-disclosure__panel"
+                node_ref=panel_ref
                 role="region"
                 aria-labelledby=id_base.clone() + "-trigger"
-                hidden=move || !open.get()
+                hidden=move || panel_hidden.get()
+                data-open=move || if open.get() { Some("true") } else { None }
                 data-slot="disclosure-panel"
             >
-                {children()}
+                <div class="ui-disclosure__panel-surface" data-slot="disclosure-panel-surface">
+                    {children()}
+                </div>
             </div>
         </div>
     }

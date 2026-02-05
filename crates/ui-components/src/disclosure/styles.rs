@@ -58,12 +58,20 @@ pub const CSS: &str = r#"
 }
 
 .ui-disclosure__panel {
+  height: var(--ui-disclosure-panel-height, auto);
+  opacity: var(--ui-disclosure-panel-opacity, 1);
+  transform: translateY(var(--ui-disclosure-panel-y, 0px));
+  overflow: hidden;
+  will-change: height, opacity, transform;
+
   border-radius: var(--ui-radius-md);
   border: 1px solid var(--ui-border);
   background: var(--ui-bg);
   color: var(--ui-fg);
   box-shadow: var(--ui-shadow-sm);
+}
 
+.ui-disclosure__panel-surface {
   padding: var(--ui-space-md);
 }
 "#;
