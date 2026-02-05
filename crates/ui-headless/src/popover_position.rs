@@ -313,7 +313,7 @@ where
         }
     });
 
-    // Recompute on resize/scroll while mounted.
+    // Recompute on resize and scroll (including scroll containers) while mounted.
     if let Some(window) = web_sys::window() {
         let window = SendWrapper::new(window);
 
@@ -328,14 +328,20 @@ where
 
         let _ =
             window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
-        let _ =
-            window.add_event_listener_with_callback("scroll", on_scroll.as_ref().unchecked_ref());
+        let _ = window.add_event_listener_with_callback_and_bool(
+            "scroll",
+            on_scroll.as_ref().unchecked_ref(),
+            true,
+        );
 
         on_cleanup(move || {
             let _ = window
                 .remove_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
-            let _ = window
-                .remove_event_listener_with_callback("scroll", on_scroll.as_ref().unchecked_ref());
+            let _ = window.remove_event_listener_with_callback_and_bool(
+                "scroll",
+                on_scroll.as_ref().unchecked_ref(),
+                true,
+            );
         });
     }
 

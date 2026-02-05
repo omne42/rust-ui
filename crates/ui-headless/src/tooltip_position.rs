@@ -293,17 +293,21 @@ pub fn use_tooltip_position(_options: TooltipPositionOptions) -> TooltipPosition
 
             let _ = window
                 .add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
-            let _ = window
-                .add_event_listener_with_callback("scroll", on_scroll.as_ref().unchecked_ref());
+            let _ = window.add_event_listener_with_callback_and_bool(
+                "scroll",
+                on_scroll.as_ref().unchecked_ref(),
+                true,
+            );
 
             on_cleanup(move || {
                 let _ = window.remove_event_listener_with_callback(
                     "resize",
                     on_resize.as_ref().unchecked_ref(),
                 );
-                let _ = window.remove_event_listener_with_callback(
+                let _ = window.remove_event_listener_with_callback_and_bool(
                     "scroll",
                     on_scroll.as_ref().unchecked_ref(),
+                    true,
                 );
             });
         }

@@ -159,6 +159,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.
 - `ui-headless`: `use_popover_position` now recomputes when the anchor or panel resizes (ResizeObserver), keeping overlays aligned during reflow.
+- `ui-headless`: `use_popover_position` and `use_tooltip_position` now recompute on captured scroll events (including scroll containers), preventing overlay drift in nested scrolling layouts.
 - `ui-headless`: `PopoverPlacement` now includes top placements; `use_popover_position` now resolves/flips placement based on viewport space.
 - `ui-headless`: `use_tooltip_position` now recomputes when the anchor or panel resizes (ResizeObserver), keeping tooltips aligned during reflow.
 - `ui-components`: `Popover` now sets `--ui-popover-anchor-width` and uses it for the default min-width.
