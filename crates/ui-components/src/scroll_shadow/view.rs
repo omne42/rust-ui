@@ -1,5 +1,6 @@
 use crate::scroll_shadow::logic::compute_scroll_shadow_edges;
 use leptos::{ev, html, prelude::*};
+use std::rc::Rc;
 
 #[component]
 pub fn ScrollShadow(
@@ -11,7 +12,7 @@ pub fn ScrollShadow(
     let (shadow_top, set_shadow_top) = signal(false);
     let (shadow_bottom, set_shadow_bottom) = signal(false);
 
-    let update = move || {
+    let update = Rc::new(move || {
         let Some(div) = viewport_ref.get_untracked() else {
             return;
         };
@@ -19,16 +20,77 @@ pub fn ScrollShadow(
         let client_height = div.client_height() as f64;
         let scroll_height = div.scroll_height() as f64;
         let edges = compute_scroll_shadow_edges(scroll_top, client_height, scroll_height);
-        set_shadow_top.set(edges.top);
-        set_shadow_bottom.set(edges.bottom);
-    };
-
-    Effect::new(move |_| {
-        let _ = viewport_ref.get();
-        update();
+        if shadow_top.get_untracked() != edges.top {
+            set_shadow_top.set(edges.top);
+        }
+        if shadow_bottom.get_untracked() != edges.bottom {
+            set_shadow_bottom.set(edges.bottom);
+        }
     });
 
-    let on_scroll = move |_ev: ev::Event| update();
+    #[cfg(target_arch = "wasm32")]
+    let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);
+    #[cfg(target_arch = "wasm32")]
+    let resize_closure = StoredValue::new_local(
+        None::<
+            leptos::wasm_bindgen::closure::Closure<
+                dyn FnMut(js_sys::Array, leptos::web_sys::ResizeObserver),
+            >,
+        >,
+    );
+
+    Effect::new({
+        let update = Rc::clone(&update);
+        move |_| {
+            let _ = viewport_ref.get();
+            update.as_ref()();
+
+            #[cfg(target_arch = "wasm32")]
+            {
+                if resize_observer.get_value().is_some() {
+                    return;
+                }
+
+                use leptos::wasm_bindgen::{JsCast, closure::Closure};
+
+                let Some(div) = viewport_ref.get_untracked() else {
+                    return;
+                };
+                let element: leptos::web_sys::Element = div.unchecked_into();
+
+                let update_for_observer = Rc::clone(&update);
+                let closure = Closure::wrap(Box::new(
+                    move |_: js_sys::Array, _: leptos::web_sys::ResizeObserver| {
+                        update_for_observer.as_ref()();
+                    },
+                )
+                    as Box<dyn FnMut(js_sys::Array, leptos::web_sys::ResizeObserver)>);
+
+                if let Ok(observer) =
+                    leptos::web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref())
+                {
+                    observer.observe(&element);
+                    resize_observer.set_value(Some(observer));
+                    resize_closure.set_value(Some(closure));
+                }
+
+                let resize_observer_for_cleanup = resize_observer;
+                let resize_closure_for_cleanup = resize_closure;
+                on_cleanup(move || {
+                    if let Some(observer) = resize_observer_for_cleanup.get_value() {
+                        observer.disconnect();
+                    }
+                    resize_observer_for_cleanup.set_value(None);
+                    resize_closure_for_cleanup.set_value(None);
+                });
+            }
+        }
+    });
+
+    let on_scroll = {
+        let update = Rc::clone(&update);
+        move |_ev: ev::Event| update.as_ref()()
+    };
 
     let base_class = "ui-scroll-shadow".to_string();
     let class = class_name
