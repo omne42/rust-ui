@@ -180,6 +180,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: removes inline styles from demo markup (keeps layout rules in `app.css`).
 - `ui-components`: refactored `Button` into `logic/styles/motion/view` modules (ARCHITECTURE_ZH-style separation).
 - `ui-components`: `Button` now supports loading state (`is_loading`, `aria-busy`, and loading placement with a built-in spinner).
+- `ui-components`: `FileTrigger` now clears the underlying input value before opening (allowing the same file to be selected twice), forwards trigger motion to the internal `Button`, supports `accept_directory`/`capture`, hides the input from focus, and keeps DOM helpers internal (private `logic` module).
 - `ui-theme`: adds `--ui-accent-fg` token to avoid hard-coded foreground colors in components.
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
 - Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).

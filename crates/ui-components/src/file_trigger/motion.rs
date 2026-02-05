@@ -1,8 +1,6 @@
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct FileTriggerMotion;
+use crate::button::ButtonMotion;
 
-impl Default for FileTriggerMotion {
-    fn default() -> Self {
-        Self
-    }
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+pub struct FileTriggerMotion {
+    pub trigger: ButtonMotion,
 }

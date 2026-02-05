@@ -6,7 +6,9 @@ pub struct FileTriggerFile {
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn collect_files_from_input(input: &leptos::web_sys::HtmlInputElement) -> Vec<FileTriggerFile> {
+pub(crate) fn collect_files_from_input(
+    input: &leptos::web_sys::HtmlInputElement,
+) -> Vec<FileTriggerFile> {
     let Some(files) = input.files() else {
         return Vec::new();
     };
@@ -26,7 +28,7 @@ pub fn collect_files_from_input(input: &leptos::web_sys::HtmlInputElement) -> Ve
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn collect_files_from_input(
+pub(crate) fn collect_files_from_input(
     _input: &leptos::web_sys::HtmlInputElement,
 ) -> Vec<FileTriggerFile> {
     Vec::new()

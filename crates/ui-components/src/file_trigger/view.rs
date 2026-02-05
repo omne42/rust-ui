@@ -4,16 +4,16 @@ use leptos::{ev, html, prelude::*};
 
 #[component]
 pub fn FileTrigger(
-    id: String,
+    #[prop(optional, into)] id: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] multiple: bool,
     #[prop(optional, into)] accept: Option<String>,
+    #[prop(optional)] accept_directory: bool,
+    #[prop(optional, into)] capture: Option<String>,
     #[prop(optional)] motion: FileTriggerMotion,
     #[prop(optional)] on_files: Option<Callback<Vec<FileTriggerFile>>>,
     children: Children,
 ) -> impl IntoView {
-    let _ = motion;
-
     let input_ref: NodeRef<html::Input> = NodeRef::new();
     let on_files = StoredValue::new(on_files);
 
@@ -21,6 +21,9 @@ pub fn FileTrigger(
         if !disabled {
             #[cfg(target_arch = "wasm32")]
             if let Some(input) = input_ref.get_untracked() {
+                if !input.value().is_empty() {
+                    input.set_value("");
+                }
                 input.click();
             }
         }
@@ -33,11 +36,47 @@ pub fn FileTrigger(
         let Some(input) = input_ref.get_untracked() else {
             return;
         };
-        let files = crate::file_trigger::logic::collect_files_from_input(&input);
+        let files = super::logic::collect_files_from_input(&input);
         if let Some(cb) = on_files.get_value() {
             cb.run(files);
         }
     };
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        use leptos::wasm_bindgen::JsCast;
+
+        let input_ref = input_ref.clone();
+        let capture = capture.clone();
+
+        Effect::new(move |_| {
+            let Some(input) = input_ref.get() else {
+                return;
+            };
+            let input: leptos::web_sys::HtmlInputElement = input.unchecked_into();
+
+            if accept_directory {
+                let _ = input.set_attribute("webkitdirectory", "");
+            } else {
+                let _ = input.remove_attribute("webkitdirectory");
+            }
+
+            match capture.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
+                Some(value) => {
+                    let _ = input.set_attribute("capture", value);
+                }
+                None => {
+                    let _ = input.remove_attribute("capture");
+                }
+            }
+        });
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let _ = accept_directory;
+        let _ = capture;
+    }
 
     view! {
         <span class="ui-file-trigger" data-slot="file-trigger">
@@ -50,9 +89,11 @@ pub fn FileTrigger(
                 accept=accept
                 multiple=multiple
                 disabled=disabled
+                tabindex="-1"
+                aria-hidden="true"
                 on:change=on_change
             />
-            <Button disabled=disabled on_press=on_press>
+            <Button disabled=disabled motion=motion.trigger on_press=on_press>
                 {children()}
             </Button>
         </span>
