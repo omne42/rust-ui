@@ -101,6 +101,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds new components: `Accordion`, `Disclosure`, `Pagination`, `TagGroup`, `ToggleButton`, and `ToggleButtonGroup`.
 - `apps/web-demo`: adds demo sections for Pagination/TagGroup and Disclosure/Accordion; Button demo now includes ToggleButtonGroup.
 - `ui-components`: adds new components: `InputOtp`, `NumberField`, `ScrollShadow`, `SegmentedControl`, `Sheet`, and `Meter`.
+- `ui-headless`: adds `use_input_otp` (digits-only normalization, caret tracking, and `on_complete`).
+- `ui-components`: `<InputOtp>` now renders a single hidden input with HeroUI-style slot chrome/caret and integrates Spectrum-style field semantics (required/invalid/description/error).
 - `apps/web-demo`: adds a demo section for the new components (inputs + overlays).
 - `ui-components`: adds new components: `Image`, `IllustratedMessage`, `FileTrigger`, `DropZone`, `HoverCard`, and `Toast`.
 - `apps/web-demo`: adds an extras demo section (hover card + toasts + file picking + drag/drop + image + illustrated message).

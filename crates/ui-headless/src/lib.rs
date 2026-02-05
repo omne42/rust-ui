@@ -12,6 +12,7 @@ pub mod focus_visible;
 pub mod focus_within;
 pub mod hover;
 pub mod hover_card;
+pub mod input_otp;
 pub mod listbox;
 pub mod menu;
 pub mod menu_item;
@@ -47,6 +48,7 @@ pub use hover_card::{
     HoverCardTriggerAria, HoverCardTriggerHandlers, HoverCardTriggerOptions, HoverCardTriggerState,
     use_hover_card_trigger,
 };
+pub use input_otp::{InputOtpAria, InputOtpHandlers, InputOtpOptions, use_input_otp};
 pub use listbox::{ListBoxAria, ListBoxAttrs, ListBoxHandlers, ListBoxOptions, use_listbox};
 pub use menu::{MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOptions, use_menu};
 pub use menu_item::{

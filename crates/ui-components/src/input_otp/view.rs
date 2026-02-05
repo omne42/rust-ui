@@ -1,21 +1,46 @@
-use crate::input_otp::logic::{apply_otp_backspace, apply_otp_input, normalize_otp_value};
 use leptos::{ev, html, prelude::*};
-use std::sync::Arc;
+use ui_headless::{
+    FocusRingOptions, InputOtpOptions, TextFieldOptions, use_focus_ring, use_input_otp,
+    use_text_field,
+};
 
 #[cfg(target_arch = "wasm32")]
-fn focus_cell(cell_refs: &Arc<Vec<NodeRef<html::Input>>>, index: usize) {
-    let Some(node_ref) = cell_refs.get(index) else {
-        return;
-    };
-    let Some(el) = node_ref.get_untracked() else {
+fn focus_input(input_ref: &NodeRef<html::Input>) {
+    let Some(el) = input_ref.get_untracked() else {
         return;
     };
     let _ = el.focus();
-    let _ = el.select();
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn focus_cell(_cell_refs: &Arc<Vec<NodeRef<html::Input>>>, _index: usize) {}
+fn focus_input(_input_ref: &NodeRef<html::Input>) {}
+
+#[cfg(target_arch = "wasm32")]
+fn set_selection_range(input_ref: &NodeRef<html::Input>, start: usize, end: usize) {
+    let Some(el) = input_ref.get_untracked() else {
+        return;
+    };
+    let start = start.min(u32::MAX as usize) as u32;
+    let end = end.min(u32::MAX as usize) as u32;
+    let _ = el.set_selection_range(start, end);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn set_selection_range(_input_ref: &NodeRef<html::Input>, _start: usize, _end: usize) {}
+
+#[cfg(target_arch = "wasm32")]
+fn selection_start(input_ref: &NodeRef<html::Input>) -> Option<usize> {
+    let el = input_ref.get_untracked()?;
+    el.selection_start()
+        .ok()
+        .flatten()
+        .and_then(|value| usize::try_from(value).ok())
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn selection_start(_input_ref: &NodeRef<html::Input>) -> Option<usize> {
+    None
+}
 
 #[component]
 pub fn InputOtp(
@@ -25,21 +50,42 @@ pub fn InputOtp(
     #[prop(optional)] length: usize,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] on_change: Option<Callback<String>>,
+    #[prop(optional)] on_complete: Option<Callback<String>>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] required: Signal<bool>,
+    #[prop(optional, into)] invalid: Signal<bool>,
+    #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
+    #[prop(optional, into)] description: Option<String>,
+    #[prop(optional, into)] error: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
     let length = length.clamp(1, 12);
     let on_change = StoredValue::new(on_change);
 
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .or_else(|| label.clone())
-        .unwrap_or_else(|| "One-time code".to_string());
+    let label = label.filter(|value| !value.trim().is_empty());
+    let aria_label = aria_label.filter(|value| !value.trim().is_empty());
+    let aria_label = aria_label.or_else(|| label.is_none().then_some("One-time code".to_string()));
+    let aria_label = StoredValue::new(aria_label);
 
-    let label_id = label.as_ref().map(|_| format!("{id_base}-label"));
-    let label_id = StoredValue::new(label_id);
     let label = StoredValue::new(label);
+    let description = StoredValue::new(description);
+    let error = StoredValue::new(error);
+
+    let focus_ring = use_focus_ring(FocusRingOptions {
+        is_disabled: disabled,
+    });
+
+    let input_id = format!("{id_base}-input");
+    let aria = use_text_field(TextFieldOptions {
+        id: input_id,
+        has_description: description.get_value().is_some(),
+        has_error: error.get_value().is_some(),
+        aria_describedby,
+        is_invalid: invalid,
+        is_required: required,
+    });
 
     let base_class = if disabled {
         "ui-input-otp ui-input-otp--disabled".to_string()
@@ -51,11 +97,6 @@ pub fn InputOtp(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let cell_refs: Arc<Vec<NodeRef<html::Input>>> =
-        Arc::new((0..length).map(|_| NodeRef::new()).collect());
-
-    let normalized = Signal::derive(move || normalize_otp_value(&value.get(), length));
-
     let set_and_notify = move |next: String| {
         set_value.set(next.clone());
         if let Some(on_change) = on_change.get_value() {
@@ -63,83 +104,121 @@ pub fn InputOtp(
         }
     };
 
-    let cells = (0..length)
+    let otp = use_input_otp(InputOtpOptions {
+        is_disabled: disabled,
+        length,
+        value: value.into(),
+        on_value_change: Callback::new(set_and_notify),
+        on_complete,
+    });
+
+    let input_value = otp.input_value;
+    let is_focused = otp.is_focused;
+    let active_slot = otp.active_slot;
+    let on_focus_hook = otp.handlers.on_focus;
+    let on_blur_hook = otp.handlers.on_blur;
+    let on_input_hook = otp.handlers.on_input;
+    let on_caret_change = otp.handlers.on_caret_change;
+
+    let sync_caret: Callback<()> = Callback::new(move |_| {
+        let caret = selection_start(&node_ref)
+            .unwrap_or_else(|| input_value.get_untracked().chars().count());
+        on_caret_change.run(caret);
+    });
+
+    let on_input = move |ev| {
+        on_input_hook.run(event_target_value(&ev));
+        sync_caret.run(());
+    };
+
+    let on_focus = move |_| {
+        focus_ring.handlers.on_focus.run(());
+        on_focus_hook.run(());
+
+        let caret = input_value.get_untracked().chars().count();
+        set_selection_range(&node_ref, caret, caret);
+        sync_caret.run(());
+    };
+
+    let on_blur = move |_| {
+        focus_ring.handlers.on_blur.run(());
+        on_blur_hook.run(());
+    };
+
+    let on_control_pointer_down = move |ev: ev::PointerEvent| {
+        if disabled {
+            return;
+        }
+        ev.prevent_default();
+        focus_input(&node_ref);
+        let caret = input_value.get_untracked().chars().count();
+        set_selection_range(&node_ref, caret, caret);
+        on_caret_change.run(caret);
+    };
+
+    let slots = (0..length)
         .map(|index| {
-            let node_ref = cell_refs[index];
-            let digit = Signal::derive(move || {
-                normalized
+            let on_slot_pointer_down = move |ev: ev::PointerEvent| {
+                if disabled {
+                    return;
+                }
+                ev.prevent_default();
+                ev.stop_propagation();
+
+                let current_len = input_value.get_untracked().chars().count();
+                let caret = index.min(current_len);
+                let end = if caret < current_len {
+                    (caret + 1).min(current_len)
+                } else {
+                    caret
+                };
+
+                focus_input(&node_ref);
+                set_selection_range(&node_ref, caret, end);
+                on_caret_change.run(caret);
+            };
+
+            let slot_value = move || {
+                input_value
                     .get()
                     .chars()
                     .nth(index)
                     .map(|c| c.to_string())
                     .unwrap_or_default()
-            });
-
-            let on_input = {
-                let cell_refs = cell_refs.clone();
-                move |ev: ev::Event| {
-                    if disabled {
-                        return;
-                    }
-                    let raw = event_target_value(&ev);
-                    let current = normalized.get_untracked();
-                    let (next, next_focus) = apply_otp_input(&current, index, &raw, length);
-                    set_and_notify(next);
-                    if let Some(next_focus) = next_focus {
-                        focus_cell(&cell_refs, next_focus);
-                    }
-                }
             };
 
-            let on_key_down = {
-                let cell_refs = cell_refs.clone();
-                move |ev: ev::KeyboardEvent| {
-                    if disabled {
-                        return;
-                    }
-                    let key = ev.key();
-                    match key.as_str() {
-                        "Backspace" => {
-                            ev.prevent_default();
-                            let current = normalized.get_untracked();
-                            let (next, focus_index) = apply_otp_backspace(&current, index, length);
-                            set_and_notify(next);
-                            focus_cell(&cell_refs, focus_index);
-                        }
-                        "ArrowLeft" => {
-                            ev.prevent_default();
-                            if index > 0 {
-                                focus_cell(&cell_refs, index - 1);
-                            }
-                        }
-                        "ArrowRight" => {
-                            ev.prevent_default();
-                            if index + 1 < length {
-                                focus_cell(&cell_refs, index + 1);
-                            }
-                        }
-                        _ => {}
-                    }
-                }
+            let slot_is_filled = move || {
+                input_value
+                    .get()
+                    .chars()
+                    .nth(index)
+                    .is_some()
+                    .then_some("true")
             };
 
-            let aria_cell_label = format!("Digit {} of {}", index + 1, length);
+            let slot_is_active =
+                move || (is_focused.get() && active_slot.get() == index).then_some("true");
+
+            let show_caret = move || is_focused.get() && !disabled && active_slot.get() == index;
 
             view! {
-                <input
-                    class="ui-input-otp__cell"
-                    node_ref=node_ref
-                    id=format!("{id_base}-cell-{index}")
-                    type="text"
-                    inputmode="numeric"
-                    autocomplete="one-time-code"
-                    pattern="[0-9]*"
-                    aria-label=aria_cell_label
-                    disabled=disabled
-                    prop:value=move || digit.get()
-                    on:input=on_input
-                    on:keydown=on_key_down
-                />
+                <div
+                    class="ui-input-otp__slot"
+                    data-slot="input-otp-slot"
+                    data-active=slot_is_active
+                    data-filled=slot_is_filled
+                    data-disabled=disabled.then_some("true")
+                    data-invalid=move || invalid.get().then_some("true")
+                    aria-hidden="true"
+                    on:pointerdown=on_slot_pointer_down
+                >
+                    <div class="ui-input-otp__slot-value" data-slot="input-otp-slot-value">
+                        {slot_value}
+                    </div>
+                    <Show when=show_caret>
+                        <div class="ui-input-otp__caret" data-slot="input-otp-caret"></div>
+                    </Show>
+                </div>
             }
         })
         .collect_view();
@@ -147,27 +226,84 @@ pub fn InputOtp(
     view! {
         <div
             class=class
-            role="group"
-            aria-label=aria_label
-            aria-labelledby=label_id.get_value()
+            class:ui-input-otp--focus-visible=move || focus_ring.is_focus_visible.get()
+            class:ui-input-otp--invalid=move || invalid.get()
             data-slot="input-otp"
         >
-            {label.get_value().map(|label| {
-                let label_id = label_id.get_value();
+            <Show when=move || label.get_value().is_some()>
+                <label
+                    class="ui-input-otp__label"
+                    for=aria.label.for_attr.clone()
+                    data-slot="input-otp-label"
+                >
+                    {move || label.get_value().unwrap_or_default()}
+                </label>
+            </Show>
+
+            <div
+                class="ui-input-otp__control"
+                data-slot="input-otp-control"
+                on:pointerdown=on_control_pointer_down
+            >
+                <input
+                    class="ui-input-otp__input"
+                    data-slot="input-otp-input"
+                    node_ref=node_ref
+                    id=aria.input.id.clone()
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                    pattern="[0-9]*"
+                    maxlength=length
+                    prop:value=move || input_value.get()
+                    disabled=disabled
+                    required=move || required.get()
+                    aria-label=move || aria_label.get_value()
+                    aria-describedby=move || aria.input.aria_describedby.get()
+                    aria-invalid=move || aria.input.aria_invalid.get()
+                    aria-required=move || aria.input.aria_required.get()
+                    on:focus=on_focus
+                    on:blur=on_blur
+                    on:input=on_input
+                    on:keyup=move |_| sync_caret.run(())
+                    on:click=move |_| sync_caret.run(())
+                    on:select=move |_| sync_caret.run(())
+                />
+
+                <div class="ui-input-otp__group" data-slot="input-otp-group" aria-hidden="true">
+                    {slots}
+                </div>
+            </div>
+
+            {description.get_value().map(|description| {
+                let description_id = aria.description.id.clone();
                 view! {
                     <div
-                        class="ui-input-otp__label"
-                        id=label_id
-                        data-slot="input-otp-label"
+                        class="ui-input-otp__description"
+                        id=description_id
+                        data-slot="input-otp-description"
                     >
-                        {label}
+                        {description}
                     </div>
                 }
             })}
 
-            <div class="ui-input-otp__group" data-slot="input-otp-group">
-                {cells}
-            </div>
+            {error.get_value().map(|error| {
+                let error_id = aria.error.id.clone();
+                let error_id = StoredValue::new(error_id);
+                let error = StoredValue::new(error);
+                view! {
+                    <Show when=move || invalid.get()>
+                        <div
+                            class="ui-input-otp__error"
+                            id=move || error_id.get_value()
+                            data-slot="input-otp-error"
+                        >
+                            {move || error.get_value()}
+                        </div>
+                    </Show>
+                }
+            })}
         </div>
     }
 }
