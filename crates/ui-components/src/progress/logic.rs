@@ -20,11 +20,14 @@ impl ProgressRange {
 }
 
 pub fn clamp_to_range(value: f64, range: ProgressRange) -> f64 {
+    if !value.is_finite() {
+        return range.min;
+    }
     value.clamp(range.min, range.max)
 }
 
 pub fn normalize_progress(value: f64, range: ProgressRange) -> f64 {
-    (value - range.min) / range.span()
+    ((value - range.min) / range.span()).clamp(0.0, 1.0)
 }
 
 #[cfg(test)]
@@ -49,5 +52,13 @@ mod tests {
         let value = clamp_to_range(25.0, range);
         assert_eq!(value, 25.0);
         assert!((normalize_progress(value, range) - 0.25).abs() < 1e-9);
+    }
+
+    #[test]
+    fn clamp_treats_non_finite_as_min() {
+        let range = ProgressRange::sanitized(10.0, 20.0);
+        assert_eq!(clamp_to_range(f64::NAN, range), 10.0);
+        assert_eq!(clamp_to_range(f64::INFINITY, range), 10.0);
+        assert_eq!(clamp_to_range(f64::NEG_INFINITY, range), 10.0);
     }
 }

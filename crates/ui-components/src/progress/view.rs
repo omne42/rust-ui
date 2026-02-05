@@ -8,6 +8,7 @@ pub fn Progress(
     #[prop(optional, default = 0.0)] min: f64,
     #[prop(optional, default = 100.0)] max: f64,
     #[prop(optional)] indeterminate: bool,
+    #[prop(optional, into)] value_label: Option<String>,
     #[prop(optional)] motion: ProgressMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -32,6 +33,21 @@ pub fn Progress(
     let indicator_ref = NodeRef::new();
     motion::attach_motion(indicator_ref, progress_value, motion);
 
+    let value_label_override = StoredValue::new(value_label);
+    let value_label_text = Signal::derive(move || {
+        if is_indeterminate.get() {
+            return None;
+        }
+        if let Some(value_label) = value_label_override
+            .get_value()
+            .filter(|value_label| !value_label.trim().is_empty())
+        {
+            return Some(value_label);
+        }
+        let progress = normalized_progress.get()?;
+        Some(format!("{:.0}%", progress * 100.0))
+    });
+
     let base_class = "ui-progress".to_string();
     let class = class_name
         .filter(|value| !value.trim().is_empty())
@@ -51,6 +67,7 @@ pub fn Progress(
             aria-valuemin=range.min.to_string()
             aria-valuemax=range.max.to_string()
             aria-valuenow=move || if is_indeterminate.get() { None } else { aria_value_now.get() }
+            aria-valuetext=move || value_label_text.get()
         >
             <div class="ui-progress__track" data-slot="progress-track">
                 <div
