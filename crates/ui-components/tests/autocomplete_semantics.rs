@@ -24,3 +24,43 @@ fn autocomplete_escape_stops_propagation_when_open() {
         "Autocomplete should only stop propagation when it was open (so Escape still closes parent overlays when closed)."
     );
 }
+
+#[test]
+fn autocomplete_panel_is_portaled_and_uses_popover_positioning() {
+    let source = load_source("src/autocomplete/view.rs");
+
+    assert!(
+        source.contains("<Portal>"),
+        "Autocomplete panel should render in a Portal to avoid overflow clipping (Spectrum parity)."
+    );
+    assert!(
+        source.contains("use_popover_position"),
+        "Autocomplete panel should use headless popover positioning (flip/clamp) rather than absolute offsets."
+    );
+    assert!(
+        source.contains("data-ui-overlay-portal"),
+        "Autocomplete panel portal root should be marked as an overlay portal so modal aria-hidden logic doesn't hide it."
+    );
+    assert!(
+        source.contains("--ui-popover-top"),
+        "Autocomplete panel should set `--ui-popover-top/left/anchor-width` CSS vars for positioning."
+    );
+}
+
+#[test]
+fn autocomplete_panel_styles_use_fixed_positioning_and_transform_origin_by_placement() {
+    let source = load_source("src/autocomplete/styles.rs");
+
+    assert!(
+        source.contains("position: fixed;"),
+        "Autocomplete panel should use fixed positioning when portaled."
+    );
+    assert!(
+        source.contains("var(--ui-popover-top"),
+        "Autocomplete panel should consume `--ui-popover-top` for viewport positioning."
+    );
+    assert!(
+        source.contains("data-placement=\"bottom-start\""),
+        "Autocomplete panel styles should set transform origin based on `data-placement`."
+    );
+}

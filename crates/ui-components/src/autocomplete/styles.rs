@@ -61,11 +61,12 @@ pub const CSS: &str = r#"
 }
 
 .ui-autocomplete__panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  width: 100%;
-  z-index: 100;
+  position: fixed;
+  top: var(--ui-popover-top, 0px);
+  left: var(--ui-popover-left, 0px);
+  width: var(--ui-popover-anchor-width, 240px);
+  max-width: calc(100vw - 16px);
+  z-index: 1000;
 
   padding: 0;
   background: var(--ui-bg);
@@ -80,8 +81,23 @@ pub const CSS: &str = r#"
 
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));
-  transform-origin: top left;
   will-change: transform, opacity;
+}
+
+.ui-autocomplete__panel[data-placement="bottom-start"] {
+  transform-origin: top left;
+}
+
+.ui-autocomplete__panel[data-placement="bottom-end"] {
+  transform-origin: top right;
+}
+
+.ui-autocomplete__panel[data-placement="top-start"] {
+  transform-origin: bottom left;
+}
+
+.ui-autocomplete__panel[data-placement="top-end"] {
+  transform-origin: bottom right;
 }
 
 .ui-autocomplete__listbox {

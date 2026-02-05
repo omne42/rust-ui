@@ -132,6 +132,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `ComboBox` popup panel now renders in a Portal and is positioned via `use_popover_position` (flip/clamp), keeping the menu aligned to the field control and avoiding overflow clipping.
 - `ui-components`: `ComboBox` now supports `open/default_open/on_open_change`, labels its listbox via `aria-labelledby` (label `id`), and adds `ComboBoxMotion` (popover + highlight).
 - `ui-components`: `ComboBox` now stops Escape propagation while open, preventing parent overlays from closing (React Spectrum parity), and adds a semantics regression test.
+- `ui-components`: `Autocomplete` popup panel now renders in a Portal and is positioned via `use_popover_position` (flip/clamp), keeping the menu aligned to the field control and avoiding overflow clipping.
 - `ui-components`: `Autocomplete` now supports `open/default_open/on_open_change` and labels its listbox via `aria-labelledby` (label `id`).
 - `ui-components`: `Autocomplete` now stops Escape propagation while open, preventing parent overlays from closing (React Spectrum parity), and adds a semantics regression test.
 - `ui-components`: `Disclosure` now supports `open/default_open/on_open_change`.
