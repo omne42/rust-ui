@@ -8,6 +8,7 @@ pub fn TextField(
     value: ReadSignal<String>,
     set_value: WriteSignal<String>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] read_only: bool,
     #[prop(optional, into)] required: Signal<bool>,
     #[prop(optional, into)] invalid: Signal<bool>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
@@ -64,6 +65,7 @@ pub fn TextField(
                 placeholder=placeholder
                 prop:value=move || value.get()
                 disabled=disabled
+                readonly=read_only
                 required=move || required.get()
                 aria-describedby=move || aria.input.aria_describedby.get()
                 aria-invalid=move || aria.input.aria_invalid.get()
