@@ -1,6 +1,8 @@
-use crate::inline_alert::{InlineAlertFill, InlineAlertMotion, InlineAlertTone, logic};
+use crate::inline_alert::{
+    InlineAlertFill, InlineAlertMotion, InlineAlertTone, logic, motion as inline_alert_motion,
+};
 use leptos::children::ViewFn;
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn InlineAlert(
@@ -16,10 +18,11 @@ pub fn InlineAlert(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let _ = motion;
-
     let state =
         logic::resolve_view_state(tone, title.as_deref(), description.as_deref(), hide_icon);
+
+    let node_ref: NodeRef<html::Section> = NodeRef::new();
+    inline_alert_motion::attach_motion(node_ref, motion);
 
     let base_class = format!(
         "ui-inline-alert {} {}",
@@ -45,6 +48,7 @@ pub fn InlineAlert(
     view! {
         <section
             class=class
+            node_ref=node_ref
             data-slot="inline-alert"
             role=tone.role()
             aria-live=tone.aria_live()

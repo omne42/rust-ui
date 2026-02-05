@@ -10,6 +10,11 @@ pub const CSS: &str = r#"
   background: var(--ui-bg-muted);
   color: var(--ui-fg);
   box-shadow: var(--ui-shadow-sm);
+
+  opacity: var(--ui-inline-alert-opacity, 1);
+  transform: translateY(var(--ui-inline-alert-translate-y, 0px))
+    scale(var(--ui-inline-alert-scale, 1));
+  will-change: transform, opacity;
 }
 
 .ui-inline-alert__icon {
