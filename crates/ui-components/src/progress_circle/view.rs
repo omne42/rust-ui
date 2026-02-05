@@ -8,6 +8,7 @@ pub fn ProgressCircle(
     #[prop(optional, default = 0.0)] min: f64,
     #[prop(optional, default = 100.0)] max: f64,
     #[prop(optional)] indeterminate: bool,
+    #[prop(optional, into)] value_label: Option<String>,
     #[prop(optional)] size_px: Option<f64>,
     #[prop(optional)] stroke_width_px: Option<f64>,
     #[prop(optional)] motion: ProgressCircleMotion,
@@ -60,6 +61,21 @@ pub fn ProgressCircle(
 
     let svg_class = "ui-progress-circle__svg".to_string();
 
+    let value_label_override = StoredValue::new(value_label);
+    let value_label_text = Signal::derive(move || {
+        if is_indeterminate.get() {
+            return None;
+        }
+        if let Some(value_label) = value_label_override
+            .get_value()
+            .filter(|value_label| !value_label.trim().is_empty())
+        {
+            return Some(value_label);
+        }
+        let progress = normalized_progress.get()?;
+        Some(format!("{:.0}%", progress * 100.0))
+    });
+
     view! {
         <span
             class=class
@@ -76,6 +92,7 @@ pub fn ProgressCircle(
                     clamped_value.get().map(|v: f64| v.to_string())
                 }
             }
+            aria-valuetext=move || value_label_text.get()
         >
             <svg
                 class=svg_class
