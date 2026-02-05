@@ -149,6 +149,12 @@ pub fn Input(
             class:ui-input--invalid=move || invalid.get()
             class:ui-input--disabled=disabled
             data-slot="input"
+            data-focused=move || is_focused.get().then_some("true")
+            data-focus-visible=move || is_focus_visible.get().then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-read-only=read_only.then_some("true")
+            data-required=move || required.get().then_some("true")
             data-filled=move || view_state.get().is_filled.then_some("true")
             data-filled-within=move || view_state.get().is_filled_within.then_some("true")
         >

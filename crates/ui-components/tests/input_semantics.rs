@@ -96,3 +96,22 @@ fn input_motion_uses_spring_animator() {
         "Input motion should be spring-driven to match the repo's motion spec."
     );
 }
+
+#[test]
+fn input_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/input/view.rs");
+
+    for attr in [
+        "data-focused",
+        "data-focus-visible",
+        "data-invalid",
+        "data-disabled",
+        "data-read-only",
+        "data-required",
+    ] {
+        assert!(
+            source.contains(attr),
+            "Input should set `{attr}` to support Spectrum-style styling and state inspection."
+        );
+    }
+}
