@@ -17,6 +17,7 @@ pub mod menu;
 pub mod menu_item;
 pub mod modal;
 pub mod modality;
+pub mod number_field;
 pub mod overlay_stack;
 pub mod popover_position;
 pub mod press;
@@ -53,6 +54,10 @@ pub use menu_item::{
 };
 pub use modal::{ModalOptions, use_modal};
 pub use modality::Modality;
+pub use number_field::{
+    NumberFieldAria, NumberFieldHandlers, NumberFieldInputAttrs, NumberFieldOptions,
+    use_number_field,
+};
 pub use overlay_stack::{
     OverlayRegistration, provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration,
 };
