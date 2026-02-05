@@ -125,6 +125,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Autocomplete` now supports `open/default_open/on_open_change` and labels its listbox via `aria-labelledby` (label `id`).
 - `ui-components`: `Disclosure` now supports `open/default_open/on_open_change`.
 - `ui-components`: `Disclosure` panels now animate open/close via spring-driven `height/opacity/y`, deferring `hidden` until motion completes.
+- `ui-components`: `Disclosure` panels now keep their measured height in sync while open (ResizeObserver), preventing clipping when content changes dynamically.
 - `ui-components`: `Accordion` now supports `open_indices/default_open_indices/on_open_change`.
 - `ui-components`: `Accordion` panels now animate open/close via spring-driven `height/opacity/y`, deferring `hidden` until motion completes.
 - `ui-components`: `Accordion` triggers now use headless press semantics (`data-pressed`) and avoid keyboard/click double firing.

@@ -50,6 +50,7 @@ struct PanelMotionDriver {
     height_spring: Option<ui_motion::spring::SpringAnimator>,
     opacity_spring: Option<ui_motion::spring::SpringAnimator>,
     y_spring: Option<ui_motion::spring::SpringAnimator>,
+    last_measured_height_px: Option<f64>,
     last_open: Option<bool>,
 }
 
@@ -73,6 +74,7 @@ impl PanelMotionDriver {
             height_spring: None,
             opacity_spring: None,
             y_spring: None,
+            last_measured_height_px: None,
             last_open: None,
         }
     }
@@ -91,11 +93,13 @@ impl PanelMotionDriver {
 
     fn sync_initial_state(&mut self, open: bool) {
         self.stop();
+        self.last_measured_height_px = None;
         self.last_open = Some(open);
         if open {
             (self.set_hidden.borrow_mut())(false);
 
             let height_px = (self.measure_height_px)().max(0.0);
+            self.last_measured_height_px = Some(height_px);
 
             (self.set_height.borrow_mut())(height_px);
             (self.set_opacity.borrow_mut())(1.0);
@@ -125,6 +129,7 @@ impl PanelMotionDriver {
             self.y_spring = Some(y);
         } else {
             (self.set_hidden.borrow_mut())(true);
+            self.last_measured_height_px = Some(0.0);
             (self.set_height.borrow_mut())(0.0);
             (self.set_opacity.borrow_mut())(0.0);
             (self.set_y.borrow_mut())(self.motion.panel_offset_y_px);
@@ -190,6 +195,7 @@ impl PanelMotionDriver {
         (self.set_hidden.borrow_mut())(false);
 
         let target_height = (self.measure_height_px)().max(0.0);
+        self.last_measured_height_px = Some(target_height);
 
         height.clear_on_rest();
         height.set_target(target_height);
@@ -224,6 +230,28 @@ impl PanelMotionDriver {
             (set_hidden.borrow_mut())(true);
         });
         height.set_target(0.0);
+        self.last_measured_height_px = Some(0.0);
+    }
+
+    fn sync_open_height(&mut self) {
+        if self.last_open != Some(true) {
+            return;
+        }
+
+        let Some(height) = self.height_spring.as_ref() else {
+            return;
+        };
+
+        let measured_height = (self.measure_height_px)().max(0.0);
+        if let Some(prev_height) = self.last_measured_height_px
+            && (prev_height - measured_height).abs() < 0.5
+        {
+            return;
+        }
+        self.last_measured_height_px = Some(measured_height);
+
+        height.clear_on_rest();
+        height.set_target(measured_height);
     }
 }
 
@@ -300,21 +328,29 @@ pub fn attach_indicator_motion(
 
 #[cfg(target_arch = "wasm32")]
 pub fn attach_panel_motion(
-    node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
+    panel_ref: leptos::prelude::NodeRef<leptos::html::Div>,
+    surface_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
     is_hidden: leptos::prelude::RwSignal<bool>,
     motion: DisclosureMotion,
 ) {
     use leptos::prelude::*;
-    use leptos::wasm_bindgen::JsCast;
+    use leptos::wasm_bindgen::{JsCast, closure::Closure};
 
     let motion = StoredValue::new(motion);
     let driver = StoredValue::new_local(None::<Rc<RefCell<PanelMotionDriver>>>);
+    let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);
+    let resize_closure = StoredValue::new_local(
+        None::<Closure<dyn FnMut(js_sys::Array, leptos::web_sys::ResizeObserver)>>,
+    );
 
     Effect::new(move |_| {
         let motion = motion.get_value();
 
-        let Some(panel) = node_ref.get() else {
+        let Some(panel) = panel_ref.get() else {
+            return;
+        };
+        let Some(surface) = surface_ref.get() else {
             return;
         };
         if driver.get_value().is_some() {
@@ -374,8 +410,37 @@ pub fn attach_panel_motion(
         driver_instance.borrow_mut().sync_initial_state(open_now);
         driver.set_value(Some(driver_instance));
 
+        if resize_observer.get_value().is_none() {
+            let surface_element: leptos::web_sys::Element = surface.unchecked_into();
+            let driver_for_resize = driver.get_value();
+            if let Some(driver_for_resize) = driver_for_resize {
+                let closure = Closure::wrap(Box::new(
+                    move |_: js_sys::Array, _: leptos::web_sys::ResizeObserver| {
+                        driver_for_resize.borrow_mut().sync_open_height();
+                    },
+                )
+                    as Box<dyn FnMut(js_sys::Array, leptos::web_sys::ResizeObserver)>);
+
+                if let Ok(observer) =
+                    leptos::web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref())
+                {
+                    observer.observe(&surface_element);
+                    resize_observer.set_value(Some(observer));
+                    resize_closure.set_value(Some(closure));
+                }
+            }
+        }
+
         let driver_for_cleanup = driver;
+        let resize_observer_for_cleanup = resize_observer;
+        let resize_closure_for_cleanup = resize_closure;
         on_cleanup(move || {
+            if let Some(observer) = resize_observer_for_cleanup.get_value() {
+                observer.disconnect();
+            }
+            resize_observer_for_cleanup.set_value(None);
+            resize_closure_for_cleanup.set_value(None);
+
             if let Some(driver) = driver_for_cleanup.get_value() {
                 driver.borrow_mut().stop();
             }
@@ -394,6 +459,7 @@ pub fn attach_panel_motion(
 #[cfg(not(target_arch = "wasm32"))]
 pub fn attach_panel_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
+    _surface_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
     is_hidden: leptos::prelude::RwSignal<bool>,
     _motion: DisclosureMotion,
@@ -567,6 +633,82 @@ mod tests {
 
         events.borrow_mut().clear();
         driver.set_open(true);
+        assert!(events.borrow().is_empty());
+    }
+
+    #[test]
+    fn panel_motion_sync_open_height_updates_height_only() {
+        let events: Rc<RefCell<Vec<Event>>> = Rc::new(RefCell::new(Vec::new()));
+        let measured_height = Rc::new(Cell::new(120.0));
+
+        let mut driver = PanelMotionDriver::new(
+            DisclosureMotion::default(),
+            {
+                let events = Rc::clone(&events);
+                move |hidden| record(&events, Event::Hidden(hidden))
+            },
+            {
+                let measured_height = Rc::clone(&measured_height);
+                move || measured_height.get()
+            },
+            {
+                let events = Rc::clone(&events);
+                move |height| record(&events, Event::Height(height))
+            },
+            {
+                let events = Rc::clone(&events);
+                move |opacity| record(&events, Event::Opacity(opacity))
+            },
+            {
+                let events = Rc::clone(&events);
+                move |y| record(&events, Event::Y(y))
+            },
+        );
+
+        driver.sync_initial_state(true);
+        events.borrow_mut().clear();
+
+        measured_height.set(200.0);
+        driver.sync_open_height();
+
+        assert_eq!(&*events.borrow(), &[Event::Height(200.0)]);
+    }
+
+    #[test]
+    fn panel_motion_sync_open_height_noops_when_closed() {
+        let events: Rc<RefCell<Vec<Event>>> = Rc::new(RefCell::new(Vec::new()));
+        let measured_height = Rc::new(Cell::new(120.0));
+
+        let mut driver = PanelMotionDriver::new(
+            DisclosureMotion::default(),
+            {
+                let events = Rc::clone(&events);
+                move |hidden| record(&events, Event::Hidden(hidden))
+            },
+            {
+                let measured_height = Rc::clone(&measured_height);
+                move || measured_height.get()
+            },
+            {
+                let events = Rc::clone(&events);
+                move |height| record(&events, Event::Height(height))
+            },
+            {
+                let events = Rc::clone(&events);
+                move |opacity| record(&events, Event::Opacity(opacity))
+            },
+            {
+                let events = Rc::clone(&events);
+                move |y| record(&events, Event::Y(y))
+            },
+        );
+
+        driver.sync_initial_state(false);
+        events.borrow_mut().clear();
+
+        measured_height.set(200.0);
+        driver.sync_open_height();
+
         assert!(events.borrow().is_empty());
     }
 }

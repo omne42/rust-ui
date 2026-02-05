@@ -52,8 +52,9 @@ pub fn Disclosure(
     motion::attach_indicator_motion(indicator_ref, open, motion);
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
+    let panel_surface_ref: NodeRef<html::Div> = NodeRef::new();
     let panel_hidden = RwSignal::new(!open.get_untracked());
-    motion::attach_panel_motion(panel_ref, open, panel_hidden, motion);
+    motion::attach_panel_motion(panel_ref, panel_surface_ref, open, panel_hidden, motion);
 
     let base_class = "ui-disclosure".to_string();
     let class = class_name
@@ -125,7 +126,11 @@ pub fn Disclosure(
                 data-open=move || if open.get() { Some("true") } else { None }
                 data-slot="disclosure-panel"
             >
-                <div class="ui-disclosure__panel-surface" data-slot="disclosure-panel-surface">
+                <div
+                    class="ui-disclosure__panel-surface"
+                    node_ref=panel_surface_ref
+                    data-slot="disclosure-panel-surface"
+                >
                     {children()}
                 </div>
             </div>
