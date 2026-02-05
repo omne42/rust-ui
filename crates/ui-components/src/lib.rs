@@ -125,7 +125,7 @@ pub use chip::{Chip, ChipSize, ChipVariant};
 pub use circular_progress::CircularProgress;
 pub use code::{Code, CodeVariant};
 pub use code_block::{CodeBlock, CodeBlockMotion};
-pub use combo_box::ComboBox;
+pub use combo_box::{ComboBox, ComboBoxMotion};
 pub use contextual_help::{ContextualHelp, ContextualHelpMotion, ContextualHelpVariant};
 pub use dialog::{Dialog, DialogMotion, DialogSize};
 pub use disclosure::Disclosure;

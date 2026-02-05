@@ -1,4 +1,5 @@
-use crate::{ActiveHighlightMotion, presence::use_presence};
+use super::motion::ComboBoxMotion;
+use crate::{overlay_open, presence::use_presence};
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{
@@ -10,11 +11,12 @@ use ui_headless::{
 fn ComboBoxPanel(
     open: Signal<bool>,
     aria: ui_headless::ComboBoxAria,
+    aria_labelledby: String,
     filtered_indices: Memo<Vec<usize>>,
     items: StoredValue<Arc<[String]>>,
     disabled_indices: Arc<HashSet<usize>>,
     selected_index: ReadSignal<Option<usize>>,
-    motion: ActiveHighlightMotion,
+    motion: ComboBoxMotion,
     on_exit_complete: Callback<()>,
 ) -> impl IntoView {
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
@@ -23,7 +25,7 @@ fn ComboBoxPanel(
         open,
         Signal::derive(|| ui_headless::PopoverPlacement::BottomStart),
         on_exit_complete,
-        Default::default(),
+        motion.popover,
     );
 
     let options_ref: NodeRef<html::Div> = NodeRef::new();
@@ -33,7 +35,7 @@ fn ComboBoxPanel(
         highlight_ref,
         aria.active_index,
         aria.option_id,
-        motion,
+        motion.highlight,
     );
 
     let on_panel_pointer_down = move |ev: ev::PointerEvent| {
@@ -53,6 +55,7 @@ fn ComboBoxPanel(
                 id=aria.listbox.id.clone()
                 role=aria.listbox.role
                 aria-disabled=aria.listbox.aria_disabled
+                aria-labelledby=aria_labelledby
                 data-slot="combo-box-listbox"
             >
                 <div class="ui-combo-box__options" node_ref=options_ref data-slot="combo-box-options">
@@ -109,7 +112,10 @@ pub fn ComboBox(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
     #[prop(optional, into)] placeholder: Option<String>,
-    #[prop(optional)] motion: ActiveHighlightMotion,
+    #[prop(optional)] open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] motion: ComboBoxMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let id_base = StoredValue::new(id_base);
@@ -122,8 +128,10 @@ pub fn ComboBox(
     let placeholder = placeholder.unwrap_or_else(|| "Select…".to_string());
     let placeholder = StoredValue::new(placeholder);
 
-    let (is_open, set_open) = signal(false);
-    let presence = use_presence(is_open.into());
+    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let is_open = open_state.open;
+    let set_open = open_state.request_open_change;
+    let presence = use_presence(is_open);
 
     let (has_typed, set_has_typed) = signal(false);
     let (query, set_query) = signal(String::new());
@@ -190,6 +198,7 @@ pub fn ComboBox(
     });
 
     let input_id = format!("{}-input", id_base.get_value());
+    let label_id = StoredValue::new(format!("{}-label", id_base.get_value()));
 
     let text_field = use_text_field(TextFieldOptions {
         id: input_id,
@@ -216,8 +225,8 @@ pub fn ComboBox(
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: disabled,
         id_base: id_base.get_value(),
-        is_open: is_open.into(),
-        set_open: Callback::new(move |next: bool| set_open.set(next)),
+        is_open,
+        set_open,
         item_count: filtered_count,
         selected_index: selected_filtered_index.into(),
         on_action: Some(on_action),
@@ -229,6 +238,8 @@ pub fn ComboBox(
         .filter(|value| !value.trim().is_empty())
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
+
+    let aria_controls = aria.input.aria_controls.clone();
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
         if aria.handlers.on_input_key_down.run(ev.key()) {
@@ -275,6 +286,7 @@ pub fn ComboBox(
         >
             <label
                 class="ui-combo-box__label"
+                id=label_id.get_value()
                 for=text_field.label.for_attr.clone()
                 data-slot="combo-box-label"
             >
@@ -296,7 +308,7 @@ pub fn ComboBox(
                         required=move || required.get()
                         role=aria.input.role
                         aria-autocomplete=aria.input.aria_autocomplete
-                        aria-controls=aria.input.aria_controls.clone()
+                        aria-controls=move || is_open.get().then(|| aria_controls.clone())
                         aria-expanded=move || aria.input.aria_expanded.get()
                         aria-activedescendant=move || aria.input.aria_activedescendant.get()
                         aria-describedby=move || text_field.input.aria_describedby.get()
@@ -324,8 +336,9 @@ pub fn ComboBox(
 
                 <Show when=move || presence.is_present.get()>
                     <ComboBoxPanel
-                        open=is_open.into()
+                        open=is_open
                         aria=aria.clone()
+                        aria_labelledby=label_id.get_value()
                         filtered_indices=filtered_indices
                         items=items
                         disabled_indices=disabled_indices.clone()
