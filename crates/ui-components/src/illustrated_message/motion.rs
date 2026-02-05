@@ -66,3 +66,15 @@ pub fn attach_motion(
     _motion: IllustratedMessageMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_has_reasonable_params() {
+        let motion = IllustratedMessageMotion::default();
+        assert_eq!(motion.spring, ui_motion::presets::spring_soft());
+        assert!(motion.initial_y_px.abs() > 0.0);
+    }
+}
