@@ -155,6 +155,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.
+- `ui-headless`: `use_popover_position` now recomputes when the anchor or panel resizes (ResizeObserver), keeping overlays aligned during reflow.
 - `ui-headless`: `PopoverPlacement` now includes top placements; `use_popover_position` now resolves/flips placement based on viewport space.
 - `ui-components`: `Popover` now sets `--ui-popover-anchor-width` and uses it for the default min-width.
 - `ui-components`: `Popover` now supports `is_modal` (defaults true) and sets `data-placement` for correct transform origin and motion direction.
