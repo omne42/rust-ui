@@ -197,7 +197,7 @@ pub fn NewComponentsDemo() -> impl IntoView {
                         <AutoHeight class_name="demo-auto-height".to_string()>
                             <Show when=move || auto_height_open.get()>
                                 <div class="demo-kv">
-                                    "Reserved for future layout-motion support (animates height changes)."
+                                    "Animates height changes via spring-driven CSS variables (ResizeObserver + ui-motion spring)."
                                 </div>
                                 <div class="demo-kv">
                                     "This content toggles without layout jitter thanks to overflow handling."
