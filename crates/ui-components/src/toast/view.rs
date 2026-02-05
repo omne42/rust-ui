@@ -16,7 +16,7 @@ pub fn ToastViewport(
     if portal {
         view! {
             <Portal>
-                <div class="ui-toast-viewport" data-slot="toast-viewport">
+                <div class="ui-toast-viewport" data-ui-overlay-portal="" data-slot="toast-viewport">
                     <For
                         each=move || items.get()
                         key=|toast| toast.id.clone()

@@ -262,10 +262,97 @@ impl ToastStore {
 mod tests {
     use super::*;
 
+    fn with_store(max_toasts: usize, f: impl FnOnce(ToastStore)) {
+        Owner::new().with(|| {
+            let store = provide_toast_store(ToastStoreOptions { max_toasts });
+            f(store);
+        });
+    }
+
     #[test]
-    fn variants_map_to_expected_live_regions() {
+    fn variant_aria_live_matches_severity() {
         assert_eq!(ToastVariant::Default.aria_live(), "polite");
+        assert_eq!(ToastVariant::Accent.aria_live(), "polite");
         assert_eq!(ToastVariant::Danger.aria_live(), "assertive");
+    }
+
+    #[test]
+    fn store_push_adds_toast_and_returns_id() {
+        with_store(3, |store| {
+            let id = store.push.run(ToastOptions::simple("Hello"));
+            assert!(!id.trim().is_empty());
+
+            let toasts = store.toasts().get_untracked();
+            assert_eq!(toasts.len(), 1);
+            assert_eq!(toasts[0].id, id);
+            assert!(toasts[0].open.get_untracked());
+        });
+    }
+
+    #[test]
+    fn store_overflow_marks_oldest_closing_and_rotates_to_end() {
+        with_store(2, |store| {
+            let id1 = store.push.run(ToastOptions::simple("One"));
+            let id2 = store.push.run(ToastOptions::simple("Two"));
+            let id3 = store.push.run(ToastOptions::simple("Three"));
+
+            let toasts = store.toasts().get_untracked();
+            assert_eq!(toasts.len(), 3);
+
+            assert_eq!(toasts[0].id, id2);
+            assert_eq!(toasts[1].id, id3);
+            assert_eq!(toasts[2].id, id1);
+
+            assert!(toasts[0].open.get_untracked());
+            assert!(toasts[1].open.get_untracked());
+            assert!(!toasts[2].open.get_untracked());
+        });
+    }
+
+    #[test]
+    fn store_dismiss_marks_toast_closed() {
+        with_store(3, |store| {
+            let id1 = store.push.run(ToastOptions::simple("One"));
+            let id2 = store.push.run(ToastOptions::simple("Two"));
+
+            store.dismiss.run(id1.clone());
+
+            let toasts = store.toasts().get_untracked();
+            let t1 = toasts.iter().find(|t| t.id == id1).unwrap();
+            let t2 = toasts.iter().find(|t| t.id == id2).unwrap();
+            assert!(!t1.open.get_untracked());
+            assert!(t2.open.get_untracked());
+        });
+    }
+
+    #[test]
+    fn store_clear_marks_all_toasts_closed() {
+        with_store(3, |store| {
+            store.push.run(ToastOptions::simple("One"));
+            store.push.run(ToastOptions::simple("Two"));
+
+            store.clear.run(());
+
+            let toasts = store.toasts().get_untracked();
+            assert!(!toasts.is_empty());
+            for toast in toasts {
+                assert!(!toast.open.get_untracked());
+            }
+        });
+    }
+
+    #[test]
+    fn store_remove_drops_toast_by_id() {
+        with_store(3, |store| {
+            let id1 = store.push.run(ToastOptions::simple("One"));
+            let id2 = store.push.run(ToastOptions::simple("Two"));
+
+            store.remove(&id1);
+
+            let toasts = store.toasts().get_untracked();
+            assert_eq!(toasts.len(), 1);
+            assert_eq!(toasts[0].id, id2);
+        });
     }
 
     #[test]
