@@ -36,3 +36,21 @@ fn number_field_uses_headless_spinbutton_semantics() {
         "NumberField should handle ArrowUp/ArrowDown/PageUp/PageDown keys for stepping."
     );
 }
+
+#[test]
+fn number_field_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/number_field/view.rs");
+
+    for attr in [
+        "data-focused",
+        "data-focus-visible",
+        "data-invalid",
+        "data-disabled",
+        "data-required",
+    ] {
+        assert!(
+            source.contains(attr),
+            "NumberField should set `{attr}` to support Spectrum-style styling and state inspection."
+        );
+    }
+}

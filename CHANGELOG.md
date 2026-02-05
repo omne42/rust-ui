@@ -227,3 +227,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds Spectrum-compat regression coverage for `Badge`.
 - `ui-components`: adds Spectrum-style state data attributes to `Input` and expands regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `SearchField` and expands regression coverage.
+- `ui-components`: adds Spectrum-style state data attributes to `NumberField` and expands regression coverage.

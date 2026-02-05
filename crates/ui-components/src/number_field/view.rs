@@ -93,6 +93,11 @@ pub fn NumberField(
             class:ui-number-field--focus-visible=move || focus_ring.is_focus_visible.get()
             class:ui-number-field--invalid=move || invalid.get()
             data-slot="number-field"
+            data-focused=move || focus_ring.is_focused.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-required=move || required.get().then_some("true")
         >
             <label
                 class="ui-number-field__label"
