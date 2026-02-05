@@ -145,3 +145,17 @@ pub fn attach_motion(
         }
     });
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_matches_slide_preset() {
+        let motion = ToastMotion::default();
+        assert_eq!(motion.spring, ui_motion::presets::spring_slide());
+        assert!(motion.initial_y_px.abs() > 0.0);
+        assert!(motion.initial_scale > 0.0);
+        assert!(motion.initial_scale <= 1.0);
+    }
+}
