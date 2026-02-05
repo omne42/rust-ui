@@ -6,7 +6,6 @@ use ui_components::{Button, ButtonVariant};
 pub fn Welcome() -> impl IntoView {
     let code = r#"use ui_components::{UiRoot, Theme, Button, ButtonVariant};
 
-// ...
 <UiRoot theme=Theme::light() safe_area=true>
   <Button variant=ButtonVariant::Default>"Hello"</Button>
 </UiRoot>"#;
@@ -16,9 +15,10 @@ pub fn Welcome() -> impl IntoView {
             <h2>"Welcome"</h2>
             <p>
                 "This repo builds a layered Leptos UI system (Spectrum-style): "
-                <code>"ui-core"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", " <code>"ui-motion"</code> ", " <code>"ui-components"</code> "."
+                <code>"ui-core"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", "
+                <code>"ui-motion"</code> ", " <code>"ui-components"</code> "."
             </p>
-            <p>"Use the left nav to explore components and the core rules."</p>
+            <p>"Use the left nav to explore docs and component playgrounds."</p>
         </section>
 
         <Playground title="Hello Button" description="Basic usage" code=code>

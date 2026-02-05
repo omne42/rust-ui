@@ -1,29 +1,36 @@
-mod button;
-mod combo_box;
-mod rules;
-mod select;
-mod text_field;
-mod welcome;
+pub mod components;
+pub mod docs;
+pub mod nav;
 
 use leptos::prelude::*;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum DocPage {
-    Welcome,
-    Rules,
-    Button,
-    TextField,
-    Select,
-    ComboBox,
+fn not_found(route: String) -> AnyView {
+    view! {
+        <section class="docs-card docs-prose">
+            <h2>"Not found"</h2>
+            <p>
+                "Unknown route: " <code>{route}</code>
+            </p>
+        </section>
+    }
+    .into_any()
 }
 
-pub fn page_view(page: DocPage) -> AnyView {
-    match page {
-        DocPage::Welcome => welcome::Welcome().into_any(),
-        DocPage::Rules => rules::Rules().into_any(),
-        DocPage::Button => button::ButtonPage().into_any(),
-        DocPage::TextField => text_field::TextFieldPage().into_any(),
-        DocPage::Select => select::SelectPage().into_any(),
-        DocPage::ComboBox => combo_box::ComboBoxPage().into_any(),
+pub fn route_view(route: String) -> AnyView {
+    match route.as_str() {
+        "docs/welcome" => docs::Welcome().into_any(),
+        "docs/rules" => docs::Rules().into_any(),
+        "components" => components::ComponentsIndex().into_any(),
+        other => {
+            if let Some(slug) = other.strip_prefix("components/") {
+                if let Some(page) = components::component_page(slug) {
+                    page
+                } else {
+                    not_found(route)
+                }
+            } else {
+                not_found(route)
+            }
+        }
     }
 }

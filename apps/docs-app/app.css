@@ -14,7 +14,7 @@ a {
   color: inherit;
 }
 
-code {
+.docs-prose code {
   padding: 2px 6px;
   border-radius: 8px;
   background: var(--ui-bg);
@@ -22,7 +22,7 @@ code {
   font-size: 0.95em;
 }
 
-pre code {
+.docs-prose pre code {
   display: block;
   padding: 12px;
   border-radius: 12px;
@@ -45,6 +45,16 @@ pre code {
   justify-content: space-between;
   gap: 16px;
   margin: 0 0 18px 0;
+}
+
+.docs-header__title {
+  min-width: 0;
+}
+
+.docs-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .docs-title {
@@ -83,6 +93,12 @@ pre code {
   box-shadow: var(--ui-shadow-sm);
 }
 
+.docs-nav__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 @media (max-width: 900px) {
   .docs-nav {
     position: relative;
@@ -119,11 +135,66 @@ pre code {
   font-weight: 600;
 }
 
+.docs-nav-search {
+  margin-top: 10px;
+}
+
+.docs-nav-search__input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-fg);
+  outline: none;
+}
+
+.docs-nav-search__input:focus {
+  border-color: var(--ui-focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ui-focus-ring), transparent 70%);
+}
+
+.docs-nav-search-results {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .docs-main {
   display: flex;
   flex-direction: column;
   gap: 14px;
   min-width: 0;
+}
+
+.docs-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.docs-row--end {
+  justify-content: flex-end;
+}
+
+.docs-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.docs-stack--tight {
+  gap: 6px;
+}
+
+.docs-auto-height {
+  padding: 12px;
+  border-radius: var(--ui-radius-lg);
+  border: 1px dashed var(--ui-border);
+  background: var(--ui-bg);
 }
 
 .docs-card {
@@ -137,6 +208,62 @@ pre code {
 .docs-card h2 {
   margin: 0 0 8px 0;
   font-size: 14px;
+}
+
+.docs-page-header {
+  padding-bottom: 14px;
+}
+
+.docs-page-header__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.docs-page-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.docs-page-description {
+  margin: 10px 0 0 0;
+  color: var(--ui-fg-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.docs-page-back {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  text-decoration: none;
+  font-size: 12px;
+  color: var(--ui-fg);
+  white-space: nowrap;
+}
+
+.docs-page-back:hover {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 25%);
+}
+
+.docs-page-meta {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ui-fg-muted);
+}
+
+.docs-page-slug {
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-fg);
 }
 
 .docs-prose {
@@ -200,6 +327,23 @@ pre code {
   gap: 12px;
 }
 
+.playground__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.playground__title h2 {
+  margin: 0 0 8px 0;
+}
+
+.playground__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .playground__preview {
   padding: 16px;
   border-radius: var(--ui-radius-lg);
@@ -212,3 +356,145 @@ pre code {
   margin: 0;
 }
 
+.docs-search {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.docs-search__label {
+  font-size: 12px;
+  color: var(--ui-fg-muted);
+}
+
+.docs-search__input {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-fg);
+  outline: none;
+}
+
+.docs-search__input:focus {
+  border-color: var(--ui-focus-ring);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--ui-focus-ring), transparent 70%);
+}
+
+.docs-component-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.docs-component-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  text-decoration: none;
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.docs-component-tile:hover {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 25%);
+}
+
+.docs-component-tile__name {
+  font-weight: 650;
+  font-size: 13px;
+  letter-spacing: 0.2px;
+}
+
+.docs-component-tile__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ui-fg-muted);
+}
+
+.docs-component-tile__slug {
+  padding: 2px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg-muted);
+  color: var(--ui-fg);
+}
+
+.docs-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ui-fg);
+}
+
+.docs-drop-zone {
+  padding: 16px;
+  border-radius: var(--ui-radius-lg);
+  border: 1px dashed var(--ui-border);
+  background: var(--ui-bg);
+  text-align: center;
+}
+
+.docs-skeleton-line {
+  height: 14px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.docs-skeleton-line--short {
+  max-width: 320px;
+}
+
+.docs-skeleton-avatar {
+  width: 48px;
+  height: 48px;
+}
+
+.docs-skeleton-card {
+  width: 100%;
+  max-width: 520px;
+  height: 88px;
+}
+
+.docs-illustration {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--ui-fg-muted);
+}
+
+.docs-ripple-surface {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 16px;
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  box-shadow: var(--ui-shadow-sm);
+  color: var(--ui-accent);
+  cursor: pointer;
+}
+
+.docs-ripple-surface:hover {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 25%);
+}
+
+.docs-ripple-label {
+  position: relative;
+  z-index: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ui-fg);
+}
