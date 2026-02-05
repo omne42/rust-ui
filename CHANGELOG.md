@@ -83,6 +83,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: adds `dev-overrides.css` as a hot-reload-friendly place to prototype component style changes.
 - `ui-headless`: adds `use_text_field` hook (+ unit tests) for wiring input `aria-describedby`/`aria-invalid`/`aria-required`.
 - `ui-headless`: expands hook test coverage (focus-within, press cancel/blur, listbox selection sync, menu item roles).
+- `ui-headless`: adds `use_hover_card_trigger` hook (hover/focus-within + open/close delays + dismiss) with unit tests.
 - `ui-components`: adds new components: `IconButton`, `Badge`, `CircularProgress`, `TextField`, `Tabs`, and `Tooltip`.
 - `ui-components`: adds tests enforcing styling rules (`style:` forbidden; `style=` allowlist) and validating CSS aggregation.
 - `apps/web-demo`: adds demo sections for Badge/Spinner, Tooltip, Tabs, and TextField.
@@ -121,6 +122,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `ComboBox` popup panel is now positioned relative to the field control (fixes incorrect absolute positioning).
 - `ui-components`: `<Tooltip>` now uses headless trigger state and portal positioning, with HeroUI-style spring motion (opacity/scale/y).
 - `ui-components`: `<ContextualHelp>` now supports `open/default_open/on_open_change`, adds proper dialog labeling (`aria-labelledby`/`aria-describedby`), and upgrades `footer` to a slot.
+- `ui-components`: `<HoverCard>` now uses headless trigger state, marks its panel as an overlay portal, and positions via CSS variables (no direct `web-sys`).
 - `ui-headless`: `use_menu` now supports `default_index` to enable menu trigger focus strategies (e.g. open + focus last item).
 - `ui-components`: `MenuTrigger` now supports Spectrum-style keyboard opening (ArrowDown opens focusing first; ArrowUp opens focusing last).
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).

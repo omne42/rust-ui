@@ -11,6 +11,7 @@ pub mod focus_trap;
 pub mod focus_visible;
 pub mod focus_within;
 pub mod hover;
+pub mod hover_card;
 pub mod listbox;
 pub mod menu;
 pub mod menu_item;
@@ -41,6 +42,10 @@ pub use focus_within::{
     FocusWithinHandlers, FocusWithinOptions, FocusWithinState, use_focus_within,
 };
 pub use hover::{HoverHandlers, HoverOptions, HoverState, use_hover};
+pub use hover_card::{
+    HoverCardTriggerAria, HoverCardTriggerHandlers, HoverCardTriggerOptions, HoverCardTriggerState,
+    use_hover_card_trigger,
+};
 pub use listbox::{ListBoxAria, ListBoxAttrs, ListBoxHandlers, ListBoxOptions, use_listbox};
 pub use menu::{MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOptions, use_menu};
 pub use menu_item::{
