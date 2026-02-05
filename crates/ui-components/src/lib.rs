@@ -1,5 +1,6 @@
 //! `ui-components` — Leptos components that compose ui-core + ui-headless + ui-theme.
 
+mod a11y;
 mod active_highlight;
 mod css;
 mod overlay_open;

@@ -61,6 +61,7 @@ pub fn DropdownMenu(
     let ids = logic::resolve_ids(&id_base.get_value());
     let trigger_id = StoredValue::new(ids.trigger_id);
     let menu_id = StoredValue::new(ids.menu_id);
+    let aria_controls = crate::a11y::aria_controls_when_open(open, menu_id.get_value());
     let presence = use_presence(open);
 
     let base_class = "ui-dropdown-menu".to_string();
@@ -96,7 +97,7 @@ pub fn DropdownMenu(
                 disabled=disabled
                 aria_haspopup="menu"
                 aria_expanded=open
-                aria_controls=menu_id.get_value()
+                aria_controls_signal=aria_controls
             >
                 {children()}
             </Button>

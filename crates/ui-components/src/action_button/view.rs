@@ -26,6 +26,7 @@ pub fn ActionButton(
     #[prop(optional)] aria_haspopup: Option<&'static str>,
     #[prop(optional)] aria_expanded: Option<Signal<bool>>,
     #[prop(optional, into)] aria_controls: Option<String>,
+    #[prop(optional)] aria_controls_signal: Option<Signal<Option<String>>>,
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
@@ -109,7 +110,11 @@ pub fn ActionButton(
             aria-disabled=aria.attrs.aria_disabled
             aria-label=aria_label
             aria-haspopup=aria_haspopup
-            aria-controls=aria_controls
+            aria-controls=move || {
+                aria_controls_signal
+                    .map(|signal| signal.get())
+                    .unwrap_or_else(|| aria_controls.clone())
+            }
             aria-busy=state.is_loading.then_some("true")
             aria-expanded=move || {
                 aria_expanded.map(|signal| if signal.get() { "true" } else { "false" })

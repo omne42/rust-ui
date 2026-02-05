@@ -1,6 +1,6 @@
 use crate::contextual_help::{ContextualHelpMotion, ContextualHelpVariant, logic};
 use crate::presence::use_presence;
-use crate::{Button, ButtonSize, ButtonVariant, OnPress, Popover};
+use crate::{Button, ButtonSize, ButtonVariant, OnPress, Popover, overlay_open};
 use leptos::{children::ViewFn, html, prelude::*};
 use ui_headless::PopoverPlacement;
 
@@ -32,20 +32,9 @@ pub fn ContextualHelp(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
-    let (uncontrolled_open, set_uncontrolled_open) = signal(default_open.unwrap_or(false));
-    let is_controlled = open.is_some();
-    let open = open.unwrap_or(uncontrolled_open.into());
-
-    let on_open_change = on_open_change.unwrap_or_else(|| Callback::new(|_| {}));
-    let request_open_change: Callback<bool> = Callback::new(move |next_open: bool| {
-        if next_open == open.get_untracked() {
-            return;
-        }
-        on_open_change.run(next_open);
-        if !is_controlled {
-            set_uncontrolled_open.set(next_open);
-        }
-    });
+    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open = open_state.open;
+    let request_open_change = open_state.request_open_change;
 
     let presence = use_presence(open);
 
@@ -55,6 +44,7 @@ pub fn ContextualHelp(
     let panel_id = StoredValue::new(format!("{id}-panel"));
     let heading_id = StoredValue::new(format!("{id}-heading"));
     let content_id = StoredValue::new(format!("{id}-content"));
+    let aria_controls = crate::a11y::aria_controls_when_open(open, panel_id.get_value());
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
     let on_trigger_press: OnPress = {
@@ -93,7 +83,7 @@ pub fn ContextualHelp(
                 disabled=disabled
                 aria_haspopup="dialog"
                 aria_expanded=open
-                aria_controls=panel_id.get_value()
+                aria_controls_signal=aria_controls
                 class_name="ui-contextual-help__trigger".to_string()
                 on_press=on_trigger_press
             >

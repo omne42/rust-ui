@@ -68,6 +68,7 @@ pub fn Select(
     let ids = logic::resolve_ids(&id_base.get_value());
     let trigger_id = StoredValue::new(ids.trigger_id);
     let listbox_id = StoredValue::new(ids.listbox_id);
+    let aria_controls = crate::a11y::aria_controls_when_open(open, listbox_id.get_value());
 
     let on_action: Callback<usize> = Callback::new(move |_| request_open_change.run(false));
 
@@ -202,7 +203,7 @@ pub fn Select(
                 on_press=on_trigger_press
                 aria_haspopup="listbox"
                 aria_expanded=open
-                aria_controls=listbox_id.get_value()
+                aria_controls_signal=aria_controls
             >
                 {move || trigger_label.get()}
             </Button>
