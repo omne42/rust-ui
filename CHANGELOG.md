@@ -235,3 +235,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds Spectrum-style state data attributes to `Switch` and adds regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `Radio` and adds regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `ToggleButton` and adds regression coverage.
+- `ui-components`: adds Spectrum-style state data attributes to `SegmentedControl` and adds regression coverage.

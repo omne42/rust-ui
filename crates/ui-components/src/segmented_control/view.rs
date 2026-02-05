@@ -120,24 +120,28 @@ pub fn SegmentedControl(
             let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
             let hover = use_hover(HoverOptions { is_disabled });
 
-            view! {
-                <button
-                    type="button"
-                    class="ui-segmented-control__option"
-                    class:ui-segmented-control__option--focus-visible=move || focus_ring.is_focus_visible.get()
-                    node_ref=node_ref
-                    id=aria.radio_id.run(index)
-                    role="radio"
-                    tabindex=move || if is_disabled { -1 } else if aria.active_index.get() == index { 0 } else { -1 }
-                    aria-checked=move || if is_selected() { "true" } else { "false" }
-                    aria-disabled=if is_disabled { Some("true") } else { None }
-                    disabled=is_disabled
-                    data-selected=move || if is_selected() { Some("true") } else { None }
-                    data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
-                    on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
-                    on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
-                    on:focus=move |_| {
-                        focus_ring.handlers.on_focus.run(());
+                view! {
+                    <button
+                        type="button"
+                        class="ui-segmented-control__option"
+                        class:ui-segmented-control__option--focus-visible=move || focus_ring.is_focus_visible.get()
+                        node_ref=node_ref
+                        id=aria.radio_id.run(index)
+                        role="radio"
+                        tabindex=move || if is_disabled { -1 } else if aria.active_index.get() == index { 0 } else { -1 }
+                        aria-checked=move || if is_selected() { "true" } else { "false" }
+                        aria-disabled=if is_disabled { Some("true") } else { None }
+                        disabled=is_disabled
+                        data-slot="segmented-control-option"
+                        data-selected=move || if is_selected() { Some("true") } else { None }
+                        data-hovered=move || hover.is_hovered.get().then_some("true")
+                        data-disabled=is_disabled.then_some("true")
+                        data-focused=move || focus_ring.is_focused.get().then_some("true")
+                        data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+                        on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
+                        on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
+                        on:focus=move |_| {
+                            focus_ring.handlers.on_focus.run(());
                         aria.handlers.on_radio_focus.run(index);
                     }
                     on:blur=move |_| focus_ring.handlers.on_blur.run(())
@@ -157,6 +161,7 @@ pub fn SegmentedControl(
             aria-label=aria_label
             aria-labelledby=label_id.get_value()
             data-slot="segmented-control"
+            data-disabled=disabled.then_some("true")
             on:keydown=on_key_down
         >
             {label.get_value().map(|label| {

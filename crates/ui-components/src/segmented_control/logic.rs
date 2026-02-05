@@ -40,3 +40,48 @@ impl SegmentedControlSize {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn orientation_class_names_are_stable() {
+        assert_eq!(
+            SegmentedControlOrientation::Horizontal.class_name(),
+            "ui-segmented-control--horizontal"
+        );
+        assert_eq!(
+            SegmentedControlOrientation::Vertical.class_name(),
+            "ui-segmented-control--vertical"
+        );
+    }
+
+    #[test]
+    fn roving_orientation_matches_headless_contract() {
+        assert_eq!(
+            SegmentedControlOrientation::Horizontal.roving_orientation(),
+            RovingOrientation::Horizontal
+        );
+        assert_eq!(
+            SegmentedControlOrientation::Vertical.roving_orientation(),
+            RovingOrientation::Vertical
+        );
+    }
+
+    #[test]
+    fn size_class_names_are_stable() {
+        assert_eq!(
+            SegmentedControlSize::Default.class_name(),
+            "ui-segmented-control--size-default"
+        );
+        assert_eq!(
+            SegmentedControlSize::Sm.class_name(),
+            "ui-segmented-control--size-sm"
+        );
+        assert_eq!(
+            SegmentedControlSize::Lg.class_name(),
+            "ui-segmented-control--size-lg"
+        );
+    }
+}
