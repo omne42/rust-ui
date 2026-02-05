@@ -3,8 +3,8 @@ use crate::overlay_open;
 use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
 use std::{collections::BTreeSet, sync::Arc};
 use ui_headless::{
-    FocusRingOptions, HoverOptions, RovingOrientation, RovingTabIndexOptions, use_focus_ring,
-    use_hover, use_roving_tabindex,
+    FocusRingOptions, HoverOptions, PressOptions, RovingOrientation, RovingTabIndexOptions,
+    use_focus_ring, use_hover, use_press, use_roving_tabindex,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -126,23 +126,41 @@ pub fn Accordion(
                 let panel_hidden = RwSignal::new(!open.get_untracked());
                 motion::attach_panel_motion(panel_ref, open, panel_hidden, motion);
 
-                let on_toggle = move |_| {
-                    if is_disabled {
-                        return;
-                    }
+                let on_press = Callback::new(move |_| {
                     let next = logic::toggle_open_indices(selection_mode, &open_indices.get_untracked(), index);
                     request_open_change.run(next);
-                };
+                });
+
+                let press = use_press(PressOptions {
+                    is_disabled,
+                    on_press: Some(on_press),
+                    ..Default::default()
+                });
 
                 let on_key_down = {
                     let on_key_down = roving.handlers.on_key_down;
+                    let on_press_key_down = press.handlers.on_key_down;
                     let active_index = roving.active_index;
                     let trigger_refs = trigger_refs.clone();
                     move |ev: ev::KeyboardEvent| {
-                        if on_key_down.run(ev.key()) {
+                        let key = ev.key();
+                        let handled_roving = on_key_down.run(key.clone());
+                        let handled_press = on_press_key_down.run(key);
+
+                        if handled_roving || handled_press {
                             ev.prevent_default();
+                        }
+
+                        if handled_roving {
                             focus_trigger(&trigger_refs, active_index.get_untracked());
                         }
+                    }
+                };
+
+                let on_key_up = move |ev: ev::KeyboardEvent| {
+                    let key = ev.key();
+                    if press.handlers.on_key_up.run(key) {
+                        ev.prevent_default();
                     }
                 };
 
@@ -173,15 +191,23 @@ pub fn Accordion(
                             aria-expanded=move || if open.get() { "true" } else { "false" }
                             aria-controls=panel_id.clone()
                             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
+                            data-pressed=move || if press.is_pressed.get() { Some("true") } else { None }
                             on:focus=move |_| {
                                 focus_ring.handlers.on_focus.run(());
                                 roving.handlers.on_item_focus.run(index);
                             }
-                            on:blur=move |_| focus_ring.handlers.on_blur.run(())
+                            on:blur=move |_| {
+                                press.handlers.on_blur.run(());
+                                focus_ring.handlers.on_blur.run(());
+                            }
                             on:keydown=on_key_down
-                            on:click=on_toggle
+                            on:keyup=on_key_up
+                            on:pointerdown=move |_| press.handlers.on_pointer_down.run(())
+                            on:pointerup=move |_| press.handlers.on_pointer_up.run(())
+                            on:pointercancel=move |_| press.handlers.on_pointer_cancel.run(())
                             on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
                             on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
+                            on:click=move |_| press.handlers.on_click.run(())
                         >
                             <span class="ui-accordion__label" data-slot="accordion-label">
                                 {label}
