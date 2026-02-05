@@ -47,6 +47,12 @@ pub fn TextField(
             class:ui-text-field--invalid=move || invalid.get()
             class:ui-text-field--disabled=disabled
             data-slot="text-field"
+            data-focused=move || focus_ring.is_focused.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-read-only=read_only.then_some("true")
+            data-required=move || required.get().then_some("true")
         >
             <label
                 class="ui-text-field__label"
