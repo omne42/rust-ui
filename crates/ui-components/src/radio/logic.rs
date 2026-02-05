@@ -22,3 +22,32 @@ impl RadioGroupOrientation {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn orientation_class_names_are_stable() {
+        assert_eq!(
+            RadioGroupOrientation::Vertical.class_name(),
+            "ui-radio-group--vertical"
+        );
+        assert_eq!(
+            RadioGroupOrientation::Horizontal.class_name(),
+            "ui-radio-group--horizontal"
+        );
+    }
+
+    #[test]
+    fn roving_orientation_matches_headless_contract() {
+        assert_eq!(
+            RadioGroupOrientation::Vertical.roving_orientation(),
+            RovingOrientation::Vertical
+        );
+        assert_eq!(
+            RadioGroupOrientation::Horizontal.roving_orientation(),
+            RovingOrientation::Horizontal
+        );
+    }
+}

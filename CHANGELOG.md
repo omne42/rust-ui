@@ -232,3 +232,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds Spectrum-style state data attributes to `Autocomplete` and expands regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `Checkbox` and adds regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `Switch` and adds regression coverage.
+- `ui-components`: adds Spectrum-style state data attributes to `Radio` and adds regression coverage.
