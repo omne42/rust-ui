@@ -1,16 +1,17 @@
 use super::motion::ComboBoxMotion;
 use crate::{overlay_open, presence::use_presence};
-use leptos::{ev, html, prelude::*};
+use leptos::{ev, html, portal::Portal, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{
-    ComboBoxOptions, FocusRingOptions, TextFieldOptions, use_combo_box, use_focus_ring,
-    use_text_field,
+    ComboBoxOptions, FocusRingOptions, PopoverPlacement, PopoverPositionOptions, TextFieldOptions,
+    use_combo_box, use_focus_ring, use_popover_position, use_text_field,
 };
 
 #[component]
 fn ComboBoxPanel(
     open: Signal<bool>,
     aria: ui_headless::ComboBoxAria,
+    anchor_ref: NodeRef<html::Div>,
     aria_labelledby: String,
     filtered_indices: Memo<Vec<usize>>,
     items: StoredValue<Arc<[String]>>,
@@ -20,10 +21,18 @@ fn ComboBoxPanel(
     on_exit_complete: Callback<()>,
 ) -> impl IntoView {
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
+    let position = use_popover_position(PopoverPositionOptions {
+        anchor_ref,
+        panel_ref,
+        placement: PopoverPlacement::BottomStart,
+        offset_px: 6.0,
+        ..Default::default()
+    });
+
     crate::popover::motion::attach_motion(
         panel_ref,
         open,
-        Signal::derive(|| ui_headless::PopoverPlacement::BottomStart),
+        position.placement.into(),
         on_exit_complete,
         motion.popover,
     );
@@ -43,57 +52,78 @@ fn ComboBoxPanel(
         ev.prevent_default();
     };
 
-    view! {
-        <div
-            class="ui-combo-box__panel"
-            node_ref=panel_ref
-            data-slot="combo-box-panel"
-            on:pointerdown=on_panel_pointer_down
-        >
-            <div
-                class="ui-combo-box__listbox"
-                id=aria.listbox.id.clone()
-                role=aria.listbox.role
-                aria-disabled=aria.listbox.aria_disabled
-                aria-labelledby=aria_labelledby
-                data-slot="combo-box-listbox"
-            >
-                <div class="ui-combo-box__options" node_ref=options_ref data-slot="combo-box-options">
-                    <div class="ui-active-highlight" node_ref=highlight_ref data-slot="combo-box-highlight"></div>
-                    {move || {
-                        let indices = filtered_indices.get();
-                        let items = items.get_value();
-                        indices
-                            .iter()
-                            .copied()
-                            .enumerate()
-                            .map(|(filtered_index, original_index)| {
-                                let id = aria.option_id.run(filtered_index);
-                                let label = items.get(original_index).cloned().unwrap_or_default();
-                                let is_selected = move || selected_index.get() == Some(original_index);
-                                let is_disabled = disabled_indices.contains(&original_index);
+    let panel_vars = move || {
+        format!(
+            "--ui-popover-top: {}px; --ui-popover-left: {}px; --ui-popover-anchor-width: {}px;",
+            position.top_px.get(),
+            position.left_px.get(),
+            position.anchor_width_px.get()
+        )
+    };
 
-                                view! {
-                                    <div
-                                        id=id
-                                        role="option"
-                                        aria-selected=move || if is_selected() { Some("true") } else { None }
-                                        aria-disabled=if is_disabled { Some("true") } else { None }
-                                        class="ui-combo-box__option"
-                                        data-selected=move || if is_selected() { Some("true") } else { None }
-                                        data-disabled=if is_disabled { Some("true") } else { None }
-                                        on:pointermove=move |_| aria.handlers.on_option_pointer_move.run(filtered_index)
-                                        on:click=move |_| aria.handlers.on_option_click.run(filtered_index)
-                                    >
-                                        {label}
-                                    </div>
-                                }
-                            })
-                            .collect_view()
-                    }}
+    view! {
+        <Portal>
+            <div
+                class="ui-combo-box__panel"
+                node_ref=panel_ref
+                data-ui-overlay-portal=""
+                data-slot="combo-box-panel"
+                data-placement=move || position.placement.get().as_str()
+                style=panel_vars
+                on:pointerdown=on_panel_pointer_down
+            >
+                <div
+                    class="ui-combo-box__listbox"
+                    id=aria.listbox.id.clone()
+                    role=aria.listbox.role
+                    aria-disabled=aria.listbox.aria_disabled
+                    aria-labelledby=aria_labelledby.clone()
+                    data-slot="combo-box-listbox"
+                >
+                    <div class="ui-combo-box__options" node_ref=options_ref data-slot="combo-box-options">
+                        <div class="ui-active-highlight" node_ref=highlight_ref data-slot="combo-box-highlight"></div>
+                        {{
+                            let disabled_indices = disabled_indices.clone();
+                            let option_id = aria.option_id;
+                            let on_option_pointer_move = aria.handlers.on_option_pointer_move;
+                            let on_option_click = aria.handlers.on_option_click;
+
+                            move || {
+                                let indices = filtered_indices.get();
+                                let items = items.get_value();
+                                indices
+                                    .iter()
+                                    .copied()
+                                    .enumerate()
+                                    .map(|(filtered_index, original_index)| {
+                                        let id = option_id.run(filtered_index);
+                                        let label = items.get(original_index).cloned().unwrap_or_default();
+                                        let is_selected = move || selected_index.get() == Some(original_index);
+                                        let is_disabled = disabled_indices.contains(&original_index);
+
+                                        view! {
+                                            <div
+                                                id=id
+                                                role="option"
+                                                aria-selected=move || if is_selected() { Some("true") } else { None }
+                                                aria-disabled=if is_disabled { Some("true") } else { None }
+                                                class="ui-combo-box__option"
+                                                data-selected=move || if is_selected() { Some("true") } else { None }
+                                                data-disabled=if is_disabled { Some("true") } else { None }
+                                                on:pointermove=move |_| on_option_pointer_move.run(filtered_index)
+                                                on:click=move |_| on_option_click.run(filtered_index)
+                                            >
+                                                {label}
+                                            </div>
+                                        }
+                                    })
+                                    .collect_view()
+                            }
+                        }}
+                    </div>
                 </div>
             </div>
-        </div>
+        </Portal>
     }
 }
 
@@ -281,6 +311,8 @@ pub fn ComboBox(
         ev.prevent_default();
     };
 
+    let control_ref: NodeRef<html::Div> = NodeRef::new();
+
     view! {
         <div
             class=class
@@ -299,7 +331,11 @@ pub fn ComboBox(
             </label>
 
             <div class="ui-combo-box__field" data-slot="combo-box-field">
-                <div class="ui-combo-box__control" data-slot="combo-box-control">
+                <div
+                    class="ui-combo-box__control"
+                    node_ref=control_ref
+                    data-slot="combo-box-control"
+                >
                     <input
                         class="ui-combo-box__input"
                         data-slot="combo-box-input"
@@ -343,6 +379,7 @@ pub fn ComboBox(
                     <ComboBoxPanel
                         open=is_open
                         aria=aria.clone()
+                        anchor_ref=control_ref
                         aria_labelledby=label_id.get_value()
                         filtered_indices=filtered_indices
                         items=items

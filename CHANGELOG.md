@@ -129,7 +129,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: roving tabindex now clamps disabled indices to the nearest enabled option (preferring previous when possible).
 - `ui-headless`: `use_combo_box` keyboard behavior now aligns better with React Spectrum (ArrowDown/ArrowUp open first/last; Enter/Tab commit; Space no longer commits).
 - `ui-headless`: `use_combo_box` now takes `is_open: Signal<bool>` + `set_open: Callback<bool>` to support controlled open state.
-- `ui-components`: `ComboBox` popup panel is now positioned relative to the field control (fixes incorrect absolute positioning).
+- `ui-components`: `ComboBox` popup panel now renders in a Portal and is positioned via `use_popover_position` (flip/clamp), keeping the menu aligned to the field control and avoiding overflow clipping.
 - `ui-components`: `ComboBox` now supports `open/default_open/on_open_change`, labels its listbox via `aria-labelledby` (label `id`), and adds `ComboBoxMotion` (popover + highlight).
 - `ui-components`: `ComboBox` now stops Escape propagation while open, preventing parent overlays from closing (React Spectrum parity), and adds a semantics regression test.
 - `ui-components`: `Autocomplete` now supports `open/default_open/on_open_change` and labels its listbox via `aria-labelledby` (label `id`).
