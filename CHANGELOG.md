@@ -132,6 +132,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Accordion` triggers now use headless press semantics (`data-pressed`) and avoid keyboard/click double firing.
 - `ui-components`: `<SegmentedControl>` indicator motion now drives `x/y/width/height/opacity` via spring, fixing inset alignment and supporting vertical orientation.
 - `ui-components`: `<Tabs>` indicator motion now refreshes its measured layout on resize (ResizeObserver), keeping the spring highlight aligned.
+- `ui-components`: `ActiveHighlightMotion` now measures option layout via `offsetTop/offsetHeight` and refreshes on resize (ResizeObserver), keeping list/menu highlights aligned during reflow.
 - `ui-components`: `<ScrollShadow>` now refreshes its shadow edges when the viewport size changes (ResizeObserver), not only on scroll.
 - `ui-components`: overlay trigger buttons now set `aria-controls` only when open (aligns with React Spectrum `useOverlayTrigger`), enabled via `Button`/`ActionButton` `aria_controls_signal`.
 - `ui-components`: `<Tooltip>` now uses headless trigger state and portal positioning, with HeroUI-style spring motion (opacity/scale/y).
