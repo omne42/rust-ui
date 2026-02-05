@@ -222,3 +222,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: makes `IllustratedMessage` internal logic private and adds Spectrum-compat regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `TextField` and expands regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `TextArea` and expands regression coverage.
+- `ui-components`: adds Spectrum-compat regression coverage for `Link`.
