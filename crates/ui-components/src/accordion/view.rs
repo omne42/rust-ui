@@ -180,6 +180,8 @@ pub fn Accordion(
                             node_ref=node_ref
                             id=trigger_id.clone()
                             disabled=is_disabled
+                            data-slot="accordion-trigger"
+                            data-open=move || open.get().then_some("true")
                             tabindex=move || {
                                 if is_disabled {
                                     -1
@@ -193,6 +195,9 @@ pub fn Accordion(
                             aria-controls=panel_id.clone()
                             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
                             data-pressed=move || if press.is_pressed.get() { Some("true") } else { None }
+                            data-focused=move || focus_ring.is_focused.get().then_some("true")
+                            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+                            data-disabled=is_disabled.then_some("true")
                             on:focus=move |_| {
                                 focus_ring.handlers.on_focus.run(());
                                 roving.handlers.on_item_focus.run(index);
