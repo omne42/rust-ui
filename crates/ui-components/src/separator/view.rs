@@ -1,5 +1,7 @@
-use crate::separator::{SeparatorElementType, SeparatorMotion, SeparatorOrientation, logic};
-use leptos::prelude::*;
+use crate::separator::{
+    SeparatorElementType, SeparatorMotion, SeparatorOrientation, logic, motion as separator_motion,
+};
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn Separator(
@@ -9,8 +11,6 @@ pub fn Separator(
     #[prop(optional)] motion: SeparatorMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let _ = motion;
-
     let state = logic::resolve_state(orientation, element_type, decorative);
 
     let base_class = format!("ui-separator {}", state.orientation.class_name());
@@ -24,8 +24,12 @@ pub fn Separator(
     let aria_hidden = state.is_decorative.then_some("true");
 
     if matches!(state.element_type, SeparatorElementType::Hr) {
+        let node_ref: NodeRef<html::Hr> = NodeRef::new();
+        separator_motion::attach_motion(node_ref, state.orientation, motion);
+
         view! {
             <hr
+                node_ref=node_ref
                 class=class
                 data-slot="separator"
                 data-orientation=state.orientation.aria_orientation().unwrap_or("horizontal")
@@ -38,8 +42,12 @@ pub fn Separator(
         }
         .into_any()
     } else {
+        let node_ref: NodeRef<html::Div> = NodeRef::new();
+        separator_motion::attach_motion(node_ref, state.orientation, motion);
+
         view! {
             <div
+                node_ref=node_ref
                 class=class
                 data-slot="separator"
                 data-orientation=state.orientation.aria_orientation().unwrap_or("horizontal")
