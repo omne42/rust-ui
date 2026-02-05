@@ -30,6 +30,16 @@ fn input_clears_on_escape_when_clearable_and_not_empty() {
 }
 
 #[test]
+fn input_escape_clear_stops_propagation() {
+    let source = load_source("src/input/view.rs");
+
+    assert!(
+        source.contains("stop_propagation()"),
+        "Input should stop Escape propagation when clearing (Spectrum parity: Escape clears without dismissing parent overlays)."
+    );
+}
+
+#[test]
 fn input_clear_button_is_excluded_from_tab_order() {
     let source = load_source("src/input/view.rs");
 

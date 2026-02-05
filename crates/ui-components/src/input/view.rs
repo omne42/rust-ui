@@ -137,6 +137,7 @@ pub fn Input(
             return;
         }
 
+        ev.stop_propagation();
         ev.prevent_default();
         set_value.set(String::new());
     };
