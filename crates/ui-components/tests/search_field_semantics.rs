@@ -92,3 +92,22 @@ fn search_field_motion_uses_spring_animator() {
         "SearchField motion should be spring-driven to match the repo's motion spec."
     );
 }
+
+#[test]
+fn search_field_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/search_field/view.rs");
+
+    for attr in [
+        "data-focused",
+        "data-focus-visible",
+        "data-invalid",
+        "data-disabled",
+        "data-read-only",
+        "data-required",
+    ] {
+        assert!(
+            source.contains(attr),
+            "SearchField should set `{attr}` to support Spectrum-style styling and state inspection."
+        );
+    }
+}

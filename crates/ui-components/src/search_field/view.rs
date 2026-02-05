@@ -140,6 +140,12 @@ pub fn SearchField(
             class:ui-search-field--disabled=disabled
             class:ui-search-field--readonly=read_only
             data-slot="search-field"
+            data-focused=move || focus_within.is_focus_within.get().then_some("true")
+            data-focus-visible=move || is_focus_visible.get().then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-read-only=read_only.then_some("true")
+            data-required=move || required.get().then_some("true")
             data-empty=move || value.get().is_empty().then_some("true")
             data-readonly=read_only.then_some("true")
         >
