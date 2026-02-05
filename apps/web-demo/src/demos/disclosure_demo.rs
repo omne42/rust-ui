@@ -12,6 +12,8 @@ pub fn DisclosureDemo() -> impl IntoView {
         open.insert(0);
         open
     });
+    let on_accordion_open_change =
+        Callback::new(move |next: BTreeSet<usize>| set_accordion_open.set(next));
 
     let accordion_labels = vec![
         "Overview".to_string(),
@@ -46,8 +48,8 @@ pub fn DisclosureDemo() -> impl IntoView {
                     <Accordion
                         labels=accordion_labels
                         id_base="demo-accordion".to_string()
-                        open_indices=accordion_open
-                        set_open_indices=set_accordion_open
+                        open_indices=accordion_open.into()
+                        on_open_change=on_accordion_open_change
                         selection_mode=AccordionSelectionMode::Multiple
                     >
                         <div class="demo-stack">
@@ -63,6 +65,13 @@ pub fn DisclosureDemo() -> impl IntoView {
                             <div>"Uses tokens-driven styling."</div>
                         </div>
                     </Accordion>
+                    <div class="demo-kv">
+                        {move || {
+                            let open = accordion_open.get();
+                            let open = open.iter().copied().collect::<Vec<_>>();
+                            format!("open: {open:?}")
+                        }}
+                    </div>
                 </div>
             </div>
         </section>

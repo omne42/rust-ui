@@ -1,4 +1,5 @@
-use crate::accordion::{AccordionSelectionMode, logic::toggle_open_indices};
+use crate::accordion::{AccordionSelectionMode, logic};
+use crate::overlay_open;
 use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
 use std::{collections::BTreeSet, sync::Arc};
 use ui_headless::{
@@ -24,8 +25,9 @@ fn focus_trigger(_trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, _index: usize)
 pub fn Accordion(
     labels: Vec<String>,
     id_base: String,
-    open_indices: ReadSignal<BTreeSet<usize>>,
-    set_open_indices: WriteSignal<BTreeSet<usize>>,
+    #[prop(optional)] open_indices: Option<Signal<BTreeSet<usize>>>,
+    #[prop(optional)] default_open_indices: Option<BTreeSet<usize>>,
+    #[prop(optional)] on_open_change: Option<Callback<BTreeSet<usize>>>,
     #[prop(optional)] selection_mode: AccordionSelectionMode,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
@@ -44,6 +46,28 @@ pub fn Accordion(
 
     let item_count = labels.len().min(panels.iter().len());
     let (item_count_signal, _set_item_count) = signal(item_count);
+
+    let default_open_indices = logic::normalize_open_indices(
+        selection_mode,
+        &default_open_indices.unwrap_or_default(),
+        item_count,
+    );
+    let open_state = overlay_open::use_controllable_state(
+        open_indices,
+        Some(default_open_indices),
+        on_open_change,
+    );
+    let open_indices = Memo::new({
+        let open_indices = open_state.value;
+        move |_| logic::normalize_open_indices(selection_mode, &open_indices.get(), item_count)
+    });
+    let request_open_change = {
+        let request_open_change = open_state.request_change;
+        Callback::new(move |next: BTreeSet<usize>| {
+            let next = logic::normalize_open_indices(selection_mode, &next, item_count);
+            request_open_change.run(next);
+        })
+    };
 
     let disabled_indices: Arc<Vec<usize>> = Arc::new(disabled_indices);
     let has_disabled = !disabled_indices.is_empty();
@@ -97,9 +121,8 @@ pub fn Accordion(
                     if is_disabled {
                         return;
                     }
-                    set_open_indices.update(|set| {
-                        *set = toggle_open_indices(selection_mode, set, index);
-                    });
+                    let next = logic::toggle_open_indices(selection_mode, &open_indices.get_untracked(), index);
+                    request_open_change.run(next);
                 };
 
                 let on_key_down = {
