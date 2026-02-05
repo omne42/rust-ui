@@ -5,8 +5,8 @@ use leptos::prelude::*;
 pub struct ComboBoxOptions {
     pub is_disabled: bool,
     pub id_base: String,
-    pub is_open: ReadSignal<bool>,
-    pub set_open: WriteSignal<bool>,
+    pub is_open: Signal<bool>,
+    pub set_open: Callback<bool>,
     pub item_count: ReadSignal<usize>,
     /// Selected index in the same coordinate space as the rendered options (e.g. filtered list).
     pub selected_index: Signal<Option<usize>>,
@@ -116,13 +116,13 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
             if is_disabled {
                 return;
             }
-            set_open.set(true);
+            set_open.run(true);
         }
     });
 
     let close = Callback::new({
         let set_open = options.set_open;
-        move |_| set_open.set(false)
+        move |_| set_open.run(false)
     });
 
     let toggle = Callback::new({
@@ -133,7 +133,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
             if is_disabled {
                 return;
             }
-            set_open.set(!is_open.get_untracked());
+            set_open.run(!is_open.get_untracked());
         }
     });
 
@@ -158,7 +158,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
             if let Some(on_action) = on_action {
                 on_action.run(index);
             }
-            set_open.set(false);
+            set_open.run(false);
         })
     };
 
@@ -181,7 +181,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
             if !is_open.get_untracked() {
                 match key.as_str() {
                     "ArrowDown" => {
-                        set_open.set(true);
+                        set_open.run(true);
                         let count = item_count.get_untracked();
                         if count == 0 {
                             return true;
@@ -198,7 +198,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                         return true;
                     }
                     "ArrowUp" => {
-                        set_open.set(true);
+                        set_open.run(true);
                         let count = item_count.get_untracked();
                         if count == 0 {
                             return true;
@@ -223,7 +223,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                     if !is_open.get_untracked() {
                         return false;
                     }
-                    set_open.set(false);
+                    set_open.run(false);
                     return true;
                 }
                 "Tab" => {
@@ -237,7 +237,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                             on_action.run(index);
                         }
                     }
-                    set_open.set(false);
+                    set_open.run(false);
                     return false;
                 }
                 "Enter" => {
@@ -251,7 +251,7 @@ pub fn use_combo_box(options: ComboBoxOptions) -> ComboBoxAria {
                             on_action.run(index);
                         }
                     }
-                    set_open.set(false);
+                    set_open.run(false);
                     return true;
                 }
                 _ => {}

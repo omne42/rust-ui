@@ -23,8 +23,8 @@ fn combobox_opens_on_arrow_down_and_commits_selection() {
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: false,
         id_base: "demo".to_string(),
-        is_open: open,
-        set_open,
+        is_open: open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: count,
         selected_index: selected.into(),
         on_action: Some(on_action),
@@ -68,8 +68,8 @@ fn combobox_opens_on_arrow_up_and_focuses_last_enabled_option() {
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: false,
         id_base: "demo".to_string(),
-        is_open: open,
-        set_open,
+        is_open: open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: count,
         selected_index: selected.into(),
         on_action: None,
@@ -101,8 +101,8 @@ fn combobox_home_does_not_interfere_with_text_editing_when_closed() {
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: false,
         id_base: "demo".to_string(),
-        is_open: open,
-        set_open,
+        is_open: open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: count,
         selected_index: selected.into(),
         on_action: None,
@@ -127,8 +127,8 @@ fn combobox_tab_commits_active_option_and_allows_focus_to_move() {
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: false,
         id_base: "demo".to_string(),
-        is_open: open,
-        set_open,
+        is_open: open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: count,
         selected_index: selected.into(),
         on_action: Some(on_action),
@@ -161,8 +161,8 @@ fn combobox_option_click_calls_on_action_and_closes() {
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: false,
         id_base: "demo".to_string(),
-        is_open: open,
-        set_open,
+        is_open: open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: count,
         selected_index: selected.into(),
         on_action: Some(on_action),
@@ -185,8 +185,8 @@ fn disabled_combobox_ignores_input_events() {
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: true,
         id_base: "demo".to_string(),
-        is_open: open,
-        set_open,
+        is_open: open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: count,
         selected_index: selected.into(),
         on_action: None,
@@ -194,5 +194,33 @@ fn disabled_combobox_ignores_input_events() {
     });
 
     assert!(!aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(!open.get_untracked());
+}
+
+#[test]
+fn controlled_combobox_requests_open_change_without_mutating_open_signal() {
+    init_executor();
+
+    let (open, _set_open) = signal(false);
+    let (count, _set_count) = signal(1_usize);
+    let (selected, _set_selected) = signal(None::<usize>);
+
+    let requested: StoredValue<Vec<bool>> = StoredValue::new(Vec::new());
+    let on_open_change = Callback::new(move |next: bool| requested.update_value(|v| v.push(next)));
+
+    let aria = use_combo_box(ComboBoxOptions {
+        is_disabled: false,
+        id_base: "demo".to_string(),
+        is_open: open.into(),
+        set_open: on_open_change,
+        item_count: count,
+        selected_index: selected.into(),
+        on_action: None,
+        is_item_disabled: None,
+    });
+
+    assert!(!open.get_untracked());
+    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert_eq!(requested.get_value(), vec![true]);
     assert!(!open.get_untracked());
 }

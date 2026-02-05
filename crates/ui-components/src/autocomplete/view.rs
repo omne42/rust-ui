@@ -202,8 +202,8 @@ pub fn Autocomplete(
     let aria = use_combo_box(ComboBoxOptions {
         is_disabled: disabled,
         id_base: id_base.get_value(),
-        is_open,
-        set_open,
+        is_open: is_open.into(),
+        set_open: Callback::new(move |next: bool| set_open.set(next)),
         item_count: filtered_count,
         selected_index: selected_filtered_index.into(),
         on_action: Some(on_action),
