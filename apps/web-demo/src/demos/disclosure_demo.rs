@@ -5,6 +5,7 @@ use ui_components::{Accordion, AccordionSelectionMode, Disclosure};
 #[component]
 pub fn DisclosureDemo() -> impl IntoView {
     let (disclosure_open, set_disclosure_open) = signal(false);
+    let on_disclosure_open_change = Callback::new(move |next: bool| set_disclosure_open.set(next));
 
     let (accordion_open, set_accordion_open) = signal({
         let mut open = BTreeSet::new();
@@ -29,14 +30,15 @@ pub fn DisclosureDemo() -> impl IntoView {
                     <Disclosure
                         id_base="demo-disclosure".to_string()
                         label="More information".to_string()
-                        open=disclosure_open
-                        set_open=set_disclosure_open
+                        open=disclosure_open.into()
+                        on_open_change=on_disclosure_open_change
                     >
                         <div class="demo-stack">
                             <div>"This panel uses `role=region` + `aria-labelledby`."</div>
                             <div>"Toggle it with click, Enter, or Space."</div>
                         </div>
                     </Disclosure>
+                    <div class="demo-kv">{move || format!("open: {}", disclosure_open.get())}</div>
                 </div>
 
                 <div class="demo-stack">

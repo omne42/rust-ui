@@ -1,4 +1,5 @@
 use crate::disclosure::{DisclosureIds, DisclosureMotion, motion};
+use crate::overlay_open;
 use leptos::{html, prelude::*};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
@@ -8,11 +9,11 @@ use ui_headless::{
 pub fn Disclosure(
     id_base: String,
     label: String,
-    open: ReadSignal<bool>,
-    set_open: WriteSignal<bool>,
+    #[prop(optional)] open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] motion: DisclosureMotion,
-    #[prop(optional)] on_change: Option<Callback<bool>>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -25,12 +26,13 @@ pub fn Disclosure(
         .filter(|value| !value.trim().is_empty())
         .unwrap_or_else(|| label.clone());
 
+    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open = open_state.open;
+    let request_open_change = open_state.request_open_change;
+
     let on_press = Callback::new(move |_| {
         let next = !open.get_untracked();
-        set_open.set(next);
-        if let Some(on_change) = on_change {
-            on_change.run(next);
-        }
+        request_open_change.run(next);
     });
 
     let aria = use_button(ButtonOptions {

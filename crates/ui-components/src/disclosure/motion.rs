@@ -25,7 +25,7 @@ impl Default for DisclosureMotion {
 #[cfg(target_arch = "wasm32")]
 pub fn attach_indicator_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
-    is_open: leptos::prelude::ReadSignal<bool>,
+    is_open: leptos::prelude::Signal<bool>,
     motion: DisclosureMotion,
 ) {
     use leptos::prelude::*;
@@ -88,7 +88,7 @@ pub fn attach_indicator_motion(
 #[cfg(not(target_arch = "wasm32"))]
 pub fn attach_indicator_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
-    _is_open: leptos::prelude::ReadSignal<bool>,
+    _is_open: leptos::prelude::Signal<bool>,
     _motion: DisclosureMotion,
 ) {
 }
