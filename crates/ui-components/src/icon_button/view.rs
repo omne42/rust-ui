@@ -16,38 +16,21 @@ pub fn IconButton(
     children: Children,
 ) -> impl IntoView {
     let class_name = class_name.unwrap_or_default();
+    let on_press = on_press.unwrap_or_else(|| Callback::new(|_| {}));
 
-    match on_press {
-        Some(on_press) => view! {
-            <Button
-                disabled=disabled
-                variant=variant
-                size=size
-                motion=motion
-                class_name=class_name
-                button_type=button_type
-                aria_label=aria_label
-                node_ref=node_ref
-                on_press=on_press
-            >
-                {children()}
-            </Button>
-        }
-        .into_view(),
-        None => view! {
-            <Button
-                disabled=disabled
-                variant=variant
-                size=size
-                motion=motion
-                class_name=class_name
-                button_type=button_type
-                aria_label=aria_label
-                node_ref=node_ref
-            >
-                {children()}
-            </Button>
-        }
-        .into_view(),
+    view! {
+        <Button
+            disabled=disabled
+            variant=variant
+            size=size
+            motion=motion
+            class_name=class_name
+            button_type=button_type
+            aria_label=aria_label
+            node_ref=node_ref
+            on_press=on_press
+        >
+            {children()}
+        </Button>
     }
 }

@@ -215,3 +215,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Dev tooling: `scripts/check.sh` now also checks `docs-app` for `wasm32-unknown-unknown`.
 - Dev tooling: gate scripts are now invoked via `bash` to avoid executable-bit issues on some checkouts.
 - `ui-components`: adds Spectrum-compat regression coverage for `Button` (semantics, state normalization, motion defaults).
+- `ui-components`: simplifies `IconButton` composition and adds Spectrum-compat regression coverage.
