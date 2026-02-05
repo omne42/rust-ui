@@ -135,3 +135,16 @@ pub fn attach_thumb_motion(
     _motion: SwitchMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_has_reasonable_params() {
+        let motion = SwitchMotion::default();
+        assert!(motion.spring.stiffness > 0.0);
+        assert!(motion.spring.damping > 0.0);
+        assert!(motion.spring.mass > 0.0);
+    }
+}
