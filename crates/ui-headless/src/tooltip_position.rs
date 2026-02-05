@@ -33,7 +33,7 @@ impl TooltipPlacement {
 
 #[derive(Clone, Copy)]
 pub struct TooltipPositionOptions {
-    pub anchor_ref: NodeRef<html::Button>,
+    pub anchor_ref: NodeRef<html::Span>,
     pub panel_ref: NodeRef<html::Div>,
     pub placement: TooltipPlacement,
     pub offset_px: f64,

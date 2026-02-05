@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::Tooltip;
+use ui_components::{Button, Tooltip};
 
 #[component]
 pub fn TooltipDemo() -> impl IntoView {
@@ -10,10 +10,14 @@ pub fn TooltipDemo() -> impl IntoView {
 
             <div class="demo-row">
                 <Tooltip content=|| view! { "Hello from tooltip" }>
-                    <span class="demo-kv">"Hover / Focus me"</span>
+                    <Button on_press=Callback::new(|_| {})>
+                        "Hover / Focus me"
+                    </Button>
                 </Tooltip>
                 <Tooltip content=|| view! { "Press Tab to focus, then Shift+Tab back." }>
-                    <span class="demo-kv">"Keyboard accessible"</span>
+                    <Button on_press=Callback::new(|_| {})>
+                        "Keyboard accessible"
+                    </Button>
                 </Tooltip>
             </div>
         </section>

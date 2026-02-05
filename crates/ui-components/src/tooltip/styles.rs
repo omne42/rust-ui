@@ -3,21 +3,7 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.ui-tooltip__trigger {
-  all: unset;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: help;
   -webkit-tap-highlight-color: transparent;
-}
-
-.ui-tooltip__trigger:focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 3px;
-  border-radius: var(--ui-radius-md);
 }
 
 .ui-tooltip__panel {
