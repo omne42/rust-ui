@@ -226,8 +226,13 @@ pub fn Autocomplete(
     let aria_controls = aria.input.aria_controls.clone();
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if aria.handlers.on_input_key_down.run(ev.key()) {
+        let key = ev.key();
+        let was_open = is_open.get_untracked();
+        if aria.handlers.on_input_key_down.run(key.clone()) {
             ev.prevent_default();
+            if key == "Escape" && was_open {
+                ev.stop_propagation();
+            }
         }
     };
 
