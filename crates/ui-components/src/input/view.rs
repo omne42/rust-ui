@@ -5,6 +5,17 @@ use ui_headless::{
     use_hover, use_press, use_text_field,
 };
 
+#[cfg(target_arch = "wasm32")]
+fn focus_input(input_ref: &NodeRef<html::Input>) {
+    let Some(el) = input_ref.get_untracked() else {
+        return;
+    };
+    let _ = el.focus();
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn focus_input(_input_ref: &NodeRef<html::Input>) {}
+
 #[component]
 pub fn Input(
     id: String,
@@ -107,11 +118,28 @@ pub fn Input(
     });
     motion::attach_clear_button_motion(
         clear_button_ref,
+        Signal::derive(move || view_state.get().show_clear),
         clear_hover.is_hovered,
         clear_press.is_pressed,
         disabled || read_only,
         motion,
     );
+
+    let on_input_key_down = move |ev: ev::KeyboardEvent| {
+        let key = ev.key();
+        if key != "Escape" {
+            return;
+        }
+        if disabled || read_only || !is_clearable {
+            return;
+        }
+        if is_empty.get_untracked() {
+            return;
+        }
+
+        ev.prevent_default();
+        set_value.set(String::new());
+    };
 
     view! {
         <div
@@ -165,49 +193,52 @@ pub fn Input(
                     aria-invalid=move || aria.input.aria_invalid.get()
                     aria-required=move || aria.input.aria_required.get()
                     on:input=move |ev| set_value.set(event_target_value(&ev))
+                    on:keydown=on_input_key_down
                 />
 
-                <Show when=move || view_state.get().show_clear>
-                    <button
-                        class="ui-input__clear"
-                        data-slot="input-clear"
-                        type="button"
-                        aria-label="Clear"
-                        node_ref=clear_button_ref
-                        on:pointerdown=move |ev: ev::PointerEvent| {
-                            // Keep focus in the input when clicking clear.
+                <button
+                    class="ui-input__clear"
+                    data-slot="input-clear"
+                    data-visible=move || view_state.get().show_clear.then_some("true")
+                    aria-hidden=move || (!view_state.get().show_clear).then_some("true")
+                    type="button"
+                    tabindex="-1"
+                    aria-label="Clear"
+                    node_ref=clear_button_ref
+                    disabled=move || disabled || read_only || !view_state.get().show_clear
+                    on:pointerdown=move |ev: ev::PointerEvent| {
+                        ev.prevent_default();
+                        focus_input(&node_ref);
+                        clear_press.handlers.on_pointer_down.run(());
+                    }
+                    on:pointerenter=move |_| clear_hover.handlers.on_pointer_enter.run(())
+                    on:pointerleave=move |_| clear_hover.handlers.on_pointer_leave.run(())
+                    on:pointerup=move |_| clear_press.handlers.on_pointer_up.run(())
+                    on:pointercancel=move |_| clear_press.handlers.on_pointer_cancel.run(())
+                    on:click=move |_| clear_press.handlers.on_click.run(())
+                    on:keydown=move |ev| {
+                        let key = ev.key();
+                        if clear_press.handlers.on_key_down.run(key) {
                             ev.prevent_default();
-                            clear_press.handlers.on_pointer_down.run(());
                         }
-                        on:pointerenter=move |_| clear_hover.handlers.on_pointer_enter.run(())
-                        on:pointerleave=move |_| clear_hover.handlers.on_pointer_leave.run(())
-                        on:pointerup=move |_| clear_press.handlers.on_pointer_up.run(())
-                        on:pointercancel=move |_| clear_press.handlers.on_pointer_cancel.run(())
-                        on:click=move |_| clear_press.handlers.on_click.run(())
-                        on:keydown=move |ev| {
-                            let key = ev.key();
-                            if clear_press.handlers.on_key_down.run(key) {
-                                ev.prevent_default();
-                            }
+                    }
+                    on:keyup=move |ev| {
+                        let key = ev.key();
+                        if clear_press.handlers.on_key_up.run(key) {
+                            ev.prevent_default();
                         }
-                        on:keyup=move |ev| {
-                            let key = ev.key();
-                            if clear_press.handlers.on_key_up.run(key) {
-                                ev.prevent_default();
-                            }
-                        }
-                        on:blur=move |_| clear_press.handlers.on_blur.run(())
-                    >
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path
-                                d="M6 6l8 8M14 6l-8 8"
-                                stroke="currentColor"
-                                stroke_width="2"
-                                stroke_linecap="round"
-                            />
-                        </svg>
-                    </button>
-                </Show>
+                    }
+                    on:blur=move |_| clear_press.handlers.on_blur.run(())
+                >
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path
+                            d="M6 6l8 8M14 6l-8 8"
+                            stroke="currentColor"
+                            stroke_width="2"
+                            stroke_linecap="round"
+                        />
+                    </svg>
+                </button>
 
                 <Show when=move || view_state.get().show_end>
                     <span class="ui-input__end" data-slot="input-end">

@@ -91,7 +91,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-input__clear {
-  --ui-input-clear-scale: 1;
+  --ui-input-clear-opacity: 0;
+  --ui-input-clear-scale: 0.85;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -102,8 +103,16 @@ pub const CSS: &str = r#"
   background: transparent;
   color: var(--ui-fg-muted);
   cursor: pointer;
+  opacity: var(--ui-input-clear-opacity, 0);
   transform: scale(var(--ui-input-clear-scale));
-  will-change: transform;
+  will-change: transform, opacity;
+  pointer-events: none;
+}
+
+.ui-input__clear[data-visible=\"true\"] {
+  --ui-input-clear-opacity: 1;
+  --ui-input-clear-scale: 1;
+  pointer-events: auto;
 }
 
 .ui-input__clear:hover {
