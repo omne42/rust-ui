@@ -123,8 +123,9 @@ pub fn Accordion(
                 motion::attach_indicator_motion(indicator_ref, open, motion);
 
                 let panel_ref: NodeRef<html::Div> = NodeRef::new();
+                let panel_surface_ref: NodeRef<html::Div> = NodeRef::new();
                 let panel_hidden = RwSignal::new(!open.get_untracked());
-                motion::attach_panel_motion(panel_ref, open, panel_hidden, motion);
+                motion::attach_panel_motion(panel_ref, panel_surface_ref, open, panel_hidden, motion);
 
                 let on_press = Callback::new(move |_| {
                     let next = logic::toggle_open_indices(selection_mode, &open_indices.get_untracked(), index);
@@ -232,7 +233,11 @@ pub fn Accordion(
                             data-open=move || if open.get() { Some("true") } else { None }
                             data-slot="accordion-panel"
                         >
-                            <div class="ui-accordion__panel-surface" data-slot="accordion-panel-surface">
+                            <div
+                                class="ui-accordion__panel-surface"
+                                node_ref=panel_surface_ref
+                                data-slot="accordion-panel-surface"
+                            >
                                 {panel}
                             </div>
                         </div>
