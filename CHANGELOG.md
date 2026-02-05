@@ -131,6 +131,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_combo_box` now takes `is_open: Signal<bool>` + `set_open: Callback<bool>` to support controlled open state.
 - `ui-components`: `ComboBox` popup panel is now positioned relative to the field control (fixes incorrect absolute positioning).
 - `ui-components`: `ComboBox` now supports `open/default_open/on_open_change`, labels its listbox via `aria-labelledby` (label `id`), and adds `ComboBoxMotion` (popover + highlight).
+- `ui-components`: `ComboBox` now stops Escape propagation while open, preventing parent overlays from closing (React Spectrum parity), and adds a semantics regression test.
 - `ui-components`: `Autocomplete` now supports `open/default_open/on_open_change` and labels its listbox via `aria-labelledby` (label `id`).
 - `ui-components`: `Disclosure` now supports `open/default_open/on_open_change`.
 - `ui-components`: `Disclosure` panels now animate open/close via spring-driven `height/opacity/y`, deferring `hidden` until motion completes.
