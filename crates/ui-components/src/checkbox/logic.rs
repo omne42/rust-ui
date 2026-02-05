@@ -31,3 +31,30 @@ impl CheckboxSize {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn variant_class_names_are_stable() {
+        assert_eq!(
+            CheckboxVariant::Default.class_name(),
+            "ui-checkbox--variant-default"
+        );
+        assert_eq!(
+            CheckboxVariant::Accent.class_name(),
+            "ui-checkbox--variant-accent"
+        );
+    }
+
+    #[test]
+    fn size_class_names_are_stable() {
+        assert_eq!(
+            CheckboxSize::Default.class_name(),
+            "ui-checkbox--size-default"
+        );
+        assert_eq!(CheckboxSize::Sm.class_name(), "ui-checkbox--size-sm");
+        assert_eq!(CheckboxSize::Lg.class_name(), "ui-checkbox--size-lg");
+    }
+}

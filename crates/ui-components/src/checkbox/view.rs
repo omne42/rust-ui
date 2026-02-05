@@ -75,7 +75,11 @@ pub fn Checkbox(
             disabled=disabled
             data-slot="checkbox"
             data-state=data_state
-            data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
+            data-hovered=move || hover.is_hovered.get().then_some("true")
+            data-pressed=move || aria.is_pressed.get().then_some("true")
+            data-focused=move || focus_ring.is_focused.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+            data-disabled=disabled.then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
