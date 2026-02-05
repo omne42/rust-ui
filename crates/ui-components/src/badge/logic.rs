@@ -17,3 +17,28 @@ impl BadgeVariant {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn variant_class_names_are_stable() {
+        assert_eq!(
+            BadgeVariant::Default.class_name(),
+            "ui-badge--variant-default"
+        );
+        assert_eq!(
+            BadgeVariant::Accent.class_name(),
+            "ui-badge--variant-accent"
+        );
+        assert_eq!(
+            BadgeVariant::Danger.class_name(),
+            "ui-badge--variant-danger"
+        );
+        assert_eq!(
+            BadgeVariant::Outline.class_name(),
+            "ui-badge--variant-outline"
+        );
+    }
+}
