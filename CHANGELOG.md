@@ -128,12 +128,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `MenuTrigger` now supports `open/default_open/on_open_change`, `disabled`, and labels its menu via `aria-labelledby` (trigger `id`).
 - `ui-components`: `DropdownMenu` now supports `open/default_open/on_open_change`, Spectrum-style ArrowUp/Down opening (focus first/last), and labels its menu via `aria-labelledby` (trigger `id`).
 - `ui-components`: `ActionMenu` now supports `open/default_open/on_open_change`, Spectrum-style ArrowUp/Down opening (focus first/last), and labels its menu via `aria-labelledby` (trigger `id`).
+- `ui-components`: `Select` now supports `open/default_open/on_open_change` and labels its listbox via `aria-labelledby` (trigger `id`).
 - `ui-components`: `<Button>` now supports an optional `id` prop.
 - `ui-components`: `<ActionButton>` now supports an optional `id` prop.
 - `ui-components`: `<Menu>` now supports `aria_labelledby` for accessible labeling.
+- `ui-components`: `<ListBox>` now supports `aria_labelledby` for accessible labeling.
 - `apps/web-demo`: adds a controlled `<MenuTrigger>` demo (external open state + `on_open_change`).
 - `apps/web-demo`: updates `<DropdownMenu>` demo to exercise controlled open state.
 - `apps/web-demo`: updates `<ActionMenu>` demo to exercise controlled open state.
+- `apps/web-demo`: adds a controlled `<Select>` demo (external open state + `on_open_change`).
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.

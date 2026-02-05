@@ -1,3 +1,4 @@
+use crate::overlay_open;
 use crate::select::logic;
 use crate::{Button, ListBox, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
@@ -14,6 +15,9 @@ pub fn Select(
     #[prop(optional)] placeholder: Option<String>,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
 ) -> impl IntoView {
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let disabled_set: HashSet<usize> = disabled_indices.iter().copied().collect();
@@ -25,8 +29,11 @@ pub fn Select(
     let (last_typed_at, set_last_typed_at) = signal(None::<std::time::Instant>);
     let typeahead_timeout = Duration::from_millis(500);
 
-    let (is_open, set_open) = signal(false);
-    let presence = use_presence(is_open.into());
+    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open = open_state.open;
+    let request_open_change = open_state.request_open_change;
+
+    let presence = use_presence(open);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
 
@@ -37,10 +44,13 @@ pub fn Select(
         if items.get_value().is_empty() {
             return;
         }
-        set_open_focus.set(logic::SelectOpenFocusStrategy::Selected);
-        set_open.update(|open| *open = !*open);
+        let next_open = !open.get_untracked();
+        if next_open {
+            set_open_focus.set(logic::SelectOpenFocusStrategy::Selected);
+        }
+        request_open_change.run(next_open);
     });
-    let on_close: OnPress = Callback::new(move |_| set_open.set(false));
+    let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
     let placeholder = placeholder.unwrap_or_else(|| "Select…".to_string());
     let trigger_label = Memo::new({
@@ -54,11 +64,12 @@ pub fn Select(
         }
     });
 
-    let listbox_id = format!("{id_base}-listbox");
     let id_base = StoredValue::new(id_base);
-    let listbox_id = StoredValue::new(listbox_id);
+    let ids = logic::resolve_ids(&id_base.get_value());
+    let trigger_id = StoredValue::new(ids.trigger_id);
+    let listbox_id = StoredValue::new(ids.listbox_id);
 
-    let on_action = Callback::new(move |_| set_open.set(false));
+    let on_action: Callback<usize> = Callback::new(move |_| request_open_change.run(false));
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
         if disabled {
@@ -69,7 +80,7 @@ pub fn Select(
             return;
         }
         let key = ev.key();
-        let is_open = is_open.get_untracked();
+        let is_open = open.get_untracked();
 
         match key.as_str() {
             "ArrowDown" => {
@@ -77,7 +88,7 @@ pub fn Select(
                     return;
                 }
                 set_open_focus.set(logic::SelectOpenFocusStrategy::First);
-                set_open.set(true);
+                request_open_change.run(true);
                 ev.prevent_default();
             }
             "ArrowUp" => {
@@ -85,7 +96,7 @@ pub fn Select(
                     return;
                 }
                 set_open_focus.set(logic::SelectOpenFocusStrategy::Last);
-                set_open.set(true);
+                request_open_change.run(true);
                 ev.prevent_default();
             }
             "ArrowLeft" | "ArrowRight" => {
@@ -185,11 +196,12 @@ pub fn Select(
     view! {
         <div class="ui-select" on:keydown=on_key_down on:keyup=on_key_up>
             <Button
+                id=trigger_id.get_value()
                 disabled=disabled
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 aria_haspopup="listbox"
-                aria_expanded=is_open.into()
+                aria_expanded=open
                 aria_controls=listbox_id.get_value()
             >
                 {move || trigger_label.get()}
@@ -197,7 +209,7 @@ pub fn Select(
 
             <Show when=move || presence.is_present.get()>
                 <Popover
-                    open=is_open.into()
+                    open=open
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=placement
@@ -220,6 +232,7 @@ pub fn Select(
                         <ListBox
                             id_base=id_base.get_value()
                             id=listbox_id.get_value()
+                            aria_labelledby=trigger_id.get_value()
                             class_name="ui-select__listbox"
                             items=items.get_value()
                             selected_index=selected_index

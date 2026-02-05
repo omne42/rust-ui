@@ -10,6 +10,8 @@ pub fn SelectDemo() -> impl IntoView {
         "Durian".to_string(),
     ];
     let (select_index, set_select_index) = signal(None::<usize>);
+    let (select_open, set_select_open) = signal(false);
+    let on_select_open_change = Callback::new(move |next: bool| set_select_open.set(next));
 
     view! {
         <section id="select" class="demo-card">
@@ -26,6 +28,20 @@ pub fn SelectDemo() -> impl IntoView {
                 />
                 <div class="demo-kv">
                     "selected_index: " {move || format!("{:?}", select_index.get())}
+                </div>
+            </div>
+
+            <div class="demo-row">
+                <Select
+                    id_base="demo-select-controlled".to_string()
+                    items=select_items.clone()
+                    selected_index=select_index
+                    set_selected_index=set_select_index
+                    open=select_open.into()
+                    on_open_change=on_select_open_change
+                />
+                <div class="demo-kv">
+                    "open: " {move || select_open.get().to_string()}
                 </div>
             </div>
         </section>

@@ -10,6 +10,7 @@ pub fn ListBox(
     selected_index: ReadSignal<Option<usize>>,
     set_selected_index: WriteSignal<Option<usize>>,
     #[prop(optional, into)] id: Option<String>,
+    #[prop(optional, into)] aria_labelledby: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] on_action: Option<Callback<usize>>,
@@ -82,6 +83,7 @@ pub fn ListBox(
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
+            aria-labelledby=aria_labelledby
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             on:keydown=on_key_down
             on:focus=move |_| focus_ring.handlers.on_focus.run(())

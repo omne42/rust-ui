@@ -1,5 +1,17 @@
 use std::collections::HashSet;
 
+pub struct SelectIds {
+    pub trigger_id: String,
+    pub listbox_id: String,
+}
+
+pub fn resolve_ids(id_base: &str) -> SelectIds {
+    SelectIds {
+        trigger_id: format!("{id_base}-trigger"),
+        listbox_id: format!("{id_base}-listbox"),
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SelectOpenFocusStrategy {
     /// Default behavior: focus the selected option when opening.
@@ -166,5 +178,12 @@ mod tests {
             find_typeahead_match("northernterr", 0, &items, &disabled),
             Some(1)
         );
+    }
+
+    #[test]
+    fn ids_include_trigger_and_listbox_suffixes() {
+        let ids = resolve_ids("demo");
+        assert_eq!(ids.trigger_id, "demo-trigger");
+        assert_eq!(ids.listbox_id, "demo-listbox");
     }
 }
