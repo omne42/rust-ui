@@ -17,6 +17,8 @@ pub fn MenuTrigger(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
     let id_base = StoredValue::new(id_base);
@@ -74,13 +76,27 @@ pub fn MenuTrigger(
         }
     };
 
+    let base_class = "ui-menu-trigger".to_string();
+    let class = class_name
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| format!("{base_class} {value}"))
+        .unwrap_or(base_class);
+    let aria_label = aria_label.unwrap_or_default();
+
     view! {
-        <div class="ui-menu-trigger" on:keydown=on_key_down>
+        <div
+            class=class
+            data-slot="menu-trigger"
+            data-open=move || open.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            on:keydown=on_key_down
+        >
             <Button
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
                 disabled=disabled
+                aria_label=aria_label
                 aria_haspopup="menu"
                 aria_expanded=open
                 aria_controls_signal=aria_controls

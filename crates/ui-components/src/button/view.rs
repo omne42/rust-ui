@@ -55,6 +55,7 @@ pub fn Button(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
     let button_type = button_type.unwrap_or("button");
+    let aria_label = aria_label.filter(|value| !value.trim().is_empty());
 
     view! {
         <button

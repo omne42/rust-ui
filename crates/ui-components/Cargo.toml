@@ -16,3 +16,10 @@ ui-theme = { path = "../ui-theme" }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3.85"
 web-sys = { version = "0.3.85", features = ["DataTransfer", "DragEvent", "File", "FileList", "HtmlInputElement", "ResizeObserver", "ResizeObserverEntry"] }
+
+[dev-dependencies]
+tachys = "0.2.11"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ["cfg(erase_components)"]

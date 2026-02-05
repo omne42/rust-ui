@@ -3935,8 +3935,6 @@ dependencies = [
 [[package]]
 name = "tachys"
 version = "0.2.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2b2db11e455f7e84e2cc3e76f8a3f3843f7956096265d5ecff781eabe235077"
 dependencies = [
  "any_spawner",
  "async-trait",
@@ -4620,6 +4618,7 @@ version = "0.0.0"
 dependencies = [
  "js-sys",
  "leptos",
+ "tachys",
  "ui-headless",
  "ui-motion",
  "ui-theme",
