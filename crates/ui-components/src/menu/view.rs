@@ -9,6 +9,7 @@ pub fn Menu(
     #[prop(into)] items: Arc<[String]>,
     on_action: Callback<usize>,
     #[prop(optional, into)] id: Option<String>,
+    #[prop(optional, into)] aria_labelledby: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
@@ -75,6 +76,7 @@ pub fn Menu(
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
+            aria-labelledby=aria_labelledby
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             on:keydown=on_key_down
         >

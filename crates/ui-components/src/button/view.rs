@@ -6,6 +6,7 @@ use ui_headless::{
 
 #[component]
 pub fn Button(
+    #[prop(optional, into)] id: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] is_loading: bool,
     #[prop(optional)] variant: ButtonVariant,
@@ -54,6 +55,7 @@ pub fn Button(
 
     view! {
         <button
+            id=id
             type=button_type
             node_ref=node_ref
             class=class

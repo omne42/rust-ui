@@ -1,23 +1,21 @@
+use crate::menu_trigger::logic;
 use crate::{Button, Menu, MenuItemKind, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
 use ui_headless::PopoverPlacement;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-enum MenuOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
-}
 
 #[component]
 pub fn MenuTrigger(
     id_base: String,
     items: Vec<String>,
     on_action: Callback<usize>,
+    #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
     #[prop(default = true)] close_on_action: bool,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
     children: Children,
 ) -> impl IntoView {
     let id_base = StoredValue::new(id_base);
@@ -25,72 +23,64 @@ pub fn MenuTrigger(
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
     let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(item_kinds);
 
-    let (is_open, set_open) = signal(false);
-    let (open_focus, set_open_focus) = signal(MenuOpenFocusStrategy::First);
+    let open_state = logic::use_controllable_open_state(open, default_open, on_open_change);
+    let open = open_state.open;
+    let request_open_change = open_state.request_open_change;
+
+    let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if items.get_value().is_empty() {
+        if disabled || items.get_value().is_empty() {
             return;
         }
-        set_open_focus.set(MenuOpenFocusStrategy::First);
-        set_open.update(|v| *v = !*v);
+        let next_open = !open.get_untracked();
+        if next_open {
+            set_open_focus.set(logic::MenuOpenFocusStrategy::First);
+        }
+        request_open_change.run(next_open);
     });
-    let on_close: OnPress = Callback::new(move |_| set_open.set(false));
+    let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
     let on_action_wrapped = Callback::new(move |index: usize| {
         on_action.run(index);
         if close_on_action {
-            set_open.set(false);
+            request_open_change.run(false);
         }
     });
 
-    let menu_id: StoredValue<String> = StoredValue::new(format!("{}-menu", id_base.get_value()));
-    let presence = use_presence(is_open.into());
+    let ids = logic::resolve_ids(&id_base.get_value());
+    let trigger_id = StoredValue::new(ids.trigger_id);
+    let menu_id = StoredValue::new(ids.menu_id);
+
+    let presence = use_presence(open);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if items.get_value().is_empty() {
+        if disabled || items.get_value().is_empty() {
             return;
         }
-        if is_open.get_untracked() {
+        if open.get_untracked() {
             return;
         }
 
-        match ev.key().as_str() {
-            "ArrowDown" => {
-                set_open_focus.set(MenuOpenFocusStrategy::First);
-                set_open.set(true);
-                ev.prevent_default();
-            }
-            "ArrowUp" => {
-                set_open_focus.set(MenuOpenFocusStrategy::Last);
-                set_open.set(true);
-                ev.prevent_default();
-            }
-            "Enter" => {
-                set_open_focus.set(MenuOpenFocusStrategy::First);
-            }
-            _ => {}
-        }
-    };
-
-    let on_key_up = move |ev: ev::KeyboardEvent| {
-        if items.get_value().is_empty() {
-            return;
-        }
-        if matches!(ev.key().as_str(), " " | "Space" | "Spacebar") {
-            set_open_focus.set(MenuOpenFocusStrategy::First);
+        let key = ev.key();
+        if let Some(strategy) = logic::focus_strategy_for_open_key(&key) {
+            set_open_focus.set(strategy);
+            request_open_change.run(true);
+            ev.prevent_default();
         }
     };
 
     view! {
-        <div class="ui-menu-trigger" on:keydown=on_key_down on:keyup=on_key_up>
+        <div class="ui-menu-trigger" on:keydown=on_key_down>
             <Button
                 node_ref=anchor_ref
                 on_press=on_trigger_press
+                id=trigger_id.get_value()
+                disabled=disabled
                 aria_haspopup="menu"
-                aria_expanded=is_open.into()
+                aria_expanded=open
                 aria_controls=menu_id.get_value()
             >
                 {children()}
@@ -98,22 +88,21 @@ pub fn MenuTrigger(
 
             <Show when=move || presence.is_present.get()>
                 <Popover
-                    open=is_open.into()
+                    open=open
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=placement
                     on_exit_complete=presence.finish_exit
                 >
                     {move || {
-                        let default_index = match open_focus.get_untracked() {
-                            MenuOpenFocusStrategy::First => 0,
-                            MenuOpenFocusStrategy::Last => items.get_value().len().saturating_sub(1),
-                        };
+                        let default_index =
+                            open_focus.get_untracked().default_index(items.get_value().len());
 
                         view! {
                             <Menu
                                 id_base=id_base.get_value()
                                 id=menu_id.get_value()
+                                aria_labelledby=trigger_id.get_value()
                                 items=items.get_value()
                                 on_action=on_action_wrapped
                                 disabled_indices=disabled_indices.get_value()

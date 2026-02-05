@@ -125,6 +125,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `<HoverCard>` now uses headless trigger state, marks its panel as an overlay portal, and positions via CSS variables (no direct `web-sys`).
 - `ui-headless`: `use_menu` now supports `default_index` to enable menu trigger focus strategies (e.g. open + focus last item).
 - `ui-components`: `MenuTrigger` now supports Spectrum-style keyboard opening (ArrowDown opens focusing first; ArrowUp opens focusing last).
+- `ui-components`: `MenuTrigger` now supports `open/default_open/on_open_change`, `disabled`, and labels its menu via `aria-labelledby` (trigger `id`).
+- `ui-components`: `<Button>` now supports an optional `id` prop.
+- `ui-components`: `<Menu>` now supports `aria_labelledby` for accessible labeling.
+- `apps/web-demo`: adds a controlled `<MenuTrigger>` demo (external open state + `on_open_change`).
 - `ui-motion`: `SpringAnimator` now runs `on_rest` immediately when reduced motion is enabled (fixes presence-style flows).
 - `ui-components`: overlay/popover motion now animates enter when mounting while open (better presence UX).
 - `ui-headless`: `use_popover_position` now exposes `anchor_width_px` for width-aligned panels.

@@ -21,6 +21,9 @@ pub fn MenuDemo() -> impl IntoView {
     };
     let on_menu_action = Callback::new(move |index: usize| set_menu_selected.set(Some(index)));
 
+    let (controlled_open, set_controlled_open) = signal(false);
+    let on_menu_open_change = Callback::new(move |next: bool| set_controlled_open.set(next));
+
     let checkbox_menu_items = vec![
         "Show Grid".to_string(),
         "Show Rulers".to_string(),
@@ -84,6 +87,21 @@ pub fn MenuDemo() -> impl IntoView {
                 </MenuTrigger>
                 <div class="demo-kv">
                     "selected: " {menu_selected_label}
+                </div>
+            </div>
+
+            <div class="demo-row">
+                <MenuTrigger
+                    id_base="demo-menu-controlled".to_string()
+                    items=menu_items.clone()
+                    on_action=on_menu_action
+                    open=controlled_open.into()
+                    on_open_change=on_menu_open_change
+                >
+                    "Controlled Menu"
+                </MenuTrigger>
+                <div class="demo-kv">
+                    "open: " {move || controlled_open.get().to_string()}
                 </div>
             </div>
 
