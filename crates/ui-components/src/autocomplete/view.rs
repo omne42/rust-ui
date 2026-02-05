@@ -296,6 +296,13 @@ pub fn Autocomplete(
             class:ui-autocomplete--invalid=move || invalid.get()
             class:ui-autocomplete--disabled=disabled
             data-slot="autocomplete"
+            data-focused=move || focus_ring.is_focused.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-required=move || required.get().then_some("true")
+            data-open=move || is_open.get().then_some("true")
+            data-empty=move || query.get().trim().is_empty().then_some("true")
         >
             <label
                 class="ui-autocomplete__label"

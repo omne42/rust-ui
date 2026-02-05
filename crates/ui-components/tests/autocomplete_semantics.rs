@@ -64,3 +64,23 @@ fn autocomplete_panel_styles_use_fixed_positioning_and_transform_origin_by_place
         "Autocomplete panel styles should set transform origin based on `data-placement`."
     );
 }
+
+#[test]
+fn autocomplete_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/autocomplete/view.rs");
+
+    for attr in [
+        "data-focused",
+        "data-focus-visible",
+        "data-invalid",
+        "data-disabled",
+        "data-required",
+        "data-open",
+        "data-empty",
+    ] {
+        assert!(
+            source.contains(attr),
+            "Autocomplete should set `{attr}` to support Spectrum-style styling and state inspection."
+        );
+    }
+}
