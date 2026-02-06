@@ -95,6 +95,27 @@
           { once: true }
         );
 
+        const original_console_error = console.error.bind(console);
+        console.error = (...args) => {
+          try {
+            const text = args
+              .map((arg) => {
+                if (typeof arg === "string") return arg;
+                if (arg instanceof Error) return arg.stack || arg.message;
+                try {
+                  return JSON.stringify(arg, null, 2);
+                } catch {
+                  return String(arg);
+                }
+              })
+              .join(" ");
+            set_details("Console error", text);
+          } catch {
+            // ignore
+          }
+          original_console_error(...args);
+        };
+
         window.addEventListener("error", (ev) => {
           set_details("Runtime error", ev?.error ?? ev?.message ?? ev);
         });
