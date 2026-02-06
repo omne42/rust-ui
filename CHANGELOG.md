@@ -226,6 +226,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Menu` docs now include Kinds + Selection and Disabled + Empty playgrounds.
 - `ui-components`: `ListBox` now resolves accessible names (`aria-label` > `aria-labelledby` > default `"Listbox"`), emits Spectrum-style root/option `data-*` state attrs, and adds semantics regression coverage.
 - `apps/docs-app`: `ListBox` docs now include Selection + Typeahead and Disabled + Empty playgrounds.
+- `ui-components`: `CheckboxGroup` now normalizes label/description/error text, adds explicit legend labeling (`aria-labelledby`), emits Spectrum-style state `data-*` attrs, and adds semantics regression coverage.
+- `apps/docs-app`: `CheckboxGroup` docs now include Validation + Required and Disabled playgrounds.
 - `apps/web-demo`: adds a controlled `<MenuTrigger>` demo (external open state + `on_open_change`).
 - `apps/web-demo`: updates `<DropdownMenu>` demo to exercise controlled open state.
 - `apps/web-demo`: updates `<ActionMenu>` demo to exercise controlled open state.

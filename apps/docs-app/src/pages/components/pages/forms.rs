@@ -292,12 +292,38 @@ pub(super) fn checkbox() -> AnyView {
 }
 
 pub(super) fn checkbox_group() -> AnyView {
-    let (a, set_a) = signal(false);
-    let (b, set_b) = signal(true);
-    let (invalid, set_invalid) = signal(false);
-    let code = r#"<CheckboxGroup id="demo".to_string() label="Fruits".to_string()>
-  <Checkbox ...>"Apple"</Checkbox>
-  <Checkbox ...>"Banana"</Checkbox>
+    let (apple, set_apple) = signal(false);
+    let (banana, set_banana) = signal(true);
+    let (mango, set_mango) = signal(false);
+
+    let invalid = Signal::derive(move || !(apple.get() || banana.get() || mango.get()));
+    let required = Signal::derive(|| true);
+    let external_desc_id = "docs-checkbox-group-extra".to_string();
+    let aria_describedby = Signal::derive(move || Some(external_desc_id.clone()));
+
+    let (disabled_a, set_disabled_a) = signal(true);
+    let (disabled_b, set_disabled_b) = signal(false);
+
+    let code = r#"let invalid = Signal::derive(move || !(apple.get() || banana.get()));
+<CheckboxGroup
+  id="demo".to_string()
+  label="Fruits".to_string()
+  description="Pick at least one".to_string()
+  error="At least one required".to_string()
+  required=Signal::derive(|| true)
+  invalid=invalid
+>
+  <Checkbox checked=apple set_checked=set_apple>"Apple"</Checkbox>
+  <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
+</CheckboxGroup>"#;
+
+    let disabled_code = r#"<CheckboxGroup
+  id="disabled".to_string()
+  label="Notifications".to_string()
+  disabled=true
+>
+  <Checkbox ...>"Email"</Checkbox>
+  <Checkbox ...>"SMS"</Checkbox>
 </CheckboxGroup>"#;
 
     view! {
@@ -305,30 +331,76 @@ pub(super) fn checkbox_group() -> AnyView {
             title="CheckboxGroup"
             slug="checkbox-group"
             group="Forms"
-            description="Fieldset wrapper with label/description/error slots."
+            description="Fieldset wrapper with Spectrum-style label/description/error semantics and state attrs."
         >
-            <Playground title="Group" code=code>
+            <Playground title="Validation + Required" code=code>
                 <div class="docs-stack">
                     <CheckboxGroup
                         id="docs-checkbox-group".to_string()
                         label="Fruits".to_string()
-                        description="Pick any".to_string()
+                        description="Pick at least one".to_string()
                         error="At least one required".to_string()
-                        invalid=Signal::derive(move || invalid.get())
+                        required=required
+                        invalid=invalid
+                        aria_describedby=aria_describedby
                     >
-                        <Checkbox checked=a set_checked=set_a>"Apple"</Checkbox>
-                        <Checkbox checked=b set_checked=set_b>"Banana"</Checkbox>
+                        <Checkbox checked=apple set_checked=set_apple>"Apple"</Checkbox>
+                        <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
+                        <Checkbox checked=mango set_checked=set_mango>"Mango"</Checkbox>
                     </CheckboxGroup>
+
+                    <div id="docs-checkbox-group-extra" class="ui-muted">
+                        "Tip: combine with an external description via aria-describedby."
+                    </div>
+
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || {
+                            let mut picked = Vec::new();
+                            if apple.get() {
+                                picked.push("Apple");
+                            }
+                            if banana.get() {
+                                picked.push("Banana");
+                            }
+                            if mango.get() {
+                                picked.push("Mango");
+                            }
+                            if picked.is_empty() {
+                                "None".to_string()
+                            } else {
+                                picked.join(", ")
+                            }
+                        }}
+                        " · invalid: "
+                        {move || invalid.get().to_string()}
+                    </span>
 
                     <div class="docs-row">
                         <ui_components::Button
                             variant=ui_components::ButtonVariant::Secondary
-                            on_press=Callback::new(move |_| set_invalid.update(|v| *v = !*v))
+                            on_press=Callback::new(move |_| {
+                                set_apple.set(false);
+                                set_banana.set(false);
+                                set_mango.set(false);
+                            })
                         >
-                            {move || if invalid.get() { "Clear invalid" } else { "Mark invalid" }}
+                            "Clear selections"
                         </ui_components::Button>
                     </div>
                 </div>
+            </Playground>
+
+            <Playground title="Disabled" code=disabled_code>
+                <CheckboxGroup
+                    id="docs-checkbox-group-disabled".to_string()
+                    label="Notifications".to_string()
+                    description="Read-only preferences".to_string()
+                    disabled=true
+                >
+                    <Checkbox checked=disabled_a set_checked=set_disabled_a>"Email"</Checkbox>
+                    <Checkbox checked=disabled_b set_checked=set_disabled_b>"SMS"</Checkbox>
+                </CheckboxGroup>
             </Playground>
         </ComponentPage>
     }

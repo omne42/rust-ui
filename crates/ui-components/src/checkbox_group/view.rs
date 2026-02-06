@@ -1,4 +1,6 @@
-use crate::checkbox_group::logic::{CheckboxGroupOptions, use_checkbox_group};
+use crate::checkbox_group::logic::{
+    CheckboxGroupOptions, normalize_label, normalize_optional_text, resolve_ids, use_checkbox_group,
+};
 use leptos::prelude::*;
 
 #[component]
@@ -14,10 +16,20 @@ pub fn CheckboxGroup(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let ids = resolve_ids(&id);
+    let legend_id = StoredValue::new(ids.legend_id);
+
+    let label = StoredValue::new(normalize_label(label));
+    let description = normalize_optional_text(description);
+    let error = normalize_optional_text(error);
+
+    let has_description = description.is_some();
+    let has_error = error.is_some();
+
     let aria = use_checkbox_group(CheckboxGroupOptions {
         id: id.clone(),
-        has_description: description.is_some(),
-        has_error: error.is_some(),
+        has_description,
+        has_error,
         aria_describedby,
         is_invalid: invalid,
         is_required: required,
@@ -36,16 +48,23 @@ pub fn CheckboxGroup(
             class:ui-checkbox-group--invalid=move || invalid.get()
             class:ui-checkbox-group--required=move || required.get()
             disabled=disabled
+            aria-labelledby=legend_id.get_value()
             aria-describedby=move || aria.fieldset.aria_describedby.get()
             aria-invalid=move || aria.fieldset.aria_invalid.get()
             aria-required=move || aria.fieldset.aria_required.get()
             data-slot="checkbox-group"
+            data-disabled=disabled.then_some("true")
+            data-invalid=move || invalid.get().then_some("true")
+            data-required=move || required.get().then_some("true")
+            data-has-description=has_description.then_some("true")
+            data-has-error=has_error.then_some("true")
         >
             <legend
                 class="ui-checkbox-group__label"
+                id=legend_id.get_value()
                 data-slot="checkbox-group-label"
             >
-                {label}
+                {label.get_value()}
             </legend>
 
             <div class="ui-checkbox-group__list" data-slot="checkbox-group-list">
@@ -53,30 +72,30 @@ pub fn CheckboxGroup(
             </div>
 
             {description.map(|description| {
-                let description_id = aria.description.id.clone();
+                let description_id = StoredValue::new(aria.description.id.clone());
+                let description = StoredValue::new(description);
                 view! {
                     <div
                         class="ui-checkbox-group__description"
-                        id=description_id
+                        id=description_id.get_value()
                         data-slot="checkbox-group-description"
                     >
-                        {description}
+                        {description.get_value()}
                     </div>
                 }
             })}
 
             {error.map(|error| {
-                let error_id = aria.error.id.clone();
-                let error_id = StoredValue::new(error_id);
+                let error_id = StoredValue::new(aria.error.id.clone());
                 let error = StoredValue::new(error);
                 view! {
                     <Show when=move || invalid.get()>
                         <div
                             class="ui-checkbox-group__error"
-                            id=move || error_id.get_value()
+                            id=error_id.get_value()
                             data-slot="checkbox-group-error"
                         >
-                            {move || error.get_value()}
+                            {error.get_value()}
                         </div>
                     </Show>
                 }

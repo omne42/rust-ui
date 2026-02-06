@@ -1,6 +1,33 @@
 use leptos::prelude::*;
 use ui_headless::{TextFieldOptions, use_text_field};
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CheckboxGroupIds {
+    pub legend_id: String,
+}
+
+pub fn resolve_ids(id: &str) -> CheckboxGroupIds {
+    CheckboxGroupIds {
+        legend_id: format!("{id}-label"),
+    }
+}
+
+pub fn normalize_label(label: String) -> String {
+    let trimmed = label.trim();
+    if trimmed.is_empty() {
+        "Options".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
 #[derive(Clone)]
 pub struct CheckboxGroupOptions {
     pub id: String,
@@ -50,5 +77,39 @@ pub fn use_checkbox_group(options: CheckboxGroupOptions) -> CheckboxGroupAria {
             id: aria.description.id,
         },
         error: CheckboxGroupMessageAttrs { id: aria.error.id },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resolve_ids_builds_legend_id() {
+        assert_eq!(
+            resolve_ids("prefs"),
+            CheckboxGroupIds {
+                legend_id: "prefs-label".to_string(),
+            }
+        );
+    }
+
+    #[test]
+    fn normalize_label_trims_and_defaults() {
+        assert_eq!(
+            normalize_label("  Fruits  ".to_string()),
+            "Fruits".to_string()
+        );
+        assert_eq!(normalize_label("   ".to_string()), "Options".to_string());
+    }
+
+    #[test]
+    fn normalize_optional_text_filters_blank_values() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some("  ".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some("  Pick at least one  ".to_string())),
+            Some("Pick at least one".to_string())
+        );
     }
 }
