@@ -197,39 +197,111 @@ let (selected, set_selected) = signal(None::<usize>);
 pub(super) fn menu() -> AnyView {
     let items: Arc<[String]> = vec![
         "New file".to_string(),
-        "Rename".to_string(),
-        "Delete".to_string(),
+        "Share with team".to_string(),
+        "Sort ascending".to_string(),
     ]
     .into();
-    let (last, set_last) = signal(None::<usize>);
-    let on_action = Callback::new(move |index: usize| set_last.set(Some(index)));
+    let disabled_items: Arc<[String]> = vec![
+        "Duplicate".to_string(),
+        "Move".to_string(),
+        "Archive".to_string(),
+    ]
+    .into();
+    let empty_items: Arc<[String]> = Vec::<String>::new().into();
 
-    let code = r#"let items: Arc<[String]> = vec!["New file".to_string(), "Rename".to_string()].into();
-<Menu id_base="menu".to_string() items=items on_action=on_action />"#;
+    let (last, set_last) = signal(None::<usize>);
+    let (share_checked, set_share_checked) = signal(true);
+    let (sort_ascending, set_sort_ascending) = signal(true);
+
+    let on_action = Callback::new(move |index: usize| {
+        set_last.set(Some(index));
+        match index {
+            1 => set_share_checked.update(|value| *value = !*value),
+            2 => set_sort_ascending.update(|value| *value = !*value),
+            _ => {}
+        }
+    });
+
+    let noop_action = Callback::new(|_: usize| {});
+
+    let code = r#"let items: Arc<[String]> = vec!["New file".to_string(), "Share with team".to_string()].into();
+<Menu
+  id_base="menu".to_string()
+  items=items
+  on_action=on_action
+  aria_label="File actions".to_string()
+  item_kinds=vec![
+    MenuItemKind::Action,
+    MenuItemKind::Checkbox { is_checked: Signal::derive(|| true) },
+  ]
+/>"#;
+
+    let states_code = r#"<Menu
+  id_base="menu-disabled".to_string()
+  items=items
+  on_action=noop_action
+  aria_label="Disabled menu".to_string()
+  disabled=true
+/>
+<Menu
+  id_base="menu-empty".to_string()
+  items=Vec::<String>::new().into()
+  on_action=noop_action
+  aria_label="Empty menu".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Menu"
             slug="menu"
             group="Collections"
-            description="ARIA menu with menuitem kinds (action/checkbox/radio)."
+            description="ARIA menu with action / checkbox / radio roles, active-highlight motion, and Spectrum-style state attrs."
         >
-            <Playground title="Menu" code=code>
+            <Playground title="Kinds + Selection" code=code>
                 <div class="docs-stack">
                     <Menu
                         id_base="docs-menu".to_string()
                         items=items
                         on_action=on_action
+                        aria_label="File actions".to_string()
                         item_kinds=vec![
                             MenuItemKind::Action,
-                            MenuItemKind::Checkbox { is_checked: Signal::derive(|| true) },
-                            MenuItemKind::Radio { is_checked: Signal::derive(|| false) },
+                            MenuItemKind::Checkbox {
+                                is_checked: Signal::derive(move || share_checked.get()),
+                            },
+                            MenuItemKind::Radio {
+                                is_checked: Signal::derive(move || sort_ascending.get()),
+                            },
                         ]
                     />
                     <span class="ui-muted">
                         "last action: "
-                        {move || last.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        {move || last.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                     </span>
+                    <span class="ui-muted">
+                        "share checked: "
+                        {move || share_checked.get().to_string()}
+                        " · sort ascending: "
+                        {move || sort_ascending.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <Menu
+                        id_base="docs-menu-disabled".to_string()
+                        items=disabled_items
+                        on_action=noop_action
+                        aria_label="Disabled menu".to_string()
+                        disabled=true
+                    />
+                    <Menu
+                        id_base="docs-menu-empty".to_string()
+                        items=empty_items
+                        on_action=noop_action
+                        aria_label="Empty menu".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

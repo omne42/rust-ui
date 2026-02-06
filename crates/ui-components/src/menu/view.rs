@@ -1,4 +1,5 @@
 use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
+use crate::menu::logic;
 use leptos::{html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{MenuItemKind, MenuItemOptions, MenuOptions, use_menu, use_menu_item};
@@ -9,6 +10,7 @@ pub fn Menu(
     #[prop(into)] items: Arc<[String]>,
     on_action: Callback<usize>,
     #[prop(optional, into)] id: Option<String>,
+    #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] aria_labelledby: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
@@ -17,6 +19,7 @@ pub fn Menu(
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_empty = items.is_empty();
     let (item_count, _set_item_count) = signal(items.len());
 
     let disabled_set: HashSet<usize> = disabled_indices.into_iter().collect();
@@ -69,15 +72,23 @@ pub fn Menu(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let accessible_name = logic::resolve_accessible_name(aria_label, aria_labelledby);
+    let aria_label = StoredValue::new(accessible_name.aria_label);
+    let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
+
     view! {
         <div
             class=class
             id=id
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
+            aria-label=aria_label.get_value()
+            aria-labelledby=aria_labelledby.get_value()
             aria-disabled=aria.attrs.aria_disabled
-            aria-labelledby=aria_labelledby
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
+            data-slot="menu"
+            data-disabled=disabled.then_some("true")
+            data-empty=is_empty.then_some("true")
             on:keydown=on_key_down
         >
             <div class="ui-menu__items" node_ref=items_ref data-slot="menu-items">
@@ -114,6 +125,17 @@ pub fn Menu(
                                 aria-checked=move || item.attrs.aria_checked.get()
                                 aria-disabled=item.attrs.aria_disabled
                                 class="ui-menu__item"
+                                data-slot="menu-item"
+                                data-kind=item.attrs.role
+                                data-checked=move || {
+                                    item.attrs
+                                        .aria_checked
+                                        .get()
+                                        .filter(|state| *state == "true")
+                                }
+                                data-focused=move || {
+                                    (aria.active_index.get() == index).then_some("true")
+                                }
                                 data-disabled=if is_disabled { Some("true") } else { None }
                                 on:pointermove=move |_| item.handlers.on_pointer_move.run(())
                                 on:click=move |_| item.handlers.on_click.run(())
