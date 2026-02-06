@@ -24,3 +24,20 @@ fn sheet_escape_respects_default_prevented_and_composition() {
         "Sheet should stop Escape propagation when closing to avoid cascading dismiss handlers."
     );
 }
+
+#[test]
+fn sheet_supports_dismissable_and_keyboard_dismiss_flags() {
+    let source = load_source("src/sheet/view.rs");
+
+    for needle in [
+        "is_dismissable",
+        "is_keyboard_dismiss_disabled",
+        "if is_dismissable",
+        "!is_keyboard_dismiss_disabled",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Sheet should support Spectrum-style dismiss control flags (`{needle}`)."
+        );
+    }
+}

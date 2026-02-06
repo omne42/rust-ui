@@ -191,6 +191,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - WASM CSR builds no longer abort when attribute spreading adds a 27th HTML attribute (patched `tachys` and added a regression test).
 - `ui-components`: `<Popover>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
 - `ui-components`: `<Sheet>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
+- `ui-components`: `<Sheet>` now supports `is_dismissable` and `is_keyboard_dismiss_disabled` to control backdrop/Escape dismissal, and adds semantics coverage.
 - `ui-components`: `<ToastViewport>` now marks its portaled viewport as an overlay portal (`data-ui-overlay-portal`) so modal `aria-hidden` logic doesn't hide toasts.
 - `apps/web-demo`: add a minimal boot loader and runtime error surface to avoid a blank screen during WASM startup.
 - `apps/docs-app`: add a minimal boot loader and runtime error surface to avoid a blank screen during WASM startup.

@@ -357,8 +357,31 @@ pub(super) fn sheet() -> AnyView {
     let open_sheet: OnPress = Callback::new(move |_| set_open_raw.set(true));
     let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
+    let (locked_open_raw, set_locked_open_raw) = signal(false);
+    let locked_open: Signal<bool> = Signal::derive(move || locked_open_raw.get());
+    let (locked_present, set_locked_present) = signal(locked_open.get_untracked());
+    Effect::new(move |_| {
+        if locked_open.get() {
+            set_locked_present.set(true);
+        }
+    });
+
+    let close_locked: OnPress = Callback::new(move |_| set_locked_open_raw.set(false));
+    let open_locked: OnPress = Callback::new(move |_| set_locked_open_raw.set(true));
+    let on_locked_exit_complete = Callback::new(move |_| set_locked_present.set(false));
+
     let code = r#"<Sheet open=open placement=SheetPlacement::Bottom on_close=close on_exit_complete=finish_exit>
   move || view!{ ... }
+</Sheet>"#;
+
+    let locked_code = r#"<Sheet
+  open=open
+  placement=SheetPlacement::Bottom
+  on_close=close
+  is_dismissable=false
+  is_keyboard_dismiss_disabled=true
+>
+  ...
 </Sheet>"#;
 
     view! {
@@ -366,7 +389,7 @@ pub(super) fn sheet() -> AnyView {
             title="Sheet"
             slug="sheet"
             group="Overlays"
-            description="Sheet overlay (mobile-friendly) with placement and spring enter/exit."
+            description="Sheet overlay (mobile-friendly) with placement, spring enter/exit, and dismiss control flags."
         >
             <Playground title="Bottom sheet" code=code>
                 <div class="docs-row">
@@ -385,6 +408,38 @@ pub(super) fn sheet() -> AnyView {
                             <div class="ui-muted">"Esc/backdrop closes. Focus trap enabled."</div>
                             <div class="docs-row docs-row--end">
                                 <Button variant=ButtonVariant::Secondary on_press=on_close>"Close"</Button>
+                            </div>
+                        </div>
+                    </Sheet>
+                </Show>
+            </Playground>
+
+            <Playground title="Non-dismissable sheet" code=locked_code>
+                <div class="docs-row">
+                    <Button on_press=open_locked>"Open locked sheet"</Button>
+                    <span class="ui-muted">
+                        "open: " {move || locked_open_raw.get().to_string()}
+                    </span>
+                </div>
+
+                <Show when=move || locked_present.get()>
+                    <Sheet
+                        open=locked_open
+                        placement=SheetPlacement::Bottom
+                        on_close=close_locked
+                        is_dismissable=false
+                        is_keyboard_dismiss_disabled=true
+                        on_exit_complete=on_locked_exit_complete
+                    >
+                        <div class="docs-stack">
+                            <div>"Backdrop clicks and Escape are disabled."</div>
+                            <div class="ui-muted">
+                                "Use an explicit action to close."
+                            </div>
+                            <div class="docs-row docs-row--end">
+                                <Button variant=ButtonVariant::Secondary on_press=close_locked>
+                                    "Close"
+                                </Button>
                             </div>
                         </div>
                     </Sheet>

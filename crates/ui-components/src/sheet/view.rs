@@ -13,6 +13,8 @@ pub fn Sheet(
     #[prop(optional)] placement: SheetPlacement,
     #[prop(optional)] aria_labelledby: Option<String>,
     #[prop(optional)] aria_describedby: Option<String>,
+    #[prop(optional, default = true)] is_dismissable: bool,
+    #[prop(optional)] is_keyboard_dismiss_disabled: bool,
     #[prop(optional)] motion: SheetMotion,
     /// Called after the close animation finishes (useful for presence/unmount).
     #[prop(optional)]
@@ -48,7 +50,12 @@ pub fn Sheet(
             #[cfg(not(target_arch = "wasm32"))]
             let default_prevented = false;
 
-            if key == "Escape" && is_topmost.get() && !is_composing && !default_prevented {
+            if key == "Escape"
+                && is_topmost.get()
+                && !is_composing
+                && !default_prevented
+                && !is_keyboard_dismiss_disabled
+            {
                 ev.stop_propagation();
                 ev.prevent_default();
                 on_close.run(());
@@ -61,7 +68,14 @@ pub fn Sheet(
     view! {
         <Portal>
             <div class=move || class.get_value() data-ui-overlay-portal="" node_ref=root_ref on:keydown=on_key_down>
-                <div class="ui-sheet__backdrop" on:click=move |_| on_close.run(())></div>
+                <div
+                    class="ui-sheet__backdrop"
+                    on:click=move |_| {
+                        if is_dismissable {
+                            on_close.run(());
+                        }
+                    }
+                ></div>
                 <div
                     class="ui-sheet__panel"
                     role="dialog"
