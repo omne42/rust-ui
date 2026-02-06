@@ -445,6 +445,9 @@ pub(super) fn tag_group() -> AnyView {
         set_tags.update(|list| list.retain(|t| t.id != tag.id));
     });
 
+    let invalid = Signal::derive(move || tags.get().is_empty());
+    let required = Signal::derive(|| true);
+
     let code = r#"let (tags, set_tags) = signal(vec![Tag { label: "Rust".to_string(), disabled: false }]);
 <TagGroup tags=tags on_remove=Some(on_remove) />"#;
 
@@ -457,6 +460,29 @@ pub(super) fn tag_group() -> AnyView {
         >
             <Playground title="Removable tags" code=code>
                 <TagGroup tags=tags on_remove=on_remove label="Tags".to_string() />
+            </Playground>
+
+            <Playground
+                title="Validation"
+                code=r#"<TagGroup
+  tags=tags
+  on_remove=on_remove
+  label="Tags".to_string()
+  description="Use remove to delete a tag".to_string()
+  error="At least one tag is required".to_string()
+  invalid=invalid
+  required=Signal::derive(|| true)
+/>"#
+            >
+                <TagGroup
+                    tags=tags
+                    on_remove=on_remove
+                    label="Tags".to_string()
+                    description="Use remove to delete a tag".to_string()
+                    error="At least one tag is required".to_string()
+                    invalid=invalid
+                    required=required
+                />
             </Playground>
         </ComponentPage>
     }

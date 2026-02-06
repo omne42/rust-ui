@@ -23,4 +23,20 @@ pub const CSS: &str = r#"
   list-style-type: none;
   display: inline-flex;
 }
+
+.ui-tag-group__description {
+  font-size: 12px;
+  color: var(--ui-fg-muted);
+}
+
+.ui-tag-group__error {
+  font-size: 12px;
+  color: var(--ui-danger-fg);
+}
+
+.ui-tag-group[data-invalid="true"] .ui-tag-group__list {
+  outline: 1px solid var(--ui-danger);
+  outline-offset: 4px;
+  border-radius: var(--ui-radius-sm);
+}
 "#;

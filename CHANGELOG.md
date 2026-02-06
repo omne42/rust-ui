@@ -218,6 +218,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `<ActionButton>` now supports an optional `id` prop.
 - `ui-components`: `<Menu>` now supports `aria_labelledby` for accessible labeling.
 - `ui-components`: `<ListBox>` now supports `aria_labelledby` for accessible labeling.
+- `ui-components`: `TagGroup` now supports Spectrum-style group semantics (`aria-labelledby`/`aria-describedby`/`aria-invalid`/`aria-required`), optional description/error messaging, and merged `aria-describedby` ids.
+- `apps/docs-app`: `TagGroup` docs now include a validation playground (required + invalid state) in addition to removable tags.
 - `apps/web-demo`: adds a controlled `<MenuTrigger>` demo (external open state + `on_open_change`).
 - `apps/web-demo`: updates `<DropdownMenu>` demo to exercise controlled open state.
 - `apps/web-demo`: updates `<ActionMenu>` demo to exercise controlled open state.
