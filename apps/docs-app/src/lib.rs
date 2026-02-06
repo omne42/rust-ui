@@ -137,5 +137,8 @@ pub fn App() -> impl IntoView {
 }
 
 pub fn mount() {
+    #[cfg(target_arch = "wasm32")]
+    console_error_panic_hook::set_once();
+
     leptos::mount::mount_to_body(|| view! { <App /> });
 }

@@ -125,6 +125,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: adds an "On this page" TOC panel + deep-linkable sections (`section=`) and a mobile nav sheet.
 - `apps/docs-app`: renders project docs (起点 + spec + research markdown files) as first-class pages and adds a regression test for required doc routes.
 - `apps/web-demo`: log Rust panics to the browser console (`console_error_panic_hook`) to reduce silent white-screen failures.
+- `apps/docs-app`: log Rust panics to the browser console (`console_error_panic_hook`) to reduce silent white-screen failures.
 - `apps/web-demo`: the loading overlay now captures `console.error` output so Rust panics show up in-page (not only in devtools).
 - `apps/docs-app`: the loading overlay now captures `console.error` output so Rust panics show up in-page (not only in devtools).
 - `apps/web-demo`/`apps/docs-app`: the loading overlay now preserves multiple error sources (console + runtime) instead of overwriting the details panel.
