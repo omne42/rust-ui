@@ -1,3 +1,4 @@
+#[cfg(feature = "inject-css")]
 pub fn push_components_css(out: &mut String) {
     out.push_str("\n@layer ui {\n");
     out.push_str(crate::active_highlight::CSS);
@@ -83,3 +84,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::menu_trigger::styles::CSS);
     out.push_str("\n}\n");
 }
+
+#[cfg(not(feature = "inject-css"))]
+pub fn push_components_css(_out: &mut String) {}

@@ -60,6 +60,16 @@
 - `ui-theme`：继续由 `<UiRoot>` 注入主题变量（运行时切换主题必需）。
 - `ui-components`：组件 CSS 继续由 `<UiRoot>` 注入（crate 用户零配置可用）。
 
+**可选：关闭组件 CSS 注入（高级用法）**
+
+有些应用希望完全自己管理 CSS（静态文件 / PostCSS / Tailwind / 多入口打包等），这时可以关闭 `ui-components` 的内置 CSS 注入。
+
+`ui-components` 默认启用 `inject-css` feature；禁用默认 feature 后，`<UiRoot>` 仍会注入 theme variables + base，但**不会**再注入组件 CSS：
+
+```toml
+ui-components = { path = "...", default-features = false }
+```
+
 ### 2) 开发时：用应用侧 CSS 覆盖进行热更新迭代
 
 建议工作流：

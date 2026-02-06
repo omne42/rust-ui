@@ -7,6 +7,11 @@ publish = false
 [lib]
 path = "src/lib.rs"
 
+[features]
+default = ["inject-css"]
+
+inject-css = []
+
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../ui-headless" }
