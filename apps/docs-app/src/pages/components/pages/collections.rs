@@ -163,30 +163,86 @@ pub(super) fn list_box() -> AnyView {
         "Durian".to_string(),
     ]
     .into();
+    let disabled_items: Arc<[String]> = vec![
+        "London".to_string(),
+        "Paris".to_string(),
+        "Tokyo".to_string(),
+    ]
+    .into();
+    let empty_items: Arc<[String]> = Vec::<String>::new().into();
+
     let (selected, set_selected) = signal(None::<usize>);
+    let (disabled_selected, set_disabled_selected) = signal(None::<usize>);
+    let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
     let code = r#"let items: Arc<[String]> = vec!["Apple".to_string(), "Banana".to_string()].into();
 let (selected, set_selected) = signal(None::<usize>);
-<ListBox id_base="fruit".to_string() items=items selected_index=selected set_selected_index=set_selected />"#;
+<ListBox
+  id_base="fruit".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  aria_label="Fruit".to_string()
+  disabled_indices=vec![1]
+/>"#;
+
+    let states_code = r#"<ListBox
+  id_base="cities-disabled".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  aria_label="Disabled list".to_string()
+  disabled=true
+/>
+<ListBox
+  id_base="cities-empty".to_string()
+  items=Vec::<String>::new().into()
+  selected_index=selected
+  set_selected_index=set_selected
+  aria_label="Empty list".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="ListBox"
             slug="listbox"
             group="Collections"
-            description="Listbox with active highlight spring motion and typeahead."
+            description="Listbox with active highlight spring motion, typeahead, and Spectrum-style state attrs."
         >
-            <Playground title="ListBox" code=code>
+            <Playground title="Selection + Typeahead" code=code>
                 <div class="docs-stack">
                     <ListBox
                         id_base="docs-listbox".to_string()
                         items=items
                         selected_index=selected
                         set_selected_index=set_selected
+                        aria_label="Fruit".to_string()
+                        disabled_indices=vec![3]
                     />
                     <span class="ui-muted">
                         "selected: "
-                        {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <ListBox
+                        id_base="docs-listbox-disabled".to_string()
+                        items=disabled_items
+                        selected_index=disabled_selected
+                        set_selected_index=set_disabled_selected
+                        aria_label="Disabled city list".to_string()
+                        disabled=true
+                    />
+                    <ListBox
+                        id_base="docs-listbox-empty".to_string()
+                        items=empty_items
+                        selected_index=empty_selected
+                        set_selected_index=set_empty_selected
+                        aria_label="Empty city list".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

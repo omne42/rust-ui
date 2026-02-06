@@ -1,4 +1,5 @@
 use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
+use crate::listbox::logic;
 use leptos::{html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{FocusRingOptions, ListBoxOptions, use_focus_ring, use_listbox};
@@ -10,6 +11,7 @@ pub fn ListBox(
     selected_index: ReadSignal<Option<usize>>,
     set_selected_index: WriteSignal<Option<usize>>,
     #[prop(optional, into)] id: Option<String>,
+    #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] aria_labelledby: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
@@ -19,6 +21,7 @@ pub fn ListBox(
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let is_empty = items.is_empty();
     let (item_count, _set_item_count) = signal(items.len());
 
     let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
@@ -75,6 +78,10 @@ pub fn ListBox(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let accessible_name = logic::resolve_accessible_name(aria_label, aria_labelledby);
+    let aria_label = StoredValue::new(accessible_name.aria_label);
+    let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
+
     view! {
         <div
             class=class
@@ -82,9 +89,13 @@ pub fn ListBox(
             id=id
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
+            aria-label=aria_label.get_value()
+            aria-labelledby=aria_labelledby.get_value()
             aria-disabled=aria.attrs.aria_disabled
-            aria-labelledby=aria_labelledby
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
+            data-slot="listbox"
+            data-disabled=disabled.then_some("true")
+            data-empty=is_empty.then_some("true")
             on:keydown=on_key_down
             on:focus=move |_| focus_ring.handlers.on_focus.run(())
             on:blur=move |_| focus_ring.handlers.on_blur.run(())
@@ -98,7 +109,7 @@ pub fn ListBox(
                     .map(|(index, label)| {
                         let id = aria.option_id.run(index);
                         let is_selected = move || aria.selected_index.get() == Some(index);
-                        let is_disabled = disabled_indices.contains(&index);
+                        let is_disabled = disabled || disabled_indices.contains(&index);
 
                         view! {
                             <div
@@ -107,7 +118,11 @@ pub fn ListBox(
                                 aria-selected=move || if is_selected() { Some("true") } else { None }
                                 aria-disabled=if is_disabled { Some("true") } else { None }
                                 class="ui-listbox__option"
+                                data-slot="listbox-option"
                                 data-selected=move || if is_selected() { Some("true") } else { None }
+                                data-focused=move || {
+                                    (aria.active_index.get() == index).then_some("true")
+                                }
                                 data-disabled=if is_disabled { Some("true") } else { None }
                                 on:pointermove=move |_| aria.handlers.on_option_pointer_move.run(index)
                                 on:click=move |_| {
