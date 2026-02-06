@@ -186,6 +186,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `<ScrollShadow>` now refreshes its shadow edges when the viewport size changes (ResizeObserver), not only on scroll.
 - `ui-components`: overlay trigger buttons now set `aria-controls` only when open (aligns with React Spectrum `useOverlayTrigger`), enabled via `Button`/`ActionButton` `aria_controls_signal`.
 - `ui-components`: `<Overlay>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
+- `ui-components`: `<Overlay>` now supports `is_dismissable` and `is_keyboard_dismiss_disabled` to control backdrop/Escape dismissal, and adds semantics coverage.
 - `ui-components`: `MenuTrigger` now supports `aria_label` and emits Spectrum-style root `data-*` state attributes, and adds a semantics regression test.
 - WASM CSR builds no longer abort when attribute spreading adds a 27th HTML attribute (patched `tachys` and added a regression test).
 - `ui-components`: `<Popover>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.

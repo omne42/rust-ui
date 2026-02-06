@@ -22,6 +22,20 @@ pub(super) fn overlay() -> AnyView {
     let open_overlay: OnPress = Callback::new(move |_| set_open_raw.set(true));
     let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
+    let (locked_open_raw, set_locked_open_raw) = signal(false);
+    let locked_open: Signal<bool> = Signal::derive(move || locked_open_raw.get());
+
+    let (locked_present, set_locked_present) = signal(locked_open.get_untracked());
+    Effect::new(move |_| {
+        if locked_open.get() {
+            set_locked_present.set(true);
+        }
+    });
+
+    let close_locked: OnPress = Callback::new(move |_| set_locked_open_raw.set(false));
+    let open_locked: OnPress = Callback::new(move |_| set_locked_open_raw.set(true));
+    let on_locked_exit_complete = Callback::new(move |_| set_locked_present.set(false));
+
     let code = r#"let (open, set_open) = signal(false);
 let open_signal: Signal<bool> = Signal::derive(move || open.get());
 let (present, set_present) = signal(open_signal.get_untracked());
@@ -30,12 +44,21 @@ let (present, set_present) = signal(open_signal.get_untracked());
   <Overlay open=open_signal on_close=close on_exit_complete=on_exit_complete>...</Overlay>
 </Show>"#;
 
+    let locked_code = r#"<Overlay
+  open=open_signal
+  on_close=close
+  is_dismissable=false
+  is_keyboard_dismiss_disabled=true
+>
+  ...
+</Overlay>"#;
+
     view! {
         <ComponentPage
             title="Overlay"
             slug="overlay"
             group="Overlays"
-            description="Portal + backdrop + focus trap + overlay stack (Esc/topmost). Requires presence to unmount after exit."
+            description="Portal + backdrop + focus trap + overlay stack (Esc/topmost). Supports dismiss control flags and requires presence to unmount after exit."
         >
             <Playground title="Overlay presence" code=code>
                 <div class="docs-row">
@@ -52,6 +75,37 @@ let (present, set_present) = signal(open_signal.get_untracked());
                             </div>
                             <div class="docs-row">
                                 <Button variant=ButtonVariant::Secondary on_press=on_close>"Close"</Button>
+                            </div>
+                        </div>
+                    </Overlay>
+                </Show>
+            </Playground>
+
+            <Playground title="Non-dismissable overlay" code=locked_code>
+                <div class="docs-row">
+                    <Button on_press=open_locked>"Open locked overlay"</Button>
+                    <span class="ui-muted">
+                        "open: " {move || locked_open_raw.get().to_string()}
+                    </span>
+                </div>
+
+                <Show when=move || locked_present.get()>
+                    <Overlay
+                        open=locked_open
+                        on_close=close_locked
+                        is_dismissable=false
+                        is_keyboard_dismiss_disabled=true
+                        on_exit_complete=on_locked_exit_complete
+                    >
+                        <div class="docs-stack">
+                            <div>"Backdrop clicks and Escape are disabled."</div>
+                            <div class="ui-muted">
+                                "Use an explicit action to close."
+                            </div>
+                            <div class="docs-row">
+                                <Button variant=ButtonVariant::Secondary on_press=close_locked>
+                                    "Close"
+                                </Button>
                             </div>
                         </div>
                     </Overlay>
