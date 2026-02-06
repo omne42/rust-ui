@@ -2,6 +2,17 @@ mod pages;
 mod shell;
 
 use leptos::prelude::*;
+use ui_components::{SegmentedControl, SegmentedControlSize};
+
+const GROUP_ORDER: &[&str] = &[
+    "Actions",
+    "Forms",
+    "Layout",
+    "Display",
+    "Files",
+    "Collections",
+    "Overlays",
+];
 
 #[derive(Clone, Copy, Debug)]
 pub struct ComponentDoc {
@@ -33,12 +44,26 @@ pub fn component_page(slug: &str) -> Option<AnyView> {
 #[component]
 pub fn ComponentsIndex() -> impl IntoView {
     let (query, set_query) = signal(String::new());
+    let (group_index, set_group_index) = signal::<Option<usize>>(Some(0));
+
+    let group_filter = Memo::new(move |_| match group_index.get() {
+        Some(0) | None => None,
+        Some(index) => GROUP_ORDER.get(index.saturating_sub(1)).copied(),
+    });
+
     let filtered = Memo::new(move |_| {
         let q = query.get().to_lowercase();
+        let group_filter = group_filter.get();
         component_catalog()
             .iter()
             .copied()
             .filter(|doc| {
+                if let Some(group_filter) = group_filter
+                    && doc.group != group_filter
+                {
+                    return false;
+                }
+
                 if q.trim().is_empty() {
                     true
                 } else {
@@ -48,11 +73,23 @@ pub fn ComponentsIndex() -> impl IntoView {
             .collect::<Vec<_>>()
     });
 
+    let group_options: Vec<String> = std::iter::once("All".to_string())
+        .chain(GROUP_ORDER.iter().copied().map(|group| group.to_string()))
+        .collect();
+
     view! {
         <section class="docs-card docs-prose">
             <h2>"Components"</h2>
-            <p>
-                "Every public component should have at least one playground here. Use search to find a component."
+            <p>"Every public component should have at least one playground here."</p>
+            <p class="docs-components-summary">
+                {move || {
+                    let count = filtered.with(|docs| docs.len());
+                    if let Some(group) = group_filter.get() {
+                        format!("{count} components · {group}")
+                    } else {
+                        format!("{count} components")
+                    }
+                }}
             </p>
 
             <div class="docs-search">
@@ -67,26 +104,48 @@ pub fn ComponentsIndex() -> impl IntoView {
                     on:input=move |ev| set_query.set(event_target_value(&ev))
                 />
             </div>
+
+            <div class="docs-components-filter">
+                <div class="docs-search__label">"Group"</div>
+                <div class="docs-scroll-x docs-scroll-x--segmented">
+                    <SegmentedControl
+                        id_base="docs-component-group-filter".to_string()
+                        options=group_options.clone()
+                        selected_index=group_index
+                        set_selected_index=set_group_index
+                        size=SegmentedControlSize::Sm
+                        aria_label="Component group filter".to_string()
+                    />
+                </div>
+            </div>
         </section>
 
         <section class="docs-card">
-            <div class="docs-component-grid">
-                <For
-                    each=move || filtered.get()
-                    key=|doc| doc.slug
-                    children=move |doc| {
-                        view! {
-                            <a class="docs-component-tile" href=format!("#/components/{}", doc.slug)>
-                                <div class="docs-component-tile__name">{doc.name}</div>
-                                <div class="docs-component-tile__meta">
-                                    <span class="docs-component-tile__group">{doc.group}</span>
-                                    <code class="docs-component-tile__slug">{doc.slug}</code>
-                                </div>
-                            </a>
+            <Show when=move || filtered.with(|docs| docs.is_empty())>
+                <div class="docs-empty">
+                    "No matching components."
+                </div>
+            </Show>
+
+            <Show when=move || !filtered.with(|docs| docs.is_empty())>
+                <div class="docs-component-grid">
+                    <For
+                        each=move || filtered.get()
+                        key=|doc| doc.slug
+                        children=move |doc| {
+                            view! {
+                                <a class="docs-component-tile" href=format!("#/components/{}", doc.slug)>
+                                    <div class="docs-component-tile__name">{doc.name}</div>
+                                    <div class="docs-component-tile__meta">
+                                        <span class="docs-component-tile__group">{doc.group}</span>
+                                        <code class="docs-component-tile__slug">{doc.slug}</code>
+                                    </div>
+                                </a>
+                            }
                         }
-                    }
-                />
-            </div>
+                    />
+                </div>
+            </Show>
         </section>
     }
 }

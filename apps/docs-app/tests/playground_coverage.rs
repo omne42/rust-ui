@@ -12,22 +12,67 @@ fn docs_page_module_path(module: &str) -> PathBuf {
         .join(format!("{module}.rs"))
 }
 
-fn extract_page_targets(source: &str) -> Vec<(String, String)> {
+#[derive(Clone, Debug)]
+struct CatalogEntry {
+    name: String,
+    module: String,
+    func: String,
+}
+
+fn extract_quoted_string(input: &str) -> Option<String> {
+    let start = input.find('"')?;
+    let end = input[start + 1..].find('"')?;
+    Some(input[start + 1..start + 1 + end].to_string())
+}
+
+fn extract_catalog_entries(source: &str) -> Vec<CatalogEntry> {
     let mut out = Vec::new();
+    let mut in_entry = false;
+    let mut name: Option<String> = None;
+    let mut page: Option<(String, String)> = None;
 
     for line in source.lines() {
         let trimmed = line.trim();
-        let Some(rest) = trimmed.strip_prefix("page:") else {
-            continue;
-        };
-        let symbol = rest.trim().trim_end_matches(',');
-        let Some((module, func)) = symbol.split_once("::") else {
-            continue;
-        };
-        if module.trim().is_empty() || func.trim().is_empty() {
+
+        if trimmed.starts_with("ComponentDoc {") {
+            in_entry = true;
+            name = None;
+            page = None;
             continue;
         }
-        out.push((module.trim().to_string(), func.trim().to_string()));
+
+        if !in_entry {
+            continue;
+        }
+
+        if let Some(rest) = trimmed.strip_prefix("name:") {
+            name = extract_quoted_string(rest.trim());
+            continue;
+        }
+
+        if let Some(rest) = trimmed.strip_prefix("page:") {
+            let symbol = rest.trim().trim_end_matches(',');
+            if let Some((module, func)) = symbol.split_once("::") {
+                page = Some((module.trim().to_string(), func.trim().to_string()));
+            }
+            continue;
+        }
+
+        if trimmed.starts_with("},") {
+            in_entry = false;
+            let Some(name) = name.take() else {
+                continue;
+            };
+            let Some((module, func)) = page.take() else {
+                continue;
+            };
+
+            if module.is_empty() || func.is_empty() || name.trim().is_empty() {
+                continue;
+            }
+
+            out.push(CatalogEntry { name, module, func });
+        }
     }
 
     out
@@ -35,8 +80,8 @@ fn extract_page_targets(source: &str) -> Vec<(String, String)> {
 
 fn slice_fn_block<'a>(source: &'a str, fn_name: &str) -> Option<&'a str> {
     let patterns = [
-        format!("pub(super) fn {fn_name}"),
-        format!("pub fn {fn_name}"),
+        format!("pub(super) fn {fn_name}("),
+        format!("pub fn {fn_name}("),
     ];
     let start = patterns.iter().find_map(|pattern| source.find(pattern))?;
 
@@ -63,15 +108,16 @@ fn all_component_pages_have_at_least_one_playground() {
         panic!("failed to read {pages_rs_path:?}: {err}");
     });
 
-    let targets = extract_page_targets(&pages_rs_source);
+    let entries = extract_catalog_entries(&pages_rs_source);
     assert!(
-        !targets.is_empty(),
+        !entries.is_empty(),
         "no component doc targets found in {pages_rs_path:?}"
     );
 
     let mut module_sources: BTreeMap<String, String> = BTreeMap::new();
 
-    for (module, func) in targets {
+    for entry in entries {
+        let CatalogEntry { name, module, func } = entry;
         let module_source = module_sources.entry(module.clone()).or_insert_with(|| {
             let path = docs_page_module_path(&module);
             fs::read_to_string(&path).unwrap_or_else(|err| {
@@ -87,6 +133,18 @@ fn all_component_pages_have_at_least_one_playground() {
         assert!(
             block.contains("<Playground"),
             "`{module}::{func}` must include at least one `<Playground ...>` section"
+        );
+
+        let component_needle = format!("<{name}");
+        assert!(
+            block.contains(&component_needle),
+            "`{module}::{func}` must include at least one `{component_needle} ...` usage (playground should demo the component itself)"
+        );
+
+        let title_needle = format!("title=\"{name}\"");
+        assert!(
+            block.contains(&title_needle),
+            "`{module}::{func}` should set ComponentPage title to match catalog name (`{title_needle}`)"
         );
     }
 }

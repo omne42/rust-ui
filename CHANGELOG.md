@@ -123,6 +123,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: command menu now uses a unified fuzzy search index (docs + doc sections + components).
 - `apps/docs-app`: command menu search now indexes markdown body text and displays snippets; route changes now restore scroll position and update the document title.
 - `apps/docs-app`: add a regression test enforcing that every component doc page contains at least one `<Playground>` section.
+- `apps/docs-app`: the components index now supports group filtering (SegmentedControl) and the playground coverage test now enforces that each component page actually demos the component.
 - `apps/docs-app`: adds an "On this page" TOC panel + deep-linkable sections (`section=`) and a mobile nav sheet.
 - `apps/docs-app`: markdown doc headings now expose hoverable anchor buttons for deep-linking.
 - `apps/docs-app`: renders project docs (起点 + spec + research markdown files) as first-class pages and adds a regression test for required doc routes.
