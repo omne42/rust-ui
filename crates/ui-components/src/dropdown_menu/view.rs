@@ -37,9 +37,13 @@ pub fn DropdownMenu(
     let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+    let trigger_disabled = StoredValue::new(logic::resolve_trigger_disabled(
+        disabled,
+        items.get_value().len(),
+    ));
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if disabled || items.get_value().is_empty() {
+        if trigger_disabled.get_value() {
             return;
         }
 
@@ -71,7 +75,7 @@ pub fn DropdownMenu(
         .unwrap_or(base_class);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if disabled || items.get_value().is_empty() {
+        if trigger_disabled.get_value() {
             return;
         }
         if open.get_untracked() {
@@ -87,14 +91,20 @@ pub fn DropdownMenu(
     };
 
     view! {
-        <div class=class data-slot="dropdown-menu" on:keydown=on_key_down>
+        <div
+            class=class
+            data-slot="dropdown-menu"
+            data-open=move || open.get().then_some("true")
+            data-disabled=trigger_disabled.get_value().then_some("true")
+            on:keydown=on_key_down
+        >
             <Button
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
                 variant=trigger_variant
                 size=trigger_size
-                disabled=disabled
+                disabled=trigger_disabled.get_value()
                 aria_haspopup="menu"
                 aria_expanded=open
                 aria_controls_signal=aria_controls

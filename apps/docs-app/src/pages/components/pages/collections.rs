@@ -376,16 +376,47 @@ pub(super) fn autocomplete() -> AnyView {
 }
 
 pub(super) fn dropdown_menu() -> AnyView {
-    let items = vec![
+    let default_items = vec![
         "Duplicate".to_string(),
         "Move".to_string(),
         "Archive".to_string(),
     ];
+    let controlled_items = vec![
+        "Rename".to_string(),
+        "Move".to_string(),
+        "Share".to_string(),
+    ];
+    let disabled_items = vec!["Duplicate".to_string(), "Archive".to_string()];
+    let empty_items: Vec<String> = Vec::new();
+
     let (last, set_last) = signal(None::<usize>);
     let on_action = Callback::new(move |index: usize| set_last.set(Some(index)));
 
+    let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+    let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
+
     let code = r#"<DropdownMenu id_base="dd".to_string() items=items on_action=on_action>
   "Open"
+</DropdownMenu>"#;
+
+    let controlled_code = r#"let (open, set_open) = signal(false);
+let open_signal: Signal<bool> = Signal::derive(move || open.get());
+<DropdownMenu
+  id_base="dd-controlled".to_string()
+  items=items
+  on_action=on_action
+  open=open_signal
+  on_open_change=Callback::new(move |next| set_open.set(next))
+>
+  "Controlled"
+</DropdownMenu>"#;
+
+    let disabled_code = r#"<DropdownMenu id_base="dd-disabled".to_string() items=items on_action=on_action disabled=true>
+  "Disabled"
+</DropdownMenu>
+<DropdownMenu id_base="dd-empty".to_string() items=Vec::<String>::new() on_action=on_action>
+  "Empty"
 </DropdownMenu>"#;
 
     view! {
@@ -393,17 +424,60 @@ pub(super) fn dropdown_menu() -> AnyView {
             title="DropdownMenu"
             slug="dropdown-menu"
             group="Collections"
-            description="Button trigger that opens a Menu in a Popover (bb/ui-web port)."
+            description="Button trigger that opens a Menu in a Popover with controlled/uncontrolled state support."
         >
-            <Playground title="Dropdown" code=code>
+            <Playground title="Default" code=code>
                 <div class="docs-row">
-                    <DropdownMenu id_base="docs-dropdown".to_string() items=items on_action=on_action>
+                    <DropdownMenu
+                        id_base="docs-dropdown".to_string()
+                        items=default_items
+                        on_action=on_action
+                    >
                         "Open"
                     </DropdownMenu>
                     <span class="ui-muted">
                         "last: "
                         {move || last.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Open State" code=controlled_code>
+                <div class="docs-stack">
+                    <DropdownMenu
+                        id_base="docs-dropdown-controlled".to_string()
+                        items=controlled_items
+                        on_action=on_action
+                        open=controlled_open
+                        on_open_change=on_open_change
+                    >
+                        "Controlled"
+                    </DropdownMenu>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || controlled_open_raw.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=disabled_code>
+                <div class="docs-row">
+                    <DropdownMenu
+                        id_base="docs-dropdown-disabled".to_string()
+                        items=disabled_items
+                        on_action=on_action
+                        disabled=true
+                    >
+                        "Disabled"
+                    </DropdownMenu>
+
+                    <DropdownMenu
+                        id_base="docs-dropdown-empty".to_string()
+                        items=empty_items
+                        on_action=on_action
+                    >
+                        "Empty"
+                    </DropdownMenu>
                 </div>
             </Playground>
         </ComponentPage>
