@@ -124,6 +124,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: command menu search now indexes markdown body text and displays snippets; route changes now restore scroll position and update the document title.
 - `apps/docs-app`: add a regression test enforcing that every component doc page contains at least one `<Playground>` section.
 - `apps/docs-app`: the components index now supports group filtering (SegmentedControl) and the playground coverage test now enforces that each component page actually demos the component.
+- `apps/docs-app`: add an additional catalog guard that checks every public `ui-components` module is represented in docs (with explicit alias mapping for renamed docs slugs).
 - `apps/docs-app`: `Playground` now supports an optional controls sidebar (Spectrum-style prop knobs); Button docs page uses it as the reference pattern.
 - `apps/docs-app`: adds an "On this page" TOC panel + deep-linkable sections (`section=`) and a mobile nav sheet.
 - `apps/docs-app`: markdown doc headings now expose hoverable anchor buttons for deep-linking.
@@ -190,6 +191,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `<Overlay>` now supports `is_dismissable` and `is_keyboard_dismiss_disabled` to control backdrop/Escape dismissal, and adds semantics coverage.
 - `ui-components`: `MenuTrigger` now supports `aria_label` and emits Spectrum-style root `data-*` state attributes, and adds a semantics regression test.
 - WASM CSR builds no longer abort when attribute spreading adds a 27th HTML attribute (patched `tachys` and added a regression test).
+- `tachys`: 26+ attribute chaining now keeps strongly typed tuples instead of erasing into `AnyAttribute`, avoiding CSR panics on non-erasable attributes.
 - `ui-components`: `<Popover>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
 - `ui-components`: `<Sheet>` now ignores Escape when the event is default-prevented or during IME composition, and adds a semantics regression test.
 - `ui-components`: `<Sheet>` now supports `is_dismissable` and `is_keyboard_dismiss_disabled` to control backdrop/Escape dismissal, and adds semantics coverage.

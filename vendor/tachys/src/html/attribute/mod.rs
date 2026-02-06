@@ -513,23 +513,13 @@ macro_rules! impl_attr_for_tuples_truncate_additional {
             $($ty: Attribute),*,
 
         {
-            type Output<NewAttr: Attribute> =
-                Vec<$crate::html::attribute::any_attribute::AnyAttribute>;
+            type Output<NewAttr: Attribute> = (Self, NewAttr);
 
             fn add_any_attr<NewAttr: Attribute>(
                 self,
                 new_attr: NewAttr,
             ) -> Self::Output<NewAttr> {
-                use crate::html::attribute::any_attribute::IntoAnyAttribute;
-
-                #[allow(non_snake_case)]
-                let ($first, $($ty,)*) = self;
-
-                let mut attrs = Vec::with_capacity(27);
-                attrs.push($first.into_any_attr());
-                $(attrs.push($ty.into_any_attr());)*
-                attrs.push(new_attr.into_any_attr());
-                attrs
+                (self, new_attr)
             }
         }
     };

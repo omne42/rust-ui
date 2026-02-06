@@ -1,7 +1,9 @@
-use tachys::html::attribute::{NextAttribute, custom::custom_attribute};
+use tachys::html::attribute::{Attribute, NextAttribute, custom::custom_attribute};
+
+fn assert_is_attribute<T: Attribute>(_value: &T) {}
 
 #[test]
-fn attribute_tuples_can_grow_beyond_26() {
+fn attribute_tuples_can_grow_beyond_26_without_type_erasure() {
     let attrs = (
         custom_attribute("data-a", "1"),
         custom_attribute("data-b", "1"),
@@ -29,9 +31,15 @@ fn attribute_tuples_can_grow_beyond_26() {
         custom_attribute("data-x", "1"),
         custom_attribute("data-y", "1"),
         custom_attribute("data-z", "1"),
+    )
+        .add_any_attr(custom_attribute("data-aa", "1"))
+        .add_any_attr(custom_attribute("data-ab", "1"));
+
+    assert_is_attribute(&attrs);
+
+    let ty = std::any::type_name_of_val(&attrs);
+    assert!(
+        !ty.contains("any_attribute::AnyAttribute"),
+        "26+ attributes should stay strongly typed instead of erasing to AnyAttribute: {ty}",
     );
-
-    let attrs = attrs.add_any_attr(custom_attribute("data-aa", "1"));
-
-    assert_eq!(attrs.len(), 27);
 }
