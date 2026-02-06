@@ -3,6 +3,7 @@ use crate::toc::TocItem;
 pub struct MarkdownDoc {
     pub html: String,
     pub toc: Vec<TocItem>,
+    pub text: String,
 }
 
 pub fn markdown_to_html(markdown: &str) -> String {
@@ -22,6 +23,7 @@ pub fn render_markdown(markdown: &str) -> MarkdownDoc {
     let mut used_ids: BTreeMap<String, usize> = BTreeMap::new();
     let mut toc = Vec::new();
     let mut out_events: Vec<Event<'_>> = Vec::new();
+    let mut plain_text = String::new();
 
     let mut parser = Parser::new_ext(markdown, options).peekable();
 
@@ -55,6 +57,11 @@ pub fn render_markdown(markdown: &str) -> MarkdownDoc {
 
                 let title = title_buf.split_whitespace().collect::<Vec<_>>().join(" ");
                 let title = title.trim().to_string();
+
+                if !title.is_empty() {
+                    plain_text.push_str(&title);
+                    plain_text.push('\n');
+                }
 
                 let mut id_value =
                     id.map(|value| value.as_ref().trim_start_matches('#').to_string());
@@ -92,14 +99,35 @@ pub fn render_markdown(markdown: &str) -> MarkdownDoc {
                 out_events.extend(content_events);
                 out_events.push(Event::End(TagEnd::Heading(level)));
             }
-            other => out_events.push(other),
+            other => {
+                match &other {
+                    Event::Text(text) | Event::Code(text) => {
+                        plain_text.push_str(text.as_ref());
+                        plain_text.push(' ');
+                    }
+                    Event::SoftBreak | Event::HardBreak => plain_text.push('\n'),
+                    Event::Rule => plain_text.push('\n'),
+                    Event::End(TagEnd::Paragraph)
+                    | Event::End(TagEnd::BlockQuote(_))
+                    | Event::End(TagEnd::CodeBlock)
+                    | Event::End(TagEnd::Item)
+                    | Event::End(TagEnd::List(_)) => plain_text.push('\n'),
+                    _ => {}
+                }
+
+                out_events.push(other);
+            }
         }
     }
 
     let mut output = String::new();
     html::push_html(&mut output, out_events.into_iter());
 
-    MarkdownDoc { html: output, toc }
+    MarkdownDoc {
+        html: output,
+        toc,
+        text: plain_text,
+    }
 }
 
 fn heading_level_to_u8(level: pulldown_cmark::HeadingLevel) -> u8 {
@@ -164,5 +192,7 @@ More.
         assert_eq!(doc.toc[0].id, "section-a");
         assert_eq!(doc.toc[1].id, "sub-a1");
         assert_eq!(doc.toc[2].id, "section-a-2");
+        assert!(doc.text.contains("Section A"));
+        assert!(doc.text.contains("Text."));
     }
 }

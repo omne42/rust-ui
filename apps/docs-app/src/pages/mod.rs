@@ -4,6 +4,26 @@ pub mod nav;
 
 use leptos::prelude::*;
 
+pub fn title_for_path(path: &str) -> String {
+    if let Some(doc) = docs::docs_catalog().iter().find(|doc| doc.route == path) {
+        return doc.title.to_string();
+    }
+
+    if path == "components" {
+        return "Components".to_string();
+    }
+
+    if let Some(slug) = path.strip_prefix("components/")
+        && let Some(doc) = components::component_catalog()
+            .iter()
+            .find(|doc| doc.slug == slug)
+    {
+        return doc.name.to_string();
+    }
+
+    "Not found".to_string()
+}
+
 fn not_found(route: String) -> AnyView {
     view! {
         <section class="docs-card docs-prose">

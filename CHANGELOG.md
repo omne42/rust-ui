@@ -121,6 +121,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: rebuilds the docs site into a hash-routed component catalog (search + per-component playground pages) and adds a regression test that enforces 100% `ui-components` component coverage.
 - `apps/docs-app`: add a Cmd/Ctrl+K command menu (SearchInputButton trigger + Dialog results), and switch the header theme toggle to `<ThemeToggleButton>`.
 - `apps/docs-app`: command menu now uses a unified fuzzy search index (docs + doc sections + components).
+- `apps/docs-app`: command menu search now indexes markdown body text and displays snippets; route changes now restore scroll position and update the document title.
 - `apps/docs-app`: add a regression test enforcing that every component doc page contains at least one `<Playground>` section.
 - `apps/docs-app`: adds an "On this page" TOC panel + deep-linkable sections (`section=`) and a mobile nav sheet.
 - `apps/docs-app`: markdown doc headings now expose hoverable anchor buttons for deep-linking.

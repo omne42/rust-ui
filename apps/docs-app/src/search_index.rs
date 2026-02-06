@@ -17,9 +17,11 @@ pub struct SearchRecord {
     pub subtitle: String,
     pub route: String,
     pub route_label: String,
+    pub content: String,
     title_lower: String,
     route_label_lower: String,
     haystack: String,
+    content_lower: String,
 }
 
 #[derive(Clone, Debug)]
@@ -32,6 +34,14 @@ pub fn build_records() -> Vec<SearchRecord> {
     let mut out = Vec::new();
 
     for doc in crate::pages::docs::docs_catalog() {
+        let mut content = String::new();
+
+        let sections = doc.markdown.map(|markdown| {
+            let rendered = crate::markdown::render_markdown(markdown);
+            content = rendered.text;
+            doc_section_records_from_toc(doc, rendered.toc)
+        });
+
         out.push(SearchRecord::new(
             SearchKind::DocPage,
             format!("doc:{}", doc.route),
@@ -39,10 +49,11 @@ pub fn build_records() -> Vec<SearchRecord> {
             doc.group.to_string(),
             doc.route.to_string(),
             doc.route.to_string(),
+            content,
         ));
 
-        if let Some(markdown) = doc.markdown {
-            out.extend(doc_section_records(doc, markdown));
+        if let Some(sections) = sections {
+            out.extend(sections);
         }
     }
 
@@ -55,6 +66,7 @@ pub fn build_records() -> Vec<SearchRecord> {
             doc.group.to_string(),
             route.clone(),
             route,
+            String::new(),
         ));
     }
 
@@ -110,9 +122,12 @@ impl SearchRecord {
         subtitle: String,
         route: String,
         route_label: String,
+        content: String,
     ) -> Self {
         let title_lower = title.to_lowercase();
         let route_label_lower = route_label.to_lowercase();
+        let content = normalize_whitespace(&content);
+        let content_lower = content.to_lowercase();
         let haystack = format!("{title} {subtitle} {route_label}").to_lowercase();
         Self {
             kind,
@@ -121,9 +136,11 @@ impl SearchRecord {
             subtitle,
             route,
             route_label,
+            content,
             title_lower,
             route_label_lower,
             haystack,
+            content_lower,
         }
     }
 
@@ -146,8 +163,12 @@ impl SearchRecord {
         }
 
         let mut token_score = None;
-        if !query.tokens.is_empty() && query.tokens.iter().all(|t| self.haystack.contains(t)) {
-            token_score = Some(7_000);
+        if !query.tokens.is_empty() {
+            if query.tokens.iter().all(|t| self.haystack.contains(t)) {
+                token_score = Some(7_000);
+            } else if query.tokens.iter().all(|t| self.content_lower.contains(t)) {
+                token_score = Some(3_600);
+            }
         }
 
         let fuzzy_title =
@@ -159,7 +180,13 @@ impl SearchRecord {
         best = max_option(best, fuzzy_title);
         best = max_option(best, fuzzy_route);
 
-        if best.is_none() && self.haystack.contains(&query.lower) {
+        if let Some(pos) = self.content_lower.find(&query.lower) {
+            best = max_option(best, Some(3_500 - (pos as i32).min(500)));
+        }
+
+        if best.is_none()
+            && (self.haystack.contains(&query.lower) || self.content_lower.contains(&query.lower))
+        {
             best = Some(4_000);
         }
 
@@ -252,9 +279,15 @@ fn max_option(a: Option<i32>, b: Option<i32>) -> Option<i32> {
     }
 }
 
-fn doc_section_records(doc: &crate::pages::docs::DocPage, markdown: &str) -> Vec<SearchRecord> {
-    let toc = crate::markdown::render_markdown(markdown).toc;
-    doc_section_records_from_toc(doc, toc)
+fn normalize_whitespace(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    for word in input.split_whitespace() {
+        if !out.is_empty() {
+            out.push(' ');
+        }
+        out.push_str(word);
+    }
+    out
 }
 
 fn doc_section_records_from_toc(
@@ -279,6 +312,7 @@ fn doc_section_records_from_toc(
             subtitle,
             route,
             route_label,
+            String::new(),
         ));
     }
 
@@ -314,6 +348,7 @@ mod tests {
                 "Actions".to_string(),
                 "components/button".to_string(),
                 "components/button".to_string(),
+                String::new(),
             ),
             SearchRecord::new(
                 SearchKind::Component,
@@ -322,6 +357,7 @@ mod tests {
                 "Actions".to_string(),
                 "components/toggle-button".to_string(),
                 "components/toggle-button".to_string(),
+                String::new(),
             ),
         ];
 
@@ -329,6 +365,36 @@ mod tests {
         assert_eq!(res, vec![0, 1]);
 
         let res = search(&records, "toggle", 10);
+        assert_eq!(res, vec![1]);
+    }
+
+    #[test]
+    fn search_matches_doc_content_with_lower_priority_than_title() {
+        let records = vec![
+            SearchRecord::new(
+                SearchKind::DocPage,
+                "doc".to_string(),
+                "Rules".to_string(),
+                "Docs".to_string(),
+                "docs/rules".to_string(),
+                "docs/rules".to_string(),
+                "clippy --deny warnings zero unsafe".to_string(),
+            ),
+            SearchRecord::new(
+                SearchKind::Component,
+                "component".to_string(),
+                "Tooltip".to_string(),
+                "Overlays".to_string(),
+                "components/tooltip".to_string(),
+                "components/tooltip".to_string(),
+                String::new(),
+            ),
+        ];
+
+        let res = search(&records, "unsafe", 10);
+        assert_eq!(res, vec![0]);
+
+        let res = search(&records, "tooltip", 10);
         assert_eq!(res, vec![1]);
     }
 

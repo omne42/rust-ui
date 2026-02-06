@@ -5,6 +5,7 @@ pub fn MarkdownPage(markdown: &'static str) -> impl IntoView {
     let crate::markdown::MarkdownDoc {
         html: rendered_html,
         toc: toc_items,
+        ..
     } = crate::markdown::render_markdown(markdown);
 
     #[cfg(target_arch = "wasm32")]

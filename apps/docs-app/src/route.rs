@@ -125,6 +125,17 @@ pub fn scroll_to_id(id: &str) {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn scroll_to_id(_id: &str) {}
 
+#[cfg(target_arch = "wasm32")]
+pub fn scroll_to_top() {
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    window.scroll_to_with_x_and_y(0.0, 0.0);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn scroll_to_top() {}
+
 /// Returns a `(route, navigate)` pair.
 ///
 /// - `route`: the current logical route, without `#/`.

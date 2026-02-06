@@ -2,6 +2,103 @@ use crate::search_index::search;
 use leptos::{ev, html, prelude::*};
 use ui_components::{Button, ButtonSize, ButtonVariant, Dialog, DialogSize, SearchInputButton};
 
+fn truncate_chars(input: &str, max_chars: usize) -> String {
+    let input = input.trim();
+    if input.is_empty() {
+        return String::new();
+    }
+
+    let mut out = String::new();
+    let mut iter = input.chars();
+    for _ in 0..max_chars {
+        match iter.next() {
+            Some(ch) => out.push(ch),
+            None => return out,
+        }
+    }
+
+    if iter.next().is_some() {
+        out.push('…');
+    }
+
+    out
+}
+
+fn eq_ascii_case_insensitive(a: &[u8], b: &[u8]) -> bool {
+    a.eq_ignore_ascii_case(b)
+}
+
+fn find_ascii_case_insensitive(haystack: &str, needle: &str) -> Option<usize> {
+    let needle = needle.trim();
+    if needle.is_empty() {
+        return Some(0);
+    }
+
+    let needle_bytes = needle.as_bytes();
+    if needle_bytes.len() > haystack.len() {
+        return None;
+    }
+
+    let haystack_bytes = haystack.as_bytes();
+    for (start, _) in haystack.char_indices() {
+        let end = start.saturating_add(needle_bytes.len());
+        if end > haystack_bytes.len() {
+            break;
+        }
+        if eq_ascii_case_insensitive(&haystack_bytes[start..end], needle_bytes) {
+            return Some(start);
+        }
+    }
+
+    None
+}
+
+fn create_snippet(content: &str, query: &str) -> Option<String> {
+    let content = content.trim();
+    if content.is_empty() {
+        return None;
+    }
+
+    let query = query.trim();
+    if query.is_empty() {
+        return Some(truncate_chars(content, 160));
+    }
+
+    let Some(match_byte) = find_ascii_case_insensitive(content, query) else {
+        return Some(truncate_chars(content, 160));
+    };
+
+    let mut char_starts = Vec::new();
+    char_starts.extend(content.char_indices().map(|(idx, _)| idx));
+    char_starts.push(content.len());
+
+    let Ok(match_char) = char_starts.binary_search(&match_byte) else {
+        return Some(truncate_chars(content, 160));
+    };
+
+    let needle_chars = query.chars().count();
+    let max_chars = char_starts.len().saturating_sub(1);
+
+    let start_char = match_char.saturating_sub(40);
+    let end_char = (match_char + needle_chars + 40).min(max_chars);
+
+    let start_byte = char_starts.get(start_char).copied().unwrap_or(0);
+    let end_byte = char_starts.get(end_char).copied().unwrap_or(content.len());
+
+    let slice = content.get(start_byte..end_byte).unwrap_or(content);
+
+    let mut out = String::new();
+    if start_char > 0 {
+        out.push('…');
+    }
+    out.push_str(slice.trim());
+    if end_char < max_chars {
+        out.push('…');
+    }
+
+    Some(out)
+}
+
 #[cfg(target_arch = "wasm32")]
 fn detect_meta_key_label() -> &'static str {
     let Some(window) = web_sys::window() else {
@@ -154,6 +251,20 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
         let on_press = Callback::new(move |_| on_select.run(record_idx));
         let on_mouse_enter = Callback::new(move |_| set_active_index.set(idx));
 
+        let record_title = record.title.clone();
+        let record_subtitle = record.subtitle.clone();
+        let record_route_label = record.route_label.clone();
+        let record_content = record.content.clone();
+
+        let snippet = Signal::derive(move || {
+            let q = query.get();
+            let q = q.trim();
+            if q.is_empty() {
+                return None;
+            }
+            create_snippet(&record_content, q)
+        });
+
         view! {
             <li class="docs-command-menu__item">
                 <Button
@@ -161,7 +272,7 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                     size=ButtonSize::Sm
                     class_name="docs-command-menu__button".to_string()
                     on_press=on_press
-                    aria_label=record.title.to_string()
+                    aria_label=record_title.to_string()
                 >
                     <span
                         class="docs-command-menu__button-inner"
@@ -169,10 +280,15 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                         on:mouseenter=move |_| on_mouse_enter.run(())
                     >
                         <span class="docs-command-menu__label">
-                            <span class="docs-command-menu__title">{record.title.clone()}</span>
-                            <span class="docs-command-menu__subtitle">{record.subtitle.clone()}</span>
+                            <span class="docs-command-menu__topline">
+                                <span class="docs-command-menu__title">{record_title.clone()}</span>
+                                <span class="docs-command-menu__subtitle">{record_subtitle.clone()}</span>
+                            </span>
+                            {move || snippet.get().map(|snippet| view! {
+                                <span class="docs-command-menu__snippet">{snippet}</span>
+                            })}
                         </span>
-                        <code class="docs-command-menu__route">{record.route_label.clone()}</code>
+                        <code class="docs-command-menu__route">{record_route_label.clone()}</code>
                     </span>
                 </Button>
             </li>
@@ -240,5 +356,46 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                 </div>
             </Dialog>
         </div>
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn truncate_chars_appends_ellipsis_when_truncated() {
+        assert_eq!(truncate_chars("abc", 10), "abc");
+        assert_eq!(truncate_chars("abcdefghij", 10), "abcdefghij");
+        assert_eq!(truncate_chars("abcdefghijk", 10), "abcdefghij…");
+    }
+
+    #[test]
+    fn find_ascii_case_insensitive_matches_substrings() {
+        assert_eq!(
+            find_ascii_case_insensitive("Hello Button", "button"),
+            Some(6)
+        );
+        assert_eq!(
+            find_ascii_case_insensitive("Hello Button", "BUTTON"),
+            Some(6)
+        );
+        assert_eq!(find_ascii_case_insensitive("Hello Button", "nope"), None);
+    }
+
+    #[test]
+    fn create_snippet_returns_context_around_match() {
+        let content = "Alpha beta gamma delta epsilon zeta eta theta iota kappa lambda mu";
+        let snippet = create_snippet(content, "GAMMA").expect("expected snippet");
+        assert!(snippet.to_lowercase().contains("gamma"));
+    }
+
+    #[test]
+    fn create_snippet_uses_ellipsis_for_long_content() {
+        let content = format!("{} match {}", "a".repeat(160), "b".repeat(160));
+        let snippet = create_snippet(&content, "match").expect("expected snippet");
+        assert!(snippet.starts_with('…'));
+        assert!(snippet.ends_with('…'));
+        assert!(snippet.contains("match"));
     }
 }

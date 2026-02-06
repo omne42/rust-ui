@@ -20,6 +20,20 @@ use ui_components::{
     ThemeToggleButton, UiRoot, provide_focus_visible, provide_overlay_stack,
 };
 
+#[cfg(target_arch = "wasm32")]
+fn set_document_title(title: &str) {
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
+    document.set_title(title);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn set_document_title(_title: &str) {}
+
 #[component]
 pub fn App() -> impl IntoView {
     provide_focus_visible();
@@ -55,6 +69,34 @@ pub fn App() -> impl IntoView {
 
     let toc = toc::provide_docs_toc();
     let route_path = Memo::new(move |_| route::route_path(&route.get()).to_string());
+    let toc_items = toc.items();
+
+    let full_title = Memo::new(move |_| {
+        let base = "rust-ui docs";
+        let page = pages::title_for_path(&route_path.get());
+
+        if let Some(section) = route::route_section(&route.get()) {
+            let section_title = toc_items.with(|items| {
+                items
+                    .iter()
+                    .find(|item| item.id == section)
+                    .map(|item| item.title.clone())
+            });
+
+            return match section_title {
+                Some(section_title) => format!("{section_title} · {page} · {base}"),
+                None => format!("{page} · {base}"),
+            };
+        }
+
+        if page == "Welcome" {
+            base.to_string()
+        } else {
+            format!("{page} · {base}")
+        }
+    });
+
+    Effect::new(move |_| set_document_title(&full_title.get()));
 
     Effect::new(move |_| {
         _ = route_path.get();
@@ -68,6 +110,7 @@ pub fn App() -> impl IntoView {
             route::scroll_to_id(section);
         } else {
             toc.set_active(None);
+            route::scroll_to_top();
         }
     });
 
