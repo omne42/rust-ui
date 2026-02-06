@@ -9,5 +9,8 @@ leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-components = { path = "../../crates/ui-components" }
 ui-core = { path = "../../crates/ui-core" }
 
+[dev-dependencies]
+any_spawner = { version = "0.3", features = ["futures-executor"] }
+
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"

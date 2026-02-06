@@ -132,3 +132,17 @@ fn main() {
 
     mount_to_body(|| view! { <App /> })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use leptos::prelude::Owner;
+
+    #[test]
+    fn app_constructs_without_panicking() {
+        let _ = any_spawner::Executor::init_futures_executor();
+        Owner::new().with(|| {
+            let _ = App();
+        });
+    }
+}
