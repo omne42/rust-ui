@@ -111,3 +111,17 @@ fn search_field_emits_spectrum_style_state_data_attributes() {
         );
     }
 }
+
+#[test]
+fn search_field_styles_respect_prefers_reduced_motion() {
+    let source = load_source("src/search_field/styles.rs");
+
+    assert!(
+        source.contains("prefers-reduced-motion: reduce"),
+        "SearchField styles should respect prefers-reduced-motion to avoid forced transitions."
+    );
+    assert!(
+        source.contains("transition: none;"),
+        "SearchField styles should disable transitions under prefers-reduced-motion."
+    );
+}

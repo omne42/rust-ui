@@ -130,7 +130,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `ThemeToggleButton` now animates icon micro-interactions via spring-driven CSS variables (`--ui-theme-toggle-*`).
 - `ui-components`: `MotionRipple` no longer accepts an unused `motion` prop; configure ripple motion via `ripple::motion::trigger_ripple` instead.
 - `ui-components`: `Form` no longer exposes a placeholder motion contract.
-- `ui-components`: `SearchField` now clears on Escape (when non-empty), stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, and adds spring-driven clear-button motion.
+- `ui-components`: `SearchField` now clears on Escape (when non-empty), stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, adds spring-driven clear-button motion, and disables its control transitions when `prefers-reduced-motion` is enabled.
 - `ui-components`: `InputOtp` caret blink now respects `prefers-reduced-motion` (disables the animation when reduced motion is enabled).
 - `ui-components`: `Checkbox` now disables its color transitions when `prefers-reduced-motion` is enabled.
 - `ui-components`: `Input` now clears on Escape when clearable, stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, and adds spring-driven clear-button reveal motion via CSS variables.

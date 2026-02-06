@@ -33,6 +33,12 @@ pub const CSS: &str = r#"
     outline-color 200ms ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-search-field__control {
+    transition: none;
+  }
+}
+
 .ui-search-field__icon {
   display: inline-flex;
   align-items: center;
