@@ -30,6 +30,12 @@ pub const CSS: &str = r#"
     outline-color 200ms ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-text-field__input {
+    transition: none;
+  }
+}
+
 .ui-text-field__input::placeholder {
   color: var(--ui-fg-muted);
 }

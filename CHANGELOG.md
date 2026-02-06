@@ -135,6 +135,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Checkbox` now disables its color transitions when `prefers-reduced-motion` is enabled.
 - `ui-components`: `Input` now clears on Escape when clearable, stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, and adds spring-driven clear-button reveal motion via CSS variables.
 - `ui-components`: `TextField` now supports `read_only` via the native `readonly` attribute.
+- `ui-components`: `TextField` now disables its transitions when `prefers-reduced-motion` is enabled.
 - `ui-components`: `TextArea` now supports `read_only` via the native `readonly` attribute.
 - `ui-components`: `<Meter>` now sets `role="meter progressbar"` to match React Spectrum's cross-browser fallback behavior, and adds a semantics regression test.
 - `ui-components`: `<Progress>` now sets `aria-valuetext` for determinate values (and treats non-finite inputs as min) to match React Spectrum `useProgressBar` semantics.
