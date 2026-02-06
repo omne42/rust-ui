@@ -1,4 +1,4 @@
-use crate::pages::components::component_catalog;
+use crate::pages::{components::component_catalog, docs::docs_catalog};
 use leptos::prelude::*;
 
 const GROUP_ORDER: &[&str] = &[
@@ -10,6 +10,8 @@ const GROUP_ORDER: &[&str] = &[
     "Collections",
     "Overlays",
 ];
+
+const DOC_GROUP_ORDER: &[&str] = &["Docs", "Spec", "Research"];
 
 #[component]
 pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl IntoView {
@@ -31,33 +33,49 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
 
     view! {
         <div class="docs-nav__inner">
-            <div class="docs-nav-section">
-                <div class="docs-nav-title">"Docs"</div>
-                <a
-                    href="#/docs/welcome"
-                    data-active=move || {
-                        (crate::route::route_path(&route.get()) == "docs/welcome").then_some("true")
+            <For
+                each=move || DOC_GROUP_ORDER.iter().copied()
+                key=|group| *group
+                children=move |group| {
+                    let items = docs_catalog()
+                        .iter()
+                        .copied()
+                        .filter(|doc| doc.group == group)
+                        .collect::<Vec<_>>();
+
+                    if items.is_empty() {
+                        return ().into_any();
                     }
-                    on:click=move |ev| {
-                        ev.prevent_default();
-                        navigate.run("docs/welcome".to_string());
+
+                    view! {
+                        <div class="docs-nav-section">
+                            <div class="docs-nav-title">{group}</div>
+                            <For
+                                each=move || items.clone()
+                                key=|doc| doc.route
+                                children=move |doc| {
+                                    let href = format!("#/{}", doc.route);
+                                    view! {
+                                        <a
+                                            href=href
+                                            data-active=move || {
+                                                (crate::route::route_path(&route.get()) == doc.route).then_some("true")
+                                            }
+                                            on:click=move |ev| {
+                                                ev.prevent_default();
+                                                navigate.run(doc.route.to_string());
+                                            }
+                                        >
+                                            {doc.title}
+                                        </a>
+                                    }
+                                }
+                            />
+                        </div>
                     }
-                >
-                    "Welcome"
-                </a>
-                <a
-                    href="#/docs/rules"
-                    data-active=move || {
-                        (crate::route::route_path(&route.get()) == "docs/rules").then_some("true")
-                    }
-                    on:click=move |ev| {
-                        ev.prevent_default();
-                        navigate.run("docs/rules".to_string());
-                    }
-                >
-                    "Rules"
-                </a>
-            </div>
+                    .into_any()
+                }
+            />
 
             <div class="docs-nav-section">
                 <div class="docs-nav-title">"Components"</div>

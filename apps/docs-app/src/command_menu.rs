@@ -1,50 +1,60 @@
-use crate::pages::components::{ComponentDoc, component_catalog};
+use crate::pages::{
+    components::{ComponentDoc, component_catalog},
+    docs::DocPage,
+};
 use leptos::{ev, html, prelude::*};
 use ui_components::{Button, ButtonSize, ButtonVariant, Dialog, DialogSize, SearchInputButton};
 
-const DOC_PAGES: &[(&str, &str)] = &[("docs/welcome", "Welcome"), ("docs/rules", "Rules")];
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 enum SearchTarget {
-    DocPage {
-        route: &'static str,
-        title: &'static str,
-    },
+    DocPage(&'static DocPage),
     Component(&'static ComponentDoc),
 }
+
+impl PartialEq for SearchTarget {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::DocPage(a), Self::DocPage(b)) => a.route == b.route,
+            (Self::Component(a), Self::Component(b)) => a.slug == b.slug,
+            _ => false,
+        }
+    }
+}
+
+impl Eq for SearchTarget {}
 
 impl SearchTarget {
     fn key(self) -> &'static str {
         match self {
-            SearchTarget::DocPage { route, .. } => route,
+            SearchTarget::DocPage(doc) => doc.route,
             SearchTarget::Component(doc) => doc.slug,
         }
     }
 
     fn title(self) -> &'static str {
         match self {
-            SearchTarget::DocPage { title, .. } => title,
+            SearchTarget::DocPage(doc) => doc.title,
             SearchTarget::Component(doc) => doc.name,
         }
     }
 
     fn subtitle(self) -> &'static str {
         match self {
-            SearchTarget::DocPage { .. } => "Docs",
+            SearchTarget::DocPage(doc) => doc.group,
             SearchTarget::Component(doc) => doc.group,
         }
     }
 
     fn route(self) -> String {
         match self {
-            SearchTarget::DocPage { route, .. } => route.to_string(),
+            SearchTarget::DocPage(doc) => doc.route.to_string(),
             SearchTarget::Component(doc) => format!("components/{}", doc.slug),
         }
     }
 
     fn search_text(self) -> String {
         match self {
-            SearchTarget::DocPage { route, title } => format!("{title} {route} docs"),
+            SearchTarget::DocPage(doc) => format!("{} {} {}", doc.title, doc.route, doc.group),
             SearchTarget::Component(doc) => format!("{} {} {}", doc.name, doc.slug, doc.group),
         }
         .to_lowercase()
@@ -99,9 +109,11 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
 
     let all_targets = StoredValue::new({
         let mut out = Vec::new();
-        for (route, title) in DOC_PAGES {
-            out.push(SearchTarget::DocPage { route, title });
-        }
+        out.extend(
+            crate::pages::docs::docs_catalog()
+                .iter()
+                .map(SearchTarget::DocPage),
+        );
         out.extend(component_catalog().iter().map(SearchTarget::Component));
         out
     });

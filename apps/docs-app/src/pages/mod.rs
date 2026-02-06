@@ -19,9 +19,11 @@ fn not_found(route: String) -> AnyView {
 pub fn route_view(route: String) -> AnyView {
     let path = crate::route::route_path(&route);
 
+    if let Some(page) = docs::doc_page(path) {
+        return page;
+    }
+
     match path {
-        "docs/welcome" => docs::Welcome().into_any(),
-        "docs/rules" => docs::Rules().into_any(),
         "components" => components::ComponentsIndex().into_any(),
         other => {
             if let Some(slug) = other.strip_prefix("components/") {
