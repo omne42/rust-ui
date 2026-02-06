@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, OnPress};
+use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, IconButton, OnPress};
 
 #[component]
 pub fn Playground(
@@ -19,6 +19,16 @@ pub fn Playground(
 
     let on_toggle_code: OnPress = Callback::new(move |_| set_show_code.update(|v| *v = !*v));
 
+    let router = crate::router::use_docs_router();
+    let on_link = router.and_then(|router| {
+        anchor_id.clone().map(|anchor| {
+            Callback::new(move |_| {
+                let next = crate::route::route_with_section(&router.route.get_untracked(), &anchor);
+                router.navigate.run(next);
+            })
+        })
+    });
+
     view! {
         <section class="docs-card playground" id=anchor_id>
             <div class="playground__header">
@@ -27,9 +37,37 @@ pub fn Playground(
                     {description.map(|description| view! { <div class="docs-subtitle">{description}</div> })}
                 </div>
 
-                {code.map(|_| {
-                    view! {
-                        <div class="playground__actions">
+                <div class="playground__actions">
+                    {on_link.map(|on_link| {
+                        view! {
+                            <IconButton
+                                aria_label="Link to section".to_string()
+                                variant=ButtonVariant::Ghost
+                                size=ButtonSize::IconSm
+                                on_press=on_link
+                            >
+                                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                    <path
+                                        d="M8.2 11.8a3 3 0 0 1 0-4.2l1.2-1.2a3 3 0 0 1 4.2 4.2l-.6.6"
+                                        stroke="currentColor"
+                                        stroke_width="1.5"
+                                        stroke_linecap="round"
+                                        stroke_linejoin="round"
+                                    />
+                                    <path
+                                        d="M11.8 8.2a3 3 0 0 1 0 4.2l-1.2 1.2a3 3 0 0 1-4.2-4.2l.6-.6"
+                                        stroke="currentColor"
+                                        stroke_width="1.5"
+                                        stroke_linecap="round"
+                                        stroke_linejoin="round"
+                                    />
+                                </svg>
+                            </IconButton>
+                        }
+                    })}
+
+                    {code.map(|_| {
+                        view! {
                             <Button
                                 variant=ButtonVariant::Secondary
                                 size=ButtonSize::Sm
@@ -37,9 +75,9 @@ pub fn Playground(
                             >
                                 {move || if show_code.get() { "Hide code" } else { "Show code" }}
                             </Button>
-                        </div>
-                    }
-                })}
+                        }
+                    })}
+                </div>
             </div>
 
             <div class="playground__preview">{children()}</div>

@@ -2,10 +2,17 @@ pub mod markdown;
 pub mod pages;
 pub mod playground;
 pub mod route;
+pub mod router;
 pub mod toc;
 
 mod command_menu;
 mod search_index;
+
+#[cfg(all(target_arch = "wasm32", not(erase_components)))]
+compile_error!(
+    "WASM builds of this repo require `cfg(erase_components)` to avoid Tachys attribute tuple limits. \
+Ensure `.cargo/config.toml` is picked up (workspace root), or set `RUSTFLAGS=\"--cfg erase_components\"`."
+);
 
 use leptos::prelude::*;
 use ui_components::{
@@ -44,6 +51,8 @@ pub fn App() -> impl IntoView {
         set_nav_open.set(false);
     });
 
+    router::provide_docs_router(route, navigate);
+
     let toc = toc::provide_docs_toc();
     let route_path = Memo::new(move |_| route::route_path(&route.get()).to_string());
 
@@ -55,7 +64,10 @@ pub fn App() -> impl IntoView {
     Effect::new(move |_| {
         let current = route.get();
         if let Some(section) = route::route_section(&current) {
+            toc.set_active(Some(section.to_string()));
             route::scroll_to_id(section);
+        } else {
+            toc.set_active(None);
         }
     });
 

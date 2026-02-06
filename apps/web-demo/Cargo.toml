@@ -14,3 +14,7 @@ any_spawner = { version = "0.3", features = ["futures-executor"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ["cfg(erase_components)"]

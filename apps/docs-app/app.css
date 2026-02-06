@@ -432,6 +432,41 @@ a {
   scroll-margin-top: 110px;
 }
 
+.docs-heading-anchor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ui-fg-muted);
+  opacity: 0;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  flex: 0 0 18px;
+}
+
+.docs-prose h2:hover .docs-heading-anchor,
+.docs-prose h3:hover .docs-heading-anchor {
+  opacity: 1;
+}
+
+.docs-heading-anchor:hover {
+  background: var(--ui-accent-soft);
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 20%);
+  color: var(--ui-fg);
+}
+
+.docs-heading-anchor:focus-visible {
+  opacity: 1;
+  outline: 3px solid var(--ui-focus-ring);
+  outline-offset: 2px;
+}
+
 .docs-prose h1 {
   font-size: 20px;
 }

@@ -13,6 +13,7 @@ pub struct DocsToc {
     items: RwSignal<Vec<TocItem>>,
     used_ids: RwSignal<BTreeMap<String, usize>>,
     next_fallback_id: RwSignal<u32>,
+    active_id: RwSignal<Option<String>>,
 }
 
 pub fn provide_docs_toc() -> DocsToc {
@@ -20,8 +21,12 @@ pub fn provide_docs_toc() -> DocsToc {
         items: RwSignal::new(Vec::new()),
         used_ids: RwSignal::new(BTreeMap::new()),
         next_fallback_id: RwSignal::new(0),
+        active_id: RwSignal::new(None),
     };
     provide_context(toc);
+
+    attach_scroll_spy(toc);
+
     toc
 }
 
@@ -58,10 +63,23 @@ impl DocsToc {
         self.items.read_only()
     }
 
+    pub fn active_id(self) -> ReadSignal<Option<String>> {
+        self.active_id.read_only()
+    }
+
+    pub fn set_active(self, id: Option<String>) {
+        let id = id.filter(|value| !value.trim().is_empty());
+        if self.active_id.get_untracked().as_deref() == id.as_deref() {
+            return;
+        }
+        self.active_id.set(id);
+    }
+
     pub fn clear(self) {
         self.items.set(Vec::new());
         self.used_ids.set(BTreeMap::new());
         self.next_fallback_id.set(0);
+        self.active_id.set(None);
     }
 
     pub fn set_items(self, items: Vec<TocItem>) {
@@ -108,6 +126,7 @@ pub fn DocsTocPanel(route: ReadSignal<String>, navigate: Callback<String>) -> An
     };
 
     let items = toc.items();
+    let active_id = toc.active_id();
 
     view! {
         <Show when=move || !items.get().is_empty()>
@@ -124,7 +143,7 @@ pub fn DocsTocPanel(route: ReadSignal<String>, navigate: Callback<String>) -> An
                             let title = item.title.clone();
                             let level = item.level;
                             let is_active = Signal::derive(move || {
-                                crate::route::route_section(&route.get()) == Some(id_for_active.as_str())
+                                active_id.get().as_deref() == Some(id_for_active.as_str())
                             });
 
                             view! {
@@ -147,4 +166,109 @@ pub fn DocsTocPanel(route: ReadSignal<String>, navigate: Callback<String>) -> An
         </Show>
     }
     .into_any()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn attach_scroll_spy(toc: DocsToc) {
+    use gloo_events::EventListener;
+    use leptos::wasm_bindgen::{JsCast, closure::Closure};
+    use std::{cell::Cell, rc::Rc};
+
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+
+    let scheduled = Rc::new(Cell::new(false));
+    let schedule_update = Rc::new({
+        let window = window.clone();
+        let scheduled = Rc::clone(&scheduled);
+        move || {
+            if scheduled.get() {
+                return;
+            }
+            scheduled.set(true);
+
+            let callback = Closure::once_into_js({
+                let window = window.clone();
+                let scheduled = Rc::clone(&scheduled);
+                move || {
+                    scheduled.set(false);
+                    update_active_from_scroll(&window, toc);
+                }
+            });
+
+            let Some(callback) = callback.dyn_ref::<js_sys::Function>() else {
+                return;
+            };
+            let _ = window.request_animation_frame(callback);
+        }
+    });
+
+    let scroll_listener = StoredValue::new_local(None::<EventListener>);
+    let resize_listener = StoredValue::new_local(None::<EventListener>);
+
+    scroll_listener.set_value(Some(EventListener::new(&window, "scroll", {
+        let schedule_update = Rc::clone(&schedule_update);
+        move |_| schedule_update()
+    })));
+
+    resize_listener.set_value(Some(EventListener::new(&window, "resize", {
+        let schedule_update = Rc::clone(&schedule_update);
+        move |_| schedule_update()
+    })));
+
+    Effect::new({
+        let window = window.clone();
+        move |_| {
+            let items = toc.items.get();
+            if items.is_empty() {
+                toc.set_active(None);
+                return;
+            }
+            update_active_from_scroll(&window, toc);
+        }
+    });
+
+    on_cleanup(move || {
+        scroll_listener.set_value(None);
+        resize_listener.set_value(None);
+    });
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn attach_scroll_spy(_toc: DocsToc) {}
+
+#[cfg(target_arch = "wasm32")]
+fn update_active_from_scroll(window: &web_sys::Window, toc: DocsToc) {
+    let Some(document) = window.document() else {
+        return;
+    };
+
+    let items = toc.items.get_untracked();
+    if items.is_empty() {
+        toc.set_active(None);
+        return;
+    }
+
+    let offset_px = 120.0;
+    let mut last_seen = None::<String>;
+
+    for item in &items {
+        let Some(el) = document.get_element_by_id(&item.id) else {
+            continue;
+        };
+
+        let rect = el.get_bounding_client_rect();
+        if rect.top() <= offset_px {
+            last_seen = Some(item.id.clone());
+        } else {
+            break;
+        }
+    }
+
+    if last_seen.is_none() {
+        last_seen = Some(items[0].id.clone());
+    }
+
+    toc.set_active(last_seen);
 }

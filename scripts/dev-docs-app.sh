@@ -13,6 +13,13 @@ fi
 # NO_COLOR=1, which breaks trunk argument parsing.
 unset NO_COLOR
 
+# WASM CSR builds can hit Tachys' attribute tuple limits without this cfg.
+# This is also set in `.cargo/config.toml`, but keeping it here makes `trunk`
+# invocations more robust across shells/CI.
+if [[ "${RUSTFLAGS:-}" != *"--cfg erase_components"* ]]; then
+  export RUSTFLAGS="--cfg erase_components ${RUSTFLAGS:-}"
+fi
+
 require_cmd() {
   local name="$1"
   if ! command -v "$name" >/dev/null 2>&1; then
@@ -56,4 +63,3 @@ fi
 
 cd "$ROOT_DIR/apps/docs-app"
 exec trunk serve --open true "$@"
-

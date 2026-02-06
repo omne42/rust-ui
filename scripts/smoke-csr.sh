@@ -81,6 +81,13 @@ trap cleanup EXIT
 # NO_COLOR=1, which breaks trunk argument parsing.
 unset NO_COLOR
 
+# WASM CSR builds can hit Tachys' attribute tuple limits without this cfg.
+# This is also set in `.cargo/config.toml`, but keeping it here makes `trunk`
+# invocations more robust across shells/CI.
+if [[ "${RUSTFLAGS:-}" != *"--cfg erase_components"* ]]; then
+  export RUSTFLAGS="--cfg erase_components ${RUSTFLAGS:-}"
+fi
+
 (
   cd "$ROOT_DIR/$APP_DIR"
   exec trunk serve --address 127.0.0.1 --port "$port" --open false

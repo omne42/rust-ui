@@ -123,12 +123,14 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: command menu now uses a unified fuzzy search index (docs + doc sections + components).
 - `apps/docs-app`: add a regression test enforcing that every component doc page contains at least one `<Playground>` section.
 - `apps/docs-app`: adds an "On this page" TOC panel + deep-linkable sections (`section=`) and a mobile nav sheet.
+- `apps/docs-app`: markdown doc headings now expose hoverable anchor buttons for deep-linking.
 - `apps/docs-app`: renders project docs (起点 + spec + research markdown files) as first-class pages and adds a regression test for required doc routes.
 - `apps/web-demo`: log Rust panics to the browser console (`console_error_panic_hook`) to reduce silent white-screen failures.
 - `apps/docs-app`: log Rust panics to the browser console (`console_error_panic_hook`) to reduce silent white-screen failures.
 - `apps/web-demo`: the loading overlay now captures `console.error` output so Rust panics show up in-page (not only in devtools).
 - `apps/docs-app`: the loading overlay now captures `console.error` output so Rust panics show up in-page (not only in devtools).
 - `apps/web-demo`/`apps/docs-app`: the loading overlay now preserves multiple error sources (console + runtime) instead of overwriting the details panel.
+- `apps/web-demo`/`apps/docs-app`: CSR dev/smoke scripts now force `cfg(erase_components)` (and the apps fail fast without it) to avoid Tachys attribute tuple limit crashes.
 - `apps/web-demo`: remove an intentionally invalid avatar image URL that produced `net::ERR_INVALID_URL` noise in the console.
 - `apps/web-demo`: add a smoke test that constructs the demo `<App />` under a Leptos `Owner` to catch panics/regressions early.
 - `ui-components`: `<UiRoot>` now supports disabling built-in component CSS injection by turning off the default `inject-css` feature (for apps that manage CSS separately).

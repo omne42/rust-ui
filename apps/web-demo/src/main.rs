@@ -1,5 +1,11 @@
 mod demos;
 
+#[cfg(all(target_arch = "wasm32", not(erase_components)))]
+compile_error!(
+    "WASM builds of this repo require `cfg(erase_components)` to avoid Tachys attribute tuple limits. \
+Ensure `.cargo/config.toml` is picked up (workspace root), or set `RUSTFLAGS=\"--cfg erase_components\"`."
+);
+
 use demos::{
     ArchitectureDemo, AvatarDemo, ButtonDemo, ComboBoxDemo, DisclosureDemo, DividerDemo,
     ExtrasDemo, FormsDemo, ListBoxDemo, MenuDemo, MiscDemo, MoreComponentsDemo, NewComponentsDemo,
