@@ -52,3 +52,17 @@ fn text_area_emits_spectrum_style_state_data_attributes() {
         );
     }
 }
+
+#[test]
+fn text_area_styles_respect_prefers_reduced_motion() {
+    let source = load_source("src/text_area/styles.rs");
+
+    assert!(
+        source.contains("prefers-reduced-motion: reduce"),
+        "TextArea styles should respect prefers-reduced-motion to avoid forced transitions."
+    );
+    assert!(
+        source.contains("transition: none;"),
+        "TextArea styles should disable transitions under prefers-reduced-motion."
+    );
+}

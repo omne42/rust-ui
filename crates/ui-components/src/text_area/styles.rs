@@ -32,6 +32,12 @@ pub const CSS: &str = r#"
     outline-color 200ms ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-text-area__textarea {
+    transition: none;
+  }
+}
+
 .ui-text-area__textarea::placeholder {
   color: var(--ui-fg-muted);
 }
