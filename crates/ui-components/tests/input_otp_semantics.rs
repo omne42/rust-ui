@@ -78,6 +78,14 @@ fn input_otp_styles_define_caret_blink_and_focus_visible_outline() {
         "InputOtp styles should define a caret blink animation (HeroUI parity)."
     );
     assert!(
+        source.contains("prefers-reduced-motion: reduce"),
+        "InputOtp caret blink should respect prefers-reduced-motion to avoid forced animation."
+    );
+    assert!(
+        source.contains("animation: none;"),
+        "InputOtp should disable caret blink animation under prefers-reduced-motion."
+    );
+    assert!(
         source.contains("ui-input-otp--focus-visible"),
         "InputOtp styles should respond to the focus-visible class rather than relying on `:focus-visible` per-slot."
     );

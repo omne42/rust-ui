@@ -86,6 +86,12 @@ pub const CSS: &str = r#"
   animation: ui-input-otp-caret-blink 1000ms steps(1, end) infinite;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-input-otp__caret {
+    animation: none;
+  }
+}
+
 @keyframes ui-input-otp-caret-blink {
   0%,
   49% {
