@@ -202,6 +202,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-headless`: `use_menu` now supports `default_index` to enable menu trigger focus strategies (e.g. open + focus last item).
 - `ui-components`: `MenuTrigger` now supports Spectrum-style keyboard opening (ArrowDown opens focusing first; ArrowUp opens focusing last).
 - `ui-components`: `MenuTrigger` now supports `open/default_open/on_open_change`, `disabled`, and labels its menu via `aria-labelledby` (trigger `id`).
+- `ui-components`: adds Tooltip semantics regression tests (aria-describedby wiring + portal marker + spring CSS variables).
 - `ui-components`: `DropdownMenu` now supports `open/default_open/on_open_change`, Spectrum-style ArrowUp/Down opening (focus first/last), and labels its menu via `aria-labelledby` (trigger `id`).
 - `ui-components`: `ActionMenu` now supports `open/default_open/on_open_change`, Spectrum-style ArrowUp/Down opening (focus first/last), and labels its menu via `aria-labelledby` (trigger `id`).
 - `ui-components`: `Select` now supports `open/default_open/on_open_change` and labels its listbox via `aria-labelledby` (trigger `id`).
