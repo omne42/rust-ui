@@ -25,3 +25,9 @@ cargo install wasm-bindgen-cli --version 0.2.108
 cd apps/web-demo
 env -u NO_COLOR trunk serve --open true
 ```
+
+Quick regression check (blank-screen guard):
+
+```bash
+./scripts/smoke-web-demo.sh
+```

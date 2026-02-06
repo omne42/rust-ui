@@ -794,6 +794,7 @@ dependencies = [
 name = "docs-app"
 version = "0.0.0"
 dependencies = [
+ "any_spawner",
  "console_error_panic_hook",
  "gloo-events",
  "js-sys",

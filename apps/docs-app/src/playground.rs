@@ -1,11 +1,45 @@
+use leptos::children::ViewFn;
 use leptos::prelude::*;
 use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, IconButton, OnPress};
+
+#[derive(Clone, Copy)]
+pub struct PlaygroundRegistry {
+    titles: RwSignal<Vec<String>>,
+}
+
+pub fn provide_playground_registry() -> PlaygroundRegistry {
+    let registry = PlaygroundRegistry {
+        titles: RwSignal::new(Vec::new()),
+    };
+    provide_context(registry);
+    registry
+}
+
+pub fn use_playground_registry() -> Option<PlaygroundRegistry> {
+    use_context::<PlaygroundRegistry>()
+}
+
+impl PlaygroundRegistry {
+    pub fn titles(self) -> ReadSignal<Vec<String>> {
+        self.titles.read_only()
+    }
+
+    pub fn clear(self) {
+        self.titles.set(Vec::new());
+    }
+
+    pub fn register(self, title: &str) {
+        self.titles
+            .update(|titles| titles.push(title.trim().to_string()));
+    }
+}
 
 #[component]
 pub fn Playground(
     title: &'static str,
     #[prop(optional)] description: &'static str,
     #[prop(optional)] code: &'static str,
+    #[prop(optional, into)] controls: Option<ViewFn>,
     children: Children,
 ) -> impl IntoView {
     let anchor_id = crate::toc::use_docs_toc()
@@ -13,8 +47,19 @@ pub fn Playground(
         .unwrap_or_default();
     let anchor_id = (!anchor_id.trim().is_empty()).then_some(anchor_id);
 
+    if let Some(registry) = use_playground_registry() {
+        registry.register(title);
+    }
+
     let description = (!description.trim().is_empty()).then_some(description);
     let code = (!code.trim().is_empty()).then_some(code);
+    let controls = StoredValue::new(controls);
+    let has_controls = controls.get_value().is_some();
+    let section_class = if has_controls {
+        "docs-card playground playground--with-controls"
+    } else {
+        "docs-card playground"
+    };
     let (show_code, set_show_code) = signal(code.is_some());
 
     let on_toggle_code: OnPress = Callback::new(move |_| set_show_code.update(|v| *v = !*v));
@@ -30,7 +75,7 @@ pub fn Playground(
     });
 
     view! {
-        <section class="docs-card playground" id=anchor_id>
+        <section class=section_class id=anchor_id>
             <div class="playground__header">
                 <div class="playground__title">
                     <h2>{title}</h2>
@@ -80,7 +125,16 @@ pub fn Playground(
                 </div>
             </div>
 
-            <div class="playground__preview">{children()}</div>
+            <div class="playground__body">
+                <div class="playground__preview">{children()}</div>
+                {controls.get_value().map(|controls| {
+                    view! {
+                        <aside class="playground__controls" data-slot="playground-controls">
+                            {controls.run()}
+                        </aside>
+                    }
+                })}
+            </div>
             {code.map(|code| {
                 view! {
                     <Show when=move || show_code.get()>

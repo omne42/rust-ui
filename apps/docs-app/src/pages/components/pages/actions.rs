@@ -5,11 +5,42 @@ use ui_components::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
     ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup, ButtonGroupOrientation,
     ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton, LinkButton, MenuItemKind,
-    OnPress, SearchInputButton, ShareButton, SharePlatform, ThemeMode, ThemeToggleButton,
-    ToggleButton, ToggleButtonGroup,
+    OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton, SharePlatform,
+    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
 };
 
 pub(super) fn button() -> AnyView {
+    let variant_options = vec![
+        "Primary".to_string(),
+        "Outline".to_string(),
+        "Ghost".to_string(),
+        "Danger".to_string(),
+        "Secondary".to_string(),
+    ];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ButtonVariant::Outline,
+        2 => ButtonVariant::Ghost,
+        3 => ButtonVariant::Destructive,
+        4 => ButtonVariant::Secondary,
+        _ => ButtonVariant::Default,
+    });
+
+    let size_options = vec![
+        "Small".to_string(),
+        "Medium".to_string(),
+        "Large".to_string(),
+    ];
+    let (size_index, set_size_index) = signal(Some(1_usize));
+    let size = Signal::derive(move || match size_index.get().unwrap_or(1) {
+        0 => ButtonSize::Sm,
+        2 => ButtonSize::Lg,
+        _ => ButtonSize::Default,
+    });
+
+    let (disabled, set_disabled) = signal(false);
+    let (loading, set_loading) = signal(false);
+
     let code = r#"<Button variant=ButtonVariant::Default>"Primary"</Button>
 <Button variant=ButtonVariant::Outline>"Outline"</Button>
 <Button variant=ButtonVariant::Ghost>"Ghost"</Button>"#;
@@ -21,15 +52,58 @@ pub(super) fn button() -> AnyView {
             group="Actions"
             description="Variants + sizes with spring hover/tap motion."
         >
-            <Playground title="Variants & sizes" code=code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Default>"Primary"</Button>
-                    <Button variant=ButtonVariant::Outline>"Outline"</Button>
-                    <Button variant=ButtonVariant::Ghost>"Ghost"</Button>
-                    <Button variant=ButtonVariant::Destructive>"Danger"</Button>
-                    <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Small"</Button>
-                    <Button variant=ButtonVariant::Secondary size=ButtonSize::Lg>"Large"</Button>
-                </div>
+            <Playground
+                title="Variants & sizes"
+                code=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-button-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Button variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-button-size".to_string()
+                            options=size_options.clone()
+                            selected_index=size_index
+                            set_selected_index=set_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Button size".to_string()
+                        />
+
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=loading set_checked=set_loading>"Loading"</Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let variant = variant.get();
+                    let size = size.get();
+                    let disabled = disabled.get();
+                    let is_loading = loading.get();
+
+                    view! {
+                        <div class="docs-row">
+                            <Button
+                                variant=variant
+                                size=size
+                                disabled=disabled
+                                is_loading=is_loading
+                            >
+                                "Button"
+                            </Button>
+                            <span class="ui-muted">
+                                {format!("{variant:?} · {size:?}")}
+                            </span>
+                        </div>
+                    }
+                }}
             </Playground>
         </ComponentPage>
     }
