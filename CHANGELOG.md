@@ -132,6 +132,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Form` no longer exposes a placeholder motion contract.
 - `ui-components`: `SearchField` now clears on Escape (when non-empty), stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, and adds spring-driven clear-button motion.
 - `ui-components`: `InputOtp` caret blink now respects `prefers-reduced-motion` (disables the animation when reduced motion is enabled).
+- `ui-components`: `Checkbox` now disables its color transitions when `prefers-reduced-motion` is enabled.
 - `ui-components`: `Input` now clears on Escape when clearable, stops Escape propagation when clearing (so parent overlays don't dismiss), excludes its clear button from the tab order, and adds spring-driven clear-button reveal motion via CSS variables.
 - `ui-components`: `TextField` now supports `read_only` via the native `readonly` attribute.
 - `ui-components`: `TextArea` now supports `read_only` via the native `readonly` attribute.

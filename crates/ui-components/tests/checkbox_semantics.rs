@@ -60,3 +60,17 @@ fn checkbox_motion_uses_spring_animator() {
         "Checkbox motion should be spring-driven to match the repo's motion spec."
     );
 }
+
+#[test]
+fn checkbox_styles_respect_prefers_reduced_motion() {
+    let source = load_source("src/checkbox/styles.rs");
+
+    assert!(
+        source.contains("prefers-reduced-motion: reduce"),
+        "Checkbox styles should respect prefers-reduced-motion to avoid forced transitions."
+    );
+    assert!(
+        source.contains("transition: none;"),
+        "Checkbox styles should disable transitions under prefers-reduced-motion."
+    );
+}

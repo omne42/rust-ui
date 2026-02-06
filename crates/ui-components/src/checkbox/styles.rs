@@ -55,6 +55,12 @@ pub const CSS: &str = r#"
     color 200ms ease;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .ui-checkbox__box {
+    transition: none;
+  }
+}
+
 .ui-checkbox[data-state="checked"] .ui-checkbox__box {
   background: var(--ui-accent);
   border-color: var(--ui-accent);
