@@ -61,6 +61,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - Dev tooling: `githooks/` (Conventional Commits + pre-commit gates) with `scripts/setup-githooks.sh`, plus gate runner scripts (`scripts/gate.sh`, `scripts/check.sh`) and `scripts/fetch_upstream.sh` for cloning upstream reference repos into `examples/` (ignored by git).
 - Dev tooling: `scripts/fetch_upstream.sh` now also clones motion/heroui/shadcn-ui/animate-ui into `examples/_upstream` (ignored by git).
 - Dev tooling: `scripts/dev-web-demo.sh` to run the web demo with sane defaults (unsets `NO_COLOR`, ensures wasm target/tooling).
+- Dev tooling: adds Playwright-based WASM startup smoke scripts (`scripts/smoke-web-demo.sh`, `scripts/smoke-docs-app.sh`) to catch blank-screen regressions.
 - Project docs: MVP/spec notes and a TODO/DAG-based implementation plan.
 - Research: Android spike checklist and go/no-go criteria (`docs/research/android-spike.md`).
 - Research: notes mapping `bb/packages/ui-web` architecture/colors/docs practices into this repo (`docs/research/bb_ui-web_notes.md`).
@@ -125,6 +126,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/web-demo`: log Rust panics to the browser console (`console_error_panic_hook`) to reduce silent white-screen failures.
 - `apps/web-demo`: the loading overlay now captures `console.error` output so Rust panics show up in-page (not only in devtools).
 - `apps/docs-app`: the loading overlay now captures `console.error` output so Rust panics show up in-page (not only in devtools).
+- `apps/web-demo`/`apps/docs-app`: the loading overlay now preserves multiple error sources (console + runtime) instead of overwriting the details panel.
 - `apps/web-demo`: remove an intentionally invalid avatar image URL that produced `net::ERR_INVALID_URL` noise in the console.
 - `apps/web-demo`: add a smoke test that constructs the demo `<App />` under a Leptos `Owner` to catch panics/regressions early.
 - `ui-components`: `<UiRoot>` now supports disabling built-in component CSS injection by turning off the default `inject-css` feature (for apps that manage CSS separately).

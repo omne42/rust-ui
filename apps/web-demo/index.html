@@ -75,7 +75,7 @@
 
         const details = boot.querySelector("[data-boot-details]");
 
-        const set_details = (label, value) => {
+        const append_details = (label, value) => {
           if (!details) return;
           details.hidden = false;
           const text =
@@ -84,7 +84,16 @@
               : value instanceof Error
                 ? value.stack || value.message
                 : JSON.stringify(value, null, 2);
-          details.textContent = `${label}\n\n${text}`;
+          const next = `${label}\n\n${text}`;
+          const prev = details.textContent?.trim();
+          if (!prev) {
+            details.textContent = next;
+            return;
+          }
+          if (prev.includes(next)) {
+            return;
+          }
+          details.textContent = `${prev}\n\n---\n\n${next}`;
         };
 
         window.addEventListener(
@@ -109,7 +118,7 @@
                 }
               })
               .join(" ");
-            set_details("Console error", text);
+            append_details("Console error", text);
           } catch {
             // ignore
           }
@@ -117,11 +126,11 @@
         };
 
         window.addEventListener("error", (ev) => {
-          set_details("Runtime error", ev?.error ?? ev?.message ?? ev);
+          append_details("Runtime error", ev?.error ?? ev?.message ?? ev);
         });
 
         window.addEventListener("unhandledrejection", (ev) => {
-          set_details("Unhandled promise rejection", ev?.reason ?? ev);
+          append_details("Unhandled promise rejection", ev?.reason ?? ev);
         });
       })();
     </script>
