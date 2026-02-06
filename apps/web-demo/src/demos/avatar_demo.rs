@@ -15,7 +15,6 @@ pub fn AvatarDemo() -> impl IntoView {
                 <Avatar name="Ada Lovelace" size=AvatarSize::Md />
                 <Avatar name="Ada Lovelace" size=AvatarSize::Lg />
                 <Avatar name="Image Avatar" src=DEMO_AVATAR_SVG size=AvatarSize::Lg />
-                <Avatar name="Broken Image" src="data:image/png;base64,not-base64" size=AvatarSize::Lg />
             </div>
         </section>
     }
