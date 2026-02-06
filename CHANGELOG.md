@@ -140,6 +140,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds ActionMenu semantics regression tests (Popover composition + overlay trigger ARIA contract).
 - `ui-components`: adds SearchInputButton semantics regression tests (headless hooks + Spectrum-style state attributes + motion contract).
 - `ui-components`: adds Dialog semantics regression tests (Overlay labeling contract + close button accessibility).
+- `ui-components`: `<AlertDialog>` now supports secondary/cancel actions (close-before-callback), per-action disabled flags, auto-focus button selection, warning/error variants with icons, and adds a semantics regression test.
 - `ui-components`: `<Accordion>` now emits Spectrum-style trigger state attributes (`data-open`, `data-focus-visible`, etc.) and adds a semantics regression test.
 - `ui-components`: `SlidingNumber` now animates per-digit transitions via spring-driven CSS variables (animate-ui-style).
 - `ui-components`: `CodeBlock` now provides spring-driven copy feedback via CSS variables (`--ui-code-block-copy-flash`).

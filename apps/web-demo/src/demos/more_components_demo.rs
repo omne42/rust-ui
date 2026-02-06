@@ -53,7 +53,6 @@ pub fn MoreComponentsDemo() -> impl IntoView {
 
     let on_confirm: OnPress = Callback::new(move |_| {
         set_input_invalid.set(false);
-        set_alert_open.set(false);
     });
 
     view! {

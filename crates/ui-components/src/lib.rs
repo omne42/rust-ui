@@ -99,7 +99,9 @@ pub use action_button_group::{
 pub use action_menu::{ActionMenu, ActionMenuMotion};
 pub use active_highlight::ActiveHighlightMotion;
 pub use alert::{Alert, AlertVariant};
-pub use alert_dialog::{AlertDialog, AlertDialogMotion, AlertDialogVariant};
+pub use alert_dialog::{
+    AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant,
+};
 pub use auto_height::{AutoHeight, AutoHeightMotion};
 pub use autocomplete::{Autocomplete, AutocompleteMotion};
 pub use avatar::{Avatar, AvatarSize};

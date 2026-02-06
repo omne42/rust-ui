@@ -247,7 +247,10 @@ pub(super) fn alert_dialog() -> AnyView {
     let open_alert: OnPress = Callback::new(move |_| set_open_raw.set(true));
     let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
-    let on_confirm: OnPress = Callback::new(move |_| set_open_raw.set(false));
+    let (confirmed, set_confirmed) = signal(0u32);
+    let on_confirm: OnPress = Callback::new(move |_| {
+        set_confirmed.update(|value| *value = value.saturating_add(1));
+    });
 
     let code = r#"<AlertDialog open=open id_base="a".to_string() title="Confirm".to_string()
   on_close=close confirm_label="Confirm".to_string() on_confirm=on_confirm />"#;
@@ -262,6 +265,9 @@ pub(super) fn alert_dialog() -> AnyView {
             <Playground title="AlertDialog" code=code>
                 <div class="docs-row">
                     <Button variant=ButtonVariant::Destructive on_press=open_alert>"Open destructive"</Button>
+                    <span class="ui-muted">
+                        "confirmed: " {move || confirmed.get().to_string()}
+                    </span>
                 </div>
 
                 <Show when=move || present.get()>
