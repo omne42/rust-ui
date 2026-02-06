@@ -11,4 +11,5 @@ ui-components = { path = "../../crates/ui-components" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 gloo-events = "0.2.0"
-web-sys = { version = "0.3.81", features = ["KeyboardEvent", "Location", "Navigator", "Window"] }
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["Document", "Element", "KeyboardEvent", "Location", "Navigator", "Window"] }

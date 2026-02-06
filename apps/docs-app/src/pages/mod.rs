@@ -17,7 +17,9 @@ fn not_found(route: String) -> AnyView {
 }
 
 pub fn route_view(route: String) -> AnyView {
-    match route.as_str() {
+    let path = crate::route::route_path(&route);
+
+    match path {
         "docs/welcome" => docs::Welcome().into_any(),
         "docs/rules" => docs::Rules().into_any(),
         "components" => components::ComponentsIndex().into_any(),

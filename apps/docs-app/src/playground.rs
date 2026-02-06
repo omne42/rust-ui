@@ -8,6 +8,11 @@ pub fn Playground(
     #[prop(optional)] code: &'static str,
     children: Children,
 ) -> impl IntoView {
+    let anchor_id = crate::toc::use_docs_toc()
+        .map(|toc| toc.register(title, 2))
+        .unwrap_or_default();
+    let anchor_id = (!anchor_id.trim().is_empty()).then_some(anchor_id);
+
     let description = (!description.trim().is_empty()).then_some(description);
     let code = (!code.trim().is_empty()).then_some(code);
     let (show_code, set_show_code) = signal(code.is_some());
@@ -15,7 +20,7 @@ pub fn Playground(
     let on_toggle_code: OnPress = Callback::new(move |_| set_show_code.update(|v| *v = !*v));
 
     view! {
-        <section class="docs-card playground">
+        <section class="docs-card playground" id=anchor_id>
             <div class="playground__header">
                 <div class="playground__title">
                     <h2>{title}</h2>

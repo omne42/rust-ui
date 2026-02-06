@@ -2,6 +2,38 @@ use leptos::prelude::*;
 
 pub const DEFAULT_ROUTE: &str = "docs/welcome";
 
+pub fn route_path(route: &str) -> &str {
+    route.split_once('?').map(|(path, _)| path).unwrap_or(route)
+}
+
+fn route_query(route: &str) -> Option<&str> {
+    route.split_once('?').map(|(_, query)| query)
+}
+
+pub fn route_section(route: &str) -> Option<&str> {
+    route_query(route).and_then(|query| {
+        query
+            .split('&')
+            .find_map(|pair| pair.strip_prefix("section="))
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+    })
+}
+
+pub fn route_with_section(route: &str, section: &str) -> String {
+    let path = route_path(route).trim();
+    if path.is_empty() {
+        return DEFAULT_ROUTE.to_string();
+    }
+
+    let section = section.trim();
+    if section.is_empty() {
+        return path.to_string();
+    }
+
+    format!("{path}?section={section}")
+}
+
 fn normalize_route(raw: &str) -> String {
     let raw = raw.trim();
     if raw.is_empty() {
@@ -46,6 +78,52 @@ fn set_hash_route(route: &str) {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn set_hash_route(_route: &str) {}
+
+#[cfg(target_arch = "wasm32")]
+pub fn scroll_to_id(id: &str) {
+    use leptos::wasm_bindgen::{JsCast, closure::Closure};
+
+    fn try_scroll(id: &str) -> bool {
+        let Some(window) = web_sys::window() else {
+            return false;
+        };
+        let Some(document) = window.document() else {
+            return false;
+        };
+        let Some(el) = document.get_element_by_id(id) else {
+            return false;
+        };
+        el.scroll_into_view();
+        true
+    }
+
+    if id.trim().is_empty() {
+        return;
+    }
+
+    if try_scroll(id) {
+        return;
+    }
+
+    // The element might not exist yet (route render + WASM mount). Retry once on the next tick.
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+
+    let id = id.to_string();
+    let callback = Closure::once_into_js(move || {
+        _ = try_scroll(&id);
+    });
+
+    let Some(callback) = callback.dyn_ref::<js_sys::Function>() else {
+        return;
+    };
+
+    let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(callback, 0);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn scroll_to_id(_id: &str) {}
 
 /// Returns a `(route, navigate)` pair.
 ///

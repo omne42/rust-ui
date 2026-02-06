@@ -1,4 +1,3 @@
-use crate::markdown::markdown_to_html;
 use leptos::prelude::*;
 
 const RULES_MD: &str = include_str!(concat!(
@@ -8,7 +7,11 @@ const RULES_MD: &str = include_str!(concat!(
 
 #[component]
 pub fn Rules() -> impl IntoView {
-    let html = StoredValue::new(markdown_to_html(RULES_MD));
+    let rendered = crate::markdown::render_markdown(RULES_MD);
+    if let Some(toc) = crate::toc::use_docs_toc() {
+        toc.set_items(rendered.toc);
+    }
+    let html = StoredValue::new(rendered.html);
     view! {
         <section class="docs-card docs-prose">
             <div inner_html=move || html.get_value()></div>

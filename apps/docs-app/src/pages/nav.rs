@@ -35,7 +35,9 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                 <div class="docs-nav-title">"Docs"</div>
                 <a
                     href="#/docs/welcome"
-                    data-active=move || (route.get() == "docs/welcome").then_some("true")
+                    data-active=move || {
+                        (crate::route::route_path(&route.get()) == "docs/welcome").then_some("true")
+                    }
                     on:click=move |ev| {
                         ev.prevent_default();
                         navigate.run("docs/welcome".to_string());
@@ -45,7 +47,9 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                 </a>
                 <a
                     href="#/docs/rules"
-                    data-active=move || (route.get() == "docs/rules").then_some("true")
+                    data-active=move || {
+                        (crate::route::route_path(&route.get()) == "docs/rules").then_some("true")
+                    }
                     on:click=move |ev| {
                         ev.prevent_default();
                         navigate.run("docs/rules".to_string());
@@ -59,7 +63,9 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                 <div class="docs-nav-title">"Components"</div>
                 <a
                     href="#/components"
-                    data-active=move || (route.get() == "components").then_some("true")
+                    data-active=move || {
+                        (crate::route::route_path(&route.get()) == "components").then_some("true")
+                    }
                     on:click=move |ev| {
                         ev.prevent_default();
                         navigate.run("components".to_string());
@@ -88,7 +94,11 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                 view! {
                                     <a
                                         href=href
-                                        data-active=move || (route.get() == format!("components/{}", doc.slug)).then_some("true")
+                                        data-active=move || {
+                                            (crate::route::route_path(&route.get())
+                                                == format!("components/{}", doc.slug))
+                                                .then_some("true")
+                                        }
                                     >
                                         {doc.name}
                                     </a>
@@ -119,7 +129,11 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                             view! {
                                                 <a
                                                     href=format!("#/components/{}", doc.slug)
-                                                    data-active=move || (route.get() == format!("components/{}", doc.slug)).then_some("true")
+                                                    data-active=move || {
+                                                        (crate::route::route_path(&route.get())
+                                                            == format!("components/{}", doc.slug))
+                                                            .then_some("true")
+                                                    }
                                                 >
                                                     {doc.name}
                                                 </a>

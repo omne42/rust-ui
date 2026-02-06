@@ -8,6 +8,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 110px;
 }
 
 a {
@@ -34,9 +35,10 @@ a {
 }
 
 .docs-shell {
-  padding: 24px;
-  max-width: 1200px;
+  padding: 0 24px 24px;
+  max-width: 1440px;
   margin: 0 auto;
+  min-height: 100svh;
 }
 
 .docs-header {
@@ -44,7 +46,14 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  padding: 18px 0;
   margin: 0 0 18px 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklch, var(--ui-bg), transparent 18%);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid color-mix(in oklch, var(--ui-border), transparent 25%);
 }
 
 .docs-header__title {
@@ -55,6 +64,10 @@ a {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.docs-header__nav-toggle {
+  display: none;
 }
 
 .docs-title {
@@ -72,7 +85,7 @@ a {
 
 .docs-layout {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr) 240px;
   gap: 18px;
   align-items: start;
 }
@@ -81,11 +94,30 @@ a {
   .docs-layout {
     grid-template-columns: 1fr;
   }
+
+  .docs-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .docs-header__actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .docs-header__nav-toggle {
+    display: inline-flex;
+  }
+
+  .docs-nav,
+  .docs-toc {
+    display: none;
+  }
 }
 
 .docs-nav {
   position: sticky;
-  top: 16px;
+  top: 92px;
   padding: 12px;
   border-radius: var(--ui-radius-lg);
   border: 1px solid var(--ui-border);
@@ -169,6 +201,82 @@ a {
   min-width: 0;
 }
 
+.docs-toc {
+  position: sticky;
+  top: 92px;
+  padding: 12px;
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg-muted);
+  box-shadow: var(--ui-shadow-sm);
+}
+
+.docs-toc__title {
+  margin: 0 0 10px 0;
+  font-size: 12px;
+  color: var(--ui-fg-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.docs-toc__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.docs-toc__item a {
+  display: block;
+  padding: 6px 8px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 12px;
+  color: var(--ui-fg);
+}
+
+.docs-toc__item[data-level="3"] a {
+  padding-left: 18px;
+  color: var(--ui-fg-muted);
+}
+
+.docs-toc__item a:hover {
+  background: var(--ui-accent-soft);
+}
+
+.docs-toc__item[data-active="true"] a {
+  background: var(--ui-accent-soft);
+  font-weight: 600;
+}
+
+.docs-mobile-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+}
+
+.docs-mobile-nav__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.docs-mobile-nav__title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.docs-mobile-nav__body {
+  overflow: auto;
+  padding-right: 4px;
+}
+
 .docs-row {
   display: flex;
   align-items: center;
@@ -221,6 +329,14 @@ a {
   gap: 14px;
 }
 
+.docs-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .docs-page-title {
   margin: 0;
   font-size: 16px;
@@ -244,6 +360,22 @@ a {
   white-space: nowrap;
 }
 
+.docs-page-nav {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--ui-border), transparent 20%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-bg-muted) 35%);
+  text-decoration: none;
+  font-size: 12px;
+  color: var(--ui-fg-muted);
+  white-space: nowrap;
+}
+
+.docs-page-nav:hover {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 25%);
+  color: var(--ui-fg);
+}
+
 .docs-page-back:hover {
   border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 25%);
 }
@@ -256,6 +388,28 @@ a {
   gap: 12px;
   font-size: 12px;
   color: var(--ui-fg-muted);
+}
+
+.docs-page-meta__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.docs-page-import {
+  max-width: min(420px, 46vw);
+}
+
+@media (max-width: 900px) {
+  .docs-page-import {
+    max-width: 100%;
+    flex: 1 0 100%;
+  }
+
+  .docs-page-meta {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }
 
 .docs-page-slug {
@@ -275,6 +429,7 @@ a {
 .docs-prose h3 {
   margin: 18px 0 10px 0;
   line-height: 1.2;
+  scroll-margin-top: 110px;
 }
 
 .docs-prose h1 {
@@ -325,6 +480,7 @@ a {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  scroll-margin-top: 110px;
 }
 
 .playground__header {
