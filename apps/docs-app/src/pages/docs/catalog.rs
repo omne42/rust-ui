@@ -40,6 +40,7 @@ pub struct DocPage {
     pub route: &'static str,
     pub group: &'static str,
     pub page: fn() -> AnyView,
+    pub markdown: Option<&'static str>,
 }
 
 pub const CATALOG: &[DocPage] = &[
@@ -48,54 +49,63 @@ pub const CATALOG: &[DocPage] = &[
         route: "docs/welcome",
         group: "Docs",
         page: welcome,
+        markdown: None,
     },
     DocPage {
         title: "起点（也即是目的）",
         route: "docs/start",
         group: "Docs",
         page: start,
+        markdown: Some(START_MD),
     },
     DocPage {
         title: "Rules",
         route: "docs/rules",
         group: "Docs",
         page: rules,
+        markdown: Some(RULES_MD),
     },
     DocPage {
         title: "MVP spec",
         route: "docs/spec/mvp",
         group: "Spec",
         page: spec_mvp,
+        markdown: Some(MVP_MD),
     },
     DocPage {
         title: "Styling spec",
         route: "docs/spec/styling",
         group: "Spec",
         page: spec_styling,
+        markdown: Some(STYLING_MD),
     },
     DocPage {
         title: "Motion spec",
         route: "docs/spec/motion",
         group: "Spec",
         page: spec_motion,
+        markdown: Some(MOTION_MD),
     },
     DocPage {
         title: "Research README",
         route: "docs/research",
         group: "Research",
         page: research,
+        markdown: Some(RESEARCH_MD),
     },
     DocPage {
         title: "bb/ui-web notes",
         route: "docs/research/bb-ui-web-notes",
         group: "Research",
         page: research_bb_ui_web_notes,
+        markdown: Some(BB_UI_WEB_NOTES_MD),
     },
     DocPage {
         title: "Android spike",
         route: "docs/research/android-spike",
         group: "Research",
         page: research_android_spike,
+        markdown: Some(ANDROID_SPIKE_MD),
     },
 ];
 

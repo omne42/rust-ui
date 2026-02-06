@@ -1,65 +1,6 @@
-use crate::pages::{
-    components::{ComponentDoc, component_catalog},
-    docs::DocPage,
-};
+use crate::search_index::search;
 use leptos::{ev, html, prelude::*};
 use ui_components::{Button, ButtonSize, ButtonVariant, Dialog, DialogSize, SearchInputButton};
-
-#[derive(Clone, Copy, Debug)]
-enum SearchTarget {
-    DocPage(&'static DocPage),
-    Component(&'static ComponentDoc),
-}
-
-impl PartialEq for SearchTarget {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::DocPage(a), Self::DocPage(b)) => a.route == b.route,
-            (Self::Component(a), Self::Component(b)) => a.slug == b.slug,
-            _ => false,
-        }
-    }
-}
-
-impl Eq for SearchTarget {}
-
-impl SearchTarget {
-    fn key(self) -> &'static str {
-        match self {
-            SearchTarget::DocPage(doc) => doc.route,
-            SearchTarget::Component(doc) => doc.slug,
-        }
-    }
-
-    fn title(self) -> &'static str {
-        match self {
-            SearchTarget::DocPage(doc) => doc.title,
-            SearchTarget::Component(doc) => doc.name,
-        }
-    }
-
-    fn subtitle(self) -> &'static str {
-        match self {
-            SearchTarget::DocPage(doc) => doc.group,
-            SearchTarget::Component(doc) => doc.group,
-        }
-    }
-
-    fn route(self) -> String {
-        match self {
-            SearchTarget::DocPage(doc) => doc.route.to_string(),
-            SearchTarget::Component(doc) => format!("components/{}", doc.slug),
-        }
-    }
-
-    fn search_text(self) -> String {
-        match self {
-            SearchTarget::DocPage(doc) => format!("{} {} {}", doc.title, doc.route, doc.group),
-            SearchTarget::Component(doc) => format!("{} {} {}", doc.name, doc.slug, doc.group),
-        }
-        .to_lowercase()
-    }
-}
 
 #[cfg(target_arch = "wasm32")]
 fn detect_meta_key_label() -> &'static str {
@@ -107,26 +48,11 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
 
     let meta_key_label = StoredValue::new(detect_meta_key_label().to_string());
 
-    let all_targets = StoredValue::new({
-        let mut out = Vec::new();
-        out.extend(
-            crate::pages::docs::docs_catalog()
-                .iter()
-                .map(SearchTarget::DocPage),
-        );
-        out.extend(component_catalog().iter().map(SearchTarget::Component));
-        out
-    });
+    let all_records = StoredValue::new(crate::search_index::build_records());
 
     let filtered = Memo::new(move |_| {
         let q = query.get();
-        let q = q.trim().to_lowercase();
-        let mut items = all_targets.get_value();
-        if !q.is_empty() {
-            items.retain(|item| item.search_text().contains(&q));
-        }
-        items.truncate(18);
-        items
+        all_records.with_value(|records| search(records, &q, 18))
     });
 
     let indexed = Memo::new(move |_| filtered.get().into_iter().enumerate().collect::<Vec<_>>());
@@ -142,9 +68,17 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
         set_active_index.set(0);
     });
 
-    let on_select = Callback::new(move |item: SearchTarget| {
+    let on_select = Callback::new(move |idx: usize| {
+        let route = all_records
+            .with_value(|records| records.get(idx).map(|record| record.route.clone()))
+            .unwrap_or_default();
+
+        if route.trim().is_empty() {
+            return;
+        }
+
         close.run(());
-        navigate.run(item.route());
+        navigate.run(route);
     });
 
     #[cfg(target_arch = "wasm32")]
@@ -202,13 +136,49 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                 return;
             }
             ev.prevent_default();
-            if let Some(item) = filtered.get().get(active_index.get()).copied() {
-                on_select.run(item);
+            if let Some(idx) = filtered.get().get(active_index.get()).copied() {
+                on_select.run(idx);
             }
         } else if key == "Escape" {
             close.run(());
         }
     });
+
+    let render_row = move |(idx, record_idx): (usize, usize)| {
+        let Some(record) = all_records.with_value(|records| records.get(record_idx).cloned())
+        else {
+            return ().into_any();
+        };
+
+        let is_active = Signal::derive(move || active_index.get() == idx);
+        let on_press = Callback::new(move |_| on_select.run(record_idx));
+        let on_mouse_enter = Callback::new(move |_| set_active_index.set(idx));
+
+        view! {
+            <li class="docs-command-menu__item">
+                <Button
+                    variant=ButtonVariant::Ghost
+                    size=ButtonSize::Sm
+                    class_name="docs-command-menu__button".to_string()
+                    on_press=on_press
+                    aria_label=record.title.to_string()
+                >
+                    <span
+                        class="docs-command-menu__button-inner"
+                        data-active=move || is_active.get().then_some("true")
+                        on:mouseenter=move |_| on_mouse_enter.run(())
+                    >
+                        <span class="docs-command-menu__label">
+                            <span class="docs-command-menu__title">{record.title.clone()}</span>
+                            <span class="docs-command-menu__subtitle">{record.subtitle.clone()}</span>
+                        </span>
+                        <code class="docs-command-menu__route">{record.route_label.clone()}</code>
+                    </span>
+                </Button>
+            </li>
+        }
+        .into_any()
+    };
 
     view! {
         <div class="docs-command-menu" data-slot="docs-command-menu">
@@ -253,36 +223,16 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                             <ul class="docs-command-menu__list">
                                 <For
                                     each=move || indexed.get()
-                                    key=|(idx, item)| format!("{idx}-{}", item.key())
-                                    children=move |(idx, item)| {
-                                        let is_active = Signal::derive(move || active_index.get() == idx);
-                                        let on_press = Callback::new(move |_| on_select.run(item));
-                                        let on_mouse_enter = Callback::new(move |_| set_active_index.set(idx));
-
-                                        view! {
-                                            <li class="docs-command-menu__item">
-                                                <Button
-                                                    variant=ButtonVariant::Ghost
-                                                    size=ButtonSize::Sm
-                                                    class_name="docs-command-menu__button".to_string()
-                                                    on_press=on_press
-                                                    aria_label=item.title().to_string()
-                                                >
-                                                    <span
-                                                        class="docs-command-menu__button-inner"
-                                                        data-active=move || is_active.get().then_some("true")
-                                                        on:mouseenter=move |_| on_mouse_enter.run(())
-                                                    >
-                                                        <span class="docs-command-menu__label">
-                                                            <span class="docs-command-menu__title">{item.title()}</span>
-                                                            <span class="docs-command-menu__subtitle">{item.subtitle()}</span>
-                                                        </span>
-                                                        <code class="docs-command-menu__route">{item.route()}</code>
-                                                    </span>
-                                                </Button>
-                                            </li>
-                                        }
+                                    key=move |(_, record_idx)| {
+                                        all_records
+                                            .with_value(|records| {
+                                                records
+                                                    .get(*record_idx)
+                                                    .map(|record| record.key.clone())
+                                            })
+                                            .unwrap_or_else(|| record_idx.to_string())
                                     }
+                                    children=render_row
                                 />
                             </ul>
                         </Show>

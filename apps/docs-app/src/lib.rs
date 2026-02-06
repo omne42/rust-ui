@@ -5,6 +5,7 @@ pub mod route;
 pub mod toc;
 
 mod command_menu;
+mod search_index;
 
 use leptos::prelude::*;
 use ui_components::{
