@@ -774,20 +774,32 @@ pub(super) fn link() -> AnyView {
 pub(super) fn avatar() -> AnyView {
     let src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Cdefs%3E%3CradialGradient%20id%3D%27g%27%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%2732%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23ff4bd8%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%232b5cff%27/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2732%27%20fill%3D%27url(%23g)%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2752%25%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%20font-size%3D%2724%27%20font-family%3D%27system-ui%27%20fill%3D%27white%27%3EA%3C/text%3E%3C/svg%3E";
 
-    let code = r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#;
+    let image_code = r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#;
 
     let states_code = r#"<Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
 <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
 <Avatar size=AvatarSize::Lg />"#;
+
+    let custom_code = r#"<Avatar
+  name="  Ada Lovelace  ".to_string()
+  alt="  Team lead  ".to_string()
+  size=AvatarSize::Lg
+  class_name="docs-avatar-custom".to_string()
+/>
+<Avatar
+  alt="  Anonymous collaborator  ".to_string()
+  src="   ".to_string()
+  class_name="docs-avatar-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Avatar"
             slug="avatar"
             group="Display"
-            description="Avatar with image/error fallback, normalized labels, and Spectrum-style root state attrs."
+            description="Avatar with image/error fallback, normalized labels, and Spectrum-style root state attrs + custom-class contract."
         >
-            <Playground title="Image + Fallback" code=code>
+            <Playground title="Image + Fallback" code=image_code>
                 <div class="docs-row">
                     <Avatar name="Ada Lovelace".to_string() src=src.to_string() size=AvatarSize::Md />
                     <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
@@ -805,6 +817,22 @@ pub(super) fn avatar() -> AnyView {
                     />
                     <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
                     <Avatar size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Normalized Props" code=custom_code>
+                <div class="docs-row">
+                    <Avatar
+                        name="  Ada Lovelace  ".to_string()
+                        alt="  Team lead  ".to_string()
+                        size=AvatarSize::Lg
+                        class_name="docs-avatar-custom".to_string()
+                    />
+                    <Avatar
+                        alt="  Anonymous collaborator  ".to_string()
+                        src="   ".to_string()
+                        class_name="docs-avatar-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

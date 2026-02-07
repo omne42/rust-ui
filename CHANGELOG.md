@@ -366,3 +366,5 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Link` docs now include richer playground coverage with state matrix and custom rel + class scenarios.
 - `ui-components`: `Badge` now derives wrapper state from a centralized model (variant/fill/class-source), normalizes optional class input, emits richer Spectrum-style attrs (`data-slot`/`data-variant`/`data-fill`/`data-state`/`data-solid`/`data-outline`/`data-custom-class`) plus fill state class markers, and expands semantics regression coverage.
 - `apps/docs-app`: `Badge` docs now include richer playground coverage with variant matrix and custom-class + outline scenarios.
+- `ui-components`: `Avatar` now derives label-source classes from the centralized state model, adds explicit custom-class marker class (`ui-avatar--custom-class`), upgrades styles to class + `data-*` dual contracts (size/image/fallback/label-source/custom-class), and expands semantics regression coverage.
+- `apps/docs-app`: `Avatar` docs now include richer playground coverage with image/fallback, size + label-source matrix, and custom-class + normalized-props scenarios.

@@ -32,6 +32,14 @@ pub enum AvatarLabelSource {
 }
 
 impl AvatarLabelSource {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            Self::Alt => "ui-avatar--label-alt",
+            Self::Name => "ui-avatar--label-name",
+            Self::Fallback => "ui-avatar--label-fallback",
+        }
+    }
+
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Alt => "alt",
@@ -60,6 +68,7 @@ pub struct AvatarState {
     pub has_alt: bool,
     pub has_custom_class_name: bool,
     pub label_source: AvatarLabelSource,
+    pub label_source_class: &'static str,
     pub label_source_attr: &'static str,
 }
 
@@ -152,12 +161,17 @@ pub fn resolve_state(input: AvatarStateInput) -> AvatarState {
         has_alt: input.has_alt,
         has_custom_class_name: input.has_custom_class_name,
         label_source,
+        label_source_class: label_source.class_name(),
         label_source_attr: label_source.as_str(),
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: AvatarState) -> String {
-    let mut classes = vec!["ui-avatar".to_string(), state.size_class.to_string()];
+    let mut classes = vec![
+        "ui-avatar".to_string(),
+        state.size_class.to_string(),
+        state.label_source_class.to_string(),
+    ];
 
     if state.has_name {
         classes.push("ui-avatar--has-name".to_string());
@@ -169,12 +183,11 @@ pub fn compose_class_name(base_class_name: Option<String>, state: AvatarState) -
         classes.push("ui-avatar--has-alt".to_string());
     }
 
-    classes.push(format!("ui-avatar--label-{}", state.label_source_attr));
-
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
-        classes.push(base_class_name);
+    if state.has_custom_class_name {
+        classes.push("ui-avatar--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
     }
 
     classes.join(" ")
@@ -192,7 +205,17 @@ mod tests {
     }
 
     #[test]
-    fn label_source_attrs_are_stable() {
+    fn label_source_classes_and_attrs_are_stable() {
+        assert_eq!(AvatarLabelSource::Alt.class_name(), "ui-avatar--label-alt");
+        assert_eq!(
+            AvatarLabelSource::Name.class_name(),
+            "ui-avatar--label-name"
+        );
+        assert_eq!(
+            AvatarLabelSource::Fallback.class_name(),
+            "ui-avatar--label-fallback"
+        );
+
         assert_eq!(AvatarLabelSource::Alt.as_str(), "alt");
         assert_eq!(AvatarLabelSource::Name.as_str(), "name");
         assert_eq!(AvatarLabelSource::Fallback.as_str(), "fallback");
@@ -251,6 +274,7 @@ mod tests {
         assert!(!state.has_alt);
         assert!(state.has_custom_class_name);
         assert_eq!(state.label_source, AvatarLabelSource::Name);
+        assert_eq!(state.label_source_class, "ui-avatar--label-name");
         assert_eq!(state.label_source_attr, "name");
     }
 
@@ -274,6 +298,7 @@ mod tests {
             "ui-avatar--has-src",
             "ui-avatar--has-alt",
             "ui-avatar--label-alt",
+            "ui-avatar--custom-class",
             "custom",
         ] {
             assert!(

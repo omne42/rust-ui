@@ -33,6 +33,8 @@ fn avatar_uses_logic_state_model() {
         "pub fn resolve_accessibility(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "label_source_class",
+        "ui-avatar--custom-class",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -113,17 +115,28 @@ fn avatar_image_slot_supports_error_fallback() {
 }
 
 #[test]
-fn avatar_styles_include_label_and_source_markers() {
+fn avatar_styles_include_dual_state_marker_contracts() {
     let source = load_source("src/avatar/styles.rs");
 
-    for needle in [
+    for selector in [
+        ".ui-avatar--sm",
+        ".ui-avatar[data-size=\"md\"]",
+        ".ui-avatar--lg",
+        ".ui-avatar--image",
+        ".ui-avatar[data-state=\"fallback\"]",
+        ".ui-avatar[data-image=\"true\"]",
         ".ui-avatar--has-src.ui-avatar--image",
-        ".ui-avatar--label-fallback",
-        ".ui-avatar--has-alt[data-fallback=\"true\"]",
+        ".ui-avatar[data-has-src=\"true\"][data-state=\"image\"]",
+        ".ui-avatar--label-alt",
+        ".ui-avatar[data-label-source=\"name\"]",
+        ".ui-avatar[data-label-source=\"fallback\"]",
+        ".ui-avatar[data-has-alt=\"true\"][data-fallback=\"true\"]",
+        ".ui-avatar--custom-class",
+        ".ui-avatar[data-custom-class=\"true\"]",
     ] {
         assert!(
-            source.contains(needle),
-            "Avatar styles should include `{needle}` for stable state-marker contracts."
+            source.contains(selector),
+            "Avatar styles should include `{selector}` for stable state-marker contracts."
         );
     }
 }
