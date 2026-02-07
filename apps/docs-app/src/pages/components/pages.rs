@@ -2,6 +2,7 @@ mod actions;
 mod actions_extra;
 mod collections;
 mod display;
+mod display_extra;
 mod files;
 mod forms;
 mod forms_extra;
@@ -346,6 +347,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "link",
         group: "Display",
         page: display::link,
+    },
+    ComponentDoc {
+        name: "LabeledValue",
+        slug: "labeled-value",
+        group: "Display",
+        page: display_extra::labeled_value,
     },
     ComponentDoc {
         name: "Avatar",
