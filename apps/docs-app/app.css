@@ -305,6 +305,12 @@ a {
   background: var(--ui-bg);
 }
 
+.docs-auto-height--static-demo {
+  border-style: solid;
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 30%);
+  background: var(--ui-bg-muted);
+}
+
 .docs-card {
   padding: 16px;
   border-radius: var(--ui-radius-lg);

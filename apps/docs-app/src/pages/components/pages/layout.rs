@@ -2,8 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    AutoHeight, Card, CardVariant, Divider, DividerOrientation, ScrollShadow, Separator,
-    SeparatorOrientation, Spacer, SpacerAxis, SpacerSize,
+    AutoHeight, AutoHeightMotion, Card, CardVariant, Divider, DividerOrientation, ScrollShadow,
+    Separator, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize,
 };
 
 pub(super) fn card() -> AnyView {
@@ -287,10 +287,21 @@ pub(super) fn scroll_shadow() -> AnyView {
 }
 
 pub(super) fn auto_height() -> AnyView {
-    let (open, set_open) = signal(false);
-    let code = r#"let (open, set_open) = signal(false);
+    let (animated_open, set_animated_open) = signal(false);
+    let (static_open, set_static_open) = signal(false);
+
+    let animated_code = r#"let (open, set_open) = signal(false);
 <Button on_press=...>"Toggle"</Button>
-<AutoHeight>
+<AutoHeight class_name="docs-auto-height".to_string()>
+  <Show when=open>...</Show>
+</AutoHeight>"#;
+
+    let static_code = r#"let (open, set_open) = signal(false);
+let motion = AutoHeightMotion {
+  animate_height: false,
+  ..AutoHeightMotion::default()
+};
+<AutoHeight motion=motion class_name="docs-auto-height docs-auto-height--static-demo".to_string()>
   <Show when=open>...</Show>
 </AutoHeight>"#;
 
@@ -299,27 +310,50 @@ pub(super) fn auto_height() -> AnyView {
             title="AutoHeight"
             slug="auto-height"
             group="Layout"
-            description="Animates height changes using a spring-driven CSS variable contract."
+            description="Animates (or snaps) height changes via spring-driven CSS variables with centralized motion/class state attrs."
         >
-            <Playground title="Expand / collapse" code=code>
+            <Playground title="Animated Height" code=animated_code>
                 <div class="docs-stack">
                     <ui_components::Button
                         variant=ui_components::ButtonVariant::Secondary
-                        on_press=Callback::new(move |_| set_open.update(|v| *v = !*v))
+                        on_press=Callback::new(move |_| set_animated_open.update(|v| *v = !*v))
                     >
-                        {move || if open.get() { "Collapse" } else { "Expand" }}
+                        {move || if animated_open.get() { "Collapse" } else { "Expand" }}
                     </ui_components::Button>
 
                     <AutoHeight class_name="docs-auto-height".to_string()>
-                        <Show when=move || open.get()>
+                        <Show when=move || animated_open.get()>
                             <div class="docs-stack">
                                 <div>"AutoHeight content"</div>
-                                <div class="ui-muted">
-                                    "ResizeObserver + ui-motion spring."
-                                </div>
-                                <div class="ui-muted">
-                                    "Toggle quickly to verify stability."
-                                </div>
+                                <div class="ui-muted">"ResizeObserver + ui-motion spring."</div>
+                                <div class="ui-muted">"Toggle quickly to verify stable interpolation."</div>
+                            </div>
+                        </Show>
+                    </AutoHeight>
+                </div>
+            </Playground>
+
+            <Playground title="Static Motion + Custom Class" code=static_code>
+                <div class="docs-stack">
+                    <ui_components::Button
+                        variant=ui_components::ButtonVariant::Secondary
+                        on_press=Callback::new(move |_| set_static_open.update(|v| *v = !*v))
+                    >
+                        {move || if static_open.get() { "Hide Static" } else { "Show Static" }}
+                    </ui_components::Button>
+
+                    <AutoHeight
+                        motion=AutoHeightMotion {
+                            animate_height: false,
+                            ..AutoHeightMotion::default()
+                        }
+                        class_name="docs-auto-height docs-auto-height--static-demo".to_string()
+                    >
+                        <Show when=move || static_open.get()>
+                            <div class="docs-stack">
+                                <div>"Static mode content"</div>
+                                <div class="ui-muted">"Uses custom motion contract (`animate_height=false`)."</div>
+                                <div class="ui-muted">"Useful for reduced-motion or deterministic layout jumps."</div>
                             </div>
                         </Show>
                     </AutoHeight>

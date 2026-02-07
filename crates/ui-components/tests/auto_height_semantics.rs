@@ -8,33 +8,100 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn auto_height_wraps_children_in_content_container() {
-    let source = load_source("src/auto_height/view.rs");
+fn auto_height_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/auto_height/mod.rs");
 
-    assert!(
-        source.contains("ui-auto-height__content"),
-        "AutoHeight should wrap children in a `.ui-auto-height__content` element for measurement and motion."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "AutoHeight internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
-fn auto_height_attaches_motion_driver() {
+fn auto_height_uses_logic_state_model() {
+    let logic_source = load_source("src/auto_height/logic.rs");
+    let view_source = load_source("src/auto_height/view.rs");
+
+    for needle in [
+        "pub struct AutoHeightStateInput",
+        "pub struct AutoHeightState",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "AutoHeight logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_state(AutoHeightStateInput {",
+        "logic::compose_class_name(class_name, state)",
+        "motion != AutoHeightMotion::default()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "AutoHeight view should derive wrapper state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn auto_height_emits_spectrum_style_state_data_attributes() {
     let source = load_source("src/auto_height/view.rs");
 
+    for attr in [
+        "data-slot=\"auto-height\"",
+        "data-slot=\"auto-height-content\"",
+        "data-state=if state.animate_height { \"animated\" } else { \"static\" }",
+        "data-animated=state.animate_height.then_some(\"true\")",
+        "data-static=state.is_static.then_some(\"true\")",
+        "data-overflow-hidden=state.overflow_hidden.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(attr),
+            "AutoHeight should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn auto_height_attaches_motion_driver_and_uses_motion_contract() {
+    let view_source = load_source("src/auto_height/view.rs");
+
     assert!(
-        source.contains("attach_motion"),
+        view_source.contains("motion::attach_motion"),
         "AutoHeight should attach its motion driver rather than ignoring the motion contract."
     );
 }
 
 #[test]
-fn auto_height_defines_height_css_variable() {
+fn auto_height_styles_define_state_marker_contracts() {
     let source = load_source("src/auto_height/styles.rs");
 
-    assert!(
-        source.contains("--ui-auto-height-height"),
-        "AutoHeight styles should use `--ui-auto-height-height` so motion updates only touch CSS variables."
-    );
+    for selector in [
+        "--ui-auto-height-height",
+        ".ui-auto-height--animated",
+        ".ui-auto-height[data-state=\"animated\"]",
+        ".ui-auto-height--static",
+        ".ui-auto-height[data-state=\"static\"]",
+        ".ui-auto-height[data-overflow-hidden=\"true\"]",
+        ".ui-auto-height--custom-motion",
+        ".ui-auto-height[data-custom-motion=\"true\"]",
+        ".ui-auto-height--custom-class",
+        ".ui-auto-height[data-custom-class=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "AutoHeight styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
 }
 
 #[test]
