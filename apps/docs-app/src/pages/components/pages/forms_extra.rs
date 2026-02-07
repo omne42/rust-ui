@@ -2,8 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Calendar, CalendarFirstWeekday, CalendarTone, DatePicker, DatePickerTone, Label, LabelEmphasis,
-    Slider, SliderMotion, TimeField, TimeFieldTone,
+    Calendar, CalendarFirstWeekday, CalendarTone, DatePicker, DatePickerTone, DateRangePicker,
+    DateRangePickerTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
 };
 
 pub(super) fn label() -> AnyView {
@@ -330,6 +330,91 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                     default_value="18:45".to_string()
                     placeholder="hour:minute".to_string()
                     class_name="docs-time-field-custom".to_string()
+                />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn date_range_picker() -> AnyView {
+    let (start_day, set_start_day) = signal(Some(8_u8));
+    let (end_day, set_end_day) = signal(Some(19_u8));
+
+    let on_start_day_change = Callback::new(move |next: Option<u8>| {
+        set_start_day.set(next);
+    });
+
+    let on_end_day_change = Callback::new(move |next: Option<u8>| {
+        set_end_day.set(next);
+    });
+
+    let code = r#"let (start_day, set_start_day) = signal(Some(8_u8));
+let (end_day, set_end_day) = signal(Some(19_u8));
+
+<DateRangePicker
+  id_base="release-window".to_string()
+  start_year=2026
+  start_month=6
+  end_year=2026
+  end_month=6
+  start_day=start_day
+  end_day=end_day
+  on_start_day_change=Callback::new(move |next| set_start_day.set(next))
+  on_end_day_change=Callback::new(move |next| set_end_day.set(next))
+/>"#;
+
+    let states_code = r#"<DateRangePicker
+  id_base="ship-window".to_string()
+  start_year=2026
+  start_month=7
+  end_year=2026
+  end_month=7
+  default_start_day=20
+  default_end_day=12
+  tone=DateRangePickerTone::Strong
+  class_name="docs-date-range-picker-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="DateRangePicker"
+            slug="date-range-picker"
+            group="Forms"
+            description="Two DatePicker composition with centralized range validity/value-shape derivation and Spectrum-style state/source contracts."
+        >
+            <Playground title="Controlled + Shared Month" code=code>
+                <div class="docs-stack">
+                    <DateRangePicker
+                        id_base="docs-date-range-picker-controlled".to_string()
+                        start_year=2026
+                        start_month=6
+                        end_year=2026
+                        end_month=6
+                        start_day=start_day
+                        end_day=end_day
+                        on_start_day_change=on_start_day_change
+                        on_end_day_change=on_end_day_change
+                    />
+
+                    <span class="ui-muted">
+                        "start: " {move || start_day.get().map(|d| d.to_string()).unwrap_or_else(|| "none".to_string())}
+                        " · end: " {move || end_day.get().map(|d| d.to_string()).unwrap_or_else(|| "none".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Strong Tone + Invalid Range Hint" code=states_code>
+                <DateRangePicker
+                    id_base="docs-date-range-picker-strong".to_string()
+                    start_year=2026
+                    start_month=7
+                    end_year=2026
+                    end_month=7
+                    default_start_day=20
+                    default_end_day=12
+                    tone=DateRangePickerTone::Strong
+                    class_name="docs-date-range-picker-custom".to_string()
                 />
             </Playground>
         </ComponentPage>

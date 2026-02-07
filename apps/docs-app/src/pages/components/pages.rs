@@ -212,6 +212,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::date_picker,
     },
     ComponentDoc {
+        name: "DateRangePicker",
+        slug: "date-range-picker",
+        group: "Forms",
+        page: forms_extra::date_range_picker,
+    },
+    ComponentDoc {
         name: "TimeField",
         slug: "time-field",
         group: "Forms",
