@@ -596,26 +596,49 @@ pub(super) fn kbd() -> AnyView {
     .into_any()
 }
 pub(super) fn code_block() -> AnyView {
-    let code_str = r#"fn main() {
-    println!("hello");
+    let rust_code = r#"fn deploy(service: &str) -> anyhow::Result<()> {
+    tracing::info!(target: "deploy", %service, "starting rollout");
+    Ok(())
 }"#;
-    let code = r#"<CodeBlock code=code.to_string() language=Some("rust".to_string()) />"#;
+
+    let matrix_code = r#"<CodeBlock
+  code=rust_code.to_string()
+  language="rust".to_string()
+  label="deploy.rs".to_string()
+/>"#;
+
+    let compact_code = r#"<CodeBlock
+  code="cargo test -p ui-components --test code_block_semantics".to_string()
+  copyable=false
+  class_name="docs-code-block-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="CodeBlock"
             slug="code-block"
             group="Display"
-            description="Multiline code block with copy button and copy-flash motion."
+            description="Multiline code surface with centralized header/state attrs and spring-driven copy flash motion."
         >
-            <Playground title="Code block" code=code>
-                <CodeBlock code=code_str.to_string() language="rust".to_string() label="main.rs".to_string() />
+            <Playground title="Header + Copy Motion" code=matrix_code>
+                <CodeBlock
+                    code=rust_code.to_string()
+                    language="rust".to_string()
+                    label="deploy.rs".to_string()
+                />
+            </Playground>
+
+            <Playground title="Compact + No Copy" code=compact_code>
+                <CodeBlock
+                    code="cargo test -p ui-components --test code_block_semantics".to_string()
+                    copyable=false
+                    class_name="docs-code-block-custom".to_string()
+                />
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn snippet() -> AnyView {
     let code = r#"<Snippet text="cargo fmt".to_string() copyable=true />"#;
 

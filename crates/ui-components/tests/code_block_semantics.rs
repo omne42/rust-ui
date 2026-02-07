@@ -8,6 +8,96 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn code_block_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/code_block/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "CodeBlock internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn code_block_uses_logic_state_model() {
+    let view_source = load_source("src/code_block/view.rs");
+    let logic_source = load_source("src/code_block/logic.rs");
+
+    for needle in [
+        "pub struct CodeBlockStateInput",
+        "pub struct CodeBlockViewState",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_state(input: CodeBlockStateInput)",
+        "pub fn resolve_view_state(",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "CodeBlock logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "logic::normalize_optional_text(label)",
+        "logic::normalize_optional_text(language)",
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_state(CodeBlockStateInput {",
+        "logic::compose_class_name(class_name, state)",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "CodeBlock view should derive wrapper state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn code_block_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/code_block/view.rs");
+
+    for attr in [
+        "data-slot=\"code-block\"",
+        "data-state=state.state_attr",
+        "data-header=state.header_attr",
+        "data-multiline=state.is_multiline.then_some(\"true\")",
+        "data-empty=state.is_empty.then_some(\"true\")",
+        "data-label=state.has_label.then_some(\"true\")",
+        "data-language=state.has_language.then_some(\"true\")",
+        "data-copyable=state.copyable.then_some(\"true\")",
+        "data-motion-source=state.motion_source_attr",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-slot=\"code-block-status\"",
+    ] {
+        assert!(
+            source.contains(attr),
+            "CodeBlock should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn code_block_styles_include_state_marker_contracts() {
+    let source = load_source("src/code_block/styles.rs");
+
+    for selector in [
+        ".ui-code-block--state-multiline",
+        ".ui-code-block[data-state=\"single-line\"]",
+        ".ui-code-block--header-visible",
+        ".ui-code-block[data-header=\"hidden\"]",
+        ".ui-code-block--copyable",
+        ".ui-code-block[data-motion-source=\"custom\"]",
+        ".ui-code-block--custom-class",
+        ".ui-code-block[data-custom-class=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "CodeBlock styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
 fn code_block_does_not_ignore_motion_contract() {
     let source = load_source("src/code_block/view.rs");
 

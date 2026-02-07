@@ -1,4 +1,8 @@
-use crate::code_block::{CodeBlockMotion, logic, motion};
+use crate::code_block::{
+    CodeBlockMotion,
+    logic::{self, CodeBlockStateInput},
+    motion,
+};
 use crate::{Button, ButtonSize, ButtonVariant};
 use leptos::{html, prelude::*};
 
@@ -49,17 +53,21 @@ pub fn CodeBlock(
     #[prop(optional)] motion: CodeBlockMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let label = label.filter(|value| !value.trim().is_empty());
-    let language = language.filter(|value| !value.trim().is_empty());
+    let label = logic::normalize_optional_text(label);
+    let language = logic::normalize_optional_text(language);
+    let class_name = logic::normalize_optional_text(class_name);
 
-    let view_state =
-        logic::resolve_view_state(&code, label.as_deref(), language.as_deref(), copyable);
+    let state = logic::resolve_state(CodeBlockStateInput {
+        is_multiline: code.contains('\n'),
+        is_empty: code.trim().is_empty(),
+        has_label: label.is_some(),
+        has_language: language.is_some(),
+        copyable,
+        has_custom_class_name: class_name.is_some(),
+        has_custom_motion: motion != CodeBlockMotion::default(),
+    });
 
-    let base_class = "ui-code-block".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class = logic::compose_class_name(class_name, state);
 
     let code_value = StoredValue::new(code);
     let label = StoredValue::new(label);
@@ -75,11 +83,18 @@ pub fn CodeBlock(
         <div
             class=class
             data-slot="code-block"
-            data-multiline=view_state.is_multiline.then_some("true")
-            data-copyable=copyable.then_some("true")
+            data-state=state.state_attr
+            data-header=state.header_attr
+            data-multiline=state.is_multiline.then_some("true")
+            data-empty=state.is_empty.then_some("true")
+            data-label=state.has_label.then_some("true")
+            data-language=state.has_language.then_some("true")
+            data-copyable=state.copyable.then_some("true")
+            data-motion-source=state.motion_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
             node_ref=root_ref
         >
-            <Show when=move || view_state.show_header>
+            <Show when=move || state.show_header>
                 <div class="ui-code-block__header" data-slot="code-block-header">
                     <div class="ui-code-block__meta" data-slot="code-block-meta">
                         {move || label.get_value().map(|label| view! {
@@ -90,7 +105,7 @@ pub fn CodeBlock(
                         })}
                     </div>
 
-                    <Show when=move || copyable>
+                    <Show when=move || state.copyable>
                         <Button
                             class_name="ui-code-block__copy-button".to_string()
                             variant=ButtonVariant::Ghost

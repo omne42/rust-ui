@@ -10,6 +10,58 @@ pub const CSS: &str = r#"
   isolation: isolate;
 
   --ui-code-block-copy-flash: 0;
+  --ui-code-block-custom-motion: 0;
+}
+
+.ui-code-block--state-multiline,
+.ui-code-block[data-state="multiline"],
+.ui-code-block[data-multiline="true"] {
+  --ui-code-block-is-multiline: 1;
+}
+
+.ui-code-block--state-single-line,
+.ui-code-block[data-state="single-line"] {
+  --ui-code-block-is-multiline: 0;
+}
+
+.ui-code-block--header-visible,
+.ui-code-block[data-header="visible"] {
+  --ui-code-block-header-visible: 1;
+}
+
+.ui-code-block--header-hidden,
+.ui-code-block[data-header="hidden"] {
+  --ui-code-block-header-visible: 0;
+}
+
+.ui-code-block--copyable,
+.ui-code-block[data-copyable="true"] {
+  --ui-code-block-copyable: 1;
+}
+
+.ui-code-block--with-label,
+.ui-code-block[data-label="true"] {
+  --ui-code-block-has-label: 1;
+}
+
+.ui-code-block--with-language,
+.ui-code-block[data-language="true"] {
+  --ui-code-block-has-language: 1;
+}
+
+.ui-code-block--empty,
+.ui-code-block[data-empty="true"] {
+  --ui-code-block-is-empty: 1;
+}
+
+.ui-code-block--motion-custom,
+.ui-code-block[data-motion-source="custom"] {
+  --ui-code-block-custom-motion: 1;
+}
+
+.ui-code-block--custom-class,
+.ui-code-block[data-custom-class="true"] {
+  --ui-code-block-custom-class: 1;
 }
 
 .ui-code-block::after {
@@ -65,8 +117,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-code-block__code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, \"Liberation Mono\",
-    \"Courier New\", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 .ui-code-block__a11y-status {
