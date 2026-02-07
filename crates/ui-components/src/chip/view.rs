@@ -1,4 +1,7 @@
-use crate::chip::{ChipSize, ChipVariant};
+use crate::chip::{
+    ChipSize, ChipVariant,
+    logic::{self, ChipStateInput},
+};
 use leptos::prelude::*;
 use ui_headless::OnPress;
 
@@ -12,33 +15,72 @@ pub fn Chip(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let dismiss_aria_label = dismiss_aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Remove".to_string());
+    let class_name = logic::normalize_optional_text(class_name);
+    let (dismiss_aria_label, has_custom_dismiss_aria_label) =
+        logic::resolve_dismiss_aria_label(dismiss_aria_label);
 
-    let base_class = format!("ui-chip {} {}", variant.class_name(), size.class_name());
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let state = logic::resolve_state(ChipStateInput {
+        variant,
+        size,
+        disabled,
+        has_dismiss_action: on_dismiss.is_some(),
+        has_custom_dismiss_aria_label,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class = logic::compose_class_name(class_name, state);
+    let dismiss_label_source = if state.has_custom_dismiss_aria_label {
+        "custom"
+    } else {
+        "default"
+    };
+    let dismiss_aria_label = StoredValue::new(dismiss_aria_label);
+    let on_dismiss = StoredValue::new(on_dismiss);
 
     view! {
-        <span class=class data-slot="chip" data-disabled=disabled.then_some("true")>
-            <span data-slot="chip-content">{children()}</span>
-            {on_dismiss.map(|on_dismiss| {
-                view! {
-                    <button
-                        type="button"
-                        class="ui-chip__dismiss"
-                        aria-label=dismiss_aria_label.clone()
-                        data-slot="chip-dismiss"
-                        disabled=disabled
-                        on:click=move |_| on_dismiss.run(())
-                    >
-                        "×"
-                    </button>
-                }
-            })}
+        <span
+            class=class
+            data-slot="chip"
+            data-variant=state.variant_attr
+            data-size=state.size_attr
+            data-state=if state.is_disabled {
+                "disabled"
+            } else if state.has_dismiss_action {
+                "removable"
+            } else {
+                "static"
+            }
+            data-enabled=state.is_enabled.then_some("true")
+            data-disabled=state.is_disabled.then_some("true")
+            data-removable=state.has_dismiss_action.then_some("true")
+            data-static=state.is_static.then_some("true")
+            data-dismiss-label=dismiss_label_source
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
+            <span class="ui-chip__content" data-slot="chip-content">
+                {children()}
+            </span>
+
+            <Show when=move || state.has_dismiss_action>
+                <button
+                    type="button"
+                    class="ui-chip__dismiss"
+                    aria-label=move || dismiss_aria_label.get_value()
+                    data-slot="chip-dismiss"
+                    data-disabled=state.is_disabled.then_some("true")
+                    data-label-source=dismiss_label_source
+                    disabled=state.is_disabled
+                    on:click=move |_| {
+                        if state.is_enabled
+                            && let Some(on_dismiss) = on_dismiss.get_value()
+                        {
+                            on_dismiss.run(());
+                        }
+                    }
+                >
+                    "×"
+                </button>
+            </Show>
         </span>
     }
 }

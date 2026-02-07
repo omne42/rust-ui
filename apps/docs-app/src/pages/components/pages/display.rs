@@ -142,26 +142,72 @@ pub(super) fn chip() -> AnyView {
     let (removed, set_removed) = signal(false);
     let on_dismiss = Callback::new(move |_| set_removed.set(true));
 
-    let code = r#"<Chip on_dismiss=Some(on_dismiss)>"Tag"</Chip>"#;
+    let removable_code = r#"<Chip
+  variant=ChipVariant::Accent
+  size=ChipSize::Md
+  on_dismiss=Some(on_dismiss)
+  dismiss_aria_label="Remove reviewer".to_string()
+>
+  "Reviewer"
+</Chip>"#;
+
+    let variants_code = r#"<Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
+<Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
+<Chip variant=ChipVariant::Danger size=ChipSize::Lg>"Danger"</Chip>
+<Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>"#;
+
+    let disabled_code = r#"<Chip disabled=true on_dismiss=Some(on_dismiss)>"Locked"</Chip>
+<Chip disabled=true>"Read only"</Chip>"#;
 
     view! {
         <ComponentPage
             title="Chip"
             slug="chip"
             group="Display"
-            description="Chip / tag pill with optional dismiss button."
+            description="Chip / tag pill with centralized state attrs and optional dismiss action semantics."
         >
-            <Playground title="Dismissable" code=code>
+            <Playground title="Removable" code=removable_code>
                 <div class="docs-row">
-                    <Show when=move || !removed.get() fallback=move || view! { <span class="ui-muted">"Removed"</span> }>
+                    <Show
+                        when=move || !removed.get()
+                        fallback=move || view! { <span class="ui-muted">"Removed"</span> }
+                    >
                         <Chip
-                            variant=ChipVariant::Default
+                            variant=ChipVariant::Accent
                             size=ChipSize::Md
                             on_dismiss=on_dismiss
+                            dismiss_aria_label="Remove reviewer".to_string()
                         >
-                            "Tag"
+                            "Reviewer"
                         </Chip>
                     </Show>
+                </div>
+            </Playground>
+
+            <Playground title="Variants + Sizes" code=variants_code>
+                <div class="docs-row">
+                    <Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
+                    <Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
+                    <Chip variant=ChipVariant::Danger size=ChipSize::Lg>"Danger"</Chip>
+                    <Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Static" code=disabled_code>
+                <div class="docs-row">
+                    <Chip
+                        disabled=true
+                        on_dismiss=Callback::new(|_| ())
+                        dismiss_aria_label="Cannot remove".to_string()
+                    >
+                        "Locked"
+                    </Chip>
+                    <Chip disabled=true variant=ChipVariant::Outline>
+                        "Read only"
+                    </Chip>
+                    <Chip variant=ChipVariant::Default size=ChipSize::Sm>
+                        "Static"
+                    </Chip>
                 </div>
             </Playground>
         </ComponentPage>
