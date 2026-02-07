@@ -988,6 +988,12 @@ a {
   border-top-color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 12%);
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--ui-accent-soft), transparent 30%);
 }
+.docs-progress-circle-custom {
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 34%);
+  background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 18%);
+}
 
 .docs-flip-button-custom {
   padding: 3px;

@@ -542,16 +542,33 @@ pub(super) fn progress_circle() -> AnyView {
     let (value, set_value) = signal(35.0_f64);
     let progress_value = Signal::derive(move || Some(value.get()));
 
-    let code = r#"<ProgressCircle value=progress_value min=0.0 max=100.0 />"#;
+    let matrix_code = r#"<ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
+<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#;
+
+    let custom_code = r#"<ProgressCircle
+  aria_label="Sync progress".to_string()
+  value=Signal::derive(|| Some(64.0))
+  min=0.0
+  max=100.0
+  size_px=40.0
+  stroke_width_px=5.0
+  value_label="64 done".to_string()
+  class_name="docs-progress-circle-custom".to_string()
+/>
+<ProgressCircle
+  aria_label="   ".to_string()
+  value=Signal::derive(|| Some(18.0))
+  class_name="docs-progress-circle-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="ProgressCircle"
             slug="progress-circle"
             group="Display"
-            description="Spring-animated circular progress indicator."
+            description="Spring-animated circular progress with centralized source attrs."
         >
-            <Playground title="ProgressCircle" code=code>
+            <Playground title="Determinate + Indeterminate" code=matrix_code>
                 <div class="docs-row">
                     <ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
                     <ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
@@ -563,11 +580,30 @@ pub(super) fn progress_circle() -> AnyView {
                     </ui_components::Button>
                 </div>
             </Playground>
+
+            <Playground title="Custom Value Label + Class" code=custom_code>
+                <div class="docs-row">
+                    <ProgressCircle
+                        aria_label="Sync progress".to_string()
+                        value=Signal::derive(|| Some(64.0))
+                        min=0.0
+                        max=100.0
+                        size_px=40.0
+                        stroke_width_px=5.0
+                        value_label="64 done".to_string()
+                        class_name="docs-progress-circle-custom".to_string()
+                    />
+                    <ProgressCircle
+                        aria_label="   ".to_string()
+                        value=Signal::derive(|| Some(18.0))
+                        class_name="docs-progress-circle-custom".to_string()
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn meter() -> AnyView {
     let (value, set_value) = signal(42_i64);
     let meter_value = Signal::derive(move || Some(value.get() as f64));
