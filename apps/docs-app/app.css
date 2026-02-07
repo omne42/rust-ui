@@ -701,6 +701,14 @@ a {
   text-align: center;
 }
 
+.docs-divider-rail {
+  min-height: 2.75rem;
+}
+
+.docs-divider-custom {
+  background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 55%);
+}
+
 .docs-skeleton-line {
   height: 14px;
   width: 100%;

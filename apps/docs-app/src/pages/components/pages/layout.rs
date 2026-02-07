@@ -87,25 +87,49 @@ pub(super) fn card() -> AnyView {
 }
 
 pub(super) fn divider() -> AnyView {
-    let code = r#"<Divider />
-<Divider orientation=DividerOrientation::Vertical />"#;
+    let orientations_code = r#"<Divider />
+<Divider orientation=DividerOrientation::Vertical class_name="docs-divider-rail".to_string() />"#;
+
+    let custom_class_code = r#"<Divider class_name="docs-divider-custom".to_string() />
+<Divider
+  orientation=DividerOrientation::Vertical
+  class_name="docs-divider-custom docs-divider-rail".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Divider"
             slug="divider"
             group="Layout"
-            description="Simple separator line with aria-orientation."
+            description="A separator primitive with centralized orientation state attrs and Spectrum-style styling markers."
         >
-            <Playground title="Horizontal & vertical" code=code>
+            <Playground title="Orientation" code=orientations_code>
                 <div class="docs-stack">
                     <div>"Above"</div>
                     <Divider />
                     <div>"Below"</div>
                     <div class="docs-row">
                         <span>"Left"</span>
-                        <Divider orientation=DividerOrientation::Vertical />
+                        <Divider
+                            orientation=DividerOrientation::Vertical
+                            class_name="docs-divider-rail".to_string()
+                        />
                         <span>"Right"</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class Marker" code=custom_class_code>
+                <div class="docs-stack">
+                    <span>"Custom horizontal divider"</span>
+                    <Divider class_name="docs-divider-custom".to_string() />
+                    <div class="docs-row">
+                        <span>"Start"</span>
+                        <Divider
+                            orientation=DividerOrientation::Vertical
+                            class_name="docs-divider-custom docs-divider-rail".to_string()
+                        />
+                        <span>"End"</span>
                     </div>
                 </div>
             </Playground>
