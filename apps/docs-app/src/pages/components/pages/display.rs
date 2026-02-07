@@ -507,20 +507,49 @@ pub(super) fn meter() -> AnyView {
 }
 
 pub(super) fn code() -> AnyView {
-    let code = r#"<Code>"inline code"</Code>"#;
+    let variants_code = r#"<Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
+<Code variant=CodeVariant::Block>
+  "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"
+</Code>"#;
+
+    let custom_code = r#"<Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>"--deny warnings"</Code>
+<Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+  "cargo test -p ui-components --test code_semantics\ncargo test -p ui-components"
+</Code>"#;
 
     view! {
         <ComponentPage
             title="Code"
             slug="code"
             group="Display"
-            description="Inline code styling."
+            description="Inline/Block code surface with centralized variant state attrs and optional custom-class contract."
         >
-            <Playground title="Inline code" code=code>
-                <div class="docs-row">
-                    <span>"Use "</span>
-                    <Code variant=CodeVariant::Inline>"cargo test"</Code>
-                    <span>" to run tests."</span>
+            <Playground title="Variant Matrix" code=variants_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <span>"Run "</span>
+                        <Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
+                        <span>" before opening a PR."</span>
+                    </div>
+                    <Code variant=CodeVariant::Block>
+                        {r#"cargo fmt --all
+cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
+                    </Code>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Block" code=custom_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <span>"CI flags: "</span>
+                        <Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>
+                            "--deny warnings"
+                        </Code>
+                    </div>
+                    <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
+                        {r#"cargo test -p ui-components --test code_semantics
+cargo test -p ui-components"#}
+                    </Code>
                 </div>
             </Playground>
         </ComponentPage>
