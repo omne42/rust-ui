@@ -952,3 +952,8 @@ a {
     display: none;
   }
 }
+
+.docs-alert-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 36%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 28%);
+}

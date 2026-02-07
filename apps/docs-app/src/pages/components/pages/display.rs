@@ -12,8 +12,25 @@ use ui_components::{
 };
 
 pub(super) fn alert() -> AnyView {
-    let code = r#"<Alert title="Notice".to_string() description="Something happened".to_string()>
-  <Button>"Action"</Button>
+    let variants_code = r#"<Alert variant=AlertVariant::Default title="Notice".to_string() description="Something happened.".to_string()>
+  <Button variant=ButtonVariant::Secondary>"Undo"</Button>
+</Alert>
+<Alert variant=AlertVariant::Accent title="Syncing".to_string() description="Deployment is in progress.".to_string()>
+  <Button variant=ButtonVariant::Secondary>"View logs"</Button>
+</Alert>
+<Alert variant=AlertVariant::Danger title="Failed".to_string() description="Publishing failed.".to_string()>
+  <Button variant=ButtonVariant::Secondary>"Retry"</Button>
+</Alert>"#;
+
+    let compact_code = r#"<Alert
+  variant=AlertVariant::Accent
+  description="Custom class without title".to_string()
+  class_name="docs-alert-custom".to_string()
+>
+  <Button variant=ButtonVariant::Secondary>"Review"</Button>
+</Alert>
+<Alert variant=AlertVariant::Default title="Heads up".to_string()>
+  <Button variant=ButtonVariant::Secondary>"Dismiss"</Button>
 </Alert>"#;
 
     view! {
@@ -21,18 +38,57 @@ pub(super) fn alert() -> AnyView {
             title="Alert"
             slug="alert"
             group="Display"
-            description="Inline alert surface with optional title/description and action slot."
+            description="Inline alert surface with centralized variant/content state attrs and action slot semantics."
         >
-            <Playground title="Alert" code=code>
-                <Alert
-                    variant=AlertVariant::Default
-                    title="Notice".to_string()
-                    description="Something happened.".to_string()
-                >
-                    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                        "Undo"
-                    </ui_components::Button>
-                </Alert>
+            <Playground title="Variants + Live Region" code=variants_code>
+                <div class="docs-stack">
+                    <Alert
+                        variant=AlertVariant::Default
+                        title="Notice".to_string()
+                        description="Something happened.".to_string()
+                    >
+                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            "Undo"
+                        </ui_components::Button>
+                    </Alert>
+                    <Alert
+                        variant=AlertVariant::Accent
+                        title="Syncing".to_string()
+                        description="Deployment is in progress.".to_string()
+                    >
+                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            "View logs"
+                        </ui_components::Button>
+                    </Alert>
+                    <Alert
+                        variant=AlertVariant::Danger
+                        title="Failed".to_string()
+                        description="Publishing failed.".to_string()
+                    >
+                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            "Retry"
+                        </ui_components::Button>
+                    </Alert>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Compact" code=compact_code>
+                <div class="docs-stack">
+                    <Alert
+                        variant=AlertVariant::Accent
+                        description="Custom class without title".to_string()
+                        class_name="docs-alert-custom".to_string()
+                    >
+                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            "Review"
+                        </ui_components::Button>
+                    </Alert>
+                    <Alert variant=AlertVariant::Default title="Heads up".to_string()>
+                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            "Dismiss"
+                        </ui_components::Button>
+                    </Alert>
+                </div>
             </Playground>
         </ComponentPage>
     }
