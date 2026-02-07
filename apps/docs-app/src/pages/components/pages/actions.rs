@@ -909,16 +909,25 @@ pub(super) fn button_copy() -> AnyView {
     .into_any()
 }
 pub(super) fn flip_button() -> AnyView {
-    let code = r#"<FlipButton front=... back=... />"#;
+    let code = r#"<FlipButton
+  from=FlipDirection::Top
+  front=move || view! { <Button variant=ButtonVariant::Secondary>"Front"</Button> }
+  back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+/>"#;
+
+    let states_code = r#"<FlipButton from=FlipDirection::Top front=... back=... />
+<FlipButton from=FlipDirection::Bottom front=... back=... />
+<FlipButton from=FlipDirection::Left front=... back=... />
+<FlipButton from=FlipDirection::Right front=... back=... />"#;
 
     view! {
         <ComponentPage
             title="FlipButton"
             slug="flip-button"
             group="Actions"
-            description="Hover/focus flips between two faces (animate-ui-style)."
+            description="HeroUI-level spring flip surface with Spectrum-style state attrs for direction and interaction visibility."
         >
-            <Playground title="Flip on hover" code=code>
+            <Playground title="Top flip" code=code>
                 <div class="docs-row">
                     <FlipButton
                         from=FlipDirection::Top
@@ -927,11 +936,32 @@ pub(super) fn flip_button() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground title="Direction matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <FlipButton
+                            from=FlipDirection::Bottom
+                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Bottom"</Button> }
+                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                        />
+                        <FlipButton
+                            from=FlipDirection::Left
+                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Left"</Button> }
+                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                        />
+                        <FlipButton
+                            from=FlipDirection::Right
+                            front=move || view! { <Button variant=ButtonVariant::Secondary>"Right"</Button> }
+                            back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
+                        />
+                    </div>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn share_button() -> AnyView {
     let (last, set_last) = signal(None::<SharePlatform>);
     let on_icon_press = Callback::new(move |platform: SharePlatform| set_last.set(Some(platform)));
