@@ -1,5 +1,7 @@
 use crate::separator::{
-    SeparatorElementType, SeparatorMotion, SeparatorOrientation, logic, motion as separator_motion,
+    SeparatorElementType, SeparatorMotion, SeparatorOrientation,
+    logic::{self, SeparatorStateInput},
+    motion as separator_motion,
 };
 use leptos::{html, prelude::*};
 
@@ -11,16 +13,20 @@ pub fn Separator(
     #[prop(optional)] motion: SeparatorMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let state = logic::resolve_state(orientation, element_type, decorative);
+    let class_name = logic::normalize_optional_text(class_name);
+    let state = logic::resolve_state(SeparatorStateInput {
+        orientation,
+        element_type,
+        decorative,
+        has_custom_class_name: class_name.is_some(),
+    });
+    let class = logic::compose_class_name(class_name, state);
 
-    let base_class = format!("ui-separator {}", state.orientation.class_name());
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
-    let role = (!state.is_decorative).then_some("separator");
-    let aria_orientation = (!state.is_decorative).then_some(state.orientation.aria_orientation());
+    let role = state.is_semantic.then_some("separator");
+    let aria_orientation = state
+        .is_semantic
+        .then_some(state.aria_orientation)
+        .flatten();
     let aria_hidden = state.is_decorative.then_some("true");
 
     if matches!(state.element_type, SeparatorElementType::Hr) {
@@ -32,11 +38,14 @@ pub fn Separator(
                 node_ref=node_ref
                 class=class
                 data-slot="separator"
-                data-orientation=state.orientation.aria_orientation().unwrap_or("horizontal")
-                data-element=state.element_type.as_attr()
+                data-state=state.state_attr
+                data-orientation=state.orientation_attr
+                data-element=state.element_attr
                 data-decorative=state.is_decorative.then_some("true")
+                data-semantic=state.is_semantic.then_some("true")
+                data-custom-class=state.has_custom_class_name.then_some("true")
                 role=role
-                aria-orientation=aria_orientation.flatten()
+                aria-orientation=aria_orientation
                 aria-hidden=aria_hidden
             />
         }
@@ -50,11 +59,14 @@ pub fn Separator(
                 node_ref=node_ref
                 class=class
                 data-slot="separator"
-                data-orientation=state.orientation.aria_orientation().unwrap_or("horizontal")
-                data-element=state.element_type.as_attr()
+                data-state=state.state_attr
+                data-orientation=state.orientation_attr
+                data-element=state.element_attr
                 data-decorative=state.is_decorative.then_some("true")
+                data-semantic=state.is_semantic.then_some("true")
+                data-custom-class=state.has_custom_class_name.then_some("true")
                 role=role
-                aria-orientation=aria_orientation.flatten()
+                aria-orientation=aria_orientation
                 aria-hidden=aria_hidden
             ></div>
         }

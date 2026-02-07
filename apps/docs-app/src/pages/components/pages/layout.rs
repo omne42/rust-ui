@@ -3,7 +3,7 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Divider, DividerOrientation, ScrollShadow,
-    Separator, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize,
+    Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize,
 };
 
 pub(super) fn card() -> AnyView {
@@ -139,27 +139,62 @@ pub(super) fn divider() -> AnyView {
 }
 
 pub(super) fn separator() -> AnyView {
-    let code = r#"<Separator />
-<Separator orientation=SeparatorOrientation::Vertical />"#;
+    let semantic_code = r#"<Separator />
+<Separator element_type=SeparatorElementType::Hr />
+<Separator orientation=SeparatorOrientation::Vertical class_name="docs-separator-rail".to_string() />"#;
+
+    let decorative_code = r#"<Separator decorative=true />
+<Separator
+  decorative=true
+  orientation=SeparatorOrientation::Vertical
+  class_name="docs-separator-rail docs-separator-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Separator"
             slug="separator"
             group="Layout"
-            description="Animated separator (motion-enabled) with decorative mode."
+            description="Spring-enabled separator with centralized orientation/element/decorative state attrs."
         >
-            <Playground title="Separator" code=code>
+            <Playground title="Semantic + Element Type" code=semantic_code>
                 <div class="docs-stack">
                     <div class="docs-stack docs-stack--tight">
                         <span>"Above"</span>
                         <Separator />
                         <span>"Below"</span>
                     </div>
+
+                    <div class="docs-stack docs-stack--tight">
+                        <span>"HR element path"</span>
+                        <Separator element_type=SeparatorElementType::Hr />
+                        <span class="ui-muted">"Uses `<hr>` with the same motion/state contract."</span>
+                    </div>
+
                     <div class="docs-row">
                         <span>"Left"</span>
-                        <Separator orientation=SeparatorOrientation::Vertical />
+                        <Separator
+                            orientation=SeparatorOrientation::Vertical
+                            class_name="docs-separator-rail".to_string()
+                        />
                         <span>"Right"</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Decorative + Custom Class" code=decorative_code>
+                <div class="docs-stack">
+                    <span>"Decorative separator (aria-hidden)"</span>
+                    <Separator decorative=true class_name="docs-separator-custom".to_string() />
+
+                    <div class="docs-row">
+                        <span>"Start"</span>
+                        <Separator
+                            decorative=true
+                            orientation=SeparatorOrientation::Vertical
+                            class_name="docs-separator-rail docs-separator-custom".to_string()
+                        />
+                        <span>"End"</span>
                     </div>
                 </div>
             </Playground>

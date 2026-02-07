@@ -724,6 +724,14 @@ a {
   background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 55%);
 }
 
+.docs-separator-rail {
+  min-height: 3rem;
+}
+
+.docs-separator-custom {
+  background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 48%);
+}
+
 .docs-spacer-box {
   display: inline-flex;
   align-items: center;
