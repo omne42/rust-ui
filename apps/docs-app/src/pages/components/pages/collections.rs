@@ -650,20 +650,32 @@ pub(super) fn menu_trigger() -> AnyView {
 
     let controlled_code = r#"let (open, set_open) = signal(false);
 let open_signal: Signal<bool> = Signal::derive(move || open.get());
+
 <MenuTrigger
   id_base="trigger-controlled".to_string()
   items=items
   on_action=on_action
+  close_on_action=false
+  disabled_indices=vec![1]
   open=open_signal
   on_open_change=Callback::new(move |next| set_open.set(next))
 >
   "Controlled"
 </MenuTrigger>"#;
 
-    let disabled_code = r#"<MenuTrigger id_base="trigger-disabled".to_string() items=items on_action=on_action disabled=true>
+    let disabled_code = r#"<MenuTrigger
+  id_base="trigger-disabled".to_string()
+  items=items
+  on_action=on_action
+  disabled=true
+>
   "Disabled"
 </MenuTrigger>
-<MenuTrigger id_base="trigger-empty".to_string() items=Vec::<String>::new() on_action=on_action>
+<MenuTrigger
+  id_base="trigger-empty".to_string()
+  items=Vec::<String>::new()
+  on_action=on_action
+>
   "Empty"
 </MenuTrigger>"#;
 
@@ -672,7 +684,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             title="MenuTrigger"
             slug="menu-trigger"
             group="Collections"
-            description="Button trigger that opens a Popover-based Menu with controlled/uncontrolled state support."
+            description="Button-triggered menu surface with Spectrum state attrs and controlled/uncontrolled close-strategy semantics."
         >
             <Playground title="Default" code=code>
                 <div class="docs-row">
@@ -695,12 +707,14 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled Open State" code=controlled_code>
+            <Playground title="Controlled + persistent open" code=controlled_code>
                 <div class="docs-stack">
                     <MenuTrigger
                         id_base="docs-menu-trigger-controlled".to_string()
                         items=controlled_items
                         on_action=on_action
+                        close_on_action=false
+                        disabled_indices=vec![1]
                         open=controlled_open
                         on_open_change=on_open_change
                         item_kinds=vec![
@@ -743,6 +757,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
     }
     .into_any()
 }
+
 pub(super) fn select() -> AnyView {
     let items = vec![
         "Apple".to_string(),

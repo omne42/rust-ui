@@ -20,6 +20,41 @@ fn menu_trigger_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn menu_trigger_uses_logic_state_model() {
+    let view_source = load_source("src/menu_trigger/view.rs");
+    let logic_source = load_source("src/menu_trigger/logic.rs");
+
+    for needle in [
+        "pub struct MenuTriggerStateInput",
+        "pub struct MenuTriggerState",
+        "pub fn normalize_optional_text(",
+        "pub fn normalize_id_base(",
+        "pub fn normalize_disabled_indices(",
+        "pub fn resolve_trigger_aria_label(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "MenuTrigger logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let id_base = logic::normalize_id_base(id_base);",
+        "let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);",
+        "let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);",
+        "let state = logic::resolve_state(logic::MenuTriggerStateInput {",
+        "let class = logic::compose_class_name(class_name, state);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "MenuTrigger view should derive wrapper state through logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn menu_trigger_supports_controlled_and_uncontrolled_open_state() {
     let source = load_source("src/menu_trigger/view.rs");
 
@@ -74,10 +109,21 @@ fn menu_trigger_emits_spectrum_style_root_data_attributes() {
 
     for attr in [
         "data-slot=\"menu-trigger\"",
+        "data-state=move ||",
         "data-open=move || open.get().then_some(\"true\")",
-        "data-disabled=trigger_disabled.get_value().then_some(\"true\")",
-        "data-empty=(item_count.get_value() == 0).then_some(\"true\")",
-        "data-has-items=(item_count.get_value() > 0).then_some(\"true\")",
+        "data-closed=move || (!open.get()).then_some(\"true\")",
+        "data-disabled=state.is_trigger_disabled.then_some(\"true\")",
+        "data-enabled=state.is_enabled.then_some(\"true\")",
+        "data-empty=state.is_empty.then_some(\"true\")",
+        "data-has-items=state.has_items.then_some(\"true\")",
+        "data-placement=state.placement_attr",
+        "data-controlled=state.is_controlled.then_some(\"true\")",
+        "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
+        "data-close-on-action=state.close_on_action.then_some(\"true\")",
+        "data-keep-open-on-action=state.keep_open_on_action.then_some(\"true\")",
+        "data-custom-label=state.has_custom_aria_label.then_some(\"true\")",
+        "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
+        "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
@@ -107,19 +153,37 @@ fn menu_trigger_uses_logic_for_empty_and_disabled_trigger_state() {
     let logic_source = load_source("src/menu_trigger/logic.rs");
     let view_source = load_source("src/menu_trigger/view.rs");
 
-    assert!(
-        logic_source.contains("resolve_trigger_disabled"),
-        "MenuTrigger logic should centralize trigger-disabled semantics for disabled + empty states."
-    );
+    for needle in [
+        "resolve_trigger_disabled",
+        "normalize_disabled_indices",
+        "MenuOpenFocusStrategy",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "MenuTrigger logic should centralize `{needle}` semantics."
+        );
+    }
 
     for needle in [
-        "let trigger_disabled = StoredValue::new(logic::resolve_trigger_disabled(",
         "if trigger_disabled.get_value()",
-        "disabled=trigger_disabled.get_value()",
+        "if let Some(strategy) = logic::focus_strategy_for_open_key(&key)",
+        "disabled=state.is_trigger_disabled",
     ] {
         assert!(
             view_source.contains(needle),
             "MenuTrigger view should consume `{needle}` to keep trigger behavior/state attrs consistent."
+        );
+    }
+}
+
+#[test]
+fn menu_trigger_styles_include_disabled_and_persistent_markers() {
+    let source = load_source("src/menu_trigger/styles.rs");
+
+    for needle in [".ui-menu-trigger--persistent", ".ui-menu-trigger--disabled"] {
+        assert!(
+            source.contains(needle),
+            "MenuTrigger styles should include `{needle}` for stable visual state contracts."
         );
     }
 }
