@@ -24,23 +24,44 @@ pub fn ActionMenu(
     #[prop(optional)] motion: ActionMenuMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let id_base = logic::normalize_id_base(id_base);
     let id_base = StoredValue::new(id_base);
+
     let items: StoredValue<std::sync::Arc<[String]>> = StoredValue::new(items.into());
+    let item_count = items.get_value().len();
+
+    let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
+
     let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(item_kinds);
 
+    let class_name = logic::normalize_optional_text(class_name);
+    let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
+
+    let is_controlled = open.is_some();
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
+    let state = logic::resolve_state(logic::ActionMenuStateInput {
+        item_count,
+        trigger_disabled: logic::resolve_trigger_disabled(disabled, item_count),
+        close_on_action,
+        has_custom_aria_label,
+        has_custom_class_name: class_name.is_some(),
+        has_disabled_items: !disabled_indices.get_value().is_empty(),
+        has_item_kinds: !item_kinds.get_value().is_empty(),
+        is_controlled,
+        placement,
+    });
+
+    let class = logic::compose_class_name(class_name, state);
+
     let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
-    let item_count = StoredValue::new(items.get_value().len());
-    let trigger_disabled = StoredValue::new(logic::resolve_trigger_disabled(
-        disabled,
-        item_count.get_value(),
-    ));
+    let item_count = StoredValue::new(state.item_count);
+    let trigger_disabled = StoredValue::new(state.is_trigger_disabled);
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
         if trigger_disabled.get_value() {
@@ -57,7 +78,7 @@ pub fn ActionMenu(
 
     let on_action_wrapped = Callback::new(move |index: usize| {
         on_action.run(index);
-        if close_on_action {
+        if state.close_on_action {
             request_open_change.run(false);
         }
     });
@@ -68,13 +89,7 @@ pub fn ActionMenu(
     let aria_controls = crate::a11y::aria_controls_when_open(open, menu_id.get_value());
     let presence = use_presence(open);
 
-    let aria_label = StoredValue::new(logic::resolve_trigger_aria_label(aria_label.as_deref()));
-
-    let base_class = "ui-action-menu".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let aria_label = StoredValue::new(aria_label);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
         if trigger_disabled.get_value() {
@@ -96,10 +111,29 @@ pub fn ActionMenu(
         <div
             class=class
             data-slot="action-menu"
+            data-state=move || {
+                if open.get() {
+                    "open"
+                } else if state.is_trigger_disabled {
+                    "disabled"
+                } else {
+                    "closed"
+                }
+            }
             data-open=move || open.get().then_some("true")
-            data-disabled=trigger_disabled.get_value().then_some("true")
-            data-empty=(item_count.get_value() == 0).then_some("true")
-            data-has-items=(item_count.get_value() > 0).then_some("true")
+            data-closed=move || (!open.get()).then_some("true")
+            data-disabled=state.is_trigger_disabled.then_some("true")
+            data-enabled=state.is_enabled.then_some("true")
+            data-empty=state.is_empty.then_some("true")
+            data-has-items=state.has_items.then_some("true")
+            data-placement=state.placement_attr
+            data-controlled=state.is_controlled.then_some("true")
+            data-uncontrolled=state.is_uncontrolled.then_some("true")
+            data-close-on-action=state.close_on_action.then_some("true")
+            data-keep-open-on-action=state.keep_open_on_action.then_some("true")
+            data-custom-label=state.has_custom_aria_label.then_some("true")
+            data-has-disabled-items=state.has_disabled_items.then_some("true")
+            data-has-item-kinds=state.has_item_kinds.then_some("true")
             on:keydown=on_key_down
         >
             <ActionButton
@@ -107,7 +141,7 @@ pub fn ActionMenu(
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
                 size=size
-                disabled=trigger_disabled.get_value()
+                disabled=state.is_trigger_disabled
                 is_quiet=is_quiet
                 is_icon_only=true
                 aria_label=aria_label.get_value()
@@ -133,7 +167,7 @@ pub fn ActionMenu(
                 >
                     {move || {
                         let default_index =
-                            open_focus.get_untracked().default_index(items.get_value().len());
+                            open_focus.get_untracked().default_index(item_count.get_value());
 
                         view! {
                             <Menu

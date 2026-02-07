@@ -1201,27 +1201,43 @@ pub(super) fn action_menu() -> AnyView {
     let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
     let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
 
-    let code = r#"<ActionMenu id_base="demo".to_string() items=items on_action=on_action />"#;
+    let code = r#"<ActionMenu
+  id_base="demo".to_string()
+  items=items
+  on_action=on_action
+/>"#;
 
     let controlled_code = r#"let (open, set_open) = signal(false);
 let open_signal: Signal<bool> = Signal::derive(move || open.get());
+
 <ActionMenu
   id_base="action-controlled".to_string()
   items=items
   on_action=on_action
+  close_on_action=false
+  disabled_indices=vec![1]
   open=open_signal
   on_open_change=Callback::new(move |next| set_open.set(next))
 />"#;
 
-    let disabled_code = r#"<ActionMenu id_base="action-disabled".to_string() items=items on_action=on_action disabled=true />
-<ActionMenu id_base="action-empty".to_string() items=Vec::<String>::new() on_action=on_action />"#;
+    let disabled_code = r#"<ActionMenu
+  id_base="action-disabled".to_string()
+  items=items
+  on_action=on_action
+  disabled=true
+/>
+<ActionMenu
+  id_base="action-empty".to_string()
+  items=Vec::<String>::new()
+  on_action=on_action
+/>"#;
 
     view! {
         <ComponentPage
             title="ActionMenu"
             slug="action-menu"
             group="Actions"
-            description="An ActionButton trigger that opens a Menu in a Popover with controlled/uncontrolled state support."
+            description="ActionButton-triggered menu surface with Spectrum state attrs and HeroUI-grade popover motion (controlled/uncontrolled + close strategy)."
         >
             <Playground title="Default" code=code>
                 <div class="docs-row">
@@ -1242,12 +1258,14 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled Open State" code=controlled_code>
+            <Playground title="Controlled + persistent open" code=controlled_code>
                 <div class="docs-stack">
                     <ActionMenu
                         id_base="docs-action-menu-controlled".to_string()
                         items=controlled_items
                         on_action=on_action
+                        close_on_action=false
+                        disabled_indices=vec![1]
                         open=controlled_open
                         on_open_change=on_open_change
                         item_kinds=vec![
