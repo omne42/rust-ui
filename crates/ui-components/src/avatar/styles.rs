@@ -32,6 +32,18 @@ pub const CSS: &str = r#"
   --ui-avatar-size: 40px;
 }
 
+.ui-avatar--has-src.ui-avatar--image {
+  border-color: transparent;
+}
+
+.ui-avatar--label-fallback {
+  background: var(--ui-bg-muted);
+}
+
+.ui-avatar--has-alt[data-fallback="true"] {
+  box-shadow: inset 0 0 0 1px var(--ui-border);
+}
+
 .ui-avatar__img {
   width: 100%;
   height: 100%;

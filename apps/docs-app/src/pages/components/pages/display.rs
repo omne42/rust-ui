@@ -464,18 +464,35 @@ pub(super) fn avatar() -> AnyView {
 
     let code = r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#;
 
+    let states_code = r#"<Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
+<Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
+<Avatar size=AvatarSize::Lg />"#;
+
     view! {
         <ComponentPage
             title="Avatar"
             slug="avatar"
             group="Display"
-            description="Avatar image with initials fallback."
+            description="Avatar with image/error fallback, normalized labels, and Spectrum-style root state attrs."
         >
-            <Playground title="Avatar" code=code>
+            <Playground title="Image + Fallback" code=code>
                 <div class="docs-row">
                     <Avatar name="Ada Lovelace".to_string() src=src.to_string() size=AvatarSize::Md />
                     <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
                     <Avatar name="Alan Turing".to_string() size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground title="Sizes + Label Sources" code=states_code>
+                <div class="docs-row">
+                    <Avatar
+                        name="Ada Lovelace".to_string()
+                        src=src.to_string()
+                        alt="Profile photo".to_string()
+                        size=AvatarSize::Sm
+                    />
+                    <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
+                    <Avatar size=AvatarSize::Lg />
                 </div>
             </Playground>
         </ComponentPage>

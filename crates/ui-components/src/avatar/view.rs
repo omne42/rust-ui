@@ -9,40 +9,32 @@ pub fn Avatar(
     #[prop(optional, into)] alt: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let name = name.and_then(|name| {
-        let name = name.trim().to_string();
-        (!name.is_empty()).then_some(name)
-    });
-    let src = src.and_then(|src| {
-        let src = src.trim().to_string();
-        (!src.is_empty()).then_some(src)
-    });
-    let alt = alt.and_then(|alt| {
-        let alt = alt.trim().to_string();
-        (!alt.is_empty()).then_some(alt)
+    let name = logic::normalize_optional_text(name);
+    let src = logic::normalize_optional_text(src);
+    let alt = logic::normalize_optional_text(alt);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let accessibility = logic::resolve_accessibility(name.as_deref(), alt.as_deref());
+    let aria_label = StoredValue::new(accessibility.aria_label);
+    let img_alt = StoredValue::new(accessibility.img_alt);
+    let title = StoredValue::new(accessibility.title);
+
+    let state = logic::resolve_state(logic::AvatarStateInput {
+        size,
+        has_name: name.is_some(),
+        has_src: src.is_some(),
+        has_alt: alt.is_some(),
+        has_custom_class_name: class_name.is_some(),
     });
 
-    let aria_label = alt
-        .clone()
-        .or_else(|| name.clone())
-        .unwrap_or_else(|| "Avatar".to_string());
-    let img_alt = alt.clone().or_else(|| name.clone()).unwrap_or_default();
-    let title = name.clone();
-    let initials = name
-        .as_deref()
-        .and_then(logic::initials_from_name)
-        .unwrap_or_else(|| "?".to_string());
+    let class = logic::compose_class_name(class_name, state);
+    let initials = StoredValue::new(logic::resolve_initials(name.as_deref()));
 
-    let base_class = format!("ui-avatar {}", size.class_name());
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let image_src = StoredValue::new(src.unwrap_or_default());
+    let has_src = state.has_src;
 
     let img_error = RwSignal::new(false);
-
-    let src_for_show = src.clone();
-    let show_image = Signal::derive(move || src_for_show.is_some() && !img_error.get());
+    let show_image = Signal::derive(move || has_src && !img_error.get());
 
     view! {
         <span
@@ -50,27 +42,38 @@ pub fn Avatar(
             class:ui-avatar--image=move || show_image.get()
             class:ui-avatar--fallback=move || !show_image.get()
             data-slot="avatar"
-            title=title
+            data-size=state.size_attr
+            data-state=move || if show_image.get() { "image" } else { "fallback" }
+            data-image=move || show_image.get().then_some("true")
+            data-fallback=move || (!show_image.get()).then_some("true")
+            data-has-name=state.has_name.then_some("true")
+            data-has-src=state.has_src.then_some("true")
+            data-has-alt=state.has_alt.then_some("true")
+            data-label-source=state.label_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            title=move || title.get_value()
             role=move || (!show_image.get()).then_some("img".to_string())
-            aria-label=move || (!show_image.get()).then_some(aria_label.clone())
+            aria-label=move || (!show_image.get()).then_some(aria_label.get_value())
         >
             <Show
                 when=move || show_image.get()
-                fallback=move || view! {
-                    <span
-                        class="ui-avatar__initials"
-                        data-slot="avatar-initials"
-                        aria-hidden="true"
-                    >
-                        {initials.clone()}
-                    </span>
+                fallback=move || {
+                    view! {
+                        <span
+                            class="ui-avatar__initials"
+                            data-slot="avatar-initials"
+                            aria-hidden="true"
+                        >
+                            {initials.get_value()}
+                        </span>
+                    }
                 }
             >
                 <img
                     class="ui-avatar__img"
                     data-slot="avatar-img"
-                    src=src.clone().unwrap_or_default()
-                    alt=img_alt.clone()
+                    src=image_src.get_value()
+                    alt=img_alt.get_value()
                     on:error=move |_| img_error.set(true)
                 />
             </Show>
