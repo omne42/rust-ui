@@ -48,6 +48,7 @@ pub mod illustrated_message;
 pub mod image;
 pub mod inline_alert;
 pub mod input;
+pub mod input_group;
 pub mod input_otp;
 pub mod kbd;
 pub mod link;
@@ -148,6 +149,7 @@ pub use illustrated_message::{
 pub use image::{Image, ImageMotion, ImageRadius, ImageShadow};
 pub use inline_alert::{InlineAlert, InlineAlertFill, InlineAlertMotion, InlineAlertTone};
 pub use input::{Input, InputLabelPlacement, InputMotion, InputSize, InputVariant};
+pub use input_group::InputGroup;
 pub use input_otp::InputOtp;
 pub use kbd::{Kbd, KbdSize};
 pub use link::Link;

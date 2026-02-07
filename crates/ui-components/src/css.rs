@@ -53,6 +53,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::number_field::styles::CSS);
     out.push_str(crate::number::styles::CSS);
     out.push_str(crate::slider::styles::CSS);
+    out.push_str(crate::input_group::styles::CSS);
     out.push_str(crate::input::styles::CSS);
     out.push_str(crate::input_otp::styles::CSS);
     out.push_str(crate::file_trigger::styles::CSS);

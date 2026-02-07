@@ -3,10 +3,120 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Form, FormLabelAlign,
-    FormLabelPosition, Input, InputOtp, InputSize, InputVariant, NumberField, Radio, RadioGroup,
-    RadioGroupOrientation, SearchField, SegmentedControl, SegmentedControlOrientation,
-    SegmentedControlSize, Slider, SliderMotion, Switch, TextArea, TextField,
+    FormLabelPosition, Input, InputGroup, InputOtp, InputSize, InputVariant, NumberField, Radio,
+    RadioGroup, RadioGroupOrientation, SearchField, SegmentedControl, SegmentedControlOrientation,
+    SegmentedControlSize, Switch, TextArea, TextField,
 };
+
+pub(super) fn input_group() -> AnyView {
+    let (email_user, set_email_user) = signal(String::new());
+    let (search_query, set_search_query) = signal(String::new());
+
+    let code = r#"let (email_user, set_email_user) = signal(String::new());
+<InputGroup
+  aria_label="Email input group".to_string()
+  start_content=move || view! { <span>"@"</span> }
+  end_content=move || view! { <span>".com"</span> }
+>
+  <Input
+    id="email-user".to_string()
+    value=email_user
+    set_value=set_email_user
+    aria_label="Email user".to_string()
+    placeholder="username".to_string()
+    label_hidden=true
+  />
+</InputGroup>"#;
+
+    let states_code = r#"<InputGroup
+  attached=false
+  aria_label="Search controls".to_string()
+  start_content=move || view! { <span>"🔍"</span> }
+  end_content=move || view! { <span>"⌘K"</span> }
+>
+  <Input
+    id="search-query".to_string()
+    value=search_query
+    set_value=set_search_query
+    aria_label="Search query".to_string()
+    placeholder="Search docs".to_string()
+    label_hidden=true
+  />
+</InputGroup>
+<InputGroup disabled=true aria_label="Disabled controls".to_string()>
+  <Input
+    id="disabled-group-input".to_string()
+    value=email_user
+    set_value=set_email_user
+    aria_label="Disabled field".to_string()
+    placeholder="Disabled".to_string()
+    label_hidden=true
+    disabled=true
+  />
+</InputGroup>"#;
+
+    view! {
+        <ComponentPage
+            title="InputGroup"
+            slug="input-group"
+            group="Forms"
+            description="Composes one or more inputs with shared prefix/suffix addons and Spectrum-style state contracts."
+        >
+            <Playground title="Attached Addons" code=code>
+                <div class="docs-stack">
+                    <InputGroup
+                        aria_label="Email input group".to_string()
+                        start_content=move || view! { <span>"@"</span> }
+                        end_content=move || view! { <span>".com"</span> }
+                    >
+                        <Input
+                            id="docs-input-group-email".to_string()
+                            value=email_user
+                            set_value=set_email_user
+                            aria_label="Email user".to_string()
+                            placeholder="username".to_string()
+                            label_hidden=true
+                        />
+                    </InputGroup>
+                    <span class="ui-muted">"email: " {move || email_user.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="Detached + Disabled" code=states_code>
+                <div class="docs-stack">
+                    <InputGroup
+                        attached=false
+                        aria_label="Search controls".to_string()
+                        start_content=move || view! { <span>"🔍"</span> }
+                        end_content=move || view! { <span>"⌘K"</span> }
+                    >
+                        <Input
+                            id="docs-input-group-search".to_string()
+                            value=search_query
+                            set_value=set_search_query
+                            aria_label="Search query".to_string()
+                            placeholder="Search docs".to_string()
+                            label_hidden=true
+                        />
+                    </InputGroup>
+
+                    <InputGroup disabled=true aria_label="Disabled controls".to_string()>
+                        <Input
+                            id="docs-input-group-disabled".to_string()
+                            value=email_user
+                            set_value=set_email_user
+                            aria_label="Disabled field".to_string()
+                            placeholder="Disabled".to_string()
+                            label_hidden=true
+                            disabled=true
+                        />
+                    </InputGroup>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn form() -> AnyView {
     let (name, set_name) = signal(String::new());
@@ -844,103 +954,6 @@ pub(super) fn segmented_control() -> AnyView {
                             {move || empty_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                         </span>
                     </div>
-                </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
-}
-
-pub(super) fn slider() -> AnyView {
-    let (value, set_value) = signal(36.0_f64);
-    let (last_change, set_last_change) = signal("none".to_string());
-    let on_change = Callback::new(move |next: f64| {
-        set_last_change.set(format!("{next:.1}"));
-    });
-
-    let (disabled_value, set_disabled_value) = signal(68.0_f64);
-
-    let code = r#"let (value, set_value) = signal(36.0_f64);
-let on_change = Callback::new(move |next: f64| {
-  logging::log!("slider changed: {next}");
-});
-<Slider
-  id="volume".to_string()
-  label="Volume".to_string()
-  value=value
-  set_value=set_value
-  min=0.0
-  max=100.0
-  step=1.0
-  on_change=Some(on_change)
-/>"#;
-
-    let states_code = r#"<Slider
-  id="slider-disabled".to_string()
-  label="Disabled".to_string()
-  value=disabled_value
-  set_value=set_disabled_value
-  disabled=true
-/>
-<Slider
-  id="slider-fine".to_string()
-  label="Fine Step".to_string()
-  value=value
-  set_value=set_value
-  min=0.0
-  max=1.0
-  step=0.05
-  motion=SliderMotion::disabled()
-/>"#;
-
-    let fine_motion = SliderMotion::disabled();
-
-    view! {
-        <ComponentPage
-            title="Slider"
-            slug="slider"
-            group="Forms"
-            description="Range slider with spring-driven fill/thumb motion and Spectrum-style state data contracts."
-        >
-            <Playground title="Controlled + on_change" code=code>
-                <div class="docs-stack">
-                    <Slider
-                        id="docs-slider-volume".to_string()
-                        label="Volume".to_string()
-                        value=value
-                        set_value=set_value
-                        min=0.0
-                        max=100.0
-                        step=1.0
-                        on_change=on_change
-                    />
-                    <span class="ui-muted">
-                        "value: " {move || format!("{:.1}", value.get())}
-                        " · last on_change: " {move || last_change.get()}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Fine Step" code=states_code>
-                <div class="docs-stack">
-                    <Slider
-                        id="docs-slider-disabled".to_string()
-                        label="Disabled".to_string()
-                        value=disabled_value
-                        set_value=set_disabled_value
-                        disabled=true
-                    />
-                    <Slider
-                        id="docs-slider-fine".to_string()
-                        label="Fine Step".to_string()
-                        value=value
-                        set_value=set_value
-                        min=0.0
-                        max=1.0
-                        step=0.05
-                        motion=fine_motion
-                        class_name="docs-slider--fine".to_string()
-                    />
                 </div>
             </Playground>
         </ComponentPage>

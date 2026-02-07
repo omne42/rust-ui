@@ -3,6 +3,7 @@ mod collections;
 mod display;
 mod files;
 mod forms;
+mod forms_extra;
 mod layout;
 mod overlays;
 
@@ -106,6 +107,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms::input,
     },
     ComponentDoc {
+        name: "InputGroup",
+        slug: "input-group",
+        group: "Forms",
+        page: forms::input_group,
+    },
+    ComponentDoc {
         name: "TextField",
         slug: "text-field",
         group: "Forms",
@@ -175,7 +182,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         name: "Slider",
         slug: "slider",
         group: "Forms",
-        page: forms::slider,
+        page: forms_extra::slider,
     },
     ComponentDoc {
         name: "Card",
