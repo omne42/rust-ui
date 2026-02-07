@@ -3,12 +3,12 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
-    ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup, ButtonGroupOrientation,
-    ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton, LinkButton, MenuItemKind,
-    OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton,
-    ShareButtonIconPlacement, ShareButtonItem, SharePlatform, Switch, ThemeMode, ThemeToggleButton,
-    ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonSize,
-    ToggleButtonVariant,
+    ActionButtonLoadingPlacement, ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup,
+    ButtonGroupOrientation, ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton,
+    LinkButton, MenuItemKind, OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize,
+    ShareButton, ShareButtonIconPlacement, ShareButtonItem, SharePlatform, Switch, ThemeMode,
+    ThemeToggleButton, ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation,
+    ToggleButtonSize, ToggleButtonVariant,
 };
 
 pub(super) fn button() -> AnyView {
@@ -113,10 +113,30 @@ pub(super) fn button() -> AnyView {
 }
 
 pub(super) fn action_button() -> AnyView {
-    let code = r#"<ActionButton>"Action"</ActionButton>
-<ActionButton is_quiet=true>"Quiet"</ActionButton>
-<ActionButton is_loading=true loading_placement=ActionButtonLoadingPlacement::Center>
-  "Loading"
+    let (press_count, set_press_count) = signal(0_u32);
+    let on_press: OnPress = Callback::new(move |_| {
+        set_press_count.update(|count| *count += 1);
+    });
+
+    let code = r#"let on_press: OnPress = Callback::new(|_| {
+  logging::log!("pressed");
+});
+
+<ActionButton on_press=on_press>"Action"</ActionButton>"#;
+
+    let states_code = r#"<ActionButton
+  is_loading=true
+  loading_placement=ActionButtonLoadingPlacement::Start
+  start_content=move || view! { <span>"★"</span> }
+>
+  "Start"
+</ActionButton>
+<ActionButton
+  is_loading=true
+  loading_placement=ActionButtonLoadingPlacement::End
+  end_content=move || view! { <span>"→"</span> }
+>
+  "End"
 </ActionButton>"#;
 
     view! {
@@ -124,29 +144,64 @@ pub(super) fn action_button() -> AnyView {
             title="ActionButton"
             slug="action-button"
             group="Actions"
-            description="Spectrum-style action button (quiet/filled) with loading state."
+            description="Spectrum-style action trigger with state attrs and HeroUI-grade spring hover/press feedback."
         >
-            <Playground title="Basics" code=code>
+            <Playground title="Default + callback" code=code>
                 <div class="docs-row">
-                    <ActionButton>"Action"</ActionButton>
-                    <ActionButton is_quiet=true>"Quiet"</ActionButton>
-                    <ActionButton is_loading=true>"Loading"</ActionButton>
-                    <ActionButton is_icon_only=true aria_label="Settings".to_string()>
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path
-                                d="M10 13.3a3.3 3.3 0 1 0 0-6.6a3.3 3.3 0 0 0 0 6.6Z"
-                                stroke="currentColor"
-                                stroke_width="1.5"
-                            />
-                            <path
-                                d="M3.8 10a6.2 6.2 0 0 1 .1-1l1.6-.9.2-.5-.6-1.8a7.6 7.6 0 0 1 1.5-1.5l1.8.6.5-.2.9-1.6a6.4 6.4 0 0 1 2 0l.9 1.6.5.2 1.8-.6c.6.4 1.1.9 1.5 1.5l-.6 1.8.2.5 1.6.9a6.5 6.5 0 0 1 0 2l-1.6.9-.2.5.6 1.8a7.6 7.6 0 0 1-1.5 1.5l-1.8-.6-.5.2-.9 1.6a6.4 6.4 0 0 1-2 0l-.9-1.6-.5-.2-1.8.6a7.6 7.6 0 0 1-1.5-1.5l.6-1.8-.2-.5-1.6-.9a6.2 6.2 0 0 1-.1-1Z"
-                                stroke="currentColor"
-                                stroke_width="1.2"
-                                stroke_linecap="round"
-                                stroke_linejoin="round"
-                            />
-                        </svg>
+                    <ActionButton on_press=on_press>"Action"</ActionButton>
+                    <ActionButton is_quiet=true on_press=on_press>"Quiet"</ActionButton>
+                    <ActionButton
+                        is_loading=true
+                        loading_placement=ActionButtonLoadingPlacement::Center
+                    >
+                        "Loading"
                     </ActionButton>
+                    <span class="ui-muted">
+                        "pressed: "
+                        {move || press_count.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Loading placement + icon-only" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ActionButton
+                            size=ActionButtonSize::S
+                            is_loading=true
+                            loading_placement=ActionButtonLoadingPlacement::Start
+                            start_content=move || view! { <span>"★"</span> }
+                        >
+                            "Start"
+                        </ActionButton>
+                        <ActionButton
+                            size=ActionButtonSize::L
+                            is_loading=true
+                            loading_placement=ActionButtonLoadingPlacement::End
+                            end_content=move || view! { <span>"→"</span> }
+                        >
+                            "End"
+                        </ActionButton>
+                        <ActionButton is_icon_only=true is_quiet=true aria_label="Settings".to_string()>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path
+                                    d="M10 13.3a3.3 3.3 0 1 0 0-6.6a3.3 3.3 0 0 0 0 6.6Z"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M3.8 10a6.2 6.2 0 0 1 .1-1l1.6-.9.2-.5-.6-1.8a7.6 7.6 0 0 1 1.5-1.5l1.8.6.5-.2.9-1.6a6.4 6.4 0 0 1 2 0l.9 1.6.5.2 1.8-.6c.6.4 1.1.9 1.5 1.5l-.6 1.8.2.5 1.6.9a6.5 6.5 0 0 1 0 2l-1.6.9-.2.5.6 1.8a7.6 7.6 0 0 1-1.5 1.5l-1.8-.6-.5.2-.9 1.6a6.4 6.4 0 0 1-2 0l-.9-1.6-.5-.2-1.8.6a7.6 7.6 0 0 1-1.5-1.5l.6-1.8-.2-.5-1.6-.9a6.2 6.2 0 0 1-.1-1Z"
+                                    stroke="currentColor"
+                                    stroke_width="1.2"
+                                    stroke_linecap="round"
+                                    stroke_linejoin="round"
+                                />
+                            </svg>
+                        </ActionButton>
+                    </div>
+                    <span class="ui-muted">
+                        "Start/end slots, loading placement, and icon-only mode all expose stable data-* attrs."
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

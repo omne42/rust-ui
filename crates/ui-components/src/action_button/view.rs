@@ -43,7 +43,23 @@ pub fn ActionButton(
         .or_else(|| group.map(|ctx| ctx.is_quiet))
         .unwrap_or(false);
 
-    let state = logic::resolve_state(disabled, is_loading);
+    let class_name = logic::normalize_optional_text(class_name);
+    let aria_label = logic::normalize_optional_text(aria_label);
+    let has_start_content = start_content.is_some();
+    let has_end_content = end_content.is_some();
+
+    let state = logic::resolve_state(logic::ActionButtonStateInput {
+        disabled,
+        is_loading,
+        size,
+        loading_placement,
+        is_quiet,
+        is_icon_only,
+        has_start_content,
+        has_end_content,
+        has_custom_class_name: class_name.is_some(),
+        has_custom_press_handler: on_press.is_some(),
+    });
 
     let aria = use_button(ButtonOptions {
         is_disabled: state.is_disabled,
@@ -67,26 +83,7 @@ pub fn ActionButton(
         motion,
     );
 
-    let base_class = format!(
-        "ui-action-button {} {} {}",
-        if is_quiet {
-            "ui-action-button--quiet"
-        } else {
-            "ui-action-button--filled"
-        },
-        size.class_name(),
-        if is_icon_only {
-            "ui-action-button--icon-only"
-        } else {
-            ""
-        }
-    );
-
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
+    let class = logic::compose_class_name(class_name, state);
     let button_type = button_type.unwrap_or("button");
 
     let start_content = start_content.map(StoredValue::new);
@@ -101,10 +98,24 @@ pub fn ActionButton(
             class:ui-action-button--focus-visible=move || focus_ring.is_focus_visible.get()
             disabled=state.is_disabled
             data-slot="action-button"
+            data-state=if state.is_loading {
+                "loading"
+            } else if state.is_disabled {
+                "disabled"
+            } else {
+                "ready"
+            }
+            data-size=state.size_attr
             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
             data-loading=state.is_loading.then_some("true")
-            data-loading-placement=loading_placement.as_attr()
+            data-loading-placement=state.loading_placement_attr
+            data-quiet=state.is_quiet.then_some("true")
+            data-icon-only=state.is_icon_only.then_some("true")
+            data-disabled=state.is_disabled.then_some("true")
+            data-has-start=state.has_start_content.then_some("true")
+            data-has-end=state.has_end_content.then_some("true")
+            data-has-handler=state.has_custom_press_handler.then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
@@ -143,11 +154,13 @@ pub fn ActionButton(
                 focus_ring.handlers.on_blur.run(());
             }
         >
-            <Show when=move || state.is_loading && matches!(loading_placement, ActionButtonLoadingPlacement::Start)>
+            <Show when=move || {
+                state.is_loading && matches!(state.loading_placement, ActionButtonLoadingPlacement::Start)
+            }>
                 <span class="ui-action-button__spinner" data-slot="action-button-spinner" aria-hidden="true"></span>
             </Show>
 
-            <Show when=move || start_content.is_some()>
+            <Show when=move || state.has_start_content>
                 <span class="ui-action-button__start" data-slot="action-button-start">
                     {start_content
                         .expect("checked start_content")
@@ -160,7 +173,7 @@ pub fn ActionButton(
                 {children()}
             </span>
 
-            <Show when=move || end_content.is_some()>
+            <Show when=move || state.has_end_content>
                 <span class="ui-action-button__end" data-slot="action-button-end">
                     {end_content
                         .expect("checked end_content")
@@ -169,11 +182,16 @@ pub fn ActionButton(
                 </span>
             </Show>
 
-            <Show when=move || state.is_loading && matches!(loading_placement, ActionButtonLoadingPlacement::End)>
+            <Show when=move || {
+                state.is_loading && matches!(state.loading_placement, ActionButtonLoadingPlacement::End)
+            }>
                 <span class="ui-action-button__spinner" data-slot="action-button-spinner" aria-hidden="true"></span>
             </Show>
 
-            <Show when=move || state.is_loading && matches!(loading_placement, ActionButtonLoadingPlacement::Center)>
+            <Show when=move || {
+                state.is_loading
+                    && matches!(state.loading_placement, ActionButtonLoadingPlacement::Center)
+            }>
                 <span class="ui-action-button__spinner" data-slot="action-button-spinner" aria-hidden="true"></span>
             </Show>
         </button>

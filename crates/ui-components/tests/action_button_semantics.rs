@@ -18,6 +18,38 @@ fn action_button_does_not_expose_logic_module() {
 }
 
 #[test]
+fn action_button_uses_logic_state_model() {
+    let view_source = load_source("src/action_button/view.rs");
+    let logic_source = load_source("src/action_button/logic.rs");
+
+    for needle in [
+        "pub struct ActionButtonStateInput",
+        "pub struct ActionButtonState",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+        "pub fn as_attr(self) -> &'static str",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ActionButton logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let class_name = logic::normalize_optional_text(class_name);",
+        "let aria_label = logic::normalize_optional_text(aria_label);",
+        "let state = logic::resolve_state(logic::ActionButtonStateInput {",
+        "let class = logic::compose_class_name(class_name, state);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionButton view should derive wrapper state through logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn action_button_uses_headless_press_hover_and_focus_ring() {
     let source = load_source("src/action_button/view.rs");
 
@@ -35,10 +67,18 @@ fn action_button_emits_spectrum_style_data_attributes() {
 
     for attr in [
         "data-slot=\"action-button\"",
+        "data-state=if state.is_loading",
+        "data-size=state.size_attr",
         "data-hovered",
         "data-pressed",
-        "data-loading",
-        "data-loading-placement",
+        "data-loading=state.is_loading.then_some(\"true\")",
+        "data-loading-placement=state.loading_placement_attr",
+        "data-quiet=state.is_quiet.then_some(\"true\")",
+        "data-icon-only=state.is_icon_only.then_some(\"true\")",
+        "data-disabled=state.is_disabled.then_some(\"true\")",
+        "data-has-start=state.has_start_content.then_some(\"true\")",
+        "data-has-end=state.has_end_content.then_some(\"true\")",
+        "data-has-handler=state.has_custom_press_handler.then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
@@ -66,11 +106,6 @@ fn action_button_forwards_headless_button_semantics() {
 #[test]
 fn action_button_loading_forces_disabled_and_sets_aria_busy() {
     let source = load_source("src/action_button/view.rs");
-
-    assert!(
-        source.contains("resolve_state"),
-        "ActionButton should normalize `disabled`/`is_loading` via `resolve_state` to keep the contract testable and consistent."
-    );
 
     for needle in [
         "disabled=state.is_disabled",
