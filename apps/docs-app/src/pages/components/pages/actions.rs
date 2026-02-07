@@ -187,10 +187,43 @@ pub(super) fn action_button_group() -> AnyView {
 }
 
 pub(super) fn button_group() -> AnyView {
+    let (left_count, set_left_count) = signal(0_usize);
+    let (middle_count, set_middle_count) = signal(0_usize);
+    let (right_count, set_right_count) = signal(0_usize);
+
+    let on_left: OnPress = Callback::new(move |_| {
+        set_left_count.update(|count| *count += 1);
+    });
+    let on_middle: OnPress = Callback::new(move |_| {
+        set_middle_count.update(|count| *count += 1);
+    });
+    let on_right: OnPress = Callback::new(move |_| {
+        set_right_count.update(|count| *count += 1);
+    });
+
+    let (top_count, set_top_count) = signal(0_usize);
+    let (bottom_count, set_bottom_count) = signal(0_usize);
+    let on_top: OnPress = Callback::new(move |_| {
+        set_top_count.update(|count| *count += 1);
+    });
+    let on_bottom: OnPress = Callback::new(move |_| {
+        set_bottom_count.update(|count| *count += 1);
+    });
+
     let code = r#"<ButtonGroup attached=true>
   <Button variant=ButtonVariant::Secondary>"Left"</Button>
   <Button variant=ButtonVariant::Secondary>"Middle"</Button>
   <Button variant=ButtonVariant::Secondary>"Right"</Button>
+</ButtonGroup>"#;
+
+    let states_code = r#"<ButtonGroup
+  attached=false
+  orientation=ButtonGroupOrientation::Vertical
+  aria_label="Document actions".to_string()
+>
+  <Button variant=ButtonVariant::Outline>"Top"</Button>
+  <Button variant=ButtonVariant::Outline disabled=true>"Disabled"</Button>
+  <Button variant=ButtonVariant::Outline>"Bottom"</Button>
 </ButtonGroup>"#;
 
     view! {
@@ -198,22 +231,60 @@ pub(super) fn button_group() -> AnyView {
             title="ButtonGroup"
             slug="button-group"
             group="Actions"
-            description="Groups Buttons with attached styling."
+            description="Groups Buttons with Spectrum-style root state attrs for orientation, attachment, and accessible labeling."
         >
-            <Playground title="Attached group" code=code>
+            <Playground title="Attached horizontal" code=code>
                 <div class="docs-stack">
                     <ButtonGroup attached=true orientation=ButtonGroupOrientation::Horizontal>
-                        <Button variant=ButtonVariant::Secondary>"Left"</Button>
-                        <Button variant=ButtonVariant::Secondary>"Middle"</Button>
-                        <Button variant=ButtonVariant::Secondary>"Right"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=on_left>
+                            "Left"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=on_middle>
+                            "Middle"
+                        </Button>
+                        <Button variant=ButtonVariant::Secondary on_press=on_right>
+                            "Right"
+                        </Button>
                     </ButtonGroup>
+                    <span class="ui-muted">
+                        "left/middle/right clicks: "
+                        {move || format!(
+                            "{}/{}/{}",
+                            left_count.get(),
+                            middle_count.get(),
+                            right_count.get()
+                        )}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Vertical + detached" code=states_code>
+                <div class="docs-stack">
+                    <ButtonGroup
+                        attached=false
+                        orientation=ButtonGroupOrientation::Vertical
+                        aria_label="Document actions".to_string()
+                    >
+                        <Button variant=ButtonVariant::Outline on_press=on_top>
+                            "Top"
+                        </Button>
+                        <Button variant=ButtonVariant::Outline disabled=true>
+                            "Disabled"
+                        </Button>
+                        <Button variant=ButtonVariant::Outline on_press=on_bottom>
+                            "Bottom"
+                        </Button>
+                    </ButtonGroup>
+                    <span class="ui-muted">
+                        "top/bottom clicks: "
+                        {move || format!("{}/{}", top_count.get(), bottom_count.get())}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn icon_button() -> AnyView {
     let code = r#"<IconButton aria_label="Close".to_string() variant=ButtonVariant::Ghost>
   <svg ... />
