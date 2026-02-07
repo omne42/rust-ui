@@ -8,6 +8,40 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn combo_box_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/combo_box/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "ComboBox internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn combo_box_normalizes_label_text_and_placeholder() {
+    let view_source = load_source("src/combo_box/view.rs");
+    let logic_source = load_source("src/combo_box/logic.rs");
+
+    for needle in [
+        "logic::normalize_label",
+        "logic::resolve_placeholder",
+        "logic::normalize_optional_text",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ComboBox view should use `{needle}` to keep text and labeling semantics stable."
+        );
+    }
+
+    assert!(
+        logic_source.contains("\"Options\".to_string()"),
+        "ComboBox logic should provide a stable fallback label for blank input labels."
+    );
+}
+
+#[test]
 fn combo_box_escape_stops_propagation_when_open() {
     let source = load_source("src/combo_box/view.rs");
 
@@ -48,6 +82,24 @@ fn combo_box_panel_is_portaled_and_uses_popover_positioning() {
 }
 
 #[test]
+fn combo_box_panel_exposes_option_and_empty_state_slots() {
+    let source = load_source("src/combo_box/view.rs");
+
+    for needle in [
+        "data-slot=\"combo-box-listbox\"",
+        "data-empty=move || filtered_indices.get().is_empty().then_some(\"true\")",
+        "data-slot=\"combo-box-option\"",
+        "data-focused=move || (active_index.get() == filtered_index).then_some(\"true\")",
+        "data-slot=\"combo-box-empty\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ComboBox panel should expose `{needle}` for Spectrum-style state styling and deterministic tests."
+        );
+    }
+}
+
+#[test]
 fn combo_box_panel_styles_use_fixed_positioning_and_transform_origin_by_placement() {
     let source = load_source("src/combo_box/styles.rs");
 
@@ -63,6 +115,10 @@ fn combo_box_panel_styles_use_fixed_positioning_and_transform_origin_by_placemen
         source.contains("data-placement=\"bottom-start\""),
         "ComboBox panel styles should set transform origin based on `data-placement`."
     );
+    assert!(
+        source.contains(".ui-combo-box__empty"),
+        "ComboBox styles should define an explicit empty state presentation."
+    );
 }
 
 #[test]
@@ -77,6 +133,9 @@ fn combo_box_emits_spectrum_style_state_data_attributes() {
         "data-required",
         "data-open",
         "data-empty",
+        "data-has-description",
+        "data-has-error",
+        "data-slot=\"combo-box-trigger\"",
     ] {
         assert!(
             source.contains(attr),

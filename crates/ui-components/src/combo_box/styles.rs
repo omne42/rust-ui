@@ -163,6 +163,15 @@ pub const CSS: &str = r#"
   font-weight: 600;
 }
 
+.ui-combo-box__option[data-focused=\"true\"] {
+  background: var(--ui-accent-soft);
+}
+
+.ui-combo-box__empty {
+  padding: var(--ui-space-sm) var(--ui-space-md);
+  color: var(--ui-fg-muted);
+}
+
 .ui-combo-box__option:focus-visible {
   outline: none;
 }

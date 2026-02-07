@@ -508,26 +508,113 @@ pub(super) fn combo_box() -> AnyView {
         "Python".to_string(),
         "Zig".to_string(),
     ];
-    let (selected, set_selected) = signal(None::<usize>);
-    let code = r#"let (selected, set_selected) = signal(None::<usize>);
-<ComboBox id_base="lang".to_string() label="Language".to_string()
-  items=items selected_index=selected set_selected_index=set_selected />"#;
+    let (selected, set_selected) = signal(Some(1_usize));
+    let (invalid, set_invalid) = signal(false);
+
+    let disabled_items = vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()];
+    let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
+
+    let empty_items: Vec<String> = Vec::new();
+    let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
+    let code = r#"let (selected, set_selected) = signal(Some(1_usize));
+let (invalid, set_invalid) = signal(false);
+<ComboBox
+  id_base="lang".to_string()
+  label="Language".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  disabled_indices=vec![4]
+  description="Pick one runtime language".to_string()
+  error="Language is required".to_string()
+  invalid=Signal::derive(move || invalid.get())
+/>"#;
+
+    let states_code = r#"<ComboBox
+  id_base="lang-disabled".to_string()
+  label="Disabled language".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  disabled=true
+/>
+<ComboBox
+  id_base="lang-empty".to_string()
+  label="Empty language list".to_string()
+  items=Vec::<String>::new()
+  selected_index=empty_selected
+  set_selected_index=set_empty_selected
+  placeholder="No options".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="ComboBox"
             slug="combo-box"
             group="Collections"
-            description="Combobox with input + listbox + popover."
+            description="Combobox with input + listbox + popover, including Spectrum-style validation and empty states."
         >
-            <Playground title="ComboBox" code=code>
-                <ComboBox
-                    id_base="docs-combo-box".to_string()
-                    label="Language".to_string()
-                    items=items
-                    selected_index=selected
-                    set_selected_index=set_selected
-                />
+            <Playground title="Selection + Validation" code=code>
+                <div class="docs-stack">
+                    <ComboBox
+                        id_base="docs-combo-box".to_string()
+                        label="Language".to_string()
+                        items=items
+                        selected_index=selected
+                        set_selected_index=set_selected
+                        disabled_indices=vec![4]
+                        description="Pick one runtime language".to_string()
+                        error="Language is required".to_string()
+                        invalid=Signal::derive(move || invalid.get())
+                    />
+                    <div class="docs-row">
+                        <ui_components::Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_invalid.update(|value| *value = !*value))
+                        >
+                            {move || if invalid.get() { "Clear invalid" } else { "Mark invalid" }}
+                        </ui_components::Button>
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <ComboBox
+                            id_base="docs-combo-box-disabled".to_string()
+                            label="Disabled language".to_string()
+                            items=disabled_items
+                            selected_index=disabled_selected
+                            set_selected_index=set_disabled_selected
+                            disabled=true
+                        />
+                        <span class="ui-muted">
+                            "disabled selected: "
+                            {move || disabled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <ComboBox
+                            id_base="docs-combo-box-empty".to_string()
+                            label="Empty language list".to_string()
+                            items=empty_items
+                            selected_index=empty_selected
+                            set_selected_index=set_empty_selected
+                            placeholder="No options".to_string()
+                        />
+                        <span class="ui-muted">
+                            "empty selected: "
+                            {move || empty_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }
