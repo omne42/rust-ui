@@ -7,8 +7,19 @@ use ui_components::{
 };
 
 pub(super) fn card() -> AnyView {
-    let code = r#"<Card variant=CardVariant::Default>
-  <div>"Card content"</div>
+    let variants_code = r#"<Card variant=CardVariant::Default>"Default"</Card>
+<Card variant=CardVariant::Muted>"Muted"</Card>
+<Card variant=CardVariant::Outline>"Outline"</Card>"#;
+
+    let padding_code = r#"<Card padded=true>
+  <div>"Padded content"</div>
+</Card>
+<Card padded=false>
+  <div>"Flush content"</div>
+</Card>"#;
+
+    let custom_class_code = r#"<Card class_name="docs-card-custom".to_string()>
+  <div>"Custom class marker"</div>
 </Card>"#;
 
     view! {
@@ -16,9 +27,9 @@ pub(super) fn card() -> AnyView {
             title="Card"
             slug="card"
             group="Layout"
-            description="A token-styled surface with variant support."
+            description="A token-styled surface with centralized variant/padding state attrs."
         >
-            <Playground title="Variants" code=code>
+            <Playground title="Variants" code=variants_code>
                 <div class="docs-row">
                     <Card variant=CardVariant::Default>
                         <div class="docs-stack">
@@ -36,6 +47,36 @@ pub(super) fn card() -> AnyView {
                         <div class="docs-stack">
                             <div>"Outline"</div>
                             <div class="ui-muted">"Border-forward style."</div>
+                        </div>
+                    </Card>
+                </div>
+            </Playground>
+
+            <Playground title="Padding States" code=padding_code>
+                <div class="docs-row">
+                    <Card padded=true>
+                        <div class="docs-stack">
+                            <div>"Padded"</div>
+                            <div class="ui-muted">"Default spacing"</div>
+                        </div>
+                    </Card>
+                    <Card padded=false>
+                        <div class="docs-stack">
+                            <div class="docs-row docs-row--tight">
+                                <span>"Flush"</span>
+                                <span class="ui-muted">"No internal padding"</span>
+                            </div>
+                        </div>
+                    </Card>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class" code=custom_class_code>
+                <div class="docs-row">
+                    <Card class_name="docs-card-custom".to_string()>
+                        <div class="docs-stack">
+                            <div>"Custom class marker"</div>
+                            <div class="ui-muted">"Verifies `data-custom-class` + class merge."</div>
                         </div>
                     </Card>
                 </div>

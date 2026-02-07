@@ -1,4 +1,7 @@
-use crate::card::CardVariant;
+use crate::card::{
+    CardVariant,
+    logic::{self, CardStateInput},
+};
 use leptos::prelude::*;
 
 #[component]
@@ -8,20 +11,24 @@ pub fn Card(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let base_class = format!("ui-card {}", variant.class_name());
-    let base_class = if padded {
-        base_class
-    } else {
-        format!("{base_class} ui-card--no-padding")
-    };
-
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class_name = logic::normalize_optional_text(class_name);
+    let state = logic::resolve_state(CardStateInput {
+        variant,
+        padded,
+        has_custom_class_name: class_name.is_some(),
+    });
+    let class = logic::compose_class_name(class_name, state);
 
     view! {
-        <section class=class data-slot="card">
+        <section
+            class=class
+            data-slot="card"
+            data-variant=state.variant_attr
+            data-state=if state.is_padded { "padded" } else { "flush" }
+            data-padded=state.is_padded.then_some("true")
+            data-flush=state.is_flush.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </section>
     }
