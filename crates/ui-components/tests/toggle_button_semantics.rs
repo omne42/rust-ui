@@ -11,14 +11,12 @@ fn load_source(rel_path: &str) -> String {
 fn toggle_button_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/toggle_button/mod.rs");
 
-    assert!(
-        !source.contains("pub mod logic"),
-        "ToggleButton's `logic` module should stay private to avoid leaking implementation details into the public API."
-    );
-    assert!(
-        !source.contains("pub mod view"),
-        "ToggleButton's `view` module should stay private to avoid leaking internal module structure into the public API."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "ToggleButton internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -29,6 +27,38 @@ fn toggle_button_uses_headless_hooks() {
         assert!(
             source.contains(needle),
             "ToggleButton should use headless `{needle}` hooks."
+        );
+    }
+}
+
+#[test]
+fn toggle_button_uses_logic_state_model() {
+    let view_source = load_source("src/toggle_button/view.rs");
+    let logic_source = load_source("src/toggle_button/logic.rs");
+
+    for needle in [
+        "pub struct ToggleButtonState",
+        "pub fn resolve_state(",
+        "pub is_selected: bool",
+        "pub is_enabled: bool",
+        "pub is_pressed: bool",
+        "pub is_focus_visible: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ToggleButton logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let state = Memo::new(move |_|",
+        "logic::resolve_state(",
+        "selected.get()",
+        "state.get().data_state()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ToggleButton view should derive root state via logic::resolve_state; missing `{needle}`."
         );
     }
 }
@@ -49,12 +79,15 @@ fn toggle_button_emits_spectrum_style_state_data_attributes() {
 
     for attr in [
         "data-slot=\"toggle-button\"",
-        "data-selected",
-        "data-hovered",
-        "data-pressed",
-        "data-focused",
-        "data-focus-visible",
-        "data-disabled",
+        "data-state=move || state.get().data_state()",
+        "data-selected=move || state.get().is_selected.then_some(\"true\")",
+        "data-unselected=move || state.get().is_unselected.then_some(\"true\")",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-enabled=move || state.get().is_enabled.then_some(\"true\")",
+        "data-hovered=move || state.get().is_hovered.then_some(\"true\")",
+        "data-pressed=move || state.get().is_pressed.then_some(\"true\")",
+        "data-focused=move || state.get().is_focused.then_some(\"true\")",
+        "data-focus-visible=move || state.get().is_focus_visible.then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),

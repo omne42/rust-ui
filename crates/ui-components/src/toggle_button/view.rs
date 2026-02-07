@@ -1,4 +1,6 @@
-use crate::toggle_button::{ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant, motion};
+use crate::toggle_button::{
+    ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant, logic, motion,
+};
 use leptos::{html, prelude::*};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
@@ -47,6 +49,17 @@ pub fn ToggleButton(
         motion,
     );
 
+    let state = Memo::new(move |_| {
+        logic::resolve_state(
+            selected.get(),
+            disabled,
+            aria.is_pressed.get(),
+            hover.is_hovered.get(),
+            focus_ring.is_focused.get(),
+            focus_ring.is_focus_visible.get(),
+        )
+    });
+
     let base_class = format!(
         "ui-toggle-button {} {}",
         variant.class_name(),
@@ -62,19 +75,22 @@ pub fn ToggleButton(
             type="button"
             node_ref=node_ref
             class=class
-            class:ui-toggle-button--focus-visible=move || focus_ring.is_focus_visible.get()
+            class:ui-toggle-button--focus-visible=move || state.get().is_focus_visible
             disabled=disabled
             data-slot="toggle-button"
-            data-selected=move || if selected.get() { Some("true") } else { None }
-            data-hovered=move || hover.is_hovered.get().then_some("true")
-            data-pressed=move || aria.is_pressed.get().then_some("true")
-            data-focused=move || focus_ring.is_focused.get().then_some("true")
-            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
-            data-disabled=disabled.then_some("true")
+            data-state=move || state.get().data_state()
+            data-selected=move || state.get().is_selected.then_some("true")
+            data-unselected=move || state.get().is_unselected.then_some("true")
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-enabled=move || state.get().is_enabled.then_some("true")
+            data-hovered=move || state.get().is_hovered.then_some("true")
+            data-pressed=move || state.get().is_pressed.then_some("true")
+            data-focused=move || state.get().is_focused.then_some("true")
+            data-focus-visible=move || state.get().is_focus_visible.then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
-            aria-pressed=move || if selected.get() { "true" } else { "false" }
+            aria-pressed=move || if state.get().is_selected { "true" } else { "false" }
             aria-label=aria_label
             on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
             on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())

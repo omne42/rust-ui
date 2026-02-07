@@ -6,7 +6,8 @@ use ui_components::{
     ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup, ButtonGroupOrientation,
     ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton, LinkButton, MenuItemKind,
     OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton, SharePlatform,
-    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
+    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup, ToggleButtonSize,
+    ToggleButtonVariant,
 };
 
 pub(super) fn button() -> AnyView {
@@ -285,9 +286,40 @@ pub(super) fn link_button() -> AnyView {
 
 pub(super) fn toggle_button() -> AnyView {
     let (selected, set_selected) = signal(false);
+    let (last_change, set_last_change) = signal("none".to_string());
+    let on_toggle_change = Callback::new(move |next: bool| {
+        set_last_change.set(if next {
+            "true".to_string()
+        } else {
+            "false".to_string()
+        });
+    });
+
+    let (notifications, set_notifications) = signal(true);
+    let (disabled_selected, set_disabled_selected) = signal(true);
+    let (disabled_unselected, set_disabled_unselected) = signal(false);
+
     let code = r#"let (selected, set_selected) = signal(false);
-<ToggleButton selected=selected set_selected=set_selected>
+let on_change = Callback::new(move |next: bool| {
+  logging::log!("toggle changed: {next}");
+});
+<ToggleButton selected=selected set_selected=set_selected on_change=Some(on_change)>
   "Toggle"
+</ToggleButton>"#;
+
+    let states_code = r#"<ToggleButton
+  selected=notifications
+  set_selected=set_notifications
+  variant=ToggleButtonVariant::Accent
+  size=ToggleButtonSize::Lg
+>
+  "Notifications"
+</ToggleButton>
+<ToggleButton selected=disabled_selected set_selected=set_disabled_selected disabled=true>
+  "Disabled on"
+</ToggleButton>
+<ToggleButton selected=disabled_unselected set_selected=set_disabled_unselected disabled=true>
+  "Disabled off"
 </ToggleButton>"#;
 
     view! {
@@ -295,27 +327,66 @@ pub(super) fn toggle_button() -> AnyView {
             title="ToggleButton"
             slug="toggle-button"
             group="Actions"
-            description="Pressable toggle state with aria-pressed."
+            description="Pressable toggle state with HeroUI-level spring motion and Spectrum-style root state attrs."
         >
-            <Playground title="Toggle" code=code>
-                <div class="docs-row">
-                    <ToggleButton
-                        selected=selected
-                        set_selected=set_selected
-                        variant=ui_components::ToggleButtonVariant::Default
-                    >
-                        "Toggle"
-                    </ToggleButton>
-                    <span class="ui-muted">
-                        "selected: " {move || selected.get().to_string()}
-                    </span>
+            <Playground title="Controlled + on_change" code=code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ToggleButton
+                            selected=selected
+                            set_selected=set_selected
+                            on_change=on_toggle_change
+                            variant=ToggleButtonVariant::Default
+                        >
+                            "Toggle"
+                        </ToggleButton>
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || selected.get().to_string()}
+                        </span>
+                    </div>
+                    <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="Variant + Disabled matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ToggleButton
+                            selected=notifications
+                            set_selected=set_notifications
+                            variant=ToggleButtonVariant::Accent
+                            size=ToggleButtonSize::Lg
+                        >
+                            "Notifications"
+                        </ToggleButton>
+                        <span class="ui-muted">
+                            "notifications: "
+                            {move || notifications.get().to_string()}
+                        </span>
+                    </div>
+                    <div class="docs-row">
+                        <ToggleButton
+                            selected=disabled_selected
+                            set_selected=set_disabled_selected
+                            disabled=true
+                        >
+                            "Disabled on"
+                        </ToggleButton>
+                        <ToggleButton
+                            selected=disabled_unselected
+                            set_selected=set_disabled_unselected
+                            disabled=true
+                        >
+                            "Disabled off"
+                        </ToggleButton>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn toggle_button_group() -> AnyView {
     let (a, set_a) = signal(false);
     let (b, set_b) = signal(true);
