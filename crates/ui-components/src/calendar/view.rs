@@ -11,7 +11,8 @@ pub fn Calendar(
     #[prop(optional)] tone: CalendarTone,
     #[prop(optional)] first_weekday: CalendarFirstWeekday,
     #[prop(optional)] show_outside_days: bool,
-    #[prop(optional)] selected_day: Option<u8>,
+    #[prop(default = None)] selected_day: Option<u8>,
+    #[prop(default = None)] on_day_press: Option<Callback<u8>>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -46,6 +47,7 @@ pub fn Calendar(
 
     let weekdays = StoredValue::new(weekdays);
     let grid = StoredValue::new(grid);
+    let on_day_press = StoredValue::new(on_day_press);
 
     view! {
         <div
@@ -97,6 +99,16 @@ pub fn Calendar(
                                 class.push_str(" ui-calendar__day--selected");
                             }
 
+                            let is_pressable = cell.in_current_month;
+                            let on_click = move |_| {
+                                if !is_pressable {
+                                    return;
+                                }
+                                if let Some(on_day_press) = on_day_press.get_value() {
+                                    on_day_press.run(day);
+                                }
+                            };
+
                             view! {
                                 <button
                                     type="button"
@@ -108,8 +120,11 @@ pub fn Calendar(
                                     data-day=day.to_string()
                                     data-month-source=month_source
                                     data-selected=cell.is_selected.then_some("true")
+                                    data-pressable=is_pressable.then_some("true")
                                     aria-selected=cell.is_selected.then_some("true")
                                     aria-label=format!("{}-{:02}-{:02}", cell.year, cell.month, day)
+                                    disabled=!is_pressable
+                                    on:click=on_click
                                 >
                                     {day}
                                 </button>

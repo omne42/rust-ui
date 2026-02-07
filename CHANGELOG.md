@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<DatePicker>` with centralized open/value controllable state, popover-calendar composition, and Spectrum-style `data-*` contracts.
+- `apps/docs-app`: adds a `DatePicker` docs page with outside-days and Monday-first strong-tone playground coverage.
 - `ui-components`: adds `<Calendar>` with centralized Gregorian month-grid derivation, weekday policy normalization, and Spectrum-style `data-*` state contracts.
 - `apps/docs-app`: adds a `Calendar` docs page with outside-days and Monday-first tone/state playground coverage.
 - `ui-components`: adds `<Table>` with centralized column/row normalization, density/layout/variant state derivation, and Spectrum-style `data-*` contracts.

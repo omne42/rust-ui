@@ -2,7 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Calendar, CalendarFirstWeekday, CalendarTone, Label, LabelEmphasis, Slider, SliderMotion,
+    Calendar, CalendarFirstWeekday, CalendarTone, DatePicker, DatePickerTone, Label, LabelEmphasis,
+    Slider, SliderMotion,
 };
 
 pub(super) fn label() -> AnyView {
@@ -158,7 +159,7 @@ pub(super) fn calendar() -> AnyView {
     let code = r#"<Calendar
   year=2026
   month=1
-  selected_day=6
+  selected_day=Some(6)
   tone=CalendarTone::Default
   first_weekday=CalendarFirstWeekday::Sunday
   show_outside_days=true
@@ -167,7 +168,7 @@ pub(super) fn calendar() -> AnyView {
     let states_code = r#"<Calendar
   year=2026
   month=2
-  selected_day=14
+  selected_day=Some(14)
   tone=CalendarTone::Strong
   first_weekday=CalendarFirstWeekday::Monday
   show_outside_days=false
@@ -185,7 +186,7 @@ pub(super) fn calendar() -> AnyView {
                 <Calendar
                     year=2026
                     month=1
-                    selected_day=6
+                    selected_day=Some(6)
                     tone=CalendarTone::Default
                     first_weekday=CalendarFirstWeekday::Sunday
                     show_outside_days=true
@@ -196,11 +197,71 @@ pub(super) fn calendar() -> AnyView {
                 <Calendar
                     year=2026
                     month=2
-                    selected_day=14
+                    selected_day=Some(14)
                     tone=CalendarTone::Strong
                     first_weekday=CalendarFirstWeekday::Monday
                     show_outside_days=false
                     class_name="docs-calendar-custom".to_string()
+                />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn date_picker() -> AnyView {
+    let code = r#"<DatePicker
+  id_base="release-date".to_string()
+  year=2026
+  month=3
+  default_selected_day=12
+  tone=DatePickerTone::Default
+  first_weekday=CalendarFirstWeekday::Sunday
+  show_outside_days=true
+/>"#;
+
+    let states_code = r#"<DatePicker
+  id_base="ship-date".to_string()
+  year=2026
+  month=4
+  default_selected_day=21
+  tone=DatePickerTone::Strong
+  first_weekday=CalendarFirstWeekday::Monday
+  show_outside_days=false
+  placeholder="Pick ship date".to_string()
+  class_name="docs-date-picker-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="DatePicker"
+            slug="date-picker"
+            group="Forms"
+            description="Date picker trigger + popover calendar with centralized open/value/source state contracts and HeroUI-grade popover motion handoff."
+        >
+            <Playground title="Default + Outside Days" code=code>
+                <DatePicker
+                    id_base="docs-date-picker-release".to_string()
+                    year=2026
+                    month=3
+                    default_selected_day=12
+                    tone=DatePickerTone::Default
+                    first_weekday=CalendarFirstWeekday::Sunday
+                    show_outside_days=true
+                />
+            </Playground>
+
+            <Playground title="Monday First + Strong Tone" code=states_code>
+                <DatePicker
+                    id_base="docs-date-picker-ship".to_string()
+                    year=2026
+                    month=4
+                    default_selected_day=21
+                    tone=DatePickerTone::Strong
+                    first_weekday=CalendarFirstWeekday::Monday
+                    show_outside_days=false
+                    placeholder="Pick ship date".to_string()
+                    class_name="docs-date-picker-custom".to_string()
                 />
             </Playground>
         </ComponentPage>

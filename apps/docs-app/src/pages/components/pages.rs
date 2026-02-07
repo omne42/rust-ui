@@ -206,6 +206,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::calendar,
     },
     ComponentDoc {
+        name: "DatePicker",
+        slug: "date-picker",
+        group: "Forms",
+        page: forms_extra::date_picker,
+    },
+    ComponentDoc {
         name: "Card",
         slug: "card",
         group: "Layout",

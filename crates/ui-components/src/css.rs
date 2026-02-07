@@ -53,6 +53,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::autocomplete::styles::CSS);
     out.push_str(crate::combo_box::styles::CSS);
     out.push_str(crate::text_field::styles::CSS);
+    out.push_str(crate::date_picker::styles::CSS);
     out.push_str(crate::search_field::styles::CSS);
     out.push_str(crate::text_area::styles::CSS);
     out.push_str(crate::auto_height::styles::CSS);

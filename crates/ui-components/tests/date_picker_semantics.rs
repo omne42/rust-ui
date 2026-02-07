@@ -1,0 +1,120 @@
+use std::fs;
+use std::path::Path;
+
+fn load_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn date_picker_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/date_picker/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "DatePicker internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn date_picker_uses_logic_state_model() {
+    let logic_source = load_source("src/date_picker/logic.rs");
+    let view_source = load_source("src/date_picker/view.rs");
+
+    for needle in [
+        "pub enum DatePickerTone",
+        "pub struct DatePickerIds",
+        "pub fn normalize_optional_text(",
+        "pub fn normalize_aria_label(",
+        "pub fn normalize_placeholder(",
+        "pub fn normalize_month(",
+        "pub fn normalize_selected_day(",
+        "pub fn resolve_ids(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+        "placeholder_source_attr",
+        "aria_source_attr",
+        "class_source_attr",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "DatePicker logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
+        "overlay_open::use_controllable_state(",
+        "logic::normalize_placeholder(placeholder)",
+        "logic::normalize_aria_label(aria_label)",
+        "logic::resolve_ids(&id_base)",
+        "logic::resolve_state(DatePickerStateInput {",
+        "logic::compose_class_name(class_name.get_value(), state.get())",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "DatePicker view should derive state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn date_picker_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/date_picker/view.rs");
+
+    for attr in [
+        "data-slot=\"date-picker\"",
+        "data-tone=move || state.get().tone_attr",
+        "data-state=move || state.get().data_state_attr",
+        "data-open=move || state.get().is_open.then_some(\"true\")",
+        "data-closed=move || state.get().is_closed.then_some(\"true\")",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-has-value=move || state.get().has_value.then_some(\"true\")",
+        "data-selected-day=move || state.get().selected_day.map(|day| day.to_string())",
+        "data-placeholder-source=move || state.get().placeholder_source_attr",
+        "data-aria-source=move || state.get().aria_source_attr",
+        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-slot=\"date-picker-trigger\"",
+        "data-slot=\"date-picker-panel\"",
+        "class_name=\"ui-date-picker__trigger\".to_string()",
+        "class_name=\"ui-date-picker__calendar\".to_string()",
+        "role=\"group\"",
+    ] {
+        assert!(
+            source.contains(attr),
+            "DatePicker should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn date_picker_styles_include_tone_open_value_and_source_markers() {
+    let source = load_source("src/date_picker/styles.rs");
+
+    for selector in [
+        ".ui-date-picker--tone-default",
+        ".ui-date-picker[data-tone=\"default\"]",
+        ".ui-date-picker--tone-quiet",
+        ".ui-date-picker--tone-strong",
+        ".ui-date-picker--open",
+        ".ui-date-picker[data-open=\"true\"]",
+        ".ui-date-picker--disabled",
+        ".ui-date-picker[data-disabled=\"true\"]",
+        ".ui-date-picker--has-value",
+        ".ui-date-picker[data-has-value=\"true\"]",
+        ".ui-date-picker--custom-class",
+        ".ui-date-picker[data-custom-class=\"true\"]",
+        ".ui-date-picker__trigger",
+        ".ui-date-picker__panel",
+        ".ui-date-picker__calendar",
+    ] {
+        assert!(
+            source.contains(selector),
+            "DatePicker styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+}
