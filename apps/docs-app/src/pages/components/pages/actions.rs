@@ -856,26 +856,58 @@ let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
     .into_any()
 }
 pub(super) fn button_copy() -> AnyView {
-    let code = r#"<ButtonCopy text="hello".to_string() />"#;
+    let code = r#"<ButtonCopy
+  text="cargo add ui-components".to_string()
+  label="Copy install command".to_string()
+  copied_label="Copied!".to_string()
+/>"#;
+
+    let states_code = r#"<ButtonCopy text="https://example.com/docs".to_string() variant=ButtonVariant::Outline />
+<ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
+<ButtonCopy text="token".to_string() disabled=true />"#;
 
     view! {
         <ComponentPage
             title="ButtonCopy"
             slug="button-copy"
             group="Actions"
-            description="Copy-to-clipboard button using the Snippet clipboard logic."
+            description="Copy-to-clipboard button with Spectrum-style disabled/empty semantics and live copied announcements."
         >
-            <Playground title="Copy" code=code>
+            <Playground title="Label + variant" code=code>
                 <div class="docs-row">
-                    <ButtonCopy text="cargo add ui-components".to_string() />
-                    <ButtonCopy text="https://github.com/openai".to_string() variant=ButtonVariant::Outline />
+                    <ButtonCopy
+                        text="cargo add ui-components".to_string()
+                        label="Copy install command".to_string()
+                        copied_label="Copied!".to_string()
+                    />
+                    <ButtonCopy
+                        text="https://github.com/openai".to_string()
+                        variant=ButtonVariant::Outline
+                        label="Copy URL".to_string()
+                        copied_label="URL copied".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + empty matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ButtonCopy
+                            text="https://example.com/docs".to_string()
+                            variant=ButtonVariant::Outline
+                        />
+                        <ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
+                        <ButtonCopy text="token".to_string() disabled=true />
+                    </div>
+                    <span class="ui-muted">
+                        "Blank text and explicit disabled state both force non-copyable semantics."
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn flip_button() -> AnyView {
     let code = r#"<FlipButton front=... back=... />"#;
 

@@ -14,32 +14,55 @@ pub fn ButtonCopy(
     #[prop(optional)] motion: ButtonCopyMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let view_state = logic::resolve_view_state(&text, disabled);
+    let label = logic::normalize_optional_text(label);
+    let copied_label = logic::normalize_optional_text(copied_label);
+    let aria_label = logic::normalize_optional_text(aria_label);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let view_state = logic::resolve_view_state(
+        &text,
+        disabled,
+        label.is_some(),
+        copied_label.is_some(),
+        aria_label.is_some(),
+        class_name.is_some(),
+    );
+
     let logic = crate::snippet::logic::use_snippet_logic(text.clone());
 
-    let label = label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Copy".to_string());
-    let copied_label = copied_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Copied".to_string());
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| label.clone());
+    let label = label.unwrap_or_else(|| "Copy".to_string());
+    let copied_label = copied_label.unwrap_or_else(|| "Copied".to_string());
+    let aria_label = aria_label.unwrap_or_else(|| label.clone());
 
     let label = StoredValue::new(label);
     let copied_label = StoredValue::new(copied_label);
 
-    let base_class = "ui-button-copy".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class = logic::compose_class_name(class_name, view_state);
 
     view! {
         <span
             class=class
             data-slot="button-copy"
+            data-state=if view_state.is_copyable {
+                "copyable"
+            } else if view_state.is_disabled {
+                "disabled"
+            } else {
+                "empty"
+            }
+            data-copyable=view_state.is_copyable.then_some("true")
+            data-disabled=view_state.is_disabled.then_some("true")
+            data-empty=(!view_state.has_text).then_some("true")
+            data-label=if view_state.has_custom_label {
+                "custom"
+            } else {
+                "default"
+            }
+            data-copied-label=if view_state.has_custom_copied_label {
+                "custom"
+            } else {
+                "default"
+            }
             data-copied=move || logic.copied.get().then_some("true")
         >
             <Button
