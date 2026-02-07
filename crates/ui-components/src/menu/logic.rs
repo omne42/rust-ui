@@ -4,6 +4,14 @@ pub struct MenuAccessibleName {
     pub aria_labelledby: Option<String>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct MenuState {
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub has_checked_items: bool,
+    pub has_disabled_items: bool,
+}
+
 fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
@@ -35,6 +43,21 @@ pub fn resolve_accessible_name(
     MenuAccessibleName {
         aria_label: Some("Menu".to_string()),
         aria_labelledby: None,
+    }
+}
+
+pub fn resolve_state(
+    item_count: usize,
+    has_checked_items: bool,
+    has_disabled_items: bool,
+) -> MenuState {
+    let has_items = item_count > 0;
+
+    MenuState {
+        is_empty: !has_items,
+        has_items,
+        has_checked_items,
+        has_disabled_items,
     }
 }
 
@@ -87,5 +110,23 @@ mod tests {
                 aria_labelledby: None,
             }
         );
+    }
+
+    #[test]
+    fn resolve_state_tracks_item_checked_and_disabled_flags() {
+        let state = resolve_state(3, true, true);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(state.has_checked_items);
+        assert!(state.has_disabled_items);
+    }
+
+    #[test]
+    fn resolve_state_handles_empty_menu() {
+        let state = resolve_state(0, false, false);
+        assert!(state.is_empty);
+        assert!(!state.has_items);
+        assert!(!state.has_checked_items);
+        assert!(!state.has_disabled_items);
     }
 }

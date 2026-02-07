@@ -50,7 +50,11 @@ fn menu_exposes_state_and_slot_data_attributes() {
     for needle in [
         "data-slot=\"menu\"",
         "data-disabled=disabled.then_some(\"true\")",
-        "data-empty=is_empty.then_some(\"true\")",
+        "data-empty=move || state.get().is_empty.then_some(\"true\")",
+        "data-has-items=move || state.get().has_items.then_some(\"true\")",
+        "data-has-checked-items=move || state.get().has_checked_items.then_some(\"true\")",
+        "data-checked-empty=move || (!state.get().has_checked_items).then_some(\"true\")",
+        "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
         "data-slot=\"menu-items\"",
         "data-slot=\"menu-highlight\"",
         "data-slot=\"menu-item\"",
@@ -67,6 +71,7 @@ fn menu_items_expose_kind_checked_and_focus_state() {
     let source = load_source("src/menu/view.rs");
 
     for needle in [
+        "data-index=index",
         "data-kind=item.attrs.role",
         "data-checked=move ||",
         "aria_checked",
@@ -78,6 +83,33 @@ fn menu_items_expose_kind_checked_and_focus_state() {
             "Menu items should wire `{needle}` to expose kind/checked/focus state."
         );
     }
+}
+
+#[test]
+fn menu_uses_logic_state_model() {
+    let view_source = load_source("src/menu/view.rs");
+    let logic_source = load_source("src/menu/logic.rs");
+
+    for needle in [
+        "pub struct MenuState",
+        "pub fn resolve_state(",
+        "pub has_checked_items: bool",
+        "pub has_disabled_items: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Menu logic should include `{needle}` for centralized root-state derivation."
+        );
+    }
+
+    assert!(
+        view_source.contains("logic::resolve_state("),
+        "Menu view should derive root state through resolve_state."
+    );
+    assert!(
+        view_source.contains("has_disabled || disabled"),
+        "Menu view should include component-disabled state when deriving has_disabled_items."
+    );
 }
 
 #[test]

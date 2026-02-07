@@ -324,7 +324,7 @@ pub(super) fn menu() -> AnyView {
             title="Menu"
             slug="menu"
             group="Collections"
-            description="ARIA menu with action / checkbox / radio roles, active-highlight motion, and Spectrum-style state attrs."
+            description="ARIA menu with action / checkbox / radio roles, active-highlight motion, and Spectrum-style root state attrs."
         >
             <Playground title="Kinds + Selection" code=code>
                 <div class="docs-stack">
@@ -358,19 +358,26 @@ pub(super) fn menu() -> AnyView {
 
             <Playground title="Disabled + Empty" code=states_code>
                 <div class="docs-row">
-                    <Menu
-                        id_base="docs-menu-disabled".to_string()
-                        items=disabled_items
-                        on_action=noop_action
-                        aria_label="Disabled menu".to_string()
-                        disabled=true
-                    />
-                    <Menu
-                        id_base="docs-menu-empty".to_string()
-                        items=empty_items
-                        on_action=noop_action
-                        aria_label="Empty menu".to_string()
-                    />
+                    <div class="docs-stack">
+                        <Menu
+                            id_base="docs-menu-disabled".to_string()
+                            items=disabled_items
+                            on_action=noop_action
+                            aria_label="Disabled menu".to_string()
+                            disabled=true
+                        />
+                        <span class="ui-muted">"disabled menu (no action)"</span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <Menu
+                            id_base="docs-menu-empty".to_string()
+                            items=empty_items
+                            on_action=noop_action
+                            aria_label="Empty menu".to_string()
+                        />
+                        <span class="ui-muted">"empty menu (0 items)"</span>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>

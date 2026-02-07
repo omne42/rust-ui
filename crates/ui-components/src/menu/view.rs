@@ -19,8 +19,8 @@ pub fn Menu(
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let is_empty = items.is_empty();
-    let (item_count, _set_item_count) = signal(items.len());
+    let item_count_value = items.len();
+    let (item_count, _set_item_count) = signal(item_count_value);
 
     let disabled_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_set.is_empty();
@@ -76,6 +76,26 @@ pub fn Menu(
     let aria_label = StoredValue::new(accessible_name.aria_label);
     let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
 
+    let has_checked_items = Signal::derive({
+        let item_kinds = item_kinds.clone();
+        move || {
+            item_kinds.iter().any(|kind| match kind {
+                MenuItemKind::Action => false,
+                MenuItemKind::Checkbox { is_checked } | MenuItemKind::Radio { is_checked } => {
+                    is_checked.get()
+                }
+            })
+        }
+    });
+
+    let state = Signal::derive(move || {
+        logic::resolve_state(
+            item_count_value,
+            has_checked_items.get(),
+            has_disabled || disabled,
+        )
+    });
+
     view! {
         <div
             class=class
@@ -88,7 +108,11 @@ pub fn Menu(
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             data-slot="menu"
             data-disabled=disabled.then_some("true")
-            data-empty=is_empty.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-has-checked-items=move || state.get().has_checked_items.then_some("true")
+            data-checked-empty=move || (!state.get().has_checked_items).then_some("true")
+            data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
             on:keydown=on_key_down
         >
             <div class="ui-menu__items" node_ref=items_ref data-slot="menu-items">
@@ -98,10 +122,7 @@ pub fn Menu(
                     .cloned()
                     .enumerate()
                     .map(move |(index, label)| {
-                        let kind = item_kinds
-                            .get(index)
-                            .copied()
-                            .unwrap_or(MenuItemKind::Action);
+                        let kind = item_kinds.get(index).copied().unwrap_or(MenuItemKind::Action);
                         let is_disabled = disabled || disabled_indices.contains(&index);
                         let item = use_menu_item(
                             &menu,
@@ -114,7 +135,9 @@ pub fn Menu(
 
                         let indicator = move || match kind {
                             MenuItemKind::Action => None,
-                            MenuItemKind::Checkbox { is_checked } => is_checked.get().then_some("✓"),
+                            MenuItemKind::Checkbox { is_checked } => {
+                                is_checked.get().then_some("✓")
+                            }
                             MenuItemKind::Radio { is_checked } => is_checked.get().then_some("●"),
                         };
 
@@ -126,6 +149,7 @@ pub fn Menu(
                                 aria-disabled=item.attrs.aria_disabled
                                 class="ui-menu__item"
                                 data-slot="menu-item"
+                                data-index=index
                                 data-kind=item.attrs.role
                                 data-checked=move || {
                                     item.attrs
