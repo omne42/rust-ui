@@ -200,6 +200,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::slider,
     },
     ComponentDoc {
+        name: "Calendar",
+        slug: "calendar",
+        group: "Forms",
+        page: forms_extra::calendar,
+    },
+    ComponentDoc {
         name: "Card",
         slug: "card",
         group: "Layout",

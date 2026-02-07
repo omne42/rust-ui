@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Calendar>` with centralized Gregorian month-grid derivation, weekday policy normalization, and Spectrum-style `data-*` state contracts.
+- `apps/docs-app`: adds a `Calendar` docs page with outside-days and Monday-first tone/state playground coverage.
 - `ui-components`: adds `<Table>` with centralized column/row normalization, density/layout/variant state derivation, and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `Table` docs page with striped/default and compact/fixed empty-state playground coverage.
 - `ui-components`: adds `<LabeledValue>` with centralized label/value/description/source state derivation and Spectrum-style `data-*` contracts.

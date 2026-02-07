@@ -1,7 +1,9 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Label, LabelEmphasis, Slider, SliderMotion};
+use ui_components::{
+    Calendar, CalendarFirstWeekday, CalendarTone, Label, LabelEmphasis, Slider, SliderMotion,
+};
 
 pub(super) fn label() -> AnyView {
     let emphasis_code = r#"<Label text="Name".to_string() for_id="name".to_string() required=true />
@@ -146,6 +148,60 @@ let on_change = Callback::new(move |next: f64| {
                         class_name="docs-slider--fine".to_string()
                     />
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn calendar() -> AnyView {
+    let code = r#"<Calendar
+  year=2026
+  month=1
+  selected_day=6
+  tone=CalendarTone::Default
+  first_weekday=CalendarFirstWeekday::Sunday
+  show_outside_days=true
+/>"#;
+
+    let states_code = r#"<Calendar
+  year=2026
+  month=2
+  selected_day=14
+  tone=CalendarTone::Strong
+  first_weekday=CalendarFirstWeekday::Monday
+  show_outside_days=false
+  class_name="docs-calendar-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Calendar"
+            slug="calendar"
+            group="Forms"
+            description="Month-grid calendar with centralized date normalization and Spectrum-style tone/weekday/source state contracts."
+        >
+            <Playground title="Default + Outside Days" code=code>
+                <Calendar
+                    year=2026
+                    month=1
+                    selected_day=6
+                    tone=CalendarTone::Default
+                    first_weekday=CalendarFirstWeekday::Sunday
+                    show_outside_days=true
+                />
+            </Playground>
+
+            <Playground title="Monday First + Strong Tone" code=states_code>
+                <Calendar
+                    year=2026
+                    month=2
+                    selected_day=14
+                    tone=CalendarTone::Strong
+                    first_weekday=CalendarFirstWeekday::Monday
+                    show_outside_days=false
+                    class_name="docs-calendar-custom".to_string()
+                />
             </Playground>
         </ComponentPage>
     }

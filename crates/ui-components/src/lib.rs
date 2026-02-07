@@ -26,6 +26,7 @@ pub mod button_group;
 pub mod button_search_input;
 pub mod button_share;
 pub mod button_theme_toggle;
+pub mod calendar;
 pub mod card;
 pub mod checkbox;
 pub mod checkbox_group;
@@ -127,6 +128,7 @@ pub use button_share::{
     ShareButton, ShareButtonIconPlacement, ShareButtonItem, ShareButtonMotion, SharePlatform,
 };
 pub use button_theme_toggle::{ThemeMode, ThemeToggleButton, ThemeToggleMotion};
+pub use calendar::{Calendar, CalendarFirstWeekday, CalendarGridCell, CalendarTone};
 pub use card::{Card, CardVariant};
 pub use checkbox::Checkbox;
 pub use checkbox::motion::CheckboxMotion;
