@@ -1,8 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
+use std::collections::BTreeSet;
 use ui_components::{
-    Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant,
+    Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
+    TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -100,6 +102,82 @@ let rows = vec![
                     sticky_header=true
                     empty_label="No active incidents".to_string()
                     class_name="docs-table-custom".to_string()
+                />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn tree() -> AnyView {
+    let nodes = vec![
+        TreeNode::new("root-app", "Applications").with_children(vec![
+            TreeNode::new("app-web", "Web Console"),
+            TreeNode::new("app-mobile", "Mobile App"),
+            TreeNode::new("app-admin", "Admin Portal").disabled(true),
+        ]),
+        TreeNode::new("root-services", "Services").with_children(vec![
+            TreeNode::new("svc-api", "API Gateway"),
+            TreeNode::new("svc-worker", "Worker Pool"),
+        ]),
+    ];
+
+    let nodes_primary = nodes.clone();
+    let nodes_secondary = nodes;
+
+    let code = r#"let nodes = vec![
+  TreeNode::new("root-app", "Applications").with_children(vec![
+    TreeNode::new("app-web", "Web Console"),
+    TreeNode::new("app-mobile", "Mobile App"),
+  ]),
+  TreeNode::new("root-services", "Services").with_children(vec![
+    TreeNode::new("svc-api", "API Gateway"),
+    TreeNode::new("svc-worker", "Worker Pool"),
+  ]),
+];
+
+<Tree
+  id_base="services-tree".to_string()
+  nodes=nodes
+  default_expanded_ids=BTreeSet::from(["root-app".to_string()])
+  default_selected_id="app-web".to_string()
+/>"#;
+
+    let states_code = r#"<Tree
+  id_base="inventory-tree".to_string()
+  nodes=nodes
+  tone=TreeTone::Strong
+  density=TreeDensity::Compact
+  default_expanded_ids=BTreeSet::from(["root-services".to_string()])
+  default_selected_id="svc-api".to_string()
+  class_name="docs-tree-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Tree"
+            slug="tree"
+            group="Collections"
+            description="Hierarchical tree with controllable expand/selection state and Spectrum-style density/tone/state marker contracts."
+        >
+            <Playground title="Default + Expanded Root" code=code>
+                <Tree
+                    id_base="docs-tree-default".to_string()
+                    nodes=nodes_primary
+                    default_expanded_ids=BTreeSet::from(["root-app".to_string()])
+                    default_selected_id="app-web".to_string()
+                />
+            </Playground>
+
+            <Playground title="Strong + Compact" code=states_code>
+                <Tree
+                    id_base="docs-tree-strong".to_string()
+                    nodes=nodes_secondary
+                    tone=TreeTone::Strong
+                    density=TreeDensity::Compact
+                    default_expanded_ids=BTreeSet::from(["root-services".to_string()])
+                    default_selected_id="svc-api".to_string()
+                    class_name="docs-tree-custom".to_string()
                 />
             </Playground>
         </ComponentPage>

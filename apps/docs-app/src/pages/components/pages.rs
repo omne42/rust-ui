@@ -506,6 +506,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections_extra::table,
     },
     ComponentDoc {
+        name: "Tree",
+        slug: "tree",
+        group: "Collections",
+        page: collections_extra::tree,
+    },
+    ComponentDoc {
         name: "Overlay",
         slug: "overlay",
         group: "Overlays",
