@@ -6,8 +6,8 @@ use ui_components::{
     ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup, ButtonGroupOrientation,
     ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton, LinkButton, MenuItemKind,
     OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton, SharePlatform,
-    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup, ToggleButtonSize,
-    ToggleButtonVariant,
+    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
+    ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant,
 };
 
 pub(super) fn button() -> AnyView {
@@ -390,9 +390,31 @@ let on_change = Callback::new(move |next: bool| {
 pub(super) fn toggle_button_group() -> AnyView {
     let (a, set_a) = signal(false);
     let (b, set_b) = signal(true);
+    let (c, set_c) = signal(false);
+    let attached_selected_count =
+        Signal::derive(move || usize::from(a.get()) + usize::from(b.get()) + usize::from(c.get()));
+
+    let (left, set_left) = signal(true);
+    let (center, set_center) = signal(false);
+    let (right, set_right) = signal(true);
+    let detached_selected_count = Signal::derive(move || {
+        usize::from(left.get()) + usize::from(center.get()) + usize::from(right.get())
+    });
+
     let code = r#"<ToggleButtonGroup attached=true>
-  <ToggleButton selected=a set_selected=set_a>"A"</ToggleButton>
-  <ToggleButton selected=b set_selected=set_b>"B"</ToggleButton>
+  <ToggleButton selected=a set_selected=set_a>"Bold"</ToggleButton>
+  <ToggleButton selected=b set_selected=set_b>"Italic"</ToggleButton>
+  <ToggleButton selected=c set_selected=set_c>"Underline"</ToggleButton>
+</ToggleButtonGroup>"#;
+
+    let states_code = r#"<ToggleButtonGroup
+  orientation=ToggleButtonGroupOrientation::Vertical
+  attached=false
+  aria_label="Alignment controls".to_string()
+>
+  <ToggleButton selected=left set_selected=set_left>"Left"</ToggleButton>
+  <ToggleButton selected=center set_selected=set_center>"Center"</ToggleButton>
+  <ToggleButton selected=right set_selected=set_right>"Right"</ToggleButton>
 </ToggleButtonGroup>"#;
 
     view! {
@@ -400,13 +422,56 @@ pub(super) fn toggle_button_group() -> AnyView {
             title="ToggleButtonGroup"
             slug="toggle-button-group"
             group="Actions"
-            description="Layout wrapper for grouping ToggleButtons."
+            description="Layout wrapper with Spectrum-style root state attrs for orientation, attachment, and accessible labeling."
         >
-            <Playground title="Attached" code=code>
-                <ToggleButtonGroup attached=true>
-                    <ToggleButton selected=a set_selected=set_a>"A"</ToggleButton>
-                    <ToggleButton selected=b set_selected=set_b>"B"</ToggleButton>
-                </ToggleButtonGroup>
+            <Playground title="Attached horizontal" code=code>
+                <div class="docs-stack">
+                    <ToggleButtonGroup attached=true>
+                        <ToggleButton selected=a set_selected=set_a>"Bold"</ToggleButton>
+                        <ToggleButton selected=b set_selected=set_b>"Italic"</ToggleButton>
+                        <ToggleButton selected=c set_selected=set_c>"Underline"</ToggleButton>
+                    </ToggleButtonGroup>
+                    <span class="ui-muted">
+                        "attached selected count: "
+                        {move || attached_selected_count.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Vertical + detached" code=states_code>
+                <div class="docs-stack">
+                    <ToggleButtonGroup
+                        orientation=ToggleButtonGroupOrientation::Vertical
+                        attached=false
+                        aria_label="Alignment controls".to_string()
+                    >
+                        <ToggleButton
+                            selected=left
+                            set_selected=set_left
+                            variant=ToggleButtonVariant::Secondary
+                        >
+                            "Left"
+                        </ToggleButton>
+                        <ToggleButton
+                            selected=center
+                            set_selected=set_center
+                            variant=ToggleButtonVariant::Secondary
+                        >
+                            "Center"
+                        </ToggleButton>
+                        <ToggleButton
+                            selected=right
+                            set_selected=set_right
+                            variant=ToggleButtonVariant::Secondary
+                        >
+                            "Right"
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                    <span class="ui-muted">
+                        "detached selected count: "
+                        {move || detached_selected_count.get().to_string()}
+                    </span>
+                </div>
             </Playground>
         </ComponentPage>
     }
