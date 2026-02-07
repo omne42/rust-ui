@@ -983,6 +983,11 @@ a {
   border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 38%);
   background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 24%);
 }
+.docs-circular-progress-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 34%);
+  border-top-color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 12%);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ui-accent-soft), transparent 30%);
+}
 
 .docs-flip-button-custom {
   padding: 3px;

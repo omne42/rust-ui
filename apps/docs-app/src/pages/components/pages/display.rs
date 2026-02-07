@@ -390,19 +390,51 @@ pub(super) fn skeleton() -> AnyView {
 }
 
 pub(super) fn circular_progress() -> AnyView {
-    let code = r#"<CircularProgress aria_label="Loading".to_string() size_px=Some(24.0) />"#;
+    let matrix_code = r#"<CircularProgress aria_label="Loading".to_string() />
+<CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
+<CircularProgress aria_label="Syncing mail".to_string() thickness_px=3.0 />
+<CircularProgress aria_label="Syncing mail".to_string() size_px=30.0 thickness_px=4.0 />"#;
+
+    let custom_code = r#"<CircularProgress
+  aria_label="Background refresh".to_string()
+  size_px=28.0
+  thickness_px=3.5
+  class_name="docs-circular-progress-custom".to_string()
+/>
+<CircularProgress aria_label="   ".to_string() class_name="docs-circular-progress-custom".to_string() />"#;
 
     view! {
         <ComponentPage
             title="CircularProgress"
             slug="circular-progress"
             group="Display"
-            description="Indeterminate circular progress (CSS vars)."
+            description="Indeterminate circular progress with centralized size/thickness/label source attrs."
         >
-            <Playground title="Circular progress" code=code>
+            <Playground title="Size + Thickness Matrix" code=matrix_code>
                 <div class="docs-row">
-                    <CircularProgress aria_label="Loading".to_string() size_px=18.0 />
-                    <CircularProgress aria_label="Loading".to_string() size_px=26.0 thickness_px=3.0 />
+                    <CircularProgress aria_label="Loading".to_string() />
+                    <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
+                    <CircularProgress aria_label="Syncing mail".to_string() thickness_px=3.0 />
+                    <CircularProgress
+                        aria_label="Syncing mail".to_string()
+                        size_px=30.0
+                        thickness_px=4.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Label + Class" code=custom_code>
+                <div class="docs-row">
+                    <CircularProgress
+                        aria_label="Background refresh".to_string()
+                        size_px=28.0
+                        thickness_px=3.5
+                        class_name="docs-circular-progress-custom".to_string()
+                    />
+                    <CircularProgress
+                        aria_label="   ".to_string()
+                        class_name="docs-circular-progress-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

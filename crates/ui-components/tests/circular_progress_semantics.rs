@@ -8,41 +8,101 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn circular_progress_is_an_indeterminate_progressbar() {
-    let source = load_source("src/circular_progress/view.rs");
+fn circular_progress_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/circular_progress/mod.rs");
 
-    assert!(
-        source.contains("role=\"progressbar\""),
-        "CircularProgress should use `role=progressbar` to match Spectrum-style loading indicators."
-    );
-    assert!(
-        source.contains("aria-valuemin=\"0\""),
-        "CircularProgress should set `aria-valuemin` for progressbar semantics."
-    );
-    assert!(
-        source.contains("aria-valuemax=\"100\""),
-        "CircularProgress should set `aria-valuemax` for progressbar semantics."
-    );
-    assert!(
-        !source.contains("role=\"status\""),
-        "CircularProgress should not use `role=status` (live region) for a progress indicator."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "CircularProgress internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
-fn circular_progress_sanitizes_custom_size_vars() {
+fn circular_progress_uses_logic_state_model() {
+    let view_source = load_source("src/circular_progress/view.rs");
+    let logic_source = load_source("src/circular_progress/logic.rs");
+
+    for needle in [
+        "pub struct CircularProgressStateInput",
+        "pub struct CircularProgressState",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_aria_label(",
+        "pub fn sanitize_dimension(",
+        "pub fn compose_style_vars(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+        "size_source_attr",
+        "thickness_source_attr",
+        "label_source_attr",
+        "class_source_attr",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "CircularProgress logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_state(CircularProgressStateInput {",
+        "logic::compose_class_name(class_name, &state)",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "CircularProgress view should derive wrapper state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn circular_progress_emits_spectrum_style_state_data_attributes() {
     let source = load_source("src/circular_progress/view.rs");
 
-    assert!(
-        source.contains("is_finite()"),
-        "CircularProgress should ignore non-finite `size_px`/`thickness_px` values to avoid emitting NaN/Infinity into CSS variables."
-    );
-    assert!(
-        source.contains("--ui-cp-size"),
-        "CircularProgress should set custom sizing via `--ui-cp-size` CSS variables."
-    );
-    assert!(
-        source.contains("--ui-cp-thickness"),
-        "CircularProgress should set custom thickness via `--ui-cp-thickness` CSS variables."
-    );
+    for attr in [
+        "data-slot=\"circular-progress\"",
+        "data-state=\"indeterminate\"",
+        "data-motion=\"spin\"",
+        "data-size-source=state.size_source_attr",
+        "data-thickness-source=state.thickness_source_attr",
+        "data-label-source=state.label_source_attr",
+        "data-custom-size=state.has_custom_size.then_some(\"true\")",
+        "data-custom-thickness=state.has_custom_thickness.then_some(\"true\")",
+        "data-custom-aria-label=state.has_custom_aria_label.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
+        "role=\"progressbar\"",
+        "aria-valuemin=\"0\"",
+        "aria-valuemax=\"100\"",
+    ] {
+        assert!(
+            source.contains(attr),
+            "CircularProgress should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn circular_progress_styles_include_state_marker_contracts() {
+    let source = load_source("src/circular_progress/styles.rs");
+
+    for selector in [
+        ".ui-circular-progress--state-indeterminate",
+        ".ui-circular-progress[data-motion=\"spin\"]",
+        ".ui-circular-progress--size-custom",
+        ".ui-circular-progress[data-size-source=\"custom\"]",
+        ".ui-circular-progress--thickness-custom",
+        ".ui-circular-progress[data-thickness-source=\"custom\"]",
+        ".ui-circular-progress--label-custom",
+        ".ui-circular-progress[data-label-source=\"custom\"]",
+        ".ui-circular-progress--custom-class",
+        ".ui-circular-progress[data-custom-class=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "CircularProgress styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
 }
