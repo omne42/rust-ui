@@ -1282,54 +1282,141 @@ let on_change = Callback::new(move |next: usize| { /* ... */ });
     .into_any()
 }
 pub(super) fn tag_group() -> AnyView {
-    let (tags, set_tags) = signal(vec![
+    let (removable_tags, set_removable_tags) = signal(vec![
         Tag::new("tag-rust", "Rust"),
         Tag::new("tag-leptos", "Leptos"),
+        Tag::disabled("tag-a11y", "Accessibility"),
+    ]);
+
+    let on_remove_removable = Callback::new(move |tag: Tag| {
+        set_removable_tags.update(|list| list.retain(|item| item.id != tag.id));
+    });
+
+    let removable_count = Signal::derive(move || removable_tags.get().len());
+    let removable_has_disabled =
+        Signal::derive(move || removable_tags.get().iter().any(|tag| tag.disabled));
+
+    let (validation_tags, set_validation_tags) = signal(vec![
+        Tag::new("tag-required", "Required"),
         Tag::new("tag-spectrum", "Spectrum"),
     ]);
 
-    let on_remove = Callback::new(move |tag: Tag| {
-        set_tags.update(|list| list.retain(|t| t.id != tag.id));
+    let on_remove_validation = Callback::new(move |tag: Tag| {
+        set_validation_tags.update(|list| list.retain(|item| item.id != tag.id));
     });
 
-    let invalid = Signal::derive(move || tags.get().is_empty());
-    let required = Signal::derive(|| true);
+    let validation_invalid = Signal::derive(move || validation_tags.get().is_empty());
+    let validation_required = Signal::derive(|| true);
 
-    let code = r#"let (tags, set_tags) = signal(vec![Tag { label: "Rust".to_string(), disabled: false }]);
-<TagGroup tags=tags on_remove=Some(on_remove) />"#;
+    let (disabled_tags, _set_disabled_tags) = signal(vec![
+        Tag::new("tag-motion", "Motion"),
+        Tag::new("tag-tokens", "Tokens"),
+    ]);
+    let (empty_tags, _set_empty_tags) = signal(Vec::<Tag>::new());
+
+    let code = r#"let (tags, set_tags) = signal(vec![
+  Tag::new("tag-rust", "Rust"),
+  Tag::disabled("tag-a11y", "Accessibility"),
+]);
+let on_remove = Callback::new(move |tag: Tag| {
+  set_tags.update(|list| list.retain(|item| item.id != tag.id));
+});
+<TagGroup tags=tags on_remove=on_remove label="Framework tags".to_string() />"#;
+
+    let states_code = r#"let invalid = Signal::derive(move || tags.get().is_empty());
+<TagGroup
+  tags=tags
+  on_remove=on_remove
+  label="Required tags".to_string()
+  description="Remove all tags to trigger invalid state".to_string()
+  error="At least one tag is required".to_string()
+  invalid=invalid
+  required=Signal::derive(|| true)
+/>"#;
+
+    let disabled_empty_code = r#"<TagGroup
+  tags=disabled_tags
+  disabled=true
+  label="Disabled tags".to_string()
+  description="All chips are non-removable when disabled".to_string()
+/>
+<TagGroup
+  tags=empty_tags
+  label="Empty tags".to_string()
+  description="No tags currently selected".to_string()
+  error="At least one tag is required".to_string()
+  invalid=Signal::derive(|| true)
+  required=Signal::derive(|| true)
+/>"#;
 
     view! {
         <ComponentPage
             title="TagGroup"
             slug="tag-group"
             group="Collections"
-            description="A removable tag list built on Chip."
+            description="Tag list with removable chips, validation semantics, and Spectrum-style root state attrs."
         >
-            <Playground title="Removable tags" code=code>
-                <TagGroup tags=tags on_remove=on_remove label="Tags".to_string() />
+            <Playground title="Removable + State" code=code>
+                <div class="docs-stack">
+                    <TagGroup
+                        tags=removable_tags
+                        on_remove=on_remove_removable
+                        label="Framework tags".to_string()
+                        description="Remove any non-disabled tag".to_string()
+                    />
+                    <span class="ui-muted">
+                        "count: "
+                        {move || removable_count.get().to_string()}
+                    </span>
+                    <span class="ui-muted">
+                        "has disabled tags: "
+                        {move || removable_has_disabled.get().to_string()}
+                    </span>
+                </div>
             </Playground>
 
-            <Playground
-                title="Validation"
-                code=r#"<TagGroup
-  tags=tags
-  on_remove=on_remove
-  label="Tags".to_string()
-  description="Use remove to delete a tag".to_string()
-  error="At least one tag is required".to_string()
-  invalid=invalid
-  required=Signal::derive(|| true)
-/>"#
-            >
-                <TagGroup
-                    tags=tags
-                    on_remove=on_remove
-                    label="Tags".to_string()
-                    description="Use remove to delete a tag".to_string()
-                    error="At least one tag is required".to_string()
-                    invalid=invalid
-                    required=required
-                />
+            <Playground title="Validation + Required" code=states_code>
+                <div class="docs-stack">
+                    <TagGroup
+                        tags=validation_tags
+                        on_remove=on_remove_validation
+                        label="Required tags".to_string()
+                        description="Remove all tags to trigger invalid state".to_string()
+                        error="At least one tag is required".to_string()
+                        invalid=validation_invalid
+                        required=validation_required
+                    />
+                    <span class="ui-muted">
+                        "invalid: "
+                        {move || validation_invalid.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=disabled_empty_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <TagGroup
+                            tags=disabled_tags
+                            disabled=true
+                            label="Disabled tags".to_string()
+                            description="All chips are non-removable when disabled".to_string()
+                        />
+                        <span class="ui-muted">"disabled: true"</span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <TagGroup
+                            tags=empty_tags
+                            label="Empty tags".to_string()
+                            description="No tags currently selected".to_string()
+                            error="At least one tag is required".to_string()
+                            invalid=Signal::derive(|| true)
+                            required=Signal::derive(|| true)
+                        />
+                        <span class="ui-muted">"empty: true"</span>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }

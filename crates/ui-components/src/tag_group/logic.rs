@@ -23,6 +23,43 @@ impl Tag {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TagGroupState {
+    pub item_count: usize,
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub is_disabled: bool,
+    pub has_disabled_tags: bool,
+    pub has_removable_tags: bool,
+    pub is_invalid: bool,
+    pub is_required: bool,
+}
+
+pub fn resolve_state(
+    tags: &[Tag],
+    is_disabled: bool,
+    supports_removal: bool,
+    is_invalid: bool,
+    is_required: bool,
+) -> TagGroupState {
+    let item_count = tags.len();
+    let has_items = item_count > 0;
+    let has_disabled_tags = has_items && (is_disabled || tags.iter().any(|tag| tag.disabled));
+    let has_removable_tags =
+        supports_removal && has_items && tags.iter().any(|tag| !is_disabled && !tag.disabled);
+
+    TagGroupState {
+        item_count,
+        is_empty: !has_items,
+        has_items,
+        is_disabled,
+        has_disabled_tags,
+        has_removable_tags,
+        is_invalid,
+        is_required,
+    }
+}
+
 pub(crate) fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
@@ -54,7 +91,52 @@ pub(crate) fn merge_describedby_ids(
 
 #[cfg(test)]
 mod tests {
-    use super::{merge_describedby_ids, normalize_optional_text};
+    use super::{Tag, merge_describedby_ids, normalize_optional_text, resolve_state};
+
+    #[test]
+    fn resolve_state_tracks_empty_defaults() {
+        let state = resolve_state(&[], false, false, false, false);
+
+        assert_eq!(state.item_count, 0);
+        assert!(state.is_empty);
+        assert!(!state.has_items);
+        assert!(!state.is_disabled);
+        assert!(!state.has_disabled_tags);
+        assert!(!state.has_removable_tags);
+        assert!(!state.is_invalid);
+        assert!(!state.is_required);
+    }
+
+    #[test]
+    fn resolve_state_tracks_disabled_and_removable_tags() {
+        let tags = vec![
+            Tag::new("tag-rust", "Rust"),
+            Tag::disabled("tag-leptos", "Leptos"),
+        ];
+
+        let state = resolve_state(&tags, false, true, true, true);
+        assert_eq!(state.item_count, 2);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(!state.is_disabled);
+        assert!(state.has_disabled_tags);
+        assert!(state.has_removable_tags);
+        assert!(state.is_invalid);
+        assert!(state.is_required);
+    }
+
+    #[test]
+    fn resolve_state_disables_removal_when_group_disabled() {
+        let tags = vec![Tag::new("tag-spectrum", "Spectrum")];
+
+        let state = resolve_state(&tags, true, true, false, false);
+        assert_eq!(state.item_count, 1);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(state.is_disabled);
+        assert!(state.has_disabled_tags);
+        assert!(!state.has_removable_tags);
+    }
 
     #[test]
     fn normalize_optional_text_trims_and_filters_empty_values() {

@@ -2,7 +2,7 @@ use crate::{
     chip::{Chip, ChipSize, ChipVariant},
     tag_group::{
         Tag,
-        logic::{merge_describedby_ids, normalize_optional_text},
+        logic::{merge_describedby_ids, normalize_optional_text, resolve_state},
     },
 };
 use leptos::prelude::*;
@@ -65,6 +65,18 @@ pub fn TagGroup(
         })
         .unwrap_or(base_class);
 
+    let has_remove_callback = on_remove.is_some();
+    let state = Memo::new(move |_| {
+        let tags = tags.get();
+        resolve_state(
+            &tags,
+            disabled,
+            has_remove_callback,
+            invalid.get(),
+            required.get(),
+        )
+    });
+
     let label = StoredValue::new(label);
     let description = StoredValue::new(description);
     let error = StoredValue::new(error);
@@ -86,10 +98,16 @@ pub fn TagGroup(
             }
             aria-labelledby=move || aria_labelledby.get_value()
             aria-describedby=move || group_aria_describedby.get()
-            aria-invalid=move || invalid.get().then_some("true")
-            aria-required=move || required.get().then_some("true")
-            data-invalid=move || invalid.get().then_some("true")
-            data-required=move || required.get().then_some("true")
+            aria-invalid=move || state.get().is_invalid.then_some("true")
+            aria-required=move || state.get().is_required.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-count=move || state.get().item_count.to_string()
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-has-disabled-tags=move || state.get().has_disabled_tags.then_some("true")
+            data-has-removable-tags=move || state.get().has_removable_tags.then_some("true")
+            data-invalid=move || state.get().is_invalid.then_some("true")
+            data-required=move || state.get().is_required.then_some("true")
             data-slot="tag-group"
         >
             {label.get_value().map(|label| {
@@ -104,14 +122,22 @@ pub fn TagGroup(
                 {move || {
                     tags.get()
                         .into_iter()
-                        .map(|tag| {
+                        .enumerate()
+                        .map(|(index, tag)| {
+                            let tag_id_for_attr = tag.id.clone();
+                            let tag_for_remove = tag.clone();
+                            let tag_label = tag.label.clone();
                             let is_disabled = disabled || tag.disabled;
-                            let dismiss = on_remove.get_value().map(|on_remove| {
-                                let tag = tag.clone();
-                                let on_press: OnPress =
-                                    Callback::new(move |_| on_remove.run(tag.clone()));
-                                on_press
-                            });
+                            let is_removable = has_remove_callback && !is_disabled;
+                            let dismiss = if is_removable {
+                                on_remove.get_value().map(|on_remove| {
+                                    let on_press: OnPress =
+                                        Callback::new(move |_| on_remove.run(tag_for_remove.clone()));
+                                    on_press
+                                })
+                            } else {
+                                None
+                            };
 
                             let chip: AnyView = match dismiss {
                                 Some(on_dismiss) => view! {
@@ -121,7 +147,7 @@ pub fn TagGroup(
                                         size=size
                                         on_dismiss=on_dismiss
                                     >
-                                        {tag.label}
+                                        {tag_label.clone()}
                                     </Chip>
                                 }
                                 .into_any(),
@@ -131,13 +157,24 @@ pub fn TagGroup(
                                         variant=variant
                                         size=size
                                     >
-                                        {tag.label}
+                                        {tag_label}
                                     </Chip>
                                 }
                                 .into_any(),
                             };
 
-                            view! { <li class="ui-tag-group__item" data-slot="tag-group-item">{chip}</li> }
+                            view! {
+                                <li
+                                    class="ui-tag-group__item"
+                                    data-slot="tag-group-item"
+                                    data-index=index
+                                    data-tag-id=tag_id_for_attr
+                                    data-disabled=is_disabled.then_some("true")
+                                    data-removable=is_removable.then_some("true")
+                                >
+                                    {chip}
+                                </li>
+                            }
                         })
                         .collect_view()
                 }}
