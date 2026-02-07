@@ -5,9 +5,10 @@ use ui_components::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
     ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup, ButtonGroupOrientation,
     ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton, LinkButton, MenuItemKind,
-    OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton, SharePlatform,
-    Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
-    ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant,
+    OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton,
+    ShareButtonIconPlacement, ShareButtonItem, SharePlatform, Switch, ThemeMode, ThemeToggleButton,
+    ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonSize,
+    ToggleButtonVariant,
 };
 
 pub(super) fn button() -> AnyView {
@@ -995,21 +996,67 @@ pub(super) fn flip_button() -> AnyView {
 pub(super) fn share_button() -> AnyView {
     let (last, set_last) = signal(None::<SharePlatform>);
     let on_icon_press = Callback::new(move |platform: SharePlatform| set_last.set(Some(platform)));
-    let code = r#"let on_icon_press = Callback::new(|platform: SharePlatform| { /* ... */ });
+
+    let custom_items = vec![
+        ShareButtonItem::new(SharePlatform::Github, "Repository"),
+        ShareButtonItem::new(SharePlatform::X, "Post"),
+        ShareButtonItem::new(SharePlatform::Facebook, "   "),
+    ];
+
+    let code = r#"let on_icon_press = Callback::new(|platform: SharePlatform| {
+  logging::log!("pressed: {platform:?}");
+});
 <ShareButton on_icon_press=Some(on_icon_press) />"#;
+
+    let states_code = r#"<ShareButton
+  icon=ShareButtonIconPlacement::Prefix
+  from=FlipDirection::Left
+  label="Share now".to_string()
+  items=custom_items.clone()
+/>
+<ShareButton icon=ShareButtonIconPlacement::None label="Iconless".to_string() />"#;
 
     view! {
         <ComponentPage
             title="ShareButton"
             slug="share-button"
             group="Actions"
-            description="Flip-based share menu with platform icons."
+            description="Flip-based share surface with Spectrum-style item/placement attrs and HeroUI-grade spring motion."
         >
-            <Playground title="Share" code=code>
-                <div class="docs-row">
-                    <ShareButton on_icon_press=on_icon_press />
+            <Playground title="Default + callback" code=code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ShareButton on_icon_press=on_icon_press />
+                        <span class="ui-muted">
+                            "last: "
+                            {move || {
+                                last.get()
+                                    .map(|v| format!("{v:?}"))
+                                    .unwrap_or_else(|| "None".to_string())
+                            }}
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Icon placement + custom items" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ShareButton
+                            icon=ShareButtonIconPlacement::Prefix
+                            from=FlipDirection::Left
+                            label="Share now".to_string()
+                            items=custom_items.clone()
+                            on_icon_press=on_icon_press
+                        />
+                        <ShareButton
+                            icon=ShareButtonIconPlacement::None
+                            label="Iconless".to_string()
+                            items=custom_items.clone()
+                        />
+                    </div>
                     <span class="ui-muted">
-                        "last: " {move || last.get().map(|v| format!("{v:?}")).unwrap_or_else(|| "None".to_string())}
+                        "Blank custom item labels fall back to platform defaults; missing handlers stay safe."
                     </span>
                 </div>
             </Playground>
@@ -1017,7 +1064,6 @@ pub(super) fn share_button() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn action_menu() -> AnyView {
     let default_items = vec![
         "Profile".to_string(),
