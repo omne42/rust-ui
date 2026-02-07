@@ -37,9 +37,10 @@ pub fn DropdownMenu(
     let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+    let item_count = StoredValue::new(items.get_value().len());
     let trigger_disabled = StoredValue::new(logic::resolve_trigger_disabled(
         disabled,
-        items.get_value().len(),
+        item_count.get_value(),
     ));
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
@@ -96,6 +97,8 @@ pub fn DropdownMenu(
             data-slot="dropdown-menu"
             data-open=move || open.get().then_some("true")
             data-disabled=trigger_disabled.get_value().then_some("true")
+            data-empty=(item_count.get_value() == 0).then_some("true")
+            data-has-items=(item_count.get_value() > 0).then_some("true")
             on:keydown=on_key_down
         >
             <Button

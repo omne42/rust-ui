@@ -880,7 +880,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             title="DropdownMenu"
             slug="dropdown-menu"
             group="Collections"
-            description="Button trigger that opens a Menu in a Popover with controlled/uncontrolled state support."
+            description="Button trigger that opens a Menu in a Popover with controlled/uncontrolled state support and empty-trigger fallback."
         >
             <Playground title="Default" code=code>
                 <div class="docs-row">
@@ -888,6 +888,11 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         id_base="docs-dropdown".to_string()
                         items=default_items
                         on_action=on_action
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
                     >
                         "Open"
                     </DropdownMenu>
@@ -906,6 +911,11 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         on_action=on_action
                         open=controlled_open
                         on_open_change=on_open_change
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
                     >
                         "Controlled"
                     </DropdownMenu>
@@ -923,6 +933,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         items=disabled_items
                         on_action=on_action
                         disabled=true
+                        item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action]
                     >
                         "Disabled"
                     </DropdownMenu>
@@ -940,7 +951,6 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
     }
     .into_any()
 }
-
 pub(super) fn pagination() -> AnyView {
     let (page, set_page) = signal(1_usize);
     let code = r#"let (page, set_page) = signal(1_usize);

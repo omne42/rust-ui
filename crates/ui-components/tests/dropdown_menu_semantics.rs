@@ -44,6 +44,7 @@ fn dropdown_menu_trigger_wires_overlay_aria_contract() {
         "aria_expanded=open",
         "aria_controls_signal=aria_controls",
         "aria_labelledby=trigger_id.get_value()",
+        "disabled=trigger_disabled.get_value()",
     ] {
         assert!(
             source.contains(needle),
@@ -62,6 +63,8 @@ fn dropdown_menu_uses_presence_and_state_data_attributes() {
         "data-slot=\"dropdown-menu\"",
         "data-open=move || open.get().then_some(\"true\")",
         "data-disabled=trigger_disabled.get_value().then_some(\"true\")",
+        "data-empty=(item_count.get_value() == 0).then_some(\"true\")",
+        "data-has-items=(item_count.get_value() > 0).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -90,4 +93,14 @@ fn dropdown_menu_supports_arrow_key_opening_and_empty_item_disable() {
         logic_source.contains("resolve_trigger_disabled"),
         "DropdownMenu logic should centralize trigger disabled state so empty menus are not interactive."
     );
+
+    for needle in [
+        "let trigger_disabled = StoredValue::new(logic::resolve_trigger_disabled(",
+        "if trigger_disabled.get_value()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "DropdownMenu view should consume `{needle}` so trigger behavior matches the disabled model."
+        );
+    }
 }
