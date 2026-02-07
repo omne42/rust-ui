@@ -118,9 +118,41 @@ pub(super) fn disclosure() -> AnyView {
 
 pub(super) fn tabs() -> AnyView {
     let labels = vec!["Overview", "Details", "Settings"];
-    let code = r#"<Tabs labels=vec!["Overview", "Details"] id_base="tabs".to_string()>
-  <div>"Panel 1"</div>
-  <div>"Panel 2"</div>
+    let manual_labels = vec!["Profile", "Billing", "Team"];
+
+    let (selected_auto, set_selected_auto) = signal(0_usize);
+    let on_auto_change = Callback::new(move |index: usize| set_selected_auto.set(index));
+
+    let (selected_manual, set_selected_manual) = signal(1_usize);
+    let on_manual_change = Callback::new(move |index: usize| set_selected_manual.set(index));
+
+    let code = r#"let (selected, set_selected) = signal(0_usize);
+let on_change = Callback::new(move |next: usize| set_selected.set(next));
+<Tabs
+  labels=vec!["Overview", "Details", "Settings"]
+  id_base="tabs".to_string()
+  selected_index=selected
+  on_selection_change=on_change
+  keyboard_activation=TabsKeyboardActivation::Automatic
+>
+  <div>"Overview panel"</div>
+  <div>"Details panel"</div>
+  <div>"Settings panel"</div>
+</Tabs>"#;
+
+    let states_code = r#"let (selected, set_selected) = signal(1_usize);
+let on_change = Callback::new(move |next: usize| set_selected.set(next));
+<Tabs
+  labels=vec!["Profile", "Billing", "Team"]
+  id_base="tabs-manual".to_string()
+  keyboard_activation=TabsKeyboardActivation::Manual
+  selected_index=selected
+  on_selection_change=on_change
+  disabled_indices=vec![2]
+>
+  <div>"Profile panel"</div>
+  <div>"Billing panel"</div>
+  <div>"Team panel"</div>
 </Tabs>"#;
 
     view! {
@@ -128,27 +160,66 @@ pub(super) fn tabs() -> AnyView {
             title="Tabs"
             slug="tabs"
             group="Collections"
-            description="Tabs with roving tabindex + Spectrum semantics."
+            description="Tabs with roving tabindex, HeroUI-level indicator motion, and Spectrum-style root state attrs."
         >
-            <Playground title="Tabs" code=code>
-                <Tabs
-                    labels=labels
-                    id_base="docs-tabs".to_string()
-                    keyboard_activation=TabsKeyboardActivation::Automatic
-                >
-                    <div class="docs-stack">
-                        <div>"Overview"</div>
-                        <div class="ui-muted">"Arrow keys navigate tabs."</div>
-                    </div>
-                    <div class="docs-stack">
-                        <div>"Details"</div>
-                        <div class="ui-muted">"Enter/Space activates in manual mode."</div>
-                    </div>
-                    <div class="docs-stack">
-                        <div>"Settings"</div>
-                        <div class="ui-muted">"Disabled tabs are skipped."</div>
-                    </div>
-                </Tabs>
+            <Playground title="Automatic + Controlled" code=code>
+                <div class="docs-stack">
+                    <Tabs
+                        labels=labels
+                        id_base="docs-tabs".to_string()
+                        selected_index=selected_auto
+                        on_selection_change=on_auto_change
+                        keyboard_activation=TabsKeyboardActivation::Automatic
+                    >
+                        <div class="docs-stack">
+                            <div>"Overview"</div>
+                            <div class="ui-muted">"Arrow keys move + select in automatic mode."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Details"</div>
+                            <div class="ui-muted">"Selection change is controlled by signal callback."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Settings"</div>
+                            <div class="ui-muted">"Indicator motion stays spring-driven."</div>
+                        </div>
+                    </Tabs>
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || selected_auto.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Manual + Disabled" code=states_code>
+                <div class="docs-stack">
+                    <Tabs
+                        labels=manual_labels
+                        id_base="docs-tabs-manual".to_string()
+                        selected_index=selected_manual
+                        on_selection_change=on_manual_change
+                        keyboard_activation=TabsKeyboardActivation::Manual
+                        disabled_indices=vec![2]
+                    >
+                        <div class="docs-stack">
+                            <div>"Profile"</div>
+                            <div class="ui-muted">"Manual mode: focus moves first, Enter/Space commits."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Billing"</div>
+                            <div class="ui-muted">"Current selected index reflects committed tab."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Team"</div>
+                            <div class="ui-muted">"This tab is disabled and skipped by roving focus."</div>
+                        </div>
+                    </Tabs>
+                    <span class="ui-muted">
+                        "manual selected: "
+                        {move || selected_manual.get().to_string()}
+                    </span>
+                    <span class="ui-muted">"disabled tab index: 2"</span>
+                </div>
             </Playground>
         </ComponentPage>
     }

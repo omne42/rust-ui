@@ -58,6 +58,13 @@ fn tabs_emits_spectrum_style_state_data_attributes() {
         "data-slot=\"tabs-indicator\"",
         "data-slot=\"tabs-tab\"",
         "data-slot=\"tabs-panel\"",
+        "data-empty=move || state.get().is_empty.then_some(\"true\")",
+        "data-has-items=move || state.get().has_items.then_some(\"true\")",
+        "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
+        "data-selection-empty=move || state.get().selected_index.is_none().then_some(\"true\")",
+        "data-has-disabled-tabs=move || state.get().has_disabled_tabs.then_some(\"true\")",
+        "data-keyboard-activation=match keyboard_activation",
+        "data-index=index",
         "data-selected",
         "data-hovered",
         "data-pressed",
@@ -70,6 +77,29 @@ fn tabs_emits_spectrum_style_state_data_attributes() {
             "Tabs should set `{attr}` to support Spectrum-style styling and state inspection."
         );
     }
+}
+
+#[test]
+fn tabs_uses_logic_state_model() {
+    let view_source = load_source("src/tabs/view.rs");
+    let logic_source = load_source("src/tabs/logic.rs");
+
+    for needle in [
+        "pub struct TabsState",
+        "pub fn resolve_tabs_state(",
+        "pub selected_index: Option<usize>",
+        "pub has_disabled_tabs: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Tabs logic should include `{needle}` for centralized root-state derivation."
+        );
+    }
+
+    assert!(
+        view_source.contains("resolve_tabs_state(item_count, selected.get(), has_disabled_tabs)"),
+        "Tabs view should derive root state through resolve_tabs_state."
+    );
 }
 
 #[test]

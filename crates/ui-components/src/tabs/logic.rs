@@ -17,6 +17,14 @@ pub enum TabsSelectionTrigger {
     Press,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TabsState {
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub selected_index: Option<usize>,
+    pub has_disabled_tabs: bool,
+}
+
 pub fn normalize_index_skipping_disabled(
     index: usize,
     item_count: usize,
@@ -58,6 +66,21 @@ pub fn resolve_next_selected_index(
             }
         }
         TabsSelectionTrigger::Press => candidate,
+    }
+}
+
+pub fn resolve_tabs_state(
+    item_count: usize,
+    selected_index: usize,
+    has_disabled_tabs: bool,
+) -> TabsState {
+    let has_items = item_count > 0;
+
+    TabsState {
+        is_empty: !has_items,
+        has_items,
+        selected_index: has_items.then_some(selected_index.min(item_count.saturating_sub(1))),
+        has_disabled_tabs,
     }
 }
 
@@ -144,5 +167,31 @@ mod tests {
             ),
             0
         );
+    }
+
+    #[test]
+    fn resolve_tabs_state_tracks_selected_and_disabled_flags() {
+        let state = resolve_tabs_state(3, 1, true);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert_eq!(state.selected_index, Some(1));
+        assert!(state.has_disabled_tabs);
+    }
+
+    #[test]
+    fn resolve_tabs_state_clamps_selected_index() {
+        let state = resolve_tabs_state(2, 99, false);
+        assert!(!state.is_empty);
+        assert_eq!(state.selected_index, Some(1));
+        assert!(!state.has_disabled_tabs);
+    }
+
+    #[test]
+    fn resolve_tabs_state_handles_empty_tabs() {
+        let state = resolve_tabs_state(0, 0, false);
+        assert!(state.is_empty);
+        assert!(!state.has_items);
+        assert_eq!(state.selected_index, None);
+        assert!(!state.has_disabled_tabs);
     }
 }

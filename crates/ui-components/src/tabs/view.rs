@@ -1,5 +1,6 @@
 use super::logic::{
     TabsSelectionTrigger, normalize_index_skipping_disabled, resolve_next_selected_index,
+    resolve_tabs_state,
 };
 use crate::tabs::{TabsKeyboardActivation, TabsMotion, motion};
 use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
@@ -52,6 +53,7 @@ pub fn Tabs(
     let (item_count_signal, _set_item_count) = signal(item_count);
 
     let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_indices.into_iter().collect());
+    let has_disabled_tabs = disabled || !disabled_indices.is_empty();
 
     let initial_selected = normalize_index_skipping_disabled(
         selected_index
@@ -86,6 +88,9 @@ pub fn Tabs(
             })
         }
     });
+
+    let state =
+        Signal::derive(move || resolve_tabs_state(item_count, selected.get(), has_disabled_tabs));
 
     let set_selected = Callback::new({
         let is_controlled = selected_index.is_some();
@@ -224,6 +229,7 @@ pub fn Tabs(
                         aria-controls=panel_id
                         aria-disabled=if is_disabled { Some("true") } else { None }
                         data-slot="tabs-tab"
+                        data-index=index
                         data-selected=move || is_selected().then_some("true")
                         data-disabled=is_disabled.then_some("true")
                         data-hovered=move || hover.is_hovered.get().then_some("true")
@@ -267,6 +273,7 @@ pub fn Tabs(
                         aria-labelledby=tab_id
                         hidden=move || !is_selected()
                         data-slot="tabs-panel"
+                        data-index=index
                         data-selected=move || is_selected().then_some("true")
                     >
                         {panel}
@@ -284,6 +291,15 @@ pub fn Tabs(
                 .unwrap_or_else(|| "ui-tabs".to_string())
             data-slot="tabs"
             data-disabled=disabled.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
+            data-selection-empty=move || state.get().selected_index.is_none().then_some("true")
+            data-has-disabled-tabs=move || state.get().has_disabled_tabs.then_some("true")
+            data-keyboard-activation=match keyboard_activation {
+                TabsKeyboardActivation::Automatic => "automatic",
+                TabsKeyboardActivation::Manual => "manual",
+            }
         >
             <div
                 class="ui-tabs__list"
