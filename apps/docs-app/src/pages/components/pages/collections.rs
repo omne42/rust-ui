@@ -366,16 +366,47 @@ pub(super) fn menu() -> AnyView {
 }
 
 pub(super) fn menu_trigger() -> AnyView {
-    let items = vec![
+    let default_items = vec![
         "Profile".to_string(),
         "Settings".to_string(),
         "Log out".to_string(),
     ];
+    let controlled_items = vec![
+        "Rename".to_string(),
+        "Duplicate".to_string(),
+        "Archive".to_string(),
+    ];
+    let disabled_items = vec!["Copy".to_string(), "Move".to_string()];
+    let empty_items: Vec<String> = Vec::new();
+
     let (last, set_last) = signal(None::<usize>);
     let on_action = Callback::new(move |index: usize| set_last.set(Some(index)));
 
+    let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+    let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
+
     let code = r#"<MenuTrigger id_base="trigger".to_string() items=items on_action=on_action>
   "Open menu"
+</MenuTrigger>"#;
+
+    let controlled_code = r#"let (open, set_open) = signal(false);
+let open_signal: Signal<bool> = Signal::derive(move || open.get());
+<MenuTrigger
+  id_base="trigger-controlled".to_string()
+  items=items
+  on_action=on_action
+  open=open_signal
+  on_open_change=Callback::new(move |next| set_open.set(next))
+>
+  "Controlled"
+</MenuTrigger>"#;
+
+    let disabled_code = r#"<MenuTrigger id_base="trigger-disabled".to_string() items=items on_action=on_action disabled=true>
+  "Disabled"
+</MenuTrigger>
+<MenuTrigger id_base="trigger-empty".to_string() items=Vec::<String>::new() on_action=on_action>
+  "Empty"
 </MenuTrigger>"#;
 
     view! {
@@ -383,11 +414,20 @@ pub(super) fn menu_trigger() -> AnyView {
             title="MenuTrigger"
             slug="menu-trigger"
             group="Collections"
-            description="Button trigger that opens a Popover-based Menu."
+            description="Button trigger that opens a Popover-based Menu with controlled/uncontrolled state support."
         >
-            <Playground title="Trigger" code=code>
+            <Playground title="Default" code=code>
                 <div class="docs-row">
-                    <MenuTrigger id_base="docs-menu-trigger".to_string() items=items on_action=on_action>
+                    <MenuTrigger
+                        id_base="docs-menu-trigger".to_string()
+                        items=default_items
+                        on_action=on_action
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                    >
                         "Open menu"
                     </MenuTrigger>
                     <span class="ui-muted">
@@ -396,11 +436,55 @@ pub(super) fn menu_trigger() -> AnyView {
                     </span>
                 </div>
             </Playground>
+
+            <Playground title="Controlled Open State" code=controlled_code>
+                <div class="docs-stack">
+                    <MenuTrigger
+                        id_base="docs-menu-trigger-controlled".to_string()
+                        items=controlled_items
+                        on_action=on_action
+                        open=controlled_open
+                        on_open_change=on_open_change
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                    >
+                        "Controlled"
+                    </MenuTrigger>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || controlled_open_raw.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=disabled_code>
+                <div class="docs-row">
+                    <MenuTrigger
+                        id_base="docs-menu-trigger-disabled".to_string()
+                        items=disabled_items
+                        on_action=on_action
+                        disabled=true
+                        item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action]
+                    >
+                        "Disabled"
+                    </MenuTrigger>
+
+                    <MenuTrigger
+                        id_base="docs-menu-trigger-empty".to_string()
+                        items=empty_items
+                        on_action=on_action
+                    >
+                        "Empty"
+                    </MenuTrigger>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn select() -> AnyView {
     let items = vec![
         "Apple".to_string(),

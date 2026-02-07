@@ -33,11 +33,17 @@ pub fn MenuTrigger(
     let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+    let item_count = StoredValue::new(items.get_value().len());
+    let trigger_disabled = StoredValue::new(logic::resolve_trigger_disabled(
+        disabled,
+        item_count.get_value(),
+    ));
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if disabled || items.get_value().is_empty() {
+        if trigger_disabled.get_value() {
             return;
         }
+
         let next_open = !open.get_untracked();
         if next_open {
             set_open_focus.set(logic::MenuOpenFocusStrategy::First);
@@ -61,7 +67,7 @@ pub fn MenuTrigger(
     let presence = use_presence(open);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if disabled || items.get_value().is_empty() {
+        if trigger_disabled.get_value() {
             return;
         }
         if open.get_untracked() {
@@ -88,14 +94,16 @@ pub fn MenuTrigger(
             class=class
             data-slot="menu-trigger"
             data-open=move || open.get().then_some("true")
-            data-disabled=disabled.then_some("true")
+            data-disabled=trigger_disabled.get_value().then_some("true")
+            data-empty=(item_count.get_value() == 0).then_some("true")
+            data-has-items=(item_count.get_value() > 0).then_some("true")
             on:keydown=on_key_down
         >
             <Button
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
-                disabled=disabled
+                disabled=trigger_disabled.get_value()
                 aria_label=aria_label
                 aria_haspopup="menu"
                 aria_expanded=open
