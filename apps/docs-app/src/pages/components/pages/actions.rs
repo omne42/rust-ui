@@ -210,10 +210,37 @@ pub(super) fn action_button() -> AnyView {
 }
 
 pub(super) fn action_button_group() -> AnyView {
-    let code = r#"<ActionButtonGroup size=ActionButtonSize::Sm is_quiet=true>
-  <ActionButton>"One"</ActionButton>
-  <ActionButton>"Two"</ActionButton>
-  <ActionButton>"Three"</ActionButton>
+    let (press_count, set_press_count) = signal(0_u32);
+    let on_press: OnPress = Callback::new(move |_| {
+        set_press_count.update(|count| *count += 1);
+    });
+
+    let code = r#"let on_press: OnPress = Callback::new(|_| {
+  logging::log!("group press");
+});
+
+<ActionButtonGroup
+  size=ActionButtonSize::S
+  density=ActionButtonGroupDensity::Compact
+  is_quiet=true
+>
+  <ActionButton on_press=on_press>"One"</ActionButton>
+  <ActionButton on_press=on_press>"Two"</ActionButton>
+  <ActionButton on_press=on_press>"Three"</ActionButton>
+</ActionButtonGroup>"#;
+
+    let states_code = r#"<ActionButtonGroup
+  orientation=ActionButtonGroupOrientation::Vertical
+  is_justified=true
+  aria_label="Vertical actions".to_string()
+>
+  <ActionButton>"Top"</ActionButton>
+  <ActionButton>"Bottom"</ActionButton>
+</ActionButtonGroup>
+
+<ActionButtonGroup disabled=true density=ActionButtonGroupDensity::Compact>
+  <ActionButton>"Disabled"</ActionButton>
+  <ActionButton>"Group"</ActionButton>
 </ActionButtonGroup>"#;
 
     view! {
@@ -221,9 +248,9 @@ pub(super) fn action_button_group() -> AnyView {
             title="ActionButtonGroup"
             slug="action-button-group"
             group="Actions"
-            description="Groups ActionButtons with toolbar semantics."
+            description="Toolbar-style action clusters with Spectrum state attrs for orientation, density, quiet/filled, and enablement."
         >
-            <Playground title="Group" code=code>
+            <Playground title="Default + compact" code=code>
                 <div class="docs-stack">
                     <ActionButtonGroup
                         size=ActionButtonSize::S
@@ -231,10 +258,44 @@ pub(super) fn action_button_group() -> AnyView {
                         orientation=ActionButtonGroupOrientation::Horizontal
                         is_quiet=true
                     >
-                        <ActionButton>"One"</ActionButton>
-                        <ActionButton>"Two"</ActionButton>
-                        <ActionButton>"Three"</ActionButton>
+                        <ActionButton on_press=on_press>"One"</ActionButton>
+                        <ActionButton on_press=on_press>"Two"</ActionButton>
+                        <ActionButton on_press=on_press>"Three"</ActionButton>
                     </ActionButtonGroup>
+                    <span class="ui-muted">
+                        "pressed: "
+                        {move || press_count.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Vertical + justified + disabled" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ActionButtonGroup
+                            size=ActionButtonSize::M
+                            orientation=ActionButtonGroupOrientation::Vertical
+                            is_justified=true
+                            aria_label="Vertical actions".to_string()
+                        >
+                            <ActionButton>"Top"</ActionButton>
+                            <ActionButton>"Middle"</ActionButton>
+                            <ActionButton>"Bottom"</ActionButton>
+                        </ActionButtonGroup>
+
+                        <ActionButtonGroup
+                            size=ActionButtonSize::S
+                            density=ActionButtonGroupDensity::Compact
+                            disabled=true
+                            aria_label="Disabled actions".to_string()
+                        >
+                            <ActionButton>"Disabled"</ActionButton>
+                            <ActionButton>"Group"</ActionButton>
+                        </ActionButtonGroup>
+                    </div>
+                    <span class="ui-muted">
+                        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for Spectrum-level styling contracts."
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

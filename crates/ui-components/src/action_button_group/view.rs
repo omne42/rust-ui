@@ -14,44 +14,53 @@ pub fn ActionButtonGroup(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    provide_context(logic::ActionButtonGroupContextValue {
-        size,
-        density,
+    let class_name = logic::normalize_optional_text(class_name);
+    let (aria_label, has_explicit_label) = logic::normalize_aria_label(aria_label);
+
+    let state = logic::resolve_state(
         orientation,
+        density,
         is_justified,
         is_quiet,
-        is_disabled: disabled,
-    });
-
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Action button group".to_string());
-
-    let base_class = format!(
-        "ui-action-button-group {} {} {}",
-        density.class_name(),
-        orientation.class_name(),
-        if is_justified {
-            "ui-action-button-group--justified"
-        } else {
-            ""
-        }
+        disabled,
+        has_explicit_label,
+        class_name.is_some(),
     );
 
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    provide_context(logic::ActionButtonGroupContextValue {
+        size,
+        density: state.density,
+        orientation: state.orientation,
+        is_justified: state.is_justified,
+        is_quiet: state.is_quiet,
+        is_disabled: state.is_disabled,
+    });
+
+    let class = logic::compose_class_name(class_name, state);
 
     view! {
         <div
             class=class
             data-slot="action-button-group"
-            data-disabled=disabled.then_some("true")
+            data-state=if state.is_disabled { "disabled" } else { "ready" }
+            data-orientation=state.orientation_attr
+            data-density=state.density_attr
+            data-horizontal=state.is_horizontal.then_some("true")
+            data-vertical=state.is_vertical.then_some("true")
+            data-regular=state.is_regular.then_some("true")
+            data-compact=state.is_compact.then_some("true")
+            data-justified=state.is_justified.then_some("true")
+            data-not-justified=state.is_not_justified.then_some("true")
+            data-quiet=state.is_quiet.then_some("true")
+            data-filled=state.is_filled.then_some("true")
+            data-disabled=state.is_disabled.then_some("true")
+            data-enabled=state.is_enabled.then_some("true")
+            data-has-explicit-label=state.has_explicit_label.then_some("true")
+            data-has-fallback-label=state.has_fallback_label.then_some("true")
             role="toolbar"
             aria-label=aria_label
-            aria-orientation=orientation.aria_orientation()
-            aria-disabled=disabled.then_some("true")
+            aria-orientation=state.orientation.aria_orientation()
+            aria-disabled=state.is_disabled.then_some("true")
         >
             {children()}
         </div>
