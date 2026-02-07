@@ -443,21 +443,22 @@ pub(super) fn circular_progress() -> AnyView {
 }
 
 pub(super) fn spinner() -> AnyView {
-    let sizes_code = r#"<Spinner size=SpinnerSize::Sm />
+    let matrix_code = r#"<Spinner size=SpinnerSize::Sm />
 <Spinner size=SpinnerSize::Md />
 <Spinner size=SpinnerSize::Lg />"#;
 
-    let labels_code = r#"<Spinner aria_label="Fetching notifications".to_string() />
-<Spinner class_name="docs-spinner-custom".to_string() />"#;
+    let custom_code = r#"<Spinner aria_label="Fetching notifications".to_string() />
+<Spinner aria_label="   ".to_string() class_name="docs-spinner-custom".to_string() />
+<Spinner aria_label="Syncing inbox".to_string() class_name="docs-spinner-custom".to_string() size=SpinnerSize::Lg />"#;
 
     view! {
         <ComponentPage
             title="Spinner"
             slug="spinner"
             group="Display"
-            description="Spinner wraps CircularProgress and now exposes Spectrum-style size/label state attrs."
+            description="Spinner wraps CircularProgress with centralized size/label/class source attrs."
         >
-            <Playground title="Sizes" code=sizes_code>
+            <Playground title="Size Matrix" code=matrix_code>
                 <div class="docs-row">
                     <Spinner size=SpinnerSize::Sm />
                     <Spinner size=SpinnerSize::Md />
@@ -465,10 +466,18 @@ pub(super) fn spinner() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Label + Custom Class" code=labels_code>
+            <Playground title="Custom Label + Class" code=custom_code>
                 <div class="docs-row">
                     <Spinner aria_label="Fetching notifications".to_string() />
-                    <Spinner class_name="docs-spinner-custom".to_string() />
+                    <Spinner
+                        aria_label="   ".to_string()
+                        class_name="docs-spinner-custom".to_string()
+                    />
+                    <Spinner
+                        aria_label="Syncing inbox".to_string()
+                        class_name="docs-spinner-custom".to_string()
+                        size=SpinnerSize::Lg
+                    />
                 </div>
             </Playground>
         </ComponentPage>

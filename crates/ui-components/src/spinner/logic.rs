@@ -1,3 +1,5 @@
+pub const DEFAULT_ARIA_LABEL: &str = "Loading";
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SpinnerSize {
     Sm,
@@ -38,6 +40,9 @@ pub struct SpinnerState {
     pub size_attr: &'static str,
     pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
+    pub label_source_class: &'static str,
+    pub label_source_attr: &'static str,
+    pub class_source_attr: &'static str,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -49,33 +54,50 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
 
 pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
+        let is_custom = label != DEFAULT_ARIA_LABEL;
+        return (label, is_custom);
     }
 
-    ("Loading".to_string(), false)
+    (DEFAULT_ARIA_LABEL.to_string(), false)
 }
 
 pub fn resolve_state(input: SpinnerStateInput) -> SpinnerState {
+    let (label_source_class, label_source_attr) = if input.has_custom_aria_label {
+        ("ui-spinner--label-custom", "custom")
+    } else {
+        ("ui-spinner--label-default", "default")
+    };
+
+    let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+    };
+
     SpinnerState {
         size: input.size,
         size_class: input.size.class_name(),
         size_attr: input.size.as_str(),
         has_custom_aria_label: input.has_custom_aria_label,
         has_custom_class_name: input.has_custom_class_name,
+        label_source_class,
+        label_source_attr,
+        class_source_attr,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: SpinnerState) -> String {
-    let mut classes = vec!["ui-spinner".to_string(), state.size_class.to_string()];
+    let mut classes = vec![
+        "ui-spinner".to_string(),
+        state.size_class.to_string(),
+        state.label_source_class.to_string(),
+    ];
 
-    if state.has_custom_aria_label {
-        classes.push("ui-spinner--custom-label".to_string());
-    }
-
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
-        classes.push(base_class_name);
+    if state.has_custom_class_name {
+        classes.push("ui-spinner--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
     }
 
     classes.join(" ")
@@ -107,8 +129,15 @@ mod tests {
     }
 
     #[test]
-    fn resolve_aria_label_defaults_and_trims() {
-        assert_eq!(resolve_aria_label(None), ("Loading".to_string(), false));
+    fn resolve_aria_label_defaults_and_detects_custom_source() {
+        assert_eq!(
+            resolve_aria_label(None),
+            (DEFAULT_ARIA_LABEL.to_string(), false)
+        );
+        assert_eq!(
+            resolve_aria_label(Some("  Loading  ".to_string())),
+            (DEFAULT_ARIA_LABEL.to_string(), false)
+        );
         assert_eq!(
             resolve_aria_label(Some(" Fetching activity ".to_string())),
             ("Fetching activity".to_string(), true)
@@ -116,7 +145,7 @@ mod tests {
     }
 
     #[test]
-    fn resolve_state_tracks_size_and_source_flags() {
+    fn resolve_state_tracks_source_contracts() {
         let state = resolve_state(SpinnerStateInput {
             size: SpinnerSize::Lg,
             has_custom_aria_label: true,
@@ -126,6 +155,9 @@ mod tests {
         assert_eq!(state.size, SpinnerSize::Lg);
         assert_eq!(state.size_class, "ui-spinner--size-lg");
         assert_eq!(state.size_attr, "lg");
+        assert_eq!(state.label_source_class, "ui-spinner--label-custom");
+        assert_eq!(state.label_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
         assert!(state.has_custom_aria_label);
         assert!(state.has_custom_class_name);
     }
@@ -133,7 +165,7 @@ mod tests {
     #[test]
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
-            Some("custom".to_string()),
+            Some("docs-spinner-custom".to_string()),
             resolve_state(SpinnerStateInput {
                 size: SpinnerSize::Sm,
                 has_custom_aria_label: true,
@@ -144,8 +176,9 @@ mod tests {
         for token in [
             "ui-spinner",
             "ui-spinner--size-sm",
-            "ui-spinner--custom-label",
-            "custom",
+            "ui-spinner--label-custom",
+            "ui-spinner--custom-class",
+            "docs-spinner-custom",
         ] {
             assert!(
                 class_name.contains(token),

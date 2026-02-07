@@ -30,8 +30,11 @@ pub fn Spinner(
             data-slot="spinner"
             data-size=state.size_attr
             data-state="indeterminate"
+            data-indeterminate="true"
+            data-label-source=state.label_source_attr
             data-custom-aria-label=state.has_custom_aria_label.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
         >
             <CircularProgress aria_label=aria_label class_name="ui-spinner__progress" />
         </span>

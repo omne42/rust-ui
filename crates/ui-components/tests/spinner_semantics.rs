@@ -25,12 +25,15 @@ fn spinner_uses_logic_state_model() {
     let logic_source = load_source("src/spinner/logic.rs");
 
     for needle in [
+        "pub const DEFAULT_ARIA_LABEL",
         "pub struct SpinnerStateInput",
         "pub struct SpinnerState",
         "pub fn normalize_optional_text(",
         "pub fn resolve_aria_label(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "label_source_attr",
+        "class_source_attr",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -59,8 +62,11 @@ fn spinner_emits_spectrum_style_state_data_attributes() {
         "data-slot=\"spinner\"",
         "data-size=state.size_attr",
         "data-state=\"indeterminate\"",
+        "data-indeterminate=\"true\"",
+        "data-label-source=state.label_source_attr",
         "data-custom-aria-label=state.has_custom_aria_label.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
         "class_name=\"ui-spinner__progress\"",
     ] {
         assert!(
@@ -71,7 +77,7 @@ fn spinner_emits_spectrum_style_state_data_attributes() {
 }
 
 #[test]
-fn spinner_styles_include_size_and_label_markers() {
+fn spinner_styles_include_size_and_source_markers() {
     let source = load_source("src/spinner/styles.rs");
 
     for selector in [
@@ -79,8 +85,12 @@ fn spinner_styles_include_size_and_label_markers() {
         ".ui-spinner--size-sm",
         ".ui-spinner[data-size=\"md\"]",
         ".ui-spinner--size-lg",
-        ".ui-spinner--custom-label",
-        ".ui-spinner[data-custom-aria-label=\"true\"]",
+        ".ui-spinner--label-custom .ui-spinner__progress",
+        ".ui-spinner[data-label-source=\"custom\"] .ui-spinner__progress",
+        ".ui-spinner--custom-class",
+        ".ui-spinner[data-custom-class=\"true\"]",
+        ".ui-spinner[data-class-source=\"custom\"] .ui-spinner__progress",
+        ".ui-spinner[data-state=\"indeterminate\"] .ui-spinner__progress",
     ] {
         assert!(
             source.contains(selector),

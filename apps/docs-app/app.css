@@ -1011,6 +1011,13 @@ a {
   padding: 8px;
 }
 
+.docs-spinner-custom {
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 36%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 20%);
+  padding: 4px;
+}
+
 .docs-flip-button-custom {
   padding: 3px;
   border-radius: var(--ui-radius-lg);

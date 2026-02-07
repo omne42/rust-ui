@@ -27,8 +27,22 @@ pub const CSS: &str = r#"
   --ui-cp-thickness: 3px;
 }
 
-.ui-spinner--custom-label,
-.ui-spinner[data-custom-aria-label="true"] {
-  outline: none;
+.ui-spinner--label-custom .ui-spinner__progress,
+.ui-spinner[data-label-source="custom"] .ui-spinner__progress {
+  border-top-color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 12%);
+}
+
+.ui-spinner--custom-class,
+.ui-spinner[data-custom-class="true"] {
+  isolation: isolate;
+}
+
+.ui-spinner[data-class-source="custom"] .ui-spinner__progress {
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--ui-border), transparent 45%);
+}
+
+.ui-spinner[data-state="indeterminate"] .ui-spinner__progress,
+.ui-spinner[data-indeterminate="true"] .ui-spinner__progress {
+  animation-play-state: running;
 }
 "#;
