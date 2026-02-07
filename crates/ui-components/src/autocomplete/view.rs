@@ -79,6 +79,7 @@ fn AutocompletePanel(
                     aria-disabled=aria.listbox.aria_disabled
                     aria-labelledby=aria_labelledby.clone()
                     data-slot="autocomplete-listbox"
+                    data-empty=move || filtered_indices.get().is_empty().then_some("true")
                 >
                     <div class="ui-autocomplete__options" node_ref=options_ref data-slot="autocomplete-options">
                         <div class="ui-active-highlight" node_ref=highlight_ref data-slot="autocomplete-highlight"></div>
@@ -87,6 +88,7 @@ fn AutocompletePanel(
                             let option_id = aria.option_id;
                             let on_option_pointer_move = aria.handlers.on_option_pointer_move;
                             let on_option_click = aria.handlers.on_option_click;
+                            let active_index = aria.active_index;
 
                             move || {
                                 let indices = filtered_indices.get();
@@ -108,7 +110,9 @@ fn AutocompletePanel(
                                                 aria-selected=move || if is_selected() { Some("true") } else { None }
                                                 aria-disabled=if is_disabled { Some("true") } else { None }
                                                 class="ui-autocomplete__option"
+                                                data-slot="autocomplete-option"
                                                 data-selected=move || if is_selected() { Some("true") } else { None }
+                                                data-focused=move || (active_index.get() == filtered_index).then_some("true")
                                                 data-disabled=if is_disabled { Some("true") } else { None }
                                                 on:pointermove=move |_| on_option_pointer_move.run(filtered_index)
                                                 on:click=move |_| on_option_click.run(filtered_index)
@@ -120,6 +124,12 @@ fn AutocompletePanel(
                                     .collect_view()
                             }
                         }}
+
+                        <Show when=move || filtered_indices.get().is_empty()>
+                            <div class="ui-autocomplete__empty" data-slot="autocomplete-empty">
+                                "No options"
+                            </div>
+                        </Show>
                     </div>
                 </div>
             </div>
@@ -155,8 +165,13 @@ pub fn Autocomplete(
     let has_disabled = !disabled_index_set.is_empty();
     let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
 
-    let placeholder = placeholder.unwrap_or_else(|| "Search…".to_string());
-    let placeholder = StoredValue::new(placeholder);
+    let label = StoredValue::new(logic::normalize_label(label));
+    let placeholder = StoredValue::new(logic::resolve_placeholder(placeholder));
+
+    let description = logic::normalize_optional_text(description);
+    let error = logic::normalize_optional_text(error);
+    let has_description = description.is_some();
+    let has_error = error.is_some();
 
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let is_open = open_state.open;
@@ -188,8 +203,8 @@ pub fn Autocomplete(
         logic::filter_indices(items.as_ref(), &query.get(), has_typed.get())
     });
 
-    let (filtered_count, set_filtered_count) = signal(0_usize);
-    Effect::new(move |_| set_filtered_count.set(filtered_indices.get().len()));
+    let (filtered_count, _set_filtered_count) = signal(0_usize);
+    Effect::new(move |_| _set_filtered_count.set(filtered_indices.get().len()));
 
     let selected_filtered_index = Memo::new(move |_| {
         logic::map_selected_to_filtered(selected_index.get(), &filtered_indices.get())
@@ -215,8 +230,8 @@ pub fn Autocomplete(
 
     let text_field = use_text_field(TextFieldOptions {
         id: input_id,
-        has_description: description.is_some(),
-        has_error: error.is_some(),
+        has_description,
+        has_error,
         aria_describedby,
         is_invalid: invalid,
         is_required: required,
@@ -302,7 +317,9 @@ pub fn Autocomplete(
             data-disabled=disabled.then_some("true")
             data-required=move || required.get().then_some("true")
             data-open=move || is_open.get().then_some("true")
-            data-empty=move || query.get().trim().is_empty().then_some("true")
+            data-empty=move || (filtered_count.get() == 0).then_some("true")
+            data-has-description=has_description.then_some("true")
+            data-has-error=has_error.then_some("true")
         >
             <label
                 class="ui-autocomplete__label"
@@ -310,7 +327,7 @@ pub fn Autocomplete(
                 for=text_field.label.for_attr.clone()
                 data-slot="autocomplete-label"
             >
-                {label}
+                {label.get_value()}
             </label>
 
             <div

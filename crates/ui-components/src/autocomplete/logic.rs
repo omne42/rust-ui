@@ -1,3 +1,23 @@
+pub fn normalize_label(label: String) -> String {
+    let trimmed = label.trim();
+    if trimmed.is_empty() {
+        "Options".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn resolve_placeholder(placeholder: Option<String>) -> String {
+    normalize_optional_text(placeholder).unwrap_or_else(|| "Type…".to_string())
+}
+
 pub fn filter_indices(items: &[String], query: &str, has_typed: bool) -> Vec<usize> {
     if !has_typed {
         return (0..items.len()).collect();
@@ -38,6 +58,32 @@ mod tests {
 
     fn items() -> Vec<String> {
         vec!["Apple".into(), "Banana".into(), "Apricot".into()]
+    }
+
+    #[test]
+    fn normalize_label_trims_and_defaults() {
+        assert_eq!(normalize_label("  City  ".to_string()), "City");
+        assert_eq!(normalize_label("   ".to_string()), "Options");
+    }
+
+    #[test]
+    fn normalize_optional_text_filters_blank_values() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some("  ".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some("  Pick a city  ".to_string())),
+            Some("Pick a city".to_string())
+        );
+    }
+
+    #[test]
+    fn resolve_placeholder_uses_fallback() {
+        assert_eq!(
+            resolve_placeholder(Some("  Search  ".to_string())),
+            "Search"
+        );
+        assert_eq!(resolve_placeholder(Some("   ".to_string())), "Type…");
+        assert_eq!(resolve_placeholder(None), "Type…");
     }
 
     #[test]

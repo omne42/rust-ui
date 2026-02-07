@@ -629,28 +629,118 @@ pub(super) fn autocomplete() -> AnyView {
         "Shenzhen".to_string(),
         "Singapore".to_string(),
     ];
-    let (selected, set_selected) = signal(None::<usize>);
+    let (selected, set_selected) = signal(Some(1_usize));
+    let (invalid, set_invalid) = signal(false);
 
-    let code = r#"let (selected, set_selected) = signal(None::<usize>);
-<Autocomplete id_base="city".to_string() label="City".to_string()
-  items=items selected_index=selected set_selected_index=set_selected />"#;
+    let disabled_items = vec![
+        "Berlin".to_string(),
+        "Boston".to_string(),
+        "Brisbane".to_string(),
+    ];
+    let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
+
+    let empty_items: Vec<String> = Vec::new();
+    let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
+    let code = r#"let (selected, set_selected) = signal(Some(1_usize));
+let (invalid, set_invalid) = signal(false);
+<Autocomplete
+  id_base="city".to_string()
+  label="City".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  disabled_indices=vec![3]
+  description="Search and pick one city".to_string()
+  error="City is required".to_string()
+  invalid=Signal::derive(move || invalid.get())
+/>"#;
+
+    let states_code = r#"<Autocomplete
+  id_base="city-disabled".to_string()
+  label="Disabled city".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  disabled=true
+/>
+<Autocomplete
+  id_base="city-empty".to_string()
+  label="Empty city list".to_string()
+  items=Vec::<String>::new()
+  selected_index=empty_selected
+  set_selected_index=set_empty_selected
+  placeholder="No options".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Autocomplete"
             slug="autocomplete"
             group="Collections"
-            description="Combobox-like autocomplete with filtered options and active highlight motion."
+            description="Combobox-like autocomplete with filtered options, validation semantics, and active highlight motion."
         >
-            <Playground title="Autocomplete" code=code>
-                <Autocomplete
-                    id_base="docs-autocomplete".to_string()
-                    label="City".to_string()
-                    items=items
-                    selected_index=selected
-                    set_selected_index=set_selected
-                    placeholder="Type…".to_string()
-                />
+            <Playground title="Selection + Validation" code=code>
+                <div class="docs-stack">
+                    <Autocomplete
+                        id_base="docs-autocomplete".to_string()
+                        label="City".to_string()
+                        items=items
+                        selected_index=selected
+                        set_selected_index=set_selected
+                        disabled_indices=vec![3]
+                        description="Search and pick one city".to_string()
+                        error="City is required".to_string()
+                        invalid=Signal::derive(move || invalid.get())
+                        placeholder="Type…".to_string()
+                    />
+                    <div class="docs-row">
+                        <ui_components::Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| set_invalid.update(|value| *value = !*value))
+                        >
+                            {move || if invalid.get() { "Clear invalid" } else { "Mark invalid" }}
+                        </ui_components::Button>
+                        <span class="ui-muted">
+                            "selected: "
+                            {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <Autocomplete
+                            id_base="docs-autocomplete-disabled".to_string()
+                            label="Disabled city".to_string()
+                            items=disabled_items
+                            selected_index=disabled_selected
+                            set_selected_index=set_disabled_selected
+                            disabled=true
+                        />
+                        <span class="ui-muted">
+                            "disabled selected: "
+                            {move || disabled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <Autocomplete
+                            id_base="docs-autocomplete-empty".to_string()
+                            label="Empty city list".to_string()
+                            items=empty_items
+                            selected_index=empty_selected
+                            set_selected_index=set_empty_selected
+                            placeholder="No options".to_string()
+                        />
+                        <span class="ui-muted">
+                            "empty selected: "
+                            {move || empty_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }

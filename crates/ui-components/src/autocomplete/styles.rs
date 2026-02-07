@@ -126,6 +126,15 @@ pub const CSS: &str = r#"
   font-weight: 600;
 }
 
+.ui-autocomplete__option[data-focused=\"true\"] {
+  background: var(--ui-accent-soft);
+}
+
+.ui-autocomplete__empty {
+  padding: var(--ui-space-sm) var(--ui-space-md);
+  color: var(--ui-fg-muted);
+}
+
 .ui-autocomplete__option:focus-visible {
   outline: none;
 }

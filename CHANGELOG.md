@@ -122,6 +122,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Select` docs now include playground scenarios for disabled options, fully disabled state, and empty-option behavior.
 - `ui-components`: `ComboBox` now normalizes label/placeholder/message text, exposes option focus + empty-result slots/state attrs, and aligns root `data-empty` to filtered results.
 - `apps/docs-app`: `ComboBox` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
+- `ui-components`: `Autocomplete` now normalizes label/placeholder/message text, exposes option focus + empty-result slots/state attrs, and aligns root `data-empty` to filtered results.
+- `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
 - `apps/docs-app`: rebuilds the docs site into a hash-routed component catalog (search + per-component playground pages) and adds a regression test that enforces 100% `ui-components` component coverage.
