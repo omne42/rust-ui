@@ -526,21 +526,64 @@ pub(super) fn avatar_group() -> AnyView {
             src: None,
             alt: Some("Katherine".to_string()),
         },
+        AvatarGroupItem {
+            name: Some("Annie Easley".to_string()),
+            src: None,
+            alt: Some("Annie".to_string()),
+        },
     ];
 
-    let code = r#"<AvatarGroup items=items max=Some(3) />"#;
+    let empty_items: Vec<AvatarGroupItem> = Vec::new();
+    let overflow_items = items.clone();
+    let size_items = items.clone();
+
+    let overflow_code = r#"<AvatarGroup items=items.clone() max=3 size=AvatarSize::Md />"#;
+
+    let sizes_code = r#"<AvatarGroup items=items.clone() max=6 size=AvatarSize::Sm />
+<AvatarGroup items=items.clone() max=6 size=AvatarSize::Lg />"#;
+
+    let empty_code = r#"<AvatarGroup
+  items=Vec::<AvatarGroupItem>::new()
+  aria_label="No collaborators".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="AvatarGroup"
             slug="avatar-group"
             group="Display"
-            description="Overlapping avatar stack with overflow indicator."
+            description="Stacked avatars with normalized labels, overflow semantics, and Spectrum-style root data attrs."
         >
-            <Playground title="AvatarGroup" code=code>
+            <Playground title="Overflow Stack" code=overflow_code>
                 <div class="docs-row">
-                    <AvatarGroup items=items.clone() max=3 size=AvatarSize::Md />
-                    <AvatarGroup items=items max=4 size=AvatarSize::Sm />
+                    <AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />
+                    <AvatarGroup
+                        items=overflow_items.clone()
+                        max=2
+                        size=AvatarSize::Lg
+                        aria_label="Core collaborators".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Sizes Without Overflow" code=sizes_code>
+                <div class="docs-row">
+                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Sm />
+                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Md />
+                    <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground title="Empty + Custom Class" code=empty_code>
+                <div class="docs-row">
+                    <AvatarGroup
+                        items=empty_items.clone()
+                        max=4
+                        size=AvatarSize::Md
+                        aria_label="No collaborators".to_string()
+                        class_name="docs-avatar-group-empty".to_string()
+                    />
+                    <AvatarGroup items=empty_items max=0 size=AvatarSize::Sm />
                 </div>
             </Playground>
         </ComponentPage>
