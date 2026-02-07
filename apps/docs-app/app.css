@@ -724,6 +724,11 @@ a {
   background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 55%);
 }
 
+.docs-modal-custom {
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 38%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 22%);
+}
+
 .docs-separator-rail {
   min-height: 3rem;
 }

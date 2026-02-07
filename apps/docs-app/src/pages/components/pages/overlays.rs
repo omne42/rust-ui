@@ -176,51 +176,115 @@ pub(super) fn popover() -> AnyView {
 }
 
 pub(super) fn modal() -> AnyView {
-    let (open_raw, set_open_raw) = signal(false);
-    let open: Signal<bool> = Signal::derive(move || open_raw.get());
-    let (present, set_present) = signal(open.get_untracked());
+    let (open_semantic_raw, set_open_semantic_raw) = signal(false);
+    let open_semantic: Signal<bool> = Signal::derive(move || open_semantic_raw.get());
+    let (present_semantic, set_present_semantic) = signal(open_semantic.get_untracked());
     Effect::new(move |_| {
-        if open.get() {
-            set_present.set(true);
+        if open_semantic.get() {
+            set_present_semantic.set(true);
         }
     });
 
-    let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-    let open_modal: OnPress = Callback::new(move |_| set_open_raw.set(true));
-    let on_exit_complete = Callback::new(move |_| set_present.set(false));
+    let close_semantic: OnPress = Callback::new(move |_| set_open_semantic_raw.set(false));
+    let open_semantic_modal: OnPress = Callback::new(move |_| set_open_semantic_raw.set(true));
+    let on_semantic_exit_complete = Callback::new(move |_| set_present_semantic.set(false));
 
-    let code = r#"<Show when=present>
-  <Modal open=open id_base="m".to_string() title="Title".to_string()
-    on_close=close on_exit_complete=on_exit_complete>
+    let (open_custom_raw, set_open_custom_raw) = signal(false);
+    let open_custom: Signal<bool> = Signal::derive(move || open_custom_raw.get());
+    let (present_custom, set_present_custom) = signal(open_custom.get_untracked());
+    Effect::new(move |_| {
+        if open_custom.get() {
+            set_present_custom.set(true);
+        }
+    });
+
+    let close_custom: OnPress = Callback::new(move |_| set_open_custom_raw.set(false));
+    let open_custom_modal: OnPress = Callback::new(move |_| set_open_custom_raw.set(true));
+    let on_custom_exit_complete = Callback::new(move |_| set_present_custom.set(false));
+
+    let semantic_code = r#"<Show when=present>
+  <Modal
+    open=open
+    id_base="m".to_string()
+    title="Confirm".to_string()
+    description="Modal composes Overlay and wires aria attributes.".to_string()
+    on_close=close
+    on_exit_complete=on_exit_complete
+  >
     ...
   </Modal>
 </Show>"#;
+
+    let custom_code = r#"<Modal
+  open=open
+  id_base="m-custom".to_string()
+  title="Title only".to_string()
+  class_name="docs-modal-custom".to_string()
+  on_close=close
+  on_exit_complete=on_exit_complete
+>
+  ...
+</Modal>"#;
 
     view! {
         <ComponentPage
             title="Modal"
             slug="modal"
             group="Overlays"
-            description="A composition wrapper over Overlay that provides a title (aria-labelledby)."
+            description="Overlay composition with centralized title/description/class state attrs and stable modal slots."
         >
-            <Playground title="Modal" code=code>
+            <Playground title="Label + Description" code=semantic_code>
                 <div class="docs-row">
-                    <Button on_press=open_modal>"Open modal"</Button>
-                    <span class="ui-muted">"open: " {move || open_raw.get().to_string()}</span>
+                    <Button on_press=open_semantic_modal>"Open described modal"</Button>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
                 </div>
 
-                <Show when=move || present.get()>
+                <Show when=move || present_semantic.get()>
                     <Modal
-                        open=open
-                        id_base="docs-modal".to_string()
+                        open=open_semantic
+                        id_base="docs-modal-semantic".to_string()
                         title="Confirm".to_string()
-                        description="Modal composes Overlay with title/description slots.".to_string()
-                        on_close=on_close
-                        on_exit_complete=on_exit_complete
+                        description="Modal composes Overlay with stable aria-labelledby + aria-describedby wiring.".to_string()
+                        on_close=close_semantic
+                        on_exit_complete=on_semantic_exit_complete
                     >
-                        <div class="docs-row docs-row--end">
-                            <Button variant=ButtonVariant::Secondary on_press=on_close>"Close"</Button>
-                            <Button on_press=on_close>"Ok"</Button>
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Described modal content"</div>
+                            <div class="ui-muted">"Esc/backdrop closes, focus remains trapped in panel."</div>
+                            <div class="docs-row docs-row--end">
+                                <Button variant=ButtonVariant::Secondary on_press=close_semantic>
+                                    "Cancel"
+                                </Button>
+                                <Button on_press=close_semantic>"Confirm"</Button>
+                            </div>
+                        </div>
+                    </Modal>
+                </Show>
+            </Playground>
+
+            <Playground title="Title-only + Custom Class" code=custom_code>
+                <div class="docs-row">
+                    <Button on_press=open_custom_modal>"Open custom modal"</Button>
+                    <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
+                </div>
+
+                <Show when=move || present_custom.get()>
+                    <Modal
+                        open=open_custom
+                        id_base="docs-modal-custom".to_string()
+                        title="Title only".to_string()
+                        class_name="docs-modal-custom".to_string()
+                        on_close=close_custom
+                        on_exit_complete=on_custom_exit_complete
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"No description path keeps aria-describedby unset."</div>
+                            <div class="ui-muted">"Custom class validates class merge + data-custom-class marker."</div>
+                            <div class="docs-row docs-row--end">
+                                <Button variant=ButtonVariant::Secondary on_press=close_custom>
+                                    "Dismiss"
+                                </Button>
+                            </div>
                         </div>
                     </Modal>
                 </Show>
@@ -229,7 +293,6 @@ pub(super) fn modal() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn dialog() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
     let open: Signal<bool> = Signal::derive(move || open_raw.get());
