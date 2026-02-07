@@ -92,6 +92,7 @@ pub mod tabs;
 pub mod tag_group;
 pub mod text_area;
 pub mod text_field;
+pub mod time_field;
 pub mod toast;
 pub mod toggle_button;
 pub mod toggle_button_group;
@@ -208,6 +209,7 @@ pub use tabs::{Tabs, TabsKeyboardActivation, TabsMotion};
 pub use tag_group::{Tag, TagGroup};
 pub use text_area::TextArea;
 pub use text_field::TextField;
+pub use time_field::{TimeField, TimeFieldIds, TimeFieldTone};
 pub use toast::{
     ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
 };

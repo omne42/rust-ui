@@ -3,7 +3,7 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DatePicker, DatePickerTone, Label, LabelEmphasis,
-    Slider, SliderMotion,
+    Slider, SliderMotion, TimeField, TimeFieldTone,
 };
 
 pub(super) fn label() -> AnyView {
@@ -262,6 +262,74 @@ pub(super) fn date_picker() -> AnyView {
                     show_outside_days=false
                     placeholder="Pick ship date".to_string()
                     class_name="docs-date-picker-custom".to_string()
+                />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn time_field() -> AnyView {
+    let (value, set_value) = signal(Some("09:30".to_string()));
+    let on_value_change = Callback::new(move |next: Option<String>| {
+        set_value.set(next);
+    });
+
+    let code = r#"let (value, set_value) = signal(Some("09:30".to_string()));
+let on_value_change = Callback::new(move |next: Option<String>| {
+  set_value.set(next);
+});
+
+<TimeField
+  id_base="meeting-time".to_string()
+  label="Meeting time".to_string()
+  value=value
+  on_value_change=on_value_change
+  minute_step=15
+/>"#;
+
+    let states_code = r#"<TimeField
+  id_base="ship-window".to_string()
+  label="Ship window".to_string()
+  tone=TimeFieldTone::Strong
+  minute_step=5
+  default_value="18:45".to_string()
+  placeholder="hour:minute".to_string()
+  class_name="docs-time-field-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="TimeField"
+            slug="time-field"
+            group="Forms"
+            description="Time entry field with centralized hour/minute normalization and Spectrum-style state/source data contracts."
+        >
+            <Playground title="Controlled + Step 15" code=code>
+                <div class="docs-stack">
+                    <TimeField
+                        id_base="docs-time-field-controlled".to_string()
+                        label="Meeting time".to_string()
+                        value=value
+                        on_value_change=on_value_change
+                        minute_step=15
+                    />
+                    <span class="ui-muted">
+                        "value: "
+                        {move || value.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Strong Tone + Custom Placeholder" code=states_code>
+                <TimeField
+                    id_base="docs-time-field-strong".to_string()
+                    label="Ship window".to_string()
+                    tone=TimeFieldTone::Strong
+                    minute_step=5
+                    default_value="18:45".to_string()
+                    placeholder="hour:minute".to_string()
+                    class_name="docs-time-field-custom".to_string()
                 />
             </Playground>
         </ComponentPage>

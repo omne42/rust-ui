@@ -212,6 +212,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::date_picker,
     },
     ComponentDoc {
+        name: "TimeField",
+        slug: "time-field",
+        group: "Forms",
+        page: forms_extra::time_field,
+    },
+    ComponentDoc {
         name: "Card",
         slug: "card",
         group: "Layout",
