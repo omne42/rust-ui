@@ -21,7 +21,6 @@ pub fn Select(
 ) -> impl IntoView {
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
-    let is_empty = item_count == 0;
     let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);
 
     let disabled_set: HashSet<usize> = disabled_indices.iter().copied().collect();
@@ -38,6 +37,17 @@ pub fn Select(
     let request_open_change = open_state.request_open_change;
 
     let presence = use_presence(open);
+
+    let state = Memo::new(move |_| {
+        let disabled_set = disabled_set.get_value();
+        logic::resolve_state(
+            disabled,
+            item_count,
+            selected_index.get(),
+            disabled_set.as_ref(),
+            open.get(),
+        )
+    });
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
 
@@ -195,10 +205,18 @@ pub fn Select(
             on:keydown=on_key_down
             on:keyup=on_key_up
             data-slot="select"
-            data-open=move || open.get().then_some("true")
-            data-disabled=trigger_disabled.then_some("true")
-            data-empty=is_empty.then_some("true")
-            data-has-selection=move || selected_index.get().is_some().then_some("true")
+            data-open=move || state.get().is_open.then_some("true")
+            data-closed=move || state.get().is_closed.then_some("true")
+            data-disabled=move || state.get().trigger_disabled.then_some("true")
+            data-component-disabled=move || state.get().is_disabled.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-count=move || state.get().item_count.to_string()
+            data-has-selection=move || state.get().has_selection.then_some("true")
+            data-selection-empty=move || state.get().selection_empty.then_some("true")
+            data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
+            data-has-disabled-options=move || state.get().has_disabled_options.then_some("true")
+            data-disabled-option-count=move || state.get().disabled_option_count.to_string()
         >
             <Button
                 id=trigger_id.get_value()

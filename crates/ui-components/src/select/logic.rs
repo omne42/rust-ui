@@ -12,6 +12,53 @@ pub fn resolve_ids(id_base: &str) -> SelectIds {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SelectState {
+    pub item_count: usize,
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub is_disabled: bool,
+    pub trigger_disabled: bool,
+    pub is_open: bool,
+    pub is_closed: bool,
+    pub selected_index: Option<usize>,
+    pub has_selection: bool,
+    pub selection_empty: bool,
+    pub has_disabled_options: bool,
+    pub disabled_option_count: usize,
+}
+
+pub fn resolve_state(
+    disabled: bool,
+    item_count: usize,
+    selected_index: Option<usize>,
+    disabled_indices: &HashSet<usize>,
+    is_open: bool,
+) -> SelectState {
+    let has_items = item_count > 0;
+    let selected_index = selected_index.filter(|index| *index < item_count);
+    let has_selection = selected_index.is_some();
+    let disabled_option_count = disabled_indices
+        .iter()
+        .filter(|index| **index < item_count)
+        .count();
+
+    SelectState {
+        item_count,
+        is_empty: !has_items,
+        has_items,
+        is_disabled: disabled,
+        trigger_disabled: resolve_trigger_disabled(disabled, item_count),
+        is_open,
+        is_closed: !is_open,
+        selected_index,
+        has_selection,
+        selection_empty: !has_selection,
+        has_disabled_options: disabled_option_count > 0,
+        disabled_option_count,
+    }
+}
+
 pub fn resolve_trigger_disabled(disabled: bool, item_count: usize) -> bool {
     disabled || item_count == 0
 }
@@ -112,6 +159,44 @@ pub fn find_typeahead_match(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn resolve_state_tracks_empty_and_disabled() {
+        let disabled = HashSet::new();
+        let state = resolve_state(true, 0, Some(0), &disabled, false);
+
+        assert_eq!(state.item_count, 0);
+        assert!(state.is_empty);
+        assert!(!state.has_items);
+        assert!(state.is_disabled);
+        assert!(state.trigger_disabled);
+        assert!(!state.is_open);
+        assert!(state.is_closed);
+        assert_eq!(state.selected_index, None);
+        assert!(!state.has_selection);
+        assert!(state.selection_empty);
+        assert!(!state.has_disabled_options);
+        assert_eq!(state.disabled_option_count, 0);
+    }
+
+    #[test]
+    fn resolve_state_tracks_open_selection_and_disabled_options() {
+        let disabled = HashSet::from([1_usize, 8_usize]);
+        let state = resolve_state(false, 3, Some(2), &disabled, true);
+
+        assert_eq!(state.item_count, 3);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(!state.is_disabled);
+        assert!(!state.trigger_disabled);
+        assert!(state.is_open);
+        assert!(!state.is_closed);
+        assert_eq!(state.selected_index, Some(2));
+        assert!(state.has_selection);
+        assert!(!state.selection_empty);
+        assert!(state.has_disabled_options);
+        assert_eq!(state.disabled_option_count, 1);
+    }
 
     #[test]
     fn trigger_disabled_when_prop_disabled_or_no_items() {

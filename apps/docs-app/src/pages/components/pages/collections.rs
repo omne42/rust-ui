@@ -752,19 +752,30 @@ pub(super) fn select() -> AnyView {
     ];
     let (selected, set_selected) = signal(Some(1_usize));
 
+    let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+    let controlled_open: Signal<bool> = controlled_open_raw.into();
+    let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
+
+    let disabled_indices = vec![3_usize];
+    let disabled_option_count = disabled_indices.len();
+    let has_selection = Signal::derive(move || selected.get().is_some());
+
     let disabled_items = vec!["Oak".to_string(), "Pine".to_string(), "Birch".to_string()];
     let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
 
     let empty_items: Vec<String> = Vec::new();
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
 
-    let code = r#"let items = vec!["Apple".to_string(), "Banana".to_string()];
-let (selected, set_selected) = signal(Some(1_usize));
+    let code = r#"let (selected, set_selected) = signal(Some(1_usize));
+let (open, set_open) = signal(false);
+let on_open_change = Callback::new(move |next: bool| set_open.set(next));
 <Select
   id_base="fruit".to_string()
   items=items
   selected_index=selected
   set_selected_index=set_selected
+  open=open.into()
+  on_open_change=on_open_change
   disabled_indices=vec![3]
 />"#;
 
@@ -788,20 +799,40 @@ let (selected, set_selected) = signal(Some(1_usize));
             title="Select"
             slug="select"
             group="Collections"
-            description="Select = Button + Popover + ListBox composition with Spectrum-style trigger and state semantics."
+            description="Select with controlled open state, listbox semantics, and Spectrum-style root state attrs."
         >
-            <Playground title="Selection + Disabled Options" code=code>
+            <Playground title="Controlled Open + Selection" code=code>
                 <div class="docs-stack">
                     <Select
-                        id_base="docs-select".to_string()
+                        id_base="docs-select-controlled".to_string()
                         items=items
                         selected_index=selected
                         set_selected_index=set_selected
-                        disabled_indices=vec![3]
+                        open=controlled_open
+                        on_open_change=on_open_change
+                        disabled_indices=disabled_indices
                     />
+                    <div class="docs-row">
+                        <ui_components::Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            on_press=Callback::new(move |_| {
+                                set_controlled_open_raw.update(|value| *value = !*value);
+                            })
+                        >
+                            "Toggle open"
+                        </ui_components::Button>
+                        <span class="ui-muted">
+                            "open: "
+                            {move || controlled_open_raw.get().to_string()}
+                        </span>
+                    </div>
                     <span class="ui-muted">
                         "selected: "
                         {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        " · has selection: "
+                        {move || has_selection.get().to_string()}
+                        " · disabled options: "
+                        {disabled_option_count.to_string()}
                     </span>
                 </div>
             </Playground>
@@ -841,7 +872,6 @@ let (selected, set_selected) = signal(Some(1_usize));
     }
     .into_any()
 }
-
 pub(super) fn combo_box() -> AnyView {
     let items = vec![
         "Rust".to_string(),
