@@ -1066,8 +1066,20 @@ pub(super) fn autocomplete() -> AnyView {
         "Shenzhen".to_string(),
         "Singapore".to_string(),
     ];
+    let controlled_items = vec![
+        "San Francisco".to_string(),
+        "Seattle".to_string(),
+        "Shanghai".to_string(),
+        "Shenzhen".to_string(),
+        "Singapore".to_string(),
+    ];
     let (selected, set_selected) = signal(Some(1_usize));
     let (invalid, set_invalid) = signal(false);
+
+    let (controlled_selected, set_controlled_selected) = signal(Some(2_usize));
+    let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+    let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
 
     let disabled_items = vec![
         "Berlin".to_string(),
@@ -1093,6 +1105,20 @@ let (invalid, set_invalid) = signal(false);
   invalid=Signal::derive(move || invalid.get())
 />"#;
 
+    let controlled_code = r#"let (selected, set_selected) = signal(Some(2_usize));
+let (open, set_open) = signal(false);
+let open_signal: Signal<bool> = Signal::derive(move || open.get());
+<Autocomplete
+  id_base="city-controlled".to_string()
+  label="Controlled city".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  open=open_signal
+  on_open_change=Callback::new(move |next| set_open.set(next))
+  disabled_indices=vec![3]
+/>"#;
+
     let states_code = r#"<Autocomplete
   id_base="city-disabled".to_string()
   label="Disabled city".to_string()
@@ -1115,7 +1141,7 @@ let (invalid, set_invalid) = signal(false);
             title="Autocomplete"
             slug="autocomplete"
             group="Collections"
-            description="Combobox-like autocomplete with filtered options, validation semantics, and active highlight motion."
+            description="Combobox-like autocomplete with Spectrum-style root attrs, controlled/uncontrolled open state, and HeroUI-level active highlight motion."
         >
             <Playground title="Selection + Validation" code=code>
                 <div class="docs-stack">
@@ -1143,6 +1169,30 @@ let (invalid, set_invalid) = signal(false);
                             {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                         </span>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Open State" code=controlled_code>
+                <div class="docs-stack">
+                    <Autocomplete
+                        id_base="docs-autocomplete-controlled".to_string()
+                        label="Controlled city".to_string()
+                        items=controlled_items
+                        selected_index=controlled_selected
+                        set_selected_index=set_controlled_selected
+                        open=controlled_open
+                        on_open_change=on_open_change
+                        disabled_indices=vec![3]
+                        description="Open state is externally controlled".to_string()
+                    />
+                    <span class="ui-muted">
+                        "open: "
+                        {move || controlled_open_raw.get().to_string()}
+                    </span>
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
                 </div>
             </Playground>
 

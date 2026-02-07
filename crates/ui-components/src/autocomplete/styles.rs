@@ -5,6 +5,18 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-autocomplete--empty .ui-autocomplete__input {
+  opacity: 0.72;
+}
+
+.ui-autocomplete--controlled .ui-autocomplete__control {
+  box-shadow: inset 0 0 0 1px var(--ui-border);
+}
+
+.ui-autocomplete--has-disabled-options .ui-autocomplete__listbox {
+  --ui-autocomplete-has-disabled-options: 1;
+}
+
 .ui-autocomplete__label {
   font-size: 14px;
   line-height: 1.2;

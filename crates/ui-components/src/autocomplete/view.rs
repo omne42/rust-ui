@@ -48,7 +48,6 @@ fn AutocompletePanel(
     );
 
     let on_panel_pointer_down = move |ev: ev::PointerEvent| {
-        // Prevent the input from losing focus while interacting with the list.
         ev.prevent_default();
     };
 
@@ -124,10 +123,9 @@ fn AutocompletePanel(
                                     .collect_view()
                             }
                         }}
-
                         <Show when=move || filtered_indices.get().is_empty()>
                             <div class="ui-autocomplete__empty" data-slot="autocomplete-empty">
-                                "No options"
+                                "No matches"
                             </div>
                         </Show>
                     </div>
@@ -158,12 +156,15 @@ pub fn Autocomplete(
     #[prop(optional)] motion: AutocompleteMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let id_base = logic::normalize_id_base(id_base);
     let id_base = StoredValue::new(id_base);
-    let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
 
-    let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
-    let has_disabled = !disabled_index_set.is_empty();
-    let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
+    let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
+    let item_count = items.get_value().len();
+
+    let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);
+    let disabled_option_count = disabled_indices.len();
+    let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_indices.into_iter().collect());
 
     let label = StoredValue::new(logic::normalize_label(label));
     let placeholder = StoredValue::new(logic::resolve_placeholder(placeholder));
@@ -172,6 +173,21 @@ pub fn Autocomplete(
     let error = logic::normalize_optional_text(error);
     let has_description = description.is_some();
     let has_error = error.is_some();
+
+    let class_name = logic::normalize_optional_text(class_name);
+    let is_controlled = open.is_some();
+
+    let state = logic::resolve_state(logic::AutocompleteStateInput {
+        item_count,
+        disabled_option_count,
+        is_disabled: disabled,
+        has_description,
+        has_error,
+        has_custom_class_name: class_name.is_some(),
+        is_controlled,
+    });
+
+    let class = logic::compose_class_name(class_name, state);
 
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let is_open = open_state.open;
@@ -188,7 +204,6 @@ pub fn Autocomplete(
             .and_then(|index| items.get(index).cloned())
     });
 
-    // Keep the input value aligned with selection when the popup closes.
     Effect::new(move |_| {
         if is_open.get() {
             return;
@@ -203,14 +218,14 @@ pub fn Autocomplete(
         logic::filter_indices(items.as_ref(), &query.get(), has_typed.get())
     });
 
-    let (filtered_count, _set_filtered_count) = signal(0_usize);
-    Effect::new(move |_| _set_filtered_count.set(filtered_indices.get().len()));
+    let (filtered_count, set_filtered_count) = signal(0_usize);
+    Effect::new(move |_| set_filtered_count.set(filtered_indices.get().len()));
 
     let selected_filtered_index = Memo::new(move |_| {
         logic::map_selected_to_filtered(selected_index.get(), &filtered_indices.get())
     });
 
-    let is_item_disabled = has_disabled.then_some({
+    let is_item_disabled = state.has_disabled_options.then_some({
         let disabled_indices = disabled_indices.clone();
         Callback::new(move |filtered_index: usize| {
             let indices = filtered_indices.get_untracked();
@@ -222,7 +237,7 @@ pub fn Autocomplete(
     });
 
     let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
+        is_disabled: state.is_disabled,
     });
 
     let input_id = format!("{}-input", id_base.get_value());
@@ -230,8 +245,8 @@ pub fn Autocomplete(
 
     let text_field = use_text_field(TextFieldOptions {
         id: input_id,
-        has_description,
-        has_error,
+        has_description: state.has_description,
+        has_error: state.has_error,
         aria_describedby,
         is_invalid: invalid,
         is_required: required,
@@ -251,7 +266,7 @@ pub fn Autocomplete(
     });
 
     let aria = use_combo_box(ComboBoxOptions {
-        is_disabled: disabled,
+        is_disabled: state.is_disabled,
         id_base: id_base.get_value(),
         is_open,
         set_open,
@@ -260,12 +275,6 @@ pub fn Autocomplete(
         on_action: Some(on_action),
         is_item_disabled,
     });
-
-    let base_class = "ui-autocomplete".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
 
     let aria_controls = aria.input.aria_controls.clone();
 
@@ -282,7 +291,7 @@ pub fn Autocomplete(
 
     let on_focus = move |_| {
         focus_ring.handlers.on_focus.run(());
-        if !disabled {
+        if state.is_enabled {
             aria.handlers.open.run(());
         }
     };
@@ -294,7 +303,7 @@ pub fn Autocomplete(
     };
 
     let on_input = move |ev| {
-        if disabled {
+        if state.is_disabled {
             return;
         }
         set_has_typed.set(true);
@@ -309,17 +318,41 @@ pub fn Autocomplete(
             class=class
             class:ui-autocomplete--focus-visible=move || focus_ring.is_focus_visible.get()
             class:ui-autocomplete--invalid=move || invalid.get()
-            class:ui-autocomplete--disabled=disabled
+            class:ui-autocomplete--disabled=state.is_disabled
             data-slot="autocomplete"
+            data-state=move || {
+                if is_open.get() {
+                    "open"
+                } else if state.is_disabled {
+                    "disabled"
+                } else {
+                    "closed"
+                }
+            }
+            data-open=move || is_open.get().then_some("true")
+            data-closed=move || (!is_open.get()).then_some("true")
+            data-disabled=state.is_disabled.then_some("true")
+            data-enabled=state.is_enabled.then_some("true")
             data-focused=move || focus_ring.is_focused.get().then_some("true")
             data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
             data-invalid=move || invalid.get().then_some("true")
-            data-disabled=disabled.then_some("true")
+            data-valid=move || (!invalid.get()).then_some("true")
             data-required=move || required.get().then_some("true")
-            data-open=move || is_open.get().then_some("true")
+            data-optional=move || (!required.get()).then_some("true")
             data-empty=move || (filtered_count.get() == 0).then_some("true")
-            data-has-description=has_description.then_some("true")
-            data-has-error=has_error.then_some("true")
+            data-has-items=state.has_items.then_some("true")
+            data-has-filtered-items=move || (filtered_count.get() > 0).then_some("true")
+            data-selection-empty=move || selected_index.get().is_none().then_some("true")
+            data-has-selection=move || selected_index.get().is_some().then_some("true")
+            data-has-description=state.has_description.then_some("true")
+            data-has-error=state.has_error.then_some("true")
+            data-has-disabled-options=state.has_disabled_options.then_some("true")
+            data-controlled=state.is_controlled.then_some("true")
+            data-uncontrolled=state.is_uncontrolled.then_some("true")
+            data-typed=move || has_typed.get().then_some("true")
+            data-count=state.item_count.to_string()
+            data-filtered-count=move || filtered_count.get().to_string()
+            data-disabled-option-count=state.disabled_option_count.to_string()
         >
             <label
                 class="ui-autocomplete__label"
@@ -344,7 +377,7 @@ pub fn Autocomplete(
                         (selected_label.get().is_none() && !has_typed.get())
                             .then(|| placeholder.get_value())
                     }
-                    disabled=disabled
+                    disabled=state.is_disabled
                     required=move || required.get()
                     role=aria.input.role
                     aria-autocomplete=aria.input.aria_autocomplete
