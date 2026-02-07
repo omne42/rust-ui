@@ -552,20 +552,62 @@ pub(super) fn progress() -> AnyView {
 }
 
 pub(super) fn progress_bar() -> AnyView {
-    let code = r#"<ProgressBar value=Some(30.0) max=100.0 />"#;
+    let matrix_code = r#"<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
+<ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
+<ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />
+<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />"#;
+
+    let custom_code = r#"<ProgressBar
+  variant=ProgressBarVariant::Accent
+  size=ProgressBarSize::Md
+  value=64.0
+  max=100.0
+  aria_label="Upload completion".to_string()
+  class_name="docs-progress-bar-custom".to_string()
+/>
+<ProgressBar
+  variant=ProgressBarVariant::Default
+  size=ProgressBarSize::Sm
+  value=18.0
+  max=f64::NAN
+  aria_label="   ".to_string()
+  class_name="docs-progress-bar-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="ProgressBar"
             slug="progress-bar"
             group="Display"
-            description="Native <progress> element styling."
+            description="Native <progress> element with centralized variant/size/state source attrs."
         >
-            <Playground title="ProgressBar" code=code>
+            <Playground title="Variant + Size Matrix" code=matrix_code>
                 <div class="docs-stack">
-                    <ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md value=30.0 />
-                    <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 />
+                    <ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
+                    <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
+                    <ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />
                     <ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Label + Class" code=custom_code>
+                <div class="docs-stack">
+                    <ProgressBar
+                        variant=ProgressBarVariant::Accent
+                        size=ProgressBarSize::Md
+                        value=64.0
+                        max=100.0
+                        aria_label="Upload completion".to_string()
+                        class_name="docs-progress-bar-custom".to_string()
+                    />
+                    <ProgressBar
+                        variant=ProgressBarVariant::Default
+                        size=ProgressBarSize::Sm
+                        value=18.0
+                        max=f64::NAN
+                        aria_label="   ".to_string()
+                        class_name="docs-progress-bar-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>
