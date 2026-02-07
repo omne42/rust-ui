@@ -994,6 +994,11 @@ a {
   border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 34%);
   background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 18%);
 }
+.docs-progress-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 36%);
+  background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 18%);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--ui-border), transparent 44%);
+}
 
 .docs-flip-button-custom {
   padding: 3px;

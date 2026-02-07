@@ -8,25 +8,107 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn progress_sets_value_text_for_screen_readers() {
-    let source = load_source("src/progress/view.rs");
+fn progress_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/progress/mod.rs");
 
-    assert!(
-        source.contains("aria-valuetext"),
-        "Progress should set `aria-valuetext` for determinate values (React Spectrum parity via useProgressBar)."
-    );
-    assert!(
-        source.contains("value_label_text"),
-        "Progress should derive a stable `value_label_text` signal for `aria-valuetext`."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Progress internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
-fn progress_filters_non_finite_values() {
-    let source = load_source("src/progress/logic.rs");
+fn progress_uses_logic_state_model() {
+    let view_source = load_source("src/progress/view.rs");
+    let logic_source = load_source("src/progress/logic.rs");
 
-    assert!(
-        source.contains("!value.is_finite()"),
-        "Progress clamp logic should treat non-finite inputs as min to avoid emitting NaN into motion CSS variables."
-    );
+    for needle in [
+        "pub struct ProgressStateInput",
+        "pub struct ProgressState",
+        "pub enum ProgressPhase",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_aria_label(",
+        "pub fn resolve_value_label(",
+        "pub fn resolve_phase(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+        "label_source_attr",
+        "value_label_source_attr",
+        "motion_source_attr",
+        "class_source_attr",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Progress logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_value_label(value_label)",
+        "logic::resolve_state(logic::ProgressStateInput {",
+        "logic::compose_class_name(class_name, state)",
+        "logic::resolve_phase(is_indeterminate.get())",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Progress view should derive wrapper state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn progress_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/progress/view.rs");
+
+    for attr in [
+        "data-slot=\"progress\"",
+        "data-state=move || phase.get().as_str()",
+        "data-phase-class=move || phase.get().class_name()",
+        "data-indeterminate=move ||",
+        "data-determinate=move ||",
+        "data-label-source=state.label_source_attr",
+        "data-value-label-source=state.value_label_source_attr",
+        "data-motion-source=state.motion_source_attr",
+        "data-custom-aria-label=state.has_custom_aria_label.then_some(\"true\")",
+        "data-custom-value-label=state.has_custom_value_label.then_some(\"true\")",
+        "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
+        "role=\"progressbar\"",
+        "aria-valuetext=move || value_label_text.get()",
+    ] {
+        assert!(
+            source.contains(attr),
+            "Progress should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn progress_styles_include_state_source_contracts() {
+    let source = load_source("src/progress/styles.rs");
+
+    for selector in [
+        ".ui-progress--label-custom",
+        ".ui-progress[data-label-source=\"custom\"]",
+        ".ui-progress--value-label-custom .ui-progress__track",
+        ".ui-progress[data-value-label-source=\"custom\"] .ui-progress__track",
+        ".ui-progress--motion-custom",
+        ".ui-progress[data-motion-source=\"custom\"]",
+        ".ui-progress--custom-class",
+        ".ui-progress[data-custom-class=\"true\"]",
+        ".ui-progress--state-indeterminate .ui-progress__indicator",
+        ".ui-progress[data-state=\"indeterminate\"] .ui-progress__indicator",
+        ".ui-progress--state-determinate .ui-progress__indicator",
+        ".ui-progress[data-state=\"determinate\"] .ui-progress__indicator",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Progress styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
 }

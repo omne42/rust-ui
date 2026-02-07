@@ -3,6 +3,14 @@ pub struct ProgressMotion {
     pub spring: ui_motion::spring::SpringConfig,
 }
 
+impl ProgressMotion {
+    pub fn fast() -> Self {
+        Self {
+            spring: ui_motion::presets::spring_fast(),
+        }
+    }
+}
+
 impl Default for ProgressMotion {
     fn default() -> Self {
         Self {

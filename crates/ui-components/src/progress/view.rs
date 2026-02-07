@@ -12,11 +12,19 @@ pub fn Progress(
     #[prop(optional)] motion: ProgressMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let range = ProgressRange::sanitized(min, max);
+    let class_name = logic::normalize_optional_text(class_name);
+    let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
+    let (value_label, has_custom_value_label) = logic::resolve_value_label(value_label);
 
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Progress".to_string());
+    let state = logic::resolve_state(logic::ProgressStateInput {
+        has_custom_aria_label,
+        has_custom_value_label,
+        has_custom_motion: motion != ProgressMotion::default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+    let class = logic::compose_class_name(class_name, state);
+
+    let range = ProgressRange::sanitized(min, max);
 
     let clamped_value =
         Signal::derive(move || value.get().map(|value| logic::clamp_to_range(value, range)));
@@ -28,8 +36,9 @@ pub fn Progress(
 
     let is_indeterminate =
         Signal::derive(move || indeterminate || normalized_progress.get().is_none());
-    let progress_value = Signal::derive(move || normalized_progress.get().unwrap_or(0.0));
+    let phase = Signal::derive(move || logic::resolve_phase(is_indeterminate.get()));
 
+    let progress_value = Signal::derive(move || normalized_progress.get().unwrap_or(0.0));
     let indicator_ref = NodeRef::new();
     motion::attach_motion(indicator_ref, progress_value, motion);
 
@@ -38,21 +47,12 @@ pub fn Progress(
         if is_indeterminate.get() {
             return None;
         }
-        if let Some(value_label) = value_label_override
-            .get_value()
-            .filter(|value_label| !value_label.trim().is_empty())
-        {
+        if let Some(value_label) = value_label_override.get_value() {
             return Some(value_label);
         }
         let progress = normalized_progress.get()?;
         Some(format!("{:.0}%", progress * 100.0))
     });
-
-    let base_class = "ui-progress".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
 
     let aria_value_now =
         Signal::derive(move || clamped_value.get().map(|value: f64| value.to_string()));
@@ -60,8 +60,32 @@ pub fn Progress(
     view! {
         <div
             class=class
-            class:ui-progress--indeterminate=move || is_indeterminate.get()
+            class:ui-progress--indeterminate=move || {
+                phase.get() == logic::ProgressPhase::Indeterminate
+            }
+            class:ui-progress--state-indeterminate=move || {
+                phase.get() == logic::ProgressPhase::Indeterminate
+            }
+            class:ui-progress--state-determinate=move || {
+                phase.get() == logic::ProgressPhase::Determinate
+            }
             data-slot="progress"
+            data-state=move || phase.get().as_str()
+            data-phase-class=move || phase.get().class_name()
+            data-indeterminate=move || {
+                (phase.get() == logic::ProgressPhase::Indeterminate).then_some("true")
+            }
+            data-determinate=move || {
+                (phase.get() == logic::ProgressPhase::Determinate).then_some("true")
+            }
+            data-label-source=state.label_source_attr
+            data-value-label-source=state.value_label_source_attr
+            data-motion-source=state.motion_source_attr
+            data-custom-aria-label=state.has_custom_aria_label.then_some("true")
+            data-custom-value-label=state.has_custom_value_label.then_some("true")
+            data-custom-motion=state.has_custom_motion.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
             role="progressbar"
             aria-label=aria_label
             aria-valuemin=range.min.to_string()

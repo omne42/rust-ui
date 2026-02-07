@@ -480,17 +480,33 @@ pub(super) fn progress() -> AnyView {
     let (value, set_value) = signal(42.0_f64);
     let progress_value = Signal::derive(move || Some(value.get()));
 
-    let code = r#"let progress_value = Signal::derive(move || Some(value.get()));
-<Progress aria_label="Progress".to_string() value=progress_value />"#;
+    let matrix_code = r#"let progress_value = Signal::derive(move || Some(value.get()));
+<Progress aria_label="Determinate".to_string() value=progress_value />
+<Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#;
+
+    let custom_code = r#"<Progress
+  aria_label="Syncing tasks".to_string()
+  value=Signal::derive(|| Some(64.0))
+  min=0.0
+  max=100.0
+  value_label="64 complete".to_string()
+  motion=ui_components::ProgressMotion::fast()
+  class_name="docs-progress-custom".to_string()
+/>
+<Progress
+  aria_label="   ".to_string()
+  value=Signal::derive(|| Some(18.0))
+  class_name="docs-progress-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Progress"
             slug="progress"
             group="Display"
-            description="Spring-driven linear progress indicator."
+            description="Spring-driven linear progress with centralized source attrs."
         >
-            <Playground title="Determinate / indeterminate" code=code>
+            <Playground title="Determinate + Indeterminate" code=matrix_code>
                 <div class="docs-stack">
                     <Progress aria_label="Determinate".to_string() value=progress_value />
                     <Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
@@ -509,6 +525,25 @@ pub(super) fn progress() -> AnyView {
                         </ui_components::Button>
                         <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Label + Motion + Class" code=custom_code>
+                <div class="docs-stack">
+                    <Progress
+                        aria_label="Syncing tasks".to_string()
+                        value=Signal::derive(|| Some(64.0))
+                        min=0.0
+                        max=100.0
+                        value_label="64 complete".to_string()
+                        motion=ui_components::ProgressMotion::fast()
+                        class_name="docs-progress-custom".to_string()
+                    />
+                    <Progress
+                        aria_label="   ".to_string()
+                        value=Signal::derive(|| Some(18.0))
+                        class_name="docs-progress-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>
