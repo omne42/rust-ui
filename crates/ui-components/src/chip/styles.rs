@@ -70,20 +70,44 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
 }
 
+.ui-chip--enabled,
+.ui-chip[data-enabled="true"] {
+  --ui-chip-enabled-state: 1;
+}
+
 .ui-chip--disabled,
+.ui-chip[data-state="disabled"],
 .ui-chip[data-disabled="true"] {
   opacity: 0.65;
   cursor: not-allowed;
 }
 
 .ui-chip--static,
+.ui-chip[data-state="static"],
 .ui-chip[data-static="true"] {
   padding-inline-end: 12px;
 }
 
 .ui-chip--removable,
+.ui-chip[data-state="removable"],
 .ui-chip[data-removable="true"] {
   padding-inline-end: 8px;
+}
+
+.ui-chip--dismiss-label-default,
+.ui-chip[data-dismiss-label-source="default"] {
+  --ui-chip-dismiss-label-source: 0;
+}
+
+.ui-chip--dismiss-label-custom,
+.ui-chip[data-dismiss-label-source="custom"] {
+  --ui-chip-dismiss-label-source: 1;
+}
+
+.ui-chip--custom-class,
+.ui-chip[data-custom-class="true"],
+.ui-chip[data-class-source="custom"] {
+  --ui-chip-custom-class: 1;
 }
 
 .ui-chip__dismiss {
@@ -115,5 +139,9 @@ pub const CSS: &str = r#"
 .ui-chip__dismiss[data-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.ui-chip__dismiss[data-label-source="custom"] {
+  --ui-chip-dismiss-label-source: 1;
 }
 "#;

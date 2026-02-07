@@ -979,6 +979,11 @@ a {
   background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 22%);
 }
 
+.docs-chip-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 38%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 24%);
+}
+
 .docs-flip-button-custom {
   padding: 3px;
   border-radius: var(--ui-radius-lg);

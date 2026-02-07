@@ -31,6 +31,9 @@ fn chip_uses_logic_state_model() {
         "pub fn resolve_dismiss_aria_label(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "state_class",
+        "dismiss_label_source_class",
+        "class_source_attr",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -59,16 +62,17 @@ fn chip_emits_spectrum_style_state_data_attributes() {
         "data-slot=\"chip\"",
         "data-variant=state.variant_attr",
         "data-size=state.size_attr",
-        "data-state=if state.is_disabled",
+        "data-state=state.state_attr",
         "data-enabled=state.is_enabled.then_some(\"true\")",
         "data-disabled=state.is_disabled.then_some(\"true\")",
         "data-removable=state.has_dismiss_action.then_some(\"true\")",
         "data-static=state.is_static.then_some(\"true\")",
-        "data-dismiss-label=dismiss_label_source",
+        "data-dismiss-label-source=state.dismiss_label_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
         "data-slot=\"chip-content\"",
         "data-slot=\"chip-dismiss\"",
-        "data-label-source=dismiss_label_source",
+        "data-label-source=state.dismiss_label_source_attr",
     ] {
         assert!(
             source.contains(attr),
@@ -78,7 +82,7 @@ fn chip_emits_spectrum_style_state_data_attributes() {
 }
 
 #[test]
-fn chip_styles_include_variant_size_and_state_markers() {
+fn chip_styles_include_variant_size_and_state_source_markers() {
     let source = load_source("src/chip/styles.rs");
 
     for selector in [
@@ -86,10 +90,17 @@ fn chip_styles_include_variant_size_and_state_markers() {
         ".ui-chip[data-size=\"md\"]",
         ".ui-chip--variant-danger",
         ".ui-chip[data-variant=\"outline\"]",
-        ".ui-chip--disabled",
-        ".ui-chip[data-static=\"true\"]",
-        ".ui-chip[data-removable=\"true\"]",
+        ".ui-chip--enabled",
+        ".ui-chip[data-state=\"disabled\"]",
+        ".ui-chip[data-state=\"static\"]",
+        ".ui-chip[data-state=\"removable\"]",
+        ".ui-chip--dismiss-label-custom",
+        ".ui-chip[data-dismiss-label-source=\"custom\"]",
+        ".ui-chip--custom-class",
+        ".ui-chip[data-custom-class=\"true\"]",
+        ".ui-chip[data-class-source=\"custom\"]",
         ".ui-chip__dismiss[data-disabled=\"true\"]",
+        ".ui-chip__dismiss[data-label-source=\"custom\"]",
     ] {
         assert!(
             source.contains(selector),

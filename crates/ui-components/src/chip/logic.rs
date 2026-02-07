@@ -71,12 +71,17 @@ pub struct ChipState {
     pub size_class: &'static str,
     pub variant_attr: &'static str,
     pub size_attr: &'static str,
+    pub state_class: &'static str,
+    pub state_attr: &'static str,
     pub is_disabled: bool,
     pub is_enabled: bool,
     pub has_dismiss_action: bool,
     pub is_static: bool,
     pub has_custom_dismiss_aria_label: bool,
+    pub dismiss_label_source_class: &'static str,
+    pub dismiss_label_source_attr: &'static str,
     pub has_custom_class_name: bool,
+    pub class_source_attr: &'static str,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -95,6 +100,27 @@ pub fn resolve_dismiss_aria_label(value: Option<String>) -> (String, bool) {
 }
 
 pub fn resolve_state(input: ChipStateInput) -> ChipState {
+    let (state_class, state_attr) = if input.disabled {
+        ("ui-chip--disabled", "disabled")
+    } else if input.has_dismiss_action {
+        ("ui-chip--removable", "removable")
+    } else {
+        ("ui-chip--static", "static")
+    };
+
+    let (dismiss_label_source_class, dismiss_label_source_attr) =
+        if input.has_custom_dismiss_aria_label {
+            ("ui-chip--dismiss-label-custom", "custom")
+        } else {
+            ("ui-chip--dismiss-label-default", "default")
+        };
+
+    let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+    };
+
     ChipState {
         variant: input.variant,
         size: input.size,
@@ -102,12 +128,17 @@ pub fn resolve_state(input: ChipStateInput) -> ChipState {
         size_class: input.size.class_name(),
         variant_attr: input.variant.as_str(),
         size_attr: input.size.as_str(),
+        state_class,
+        state_attr,
         is_disabled: input.disabled,
         is_enabled: !input.disabled,
         has_dismiss_action: input.has_dismiss_action,
         is_static: !input.has_dismiss_action,
         has_custom_dismiss_aria_label: input.has_custom_dismiss_aria_label,
+        dismiss_label_source_class,
+        dismiss_label_source_attr,
         has_custom_class_name: input.has_custom_class_name,
+        class_source_attr,
     }
 }
 
@@ -116,25 +147,19 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ChipState) -> 
         "ui-chip".to_string(),
         state.variant_class.to_string(),
         state.size_class.to_string(),
+        state.state_class.to_string(),
+        state.dismiss_label_source_class.to_string(),
     ];
 
     if state.is_enabled {
         classes.push("ui-chip--enabled".to_string());
     }
-    if state.is_disabled {
-        classes.push("ui-chip--disabled".to_string());
-    }
-    if state.has_dismiss_action {
-        classes.push("ui-chip--removable".to_string());
-    }
-    if state.is_static {
-        classes.push("ui-chip--static".to_string());
-    }
 
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
-        classes.push(base_class_name);
+    if state.has_custom_class_name {
+        classes.push("ui-chip--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
     }
 
     classes.join(" ")
@@ -194,28 +219,54 @@ mod tests {
     }
 
     #[test]
-    fn resolve_state_tracks_variant_size_and_flags() {
-        let state = resolve_state(ChipStateInput {
+    fn resolve_state_tracks_variant_size_and_sources() {
+        let removable = resolve_state(ChipStateInput {
             variant: ChipVariant::Danger,
             size: ChipSize::Lg,
-            disabled: true,
+            disabled: false,
             has_dismiss_action: true,
             has_custom_dismiss_aria_label: true,
             has_custom_class_name: true,
         });
 
-        assert_eq!(state.variant, ChipVariant::Danger);
-        assert_eq!(state.size, ChipSize::Lg);
-        assert_eq!(state.variant_class, "ui-chip--variant-danger");
-        assert_eq!(state.size_class, "ui-chip--size-lg");
-        assert_eq!(state.variant_attr, "danger");
-        assert_eq!(state.size_attr, "lg");
-        assert!(state.is_disabled);
-        assert!(!state.is_enabled);
-        assert!(state.has_dismiss_action);
-        assert!(!state.is_static);
-        assert!(state.has_custom_dismiss_aria_label);
-        assert!(state.has_custom_class_name);
+        assert_eq!(removable.variant, ChipVariant::Danger);
+        assert_eq!(removable.size, ChipSize::Lg);
+        assert_eq!(removable.variant_class, "ui-chip--variant-danger");
+        assert_eq!(removable.size_class, "ui-chip--size-lg");
+        assert_eq!(removable.variant_attr, "danger");
+        assert_eq!(removable.size_attr, "lg");
+        assert_eq!(removable.state_class, "ui-chip--removable");
+        assert_eq!(removable.state_attr, "removable");
+        assert!(!removable.is_disabled);
+        assert!(removable.is_enabled);
+        assert!(removable.has_dismiss_action);
+        assert!(!removable.is_static);
+        assert!(removable.has_custom_dismiss_aria_label);
+        assert_eq!(
+            removable.dismiss_label_source_class,
+            "ui-chip--dismiss-label-custom"
+        );
+        assert_eq!(removable.dismiss_label_source_attr, "custom");
+        assert!(removable.has_custom_class_name);
+        assert_eq!(removable.class_source_attr, "custom");
+
+        let disabled = resolve_state(ChipStateInput {
+            variant: ChipVariant::Default,
+            size: ChipSize::Md,
+            disabled: true,
+            has_dismiss_action: true,
+            has_custom_dismiss_aria_label: false,
+            has_custom_class_name: false,
+        });
+
+        assert_eq!(disabled.state_class, "ui-chip--disabled");
+        assert_eq!(disabled.state_attr, "disabled");
+        assert_eq!(
+            disabled.dismiss_label_source_class,
+            "ui-chip--dismiss-label-default"
+        );
+        assert_eq!(disabled.dismiss_label_source_attr, "default");
+        assert_eq!(disabled.class_source_attr, "default");
     }
 
     #[test]
@@ -236,8 +287,10 @@ mod tests {
             "ui-chip",
             "ui-chip--variant-accent",
             "ui-chip--size-sm",
-            "ui-chip--enabled",
             "ui-chip--static",
+            "ui-chip--dismiss-label-default",
+            "ui-chip--enabled",
+            "ui-chip--custom-class",
             "custom",
         ] {
             assert!(

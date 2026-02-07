@@ -29,11 +29,6 @@ pub fn Chip(
     });
 
     let class = logic::compose_class_name(class_name, state);
-    let dismiss_label_source = if state.has_custom_dismiss_aria_label {
-        "custom"
-    } else {
-        "default"
-    };
     let dismiss_aria_label = StoredValue::new(dismiss_aria_label);
     let on_dismiss = StoredValue::new(on_dismiss);
 
@@ -43,19 +38,15 @@ pub fn Chip(
             data-slot="chip"
             data-variant=state.variant_attr
             data-size=state.size_attr
-            data-state=if state.is_disabled {
-                "disabled"
-            } else if state.has_dismiss_action {
-                "removable"
-            } else {
-                "static"
-            }
+            data-state=state.state_attr
             data-enabled=state.is_enabled.then_some("true")
             data-disabled=state.is_disabled.then_some("true")
             data-removable=state.has_dismiss_action.then_some("true")
             data-static=state.is_static.then_some("true")
-            data-dismiss-label=dismiss_label_source
+            data-dismiss-label=state.dismiss_label_source_attr
+            data-dismiss-label-source=state.dismiss_label_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
         >
             <span class="ui-chip__content" data-slot="chip-content">
                 {children()}
@@ -68,7 +59,7 @@ pub fn Chip(
                     aria-label=move || dismiss_aria_label.get_value()
                     data-slot="chip-dismiss"
                     data-disabled=state.is_disabled.then_some("true")
-                    data-label-source=dismiss_label_source
+                    data-label-source=state.dismiss_label_source_attr
                     disabled=state.is_disabled
                     on:click=move |_| {
                         if state.is_enabled

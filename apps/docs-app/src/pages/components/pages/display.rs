@@ -256,6 +256,18 @@ pub(super) fn chip() -> AnyView {
 <Chip variant=ChipVariant::Danger size=ChipSize::Lg>"Danger"</Chip>
 <Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>"#;
 
+    let custom_code = r#"<Chip
+  variant=ChipVariant::Accent
+  on_dismiss=Some(Callback::new(|_| ()))
+  dismiss_aria_label="  Remove reviewer  ".to_string()
+  class_name="docs-chip-custom".to_string()
+>
+  "Reviewer"
+</Chip>
+<Chip variant=ChipVariant::Outline class_name="docs-chip-custom".to_string()>
+  "Read only"
+</Chip>"#;
+
     let disabled_code = r#"<Chip disabled=true on_dismiss=Some(on_dismiss)>"Locked"</Chip>
 <Chip disabled=true>"Read only"</Chip>"#;
 
@@ -264,7 +276,7 @@ pub(super) fn chip() -> AnyView {
             title="Chip"
             slug="chip"
             group="Display"
-            description="Chip / tag pill with centralized state attrs and optional dismiss action semantics."
+            description="Chip / tag pill with centralized variant-size-state attrs, dismiss-label source contracts, and optional custom class semantics."
         >
             <Playground title="Removable" code=removable_code>
                 <div class="docs-row">
@@ -293,6 +305,22 @@ pub(super) fn chip() -> AnyView {
                 </div>
             </Playground>
 
+            <Playground title="Custom Label + Class" code=custom_code>
+                <div class="docs-row">
+                    <Chip
+                        variant=ChipVariant::Accent
+                        on_dismiss=Callback::new(|_| ())
+                        dismiss_aria_label="  Remove reviewer  ".to_string()
+                        class_name="docs-chip-custom".to_string()
+                    >
+                        "Reviewer"
+                    </Chip>
+                    <Chip variant=ChipVariant::Outline class_name="docs-chip-custom".to_string()>
+                        "Read only"
+                    </Chip>
+                </div>
+            </Playground>
+
             <Playground title="Disabled + Static" code=disabled_code>
                 <div class="docs-row">
                     <Chip
@@ -314,7 +342,6 @@ pub(super) fn chip() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn skeleton() -> AnyView {
     let shimmer_code = r#"<Skeleton variant=SkeletonVariant::Rect shimmer=true class_name="docs-skeleton-line".to_string() />
 <Skeleton variant=SkeletonVariant::Circle shimmer=true class_name="docs-skeleton-avatar".to_string() />"#;
