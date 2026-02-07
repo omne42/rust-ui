@@ -17,11 +17,16 @@ pub struct AvatarGroupState {
     pub max_visible: usize,
     pub size: AvatarSize,
     pub size_attr: &'static str,
+    pub state_class: &'static str,
+    pub state_attr: &'static str,
     pub is_empty: bool,
     pub has_items: bool,
     pub has_overflow: bool,
     pub has_custom_aria_label: bool,
+    pub aria_label_source_class: &'static str,
+    pub aria_label_source_attr: &'static str,
     pub has_custom_class_name: bool,
+    pub class_source_attr: &'static str,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -46,6 +51,28 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
 pub fn resolve_state(input: AvatarGroupStateInput) -> AvatarGroupState {
     let visible_count = input.total_count.min(input.max_visible);
     let overflow_count = input.total_count.saturating_sub(visible_count);
+    let is_empty = input.total_count == 0;
+    let has_overflow = overflow_count > 0;
+
+    let (state_class, state_attr) = if has_overflow {
+        ("ui-avatar-group--overflow", "overflow")
+    } else if is_empty {
+        ("ui-avatar-group--empty", "empty")
+    } else {
+        ("ui-avatar-group--stable", "stable")
+    };
+
+    let (aria_label_source_class, aria_label_source_attr) = if input.has_custom_aria_label {
+        ("ui-avatar-group--aria-label-custom", "custom")
+    } else {
+        ("ui-avatar-group--aria-label-default", "default")
+    };
+
+    let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+    };
 
     AvatarGroupState {
         total_count: input.total_count,
@@ -54,11 +81,16 @@ pub fn resolve_state(input: AvatarGroupStateInput) -> AvatarGroupState {
         max_visible: input.max_visible,
         size: input.size,
         size_attr: input.size.as_str(),
-        is_empty: input.total_count == 0,
+        state_class,
+        state_attr,
+        is_empty,
         has_items: input.total_count > 0,
-        has_overflow: overflow_count > 0,
+        has_overflow,
         has_custom_aria_label: input.has_custom_aria_label,
+        aria_label_source_class,
+        aria_label_source_attr,
         has_custom_class_name: input.has_custom_class_name,
+        class_source_attr,
     }
 }
 
@@ -66,19 +98,15 @@ pub fn compose_class_name(base_class_name: Option<String>, state: AvatarGroupSta
     let mut classes = vec![
         "ui-avatar-group".to_string(),
         format!("ui-avatar-group--size-{}", state.size_attr),
+        state.state_class.to_string(),
+        state.aria_label_source_class.to_string(),
     ];
 
-    if state.is_empty {
-        classes.push("ui-avatar-group--empty".to_string());
-    }
-    if state.has_overflow {
-        classes.push("ui-avatar-group--overflow".to_string());
-    }
-
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
-        classes.push(base_class_name);
+    if state.has_custom_class_name {
+        classes.push("ui-avatar-group--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
     }
 
     classes.join(" ")
@@ -133,11 +161,19 @@ mod tests {
         assert_eq!(state.max_visible, 4);
         assert_eq!(state.size, AvatarSize::Lg);
         assert_eq!(state.size_attr, "lg");
+        assert_eq!(state.state_class, "ui-avatar-group--overflow");
+        assert_eq!(state.state_attr, "overflow");
         assert!(!state.is_empty);
         assert!(state.has_items);
         assert!(state.has_overflow);
         assert!(state.has_custom_aria_label);
+        assert_eq!(
+            state.aria_label_source_class,
+            "ui-avatar-group--aria-label-custom"
+        );
+        assert_eq!(state.aria_label_source_attr, "custom");
         assert!(state.has_custom_class_name);
+        assert_eq!(state.class_source_attr, "custom");
     }
 
     #[test]
@@ -145,10 +181,10 @@ mod tests {
         let class_name = compose_class_name(
             Some("custom".to_string()),
             resolve_state(AvatarGroupStateInput {
-                total_count: 0,
+                total_count: 2,
                 max_visible: 4,
                 size: AvatarSize::Sm,
-                has_custom_aria_label: false,
+                has_custom_aria_label: true,
                 has_custom_class_name: true,
             }),
         );
@@ -156,7 +192,9 @@ mod tests {
         for token in [
             "ui-avatar-group",
             "ui-avatar-group--size-sm",
-            "ui-avatar-group--empty",
+            "ui-avatar-group--stable",
+            "ui-avatar-group--aria-label-custom",
+            "ui-avatar-group--custom-class",
             "custom",
         ] {
             assert!(

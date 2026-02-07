@@ -32,6 +32,9 @@ fn avatar_group_uses_logic_state_model() {
         "pub fn resolve_aria_label(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "state_class",
+        "aria_label_source_class",
+        "class_source_attr",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -60,7 +63,7 @@ fn avatar_group_emits_spectrum_style_root_data_attributes() {
     for attr in [
         "data-slot=\"avatar-group\"",
         "data-size=state.size_attr",
-        "data-state=if state.has_overflow",
+        "data-state=state.state_attr",
         "data-empty=state.is_empty.then_some(\"true\")",
         "data-has-items=state.has_items.then_some(\"true\")",
         "data-has-overflow=state.has_overflow.then_some(\"true\")",
@@ -69,7 +72,9 @@ fn avatar_group_emits_spectrum_style_root_data_attributes() {
         "data-overflow-count=state.overflow_count.to_string()",
         "data-max-visible=state.max_visible.to_string()",
         "data-custom-aria-label=state.has_custom_aria_label.then_some(\"true\")",
+        "data-aria-label-source=state.aria_label_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
     ] {
         assert!(
             source.contains(attr),
@@ -98,17 +103,23 @@ fn avatar_group_exposes_item_and_overflow_slots() {
 }
 
 #[test]
-fn avatar_group_styles_include_size_empty_and_overflow_markers() {
+fn avatar_group_styles_include_state_source_and_marker_contracts() {
     let source = load_source("src/avatar_group/styles.rs");
 
     for selector in [
         ".ui-avatar-group--size-sm",
         ".ui-avatar-group[data-size=\"md\"]",
         ".ui-avatar-group--size-lg",
+        ".ui-avatar-group--stable",
+        ".ui-avatar-group[data-state=\"overflow\"]",
         ".ui-avatar-group--overflow .ui-avatar-group__overflow",
         ".ui-avatar-group[data-has-overflow=\"true\"] .ui-avatar-group__overflow",
-        ".ui-avatar-group--empty",
-        ".ui-avatar-group[data-empty=\"true\"]",
+        ".ui-avatar-group[data-state=\"empty\"]",
+        ".ui-avatar-group--aria-label-custom",
+        ".ui-avatar-group[data-aria-label-source=\"custom\"]",
+        ".ui-avatar-group--custom-class",
+        ".ui-avatar-group[data-custom-class=\"true\"]",
+        ".ui-avatar-group[data-class-source=\"custom\"]",
     ] {
         assert!(
             source.contains(selector),

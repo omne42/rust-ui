@@ -876,15 +876,25 @@ pub(super) fn avatar_group() -> AnyView {
     let empty_items: Vec<AvatarGroupItem> = Vec::new();
     let overflow_items = items.clone();
     let size_items = items.clone();
+    let custom_items = items.clone();
 
     let overflow_code = r#"<AvatarGroup items=items.clone() max=3 size=AvatarSize::Md />"#;
 
     let sizes_code = r#"<AvatarGroup items=items.clone() max=6 size=AvatarSize::Sm />
 <AvatarGroup items=items.clone() max=6 size=AvatarSize::Lg />"#;
 
-    let empty_code = r#"<AvatarGroup
+    let custom_code = r#"<AvatarGroup
   items=Vec::<AvatarGroupItem>::new()
+  size=AvatarSize::Md
   aria_label="No collaborators".to_string()
+  class_name="docs-avatar-group-custom".to_string()
+/>
+<AvatarGroup
+  items=items.clone()
+  max=3
+  size=AvatarSize::Md
+  aria_label="Core collaborators".to_string()
+  class_name="docs-avatar-group-custom".to_string()
 />"#;
 
     view! {
@@ -892,7 +902,7 @@ pub(super) fn avatar_group() -> AnyView {
             title="AvatarGroup"
             slug="avatar-group"
             group="Display"
-            description="Stacked avatars with normalized labels, overflow semantics, and Spectrum-style root data attrs."
+            description="Stacked avatars with centralized overflow/empty/aria-label-source state attrs and Spectrum-style root contracts."
         >
             <Playground title="Overflow Stack" code=overflow_code>
                 <div class="docs-row">
@@ -914,16 +924,22 @@ pub(super) fn avatar_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Empty + Custom Class" code=empty_code>
+            <Playground title="Custom Aria + Class" code=custom_code>
                 <div class="docs-row">
                     <AvatarGroup
                         items=empty_items.clone()
                         max=4
                         size=AvatarSize::Md
                         aria_label="No collaborators".to_string()
-                        class_name="docs-avatar-group-empty".to_string()
+                        class_name="docs-avatar-group-custom".to_string()
                     />
-                    <AvatarGroup items=empty_items max=0 size=AvatarSize::Sm />
+                    <AvatarGroup
+                        items=custom_items
+                        max=3
+                        size=AvatarSize::Md
+                        aria_label="Core collaborators".to_string()
+                        class_name="docs-avatar-group-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

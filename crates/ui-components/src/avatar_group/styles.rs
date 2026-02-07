@@ -74,14 +74,44 @@ pub const CSS: &str = r#"
   --ui-avatar-group-overflow-padding: 0.5rem;
 }
 
+.ui-avatar-group--stable,
+.ui-avatar-group[data-state="stable"] {
+  --ui-avatar-group-state: 0;
+}
+
+.ui-avatar-group--overflow,
+.ui-avatar-group[data-state="overflow"],
+.ui-avatar-group[data-has-overflow="true"] {
+  --ui-avatar-group-state: 1;
+}
+
 .ui-avatar-group--overflow .ui-avatar-group__overflow,
-.ui-avatar-group[data-has-overflow="true"] .ui-avatar-group__overflow {
+.ui-avatar-group[data-has-overflow="true"] .ui-avatar-group__overflow,
+.ui-avatar-group[data-state="overflow"] .ui-avatar-group__overflow {
   background: color-mix(in oklch, var(--ui-accent-soft) 72%, var(--ui-bg-muted) 28%);
   border-color: color-mix(in oklch, var(--ui-accent) 42%, var(--ui-bg) 58%);
 }
 
 .ui-avatar-group--empty,
-.ui-avatar-group[data-empty="true"] {
+.ui-avatar-group[data-empty="true"],
+.ui-avatar-group[data-state="empty"] {
   opacity: 0.88;
+}
+
+.ui-avatar-group--aria-label-default,
+.ui-avatar-group[data-aria-label-source="default"] {
+  --ui-avatar-group-aria-label-source: 0;
+}
+
+.ui-avatar-group--aria-label-custom,
+.ui-avatar-group[data-custom-aria-label="true"],
+.ui-avatar-group[data-aria-label-source="custom"] {
+  --ui-avatar-group-aria-label-source: 1;
+}
+
+.ui-avatar-group--custom-class,
+.ui-avatar-group[data-custom-class="true"],
+.ui-avatar-group[data-class-source="custom"] {
+  --ui-avatar-group-custom-class: 1;
 }
 "#;

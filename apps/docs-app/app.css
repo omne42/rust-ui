@@ -968,6 +968,11 @@ a {
   box-shadow: 0 0 0 2px color-mix(in oklch, var(--ui-accent-soft), transparent 28%);
 }
 
+.docs-avatar-group-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 40%);
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ui-accent-soft), transparent 24%);
+}
+
 .docs-flip-button-custom {
   padding: 3px;
   border-radius: var(--ui-radius-lg);

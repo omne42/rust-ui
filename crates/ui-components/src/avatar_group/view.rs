@@ -42,13 +42,7 @@ pub fn AvatarGroup(
             class=class
             data-slot="avatar-group"
             data-size=state.size_attr
-            data-state=if state.has_overflow {
-                "overflow"
-            } else if state.is_empty {
-                "empty"
-            } else {
-                "stable"
-            }
+            data-state=state.state_attr
             data-empty=state.is_empty.then_some("true")
             data-has-items=state.has_items.then_some("true")
             data-has-overflow=state.has_overflow.then_some("true")
@@ -57,7 +51,9 @@ pub fn AvatarGroup(
             data-overflow-count=state.overflow_count.to_string()
             data-max-visible=state.max_visible.to_string()
             data-custom-aria-label=state.has_custom_aria_label.then_some("true")
+            data-aria-label-source=state.aria_label_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
             role="group"
             aria-label=aria_label
         >
