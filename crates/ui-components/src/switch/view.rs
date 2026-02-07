@@ -1,4 +1,4 @@
-use crate::switch::{SwitchMotion, motion};
+use crate::switch::{SwitchMotion, logic, motion};
 use leptos::{html, prelude::*};
 use ui_headless::{
     FocusRingOptions, HoverOptions, OnPress, SwitchOptions, use_focus_ring, use_hover, use_switch,
@@ -48,13 +48,16 @@ pub fn Switch(
         motion,
     );
 
-    let data_state = move || {
-        if checked.get() {
-            "checked"
-        } else {
-            "unchecked"
-        }
-    };
+    let state = Memo::new(move |_| {
+        logic::resolve_state(
+            checked.get(),
+            disabled,
+            aria.is_pressed.get(),
+            hover.is_hovered.get(),
+            focus_ring.is_focused.get(),
+            focus_ring.is_focus_visible.get(),
+        )
+    });
 
     let base_class = "ui-switch".to_string();
     let class = class_name
@@ -67,15 +70,18 @@ pub fn Switch(
             type="button"
             node_ref=node_ref
             class=class
-            class:ui-switch--focus-visible=move || focus_ring.is_focus_visible.get()
+            class:ui-switch--focus-visible=move || state.get().is_focus_visible
             disabled=disabled
             data-slot="switch"
-            data-state=data_state
-            data-pressed=move || aria.is_pressed.get().then_some("true")
-            data-hovered=move || hover.is_hovered.get().then_some("true")
-            data-focused=move || focus_ring.is_focused.get().then_some("true")
-            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
-            data-disabled=disabled.then_some("true")
+            data-state=move || state.get().data_state()
+            data-checked=move || state.get().is_checked.then_some("true")
+            data-unchecked=move || state.get().is_unchecked.then_some("true")
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-enabled=move || state.get().is_enabled.then_some("true")
+            data-pressed=move || state.get().is_pressed.then_some("true")
+            data-hovered=move || state.get().is_hovered.then_some("true")
+            data-focused=move || state.get().is_focused.then_some("true")
+            data-focus-visible=move || state.get().is_focus_visible.then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled

@@ -444,27 +444,86 @@ pub(super) fn checkbox_group() -> AnyView {
 }
 pub(super) fn switch() -> AnyView {
     let (checked, set_checked) = signal(true);
+
+    let (system_enabled, set_system_enabled) = signal(true);
+    let (last_change, set_last_change) = signal("none".to_string());
+    let on_system_change = Callback::new(move |next: bool| {
+        set_last_change.set(if next {
+            "true".to_string()
+        } else {
+            "false".to_string()
+        });
+    });
+
+    let (disabled_checked, set_disabled_checked) = signal(true);
+    let (disabled_unchecked, set_disabled_unchecked) = signal(false);
+
     let code = r#"let (checked, set_checked) = signal(true);
-<Switch checked=checked set_checked=set_checked>"Notifications"</Switch>"#;
+let on_change = Callback::new(move |next: bool| {
+  logging::log!("switch changed: {next}");
+});
+<Switch checked=checked set_checked=set_checked on_change=Some(on_change)>
+  "Notifications"
+</Switch>"#;
+
+    let states_code = r#"<Switch checked=system_enabled set_checked=set_system_enabled>
+  "System alerts"
+</Switch>
+<Switch checked=disabled_checked set_checked=set_disabled_checked disabled=true>
+  "Disabled on"
+</Switch>
+<Switch checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
+  "Disabled off"
+</Switch>"#;
 
     view! {
         <ComponentPage
             title="Switch"
             slug="switch"
             group="Forms"
-            description="Switch toggle with spring-driven thumb motion."
+            description="Switch toggle with HeroUI-level spring thumb motion and Spectrum-style root state attrs."
         >
-            <Playground title="Switch" code=code>
-                <div class="docs-row">
-                    <Switch checked=checked set_checked=set_checked>"Notifications"</Switch>
-                    <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+            <Playground title="Controlled + on_change" code=code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Switch
+                            checked=checked
+                            set_checked=set_checked
+                            on_change=on_system_change
+                        >
+                            "Notifications"
+                        </Switch>
+                        <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+                    </div>
+                    <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="State matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Switch checked=system_enabled set_checked=set_system_enabled>
+                            "System alerts"
+                        </Switch>
+                        <span class="ui-muted">
+                            "system enabled: "
+                            {move || system_enabled.get().to_string()}
+                        </span>
+                    </div>
+                    <div class="docs-row">
+                        <Switch checked=disabled_checked set_checked=set_disabled_checked disabled=true>
+                            "Disabled on"
+                        </Switch>
+                        <Switch checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
+                            "Disabled off"
+                        </Switch>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn radio_group() -> AnyView {
     let options = vec![
         "Small".to_string(),

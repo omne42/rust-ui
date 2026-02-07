@@ -8,6 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn switch_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/switch/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Switch internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn switch_uses_headless_hooks() {
     let source = load_source("src/switch/view.rs");
 
@@ -15,6 +27,38 @@ fn switch_uses_headless_hooks() {
         assert!(
             source.contains(needle),
             "Switch should use headless `{needle}` hooks."
+        );
+    }
+}
+
+#[test]
+fn switch_uses_logic_state_model() {
+    let view_source = load_source("src/switch/view.rs");
+    let logic_source = load_source("src/switch/logic.rs");
+
+    for needle in [
+        "pub struct SwitchState",
+        "pub fn resolve_state(",
+        "pub is_checked: bool",
+        "pub is_enabled: bool",
+        "pub is_pressed: bool",
+        "pub is_focus_visible: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Switch logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let state = Memo::new(move |_|",
+        "logic::resolve_state(",
+        "checked.get()",
+        "state.get().data_state()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Switch view should derive root state via logic::resolve_state; missing `{needle}`."
         );
     }
 }
@@ -35,12 +79,15 @@ fn switch_emits_spectrum_style_state_data_attributes() {
 
     for attr in [
         "data-slot=\"switch\"",
-        "data-state",
-        "data-pressed",
-        "data-hovered",
-        "data-focused",
-        "data-focus-visible",
-        "data-disabled",
+        "data-state=move || state.get().data_state()",
+        "data-checked=move || state.get().is_checked.then_some(\"true\")",
+        "data-unchecked=move || state.get().is_unchecked.then_some(\"true\")",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-enabled=move || state.get().is_enabled.then_some(\"true\")",
+        "data-pressed=move || state.get().is_pressed.then_some(\"true\")",
+        "data-hovered=move || state.get().is_hovered.then_some(\"true\")",
+        "data-focused=move || state.get().is_focused.then_some(\"true\")",
+        "data-focus-visible=move || state.get().is_focus_visible.then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
