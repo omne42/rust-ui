@@ -1,5 +1,7 @@
 pub const CSS: &str = r#"
 .ui-status-light {
+  --ui-status-light-dot: var(--ui-fg-muted);
+  --ui-status-light-label: var(--ui-fg-muted);
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-sm);
@@ -21,18 +23,30 @@ pub const CSS: &str = r#"
   color: var(--ui-status-light-label);
 }
 
-.ui-status-light--variant-default {
+.ui-status-light--variant-default,
+.ui-status-light[data-variant="default"] {
   --ui-status-light-dot: var(--ui-fg-muted);
   --ui-status-light-label: var(--ui-fg-muted);
 }
 
-.ui-status-light--variant-accent {
+.ui-status-light--variant-accent,
+.ui-status-light[data-variant="accent"] {
   --ui-status-light-dot: var(--ui-accent);
   --ui-status-light-label: var(--ui-accent);
 }
 
-.ui-status-light--variant-danger {
+.ui-status-light--variant-danger,
+.ui-status-light[data-variant="danger"] {
   --ui-status-light-dot: var(--ui-danger);
   --ui-status-light-label: var(--ui-danger);
+}
+
+.ui-status-light--live,
+.ui-status-light[data-live="true"] {
+  font-weight: 600;
+}
+
+.ui-status-light[data-state="static"] .ui-status-light__dot {
+  opacity: 0.9;
 }
 "#;

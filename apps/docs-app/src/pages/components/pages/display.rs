@@ -8,7 +8,7 @@ use ui_components::{
     InlineAlertTone, Kbd, KbdSize, Link, Meter, MeterSize, MeterVariant, MotionRipple, Progress,
     ProgressBar, ProgressBarSize, ProgressBarVariant, ProgressCircle, RippleMotion, Skeleton,
     SkeletonVariant, SlidingNumber, Snippet, Spinner, SpinnerSize, StaticNumber, StatusLight,
-    StatusLightVariant,
+    StatusLightRole, StatusLightVariant,
 };
 
 pub(super) fn alert() -> AnyView {
@@ -99,20 +99,38 @@ pub(super) fn badge() -> AnyView {
 }
 
 pub(super) fn status_light() -> AnyView {
-    let code = r#"<StatusLight variant=StatusLightVariant::Positive>"Online"</StatusLight>"#;
+    let variants_code = r#"<StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
+<StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
+<StatusLight variant=StatusLightVariant::Danger>"Failed"</StatusLight>"#;
+
+    let role_code =
+        r#"<StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>"#;
 
     view! {
         <ComponentPage
             title="StatusLight"
             slug="status-light"
             group="Display"
-            description="Status indicator + label (Spectrum-style)."
+            description="Status indicator + label with variant/live state attrs and optional status role semantics."
         >
-            <Playground title="Statuses" code=code>
+            <Playground title="Variants" code=variants_code>
                 <div class="docs-row">
-                    <StatusLight variant=StatusLightVariant::Default>"Default"</StatusLight>
-                    <StatusLight variant=StatusLightVariant::Accent>"Accent"</StatusLight>
-                    <StatusLight variant=StatusLightVariant::Danger>"Danger"</StatusLight>
+                    <StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
+                    <StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
+                    <StatusLight variant=StatusLightVariant::Danger>"Failed"</StatusLight>
+                </div>
+            </Playground>
+
+            <Playground title="Live Region Role" code=role_code>
+                <div class="docs-row">
+                    <StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>
+                    <StatusLight
+                        role=StatusLightRole::Status
+                        variant=StatusLightVariant::Accent
+                        class_name="docs-status-live".to_string()
+                    >
+                        "Deploy started"
+                    </StatusLight>
                 </div>
             </Playground>
         </ComponentPage>
