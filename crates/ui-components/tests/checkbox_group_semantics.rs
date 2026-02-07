@@ -20,6 +20,37 @@ fn checkbox_group_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn checkbox_group_uses_logic_state_model() {
+    let view_source = load_source("src/checkbox_group/view.rs");
+    let logic_source = load_source("src/checkbox_group/logic.rs");
+
+    for needle in [
+        "pub struct CheckboxGroupState",
+        "pub fn resolve_state(",
+        "pub is_disabled: bool",
+        "pub is_invalid: bool",
+        "pub shows_error: bool",
+        "pub has_messages: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "CheckboxGroup logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let state = Memo::new(move |_|",
+        "resolve_state(",
+        "state.get().shows_error",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "CheckboxGroup view should derive root state via logic::resolve_state; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
     let view_source = load_source("src/checkbox_group/view.rs");
     let logic_source = load_source("src/checkbox_group/logic.rs");
@@ -65,11 +96,16 @@ fn checkbox_group_emits_spectrum_state_data_attributes() {
 
     for needle in [
         "data-slot=\"checkbox-group\"",
-        "data-disabled=disabled.then_some(\"true\")",
-        "data-invalid=move || invalid.get().then_some(\"true\")",
-        "data-required=move || required.get().then_some(\"true\")",
-        "data-has-description=has_description.then_some(\"true\")",
-        "data-has-error=has_error.then_some(\"true\")",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-enabled=move || state.get().is_enabled.then_some(\"true\")",
+        "data-invalid=move || state.get().is_invalid.then_some(\"true\")",
+        "data-valid=move || state.get().is_valid.then_some(\"true\")",
+        "data-required=move || state.get().is_required.then_some(\"true\")",
+        "data-optional=move || state.get().is_optional.then_some(\"true\")",
+        "data-has-description=move || state.get().has_description.then_some(\"true\")",
+        "data-has-error=move || state.get().has_error.then_some(\"true\")",
+        "data-shows-error=move || state.get().shows_error.then_some(\"true\")",
+        "data-has-messages=move || state.get().has_messages.then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -83,7 +119,7 @@ fn checkbox_group_only_renders_error_slot_when_invalid() {
     let source = load_source("src/checkbox_group/view.rs");
 
     for needle in [
-        "<Show when=move || invalid.get()>",
+        "<Show when=move || state.get().shows_error>",
         "data-slot=\"checkbox-group-error\"",
     ] {
         assert!(

@@ -12,6 +12,44 @@ pub fn resolve_ids(id: &str) -> CheckboxGroupIds {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CheckboxGroupState {
+    pub is_disabled: bool,
+    pub is_enabled: bool,
+    pub is_invalid: bool,
+    pub is_valid: bool,
+    pub is_required: bool,
+    pub is_optional: bool,
+    pub has_description: bool,
+    pub has_error: bool,
+    pub shows_error: bool,
+    pub has_messages: bool,
+}
+
+pub fn resolve_state(
+    is_disabled: bool,
+    is_invalid: bool,
+    is_required: bool,
+    has_description: bool,
+    has_error: bool,
+) -> CheckboxGroupState {
+    let shows_error = has_error && is_invalid;
+    let has_messages = has_description || shows_error;
+
+    CheckboxGroupState {
+        is_disabled,
+        is_enabled: !is_disabled,
+        is_invalid,
+        is_valid: !is_invalid,
+        is_required,
+        is_optional: !is_required,
+        has_description,
+        has_error,
+        shows_error,
+        has_messages,
+    }
+}
+
 pub fn normalize_label(label: String) -> String {
     let trimmed = label.trim();
     if trimmed.is_empty() {
@@ -92,6 +130,38 @@ mod tests {
                 legend_id: "prefs-label".to_string(),
             }
         );
+    }
+
+    #[test]
+    fn resolve_state_tracks_optional_without_messages() {
+        let state = resolve_state(false, false, false, false, false);
+
+        assert!(!state.is_disabled);
+        assert!(state.is_enabled);
+        assert!(!state.is_invalid);
+        assert!(state.is_valid);
+        assert!(!state.is_required);
+        assert!(state.is_optional);
+        assert!(!state.has_description);
+        assert!(!state.has_error);
+        assert!(!state.shows_error);
+        assert!(!state.has_messages);
+    }
+
+    #[test]
+    fn resolve_state_tracks_invalid_required_and_messages() {
+        let state = resolve_state(true, true, true, true, true);
+
+        assert!(state.is_disabled);
+        assert!(!state.is_enabled);
+        assert!(state.is_invalid);
+        assert!(!state.is_valid);
+        assert!(state.is_required);
+        assert!(!state.is_optional);
+        assert!(state.has_description);
+        assert!(state.has_error);
+        assert!(state.shows_error);
+        assert!(state.has_messages);
     }
 
     #[test]

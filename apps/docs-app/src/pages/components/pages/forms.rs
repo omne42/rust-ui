@@ -304,6 +304,11 @@ pub(super) fn checkbox_group() -> AnyView {
     let (disabled_a, set_disabled_a) = signal(true);
     let (disabled_b, set_disabled_b) = signal(false);
 
+    let (optional_email, set_optional_email) = signal(false);
+    let (optional_sms, set_optional_sms) = signal(true);
+    let optional_selected_count =
+        Signal::derive(move || usize::from(optional_email.get()) + usize::from(optional_sms.get()));
+
     let code = r#"let invalid = Signal::derive(move || !(apple.get() || banana.get()));
 <CheckboxGroup
   id="demo".to_string()
@@ -317,10 +322,18 @@ pub(super) fn checkbox_group() -> AnyView {
   <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
 </CheckboxGroup>"#;
 
-    let disabled_code = r#"<CheckboxGroup
+    let states_code = r#"<CheckboxGroup
   id="disabled".to_string()
   label="Notifications".to_string()
   disabled=true
+>
+  <Checkbox ...>"Email"</Checkbox>
+  <Checkbox ...>"SMS"</Checkbox>
+</CheckboxGroup>
+<CheckboxGroup
+  id="optional".to_string()
+  label="Delivery channels".to_string()
+  description="Optional selection".to_string()
 >
   <Checkbox ...>"Email"</Checkbox>
   <Checkbox ...>"SMS"</Checkbox>
@@ -331,7 +344,7 @@ pub(super) fn checkbox_group() -> AnyView {
             title="CheckboxGroup"
             slug="checkbox-group"
             group="Forms"
-            description="Fieldset wrapper with Spectrum-style label/description/error semantics and state attrs."
+            description="Fieldset wrapper with normalized labels, validation semantics, and Spectrum-style root state attrs."
         >
             <Playground title="Validation + Required" code=code>
                 <div class="docs-stack">
@@ -391,22 +404,43 @@ pub(super) fn checkbox_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled" code=disabled_code>
-                <CheckboxGroup
-                    id="docs-checkbox-group-disabled".to_string()
-                    label="Notifications".to_string()
-                    description="Read-only preferences".to_string()
-                    disabled=true
-                >
-                    <Checkbox checked=disabled_a set_checked=set_disabled_a>"Email"</Checkbox>
-                    <Checkbox checked=disabled_b set_checked=set_disabled_b>"SMS"</Checkbox>
-                </CheckboxGroup>
+            <Playground title="Disabled + Optional" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <CheckboxGroup
+                            id="docs-checkbox-group-disabled".to_string()
+                            label="Notifications".to_string()
+                            description="Read-only preferences".to_string()
+                            disabled=true
+                        >
+                            <Checkbox checked=disabled_a set_checked=set_disabled_a>"Email"</Checkbox>
+                            <Checkbox checked=disabled_b set_checked=set_disabled_b>"SMS"</Checkbox>
+                        </CheckboxGroup>
+                        <span class="ui-muted">"disabled: true"</span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <CheckboxGroup
+                            id="docs-checkbox-group-optional".to_string()
+                            label="Delivery channels".to_string()
+                            description="Optional selection (required = false)".to_string()
+                        >
+                            <Checkbox checked=optional_email set_checked=set_optional_email>
+                                "Email"
+                            </Checkbox>
+                            <Checkbox checked=optional_sms set_checked=set_optional_sms>"SMS"</Checkbox>
+                        </CheckboxGroup>
+                        <span class="ui-muted">
+                            "optional selected count: "
+                            {move || optional_selected_count.get().to_string()}
+                        </span>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn switch() -> AnyView {
     let (checked, set_checked) = signal(true);
     let code = r#"let (checked, set_checked) = signal(true);
