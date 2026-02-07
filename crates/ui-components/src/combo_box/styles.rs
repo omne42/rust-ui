@@ -5,6 +5,18 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-combo-box--empty .ui-combo-box__trigger {
+  opacity: 0.72;
+}
+
+.ui-combo-box--controlled .ui-combo-box__trigger {
+  box-shadow: inset 0 0 0 1px var(--ui-border);
+}
+
+.ui-combo-box--has-disabled-options .ui-combo-box__listbox {
+  --ui-combo-box-has-disabled-options: 1;
+}
+
 .ui-combo-box__field {
   position: relative;
 }

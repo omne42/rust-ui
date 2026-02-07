@@ -895,8 +895,20 @@ pub(super) fn combo_box() -> AnyView {
         "Python".to_string(),
         "Zig".to_string(),
     ];
+    let controlled_items = vec![
+        "Rust".to_string(),
+        "TypeScript".to_string(),
+        "Go".to_string(),
+        "Python".to_string(),
+        "Zig".to_string(),
+    ];
     let (selected, set_selected) = signal(Some(1_usize));
     let (invalid, set_invalid) = signal(false);
+
+    let (controlled_selected, set_controlled_selected) = signal(Some(2_usize));
+    let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+    let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
 
     let disabled_items = vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()];
     let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
@@ -916,6 +928,20 @@ let (invalid, set_invalid) = signal(false);
   description="Pick one runtime language".to_string()
   error="Language is required".to_string()
   invalid=Signal::derive(move || invalid.get())
+/>"#;
+
+    let controlled_code = r#"let (selected, set_selected) = signal(Some(2_usize));
+let (open, set_open) = signal(false);
+let open_signal: Signal<bool> = Signal::derive(move || open.get());
+<ComboBox
+  id_base="lang-controlled".to_string()
+  label="Controlled language".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  open=open_signal
+  on_open_change=Callback::new(move |next| set_open.set(next))
+  disabled_indices=vec![4]
 />"#;
 
     let states_code = r#"<ComboBox
@@ -940,7 +966,7 @@ let (invalid, set_invalid) = signal(false);
             title="ComboBox"
             slug="combo-box"
             group="Collections"
-            description="Combobox with input + listbox + popover, including Spectrum-style validation and empty states."
+            description="Combobox with input + listbox + popover, Spectrum-style root attrs, and HeroUI-level panel/highlight motion."
         >
             <Playground title="Selection + Validation" code=code>
                 <div class="docs-stack">
@@ -967,6 +993,30 @@ let (invalid, set_invalid) = signal(false);
                             {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                         </span>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Open State" code=controlled_code>
+                <div class="docs-stack">
+                    <ComboBox
+                        id_base="docs-combo-box-controlled".to_string()
+                        label="Controlled language".to_string()
+                        items=controlled_items
+                        selected_index=controlled_selected
+                        set_selected_index=set_controlled_selected
+                        open=controlled_open
+                        on_open_change=on_open_change
+                        disabled_indices=vec![4]
+                        description="Open state is externally controlled".to_string()
+                    />
+                    <span class="ui-muted">
+                        "open: "
+                        {move || controlled_open_raw.get().to_string()}
+                    </span>
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
                 </div>
             </Playground>
 
