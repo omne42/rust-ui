@@ -408,25 +408,92 @@ pub(super) fn select() -> AnyView {
         "Cherry".to_string(),
         "Durian".to_string(),
     ];
-    let (selected, set_selected) = signal(None::<usize>);
+    let (selected, set_selected) = signal(Some(1_usize));
+
+    let disabled_items = vec!["Oak".to_string(), "Pine".to_string(), "Birch".to_string()];
+    let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
+
+    let empty_items: Vec<String> = Vec::new();
+    let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
     let code = r#"let items = vec!["Apple".to_string(), "Banana".to_string()];
-let (selected, set_selected) = signal(None::<usize>);
-<Select id_base="fruit".to_string() items=items selected_index=selected set_selected_index=set_selected />"#;
+let (selected, set_selected) = signal(Some(1_usize));
+<Select
+  id_base="fruit".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  disabled_indices=vec![3]
+/>"#;
+
+    let states_code = r#"<Select
+  id_base="select-disabled".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  disabled=true
+/>
+<Select
+  id_base="select-empty".to_string()
+  items=Vec::<String>::new()
+  selected_index=empty_selected
+  set_selected_index=set_empty_selected
+  placeholder="No options".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Select"
             slug="select"
             group="Collections"
-            description="Select = Button + Popover + ListBox composition."
+            description="Select = Button + Popover + ListBox composition with Spectrum-style trigger and state semantics."
         >
-            <Playground title="Select" code=code>
-                <Select
-                    id_base="docs-select".to_string()
-                    items=items
-                    selected_index=selected
-                    set_selected_index=set_selected
-                />
+            <Playground title="Selection + Disabled Options" code=code>
+                <div class="docs-stack">
+                    <Select
+                        id_base="docs-select".to_string()
+                        items=items
+                        selected_index=selected
+                        set_selected_index=set_selected
+                        disabled_indices=vec![3]
+                    />
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <Select
+                            id_base="docs-select-disabled".to_string()
+                            items=disabled_items
+                            selected_index=disabled_selected
+                            set_selected_index=set_disabled_selected
+                            disabled=true
+                        />
+                        <span class="ui-muted">
+                            "disabled selected: "
+                            {move || disabled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <Select
+                            id_base="docs-select-empty".to_string()
+                            items=empty_items
+                            selected_index=empty_selected
+                            set_selected_index=set_empty_selected
+                            placeholder="No options".to_string()
+                        />
+                        <span class="ui-muted">
+                            "empty selected: "
+                            {move || empty_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }

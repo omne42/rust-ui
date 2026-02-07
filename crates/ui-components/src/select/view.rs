@@ -20,6 +20,10 @@ pub fn Select(
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
 ) -> impl IntoView {
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
+    let item_count = items.get_value().len();
+    let is_empty = item_count == 0;
+    let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);
+
     let disabled_set: HashSet<usize> = disabled_indices.iter().copied().collect();
     let disabled_set: StoredValue<Arc<HashSet<usize>>> = StoredValue::new(Arc::new(disabled_set));
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
@@ -38,12 +42,10 @@ pub fn Select(
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if disabled {
+        if trigger_disabled {
             return;
         }
-        if items.get_value().is_empty() {
-            return;
-        }
+
         let next_open = !open.get_untracked();
         if next_open {
             set_open_focus.set(logic::SelectOpenFocusStrategy::Selected);
@@ -73,13 +75,10 @@ pub fn Select(
     let on_action: Callback<usize> = Callback::new(move |_| request_open_change.run(false));
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if disabled {
+        if trigger_disabled {
             return;
         }
         let items = items.get_value();
-        if items.is_empty() {
-            return;
-        }
         let key = ev.key();
         let is_open = open.get_untracked();
 
@@ -180,11 +179,7 @@ pub fn Select(
     };
 
     let on_key_up = move |ev: ev::KeyboardEvent| {
-        if disabled {
-            return;
-        }
-        let items = items.get_value();
-        if items.is_empty() {
+        if trigger_disabled {
             return;
         }
 
@@ -195,10 +190,19 @@ pub fn Select(
     };
 
     view! {
-        <div class="ui-select" on:keydown=on_key_down on:keyup=on_key_up>
+        <div
+            class="ui-select"
+            on:keydown=on_key_down
+            on:keyup=on_key_up
+            data-slot="select"
+            data-open=move || open.get().then_some("true")
+            data-disabled=trigger_disabled.then_some("true")
+            data-empty=is_empty.then_some("true")
+            data-has-selection=move || selected_index.get().is_some().then_some("true")
+        >
             <Button
                 id=trigger_id.get_value()
-                disabled=disabled
+                disabled=trigger_disabled
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 aria_haspopup="listbox"
@@ -216,7 +220,7 @@ pub fn Select(
                     placement=placement
                     on_exit_complete=presence.finish_exit
                 >
-                    <div class="ui-select__panel">
+                    <div class="ui-select__panel" data-slot="select-panel">
                         {move || {
                             let focus = open_focus.get_untracked();
                             let default_index = match focus {
@@ -230,20 +234,20 @@ pub fn Select(
                                 matches!(focus, logic::SelectOpenFocusStrategy::Selected);
 
                             view! {
-                        <ListBox
-                            id_base=id_base.get_value()
-                            id=listbox_id.get_value()
-                            aria_labelledby=trigger_id.get_value()
-                            class_name="ui-select__listbox"
-                            items=items.get_value()
-                            selected_index=selected_index
-                            set_selected_index=set_selected_index
-                            disabled=disabled
-                            disabled_indices=disabled_indices.get_value()
-                            on_action=on_action
-                            default_index=default_index
-                            sync_active_index_to_selected=sync_active_index_to_selected
-                        />
+                                <ListBox
+                                    id_base=id_base.get_value()
+                                    id=listbox_id.get_value()
+                                    aria_labelledby=trigger_id.get_value()
+                                    class_name="ui-select__listbox"
+                                    items=items.get_value()
+                                    selected_index=selected_index
+                                    set_selected_index=set_selected_index
+                                    disabled=disabled
+                                    disabled_indices=disabled_indices.get_value()
+                                    on_action=on_action
+                                    default_index=default_index
+                                    sync_active_index_to_selected=sync_active_index_to_selected
+                                />
                             }
                         }}
                     </div>

@@ -12,6 +12,10 @@ pub fn resolve_ids(id_base: &str) -> SelectIds {
     }
 }
 
+pub fn resolve_trigger_disabled(disabled: bool, item_count: usize) -> bool {
+    disabled || item_count == 0
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SelectOpenFocusStrategy {
     /// Default behavior: focus the selected option when opening.
@@ -108,6 +112,13 @@ pub fn find_typeahead_match(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn trigger_disabled_when_prop_disabled_or_no_items() {
+        assert!(resolve_trigger_disabled(true, 3));
+        assert!(resolve_trigger_disabled(false, 0));
+        assert!(!resolve_trigger_disabled(false, 2));
+    }
 
     #[test]
     fn horizontal_nav_picks_first_enabled_when_no_selection() {

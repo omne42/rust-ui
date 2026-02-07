@@ -64,3 +64,44 @@ fn select_uses_presence_to_allow_exit_motion() {
         );
     }
 }
+
+#[test]
+fn select_exposes_root_state_and_slot_data_attributes() {
+    let source = load_source("src/select/view.rs");
+
+    for needle in [
+        "data-slot=\"select\"",
+        "data-open=move || open.get().then_some(\"true\")",
+        "data-disabled=trigger_disabled.then_some(\"true\")",
+        "data-empty=is_empty.then_some(\"true\")",
+        "data-has-selection=move || selected_index.get().is_some().then_some(\"true\")",
+        "data-slot=\"select-panel\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Select should expose `{needle}` for Spectrum-style state styling and regression tests."
+        );
+    }
+}
+
+#[test]
+fn select_centralizes_trigger_disabled_logic() {
+    let view_source = load_source("src/select/view.rs");
+    let logic_source = load_source("src/select/logic.rs");
+
+    for needle in [
+        "resolve_trigger_disabled",
+        "disabled=trigger_disabled",
+        "if trigger_disabled {",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Select view should centralize trigger disabled semantics via `{needle}`."
+        );
+    }
+
+    assert!(
+        logic_source.contains("pub fn resolve_trigger_disabled"),
+        "Select logic should expose a dedicated helper for disabled/empty trigger semantics."
+    );
+}

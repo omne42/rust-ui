@@ -118,6 +118,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: `RadioGroup` now resolves accessible names (`aria-label` / `aria-labelledby` + fallback), exposes Spectrum-style orientation/state `data-*` attributes, and hardens empty-option labeling semantics.
 - `apps/docs-app`: `RadioGroup` docs now include playground scenarios for horizontal layout, disabled items, external labeling, and empty disabled groups.
+- `ui-components`: `Select` now centralizes trigger disabled semantics (`disabled || items.is_empty()`), emits Spectrum-style root `data-*` state attrs, and marks its popover panel slot for stable styling/tests.
+- `apps/docs-app`: `Select` docs now include playground scenarios for disabled options, fully disabled state, and empty-option behavior.
 ### Changed
 
 - `apps/docs-app`: rebuilds the docs site into a hash-routed component catalog (search + per-component playground pages) and adds a regression test that enforces 100% `ui-components` component coverage.
