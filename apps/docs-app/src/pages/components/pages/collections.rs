@@ -1167,8 +1167,10 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   on_action=on_action
   open=open_signal
   on_open_change=Callback::new(move |next| set_open.set(next))
+  close_on_action=false
+  disabled_indices=vec![1]
 >
-  "Controlled"
+  "Persistent"
 </DropdownMenu>"#;
 
     let disabled_code = r#"<DropdownMenu id_base="dd-disabled".to_string() items=items on_action=on_action disabled=true>
@@ -1183,7 +1185,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             title="DropdownMenu"
             slug="dropdown-menu"
             group="Collections"
-            description="Button trigger that opens a Menu in a Popover with controlled/uncontrolled state support and empty-trigger fallback."
+            description="Button trigger that opens a Menu in a Popover with Spectrum-style root attrs, controlled/uncontrolled state, and persistent-open action handling."
         >
             <Playground title="Default" code=code>
                 <div class="docs-row">
@@ -1206,7 +1208,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled Open State" code=controlled_code>
+            <Playground title="Controlled + Persistent Open" code=controlled_code>
                 <div class="docs-stack">
                     <DropdownMenu
                         id_base="docs-dropdown-controlled".to_string()
@@ -1214,6 +1216,8 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         on_action=on_action
                         open=controlled_open
                         on_open_change=on_open_change
+                        close_on_action=false
+                        disabled_indices=vec![1]
                         item_kinds=vec![
                             MenuItemKind::Action,
                             MenuItemKind::Action,
@@ -1226,6 +1230,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         "open: "
                         {move || controlled_open_raw.get().to_string()}
                     </span>
+                    <span class="ui-muted">"close_on_action: false (select keeps popover open)"</span>
                 </div>
             </Playground>
 
