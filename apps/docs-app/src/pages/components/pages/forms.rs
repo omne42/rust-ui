@@ -4,7 +4,8 @@ use leptos::prelude::*;
 use ui_components::{
     Checkbox, CheckboxGroup, Form, FormLabelAlign, FormLabelPosition, Input, InputOtp, InputSize,
     InputVariant, NumberField, Radio, RadioGroup, RadioGroupOrientation, SearchField,
-    SegmentedControl, SegmentedControlSize, Switch, TextArea, TextField,
+    SegmentedControl, SegmentedControlOrientation, SegmentedControlSize, Switch, TextArea,
+    TextField,
 };
 
 pub(super) fn form() -> AnyView {
@@ -609,11 +610,44 @@ pub(super) fn segmented_control() -> AnyView {
         "Settings".to_string(),
     ];
     let (selected, set_selected) = signal(Some(0_usize));
+    let has_selection = Signal::derive(move || selected.get().is_some());
+
+    let vertical_options = vec![
+        "System".to_string(),
+        "Manual".to_string(),
+        "Hybrid".to_string(),
+    ];
+    let vertical_disabled_indices = vec![2_usize];
+    let (vertical_selected, set_vertical_selected) = signal(Some(1_usize));
+
+    let empty_options = Vec::<String>::new();
+    let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
     let code = r#"let (selected, set_selected) = signal(Some(0_usize));
-<SegmentedControl id_base="seg".to_string()
+<SegmentedControl
+  id_base="seg".to_string()
   options=options
   selected_index=selected
   set_selected_index=set_selected
+  disabled_indices=vec![2]
+/>"#;
+
+    let states_code = r#"<SegmentedControl
+  id_base="seg-vertical".to_string()
+  options=vertical_options
+  selected_index=vertical_selected
+  set_selected_index=set_vertical_selected
+  orientation=SegmentedControlOrientation::Vertical
+  size=SegmentedControlSize::Sm
+  disabled_indices=vec![2]
+/>
+<SegmentedControl
+  id_base="seg-empty".to_string()
+  options=Vec::<String>::new()
+  selected_index=empty_selected
+  set_selected_index=set_empty_selected
+  disabled=true
+  aria_label="No options".to_string()
 />"#;
 
     view! {
@@ -621,20 +655,60 @@ pub(super) fn segmented_control() -> AnyView {
             title="SegmentedControl"
             slug="segmented-control"
             group="Forms"
-            description="Segmented control with spring active indicator motion."
+            description="Segmented control with HeroUI-level indicator motion and Spectrum-style root state attrs."
         >
-            <Playground title="Segments" code=code>
+            <Playground title="Selection + Root State" code=code>
                 <div class="docs-stack">
                     <SegmentedControl
                         id_base="docs-segments".to_string()
                         options=options
                         selected_index=selected
                         set_selected_index=set_selected
+                        disabled_indices=vec![2]
                         size=SegmentedControlSize::Default
                     />
                     <span class="ui-muted">
-                        "selected: " {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        "selected: "
+                        {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        " · has selection: "
+                        {move || has_selection.get().to_string()}
+                        " · disabled options: 1"
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="Vertical + Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <SegmentedControl
+                            id_base="docs-segments-vertical".to_string()
+                            options=vertical_options
+                            selected_index=vertical_selected
+                            set_selected_index=set_vertical_selected
+                            orientation=SegmentedControlOrientation::Vertical
+                            size=SegmentedControlSize::Sm
+                            disabled_indices=vertical_disabled_indices
+                        />
+                        <span class="ui-muted">
+                            "vertical selected: "
+                            {move || vertical_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <SegmentedControl
+                            id_base="docs-segments-empty".to_string()
+                            options=empty_options
+                            selected_index=empty_selected
+                            set_selected_index=set_empty_selected
+                            disabled=true
+                            aria_label="No options".to_string()
+                        />
+                        <span class="ui-muted">
+                            "empty selected: "
+                            {move || empty_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        </span>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>

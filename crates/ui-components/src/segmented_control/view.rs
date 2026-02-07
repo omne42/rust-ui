@@ -1,5 +1,5 @@
 use crate::segmented_control::{
-    SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize, motion,
+    SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize, logic, motion,
 };
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
@@ -37,41 +37,57 @@ pub fn SegmentedControl(
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let options: StoredValue<Arc<[String]>> = StoredValue::new(options.into());
-    let (item_count, _set_item_count) = signal(options.get_value().len());
+    let item_count = options.get_value().len();
+    let (item_count_signal, _set_item_count) = signal(item_count);
 
     let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_index_set.is_empty();
-    let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
+    let disabled_indices_set: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
 
     let is_item_disabled = has_disabled.then_some({
-        let disabled_indices = disabled_indices.clone();
-        Callback::new(move |index: usize| disabled_indices.contains(&index))
+        let disabled_indices_set = disabled_indices_set.clone();
+        Callback::new(move |index: usize| disabled_indices_set.contains(&index))
     });
 
     let aria = use_radio_group(RadioGroupOptions {
         is_disabled: disabled,
         id_base: id_base.clone(),
         orientation: orientation.roving_orientation(),
-        item_count,
+        item_count: item_count_signal,
         selected_index,
         set_selected_index,
         on_change: None,
         is_item_disabled,
     });
 
-    let option_refs: Arc<Vec<NodeRef<html::Button>>> = Arc::new(
-        (0..item_count.get_untracked())
-            .map(|_| NodeRef::new())
-            .collect(),
-    );
+    let option_refs: Arc<Vec<NodeRef<html::Button>>> =
+        Arc::new((0..item_count).map(|_| NodeRef::new()).collect());
 
     let aria_label = aria_label
         .filter(|value| !value.trim().is_empty())
         .or_else(|| label.clone())
         .unwrap_or_else(|| "Segmented control".to_string());
+
+    let label = label.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    });
+    let has_label = label.is_some();
     let label_id = label.as_ref().map(|_| format!("{id_base}-label"));
     let label_id = StoredValue::new(label_id);
     let label = StoredValue::new(label);
+
+    let disabled_indices_for_state = disabled_indices_set.clone();
+    let state = Memo::new(move |_| {
+        logic::resolve_state(
+            item_count,
+            disabled,
+            disabled_indices_for_state.as_ref(),
+            aria.selected_index.get(),
+            orientation,
+            has_label,
+        )
+    });
 
     let base_class = format!(
         "ui-segmented-control {} {} {}",
@@ -110,15 +126,25 @@ pub fn SegmentedControl(
         }
     };
 
-    let option_buttons = (0..item_count.get_untracked())
-        .map(|index| {
-            let label = options.get_value().get(index).cloned().unwrap_or_default();
-            let node_ref = option_refs[index];
-            let is_selected = move || aria.selected_index.get() == Some(index);
-            let is_disabled = disabled || disabled_indices.contains(&index);
+    let option_buttons = (0..item_count)
+        .map({
+            let disabled_indices_set = disabled_indices_set.clone();
+            move |index| {
+                let option_label = options
+                    .get_value()
+                    .get(index)
+                    .cloned()
+                    .and_then(|value| {
+                        let trimmed = value.trim();
+                        (!trimmed.is_empty()).then(|| trimmed.to_string())
+                    })
+                    .unwrap_or_else(|| format!("Option {}", index + 1));
+                let node_ref = option_refs[index];
+                let is_selected = move || aria.selected_index.get() == Some(index);
+                let is_disabled = disabled || disabled_indices_set.contains(&index);
 
-            let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
-            let hover = use_hover(HoverOptions { is_disabled });
+                let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
+                let hover = use_hover(HoverOptions { is_disabled });
 
                 view! {
                     <button
@@ -133,7 +159,8 @@ pub fn SegmentedControl(
                         aria-disabled=if is_disabled { Some("true") } else { None }
                         disabled=is_disabled
                         data-slot="segmented-control-option"
-                        data-selected=move || if is_selected() { Some("true") } else { None }
+                        data-index=index
+                        data-selected=move || is_selected().then_some("true")
                         data-hovered=move || hover.is_hovered.get().then_some("true")
                         data-disabled=is_disabled.then_some("true")
                         data-focused=move || focus_ring.is_focused.get().then_some("true")
@@ -142,13 +169,14 @@ pub fn SegmentedControl(
                         on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
                         on:focus=move |_| {
                             focus_ring.handlers.on_focus.run(());
-                        aria.handlers.on_radio_focus.run(index);
-                    }
-                    on:blur=move |_| focus_ring.handlers.on_blur.run(())
-                    on:click=move |_| aria.handlers.on_radio_click.run(index)
-                >
-                    <span class="ui-segmented-control__option-label">{label}</span>
-                </button>
+                            aria.handlers.on_radio_focus.run(index);
+                        }
+                        on:blur=move |_| focus_ring.handlers.on_blur.run(())
+                        on:click=move |_| aria.handlers.on_radio_click.run(index)
+                    >
+                        <span class="ui-segmented-control__option-label">{option_label}</span>
+                    </button>
+                }
             }
         })
         .collect_view();
@@ -160,8 +188,21 @@ pub fn SegmentedControl(
             aria-disabled=aria.attrs.aria_disabled
             aria-label=aria_label
             aria-labelledby=label_id.get_value()
+            aria-orientation=orientation.aria_orientation()
             data-slot="segmented-control"
-            data-disabled=disabled.then_some("true")
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-count=move || state.get().item_count.to_string()
+            data-has-disabled-options=move || state.get().has_disabled_options.then_some("true")
+            data-disabled-option-count=move || state.get().disabled_option_count.to_string()
+            data-has-selection=move || state.get().has_selection.then_some("true")
+            data-selection-empty=move || state.get().selection_empty.then_some("true")
+            data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
+            data-orientation=orientation.data_orientation()
+            data-horizontal=move || state.get().is_horizontal.then_some("true")
+            data-vertical=move || state.get().is_vertical.then_some("true")
+            data-has-label=move || state.get().has_label.then_some("true")
             on:keydown=on_key_down
         >
             {label.get_value().map(|label| {
