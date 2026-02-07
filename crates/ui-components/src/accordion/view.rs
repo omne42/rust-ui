@@ -71,9 +71,10 @@ pub fn Accordion(
     };
 
     let disabled_indices: Arc<Vec<usize>> = Arc::new(disabled_indices);
-    let has_disabled = !disabled_indices.is_empty();
+    let has_per_item_disabled = !disabled_indices.is_empty();
+    let has_disabled_items = disabled || has_per_item_disabled;
     let disabled_indices_for_cb = disabled_indices.clone();
-    let is_item_disabled = has_disabled.then_some(Callback::new(move |index: usize| {
+    let is_item_disabled = has_per_item_disabled.then_some(Callback::new(move |index: usize| {
         disabled_indices_for_cb.contains(&index)
     }));
 
@@ -94,6 +95,16 @@ pub fn Accordion(
         .filter(|value| !value.trim().is_empty())
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
+
+    let open_indices_for_state = open_indices;
+    let state = Signal::derive(move || {
+        logic::resolve_state(
+            selection_mode,
+            item_count,
+            open_indices_for_state.get().len(),
+            has_disabled_items,
+        )
+    });
 
     let labels = labels.into_iter().take(item_count).collect::<Vec<_>>();
     let panels = panels.into_iter().take(item_count);
@@ -171,6 +182,7 @@ pub fn Accordion(
                     <div
                         class="ui-accordion__item"
                         data-slot="accordion-item"
+                        data-index=index
                         data-open=move || if open.get() { Some("true") } else { None }
                     >
                         <button
@@ -181,6 +193,7 @@ pub fn Accordion(
                             id=trigger_id.clone()
                             disabled=is_disabled
                             data-slot="accordion-trigger"
+                            data-index=index
                             data-open=move || open.get().then_some("true")
                             tabindex=move || {
                                 if is_disabled {
@@ -236,6 +249,7 @@ pub fn Accordion(
                             aria-labelledby=trigger_id
                             hidden=move || panel_hidden.get()
                             data-open=move || if open.get() { Some("true") } else { None }
+                            data-index=index
                             data-slot="accordion-panel"
                         >
                             <div
@@ -253,7 +267,21 @@ pub fn Accordion(
         .collect_view();
 
     view! {
-        <div class=class data-slot="accordion">
+        <div
+            class=class
+            data-slot="accordion"
+            data-disabled=disabled.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-open-count=move || state.get().open_count.to_string()
+            data-all-closed=move || (!state.get().has_open_items).then_some("true")
+            data-multiple-open=move || state.get().has_multiple_open.then_some("true")
+            data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
+            data-selection-mode=match selection_mode {
+                AccordionSelectionMode::Single => "single",
+                AccordionSelectionMode::Multiple => "multiple",
+            }
+        >
             {items}
         </div>
     }

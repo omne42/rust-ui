@@ -70,12 +70,21 @@ fn accordion_emits_spectrum_style_data_attributes() {
 
     for attr in [
         "data-slot=\"accordion\"",
+        "data-disabled=disabled.then_some(\"true\")",
+        "data-empty=move || state.get().is_empty.then_some(\"true\")",
+        "data-has-items=move || state.get().has_items.then_some(\"true\")",
+        "data-open-count=move || state.get().open_count.to_string()",
+        "data-all-closed=move || (!state.get().has_open_items).then_some(\"true\")",
+        "data-multiple-open=move || state.get().has_multiple_open.then_some(\"true\")",
+        "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
+        "data-selection-mode=match selection_mode",
         "data-slot=\"accordion-item\"",
         "data-slot=\"accordion-trigger\"",
         "data-slot=\"accordion-label\"",
         "data-slot=\"accordion-indicator\"",
         "data-slot=\"accordion-panel\"",
         "data-slot=\"accordion-panel-surface\"",
+        "data-index=index",
         "data-open",
         "data-hovered",
         "data-pressed",
@@ -88,6 +97,32 @@ fn accordion_emits_spectrum_style_data_attributes() {
             "Accordion should set `{attr}` to support Spectrum-style styling and regression testing."
         );
     }
+}
+
+#[test]
+fn accordion_uses_logic_state_model() {
+    let view_source = load_source("src/accordion/view.rs");
+    let logic_source = load_source("src/accordion/logic.rs");
+
+    for needle in [
+        "pub struct AccordionState",
+        "pub fn resolve_state(",
+        "pub open_count: usize",
+        "pub has_disabled_items: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Accordion logic should include `{needle}` for centralized root-state derivation."
+        );
+    }
+    assert!(
+        view_source.contains("logic::resolve_state("),
+        "Accordion view should derive root state through resolve_state."
+    );
+    assert!(
+        view_source.contains("has_disabled_items"),
+        "Accordion state derivation should include disabled-item state."
+    );
 }
 
 #[test]

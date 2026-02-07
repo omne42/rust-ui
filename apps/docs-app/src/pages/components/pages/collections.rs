@@ -47,15 +47,50 @@ pub(super) fn breadcrumbs() -> AnyView {
 }
 
 pub(super) fn accordion() -> AnyView {
-    let labels = vec![
+    let multi_labels = vec![
         "First".to_string(),
         "Second".to_string(),
         "Third".to_string(),
     ];
-    let code = r#"<Accordion labels=labels id_base="acc".to_string()>
+    let single_labels = vec![
+        "Overview".to_string(),
+        "Details".to_string(),
+        "History".to_string(),
+    ];
+
+    let (open_multi, set_open_multi) = signal(BTreeSet::from([0_usize]));
+    let on_multi_change = Callback::new(move |next: BTreeSet<usize>| set_open_multi.set(next));
+
+    let (open_single, set_open_single) = signal(BTreeSet::from([1_usize]));
+    let on_single_change = Callback::new(move |next: BTreeSet<usize>| set_open_single.set(next));
+
+    let code = r#"let (open, set_open) = signal(BTreeSet::from([0_usize]));
+let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(next));
+<Accordion
+  labels=labels
+  id_base="accordion".to_string()
+  open_indices=open.into()
+  on_open_change=on_open_change
+  selection_mode=AccordionSelectionMode::Multiple
+>
   <div>"Panel 1"</div>
   <div>"Panel 2"</div>
   <div>"Panel 3"</div>
+</Accordion>"#;
+
+    let states_code = r#"let (open, set_open) = signal(BTreeSet::from([1_usize]));
+let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(next));
+<Accordion
+  labels=labels
+  id_base="accordion-single".to_string()
+  open_indices=open.into()
+  on_open_change=on_open_change
+  selection_mode=AccordionSelectionMode::Single
+  disabled_indices=vec![2]
+>
+  <div>"Overview"</div>
+  <div>"Details"</div>
+  <div>"History"</div>
 </Accordion>"#;
 
     view! {
@@ -63,28 +98,72 @@ pub(super) fn accordion() -> AnyView {
             title="Accordion"
             slug="accordion"
             group="Collections"
-            description="Multi-panel disclosure with roving tabindex and spring motion."
+            description="Multi-panel disclosure with roving tabindex, HeroUI-level spring motion, and Spectrum-style root state attrs."
         >
-            <Playground title="Multiple panels" code=code>
-                <Accordion
-                    labels=labels
-                    id_base="docs-accordion".to_string()
-                    selection_mode=AccordionSelectionMode::Multiple
-                    default_open_indices=BTreeSet::from([0_usize])
-                >
-                    <div class="docs-stack">
-                        <div>"Panel 1 content"</div>
-                        <div class="ui-muted">"Press Enter/Space or click the triggers."</div>
-                    </div>
-                    <div class="docs-stack">
-                        <div>"Panel 2 content"</div>
-                        <div class="ui-muted">"Arrow keys move focus between triggers."</div>
-                    </div>
-                    <div class="docs-stack">
-                        <div>"Panel 3 content"</div>
-                        <div class="ui-muted">"Supports disabled indices."</div>
-                    </div>
-                </Accordion>
+            <Playground title="Multiple + Controlled" code=code>
+                <div class="docs-stack">
+                    <Accordion
+                        labels=multi_labels
+                        id_base="docs-accordion".to_string()
+                        open_indices=open_multi.into()
+                        on_open_change=on_multi_change
+                        selection_mode=AccordionSelectionMode::Multiple
+                    >
+                        <div class="docs-stack">
+                            <div>"Panel 1 content"</div>
+                            <div class="ui-muted">"Press Enter/Space or click the triggers."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Panel 2 content"</div>
+                            <div class="ui-muted">"Arrow keys move focus between triggers."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Panel 3 content"</div>
+                            <div class="ui-muted">"Multiple mode allows multiple open panels."</div>
+                        </div>
+                    </Accordion>
+                    <span class="ui-muted">
+                        "open indices: "
+                        {move || {
+                            let open = open_multi.get().iter().copied().collect::<Vec<_>>();
+                            format!("{open:?}")
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Single + Disabled" code=states_code>
+                <div class="docs-stack">
+                    <Accordion
+                        labels=single_labels
+                        id_base="docs-accordion-single".to_string()
+                        open_indices=open_single.into()
+                        on_open_change=on_single_change
+                        selection_mode=AccordionSelectionMode::Single
+                        disabled_indices=vec![2]
+                    >
+                        <div class="docs-stack">
+                            <div>"Overview content"</div>
+                            <div class="ui-muted">"Single mode keeps at most one panel open."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"Details content"</div>
+                            <div class="ui-muted">"Selection is fully controlled by open indices."</div>
+                        </div>
+                        <div class="docs-stack">
+                            <div>"History content"</div>
+                            <div class="ui-muted">"This trigger is disabled and skipped by roving focus."</div>
+                        </div>
+                    </Accordion>
+                    <span class="ui-muted">
+                        "single open: "
+                        {move || {
+                            let open = open_single.get().iter().copied().collect::<Vec<_>>();
+                            format!("{open:?}")
+                        }}
+                    </span>
+                    <span class="ui-muted">"disabled index: 2"</span>
+                </div>
             </Playground>
         </ComponentPage>
     }
