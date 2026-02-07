@@ -35,6 +35,10 @@ pub fn resolve_ids(id_base: &str) -> ActionMenuIds {
     }
 }
 
+pub fn resolve_trigger_disabled(disabled: bool, item_count: usize) -> bool {
+    disabled || item_count == 0
+}
+
 pub fn resolve_trigger_aria_label(value: Option<&str>) -> String {
     value
         .map(str::trim)
@@ -81,5 +85,12 @@ mod tests {
         assert_eq!(MenuOpenFocusStrategy::First.default_index(4), 0);
         assert_eq!(MenuOpenFocusStrategy::Last.default_index(4), 3);
         assert_eq!(MenuOpenFocusStrategy::Last.default_index(0), 0);
+    }
+
+    #[test]
+    fn trigger_disabled_when_component_or_items_disabled() {
+        assert!(resolve_trigger_disabled(true, 3));
+        assert!(resolve_trigger_disabled(false, 0));
+        assert!(!resolve_trigger_disabled(false, 2));
     }
 }

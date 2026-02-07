@@ -296,3 +296,4 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds Spectrum-style state data attributes to `Radio` and adds regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `ToggleButton` and adds regression coverage.
 - `ui-components`: adds Spectrum-style state data attributes to `SegmentedControl` and adds regression coverage.
+- `ui-components`: `ActionMenu` now centralizes trigger-disabled state (`disabled || items.is_empty()`), emits Spectrum-style root state attrs (`data-open`/`data-disabled`/`data-empty`/`data-has-items`), expands semantics regression coverage, and upgrades docs playground with default/controlled/disabled-empty scenarios.
