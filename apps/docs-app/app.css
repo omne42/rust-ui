@@ -709,6 +709,22 @@ a {
   background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 55%);
 }
 
+.docs-spacer-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg-muted);
+  color: var(--ui-fg);
+  font-size: 12px;
+}
+
+.docs-spacer-guide {
+  background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 60%);
+}
+
 .docs-skeleton-line {
   height: 14px;
   width: 100%;

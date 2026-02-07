@@ -169,20 +169,65 @@ pub(super) fn separator() -> AnyView {
 }
 
 pub(super) fn spacer() -> AnyView {
-    let code = r#"<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Md />"#;
+    let axis_and_size_code = r#"<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />
+<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />
+<Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />"#;
+
+    let custom_class_code = r#"<Spacer
+  axis=SpacerAxis::Vertical
+  size=SpacerSize::Md
+  class_name="docs-spacer-guide".to_string()
+/>
+<Spacer
+  axis=SpacerAxis::Horizontal
+  size=SpacerSize::Lg
+  class_name="docs-spacer-guide".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Spacer"
             slug="spacer"
             group="Layout"
-            description="A fixed-size gap element (aria-hidden)."
+            description="A pure spacing primitive with centralized axis/size state attrs for Spectrum-style styling contracts."
         >
-            <Playground title="Spacing" code=code>
+            <Playground title="Axis + Size" code=axis_and_size_code>
                 <div class="docs-stack">
-                    <div>"Above"</div>
-                    <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Md />
-                    <div>"Below"</div>
+                    <div class="docs-stack">
+                        <span class="docs-spacer-box">"Top"</span>
+                        <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />
+                        <span class="docs-spacer-box">"Small gap"</span>
+                        <Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />
+                        <span class="docs-spacer-box">"Large gap"</span>
+                    </div>
+
+                    <div class="docs-row">
+                        <span class="docs-spacer-box">"Left"</span>
+                        <Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />
+                        <span class="docs-spacer-box">"Right"</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class Marker" code=custom_class_code>
+                <div class="docs-stack">
+                    <span class="docs-spacer-box">"Custom vertical spacer"</span>
+                    <Spacer
+                        axis=SpacerAxis::Vertical
+                        size=SpacerSize::Md
+                        class_name="docs-spacer-guide".to_string()
+                    />
+                    <span class="docs-spacer-box">"Marker visible via custom class"</span>
+
+                    <div class="docs-row">
+                        <span class="docs-spacer-box">"Start"</span>
+                        <Spacer
+                            axis=SpacerAxis::Horizontal
+                            size=SpacerSize::Lg
+                            class_name="docs-spacer-guide".to_string()
+                        />
+                        <span class="docs-spacer-box">"End"</span>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
