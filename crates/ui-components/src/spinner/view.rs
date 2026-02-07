@@ -1,17 +1,39 @@
-use crate::{CircularProgress, spinner::SpinnerSize};
+use crate::{
+    CircularProgress,
+    spinner::{
+        SpinnerSize,
+        logic::{self, SpinnerStateInput},
+    },
+};
 use leptos::prelude::*;
 
 #[component]
 pub fn Spinner(
     #[prop(optional)] size: SpinnerSize,
-    #[prop(optional, into, default = "Loading".to_string())] aria_label: String,
+    #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let base_class = format!("ui-spinner {}", size.class_name());
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class_name = logic::normalize_optional_text(class_name);
+    let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
 
-    view! { <CircularProgress aria_label=aria_label class_name=class /> }
+    let state = logic::resolve_state(SpinnerStateInput {
+        size,
+        has_custom_aria_label,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class = logic::compose_class_name(class_name, state);
+
+    view! {
+        <span
+            class=class
+            data-slot="spinner"
+            data-size=state.size_attr
+            data-state="indeterminate"
+            data-custom-aria-label=state.has_custom_aria_label.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
+            <CircularProgress aria_label=aria_label class_name="ui-spinner__progress" />
+        </span>
+    }
 }

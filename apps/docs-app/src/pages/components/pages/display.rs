@@ -260,20 +260,32 @@ pub(super) fn circular_progress() -> AnyView {
 }
 
 pub(super) fn spinner() -> AnyView {
-    let code = r#"<Spinner size=SpinnerSize::Md aria_label="Loading".to_string() />"#;
+    let sizes_code = r#"<Spinner size=SpinnerSize::Sm />
+<Spinner size=SpinnerSize::Md />
+<Spinner size=SpinnerSize::Lg />"#;
+
+    let labels_code = r#"<Spinner aria_label="Fetching notifications".to_string() />
+<Spinner class_name="docs-spinner-custom".to_string() />"#;
 
     view! {
         <ComponentPage
             title="Spinner"
             slug="spinner"
             group="Display"
-            description="Spinner is a wrapper over CircularProgress with size presets."
+            description="Spinner wraps CircularProgress and now exposes Spectrum-style size/label state attrs."
         >
-            <Playground title="Spinner" code=code>
+            <Playground title="Sizes" code=sizes_code>
                 <div class="docs-row">
-                    <Spinner size=SpinnerSize::Sm aria_label="Loading".to_string() />
-                    <Spinner size=SpinnerSize::Md aria_label="Loading".to_string() />
-                    <Spinner size=SpinnerSize::Lg aria_label="Loading".to_string() />
+                    <Spinner size=SpinnerSize::Sm />
+                    <Spinner size=SpinnerSize::Md />
+                    <Spinner size=SpinnerSize::Lg />
+                </div>
+            </Playground>
+
+            <Playground title="Label + Custom Class" code=labels_code>
+                <div class="docs-row">
+                    <Spinner aria_label="Fetching notifications".to_string() />
+                    <Spinner class_name="docs-spinner-custom".to_string() />
                 </div>
             </Playground>
         </ComponentPage>
