@@ -2,9 +2,10 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, Dialog, Drawer,
-    DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, Sheet, SheetPlacement,
-    ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, Tooltip, provide_toast_store,
+    AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
+    Dialog, Drawer, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, Sheet,
+    SheetPlacement, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, Tooltip,
+    provide_toast_store,
 };
 
 pub(super) fn overlay() -> AnyView {
@@ -693,8 +694,29 @@ pub(super) fn hover_card() -> AnyView {
 }
 
 pub(super) fn contextual_help() -> AnyView {
-    let code = r#"<ContextualHelp heading="Help".to_string() footer=move || view!{ "Popover" }>
+    let (controlled_open_raw, set_controlled_open_raw) = signal(false);
+    let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
+    let on_controlled_open_change =
+        Callback::new(move |next: bool| set_controlled_open_raw.set(next));
+    let toggle_controlled: OnPress = Callback::new(move |_| {
+        set_controlled_open_raw.update(|open| *open = !*open);
+    });
+
+    let semantic_code = r#"<ContextualHelp
+  heading="Contextual help".to_string()
+  footer=move || view! { "Popover-based" }
+>
   <div>"Content"</div>
+</ContextualHelp>"#;
+
+    let controlled_code = r#"<ContextualHelp
+  variant=ContextualHelpVariant::Info
+  open=controlled_open
+  on_open_change=on_open_change
+  aria_label="More info".to_string()
+  class_name="docs-contextual-help-custom".to_string()
+>
+  <div>"Controlled content"</div>
 </ContextualHelp>"#;
 
     view! {
@@ -702,9 +724,9 @@ pub(super) fn contextual_help() -> AnyView {
             title="ContextualHelp"
             slug="contextual-help"
             group="Overlays"
-            description="Icon trigger that opens a non-modal popover with heading/content/footer."
+            description="Non-modal popover help trigger with centralized variant/placement/heading/footer state attrs."
         >
-            <Playground title="Help popover" code=code>
+            <Playground title="Help Variant + Slots" code=semantic_code>
                 <div class="docs-row">
                     <ContextualHelp
                         heading="Contextual help".to_string()
@@ -717,11 +739,34 @@ pub(super) fn contextual_help() -> AnyView {
                     </ContextualHelp>
                 </div>
             </Playground>
+
+            <Playground title="Info Variant + Controlled" code=controlled_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
+                            "Toggle controlled help"
+                        </Button>
+                        <span class="ui-muted">"open: " {move || controlled_open_raw.get().to_string()}</span>
+                    </div>
+
+                    <ContextualHelp
+                        variant=ContextualHelpVariant::Info
+                        open=controlled_open
+                        on_open_change=on_controlled_open_change
+                        aria_label="More info".to_string()
+                        class_name="docs-contextual-help-custom".to_string()
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Controlled mode keeps parent state as the source of truth."</div>
+                            <div class="ui-muted">"No heading path falls back to aria-label on panel."</div>
+                        </div>
+                    </ContextualHelp>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn toast_viewport() -> AnyView {
     let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
     let store = StoredValue::new(store);

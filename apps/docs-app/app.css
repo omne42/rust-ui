@@ -734,6 +734,10 @@ a {
   background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 18%);
 }
 
+.docs-contextual-help-custom .ui-contextual-help__trigger {
+  color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 20%);
+}
+
 .docs-separator-rail {
   min-height: 3rem;
 }
