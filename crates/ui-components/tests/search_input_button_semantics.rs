@@ -25,13 +25,14 @@ fn search_input_button_uses_logic_state_model() {
     let logic_source = load_source("src/button_search_input/logic.rs");
 
     for needle in [
+        "pub struct SearchInputButtonStateInput",
         "pub struct SearchInputButtonState",
-        "pub is_enabled: bool",
-        "pub has_shortcut: bool",
         "pub fn normalize_optional_text(",
-        "pub fn resolve_state(",
+        "pub fn resolve_state(input: SearchInputButtonStateInput)",
         "pub fn resolve_view_state(",
         "pub fn compose_class_name(",
+        "pub state_attr: &'static str",
+        "pub shortcut_attr: &'static str",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -42,7 +43,7 @@ fn search_input_button_uses_logic_state_model() {
     for needle in [
         "let placeholder = logic::normalize_optional_text(placeholder);",
         "let compact_placeholder = logic::normalize_optional_text(compact_placeholder);",
-        "let state = logic::resolve_state(",
+        "let state = logic::resolve_state(SearchInputButtonStateInput {",
         "let class = logic::compose_class_name(class_name, state);",
     ] {
         assert!(
@@ -70,14 +71,19 @@ fn search_input_button_emits_spectrum_style_data_attributes() {
 
     for attr in [
         "data-slot=\"search-input-button\"",
-        "data-state=if state.is_disabled { \"disabled\" } else { \"enabled\" }",
+        "data-state=state.state_attr",
         "data-enabled=state.is_enabled.then_some(\"true\")",
         "data-disabled=state.is_disabled.then_some(\"true\")",
-        "data-shortcut=if state.has_shortcut { \"visible\" } else { \"hidden\" }",
-        "data-placeholder=if state.has_custom_placeholder {",
-        "data-compact-placeholder=if state.has_custom_compact_placeholder {",
+        "data-shortcut=state.shortcut_attr",
+        "data-placeholder=state.placeholder_source_attr",
+        "data-compact-placeholder=state.compact_placeholder_source_attr",
+        "data-aria-label-source=state.aria_label_source_attr",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-hovered",
         "data-pressed",
+        "data-slot=\"search-input-button-icon\"",
+        "data-slot=\"search-input-button-shortcut\"",
+        "data-slot=\"search-input-button-key\"",
     ] {
         assert!(
             source.contains(attr),
@@ -113,6 +119,26 @@ fn search_input_button_uses_fallback_aria_label_from_placeholder() {
         assert!(
             source.contains(needle),
             "SearchInputButton should normalize aria labeling using `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn search_input_button_styles_include_state_marker_contracts() {
+    let styles = load_source("src/button_search_input/styles.rs");
+
+    for selector in [
+        ".ui-search-input-button--enabled",
+        ".ui-search-input-button[data-state=\"disabled\"]",
+        ".ui-search-input-button--custom-placeholder",
+        ".ui-search-input-button[data-compact-placeholder=\"custom\"] .ui-search-input-button__placeholder--compact",
+        ".ui-search-input-button--with-shortcut .ui-search-input-button__shortcut",
+        ".ui-search-input-button[data-shortcut=\"visible\"] .ui-search-input-button__shortcut",
+        ".ui-search-input-button--custom-class",
+    ] {
+        assert!(
+            styles.contains(selector),
+            "SearchInputButton styles should include `{selector}` as stable state-marker contracts."
         );
     }
 }

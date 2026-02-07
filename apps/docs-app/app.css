@@ -964,3 +964,8 @@ a {
   border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 42%);
   background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 22%);
 }
+
+.docs-search-input-button-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 40%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 24%);
+}

@@ -950,12 +950,19 @@ let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
 <SearchInputButton placeholder="Disabled search".to_string() disabled=true />
 <SearchInputButton placeholder="Forced disabled".to_string() is_disabled=true />"#;
 
+    let custom_code = r#"<SearchInputButton
+  placeholder="Browse components".to_string()
+  compact_placeholder="Browse".to_string()
+  aria_label="Open component search".to_string()
+  class_name="docs-search-input-button-custom".to_string()
+/>"#;
+
     view! {
         <ComponentPage
             title="SearchInputButton"
             slug="search-input-button"
             group="Actions"
-            description="HeroUI-level spring search trigger button with Spectrum-style state attrs and shortcut semantics."
+            description="HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs."
         >
             <Playground title="Interactive + shortcut" code=code>
                 <div class="docs-stack">
@@ -998,10 +1005,26 @@ let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
                     </div>
                 </div>
             </Playground>
+
+            <Playground title="Custom Class + Aria Label" code=custom_code>
+                <div class="docs-row">
+                    <SearchInputButton
+                        placeholder="Browse components".to_string()
+                        compact_placeholder="Browse".to_string()
+                        aria_label="Open component search".to_string()
+                        class_name="docs-search-input-button-custom".to_string()
+                    />
+                    <SearchInputButton
+                        placeholder="Search by keyword".to_string()
+                        class_name="docs-search-input-button-custom".to_string()
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
+
 pub(super) fn button_copy() -> AnyView {
     let code = r#"<ButtonCopy
   text="cargo add ui-components".to_string()

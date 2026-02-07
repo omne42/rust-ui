@@ -1,4 +1,8 @@
-use crate::button_search_input::{SearchInputButtonMotion, logic, motion};
+use crate::button_search_input::{
+    SearchInputButtonMotion,
+    logic::{self, SearchInputButtonStateInput},
+    motion,
+};
 use leptos::{html, prelude::*};
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, OnPress, use_button, use_focus_ring, use_hover,
@@ -33,15 +37,15 @@ pub fn SearchInputButton(
         key_label.as_deref(),
     );
 
-    let state = logic::resolve_state(
+    let state = logic::resolve_state(SearchInputButtonStateInput {
         is_disabled,
         disabled,
-        view_state.show_shortcut,
-        placeholder.is_some(),
-        compact_placeholder.is_some(),
-        aria_label.is_some(),
-        class_name.is_some(),
-    );
+        has_shortcut: view_state.show_shortcut,
+        has_custom_placeholder: placeholder.is_some(),
+        has_custom_compact_placeholder: compact_placeholder.is_some(),
+        has_custom_aria_label: aria_label.is_some(),
+        has_custom_class_name: class_name.is_some(),
+    });
 
     let class = logic::compose_class_name(class_name, state);
 
@@ -86,20 +90,14 @@ pub fn SearchInputButton(
             class:ui-search-input-button--focus-visible=move || focus_ring.is_focus_visible.get()
             disabled=state.is_disabled
             data-slot="search-input-button"
-            data-state=if state.is_disabled { "disabled" } else { "enabled" }
+            data-state=state.state_attr
             data-enabled=state.is_enabled.then_some("true")
             data-disabled=state.is_disabled.then_some("true")
-            data-shortcut=if state.has_shortcut { "visible" } else { "hidden" }
-            data-placeholder=if state.has_custom_placeholder {
-                "custom"
-            } else {
-                "default"
-            }
-            data-compact-placeholder=if state.has_custom_compact_placeholder {
-                Some("custom")
-            } else {
-                None
-            }
+            data-shortcut=state.shortcut_attr
+            data-placeholder=state.placeholder_source_attr
+            data-compact-placeholder=state.compact_placeholder_source_attr
+            data-aria-label-source=state.aria_label_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
             aria-label=move || aria_label.get_value()
@@ -130,7 +128,13 @@ pub fn SearchInputButton(
                 focus_ring.handlers.on_blur.run(());
             }
         >
-            <svg class="ui-search-input-button__icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <svg
+                class="ui-search-input-button__icon"
+                data-slot="search-input-button-icon"
+                viewBox="0 0 20 20"
+                fill="none"
+                aria-hidden="true"
+            >
                 <circle cx="9" cy="9" r="6" stroke="currentColor" stroke_width="1.5" />
                 <path
                     d="M13.5 13.5l3 3"
@@ -140,17 +144,27 @@ pub fn SearchInputButton(
                 />
             </svg>
 
-            <span class="ui-search-input-button__placeholder ui-search-input-button__placeholder--full">
+            <span
+                class="ui-search-input-button__placeholder ui-search-input-button__placeholder--full"
+                data-slot="search-input-button-placeholder-full"
+            >
                 {move || placeholder.get_value()}
             </span>
-            <span class="ui-search-input-button__placeholder ui-search-input-button__placeholder--compact">
+            <span
+                class="ui-search-input-button__placeholder ui-search-input-button__placeholder--compact"
+                data-slot="search-input-button-placeholder-compact"
+            >
                 {move || compact_placeholder.get_value()}
             </span>
 
             <Show when=move || show_shortcut>
-                <span class="ui-search-input-button__shortcut" aria-hidden="true">
-                    <span class="ui-search-input-button__key">{move || meta_key_label.get_value()}</span>
-                    <span class="ui-search-input-button__key">{move || key_label.get_value()}</span>
+                <span class="ui-search-input-button__shortcut" data-slot="search-input-button-shortcut" aria-hidden="true">
+                    <span class="ui-search-input-button__key" data-slot="search-input-button-meta-key">
+                        {move || meta_key_label.get_value()}
+                    </span>
+                    <span class="ui-search-input-button__key" data-slot="search-input-button-key">
+                        {move || key_label.get_value()}
+                    </span>
                 </span>
             </Show>
         </button>

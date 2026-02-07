@@ -1,5 +1,7 @@
 pub const CSS: &str = r#"
 .ui-search-input-button {
+  --ui-search-input-button-placeholder-color: var(--ui-fg-muted);
+
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-sm);
@@ -19,18 +21,38 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
-.ui-search-input-button:not(:disabled) {
+.ui-search-input-button--enabled,
+.ui-search-input-button[data-state="enabled"],
+.ui-search-input-button[data-enabled="true"] {
   cursor: pointer;
 }
 
+.ui-search-input-button--disabled,
+.ui-search-input-button[data-state="disabled"],
+.ui-search-input-button[data-disabled="true"],
 .ui-search-input-button:disabled {
   opacity: 0.5;
   pointer-events: none;
 }
 
+.ui-search-input-button--custom-class,
+.ui-search-input-button[data-custom-class="true"] {
+  border-radius: inherit;
+}
+
 .ui-search-input-button--focus-visible {
   outline: 3px solid var(--ui-focus-ring);
   outline-offset: 2px;
+}
+
+.ui-search-input-button--custom-placeholder,
+.ui-search-input-button[data-placeholder="custom"] {
+  --ui-search-input-button-placeholder-color: var(--ui-fg);
+}
+
+.ui-search-input-button--custom-compact-placeholder .ui-search-input-button__placeholder--compact,
+.ui-search-input-button[data-compact-placeholder="custom"] .ui-search-input-button__placeholder--compact {
+  font-weight: 600;
 }
 
 .ui-search-input-button__icon {
@@ -42,7 +64,7 @@ pub const CSS: &str = r#"
 
 .ui-search-input-button__placeholder {
   font-size: 12px;
-  color: var(--ui-fg-muted);
+  color: var(--ui-search-input-button-placeholder-color);
   white-space: nowrap;
 }
 
@@ -84,7 +106,8 @@ pub const CSS: &str = r#"
     display: none;
   }
 
-  .ui-search-input-button__shortcut {
+  .ui-search-input-button--with-shortcut .ui-search-input-button__shortcut,
+  .ui-search-input-button[data-shortcut="visible"] .ui-search-input-button__shortcut {
     display: inline-flex;
   }
 }

@@ -1,11 +1,32 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SearchInputButtonState {
+pub struct SearchInputButtonStateInput {
     pub is_disabled: bool,
-    pub is_enabled: bool,
+    pub disabled: bool,
     pub has_shortcut: bool,
     pub has_custom_placeholder: bool,
     pub has_custom_compact_placeholder: bool,
     pub has_custom_aria_label: bool,
+    pub has_custom_class_name: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SearchInputButtonState {
+    pub is_disabled: bool,
+    pub is_enabled: bool,
+    pub state_attr: &'static str,
+    pub state_class: &'static str,
+    pub has_shortcut: bool,
+    pub shortcut_attr: &'static str,
+    pub shortcut_class: &'static str,
+    pub has_custom_placeholder: bool,
+    pub placeholder_source_attr: &'static str,
+    pub placeholder_source_class: &'static str,
+    pub has_custom_compact_placeholder: bool,
+    pub compact_placeholder_source_attr: &'static str,
+    pub compact_placeholder_source_class: &'static str,
+    pub has_custom_aria_label: bool,
+    pub aria_label_source_attr: &'static str,
+    pub aria_label_source_class: &'static str,
     pub has_custom_class_name: bool,
 }
 
@@ -25,25 +46,67 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn resolve_state(
-    is_disabled: bool,
-    disabled: bool,
-    has_shortcut: bool,
-    has_custom_placeholder: bool,
-    has_custom_compact_placeholder: bool,
-    has_custom_aria_label: bool,
-    has_custom_class_name: bool,
-) -> SearchInputButtonState {
-    let is_disabled = is_disabled || disabled;
+pub fn resolve_state(input: SearchInputButtonStateInput) -> SearchInputButtonState {
+    let is_disabled = input.is_disabled || input.disabled;
+
+    let (state_attr, state_class) = if is_disabled {
+        ("disabled", "ui-search-input-button--disabled")
+    } else {
+        ("enabled", "ui-search-input-button--enabled")
+    };
+
+    let (shortcut_attr, shortcut_class) = if input.has_shortcut {
+        ("visible", "ui-search-input-button--with-shortcut")
+    } else {
+        ("hidden", "ui-search-input-button--without-shortcut")
+    };
+
+    let (placeholder_source_attr, placeholder_source_class) = if input.has_custom_placeholder {
+        ("custom", "ui-search-input-button--custom-placeholder")
+    } else {
+        ("default", "ui-search-input-button--default-placeholder")
+    };
+
+    let (compact_placeholder_source_attr, compact_placeholder_source_class) =
+        if input.has_custom_compact_placeholder {
+            (
+                "custom",
+                "ui-search-input-button--custom-compact-placeholder",
+            )
+        } else {
+            (
+                "default",
+                "ui-search-input-button--default-compact-placeholder",
+            )
+        };
+
+    let (aria_label_source_attr, aria_label_source_class) = if input.has_custom_aria_label {
+        ("custom", "ui-search-input-button--custom-aria-label")
+    } else {
+        (
+            "placeholder",
+            "ui-search-input-button--placeholder-aria-label",
+        )
+    };
 
     SearchInputButtonState {
         is_disabled,
         is_enabled: !is_disabled,
-        has_shortcut,
-        has_custom_placeholder,
-        has_custom_compact_placeholder,
-        has_custom_aria_label,
-        has_custom_class_name,
+        state_attr,
+        state_class,
+        has_shortcut: input.has_shortcut,
+        shortcut_attr,
+        shortcut_class,
+        has_custom_placeholder: input.has_custom_placeholder,
+        placeholder_source_attr,
+        placeholder_source_class,
+        has_custom_compact_placeholder: input.has_custom_compact_placeholder,
+        compact_placeholder_source_attr,
+        compact_placeholder_source_class,
+        has_custom_aria_label: input.has_custom_aria_label,
+        aria_label_source_attr,
+        aria_label_source_class,
+        has_custom_class_name: input.has_custom_class_name,
     }
 }
 
@@ -90,22 +153,17 @@ pub fn compose_class_name(
     base_class_name: Option<String>,
     state: SearchInputButtonState,
 ) -> String {
-    let mut classes = vec!["ui-search-input-button".to_string()];
+    let mut classes = vec![
+        "ui-search-input-button".to_string(),
+        state.state_class.to_string(),
+        state.shortcut_class.to_string(),
+        state.placeholder_source_class.to_string(),
+        state.compact_placeholder_source_class.to_string(),
+        state.aria_label_source_class.to_string(),
+    ];
 
-    if state.is_enabled {
-        classes.push("ui-search-input-button--enabled".to_string());
-    }
-    if state.is_disabled {
-        classes.push("ui-search-input-button--disabled".to_string());
-    }
-    if state.has_shortcut {
-        classes.push("ui-search-input-button--with-shortcut".to_string());
-    }
-    if state.has_custom_placeholder {
-        classes.push("ui-search-input-button--custom-placeholder".to_string());
-    }
-    if state.has_custom_compact_placeholder {
-        classes.push("ui-search-input-button--custom-compact-placeholder".to_string());
+    if state.has_custom_class_name {
+        classes.push("ui-search-input-button--custom-class".to_string());
     }
 
     if state.has_custom_class_name
@@ -133,19 +191,40 @@ mod tests {
 
     #[test]
     fn resolve_state_tracks_enablement_and_metadata_flags() {
-        let enabled_state = resolve_state(false, false, true, true, true, true, true);
+        let enabled_state = resolve_state(SearchInputButtonStateInput {
+            is_disabled: false,
+            disabled: false,
+            has_shortcut: true,
+            has_custom_placeholder: true,
+            has_custom_compact_placeholder: true,
+            has_custom_aria_label: true,
+            has_custom_class_name: true,
+        });
         assert!(enabled_state.is_enabled);
         assert!(!enabled_state.is_disabled);
-        assert!(enabled_state.has_shortcut);
-        assert!(enabled_state.has_custom_placeholder);
-        assert!(enabled_state.has_custom_compact_placeholder);
-        assert!(enabled_state.has_custom_aria_label);
+        assert_eq!(enabled_state.state_attr, "enabled");
+        assert_eq!(enabled_state.shortcut_attr, "visible");
+        assert_eq!(enabled_state.placeholder_source_attr, "custom");
+        assert_eq!(enabled_state.compact_placeholder_source_attr, "custom");
+        assert_eq!(enabled_state.aria_label_source_attr, "custom");
         assert!(enabled_state.has_custom_class_name);
 
-        let disabled_state = resolve_state(true, false, false, false, false, false, false);
+        let disabled_state = resolve_state(SearchInputButtonStateInput {
+            is_disabled: true,
+            disabled: false,
+            has_shortcut: false,
+            has_custom_placeholder: false,
+            has_custom_compact_placeholder: false,
+            has_custom_aria_label: false,
+            has_custom_class_name: false,
+        });
         assert!(!disabled_state.is_enabled);
         assert!(disabled_state.is_disabled);
-        assert!(!disabled_state.has_shortcut);
+        assert_eq!(disabled_state.state_attr, "disabled");
+        assert_eq!(disabled_state.shortcut_attr, "hidden");
+        assert_eq!(disabled_state.placeholder_source_attr, "default");
+        assert_eq!(disabled_state.compact_placeholder_source_attr, "default");
+        assert_eq!(disabled_state.aria_label_source_attr, "placeholder");
     }
 
     #[test]
@@ -176,7 +255,15 @@ mod tests {
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
-            resolve_state(false, false, true, true, true, false, true),
+            resolve_state(SearchInputButtonStateInput {
+                is_disabled: false,
+                disabled: false,
+                has_shortcut: true,
+                has_custom_placeholder: true,
+                has_custom_compact_placeholder: true,
+                has_custom_aria_label: false,
+                has_custom_class_name: true,
+            }),
         );
 
         for token in [
@@ -185,6 +272,8 @@ mod tests {
             "ui-search-input-button--with-shortcut",
             "ui-search-input-button--custom-placeholder",
             "ui-search-input-button--custom-compact-placeholder",
+            "ui-search-input-button--placeholder-aria-label",
+            "ui-search-input-button--custom-class",
             "custom",
         ] {
             assert!(
