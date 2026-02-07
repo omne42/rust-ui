@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use ui_headless::RovingOrientation;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -31,6 +32,54 @@ impl RadioGroupOrientation {
 
     pub fn data_orientation(self) -> &'static str {
         self.aria_orientation()
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RadioGroupState {
+    pub item_count: usize,
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub is_disabled: bool,
+    pub has_disabled_options: bool,
+    pub disabled_option_count: usize,
+    pub selected_index: Option<usize>,
+    pub has_selection: bool,
+    pub selection_empty: bool,
+    pub is_horizontal: bool,
+    pub is_vertical: bool,
+    pub has_label: bool,
+}
+
+pub fn resolve_state(
+    item_count: usize,
+    is_disabled: bool,
+    disabled_indices: &HashSet<usize>,
+    selected_index: Option<usize>,
+    orientation: RadioGroupOrientation,
+    has_label: bool,
+) -> RadioGroupState {
+    let has_items = item_count > 0;
+    let selected_index = selected_index.filter(|index| *index < item_count);
+    let has_selection = selected_index.is_some();
+    let disabled_option_count = disabled_indices
+        .iter()
+        .filter(|index| **index < item_count)
+        .count();
+
+    RadioGroupState {
+        item_count,
+        is_empty: !has_items,
+        has_items,
+        is_disabled,
+        has_disabled_options: disabled_option_count > 0,
+        disabled_option_count,
+        selected_index,
+        has_selection,
+        selection_empty: !has_selection,
+        is_horizontal: matches!(orientation, RadioGroupOrientation::Horizontal),
+        is_vertical: matches!(orientation, RadioGroupOrientation::Vertical),
+        has_label,
     }
 }
 
@@ -129,6 +178,58 @@ mod tests {
             RadioGroupOrientation::Horizontal.data_orientation(),
             "horizontal"
         );
+    }
+
+    #[test]
+    fn resolve_state_tracks_empty_disabled_group() {
+        let disabled = HashSet::new();
+        let state = resolve_state(
+            0,
+            true,
+            &disabled,
+            Some(0),
+            RadioGroupOrientation::Vertical,
+            false,
+        );
+
+        assert_eq!(state.item_count, 0);
+        assert!(state.is_empty);
+        assert!(!state.has_items);
+        assert!(state.is_disabled);
+        assert!(!state.has_disabled_options);
+        assert_eq!(state.disabled_option_count, 0);
+        assert_eq!(state.selected_index, None);
+        assert!(!state.has_selection);
+        assert!(state.selection_empty);
+        assert!(!state.is_horizontal);
+        assert!(state.is_vertical);
+        assert!(!state.has_label);
+    }
+
+    #[test]
+    fn resolve_state_tracks_selection_and_disabled_options() {
+        let disabled = HashSet::from([1_usize, 9_usize]);
+        let state = resolve_state(
+            3,
+            false,
+            &disabled,
+            Some(2),
+            RadioGroupOrientation::Horizontal,
+            true,
+        );
+
+        assert_eq!(state.item_count, 3);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(!state.is_disabled);
+        assert!(state.has_disabled_options);
+        assert_eq!(state.disabled_option_count, 1);
+        assert_eq!(state.selected_index, Some(2));
+        assert!(state.has_selection);
+        assert!(!state.selection_empty);
+        assert!(state.is_horizontal);
+        assert!(!state.is_vertical);
+        assert!(state.has_label);
     }
 
     #[test]

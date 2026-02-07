@@ -471,6 +471,7 @@ pub(super) fn radio_group() -> AnyView {
         "Large".to_string(),
     ];
     let (selected, set_selected) = signal(Some(1_usize));
+    let has_selection = Signal::derive(move || selected.get().is_some());
 
     let billing_options = vec![
         "Monthly".to_string(),
@@ -479,20 +480,21 @@ pub(super) fn radio_group() -> AnyView {
     ];
     let (billing_selected, set_billing_selected) = signal(Some(2_usize));
     let external_label_id = "docs-radio-group-billing-label".to_string();
+    let billing_disabled_indices = vec![1_usize];
 
     let empty_options = Vec::<String>::new();
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
 
     let code = r#"let (selected, set_selected) = signal(Some(1_usize));
-<RadioGroup id_base="size".to_string()
+<RadioGroup
+  id_base="size".to_string()
   options=options
   label="Size".to_string()
   selected_index=selected
   set_selected_index=set_selected
 />"#;
 
-    let states_code = r#"let (billing_selected, set_billing_selected) = signal(Some(2_usize));
-<RadioGroup
+    let states_code = r#"<RadioGroup
   id_base="billing".to_string()
   options=billing_options
   orientation=RadioGroupOrientation::Horizontal
@@ -501,7 +503,6 @@ pub(super) fn radio_group() -> AnyView {
   selected_index=billing_selected
   set_selected_index=set_billing_selected
 />
-
 <RadioGroup
   id_base="empty".to_string()
   options=Vec::<String>::new()
@@ -516,9 +517,9 @@ pub(super) fn radio_group() -> AnyView {
             title="RadioGroup"
             slug="radio-group"
             group="Forms"
-            description="Roving tabindex radiogroup with Spectrum-style labeling, orientation, and disabled semantics."
+            description="Roving tabindex radiogroup with HeroUI-level spring motion and Spectrum-style root state attrs."
         >
-            <Playground title="Label + Selection" code=code>
+            <Playground title="Selection + Root State" code=code>
                 <div class="docs-stack">
                     <RadioGroup
                         id_base="docs-radio-group".to_string()
@@ -528,7 +529,10 @@ pub(super) fn radio_group() -> AnyView {
                         set_selected_index=set_selected
                     />
                     <span class="ui-muted">
-                        "selected: " {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        "selected: "
+                        {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        " · has selection: "
+                        {move || has_selection.get().to_string()}
                     </span>
                 </div>
             </Playground>
@@ -540,13 +544,15 @@ pub(super) fn radio_group() -> AnyView {
                         id_base="docs-radio-group-billing".to_string()
                         options=billing_options
                         orientation=RadioGroupOrientation::Horizontal
-                        disabled_indices=vec![1]
+                        disabled_indices=billing_disabled_indices
                         aria_labelledby=external_label_id.clone()
                         selected_index=billing_selected
                         set_selected_index=set_billing_selected
                     />
                     <span class="ui-muted">
-                        "billing: " {move || billing_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        "billing: "
+                        {move || billing_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        " · disabled options: 1"
                     </span>
 
                     <RadioGroup
@@ -558,7 +564,8 @@ pub(super) fn radio_group() -> AnyView {
                         set_selected_index=set_empty_selected
                     />
                     <span class="ui-muted">
-                        "empty selected: " {move || empty_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        "empty selected: "
+                        {move || empty_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                     </span>
                 </div>
             </Playground>
@@ -566,7 +573,6 @@ pub(super) fn radio_group() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn radio() -> AnyView {
     let (checked, set_checked) = signal(false);
     let on_change = Callback::new(move |next: bool| set_checked.set(next));

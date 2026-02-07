@@ -37,6 +37,37 @@ fn radio_group_uses_headless_roving_and_interaction_hooks() {
 }
 
 #[test]
+fn radio_group_uses_logic_state_model() {
+    let view_source = load_source("src/radio/view.rs");
+    let logic_source = load_source("src/radio/logic.rs");
+
+    for needle in [
+        "pub struct RadioGroupState",
+        "pub fn resolve_state(",
+        "pub item_count: usize",
+        "pub has_disabled_options: bool",
+        "pub selected_index: Option<usize>",
+        "pub has_selection: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Radio logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let state = Memo::new(move |_|",
+        "logic::resolve_state(",
+        "aria.selected_index.get()",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "RadioGroup view should derive root state via logic::resolve_state; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn radio_group_supports_accessible_name_resolution() {
     let view_source = load_source("src/radio/view.rs");
     let logic_source = load_source("src/radio/logic.rs");
@@ -66,11 +97,21 @@ fn radio_group_exposes_state_and_orientation_data_attributes() {
 
     for needle in [
         "data-slot=\"radio-group\"",
-        "data-disabled=disabled.then_some(\"true\")",
-        "data-empty=is_empty.then_some(\"true\")",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-empty=move || state.get().is_empty.then_some(\"true\")",
+        "data-has-items=move || state.get().has_items.then_some(\"true\")",
+        "data-count=move || state.get().item_count.to_string()",
+        "data-has-disabled-options=move || state.get().has_disabled_options.then_some(\"true\")",
+        "data-disabled-option-count=move || state.get().disabled_option_count.to_string()",
+        "data-has-selection=move || state.get().has_selection.then_some(\"true\")",
+        "data-selection-empty=move || state.get().selection_empty.then_some(\"true\")",
+        "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
         "data-orientation=orientation.data_orientation()",
-        "data-has-label=has_label.then_some(\"true\")",
+        "data-horizontal=move || state.get().is_horizontal.then_some(\"true\")",
+        "data-vertical=move || state.get().is_vertical.then_some(\"true\")",
+        "data-has-label=move || state.get().has_label.then_some(\"true\")",
         "data-slot=\"radio\"",
+        "data-index=index",
         "data-active=move || (aria.active_index.get() == index).then_some(\"true\")",
         "data-checked",
         "data-focus-visible",

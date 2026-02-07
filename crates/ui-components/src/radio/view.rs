@@ -36,15 +36,15 @@ pub fn RadioGroup(
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let options: StoredValue<Arc<[String]>> = StoredValue::new(options.into());
-    let (item_count, _set_item_count) = signal(options.get_value().len());
-    let is_empty = item_count.get_untracked() == 0;
+    let item_count = options.get_value().len();
+    let (item_count_signal, _set_item_count) = signal(item_count);
 
     let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_index_set.is_empty();
-    let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
+    let disabled_indices_set: Arc<HashSet<usize>> = Arc::new(disabled_index_set);
 
     let is_item_disabled = has_disabled.then_some({
-        let disabled_indices = disabled_indices.clone();
+        let disabled_indices = disabled_indices_set.clone();
         Callback::new(move |index: usize| disabled_indices.contains(&index))
     });
 
@@ -52,18 +52,15 @@ pub fn RadioGroup(
         is_disabled: disabled,
         id_base: id_base.clone(),
         orientation: orientation.roving_orientation(),
-        item_count,
+        item_count: item_count_signal,
         selected_index,
         set_selected_index,
         on_change: None,
         is_item_disabled,
     });
 
-    let radio_refs: Arc<Vec<NodeRef<html::Button>>> = Arc::new(
-        (0..item_count.get_untracked())
-            .map(|_| NodeRef::new())
-            .collect(),
-    );
+    let radio_refs: Arc<Vec<NodeRef<html::Button>>> =
+        Arc::new((0..item_count).map(|_| NodeRef::new()).collect());
 
     let label = logic::normalize_optional_text(label);
     let label_id = label.as_ref().map(|_| format!("{id_base}-label"));
@@ -74,6 +71,19 @@ pub fn RadioGroup(
     let aria_label = StoredValue::new(accessible_name.aria_label);
     let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
 
+    let disabled_indices_for_state = disabled_indices_set.clone();
+
+    let state = Memo::new(move |_| {
+        logic::resolve_state(
+            item_count,
+            disabled,
+            disabled_indices_for_state.as_ref(),
+            aria.selected_index.get(),
+            orientation,
+            has_label,
+        )
+    });
+
     let label_id = StoredValue::new(label_id);
     let label = StoredValue::new(label);
 
@@ -83,10 +93,11 @@ pub fn RadioGroup(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let radios = (0..item_count.get_untracked())
+    let radios = (0..item_count)
         .map({
             let aria = aria.clone();
             let radio_refs = radio_refs.clone();
+            let disabled_indices_set = disabled_indices_set.clone();
             move |index| {
                 let label = options
                     .get_value()
@@ -99,7 +110,7 @@ pub fn RadioGroup(
                     .unwrap_or_else(|| format!("Option {}", index + 1));
                 let node_ref = radio_refs[index];
                 let is_checked = move || aria.selected_index.get() == Some(index);
-                let is_disabled = disabled || disabled_indices.contains(&index);
+                let is_disabled = disabled || disabled_indices_set.contains(&index);
 
                 let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
                 let hover = use_hover(HoverOptions { is_disabled });
@@ -142,6 +153,7 @@ pub fn RadioGroup(
                         aria-disabled=if is_disabled { Some("true") } else { None }
                         disabled=is_disabled
                         data-slot="radio"
+                        data-index=index
                         data-checked=move || is_checked().then_some("true")
                         data-disabled=is_disabled.then_some("true")
                         data-active=move || (aria.active_index.get() == index).then_some("true")
@@ -184,10 +196,19 @@ pub fn RadioGroup(
             aria-disabled=aria.attrs.aria_disabled
             aria-orientation=orientation.aria_orientation()
             data-slot="radio-group"
-            data-disabled=disabled.then_some("true")
-            data-empty=is_empty.then_some("true")
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-count=move || state.get().item_count.to_string()
+            data-has-disabled-options=move || state.get().has_disabled_options.then_some("true")
+            data-disabled-option-count=move || state.get().disabled_option_count.to_string()
+            data-has-selection=move || state.get().has_selection.then_some("true")
+            data-selection-empty=move || state.get().selection_empty.then_some("true")
+            data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
             data-orientation=orientation.data_orientation()
-            data-has-label=has_label.then_some("true")
+            data-horizontal=move || state.get().is_horizontal.then_some("true")
+            data-vertical=move || state.get().is_vertical.then_some("true")
+            data-has-label=move || state.get().has_label.then_some("true")
         >
             {label.get_value().map(|label| {
                 let label_id = label_id.get_value();
