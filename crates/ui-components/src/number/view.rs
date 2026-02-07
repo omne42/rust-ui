@@ -1,4 +1,4 @@
-use crate::number::{NumberFormatOptions, SlidingNumberMotion, format_static_number};
+use crate::number::{NumberFormatOptions, SlidingNumberMotion, format_static_number, logic};
 use leptos::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -44,33 +44,54 @@ pub fn StaticNumber(
     #[prop(optional, into)] thousand_separator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let decimal_separator = decimal_separator
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .unwrap_or(".");
-    let thousand_separator = thousand_separator
-        .as_deref()
-        .map(str::trim)
-        .filter(|value| !value.is_empty());
+    let class_name = logic::normalize_optional_text(class_name);
+    let (decimal_separator, has_custom_decimal_separator) =
+        logic::resolve_decimal_separator(decimal_separator);
+    let decimal_places = logic::sanitize_decimal_places(decimal_places);
+    let has_custom_decimal_places = decimal_places.is_some();
+    let (thousand_separator, has_custom_thousand_separator) =
+        logic::resolve_thousand_separator(thousand_separator);
+
+    let number = logic::sanitize_number(number);
+
+    let state = logic::resolve_static_number_state(logic::StaticNumberStateInput {
+        value: number,
+        has_custom_decimal_separator,
+        has_custom_decimal_places,
+        has_custom_thousand_separator,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class = logic::compose_static_number_class_name(class_name, state);
 
     let formatted = format_static_number(
         number,
         NumberFormatOptions {
             pad_start,
-            decimal_separator,
+            decimal_separator: &decimal_separator,
             decimal_places,
-            thousand_separator,
+            thousand_separator: thousand_separator.as_deref(),
         },
     );
 
-    let base_class = "ui-static-number".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
-    view! { <span class=class data-slot="static-number">{formatted}</span> }
+    view! {
+        <span
+            class=class
+            data-slot="static-number"
+            data-state=state.sign_attr
+            data-sign=state.sign_attr
+            data-decimal-separator-source=state.decimal_separator_source_attr
+            data-decimal-places-source=state.decimal_places_source_attr
+            data-thousand-separator-source=state.thousand_separator_source_attr
+            data-custom-decimal-separator=state.has_custom_decimal_separator.then_some("true")
+            data-custom-decimal-places=state.has_custom_decimal_places.then_some("true")
+            data-custom-thousand-separator=state.has_custom_thousand_separator.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
+        >
+            {formatted}
+        </span>
+    }
 }
 
 #[component]

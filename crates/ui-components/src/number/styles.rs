@@ -3,6 +3,38 @@ pub const CSS: &str = r#"
   font-variant-numeric: tabular-nums;
 }
 
+.ui-static-number--sign-negative,
+.ui-static-number[data-sign="negative"] {
+  color: var(--ui-danger);
+}
+
+.ui-static-number--sign-zero,
+.ui-static-number[data-sign="zero"] {
+  color: var(--ui-fg-muted);
+}
+
+.ui-static-number--decimal-separator-custom,
+.ui-static-number[data-decimal-separator-source="custom"] {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+
+.ui-static-number--decimal-places-custom,
+.ui-static-number[data-decimal-places-source="custom"] {
+  letter-spacing: 0.01em;
+}
+
+.ui-static-number--thousand-separator-custom,
+.ui-static-number[data-thousand-separator-source="custom"] {
+  font-feature-settings: "tnum" 1;
+}
+
+.ui-static-number--custom-class,
+.ui-static-number[data-custom-class="true"] {
+  isolation: isolate;
+}
+
 .ui-sliding-number {
   position: relative;
   display: inline-flex;

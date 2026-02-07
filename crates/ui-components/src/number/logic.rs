@@ -1,3 +1,5 @@
+pub const DEFAULT_DECIMAL_SEPARATOR: &str = ".";
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NumberFormatOptions<'a> {
     pub pad_start: bool,
@@ -10,11 +12,174 @@ impl<'a> Default for NumberFormatOptions<'a> {
     fn default() -> Self {
         Self {
             pad_start: false,
-            decimal_separator: ".",
+            decimal_separator: DEFAULT_DECIMAL_SEPARATOR,
             decimal_places: None,
             thousand_separator: None,
         }
     }
+}
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn resolve_decimal_separator(value: Option<String>) -> (String, bool) {
+    if let Some(separator) = normalize_optional_text(value) {
+        let is_custom = separator != DEFAULT_DECIMAL_SEPARATOR;
+        return (separator, is_custom);
+    }
+
+    (DEFAULT_DECIMAL_SEPARATOR.to_string(), false)
+}
+
+pub fn resolve_thousand_separator(value: Option<String>) -> (Option<String>, bool) {
+    let value = normalize_optional_text(value);
+    let has_custom_thousand_separator = value.is_some();
+    (value, has_custom_thousand_separator)
+}
+
+pub fn sanitize_decimal_places(value: Option<u32>) -> Option<u32> {
+    value.map(|value| value.min(12))
+}
+
+pub fn sanitize_number(value: f64) -> f64 {
+    if value.is_finite() { value } else { 0.0 }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NumberSign {
+    Negative,
+    Zero,
+    Positive,
+}
+
+impl NumberSign {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            NumberSign::Negative => "ui-static-number--sign-negative",
+            NumberSign::Zero => "ui-static-number--sign-zero",
+            NumberSign::Positive => "ui-static-number--sign-positive",
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            NumberSign::Negative => "negative",
+            NumberSign::Zero => "zero",
+            NumberSign::Positive => "positive",
+        }
+    }
+}
+
+pub fn resolve_sign(value: f64) -> NumberSign {
+    let value = sanitize_number(value);
+    if value < 0.0 {
+        NumberSign::Negative
+    } else if value > 0.0 {
+        NumberSign::Positive
+    } else {
+        NumberSign::Zero
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct StaticNumberStateInput {
+    pub value: f64,
+    pub has_custom_decimal_separator: bool,
+    pub has_custom_decimal_places: bool,
+    pub has_custom_thousand_separator: bool,
+    pub has_custom_class_name: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct StaticNumberState {
+    pub sign: NumberSign,
+    pub sign_class: &'static str,
+    pub sign_attr: &'static str,
+    pub has_custom_decimal_separator: bool,
+    pub has_custom_decimal_places: bool,
+    pub has_custom_thousand_separator: bool,
+    pub has_custom_class_name: bool,
+    pub decimal_separator_source_class: &'static str,
+    pub decimal_places_source_class: &'static str,
+    pub thousand_separator_source_class: &'static str,
+    pub decimal_separator_source_attr: &'static str,
+    pub decimal_places_source_attr: &'static str,
+    pub thousand_separator_source_attr: &'static str,
+    pub class_source_attr: &'static str,
+}
+
+pub fn resolve_static_number_state(input: StaticNumberStateInput) -> StaticNumberState {
+    let sign = resolve_sign(input.value);
+
+    let (decimal_separator_source_class, decimal_separator_source_attr) =
+        if input.has_custom_decimal_separator {
+            ("ui-static-number--decimal-separator-custom", "custom")
+        } else {
+            ("ui-static-number--decimal-separator-default", "default")
+        };
+
+    let (decimal_places_source_class, decimal_places_source_attr) =
+        if input.has_custom_decimal_places {
+            ("ui-static-number--decimal-places-custom", "custom")
+        } else {
+            ("ui-static-number--decimal-places-auto", "auto")
+        };
+
+    let (thousand_separator_source_class, thousand_separator_source_attr) =
+        if input.has_custom_thousand_separator {
+            ("ui-static-number--thousand-separator-custom", "custom")
+        } else {
+            ("ui-static-number--thousand-separator-none", "none")
+        };
+
+    let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+    };
+
+    StaticNumberState {
+        sign,
+        sign_class: sign.class_name(),
+        sign_attr: sign.as_str(),
+        has_custom_decimal_separator: input.has_custom_decimal_separator,
+        has_custom_decimal_places: input.has_custom_decimal_places,
+        has_custom_thousand_separator: input.has_custom_thousand_separator,
+        has_custom_class_name: input.has_custom_class_name,
+        decimal_separator_source_class,
+        decimal_places_source_class,
+        thousand_separator_source_class,
+        decimal_separator_source_attr,
+        decimal_places_source_attr,
+        thousand_separator_source_attr,
+        class_source_attr,
+    }
+}
+
+pub fn compose_static_number_class_name(
+    base_class_name: Option<String>,
+    state: StaticNumberState,
+) -> String {
+    let mut classes = vec![
+        "ui-static-number".to_string(),
+        state.sign_class.to_string(),
+        state.decimal_separator_source_class.to_string(),
+        state.decimal_places_source_class.to_string(),
+        state.thousand_separator_source_class.to_string(),
+    ];
+
+    if state.has_custom_class_name {
+        classes.push("ui-static-number--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
+    }
+
+    classes.join(" ")
 }
 
 fn insert_thousand_separators(int_part: &str, sep: &str) -> String {
@@ -36,7 +201,7 @@ fn insert_thousand_separators(int_part: &str, sep: &str) -> String {
 }
 
 pub fn format_static_number(value: f64, options: NumberFormatOptions<'_>) -> String {
-    let value = if value.is_finite() { value } else { 0.0 };
+    let value = sanitize_number(value);
     let is_negative = value < 0.0;
     let abs_value = value.abs();
 
@@ -46,7 +211,7 @@ pub fn format_static_number(value: f64, options: NumberFormatOptions<'_>) -> Str
         abs_value.to_string()
     };
 
-    if options.decimal_separator != "."
+    if options.decimal_separator != DEFAULT_DECIMAL_SEPARATOR
         && let Some(dot) = number.find('.')
     {
         number.replace_range(dot..=dot, options.decimal_separator);
@@ -91,6 +256,127 @@ pub fn format_static_number(value: f64, options: NumberFormatOptions<'_>) -> Str
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn normalize_optional_text_filters_blank_values() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some(" \n\t ".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some("  docs-static-number  ".to_string())),
+            Some("docs-static-number".to_string())
+        );
+    }
+
+    #[test]
+    fn resolve_decimal_separator_defaults_and_detects_custom_source() {
+        assert_eq!(
+            resolve_decimal_separator(None),
+            (DEFAULT_DECIMAL_SEPARATOR.to_string(), false)
+        );
+        assert_eq!(
+            resolve_decimal_separator(Some(" . ".to_string())),
+            (DEFAULT_DECIMAL_SEPARATOR.to_string(), false)
+        );
+        assert_eq!(
+            resolve_decimal_separator(Some(" , ".to_string())),
+            (",".to_string(), true)
+        );
+    }
+
+    #[test]
+    fn resolve_thousand_separator_reports_source() {
+        assert_eq!(resolve_thousand_separator(None), (None, false));
+        assert_eq!(
+            resolve_thousand_separator(Some("\n\t".to_string())),
+            (None, false)
+        );
+        assert_eq!(
+            resolve_thousand_separator(Some(" , ".to_string())),
+            (Some(",".to_string()), true)
+        );
+    }
+
+    #[test]
+    fn sanitize_decimal_places_caps_at_twelve() {
+        assert_eq!(sanitize_decimal_places(None), None);
+        assert_eq!(sanitize_decimal_places(Some(2)), Some(2));
+        assert_eq!(sanitize_decimal_places(Some(30)), Some(12));
+    }
+
+    #[test]
+    fn sanitize_number_handles_non_finite_values() {
+        assert_eq!(sanitize_number(42.0), 42.0);
+        assert_eq!(sanitize_number(f64::NAN), 0.0);
+        assert_eq!(sanitize_number(f64::INFINITY), 0.0);
+    }
+
+    #[test]
+    fn resolve_sign_maps_sign_variants() {
+        assert_eq!(resolve_sign(-1.0), NumberSign::Negative);
+        assert_eq!(resolve_sign(0.0), NumberSign::Zero);
+        assert_eq!(resolve_sign(1.0), NumberSign::Positive);
+        assert_eq!(resolve_sign(f64::NAN), NumberSign::Zero);
+    }
+
+    #[test]
+    fn resolve_static_state_tracks_source_contracts() {
+        let state = resolve_static_number_state(StaticNumberStateInput {
+            value: -12.3,
+            has_custom_decimal_separator: true,
+            has_custom_decimal_places: false,
+            has_custom_thousand_separator: true,
+            has_custom_class_name: true,
+        });
+
+        assert_eq!(state.sign, NumberSign::Negative);
+        assert_eq!(state.sign_class, "ui-static-number--sign-negative");
+        assert_eq!(state.sign_attr, "negative");
+        assert_eq!(
+            state.decimal_separator_source_class,
+            "ui-static-number--decimal-separator-custom"
+        );
+        assert_eq!(
+            state.decimal_places_source_class,
+            "ui-static-number--decimal-places-auto"
+        );
+        assert_eq!(
+            state.thousand_separator_source_class,
+            "ui-static-number--thousand-separator-custom"
+        );
+        assert_eq!(state.decimal_separator_source_attr, "custom");
+        assert_eq!(state.decimal_places_source_attr, "auto");
+        assert_eq!(state.thousand_separator_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
+    }
+
+    #[test]
+    fn compose_static_class_name_includes_state_markers() {
+        let class_name = compose_static_number_class_name(
+            Some("docs-static-number-custom".to_string()),
+            resolve_static_number_state(StaticNumberStateInput {
+                value: 0.0,
+                has_custom_decimal_separator: false,
+                has_custom_decimal_places: true,
+                has_custom_thousand_separator: true,
+                has_custom_class_name: true,
+            }),
+        );
+
+        for token in [
+            "ui-static-number",
+            "ui-static-number--sign-zero",
+            "ui-static-number--decimal-separator-default",
+            "ui-static-number--decimal-places-custom",
+            "ui-static-number--thousand-separator-custom",
+            "ui-static-number--custom-class",
+            "docs-static-number-custom",
+        ] {
+            assert!(
+                class_name.contains(token),
+                "composed class name should include `{token}`"
+            );
+        }
+    }
 
     #[test]
     fn formats_negative_and_decimals() {

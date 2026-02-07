@@ -1298,16 +1298,31 @@ pub(super) fn motion_ripple() -> AnyView {
 }
 
 pub(super) fn static_number() -> AnyView {
-    let code = r#"<StaticNumber number=12345.67 decimal_places=Some(2) thousand_separator=Some(",".to_string()) />"#;
+    let matrix_code = r#"<StaticNumber number=12345.67 decimal_places=2 thousand_separator=",".to_string() />
+<StaticNumber number=-9876.5 decimal_places=1 thousand_separator=",".to_string() />
+<StaticNumber number=1000.0 decimal_places=0 />"#;
+
+    let custom_code = r#"<StaticNumber
+  number=42.123456789
+  decimal_separator=",".to_string()
+  decimal_places=30
+  thousand_separator=" ".to_string()
+  class_name="docs-static-number-custom".to_string()
+/>
+<StaticNumber
+  number=f64::NAN
+  decimal_places=2
+  class_name="docs-static-number-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="StaticNumber"
             slug="static-number"
             group="Display"
-            description="Static number formatting (no animation)."
+            description="Static number formatting with centralized sign/separator/class source attrs."
         >
-            <Playground title="Static number" code=code>
+            <Playground title="Formatting Matrix" code=matrix_code>
                 <div class="docs-row">
                     <StaticNumber
                         number=12345.67
@@ -1318,6 +1333,24 @@ pub(super) fn static_number() -> AnyView {
                         number=-9876.5
                         decimal_places=1
                         thousand_separator=",".to_string()
+                    />
+                    <StaticNumber number=1000.0 decimal_places=0 />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Separators + Class" code=custom_code>
+                <div class="docs-row">
+                    <StaticNumber
+                        number=42.123456789
+                        decimal_separator=",".to_string()
+                        decimal_places=30
+                        thousand_separator=" ".to_string()
+                        class_name="docs-static-number-custom".to_string()
+                    />
+                    <StaticNumber
+                        number=f64::NAN
+                        decimal_places=2
+                        class_name="docs-static-number-custom".to_string()
                     />
                 </div>
             </Playground>
