@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Table>` with centralized column/row normalization, density/layout/variant state derivation, and Spectrum-style `data-*` contracts.
+- `apps/docs-app`: adds a `Table` docs page with striped/default and compact/fixed empty-state playground coverage.
 - `ui-components`: adds `<LabeledValue>` with centralized label/value/description/source state derivation and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `LabeledValue` docs page with orientation/tone and custom aria/class playground coverage.
 - `ui-components`: `MotionRipple` now uses centralized phase/boundary/motion/class state derivation, emits stable Spectrum-style `data-*` contracts, supports bounded/unbounded rendering, and adds origin-aware ripple triggers with motion sanitization.

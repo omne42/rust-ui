@@ -1,6 +1,7 @@
 mod actions;
 mod actions_extra;
 mod collections;
+mod collections_extra;
 mod display;
 mod display_extra;
 mod files;
@@ -485,6 +486,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "tag-group",
         group: "Collections",
         page: collections::tag_group,
+    },
+    ComponentDoc {
+        name: "Table",
+        slug: "table",
+        group: "Collections",
+        page: collections_extra::table,
     },
     ComponentDoc {
         name: "Overlay",
