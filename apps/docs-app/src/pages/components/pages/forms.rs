@@ -2,10 +2,10 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Checkbox, CheckboxGroup, Form, FormLabelAlign, FormLabelPosition, Input, InputOtp, InputSize,
-    InputVariant, NumberField, Radio, RadioGroup, RadioGroupOrientation, SearchField,
-    SegmentedControl, SegmentedControlOrientation, SegmentedControlSize, Switch, TextArea,
-    TextField,
+    Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Form, FormLabelAlign,
+    FormLabelPosition, Input, InputOtp, InputSize, InputVariant, NumberField, Radio, RadioGroup,
+    RadioGroupOrientation, SearchField, SegmentedControl, SegmentedControlOrientation,
+    SegmentedControlSize, Switch, TextArea, TextField,
 };
 
 pub(super) fn form() -> AnyView {
@@ -271,27 +271,103 @@ pub(super) fn input_otp() -> AnyView {
 
 pub(super) fn checkbox() -> AnyView {
     let (checked, set_checked) = signal(false);
+    let (last_change, set_last_change) = signal("none".to_string());
+    let on_accept_change = Callback::new(move |next: bool| {
+        set_last_change.set(if next {
+            "true".to_string()
+        } else {
+            "false".to_string()
+        });
+    });
+
+    let (marketing, set_marketing) = signal(true);
+    let (disabled_checked, set_disabled_checked) = signal(true);
+    let (disabled_unchecked, set_disabled_unchecked) = signal(false);
+
     let code = r#"let (checked, set_checked) = signal(false);
-<Checkbox checked=checked set_checked=set_checked>"Accept"</Checkbox>"#;
+let on_change = Callback::new(move |next: bool| {
+  logging::log!("checkbox changed: {next}");
+});
+<Checkbox checked=checked set_checked=set_checked on_change=Some(on_change)>
+  "Accept terms"
+</Checkbox>"#;
+
+    let states_code = r#"<Checkbox
+  checked=marketing
+  set_checked=set_marketing
+  variant=CheckboxVariant::Accent
+  size=CheckboxSize::Lg
+>
+  "Email updates"
+</Checkbox>
+<Checkbox checked=disabled_checked set_checked=set_disabled_checked disabled=true>
+  "Disabled on"
+</Checkbox>
+<Checkbox checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
+  "Disabled off"
+</Checkbox>"#;
 
     view! {
         <ComponentPage
             title="Checkbox"
             slug="checkbox"
             group="Forms"
-            description="Pressable checkbox with focus-visible ring and spring indicator."
+            description="Pressable checkbox with HeroUI-level spring indicator and Spectrum-style root state attrs."
         >
-            <Playground title="Checkbox" code=code>
-                <div class="docs-row">
-                    <Checkbox checked=checked set_checked=set_checked>"Accept"</Checkbox>
-                    <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+            <Playground title="Controlled + on_change" code=code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Checkbox
+                            checked=checked
+                            set_checked=set_checked
+                            on_change=on_accept_change
+                        >
+                            "Accept terms"
+                        </Checkbox>
+                        <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+                    </div>
+                    <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="Variant + Disabled matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <Checkbox
+                            checked=marketing
+                            set_checked=set_marketing
+                            variant=CheckboxVariant::Accent
+                            size=CheckboxSize::Lg
+                        >
+                            "Email updates"
+                        </Checkbox>
+                        <span class="ui-muted">
+                            "marketing: "
+                            {move || marketing.get().to_string()}
+                        </span>
+                    </div>
+                    <div class="docs-row">
+                        <Checkbox
+                            checked=disabled_checked
+                            set_checked=set_disabled_checked
+                            disabled=true
+                        >
+                            "Disabled on"
+                        </Checkbox>
+                        <Checkbox
+                            checked=disabled_unchecked
+                            set_checked=set_disabled_unchecked
+                            disabled=true
+                        >
+                            "Disabled off"
+                        </Checkbox>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn checkbox_group() -> AnyView {
     let (apple, set_apple) = signal(false);
     let (banana, set_banana) = signal(true);
