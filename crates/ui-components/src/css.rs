@@ -41,6 +41,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::snippet::styles::CSS);
     out.push_str(crate::kbd::styles::CSS);
     out.push_str(crate::spacer::styles::CSS);
+    out.push_str(crate::well::styles::CSS);
     out.push_str(crate::progress_bar::styles::CSS);
     out.push_str(crate::progress::styles::CSS);
     out.push_str(crate::progress_circle::styles::CSS);

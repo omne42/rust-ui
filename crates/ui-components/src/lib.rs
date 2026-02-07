@@ -91,6 +91,7 @@ pub mod toast;
 pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod tooltip;
+pub mod well;
 
 pub use accordion::{Accordion, AccordionMotion, AccordionSelectionMode};
 pub use action_bar::{ActionBar, ActionBarMotion, ActionBarPosition};
@@ -203,6 +204,7 @@ pub use tooltip::Tooltip;
 pub use tooltip::TooltipMotion;
 pub use ui_headless::{MenuItemKind, OnPress, provide_focus_visible, provide_overlay_stack};
 pub use ui_theme::Theme;
+pub use well::{Well, WellDensity, WellTone};
 
 #[doc(hidden)]
 pub fn push_components_css(out: &mut String) {

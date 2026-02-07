@@ -216,6 +216,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: layout::spacer,
     },
     ComponentDoc {
+        name: "Well",
+        slug: "well",
+        group: "Layout",
+        page: layout::well,
+    },
+    ComponentDoc {
         name: "ScrollShadow",
         slug: "scroll-shadow",
         group: "Layout",

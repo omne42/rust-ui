@@ -3,7 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Divider, DividerOrientation, ScrollShadow,
-    Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize,
+    Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, Well,
+    WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -264,6 +265,78 @@ pub(super) fn spacer() -> AnyView {
                         <span class="docs-spacer-box">"End"</span>
                     </div>
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn well() -> AnyView {
+    let tone_code = r#"<Well tone=WellTone::Default>
+  <div>"Default well"</div>
+</Well>
+<Well tone=WellTone::Quiet density=WellDensity::Compact>
+  <div>"Quiet compact well"</div>
+</Well>
+<Well tone=WellTone::Strong inset=true>
+  <div>"Strong inset well"</div>
+</Well>"#;
+
+    let custom_code = r#"<Well
+  tone=WellTone::Strong
+  inset=true
+  aria_label="Selection summary".to_string()
+  class_name="docs-well-custom".to_string()
+>
+  <div>"Custom class + label"</div>
+</Well>"#;
+
+    view! {
+        <ComponentPage
+            title="Well"
+            slug="well"
+            group="Layout"
+            description="Inset container surface for grouped content with centralized tone/density/label state contracts."
+        >
+            <Playground title="Tone + Density + Inset" code=tone_code>
+                <div class="docs-stack">
+                    <Well tone=WellTone::Default>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Default"</strong>
+                            <span class="ui-muted">"Balanced neutral container for grouped content."</span>
+                        </div>
+                    </Well>
+
+                    <Well tone=WellTone::Quiet density=WellDensity::Compact>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Quiet compact"</strong>
+                            <span class="ui-muted">"Lower-contrast surface with tighter spacing."</span>
+                        </div>
+                    </Well>
+
+                    <Well tone=WellTone::Strong inset=true>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Strong inset"</strong>
+                            <span class="ui-muted">"Emphasized background with inset ring contract."</span>
+                        </div>
+                    </Well>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Label + Class" code=custom_code>
+                <Well
+                    tone=WellTone::Strong
+                    inset=true
+                    aria_label="Selection summary".to_string()
+                    class_name="docs-well-custom".to_string()
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <strong>"Selection summary"</strong>
+                        <span class="ui-muted">
+                            "Verifies aria label fallback/custom source and class merge contract."
+                        </span>
+                    </div>
+                </Well>
             </Playground>
         </ComponentPage>
     }
