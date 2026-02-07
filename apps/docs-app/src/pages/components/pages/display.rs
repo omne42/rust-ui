@@ -698,22 +698,50 @@ pub(super) fn snippet() -> AnyView {
 }
 
 pub(super) fn link() -> AnyView {
-    let code = r#"<Link href="https://example.com".to_string()>"Visit"</Link>"#;
+    let states_code = r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
+<Link href="https://example.com".to_string() target="_blank">"External link"</Link>
+<Link href="#/docs/welcome".to_string() disabled=true>"Disabled"</Link>
+<Link href="   ".to_string()>"Missing href"</Link>"##;
+
+    let custom_code = r#"<Link
+  href="https://example.com".to_string()
+  target="_blank"
+  rel="sponsored".to_string()
+  aria_label="Open partner documentation".to_string()
+  class_name="docs-link-custom".to_string()
+>
+  "Partner docs"
+</Link>"#;
 
     view! {
         <ComponentPage
             title="Link"
             slug="link"
             group="Display"
-            description="Text link with hover/focus-visible styling."
+            description="Text link with centralized disabled/target/rel state attrs and headless hover + focus-visible semantics."
         >
-            <Playground title="Links" code=code>
+            <Playground title="State Matrix" code=states_code>
                 <div class="docs-row">
                     <Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
-                    <Link href="https://example.com".to_string() target="_blank" rel="noreferrer".to_string()>
+                    <Link href="https://example.com".to_string() target="_blank">
                         "External link"
                     </Link>
                     <Link href="#/docs/welcome".to_string() disabled=true>"Disabled"</Link>
+                    <Link href="   ".to_string()>"Missing href"</Link>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Rel + Class" code=custom_code>
+                <div class="docs-row">
+                    <Link
+                        href="https://example.com".to_string()
+                        target="_blank"
+                        rel="sponsored".to_string()
+                        aria_label="Open partner documentation".to_string()
+                        class_name="docs-link-custom".to_string()
+                    >
+                        "Partner docs"
+                    </Link>
                 </div>
             </Playground>
         </ComponentPage>
