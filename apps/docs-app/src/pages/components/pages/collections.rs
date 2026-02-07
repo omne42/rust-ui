@@ -25,21 +25,62 @@ pub(super) fn breadcrumbs() -> AnyView {
         },
     ];
 
-    let code = r#"let items = vec![
-  BreadcrumbItem { label: "Home".to_string(), href: Some("/".to_string()) },
+    let label_only_items = vec![
+        BreadcrumbItem {
+            label: "Library".to_string(),
+            href: None,
+        },
+        BreadcrumbItem {
+            label: "UI".to_string(),
+            href: None,
+        },
+        BreadcrumbItem {
+            label: "Current".to_string(),
+            href: None,
+        },
+    ];
+
+    let empty_items = Vec::<BreadcrumbItem>::new();
+
+    let code = r##"let items = vec![
+  BreadcrumbItem { label: "Home".to_string(), href: Some("#/docs/welcome".to_string()) },
+  BreadcrumbItem { label: "Components".to_string(), href: Some("#/components".to_string()) },
   BreadcrumbItem { label: "Breadcrumbs".to_string(), href: None },
 ];
-<Breadcrumbs items=items />"#;
+<Breadcrumbs items=items />"##;
+
+    let states_code = r#"<Breadcrumbs
+  items=vec![
+    BreadcrumbItem { label: "Library".to_string(), href: None },
+    BreadcrumbItem { label: "UI".to_string(), href: None },
+    BreadcrumbItem { label: "Current".to_string(), href: None },
+  ]
+  aria_label="Label-only trail".to_string()
+/>
+<Breadcrumbs items=Vec::<BreadcrumbItem>::new() aria_label="Empty trail".to_string() />"#;
 
     view! {
         <ComponentPage
             title="Breadcrumbs"
             slug="breadcrumbs"
             group="Collections"
-            description="A breadcrumb nav list with current-page semantics."
+            description="Breadcrumb nav with current-page semantics and Spectrum-style root state attrs."
         >
             <Playground title="Trail" code=code>
                 <Breadcrumbs items=items />
+            </Playground>
+
+            <Playground title="Label-Only + Empty" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <Breadcrumbs items=label_only_items aria_label="Label-only trail".to_string() />
+                        <span class="ui-muted">"all labels (no links)"</span>
+                    </div>
+                    <div class="docs-stack">
+                        <Breadcrumbs items=empty_items aria_label="Empty trail".to_string() />
+                        <span class="ui-muted">"empty trail (0 items)"</span>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }
