@@ -953,27 +953,76 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
 }
 pub(super) fn pagination() -> AnyView {
     let (page, set_page) = signal(1_usize);
+    let (last_change, set_last_change) = signal(None::<usize>);
+    let on_change = Callback::new(move |next: usize| set_last_change.set(Some(next)));
+
+    let (disabled_page, set_disabled_page) = signal(1_usize);
+    let (empty_page, set_empty_page) = signal(1_usize);
+
     let code = r#"let (page, set_page) = signal(1_usize);
-<Pagination total_pages=12 page=page set_page=set_page />"#;
+let on_change = Callback::new(move |next: usize| { /* ... */ });
+<Pagination total_pages=12 page=page set_page=set_page siblings=1 boundaries=1 on_change=on_change />"#;
+
+    let states_code = r#"<Pagination total_pages=1 page=disabled_page set_page=set_disabled_page disabled=true />
+<Pagination total_pages=0 page=empty_page set_page=set_empty_page />"#;
 
     view! {
         <ComponentPage
             title="Pagination"
             slug="pagination"
             group="Collections"
-            description="Pagination control with sibling/boundary range logic."
+            description="Pagination control with sibling/boundary range logic and Spectrum-style state attrs."
         >
-            <Playground title="Pages" code=code>
+            <Playground title="Pages + on_change" code=code>
                 <div class="docs-stack">
-                    <Pagination total_pages=12 page=page set_page=set_page siblings=1 boundaries=1 />
+                    <Pagination
+                        total_pages=12
+                        page=page
+                        set_page=set_page
+                        siblings=1
+                        boundaries=1
+                        on_change=on_change
+                    />
                     <span class="ui-muted">"page: " {move || page.get().to_string()}</span>
+                    <span class="ui-muted">
+                        "last change: "
+                        {move || last_change.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Empty" code=states_code>
+                <div class="docs-row">
+                    <div class="docs-stack">
+                        <Pagination
+                            total_pages=1
+                            page=disabled_page
+                            set_page=set_disabled_page
+                            disabled=true
+                        />
+                        <span class="ui-muted">
+                            "disabled page: "
+                            {move || disabled_page.get().to_string()}
+                        </span>
+                    </div>
+
+                    <div class="docs-stack">
+                        <Pagination
+                            total_pages=0
+                            page=empty_page
+                            set_page=set_empty_page
+                        />
+                        <span class="ui-muted">
+                            "empty page signal: "
+                            {move || empty_page.get().to_string()}
+                        </span>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn tag_group() -> AnyView {
     let (tags, set_tags) = signal(vec![
         Tag::new("tag-rust", "Rust"),

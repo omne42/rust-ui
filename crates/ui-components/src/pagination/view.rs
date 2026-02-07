@@ -1,6 +1,6 @@
 use crate::{
     button::{Button, ButtonSize, ButtonVariant},
-    pagination::{PaginationItem, resolve_pagination_range},
+    pagination::{PaginationItem, logic, resolve_pagination_range},
 };
 use leptos::prelude::*;
 use ui_headless::OnPress;
@@ -29,12 +29,27 @@ pub fn Pagination(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let page_items =
-        move || resolve_pagination_range(total_pages, page.get(), siblings, boundaries);
+    let state = Signal::derive(move || {
+        let current = page.get();
+        logic::resolve_pagination_state(total_pages, current, disabled)
+    });
+
+    let page_items = move || {
+        let current = state.get().current_page;
+        resolve_pagination_range(total_pages, current, siblings, boundaries)
+    };
 
     let prev_on_press: OnPress = Callback::new(move |_| {
-        let current = page.get_untracked().max(1);
-        let next = current.saturating_sub(1).max(1);
+        let state = logic::resolve_pagination_state(total_pages, page.get_untracked(), disabled);
+        if state.is_prev_disabled {
+            return;
+        }
+
+        let next = state.current_page.saturating_sub(1).max(1);
+        if next == state.current_page {
+            return;
+        }
+
         set_page.set(next);
         if let Some(on_change) = on_change.get_value() {
             on_change.run(next);
@@ -42,8 +57,16 @@ pub fn Pagination(
     });
 
     let next_on_press: OnPress = Callback::new(move |_| {
-        let current = page.get_untracked().max(1);
-        let next = (current + 1).min(total_pages.max(1));
+        let state = logic::resolve_pagination_state(total_pages, page.get_untracked(), disabled);
+        if state.is_next_disabled {
+            return;
+        }
+
+        let next = (state.current_page + 1).min(state.effective_total_pages);
+        if next == state.current_page {
+            return;
+        }
+
         set_page.set(next);
         if let Some(on_change) = on_change.get_value() {
             on_change.run(next);
@@ -51,13 +74,29 @@ pub fn Pagination(
     });
 
     view! {
-        <nav class=class aria-label=aria_label data-slot="pagination">
+        <nav
+            class=class
+            aria-label=aria_label
+            data-slot="pagination"
+            data-disabled=disabled.then_some("true")
+            data-empty=(total_pages == 0).then_some("true")
+            data-page=move || state.get().current_page.to_string()
+            data-total-pages=total_pages.to_string()
+            data-single-page=move || {
+                (state.get().effective_total_pages <= 1).then_some("true")
+            }
+        >
             <ul class="ui-pagination__list" data-slot="pagination-list">
                 {move || {
+                    let is_prev_disabled = state.get().is_prev_disabled;
                     view! {
-                        <li class="ui-pagination__item" data-slot="pagination-prev">
+                        <li
+                            class="ui-pagination__item"
+                            data-slot="pagination-prev"
+                            data-disabled=is_prev_disabled.then_some("true")
+                        >
                             <Button
-                                disabled=disabled || page.get() <= 1
+                                disabled=is_prev_disabled
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
                                 aria_label="Previous page"
@@ -70,18 +109,26 @@ pub fn Pagination(
                 }}
 
                 {move || {
+                    let current_page = state.get().current_page;
                     page_items()
                         .into_iter()
                         .enumerate()
                         .map(|(index, item)| {
-                            let aria_current = move || match item {
-                                PaginationItem::Page(p) if p == page.get() => Some("page"),
-                                _ => None,
+                            let page_number = match item {
+                                PaginationItem::Page(value) => Some(value),
+                                PaginationItem::Dots => None,
                             };
+                            let slot = if page_number.is_some() {
+                                "pagination-page"
+                            } else {
+                                "pagination-dots"
+                            };
+                            let is_current = move || page_number == Some(current_page);
+                            let aria_current = move || is_current().then_some("page");
 
                             let content: AnyView = match item {
                                 PaginationItem::Dots => view! {
-                                    <span class="ui-pagination__dots" aria-hidden="true">"…"</span>
+                                    <span class="ui-pagination__dots" data-slot="pagination-dots-label" aria-hidden="true">"…"</span>
                                 }
                                 .into_any(),
                                 PaginationItem::Page(p) => {
@@ -89,6 +136,17 @@ pub fn Pagination(
                                         if disabled {
                                             return;
                                         }
+
+                                        let current = logic::resolve_pagination_state(
+                                            total_pages,
+                                            page.get_untracked(),
+                                            disabled,
+                                        )
+                                        .current_page;
+                                        if current == p {
+                                            return;
+                                        }
+
                                         set_page.set(p);
                                         if let Some(on_change) = on_change.get_value() {
                                             on_change.run(p);
@@ -113,7 +171,10 @@ pub fn Pagination(
                                 <li
                                     class="ui-pagination__item"
                                     aria-current=aria_current
+                                    data-slot=slot
                                     data-index=index
+                                    data-page=page_number.map(|value| value.to_string())
+                                    data-current=move || is_current().then_some("true")
                                 >
                                     {content}
                                 </li>
@@ -123,10 +184,15 @@ pub fn Pagination(
                 }}
 
                 {move || {
+                    let is_next_disabled = state.get().is_next_disabled;
                     view! {
-                        <li class="ui-pagination__item" data-slot="pagination-next">
+                        <li
+                            class="ui-pagination__item"
+                            data-slot="pagination-next"
+                            data-disabled=is_next_disabled.then_some("true")
+                        >
                             <Button
-                                disabled=disabled || total_pages.max(1) <= page.get()
+                                disabled=is_next_disabled
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
                                 aria_label="Next page"

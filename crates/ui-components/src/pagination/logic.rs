@@ -4,6 +4,32 @@ pub enum PaginationItem {
     Dots,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct PaginationState {
+    pub current_page: usize,
+    pub effective_total_pages: usize,
+    pub is_empty: bool,
+    pub is_prev_disabled: bool,
+    pub is_next_disabled: bool,
+}
+
+pub fn resolve_pagination_state(
+    total_pages: usize,
+    current_page: usize,
+    disabled: bool,
+) -> PaginationState {
+    let effective_total_pages = total_pages.max(1);
+    let current_page = current_page.clamp(1, effective_total_pages);
+
+    PaginationState {
+        current_page,
+        effective_total_pages,
+        is_empty: total_pages == 0,
+        is_prev_disabled: disabled || current_page <= 1,
+        is_next_disabled: disabled || current_page >= effective_total_pages,
+    }
+}
+
 pub fn resolve_pagination_range(
     total_pages: usize,
     current_page: usize,
@@ -105,5 +131,32 @@ mod tests {
     fn clamps_out_of_range_pages() {
         let items = resolve_pagination_range(10, 999, 1, 1);
         assert!(items.contains(&PaginationItem::Page(10)));
+    }
+
+    #[test]
+    fn resolve_state_clamps_page_and_disabled_flags() {
+        let state = resolve_pagination_state(12, 99, false);
+        assert_eq!(state.current_page, 12);
+        assert_eq!(state.effective_total_pages, 12);
+        assert!(!state.is_empty);
+        assert!(!state.is_prev_disabled);
+        assert!(state.is_next_disabled);
+    }
+
+    #[test]
+    fn resolve_state_handles_zero_total_pages() {
+        let state = resolve_pagination_state(0, 0, false);
+        assert_eq!(state.current_page, 1);
+        assert_eq!(state.effective_total_pages, 1);
+        assert!(state.is_empty);
+        assert!(state.is_prev_disabled);
+        assert!(state.is_next_disabled);
+    }
+
+    #[test]
+    fn resolve_state_global_disabled_overrides_navigation() {
+        let state = resolve_pagination_state(8, 4, true);
+        assert!(state.is_prev_disabled);
+        assert!(state.is_next_disabled);
     }
 }
