@@ -3,6 +3,14 @@ pub struct MeterMotion {
     pub spring: ui_motion::spring::SpringConfig,
 }
 
+impl MeterMotion {
+    pub fn fast() -> Self {
+        Self {
+            spring: ui_motion::presets::spring_fast(),
+        }
+    }
+}
+
 impl Default for MeterMotion {
     fn default() -> Self {
         Self {

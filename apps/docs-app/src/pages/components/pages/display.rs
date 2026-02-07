@@ -685,26 +685,65 @@ pub(super) fn meter() -> AnyView {
     let (value, set_value) = signal(42_i64);
     let meter_value = Signal::derive(move || Some(value.get() as f64));
 
-    let code = r#"let meter_value = Signal::derive(move || Some(value.get() as f64));
-<Meter id="m".to_string() label="Completion".to_string() value=meter_value />"#;
+    let matrix_code = r#"let meter_value = Signal::derive(move || Some(value.get() as f64));
+<Meter id="docs-meter-default".to_string() label="Completion".to_string() value=meter_value min=0.0 max=100.0 />
+<Meter id="docs-meter-danger".to_string() label="Risk".to_string() value=meter_value variant=MeterVariant::Danger size=MeterSize::Lg />
+<Meter id="docs-meter-compact".to_string() label="Compact".to_string() value=meter_value size=MeterSize::Sm show_value_label=false />"#;
+
+    let custom_code = r#"<Meter
+  id="docs-meter-custom".to_string()
+  label="Sync progress".to_string()
+  aria_label="Background sync".to_string()
+  value=Signal::derive(|| Some(64.0))
+  min=0.0
+  max=100.0
+  value_label="64 complete".to_string()
+  motion=ui_components::MeterMotion::fast()
+  class_name="docs-meter-custom".to_string()
+/>
+<Meter
+  id="docs-meter-fallback".to_string()
+  label="   ".to_string()
+  aria_label="   ".to_string()
+  value=Signal::derive(|| Some(18.0))
+  class_name="docs-meter-custom".to_string()
+/>
+<Meter
+  id="docs-meter-indeterminate".to_string()
+  label="Pending".to_string()
+  value=Signal::derive(|| None)
+  class_name="docs-meter-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Meter"
             slug="meter"
             group="Display"
-            description="Meter/progressbar with label and optional value label."
+            description="Spring-driven meter with centralized variant/size/phase source attrs."
         >
-            <Playground title="Meter" code=code>
+            <Playground title="Variant + Size Matrix" code=matrix_code>
                 <div class="docs-stack">
                     <Meter
-                        id="docs-meter".to_string()
+                        id="docs-meter-default".to_string()
                         label="Completion".to_string()
                         value=meter_value
                         min=0.0
                         max=100.0
-                        variant=MeterVariant::Default
-                        size=MeterSize::Default
+                    />
+                    <Meter
+                        id="docs-meter-danger".to_string()
+                        label="Risk".to_string()
+                        value=meter_value
+                        variant=MeterVariant::Danger
+                        size=MeterSize::Lg
+                    />
+                    <Meter
+                        id="docs-meter-compact".to_string()
+                        label="Compact".to_string()
+                        value=meter_value
+                        size=MeterSize::Sm
+                        show_value_label=false
                     />
                     <div class="docs-row">
                         <ui_components::Button
@@ -715,6 +754,35 @@ pub(super) fn meter() -> AnyView {
                         </ui_components::Button>
                         <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Label + Motion + Class" code=custom_code>
+                <div class="docs-stack">
+                    <Meter
+                        id="docs-meter-custom".to_string()
+                        label="Sync progress".to_string()
+                        aria_label="Background sync".to_string()
+                        value=Signal::derive(|| Some(64.0))
+                        min=0.0
+                        max=100.0
+                        value_label="64 complete".to_string()
+                        motion=ui_components::MeterMotion::fast()
+                        class_name="docs-meter-custom".to_string()
+                    />
+                    <Meter
+                        id="docs-meter-fallback".to_string()
+                        label="   ".to_string()
+                        aria_label="   ".to_string()
+                        value=Signal::derive(|| Some(18.0))
+                        class_name="docs-meter-custom".to_string()
+                    />
+                    <Meter
+                        id="docs-meter-indeterminate".to_string()
+                        label="Pending".to_string()
+                        value=Signal::derive(|| None)
+                        class_name="docs-meter-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

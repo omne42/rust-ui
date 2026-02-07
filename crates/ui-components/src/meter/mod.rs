@@ -21,6 +21,13 @@ impl MeterVariant {
             MeterVariant::Danger => "ui-meter--variant-danger",
         }
     }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            MeterVariant::Default => "default",
+            MeterVariant::Danger => "danger",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -37,6 +44,14 @@ impl MeterSize {
             MeterSize::Sm => "ui-meter--size-sm",
             MeterSize::Default => "ui-meter--size-default",
             MeterSize::Lg => "ui-meter--size-lg",
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            MeterSize::Sm => "sm",
+            MeterSize::Default => "default",
+            MeterSize::Lg => "lg",
         }
     }
 }
