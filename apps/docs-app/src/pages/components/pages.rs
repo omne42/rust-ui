@@ -172,6 +172,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms::segmented_control,
     },
     ComponentDoc {
+        name: "Slider",
+        slug: "slider",
+        group: "Forms",
+        page: forms::slider,
+    },
+    ComponentDoc {
         name: "Card",
         slug: "card",
         group: "Layout",
