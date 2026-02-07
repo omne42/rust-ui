@@ -30,6 +30,10 @@ fn status_light_uses_logic_state_model() {
         "pub fn normalize_optional_text(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "state_class",
+        "role_source_class",
+        "class_source_attr",
+        "ui-status-light--custom-class",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -56,11 +60,13 @@ fn status_light_emits_spectrum_style_state_data_attributes() {
     for attr in [
         "data-slot=\"status-light\"",
         "data-variant=state.variant_attr",
-        "data-state=if state.is_live { \"live\" } else { \"static\" }",
+        "data-state=state.state_attr",
         "data-live=state.is_live.then_some(\"true\")",
         "data-static=(!state.is_live).then_some(\"true\")",
-        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-role=state.role_attr",
+        "data-role-source=state.role_source_attr",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
         "data-slot=\"status-light-indicator\"",
         "data-slot=\"status-light-label\"",
     ] {
@@ -72,7 +78,7 @@ fn status_light_emits_spectrum_style_state_data_attributes() {
 }
 
 #[test]
-fn status_light_styles_include_variant_and_live_markers() {
+fn status_light_styles_include_variant_state_and_source_markers() {
     let source = load_source("src/status_light/styles.rs");
 
     for selector in [
@@ -80,8 +86,15 @@ fn status_light_styles_include_variant_and_live_markers() {
         ".ui-status-light[data-variant=\"accent\"]",
         ".ui-status-light--variant-danger",
         ".ui-status-light--live",
-        ".ui-status-light[data-live=\"true\"]",
+        ".ui-status-light[data-state=\"live\"]",
+        ".ui-status-light--static",
+        ".ui-status-light[data-static=\"true\"]",
         ".ui-status-light[data-state=\"static\"] .ui-status-light__dot",
+        ".ui-status-light--role-custom",
+        ".ui-status-light[data-role-source=\"custom\"]",
+        ".ui-status-light--custom-class",
+        ".ui-status-light[data-custom-class=\"true\"]",
+        ".ui-status-light[data-class-source=\"custom\"]",
     ] {
         assert!(
             source.contains(selector),

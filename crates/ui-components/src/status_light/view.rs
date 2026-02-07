@@ -25,11 +25,13 @@ pub fn StatusLight(
             role=state.role_attr
             data-slot="status-light"
             data-variant=state.variant_attr
-            data-state=if state.is_live { "live" } else { "static" }
+            data-state=state.state_attr
             data-live=state.is_live.then_some("true")
             data-static=(!state.is_live).then_some("true")
-            data-custom-class=state.has_custom_class_name.then_some("true")
             data-role=state.role_attr
+            data-role-source=state.role_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-class-source=state.class_source_attr
         >
             <span
                 class="ui-status-light__dot"

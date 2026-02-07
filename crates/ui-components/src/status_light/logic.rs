@@ -51,8 +51,13 @@ pub struct StatusLightState {
     pub variant_attr: &'static str,
     pub role: Option<StatusLightRole>,
     pub role_attr: Option<&'static str>,
+    pub state_class: &'static str,
+    pub state_attr: &'static str,
+    pub role_source_class: &'static str,
+    pub role_source_attr: &'static str,
     pub is_live: bool,
     pub has_custom_class_name: bool,
+    pub class_source_attr: &'static str,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -64,6 +69,25 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
 
 pub fn resolve_state(input: StatusLightStateInput) -> StatusLightState {
     let role_attr = input.role.map(StatusLightRole::as_attr);
+    let is_live = role_attr.is_some();
+
+    let (state_class, state_attr) = if is_live {
+        ("ui-status-light--live", "live")
+    } else {
+        ("ui-status-light--static", "static")
+    };
+
+    let (role_source_class, role_source_attr) = if is_live {
+        ("ui-status-light--role-custom", "custom")
+    } else {
+        ("ui-status-light--role-none", "none")
+    };
+
+    let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+    };
 
     StatusLightState {
         variant: input.variant,
@@ -71,8 +95,13 @@ pub fn resolve_state(input: StatusLightStateInput) -> StatusLightState {
         variant_attr: input.variant.as_str(),
         role: input.role,
         role_attr,
-        is_live: input.role.is_some(),
+        state_class,
+        state_attr,
+        role_source_class,
+        role_source_attr,
+        is_live,
         has_custom_class_name: input.has_custom_class_name,
+        class_source_attr,
     }
 }
 
@@ -80,16 +109,15 @@ pub fn compose_class_name(base_class_name: Option<String>, state: StatusLightSta
     let mut classes = vec![
         "ui-status-light".to_string(),
         state.variant_class.to_string(),
+        state.state_class.to_string(),
+        state.role_source_class.to_string(),
     ];
 
-    if state.is_live {
-        classes.push("ui-status-light--live".to_string());
-    }
-
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
-        classes.push(base_class_name);
+    if state.has_custom_class_name {
+        classes.push("ui-status-light--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
     }
 
     classes.join(" ")
@@ -130,20 +158,38 @@ mod tests {
     }
 
     #[test]
-    fn resolve_state_tracks_variant_role_and_class_source() {
-        let state = resolve_state(StatusLightStateInput {
+    fn resolve_state_tracks_variant_role_and_sources() {
+        let live = resolve_state(StatusLightStateInput {
             variant: StatusLightVariant::Danger,
             role: Some(StatusLightRole::Status),
             has_custom_class_name: true,
         });
 
-        assert_eq!(state.variant, StatusLightVariant::Danger);
-        assert_eq!(state.variant_class, "ui-status-light--variant-danger");
-        assert_eq!(state.variant_attr, "danger");
-        assert_eq!(state.role, Some(StatusLightRole::Status));
-        assert_eq!(state.role_attr, Some("status"));
-        assert!(state.is_live);
-        assert!(state.has_custom_class_name);
+        assert_eq!(live.variant, StatusLightVariant::Danger);
+        assert_eq!(live.variant_class, "ui-status-light--variant-danger");
+        assert_eq!(live.variant_attr, "danger");
+        assert_eq!(live.role, Some(StatusLightRole::Status));
+        assert_eq!(live.role_attr, Some("status"));
+        assert_eq!(live.state_class, "ui-status-light--live");
+        assert_eq!(live.state_attr, "live");
+        assert_eq!(live.role_source_class, "ui-status-light--role-custom");
+        assert_eq!(live.role_source_attr, "custom");
+        assert!(live.is_live);
+        assert!(live.has_custom_class_name);
+        assert_eq!(live.class_source_attr, "custom");
+
+        let static_state = resolve_state(StatusLightStateInput {
+            variant: StatusLightVariant::Default,
+            role: None,
+            has_custom_class_name: false,
+        });
+
+        assert!(!static_state.is_live);
+        assert_eq!(static_state.state_class, "ui-status-light--static");
+        assert_eq!(static_state.state_attr, "static");
+        assert_eq!(static_state.role_source_class, "ui-status-light--role-none");
+        assert_eq!(static_state.role_source_attr, "none");
+        assert_eq!(static_state.class_source_attr, "default");
     }
 
     #[test]
@@ -161,6 +207,8 @@ mod tests {
             "ui-status-light",
             "ui-status-light--variant-accent",
             "ui-status-light--live",
+            "ui-status-light--role-custom",
+            "ui-status-light--custom-class",
             "custom",
         ] {
             assert!(

@@ -184,12 +184,21 @@ pub(super) fn status_light() -> AnyView {
     let role_code =
         r#"<StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>"#;
 
+    let custom_code = r#"<StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
+<StatusLight
+  role=StatusLightRole::Status
+  variant=StatusLightVariant::Accent
+  class_name="docs-status-light-custom".to_string()
+>
+  "Deploy started"
+</StatusLight>"#;
+
     view! {
         <ComponentPage
             title="StatusLight"
             slug="status-light"
             group="Display"
-            description="Status indicator + label with variant/live state attrs and optional status role semantics."
+            description="Status indicator + label with centralized variant/live/role-source state attrs and optional custom-class contract."
         >
             <Playground title="Variants" code=variants_code>
                 <div class="docs-row">
@@ -205,7 +214,20 @@ pub(super) fn status_light() -> AnyView {
                     <StatusLight
                         role=StatusLightRole::Status
                         variant=StatusLightVariant::Accent
-                        class_name="docs-status-live".to_string()
+                        class_name="docs-status-light-custom".to_string()
+                    >
+                        "Deploy started"
+                    </StatusLight>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Static" code=custom_code>
+                <div class="docs-row">
+                    <StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
+                    <StatusLight
+                        role=StatusLightRole::Status
+                        variant=StatusLightVariant::Accent
+                        class_name="docs-status-light-custom".to_string()
                     >
                         "Deploy started"
                     </StatusLight>

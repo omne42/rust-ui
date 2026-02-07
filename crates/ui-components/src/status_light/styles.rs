@@ -42,11 +42,36 @@ pub const CSS: &str = r#"
 }
 
 .ui-status-light--live,
+.ui-status-light[data-state="live"],
 .ui-status-light[data-live="true"] {
   font-weight: 600;
 }
 
-.ui-status-light[data-state="static"] .ui-status-light__dot {
+.ui-status-light--static,
+.ui-status-light[data-state="static"],
+.ui-status-light[data-static="true"] {
+  --ui-status-light-static-state: 1;
+}
+
+.ui-status-light--static .ui-status-light__dot,
+.ui-status-light[data-state="static"] .ui-status-light__dot,
+.ui-status-light[data-static="true"] .ui-status-light__dot {
   opacity: 0.9;
+}
+
+.ui-status-light--role-none,
+.ui-status-light[data-role-source="none"] {
+  --ui-status-light-role-source: 0;
+}
+
+.ui-status-light--role-custom,
+.ui-status-light[data-role-source="custom"] {
+  --ui-status-light-role-source: 1;
+}
+
+.ui-status-light--custom-class,
+.ui-status-light[data-custom-class="true"],
+.ui-status-light[data-class-source="custom"] {
+  --ui-status-light-custom-class: 1;
 }
 "#;
