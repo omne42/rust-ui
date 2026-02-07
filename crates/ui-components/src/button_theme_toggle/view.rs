@@ -63,12 +63,15 @@ pub fn ThemeToggleButton(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let modes = if modes.is_empty() {
-        vec![ThemeMode::Light, ThemeMode::Dark, ThemeMode::Oled]
-    } else {
-        modes
-    };
+    let has_custom_modes = !modes.is_empty();
+    let modes = logic::normalize_modes(modes);
     let modes = StoredValue::new(modes);
+
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+
+    let aria_label = logic::normalize_optional_text(aria_label);
+    let has_custom_aria_label = aria_label.is_some();
 
     let on_press: OnPress = Callback::new(move |_| {
         if disabled {
@@ -79,15 +82,30 @@ pub fn ThemeToggleButton(
         set_mode.set(next);
     });
 
-    let base_class = "ui-theme-toggle-button".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let class = logic::compose_class_name(
+        class_name,
+        logic::resolve_state(
+            mode.get_untracked(),
+            &modes.get_value(),
+            disabled,
+            has_custom_modes,
+            has_custom_aria_label,
+            has_custom_class_name,
+        ),
+    );
 
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Toggle theme".to_string());
+    let aria_label = aria_label.unwrap_or_else(|| "Toggle theme".to_string());
+
+    let state = Memo::new(move |_| {
+        logic::resolve_state(
+            mode.get(),
+            &modes.get_value(),
+            disabled,
+            has_custom_modes,
+            has_custom_aria_label,
+            has_custom_class_name,
+        )
+    });
 
     let icon_ref: NodeRef<html::Span> = NodeRef::new();
     motion::attach_motion(icon_ref, mode.into(), motion);
@@ -104,6 +122,12 @@ pub fn ThemeToggleButton(
             <span
                 class="ui-theme-toggle-button__icon"
                 data-slot="theme-toggle-icon"
+                data-state=move || if state.get().is_disabled { "disabled" } else { "enabled" }
+                data-current-mode=move || state.get().current_mode_attr
+                data-next-mode=move || state.get().next_mode_attr
+                data-mode-count=move || state.get().mode_count.to_string()
+                data-custom-modes=move || state.get().has_custom_modes.then_some("true")
+                data-custom-aria-label=move || state.get().has_custom_aria_label.then_some("true")
                 node_ref=icon_ref
             >
                 {move || {

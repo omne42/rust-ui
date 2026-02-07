@@ -758,27 +758,57 @@ pub(super) fn toggle_button_group() -> AnyView {
 
 pub(super) fn theme_toggle_button() -> AnyView {
     let (mode, set_mode) = signal(ThemeMode::Light);
+    let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
+    let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];
+
     let code = r#"let (mode, set_mode) = signal(ThemeMode::Light);
 <ThemeToggleButton mode=mode set_mode=set_mode />"#;
+
+    let states_code = r#"<ThemeToggleButton
+  mode=custom_mode
+  set_mode=set_custom_mode
+  modes=vec![ThemeMode::Dark, ThemeMode::Light]
+  aria_label="Switch UI mode".to_string()
+/>
+<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />"#;
 
     view! {
         <ComponentPage
             title="ThemeToggleButton"
             slug="theme-toggle-button"
             group="Actions"
-            description="Icon-only theme toggle button (Light/Dark/OLED)."
+            description="Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs."
         >
-            <Playground title="Theme toggle" code=code>
+            <Playground title="Default cycle" code=code>
                 <div class="docs-row">
                     <ThemeToggleButton mode=mode set_mode=set_mode />
                     <span class="ui-muted">"mode: " {move || format!("{:?}", mode.get())}</span>
+                </div>
+            </Playground>
+
+            <Playground title="Custom modes + disabled" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <ThemeToggleButton
+                            mode=custom_mode
+                            set_mode=set_custom_mode
+                            modes=custom_modes.clone()
+                            aria_label="Switch UI mode".to_string()
+                        />
+                        <span class="ui-muted">
+                            "custom mode: " {move || format!("{:?}", custom_mode.get())}
+                        </span>
+                    </div>
+                    <div class="docs-row">
+                        <ThemeToggleButton mode=mode set_mode=set_mode disabled=true />
+                        <span class="ui-muted">"disabled toggle should remain inert"</span>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn search_input_button() -> AnyView {
     let (press_count, set_press_count) = signal(0_usize);
     let on_press: OnPress = Callback::new(move |_| {
