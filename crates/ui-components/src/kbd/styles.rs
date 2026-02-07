@@ -20,20 +20,43 @@ pub const CSS: &str = r#"
   font-weight: 500;
 }
 
-.ui-kbd--size-sm {
+.ui-kbd--size-sm,
+.ui-kbd[data-size="sm"] {
   padding: 0 var(--ui-space-xs);
   min-height: 20px;
   font-size: 11px;
 }
 
-.ui-kbd--size-md {
+.ui-kbd--size-md,
+.ui-kbd[data-size="md"] {
   padding: calc(var(--ui-space-xs) / 2) var(--ui-space-sm);
   min-height: 24px;
   font-size: 12px;
 }
 
+.ui-kbd--state-with-keys,
+.ui-kbd[data-state="with-keys"],
+.ui-kbd[data-keys="true"] {
+  gap: var(--ui-space-xs);
+}
+
+.ui-kbd--state-label-only,
+.ui-kbd[data-state="label-only"] {
+  gap: 0;
+}
+
+.ui-kbd--custom-class,
+.ui-kbd[data-custom-class="true"] {
+  --ui-kbd-custom-class: 1;
+}
+
 .ui-kbd__keys {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     "Liberation Mono", "Courier New", monospace;
+}
+
+.ui-kbd__label {
+  display: inline-flex;
+  align-items: center;
 }
 "#;

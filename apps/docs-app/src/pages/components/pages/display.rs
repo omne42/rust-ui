@@ -558,26 +558,43 @@ cargo test -p ui-components"#}
 }
 
 pub(super) fn kbd() -> AnyView {
-    let code = r#"<Kbd keys="Ctrl+K".to_string() />"#;
+    let matrix_code = r#"<Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
+<Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>"#;
+
+    let custom_code = r#"<Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
+<Kbd size=KbdSize::Sm keys="Shift".to_string() class_name="docs-kbd-custom".to_string()>"Tab"</Kbd>"#;
 
     view! {
         <ComponentPage
             title="Kbd"
             slug="kbd"
             group="Display"
-            description="Keyboard key hint styling."
+            description="Keyboard keycap with centralized size/keys state attrs and optional custom-class contract."
         >
-            <Playground title="Keyboard hint" code=code>
+            <Playground title="Size + Keys Matrix" code=matrix_code>
                 <div class="docs-row">
                     <Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
-                    <Kbd size=KbdSize::Sm keys="⌘".to_string()>"K"</Kbd>
+                    <Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>
+                    <Kbd size=KbdSize::Md keys="Alt".to_string()>"Enter"</Kbd>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Label Only" code=custom_code>
+                <div class="docs-row">
+                    <Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
+                    <Kbd
+                        size=KbdSize::Sm
+                        keys="Shift".to_string()
+                        class_name="docs-kbd-custom".to_string()
+                    >
+                        "Tab"
+                    </Kbd>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn code_block() -> AnyView {
     let code_str = r#"fn main() {
     println!("hello");
