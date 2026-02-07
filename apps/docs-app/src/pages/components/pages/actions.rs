@@ -780,27 +780,81 @@ pub(super) fn theme_toggle_button() -> AnyView {
 }
 
 pub(super) fn search_input_button() -> AnyView {
-    let on_press: OnPress = Callback::new(|_| {});
-    let code = r#"<SearchInputButton on_press=Some(on_press) />"#;
+    let (press_count, set_press_count) = signal(0_usize);
+    let on_press: OnPress = Callback::new(move |_| {
+        set_press_count.update(|count| *count += 1);
+    });
+
+    let code = r#"let (count, set_count) = signal(0_usize);
+let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
+<SearchInputButton
+  placeholder="Search docs".to_string()
+  compact_placeholder="Search".to_string()
+  meta_key_label="⌘".to_string()
+  key_label="K".to_string()
+  on_press=on_press
+/>"#;
+
+    let states_code = r#"<SearchInputButton placeholder="Find components".to_string() />
+<SearchInputButton
+  placeholder="Find components".to_string()
+  compact_placeholder="Find".to_string()
+/>
+<SearchInputButton placeholder="Disabled search".to_string() disabled=true />
+<SearchInputButton placeholder="Forced disabled".to_string() is_disabled=true />"#;
 
     view! {
         <ComponentPage
             title="SearchInputButton"
             slug="search-input-button"
             group="Actions"
-            description="HeroUI-style search trigger button with shortcut hint."
+            description="HeroUI-level spring search trigger button with Spectrum-style state attrs and shortcut semantics."
         >
-            <Playground title="Default" code=code>
+            <Playground title="Interactive + shortcut" code=code>
                 <div class="docs-stack">
-                    <SearchInputButton on_press=on_press />
-                    <SearchInputButton disabled=true />
+                    <div class="docs-row">
+                        <SearchInputButton
+                            placeholder="Search docs".to_string()
+                            compact_placeholder="Search".to_string()
+                            meta_key_label="⌘".to_string()
+                            key_label="K".to_string()
+                            on_press=on_press
+                        />
+                        <SearchInputButton
+                            placeholder="Command menu".to_string()
+                            compact_placeholder="Cmd".to_string()
+                            meta_key_label="Ctrl".to_string()
+                            key_label="K".to_string()
+                            aria_label="Open command menu".to_string()
+                            on_press=on_press
+                        />
+                    </div>
+                    <span class="ui-muted">"presses: " {move || press_count.get().to_string()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="Placeholder + disabled matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <SearchInputButton placeholder="Find components".to_string() />
+                        <SearchInputButton
+                            placeholder="Find components".to_string()
+                            compact_placeholder="Find".to_string()
+                        />
+                    </div>
+                    <div class="docs-row">
+                        <SearchInputButton placeholder="Disabled search".to_string() disabled=true />
+                        <SearchInputButton
+                            placeholder="Forced disabled".to_string()
+                            is_disabled=true
+                        />
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn button_copy() -> AnyView {
     let code = r#"<ButtonCopy text="hello".to_string() />"#;
 

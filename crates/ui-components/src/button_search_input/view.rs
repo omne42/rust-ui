@@ -19,7 +19,13 @@ pub fn SearchInputButton(
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     #[prop(optional)] on_press: Option<OnPress>,
 ) -> impl IntoView {
-    let state = logic::resolve_state(is_disabled, disabled);
+    let placeholder = logic::normalize_optional_text(placeholder);
+    let compact_placeholder = logic::normalize_optional_text(compact_placeholder);
+    let meta_key_label = logic::normalize_optional_text(meta_key_label);
+    let key_label = logic::normalize_optional_text(key_label);
+    let class_name = logic::normalize_optional_text(class_name);
+    let aria_label = logic::normalize_optional_text(aria_label);
+
     let view_state = logic::resolve_view_state(
         placeholder.as_deref(),
         compact_placeholder.as_deref(),
@@ -27,11 +33,19 @@ pub fn SearchInputButton(
         key_label.as_deref(),
     );
 
-    let aria_label = aria_label
-        .or_else(|| Some(view_state.placeholder.clone()))
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .unwrap_or_else(|| "Search".to_string());
+    let state = logic::resolve_state(
+        is_disabled,
+        disabled,
+        view_state.show_shortcut,
+        placeholder.is_some(),
+        compact_placeholder.is_some(),
+        aria_label.is_some(),
+        class_name.is_some(),
+    );
+
+    let class = logic::compose_class_name(class_name, state);
+
+    let aria_label = aria_label.unwrap_or_else(|| view_state.placeholder.clone());
     let aria_label = StoredValue::new(aria_label);
 
     let aria = use_button(ButtonOptions {
@@ -56,12 +70,6 @@ pub fn SearchInputButton(
         motion,
     );
 
-    let base_class = "ui-search-input-button".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
     let button_type = button_type.unwrap_or("button");
 
     let show_shortcut = view_state.show_shortcut;
@@ -78,7 +86,20 @@ pub fn SearchInputButton(
             class:ui-search-input-button--focus-visible=move || focus_ring.is_focus_visible.get()
             disabled=state.is_disabled
             data-slot="search-input-button"
+            data-state=if state.is_disabled { "disabled" } else { "enabled" }
+            data-enabled=state.is_enabled.then_some("true")
             data-disabled=state.is_disabled.then_some("true")
+            data-shortcut=if state.has_shortcut { "visible" } else { "hidden" }
+            data-placeholder=if state.has_custom_placeholder {
+                "custom"
+            } else {
+                "default"
+            }
+            data-compact-placeholder=if state.has_custom_compact_placeholder {
+                Some("custom")
+            } else {
+                None
+            }
             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
             aria-label=move || aria_label.get_value()
