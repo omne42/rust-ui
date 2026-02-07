@@ -182,6 +182,164 @@ pub fn compose_static_number_class_name(
     classes.join(" ")
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SlidingNumberPhase {
+    Animated,
+    Static,
+}
+
+impl SlidingNumberPhase {
+    pub fn class_name(self) -> &'static str {
+        match self {
+            SlidingNumberPhase::Animated => "ui-sliding-number--state-animated",
+            SlidingNumberPhase::Static => "ui-sliding-number--state-static",
+        }
+    }
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SlidingNumberPhase::Animated => "animated",
+            SlidingNumberPhase::Static => "static",
+        }
+    }
+}
+
+pub fn resolve_sliding_phase(animate: bool) -> SlidingNumberPhase {
+    if animate {
+        SlidingNumberPhase::Animated
+    } else {
+        SlidingNumberPhase::Static
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SlidingNumberStateInput {
+    pub value: f64,
+    pub animate: bool,
+    pub has_custom_decimal_separator: bool,
+    pub has_custom_decimal_places: bool,
+    pub has_custom_thousand_separator: bool,
+    pub has_custom_motion: bool,
+    pub has_custom_class_name: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SlidingNumberState {
+    pub sign: NumberSign,
+    pub phase: SlidingNumberPhase,
+    pub sign_class: &'static str,
+    pub phase_class: &'static str,
+    pub sign_attr: &'static str,
+    pub phase_attr: &'static str,
+    pub has_custom_decimal_separator: bool,
+    pub has_custom_decimal_places: bool,
+    pub has_custom_thousand_separator: bool,
+    pub has_custom_motion: bool,
+    pub has_custom_class_name: bool,
+    pub is_animated: bool,
+    pub is_static: bool,
+    pub decimal_separator_source_class: &'static str,
+    pub decimal_places_source_class: &'static str,
+    pub thousand_separator_source_class: &'static str,
+    pub motion_source_class: &'static str,
+    pub decimal_separator_source_attr: &'static str,
+    pub decimal_places_source_attr: &'static str,
+    pub thousand_separator_source_attr: &'static str,
+    pub motion_source_attr: &'static str,
+    pub class_source_attr: &'static str,
+}
+
+pub fn resolve_sliding_number_state(input: SlidingNumberStateInput) -> SlidingNumberState {
+    let sign = resolve_sign(input.value);
+    let phase = resolve_sliding_phase(input.animate);
+
+    let (decimal_separator_source_class, decimal_separator_source_attr) =
+        if input.has_custom_decimal_separator {
+            ("ui-sliding-number--decimal-separator-custom", "custom")
+        } else {
+            ("ui-sliding-number--decimal-separator-default", "default")
+        };
+
+    let (decimal_places_source_class, decimal_places_source_attr) =
+        if input.has_custom_decimal_places {
+            ("ui-sliding-number--decimal-places-custom", "custom")
+        } else {
+            ("ui-sliding-number--decimal-places-auto", "auto")
+        };
+
+    let (thousand_separator_source_class, thousand_separator_source_attr) =
+        if input.has_custom_thousand_separator {
+            ("ui-sliding-number--thousand-separator-custom", "custom")
+        } else {
+            ("ui-sliding-number--thousand-separator-none", "none")
+        };
+
+    let (motion_source_class, motion_source_attr) = if input.has_custom_motion {
+        ("ui-sliding-number--motion-custom", "custom")
+    } else {
+        ("ui-sliding-number--motion-default", "default")
+    };
+
+    let class_source_attr = if input.has_custom_class_name {
+        "custom"
+    } else {
+        "default"
+    };
+
+    SlidingNumberState {
+        sign,
+        phase,
+        sign_class: match sign {
+            NumberSign::Negative => "ui-sliding-number--sign-negative",
+            NumberSign::Zero => "ui-sliding-number--sign-zero",
+            NumberSign::Positive => "ui-sliding-number--sign-positive",
+        },
+        phase_class: phase.class_name(),
+        sign_attr: sign.as_str(),
+        phase_attr: phase.as_str(),
+        has_custom_decimal_separator: input.has_custom_decimal_separator,
+        has_custom_decimal_places: input.has_custom_decimal_places,
+        has_custom_thousand_separator: input.has_custom_thousand_separator,
+        has_custom_motion: input.has_custom_motion,
+        has_custom_class_name: input.has_custom_class_name,
+        is_animated: phase == SlidingNumberPhase::Animated,
+        is_static: phase == SlidingNumberPhase::Static,
+        decimal_separator_source_class,
+        decimal_places_source_class,
+        thousand_separator_source_class,
+        motion_source_class,
+        decimal_separator_source_attr,
+        decimal_places_source_attr,
+        thousand_separator_source_attr,
+        motion_source_attr,
+        class_source_attr,
+    }
+}
+
+pub fn compose_sliding_number_class_name(
+    base_class_name: Option<String>,
+    state: SlidingNumberState,
+) -> String {
+    let mut classes = vec![
+        "ui-sliding-number".to_string(),
+        state.sign_class.to_string(),
+        state.phase_class.to_string(),
+        state.decimal_separator_source_class.to_string(),
+        state.decimal_places_source_class.to_string(),
+        state.thousand_separator_source_class.to_string(),
+        state.motion_source_class.to_string(),
+    ];
+
+    if state.has_custom_class_name {
+        classes.push("ui-sliding-number--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
+    }
+
+    classes.join(" ")
+}
+
 fn insert_thousand_separators(int_part: &str, sep: &str) -> String {
     if sep.is_empty() {
         return int_part.to_string();
@@ -370,6 +528,96 @@ mod tests {
             "ui-static-number--thousand-separator-custom",
             "ui-static-number--custom-class",
             "docs-static-number-custom",
+        ] {
+            assert!(
+                class_name.contains(token),
+                "composed class name should include `{token}`"
+            );
+        }
+    }
+
+    #[test]
+    fn sliding_phase_mappings_are_stable() {
+        assert_eq!(
+            SlidingNumberPhase::Animated.class_name(),
+            "ui-sliding-number--state-animated"
+        );
+        assert_eq!(
+            SlidingNumberPhase::Static.class_name(),
+            "ui-sliding-number--state-static"
+        );
+        assert_eq!(SlidingNumberPhase::Animated.as_str(), "animated");
+        assert_eq!(SlidingNumberPhase::Static.as_str(), "static");
+    }
+
+    #[test]
+    fn resolve_sliding_state_tracks_source_contracts() {
+        let state = resolve_sliding_number_state(SlidingNumberStateInput {
+            value: -42.0,
+            animate: true,
+            has_custom_decimal_separator: true,
+            has_custom_decimal_places: false,
+            has_custom_thousand_separator: true,
+            has_custom_motion: true,
+            has_custom_class_name: true,
+        });
+
+        assert_eq!(state.sign, NumberSign::Negative);
+        assert_eq!(state.phase, SlidingNumberPhase::Animated);
+        assert_eq!(state.sign_class, "ui-sliding-number--sign-negative");
+        assert_eq!(state.phase_class, "ui-sliding-number--state-animated");
+        assert_eq!(state.sign_attr, "negative");
+        assert_eq!(state.phase_attr, "animated");
+        assert!(state.is_animated);
+        assert!(!state.is_static);
+        assert_eq!(
+            state.decimal_separator_source_class,
+            "ui-sliding-number--decimal-separator-custom"
+        );
+        assert_eq!(
+            state.decimal_places_source_class,
+            "ui-sliding-number--decimal-places-auto"
+        );
+        assert_eq!(
+            state.thousand_separator_source_class,
+            "ui-sliding-number--thousand-separator-custom"
+        );
+        assert_eq!(
+            state.motion_source_class,
+            "ui-sliding-number--motion-custom"
+        );
+        assert_eq!(state.decimal_separator_source_attr, "custom");
+        assert_eq!(state.decimal_places_source_attr, "auto");
+        assert_eq!(state.thousand_separator_source_attr, "custom");
+        assert_eq!(state.motion_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
+    }
+
+    #[test]
+    fn compose_sliding_class_name_includes_state_markers() {
+        let class_name = compose_sliding_number_class_name(
+            Some("docs-sliding-number-custom".to_string()),
+            resolve_sliding_number_state(SlidingNumberStateInput {
+                value: 3.5,
+                animate: false,
+                has_custom_decimal_separator: true,
+                has_custom_decimal_places: true,
+                has_custom_thousand_separator: false,
+                has_custom_motion: true,
+                has_custom_class_name: true,
+            }),
+        );
+
+        for token in [
+            "ui-sliding-number",
+            "ui-sliding-number--sign-positive",
+            "ui-sliding-number--state-static",
+            "ui-sliding-number--decimal-separator-custom",
+            "ui-sliding-number--decimal-places-custom",
+            "ui-sliding-number--thousand-separator-none",
+            "ui-sliding-number--motion-custom",
+            "ui-sliding-number--custom-class",
+            "docs-sliding-number-custom",
         ] {
             assert!(
                 class_name.contains(token),

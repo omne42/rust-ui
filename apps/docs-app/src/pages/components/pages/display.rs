@@ -1363,19 +1363,39 @@ pub(super) fn sliding_number() -> AnyView {
     let (value, set_value) = signal(12345.67_f64);
     let number_signal: Signal<f64> = Signal::derive(move || value.get());
 
-    let code = r#"let number_signal: Signal<f64> = Signal::derive(move || value.get());
-<SlidingNumber number=number_signal />"#;
+    let matrix_code = r#"let number_signal: Signal<f64> = Signal::derive(move || value.get());
+<SlidingNumber number=number_signal decimal_places=2 thousand_separator=",".to_string() />
+<SlidingNumber number=number_signal decimal_places=0 />"#;
+
+    let custom_code = r#"<SlidingNumber
+  number=Signal::derive(|| 42123.456)
+  decimal_separator=",".to_string()
+  decimal_places=30
+  thousand_separator=" ".to_string()
+  class_name="docs-sliding-number-custom".to_string()
+/>
+<SlidingNumber
+  number=Signal::derive(|| f64::NAN)
+  decimal_places=2
+  motion=ui_components::SlidingNumberMotion { animate: false, ..Default::default() }
+  class_name="docs-sliding-number-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="SlidingNumber"
             slug="sliding-number"
             group="Display"
-            description="Spring-animated per-digit number transitions."
+            description="Spring-animated number transitions with centralized sign/source/motion attrs."
         >
-            <Playground title="Animated number" code=code>
+            <Playground title="Animated Matrix" code=matrix_code>
                 <div class="docs-stack">
-                    <SlidingNumber number=number_signal decimal_places=2 thousand_separator=",".to_string() />
+                    <SlidingNumber
+                        number=number_signal
+                        decimal_places=2
+                        thousand_separator=",".to_string()
+                    />
+                    <SlidingNumber number=number_signal decimal_places=0 />
                     <div class="docs-row">
                         <ui_components::Button
                             variant=ui_components::ButtonVariant::Secondary
@@ -1391,6 +1411,27 @@ pub(super) fn sliding_number() -> AnyView {
                         </ui_components::Button>
                         <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Separators + Motion + Class" code=custom_code>
+                <div class="docs-stack">
+                    <SlidingNumber
+                        number=Signal::derive(|| 42123.456)
+                        decimal_separator=",".to_string()
+                        decimal_places=30
+                        thousand_separator=" ".to_string()
+                        class_name="docs-sliding-number-custom".to_string()
+                    />
+                    <SlidingNumber
+                        number=Signal::derive(|| f64::NAN)
+                        decimal_places=2
+                        motion=ui_components::SlidingNumberMotion {
+                            animate: false,
+                            ..Default::default()
+                        }
+                        class_name="docs-sliding-number-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

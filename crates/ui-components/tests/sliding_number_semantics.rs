@@ -8,33 +8,113 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn sliding_number_does_not_ignore_motion_contract() {
-    let source = load_source("src/number/view.rs");
+fn number_module_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/number/mod.rs");
 
-    assert!(
-        !source.contains("let _ = motion"),
-        "SlidingNumber should honor `SlidingNumberMotion` rather than ignoring it."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Number internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
-fn sliding_number_attaches_motion_driver() {
-    let source = load_source("src/number/view.rs");
+fn sliding_number_uses_logic_state_model() {
+    let view_source = load_source("src/number/view.rs");
+    let logic_source = load_source("src/number/logic.rs");
 
-    assert!(
-        source.contains("attach_motion"),
-        "SlidingNumber should attach its motion driver to deliver per-digit spring motion."
-    );
+    for needle in [
+        "pub struct SlidingNumberStateInput",
+        "pub struct SlidingNumberState",
+        "pub enum SlidingNumberPhase",
+        "pub fn resolve_sliding_phase(",
+        "pub fn resolve_sliding_number_state(",
+        "pub fn compose_sliding_number_class_name(",
+        "decimal_separator_source_attr",
+        "decimal_places_source_attr",
+        "thousand_separator_source_attr",
+        "motion_source_attr",
+        "class_source_attr",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Number logic should include `{needle}` for centralized sliding-number state derivation."
+        );
+    }
+
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_decimal_separator(decimal_separator)",
+        "logic::sanitize_decimal_places(decimal_places)",
+        "logic::resolve_thousand_separator(thousand_separator)",
+        "logic::resolve_sliding_number_state(logic::SlidingNumberStateInput {",
+        "logic::compose_sliding_number_class_name(class_name.get_value(), state.get())",
+        "motion::attach_motion",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "SlidingNumber view should derive wrapper state via logic helpers; missing `{needle}`."
+        );
+    }
 }
 
 #[test]
-fn sliding_number_styles_define_css_vars_for_motion() {
+fn sliding_number_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/number/view.rs");
+
+    for attr in [
+        "data-slot=\"sliding-number\"",
+        "data-state=move || state.get().phase_attr",
+        "data-phase-class=move || state.get().phase_class",
+        "data-sign=move || state.get().sign_attr",
+        "data-animated=move || state.get().is_animated.then_some(\"true\")",
+        "data-static=move || state.get().is_static.then_some(\"true\")",
+        "data-decimal-separator-source=move || state.get().decimal_separator_source_attr",
+        "data-decimal-places-source=move || state.get().decimal_places_source_attr",
+        "data-thousand-separator-source=move || state.get().thousand_separator_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-custom-decimal-separator=move || {",
+        "data-custom-decimal-places=move || {",
+        "data-custom-thousand-separator=move || {",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
+        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-class-source=move || state.get().class_source_attr",
+        "aria-hidden=\"true\"",
+    ] {
+        assert!(
+            source.contains(attr),
+            "SlidingNumber should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn sliding_number_styles_include_sign_phase_and_source_contracts() {
     let source = load_source("src/number/styles.rs");
 
-    assert!(
-        source.contains("--ui-sliding-number-offset"),
-        "SlidingNumber styles should define `--ui-sliding-number-offset` so motion updates only touch CSS variables."
-    );
+    for selector in [
+        ".ui-sliding-number--sign-negative",
+        ".ui-sliding-number[data-sign=\"zero\"]",
+        ".ui-sliding-number--state-animated",
+        ".ui-sliding-number[data-state=\"static\"]",
+        ".ui-sliding-number--decimal-separator-custom .ui-sliding-number__separator",
+        ".ui-sliding-number[data-decimal-separator-source=\"custom\"] .ui-sliding-number__separator",
+        ".ui-sliding-number--decimal-places-custom .ui-sliding-number__digit",
+        ".ui-sliding-number[data-decimal-places-source=\"custom\"] .ui-sliding-number__digit",
+        ".ui-sliding-number--thousand-separator-custom .ui-sliding-number__separator",
+        ".ui-sliding-number[data-thousand-separator-source=\"custom\"] .ui-sliding-number__separator",
+        ".ui-sliding-number--motion-custom",
+        ".ui-sliding-number[data-motion-source=\"custom\"]",
+        ".ui-sliding-number--custom-class",
+        ".ui-sliding-number[data-custom-class=\"true\"]",
+        "--ui-sliding-number-offset",
+    ] {
+        assert!(
+            source.contains(selector),
+            "SlidingNumber styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
 }
 
 #[test]
@@ -44,15 +124,5 @@ fn sliding_number_motion_uses_spring_animator() {
     assert!(
         source.contains("SpringAnimator"),
         "SlidingNumber motion should animate via a spring to match the repo's motion spec."
-    );
-}
-
-#[test]
-fn sliding_number_hides_visual_digits_from_screen_readers() {
-    let source = load_source("src/number/view.rs");
-
-    assert!(
-        source.contains("aria-hidden=\"true\""),
-        "SlidingNumber should mark the animated digit rollers as `aria-hidden` and expose a single a11y value."
     );
 }

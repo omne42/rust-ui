@@ -13,6 +13,11 @@ pub const CSS: &str = r#"
   color: var(--ui-fg-muted);
 }
 
+.ui-static-number--sign-positive,
+.ui-static-number[data-sign="positive"] {
+  color: var(--ui-fg);
+}
+
 .ui-static-number--decimal-separator-custom,
 .ui-static-number[data-decimal-separator-source="custom"] {
   text-decoration: underline;
@@ -40,6 +45,51 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   font-variant-numeric: tabular-nums;
+}
+
+.ui-sliding-number--sign-negative,
+.ui-sliding-number[data-sign="negative"] {
+  color: var(--ui-danger);
+}
+
+.ui-sliding-number--sign-zero,
+.ui-sliding-number[data-sign="zero"] {
+  color: var(--ui-fg-muted);
+}
+
+.ui-sliding-number--state-animated,
+.ui-sliding-number[data-state="animated"] {
+  transition: color 180ms ease;
+}
+
+.ui-sliding-number--state-static,
+.ui-sliding-number[data-state="static"] {
+  transition: none;
+}
+
+.ui-sliding-number--decimal-separator-custom .ui-sliding-number__separator,
+.ui-sliding-number[data-decimal-separator-source="custom"] .ui-sliding-number__separator {
+  opacity: 0.92;
+}
+
+.ui-sliding-number--decimal-places-custom .ui-sliding-number__digit,
+.ui-sliding-number[data-decimal-places-source="custom"] .ui-sliding-number__digit {
+  letter-spacing: 0.01em;
+}
+
+.ui-sliding-number--thousand-separator-custom .ui-sliding-number__separator,
+.ui-sliding-number[data-thousand-separator-source="custom"] .ui-sliding-number__separator {
+  font-feature-settings: "tnum" 1;
+}
+
+.ui-sliding-number--motion-custom,
+.ui-sliding-number[data-motion-source="custom"] {
+  transition: text-shadow 200ms ease;
+}
+
+.ui-sliding-number--custom-class,
+.ui-sliding-number[data-custom-class="true"] {
+  isolation: isolate;
 }
 
 .ui-sliding-number__a11y-value {
