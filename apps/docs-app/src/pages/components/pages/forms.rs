@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     Checkbox, CheckboxGroup, Form, FormLabelAlign, FormLabelPosition, Input, InputOtp, InputSize,
-    InputVariant, NumberField, Radio, RadioGroup, SearchField, SegmentedControl,
-    SegmentedControlSize, Switch, TextArea, TextField,
+    InputVariant, NumberField, Radio, RadioGroup, RadioGroupOrientation, SearchField,
+    SegmentedControl, SegmentedControlSize, Switch, TextArea, TextField,
 };
 
 pub(super) fn form() -> AnyView {
@@ -437,11 +437,44 @@ pub(super) fn radio_group() -> AnyView {
         "Large".to_string(),
     ];
     let (selected, set_selected) = signal(Some(1_usize));
+
+    let billing_options = vec![
+        "Monthly".to_string(),
+        "Quarterly".to_string(),
+        "Yearly".to_string(),
+    ];
+    let (billing_selected, set_billing_selected) = signal(Some(2_usize));
+    let external_label_id = "docs-radio-group-billing-label".to_string();
+
+    let empty_options = Vec::<String>::new();
+    let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
     let code = r#"let (selected, set_selected) = signal(Some(1_usize));
 <RadioGroup id_base="size".to_string()
   options=options
+  label="Size".to_string()
   selected_index=selected
   set_selected_index=set_selected
+/>"#;
+
+    let states_code = r#"let (billing_selected, set_billing_selected) = signal(Some(2_usize));
+<RadioGroup
+  id_base="billing".to_string()
+  options=billing_options
+  orientation=RadioGroupOrientation::Horizontal
+  disabled_indices=vec![1]
+  aria_labelledby="docs-radio-group-billing-label".to_string()
+  selected_index=billing_selected
+  set_selected_index=set_billing_selected
+/>
+
+<RadioGroup
+  id_base="empty".to_string()
+  options=Vec::<String>::new()
+  disabled=true
+  aria_label="No options available".to_string()
+  selected_index=empty_selected
+  set_selected_index=set_empty_selected
 />"#;
 
     view! {
@@ -449,9 +482,9 @@ pub(super) fn radio_group() -> AnyView {
             title="RadioGroup"
             slug="radio-group"
             group="Forms"
-            description="Roving tabindex radiogroup with keyboard navigation."
+            description="Roving tabindex radiogroup with Spectrum-style labeling, orientation, and disabled semantics."
         >
-            <Playground title="RadioGroup" code=code>
+            <Playground title="Label + Selection" code=code>
                 <div class="docs-stack">
                     <RadioGroup
                         id_base="docs-radio-group".to_string()
@@ -462,6 +495,36 @@ pub(super) fn radio_group() -> AnyView {
                     />
                     <span class="ui-muted">
                         "selected: " {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Horizontal + Disabled + Empty" code=states_code>
+                <div class="docs-stack">
+                    <div id=external_label_id.clone() class="ui-muted">"Billing cycle"</div>
+                    <RadioGroup
+                        id_base="docs-radio-group-billing".to_string()
+                        options=billing_options
+                        orientation=RadioGroupOrientation::Horizontal
+                        disabled_indices=vec![1]
+                        aria_labelledby=external_label_id.clone()
+                        selected_index=billing_selected
+                        set_selected_index=set_billing_selected
+                    />
+                    <span class="ui-muted">
+                        "billing: " {move || billing_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
+
+                    <RadioGroup
+                        id_base="docs-radio-group-empty".to_string()
+                        options=empty_options
+                        disabled=true
+                        aria_label="No options available".to_string()
+                        selected_index=empty_selected
+                        set_selected_index=set_empty_selected
+                    />
+                    <span class="ui-muted">
+                        "empty selected: " {move || empty_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                     </span>
                 </div>
             </Playground>

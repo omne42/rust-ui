@@ -1,4 +1,4 @@
-use crate::radio::{RadioGroupOrientation, RadioMotion, motion};
+use crate::radio::{RadioGroupOrientation, RadioMotion, logic, motion};
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{
@@ -30,11 +30,14 @@ pub fn RadioGroup(
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] orientation: RadioGroupOrientation,
     #[prop(optional, into)] label: Option<String>,
+    #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] aria_labelledby: Option<String>,
     #[prop(optional)] motion: RadioMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let options: StoredValue<Arc<[String]>> = StoredValue::new(options.into());
     let (item_count, _set_item_count) = signal(options.get_value().len());
+    let is_empty = item_count.get_untracked() == 0;
 
     let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_index_set.is_empty();
@@ -62,7 +65,15 @@ pub fn RadioGroup(
             .collect(),
     );
 
+    let label = logic::normalize_optional_text(label);
     let label_id = label.as_ref().map(|_| format!("{id_base}-label"));
+    let has_label = label.is_some();
+
+    let accessible_name =
+        logic::resolve_accessible_name(aria_label, aria_labelledby, label_id.clone());
+    let aria_label = StoredValue::new(accessible_name.aria_label);
+    let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
+
     let label_id = StoredValue::new(label_id);
     let label = StoredValue::new(label);
 
@@ -81,7 +92,11 @@ pub fn RadioGroup(
                     .get_value()
                     .get(index)
                     .cloned()
-                    .unwrap_or_default();
+                    .and_then(|label| {
+                        let trimmed = label.trim();
+                        (!trimmed.is_empty()).then(|| trimmed.to_string())
+                    })
+                    .unwrap_or_else(|| format!("Option {}", index + 1));
                 let node_ref = radio_refs[index];
                 let is_checked = move || aria.selected_index.get() == Some(index);
                 let is_disabled = disabled || disabled_indices.contains(&index);
@@ -94,7 +109,13 @@ pub fn RadioGroup(
                     ..Default::default()
                 });
 
-                motion::attach_motion(node_ref, hover.is_hovered, press.is_pressed, is_disabled, motion);
+                motion::attach_motion(
+                    node_ref,
+                    hover.is_hovered,
+                    press.is_pressed,
+                    is_disabled,
+                    motion,
+                );
 
                 let on_key_down = {
                     let on_key_down = aria.handlers.on_key_down;
@@ -123,6 +144,7 @@ pub fn RadioGroup(
                         data-slot="radio"
                         data-checked=move || is_checked().then_some("true")
                         data-disabled=is_disabled.then_some("true")
+                        data-active=move || (aria.active_index.get() == index).then_some("true")
                         data-hovered=move || hover.is_hovered.get().then_some("true")
                         data-pressed=move || press.is_pressed.get().then_some("true")
                         data-focused=move || focus_ring.is_focused.get().then_some("true")
@@ -157,9 +179,15 @@ pub fn RadioGroup(
         <div
             class=class
             role=aria.attrs.role
+            aria-label=aria_label.get_value()
+            aria-labelledby=aria_labelledby.get_value()
             aria-disabled=aria.attrs.aria_disabled
-            aria-labelledby=label_id.get_value()
+            aria-orientation=orientation.aria_orientation()
             data-slot="radio-group"
+            data-disabled=disabled.then_some("true")
+            data-empty=is_empty.then_some("true")
+            data-orientation=orientation.data_orientation()
+            data-has-label=has_label.then_some("true")
         >
             {label.get_value().map(|label| {
                 let label_id = label_id.get_value();

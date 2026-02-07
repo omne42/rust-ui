@@ -116,6 +116,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds new components: `Separator`, `AutoHeight`, `Progress`, `ProgressCircle`, `MotionRipple`, `StaticNumber`, and `SlidingNumber`.
 - `apps/web-demo`: extends the new components demo with separators, progress indicators, ripple surface, auto-height, and number formatting.
 
+- `ui-components`: `RadioGroup` now resolves accessible names (`aria-label` / `aria-labelledby` + fallback), exposes Spectrum-style orientation/state `data-*` attributes, and hardens empty-option labeling semantics.
+- `apps/docs-app`: `RadioGroup` docs now include playground scenarios for horizontal layout, disabled items, external labeling, and empty disabled groups.
 ### Changed
 
 - `apps/docs-app`: rebuilds the docs site into a hash-routed component catalog (search + per-component playground pages) and adds a regression test that enforces 100% `ui-components` component coverage.
