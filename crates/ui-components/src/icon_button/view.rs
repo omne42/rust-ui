@@ -1,4 +1,5 @@
 use crate::button::{Button, ButtonMotion, ButtonSize, ButtonVariant};
+use crate::icon_button::logic;
 use leptos::{html, prelude::*};
 use ui_headless::OnPress;
 
@@ -15,8 +16,26 @@ pub fn IconButton(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = class_name.unwrap_or_default();
-    let on_press = on_press.unwrap_or_else(|| Callback::new(|_| {}));
+    let has_custom_press_handler = on_press.is_some();
+    let class_name = logic::normalize_class_name(class_name);
+    let (aria_label, has_explicit_aria_label) = logic::normalize_aria_label(aria_label);
+
+    let state = logic::resolve_state(
+        disabled,
+        size,
+        has_custom_press_handler,
+        has_explicit_aria_label,
+        class_name.is_some(),
+    );
+
+    let class_name = logic::compose_class_name(class_name, state);
+
+    let maybe_on_press = on_press;
+    let on_press = Callback::new(move |_| {
+        if let Some(handler) = maybe_on_press.as_ref() {
+            handler.run(());
+        }
+    });
 
     view! {
         <Button

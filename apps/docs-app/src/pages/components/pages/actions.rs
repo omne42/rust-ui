@@ -286,7 +286,29 @@ pub(super) fn button_group() -> AnyView {
     .into_any()
 }
 pub(super) fn icon_button() -> AnyView {
-    let code = r#"<IconButton aria_label="Close".to_string() variant=ButtonVariant::Ghost>
+    let (close_count, set_close_count) = signal(0_usize);
+    let (search_count, set_search_count) = signal(0_usize);
+
+    let on_close: OnPress = Callback::new(move |_| {
+        set_close_count.update(|count| *count += 1);
+    });
+    let on_search: OnPress = Callback::new(move |_| {
+        set_search_count.update(|count| *count += 1);
+    });
+
+    let code = r#"let (presses, set_presses) = signal(0_usize);
+let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
+<IconButton aria_label="Close dialog".to_string() variant=ButtonVariant::Ghost on_press=on_press>
+  <svg ... />
+</IconButton>"#;
+
+    let states_code = r#"<IconButton aria_label="Search".to_string() size=ButtonSize::IconSm>
+  <svg ... />
+</IconButton>
+<IconButton aria_label="Search".to_string() size=ButtonSize::Icon>
+  <svg ... />
+</IconButton>
+<IconButton aria_label="Search".to_string() size=ButtonSize::IconLg disabled=true>
   <svg ... />
 </IconButton>"#;
 
@@ -295,32 +317,148 @@ pub(super) fn icon_button() -> AnyView {
             title="IconButton"
             slug="icon-button"
             group="Actions"
-            description="A Button wrapper that enforces aria-label and icon sizing."
+            description="A Button wrapper that enforces accessible labeling and icon sizing while preserving motion/press semantics."
         >
-            <Playground title="Icon-only" code=code>
-                <div class="docs-row">
-                    <IconButton aria_label="Close".to_string() variant=ButtonVariant::Ghost>
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <path
-                                d="M5 5l10 10M15 5L5 15"
-                                stroke="currentColor"
-                                stroke_width="1.5"
-                                stroke_linecap="round"
-                                stroke_linejoin="round"
-                            />
-                        </svg>
-                    </IconButton>
-                    <IconButton aria_label="Search".to_string() variant=ButtonVariant::Secondary>
-                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                            <circle cx="9" cy="9" r="6" stroke="currentColor" stroke_width="1.5" />
-                            <path
-                                d="M13.5 13.5l3 3"
-                                stroke="currentColor"
-                                stroke_width="1.5"
-                                stroke_linecap="round"
-                            />
-                        </svg>
-                    </IconButton>
+            <Playground title="on_press + variants" code=code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <IconButton
+                            aria_label="Close dialog".to_string()
+                            variant=ButtonVariant::Ghost
+                            on_press=on_close
+                        >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path
+                                    d="M5 5l10 10M15 5L5 15"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                    stroke_linejoin="round"
+                                />
+                            </svg>
+                        </IconButton>
+                        <IconButton
+                            aria_label="Search".to_string()
+                            variant=ButtonVariant::Secondary
+                            on_press=on_search
+                        >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                    </div>
+                    <span class="ui-muted">
+                        "close/search presses: "
+                        {move || format!("{}/{}", close_count.get(), search_count.get())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Size + disabled matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <IconButton aria_label="Search small".to_string() size=ButtonSize::IconSm>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                        <IconButton aria_label="Search default".to_string() size=ButtonSize::Icon>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                        <IconButton aria_label="Search large".to_string() size=ButtonSize::IconLg>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                    </div>
+                    <div class="docs-row">
+                        <IconButton
+                            aria_label="Close disabled".to_string()
+                            variant=ButtonVariant::Ghost
+                            disabled=true
+                        >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <path
+                                    d="M5 5l10 10M15 5L5 15"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                    stroke_linejoin="round"
+                                />
+                            </svg>
+                        </IconButton>
+                        <IconButton
+                            aria_label="Search disabled".to_string()
+                            variant=ButtonVariant::Secondary
+                            disabled=true
+                        >
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>

@@ -8,27 +8,66 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn icon_button_does_not_expose_view_module() {
+fn icon_button_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/icon_button/mod.rs");
 
-    assert!(
-        !source.contains("pub mod view"),
-        "IconButton's `view` module should stay private to avoid leaking internal module structure into the public API."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "IconButton internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
-fn icon_button_requires_accessible_name() {
-    let source = load_source("src/icon_button/view.rs");
+fn icon_button_uses_logic_state_model() {
+    let view_source = load_source("src/icon_button/view.rs");
+    let logic_source = load_source("src/icon_button/logic.rs");
+
+    for needle in [
+        "pub struct IconButtonState",
+        "pub fn normalize_aria_label(",
+        "pub fn normalize_class_name(",
+        "pub fn resolve_state(",
+        "pub fn compose_class_name(",
+        "pub uses_icon_size: bool",
+        "pub has_custom_press_handler: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "IconButton logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "let class_name = logic::normalize_class_name(class_name);",
+        "let (aria_label, has_explicit_aria_label) = logic::normalize_aria_label(aria_label);",
+        "let state = logic::resolve_state(",
+        "let class_name = logic::compose_class_name(class_name, state);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "IconButton view should derive wrapper state through logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn icon_button_requires_and_normalizes_accessible_name() {
+    let view_source = load_source("src/icon_button/view.rs");
+    let logic_source = load_source("src/icon_button/logic.rs");
 
     assert!(
-        source.contains("aria_label: String"),
-        "IconButton should require an `aria_label` for accessible icon-only buttons."
+        view_source.contains("aria_label: String"),
+        "IconButton should require an `aria_label` input for accessible icon-only buttons."
     );
-
     assert!(
-        source.contains("aria_label=aria_label"),
-        "IconButton should forward its `aria_label` to the underlying Button."
+        view_source.contains("aria_label=aria_label"),
+        "IconButton should forward normalized `aria_label` to the underlying Button."
+    );
+    assert!(
+        logic_source.contains("\"Icon button\".to_string()"),
+        "IconButton should provide a fallback label when the input label is blank."
     );
 }
 
@@ -43,7 +82,7 @@ fn icon_button_defaults_to_icon_size() {
 }
 
 #[test]
-fn icon_button_is_thin_wrapper_around_button() {
+fn icon_button_forwards_button_contract() {
     let source = load_source("src/icon_button/view.rs");
 
     for needle in [
@@ -55,23 +94,32 @@ fn icon_button_is_thin_wrapper_around_button() {
         "motion=motion",
         "class_name=class_name",
         "button_type=button_type",
+        "aria_label=aria_label",
         "node_ref=node_ref",
         "on_press=on_press",
     ] {
         assert!(
             source.contains(needle),
-            "IconButton should forward `{needle}` to Button to keep semantics consistent and centralized."
+            "IconButton should forward `{needle}` to Button so interaction and semantics stay centralized."
         );
     }
 }
 
 #[test]
-fn icon_button_avoids_branching_on_optional_press_handler() {
+fn icon_button_preserves_optional_press_handler_without_markup_branching() {
     let source = load_source("src/icon_button/view.rs");
 
     assert!(
+        source.contains("let has_custom_press_handler = on_press.is_some();"),
+        "IconButton should track whether a custom handler exists without duplicating markup."
+    );
+    assert!(
+        !source.contains("unwrap_or_else(|| Callback::new"),
+        "IconButton should not inject a synthetic no-op press handler."
+    );
+    assert!(
         !source.contains("match on_press"),
-        "IconButton should avoid duplicating Button markup based on whether `on_press` is present."
+        "IconButton should avoid duplicating Button markup based on handler presence."
     );
 }
 
