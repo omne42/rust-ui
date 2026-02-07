@@ -21,8 +21,8 @@ pub fn ListBox(
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let is_empty = items.is_empty();
-    let (item_count, _set_item_count) = signal(items.len());
+    let item_count_value = items.len();
+    let (item_count, _set_item_count) = signal(item_count_value);
 
     let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_index_set.is_empty();
@@ -82,6 +82,14 @@ pub fn ListBox(
     let aria_label = StoredValue::new(accessible_name.aria_label);
     let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
 
+    let state = Signal::derive(move || {
+        logic::resolve_state(
+            item_count_value,
+            aria.selected_index.get(),
+            has_disabled || disabled,
+        )
+    });
+
     view! {
         <div
             class=class
@@ -95,7 +103,13 @@ pub fn ListBox(
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             data-slot="listbox"
             data-disabled=disabled.then_some("true")
-            data-empty=is_empty.then_some("true")
+            data-empty=move || state.get().is_empty.then_some("true")
+            data-has-items=move || state.get().has_items.then_some("true")
+            data-has-selection=move || state.get().has_selection.then_some("true")
+            data-selection-empty=move || (!state.get().has_selection).then_some("true")
+            data-has-disabled-options=move || {
+                state.get().has_disabled_options.then_some("true")
+            }
             on:keydown=on_key_down
             on:focus=move |_| focus_ring.handlers.on_focus.run(())
             on:blur=move |_| focus_ring.handlers.on_blur.run(())
@@ -119,6 +133,7 @@ pub fn ListBox(
                                 aria-disabled=if is_disabled { Some("true") } else { None }
                                 class="ui-listbox__option"
                                 data-slot="listbox-option"
+                                data-index=index
                                 data-selected=move || if is_selected() { Some("true") } else { None }
                                 data-focused=move || {
                                     (aria.active_index.get() == index).then_some("true")

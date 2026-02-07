@@ -4,6 +4,14 @@ pub struct ListBoxAccessibleName {
     pub aria_labelledby: Option<String>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ListBoxState {
+    pub is_empty: bool,
+    pub has_items: bool,
+    pub has_selection: bool,
+    pub has_disabled_options: bool,
+}
+
 fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
@@ -35,6 +43,22 @@ pub fn resolve_accessible_name(
     ListBoxAccessibleName {
         aria_label: Some("Listbox".to_string()),
         aria_labelledby: None,
+    }
+}
+
+pub fn resolve_state(
+    item_count: usize,
+    selected_index: Option<usize>,
+    has_disabled_options: bool,
+) -> ListBoxState {
+    let has_items = item_count > 0;
+    let has_selection = selected_index.filter(|index| *index < item_count).is_some();
+
+    ListBoxState {
+        is_empty: !has_items,
+        has_items,
+        has_selection,
+        has_disabled_options,
     }
 }
 
@@ -87,5 +111,32 @@ mod tests {
                 aria_labelledby: None,
             }
         );
+    }
+
+    #[test]
+    fn resolve_state_tracks_item_and_selection_flags() {
+        let state = resolve_state(4, Some(2), true);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(state.has_selection);
+        assert!(state.has_disabled_options);
+    }
+
+    #[test]
+    fn resolve_state_treats_out_of_range_selection_as_empty_selection() {
+        let state = resolve_state(2, Some(9), false);
+        assert!(!state.is_empty);
+        assert!(state.has_items);
+        assert!(!state.has_selection);
+        assert!(!state.has_disabled_options);
+    }
+
+    #[test]
+    fn resolve_state_handles_empty_listbox() {
+        let state = resolve_state(0, None, false);
+        assert!(state.is_empty);
+        assert!(!state.has_items);
+        assert!(!state.has_selection);
+        assert!(!state.has_disabled_options);
     }
 }

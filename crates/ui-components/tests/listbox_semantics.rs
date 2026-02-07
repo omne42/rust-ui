@@ -50,7 +50,11 @@ fn listbox_exposes_state_and_slot_data_attributes() {
     for needle in [
         "data-slot=\"listbox\"",
         "data-disabled=disabled.then_some(\"true\")",
-        "data-empty=is_empty.then_some(\"true\")",
+        "data-empty=move || state.get().is_empty.then_some(\"true\")",
+        "data-has-items=move || state.get().has_items.then_some(\"true\")",
+        "data-has-selection=move || state.get().has_selection.then_some(\"true\")",
+        "data-selection-empty=move || (!state.get().has_selection).then_some(\"true\")",
+        "data-has-disabled-options=move ||",
         "data-slot=\"listbox-options\"",
         "data-slot=\"listbox-highlight\"",
         "data-slot=\"listbox-option\"",
@@ -67,6 +71,7 @@ fn listbox_options_expose_selection_focus_and_disabled_states() {
     let source = load_source("src/listbox/view.rs");
 
     for needle in [
+        "data-index=index",
         "data-selected=move ||",
         "data-focused=move ||",
         "aria.active_index.get() == index",
@@ -77,6 +82,33 @@ fn listbox_options_expose_selection_focus_and_disabled_states() {
             "ListBox options should expose `{needle}` for selection/focus/disabled state."
         );
     }
+}
+
+#[test]
+fn listbox_uses_logic_state_model() {
+    let view_source = load_source("src/listbox/view.rs");
+    let logic_source = load_source("src/listbox/logic.rs");
+
+    for needle in [
+        "pub struct ListBoxState",
+        "pub fn resolve_state(",
+        "pub has_selection: bool",
+        "pub has_disabled_options: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ListBox logic should include `{needle}` for centralized root-state derivation."
+        );
+    }
+
+    assert!(
+        view_source.contains("logic::resolve_state("),
+        "ListBox view should derive root state through resolve_state."
+    );
+    assert!(
+        view_source.contains("has_disabled || disabled"),
+        "ListBox view should include component-disabled state when deriving has_disabled_options."
+    );
 }
 
 #[test]
