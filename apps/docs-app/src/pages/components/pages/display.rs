@@ -640,19 +640,56 @@ pub(super) fn code_block() -> AnyView {
     .into_any()
 }
 pub(super) fn snippet() -> AnyView {
-    let code = r#"<Snippet text="cargo fmt".to_string() copyable=true />"#;
+    let copy_code = r#"<Snippet
+  text="cargo fmt --all".to_string()
+  label="Command".to_string()
+  copyable=true
+/>
+<Snippet
+  text="RUST_LOG=debug".to_string()
+  copyable=true
+  copied_label="Done".to_string()
+/>"#;
+
+    let custom_code = r#"<Snippet
+  text="cargo test -p ui-components --test snippet_semantics".to_string()
+  copyable=false
+  class_name="docs-snippet-custom".to_string()
+/>
+<Snippet
+  text="cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
+  label="CI".to_string()
+  copyable=false
+  class_name="docs-snippet-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="Snippet"
             slug="snippet"
             group="Display"
-            description="Text snippet with optional copy-to-clipboard."
+            description="Text snippet with centralized multiline/copy state attrs and optional copied-label/custom-class contracts."
         >
-            <Playground title="Snippet" code=code>
+            <Playground title="Copyable + Copied Label" code=copy_code>
                 <div class="docs-stack">
                     <Snippet text="cargo fmt --all".to_string() label="Command".to_string() copyable=true />
-                    <Snippet text="RUST_LOG=debug".to_string() copyable=true />
+                    <Snippet text="RUST_LOG=debug".to_string() copyable=true copied_label="Done".to_string() />
+                </div>
+            </Playground>
+
+            <Playground title="Static + Multiline Custom" code=custom_code>
+                <div class="docs-stack">
+                    <Snippet
+                        text="cargo test -p ui-components --test snippet_semantics".to_string()
+                        copyable=false
+                        class_name="docs-snippet-custom".to_string()
+                    />
+                    <Snippet
+                        text="cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
+                        label="CI".to_string()
+                        copyable=false
+                        class_name="docs-snippet-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>

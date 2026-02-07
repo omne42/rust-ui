@@ -19,12 +19,57 @@ pub const CSS: &str = r#"
     "Liberation Mono", "Courier New", monospace;
 }
 
+.ui-snippet--state-multiline,
+.ui-snippet[data-state="multiline"],
 .ui-snippet[data-multiline="true"] {
   align-items: flex-start;
 }
 
+.ui-snippet--state-multiline .ui-snippet__copy-button,
+.ui-snippet[data-state="multiline"] .ui-snippet__copy-button,
 .ui-snippet[data-multiline="true"] .ui-snippet__copy-button {
   align-self: flex-start;
+}
+
+.ui-snippet--state-single-line,
+.ui-snippet[data-state="single-line"] {
+  align-items: center;
+}
+
+.ui-snippet--copyable,
+.ui-snippet[data-copy="copyable"],
+.ui-snippet[data-copy-actionable="true"] {
+  --ui-snippet-copy-visible: 1;
+}
+
+.ui-snippet--copy-disabled,
+.ui-snippet[data-copy="disabled"] {
+  --ui-snippet-copy-visible: 1;
+}
+
+.ui-snippet--copy-static,
+.ui-snippet[data-copy="static"] {
+  --ui-snippet-copy-visible: 0;
+}
+
+.ui-snippet--with-label,
+.ui-snippet[data-label="true"] {
+  --ui-snippet-has-label: 1;
+}
+
+.ui-snippet--empty,
+.ui-snippet[data-empty="true"] {
+  --ui-snippet-empty: 1;
+}
+
+.ui-snippet--custom-copied-label,
+.ui-snippet[data-copied-label="custom"] {
+  --ui-snippet-custom-copied-label: 1;
+}
+
+.ui-snippet--custom-class,
+.ui-snippet[data-custom-class="true"] {
+  --ui-snippet-custom-class: 1;
 }
 
 .ui-snippet__label {

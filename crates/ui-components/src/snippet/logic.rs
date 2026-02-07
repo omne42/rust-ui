@@ -1,5 +1,103 @@
 use leptos::prelude::*;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SnippetStateInput {
+    pub is_multiline: bool,
+    pub has_text: bool,
+    pub has_label: bool,
+    pub copyable: bool,
+    pub has_custom_copied_label: bool,
+    pub has_custom_class_name: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SnippetViewState {
+    pub is_multiline: bool,
+    pub is_empty: bool,
+    pub has_label: bool,
+    pub copyable: bool,
+    pub copy_is_actionable: bool,
+    pub state_class: &'static str,
+    pub state_attr: &'static str,
+    pub copy_state_class: &'static str,
+    pub copy_state_attr: &'static str,
+    pub copied_label_source_class: &'static str,
+    pub copied_label_source_attr: &'static str,
+    pub has_custom_class_name: bool,
+}
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn resolve_state(input: SnippetStateInput) -> SnippetViewState {
+    let (state_class, state_attr) = if input.is_multiline {
+        ("ui-snippet--state-multiline", "multiline")
+    } else {
+        ("ui-snippet--state-single-line", "single-line")
+    };
+
+    let copy_is_actionable = input.copyable && input.has_text;
+    let (copy_state_class, copy_state_attr) = if input.copyable {
+        if copy_is_actionable {
+            ("ui-snippet--copyable", "copyable")
+        } else {
+            ("ui-snippet--copy-disabled", "disabled")
+        }
+    } else {
+        ("ui-snippet--copy-static", "static")
+    };
+
+    let (copied_label_source_class, copied_label_source_attr) = if input.has_custom_copied_label {
+        ("ui-snippet--custom-copied-label", "custom")
+    } else {
+        ("ui-snippet--default-copied-label", "default")
+    };
+
+    SnippetViewState {
+        is_multiline: input.is_multiline,
+        is_empty: !input.has_text,
+        has_label: input.has_label,
+        copyable: input.copyable,
+        copy_is_actionable,
+        state_class,
+        state_attr,
+        copy_state_class,
+        copy_state_attr,
+        copied_label_source_class,
+        copied_label_source_attr,
+        has_custom_class_name: input.has_custom_class_name,
+    }
+}
+
+pub fn compose_class_name(base_class_name: Option<String>, state: SnippetViewState) -> String {
+    let mut classes = vec![
+        "ui-snippet".to_string(),
+        state.state_class.to_string(),
+        state.copy_state_class.to_string(),
+        state.copied_label_source_class.to_string(),
+    ];
+
+    if state.has_label {
+        classes.push("ui-snippet--with-label".to_string());
+    }
+    if state.is_empty {
+        classes.push("ui-snippet--empty".to_string());
+    }
+
+    if state.has_custom_class_name {
+        classes.push("ui-snippet--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
+    }
+
+    classes.join(" ")
+}
+
 #[derive(Clone)]
 pub struct SnippetLogic {
     pub copied: ReadSignal<bool>,
@@ -102,4 +200,90 @@ async fn write_to_clipboard(text: String) -> bool {
     };
 
     JsFuture::from(promise).await.is_ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_optional_text_filters_blank_values() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some("\n\t".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some("  Done  ".to_string())),
+            Some("Done".to_string())
+        );
+    }
+
+    #[test]
+    fn resolve_state_tracks_copy_and_label_sources() {
+        let state = resolve_state(SnippetStateInput {
+            is_multiline: true,
+            has_text: true,
+            has_label: true,
+            copyable: true,
+            has_custom_copied_label: true,
+            has_custom_class_name: true,
+        });
+
+        assert_eq!(state.state_class, "ui-snippet--state-multiline");
+        assert_eq!(state.copy_state_class, "ui-snippet--copyable");
+        assert_eq!(
+            state.copied_label_source_class,
+            "ui-snippet--custom-copied-label"
+        );
+        assert!(!state.is_empty);
+        assert!(state.has_label);
+        assert!(state.copyable);
+        assert!(state.copy_is_actionable);
+        assert!(state.has_custom_class_name);
+    }
+
+    #[test]
+    fn resolve_state_marks_empty_copyable_snippet_as_disabled_copy() {
+        let state = resolve_state(SnippetStateInput {
+            is_multiline: false,
+            has_text: false,
+            has_label: false,
+            copyable: true,
+            has_custom_copied_label: false,
+            has_custom_class_name: false,
+        });
+
+        assert_eq!(state.copy_state_attr, "disabled");
+        assert!(state.is_empty);
+        assert!(!state.copy_is_actionable);
+    }
+
+    #[test]
+    fn compose_class_name_includes_state_markers() {
+        let class_name = compose_class_name(
+            Some("docs-snippet".to_string()),
+            resolve_state(SnippetStateInput {
+                is_multiline: false,
+                has_text: false,
+                has_label: true,
+                copyable: true,
+                has_custom_copied_label: false,
+                has_custom_class_name: true,
+            }),
+        );
+
+        for token in [
+            "ui-snippet",
+            "ui-snippet--state-single-line",
+            "ui-snippet--copy-disabled",
+            "ui-snippet--default-copied-label",
+            "ui-snippet--with-label",
+            "ui-snippet--empty",
+            "ui-snippet--custom-class",
+            "docs-snippet",
+        ] {
+            assert!(
+                class_name.contains(token),
+                "composed class name should include `{token}`"
+            );
+        }
+    }
 }
