@@ -25,11 +25,13 @@ fn flip_button_uses_logic_state_model() {
     let logic_source = load_source("src/button_flip/logic.rs");
 
     for needle in [
+        "pub struct FlipButtonStateInput",
         "pub struct FlipButtonState",
-        "pub fn normalize_class_name(",
+        "pub fn normalize_optional_text(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
-        "pub direction_attr: &'static str",
+        "pub direction_class: &'static str",
+        "pub state_attr: &'static str",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -38,10 +40,9 @@ fn flip_button_uses_logic_state_model() {
     }
 
     for needle in [
-        "let class_name = logic::normalize_class_name(class_name);",
-        "let state = Memo::new(move |_| {",
-        "logic::resolve_state(",
-        "let class = logic::compose_class_name(",
+        "let class_name = logic::normalize_optional_text(class_name);",
+        "logic::resolve_state(FlipButtonStateInput {",
+        "class=move || logic::compose_class_name(class_name_source.clone(), state.get())",
     ] {
         assert!(
             view_source.contains(needle),
@@ -69,7 +70,10 @@ fn flip_button_emits_spectrum_style_data_attributes() {
     for needle in [
         "data-slot=\"flip-button\"",
         "data-from=move || state.get().direction_attr",
-        "data-state=move || if state.get().is_active { \"active\" } else { \"inactive\" }",
+        "data-state=move || state.get().state_attr",
+        "data-hover=move || state.get().hover_attr",
+        "data-focus-within-state=move || state.get().focus_within_attr",
+        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
         "data-active=move || state.get().is_active.then_some(\"true\")",
         "data-inactive=move || state.get().is_inactive.then_some(\"true\")",
         "data-hovered=move || state.get().is_hovered.then_some(\"true\")",
@@ -78,6 +82,26 @@ fn flip_button_emits_spectrum_style_data_attributes() {
         assert!(
             source.contains(needle),
             "FlipButton should expose `{needle}` for Spectrum-style state inspection."
+        );
+    }
+}
+
+#[test]
+fn flip_button_styles_include_state_marker_contracts() {
+    let source = load_source("src/button_flip/styles.rs");
+
+    for selector in [
+        ".ui-flip-button--custom-class",
+        ".ui-flip-button[data-custom-class=\"true\"]",
+        ".ui-flip-button--state-active .ui-flip-button__front",
+        ".ui-flip-button[data-state=\"active\"] .ui-flip-button__back",
+        ".ui-flip-button--from-top .ui-flip-button__front",
+        ".ui-flip-button[data-from=\"left\"] .ui-flip-button__back",
+        ".ui-flip-button--from-right .ui-flip-button__back",
+    ] {
+        assert!(
+            source.contains(selector),
+            "FlipButton styles should include `{selector}` as stable state-marker contracts."
         );
     }
 }

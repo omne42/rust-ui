@@ -1,4 +1,8 @@
-use crate::button_flip::{FlipButtonMotion, FlipDirection, logic, motion};
+use crate::button_flip::{
+    FlipButtonMotion, FlipDirection,
+    logic::{self, FlipButtonStateInput},
+    motion,
+};
 use leptos::children::ViewFn;
 use leptos::{html, prelude::*};
 use ui_headless::{FocusWithinOptions, HoverOptions, use_focus_within, use_hover};
@@ -12,7 +16,7 @@ pub fn FlipButton(
     #[prop(into)] front: ViewFn,
     #[prop(into)] back: ViewFn,
 ) -> impl IntoView {
-    let class_name = logic::normalize_class_name(class_name);
+    let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 
     let hover = use_hover(HoverOptions { is_disabled: false });
@@ -26,19 +30,16 @@ pub fn FlipButton(
     motion::attach_motion(node_ref, is_active, from, motion);
 
     let state = Memo::new(move |_| {
-        logic::resolve_state(
-            hover.is_hovered.get(),
-            focus_within.is_focus_within.get(),
-            is_active.get(),
-            from,
+        logic::resolve_state(FlipButtonStateInput {
+            direction: from,
+            is_hovered: hover.is_hovered.get(),
+            is_focus_within: focus_within.is_focus_within.get(),
+            is_active: is_active.get(),
             has_custom_class_name,
-        )
+        })
     });
 
-    let class = logic::compose_class_name(
-        class_name,
-        logic::resolve_state(false, false, false, from, has_custom_class_name),
-    );
+    let class_name_source = class_name.clone();
 
     let front = StoredValue::new(front);
     let back = StoredValue::new(back);
@@ -46,10 +47,13 @@ pub fn FlipButton(
     view! {
         <div
             node_ref=node_ref
-            class=class
+            class=move || logic::compose_class_name(class_name_source.clone(), state.get())
             data-slot="flip-button"
             data-from=move || state.get().direction_attr
-            data-state=move || if state.get().is_active { "active" } else { "inactive" }
+            data-state=move || state.get().state_attr
+            data-hover=move || state.get().hover_attr
+            data-focus-within-state=move || state.get().focus_within_attr
+            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-active=move || state.get().is_active.then_some("true")
             data-inactive=move || state.get().is_inactive.then_some("true")
             data-hovered=move || state.get().is_hovered.then_some("true")

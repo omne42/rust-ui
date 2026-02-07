@@ -1067,12 +1067,19 @@ pub(super) fn flip_button() -> AnyView {
 <FlipButton from=FlipDirection::Left front=... back=... />
 <FlipButton from=FlipDirection::Right front=... back=... />"#;
 
+    let custom_code = r#"<FlipButton
+  from=FlipDirection::Left
+  class_name="docs-flip-button-custom".to_string()
+  front=move || view! { <Button variant=ButtonVariant::Outline>"Inspect"</Button> }
+  back=move || view! { <Button variant=ButtonVariant::Accent>"Inspecting"</Button> }
+/>"#;
+
     view! {
         <ComponentPage
             title="FlipButton"
             slug="flip-button"
             group="Actions"
-            description="HeroUI-level spring flip surface with Spectrum-style state attrs for direction and interaction visibility."
+            description="HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs."
         >
             <Playground title="Top flip" code=code>
                 <div class="docs-row">
@@ -1105,10 +1112,22 @@ pub(super) fn flip_button() -> AnyView {
                     </div>
                 </div>
             </Playground>
+
+            <Playground title="Custom Class" code=custom_code>
+                <div class="docs-row">
+                    <FlipButton
+                        from=FlipDirection::Left
+                        class_name="docs-flip-button-custom".to_string()
+                        front=move || view! { <Button variant=ButtonVariant::Outline>"Inspect"</Button> }
+                        back=move || view! { <Button variant=ButtonVariant::Accent>"Inspecting"</Button> }
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
+
 pub(super) fn share_button() -> AnyView {
     let (last, set_last) = signal(None::<SharePlatform>);
     let on_icon_press = Callback::new(move |platform: SharePlatform| set_last.set(Some(platform)));
