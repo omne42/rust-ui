@@ -133,20 +133,42 @@ pub(super) fn inline_alert() -> AnyView {
 }
 
 pub(super) fn badge() -> AnyView {
-    let code = r#"<Badge variant=BadgeVariant::Accent>"New"</Badge>"#;
+    let matrix_code = r#"<Badge variant=BadgeVariant::Default>"Default"</Badge>
+<Badge variant=BadgeVariant::Accent>"Accent"</Badge>
+<Badge variant=BadgeVariant::Danger>"Danger"</Badge>
+<Badge variant=BadgeVariant::Outline>"Outline"</Badge>"#;
+
+    let custom_code = r#"<Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
+  "Release"
+</Badge>
+<Badge variant=BadgeVariant::Outline class_name="docs-badge-custom".to_string()>
+  "Beta"
+</Badge>"#;
 
     view! {
         <ComponentPage
             title="Badge"
             slug="badge"
             group="Display"
-            description="Small status badge with variants."
+            description="Status badge with centralized variant/fill state attrs and custom-class contract."
         >
-            <Playground title="Badges" code=code>
+            <Playground title="Variant Matrix" code=matrix_code>
                 <div class="docs-row">
                     <Badge variant=BadgeVariant::Default>"Default"</Badge>
                     <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
                     <Badge variant=BadgeVariant::Danger>"Danger"</Badge>
+                    <Badge variant=BadgeVariant::Outline>"Outline"</Badge>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Class + Outline" code=custom_code>
+                <div class="docs-row">
+                    <Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
+                        "Release"
+                    </Badge>
+                    <Badge variant=BadgeVariant::Outline class_name="docs-badge-custom".to_string()>
+                        "Beta"
+                    </Badge>
                 </div>
             </Playground>
         </ComponentPage>

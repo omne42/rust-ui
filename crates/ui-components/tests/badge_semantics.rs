@@ -11,34 +11,82 @@ fn load_source(rel_path: &str) -> String {
 fn badge_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/badge/mod.rs");
 
-    assert!(
-        !source.contains("pub mod logic"),
-        "Badge's `logic` module should stay private to avoid leaking implementation details into the public API."
-    );
-    assert!(
-        !source.contains("pub mod view"),
-        "Badge's `view` module should stay private to avoid leaking internal module structure into the public API."
-    );
-}
-
-#[test]
-fn badge_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/badge/view.rs");
-
-    assert!(
-        source.contains("data-slot=\"badge\""),
-        "Badge should set `data-slot=\"badge\"` for Spectrum-style styling and inspection."
-    );
-}
-
-#[test]
-fn badge_uses_variant_class_names() {
-    let source = load_source("src/badge/view.rs");
-
-    for needle in ["ui-badge", "variant.class_name()"] {
+    for needle in ["pub mod logic", "pub mod view"] {
         assert!(
-            source.contains(needle),
-            "Badge should compose styles via `{needle}`."
+            !source.contains(needle),
+            "Badge internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn badge_uses_logic_state_model() {
+    let view_source = load_source("src/badge/view.rs");
+    let logic_source = load_source("src/badge/logic.rs");
+
+    for needle in [
+        "pub struct BadgeStateInput",
+        "pub struct BadgeState",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_state(input: BadgeStateInput)",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Badge logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_state(BadgeStateInput {",
+        "logic::compose_class_name(class_name, state)",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Badge view should derive wrapper state via logic helpers; missing `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn badge_emits_spectrum_style_state_data_attributes() {
+    let source = load_source("src/badge/view.rs");
+
+    for attr in [
+        "data-slot=\"badge\"",
+        "data-variant=state.variant_attr",
+        "data-fill=state.fill_attr",
+        "data-state=state.fill_attr",
+        "data-solid=state.is_solid.then_some(\"true\")",
+        "data-outline=state.is_outline.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(attr),
+            "Badge should expose `{attr}` for Spectrum-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn badge_styles_include_variant_fill_and_custom_class_markers() {
+    let source = load_source("src/badge/styles.rs");
+
+    for selector in [
+        ".ui-badge--variant-default",
+        ".ui-badge[data-variant=\"accent\"]",
+        ".ui-badge--variant-danger",
+        ".ui-badge[data-variant=\"outline\"]",
+        ".ui-badge--fill-solid",
+        ".ui-badge[data-fill=\"solid\"]",
+        ".ui-badge[data-state=\"outline\"]",
+        ".ui-badge--custom-class",
+        ".ui-badge[data-custom-class=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Badge styles should include `{selector}` as stable state-marker contracts."
         );
     }
 }

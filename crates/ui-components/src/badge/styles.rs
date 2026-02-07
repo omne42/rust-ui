@@ -23,27 +23,50 @@ pub const CSS: &str = r#"
   pointer-events: none;
 }
 
-.ui-badge--variant-default {
+.ui-badge--variant-default,
+.ui-badge[data-variant="default"] {
   background: var(--ui-bg-muted);
   border-color: var(--ui-border);
   color: var(--ui-fg);
 }
 
-.ui-badge--variant-accent {
+.ui-badge--variant-accent,
+.ui-badge[data-variant="accent"] {
   background: var(--ui-accent);
   border-color: var(--ui-accent);
   color: var(--ui-accent-fg);
 }
 
-.ui-badge--variant-danger {
+.ui-badge--variant-danger,
+.ui-badge[data-variant="danger"] {
   background: var(--ui-danger);
   border-color: var(--ui-danger);
   color: var(--ui-danger-fg);
 }
 
-.ui-badge--variant-outline {
+.ui-badge--variant-outline,
+.ui-badge[data-variant="outline"] {
   background: var(--ui-bg);
   border-color: var(--ui-border);
   color: var(--ui-fg);
+}
+
+.ui-badge--fill-solid,
+.ui-badge[data-fill="solid"],
+.ui-badge[data-solid="true"],
+.ui-badge[data-state="solid"] {
+  --ui-badge-fill-outline: 0;
+}
+
+.ui-badge--fill-outline,
+.ui-badge[data-fill="outline"],
+.ui-badge[data-outline="true"],
+.ui-badge[data-state="outline"] {
+  --ui-badge-fill-outline: 1;
+}
+
+.ui-badge--custom-class,
+.ui-badge[data-custom-class="true"] {
+  --ui-badge-custom-class: 1;
 }
 "#;
