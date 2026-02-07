@@ -365,10 +365,20 @@ let motion = AutoHeightMotion {
 }
 
 pub(super) fn ui_root() -> AnyView {
-    let code = r#"use ui_components::{UiRoot, Theme};
+    let usage_code = r#"use ui_components::{UiRoot, Theme};
 
-<UiRoot theme=Theme::dark() safe_area=true>
+let theme = Signal::derive(|| Theme::dark());
+
+<UiRoot theme=theme safe_area=true>
   // your app
+</UiRoot>"#;
+
+    let contract_code = r#"<UiRoot ...>
+  // wrapper attrs:
+  // data-slot="ui-root"
+  // data-theme-scheme="light|dark"
+  // data-state="default|safe-area"
+  // data-safe-area="true" (optional)
 </UiRoot>"#;
 
     view! {
@@ -376,14 +386,28 @@ pub(super) fn ui_root() -> AnyView {
             title="UiRoot"
             slug="ui-root"
             group="Layout"
-            description="The provider that injects tokens + component CSS. This docs app already runs inside UiRoot."
+            description="Provider that injects theme tokens + layered component CSS and exposes stable root state attrs."
         >
-            <Playground title="Usage" code=code>
+            <Playground title="Usage" code=usage_code>
                 <div class="docs-stack">
-                    <div>"UiRoot is already mounted at the root of this docs app."</div>
-                    <div class="ui-muted">
-                        "It injects theme tokens + component CSS via a single <style> tag."
+                    <div class="docs-ui-root-note">
+                        "This docs app already mounts a global UiRoot at startup."
                     </div>
+                    <div class="docs-ui-root-note">
+                        "UiRoot injects BASE_CSS + theme CSS variables + component CSS in one place."
+                    </div>
+                    <div class="ui-muted">
+                        "safe_area=true adds the safe-area inset contract used on mobile/WebView shells."
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="State Contract" code=contract_code>
+                <div class="docs-stack">
+                    <div class="docs-ui-root-note">"`data-slot=ui-root` for stable root targeting."</div>
+                    <div class="docs-ui-root-note">"`data-theme-scheme` mirrors `Theme::scheme` (`light`/`dark`)."</div>
+                    <div class="docs-ui-root-note">"`data-state` + `data-safe-area` describe safe-area mode."</div>
+                    <div class="ui-muted">"Use these attrs to write app-level overrides without coupling to internal implementation details."</div>
                 </div>
             </Playground>
         </ComponentPage>
