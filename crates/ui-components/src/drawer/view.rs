@@ -1,4 +1,7 @@
-use crate::drawer::{DrawerMotion, DrawerPlacement, logic};
+use crate::drawer::{
+    DrawerMotion, DrawerPlacement,
+    logic::{self, DrawerStateInput},
+};
 use crate::sheet::Sheet;
 use crate::{ButtonSize, ButtonVariant, IconButton, OnPress};
 use leptos::children::ViewFn;
@@ -22,24 +25,24 @@ pub fn Drawer(
     on_exit_complete: Option<Callback<()>>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let id_base = logic::normalize_id_base(id_base);
+    let title = logic::normalize_required_text(title, "Drawer");
+    let description = logic::normalize_optional_text(description);
+    let class_name = logic::normalize_optional_text(class_name);
+
     let title = StoredValue::new(title);
     let description = StoredValue::new(description);
     let footer = StoredValue::new(footer);
     let children = StoredValue::new(children);
 
-    let has_footer = footer.get_value().is_some();
-    let view_state = logic::resolve_view_state(
-        description.get_value().as_deref(),
-        has_footer,
+    let state = logic::resolve_state(DrawerStateInput {
+        placement,
+        has_description: description.get_value().is_some(),
+        has_footer: footer.get_value().is_some(),
         show_close_button,
-    );
-
-    let base_class = "ui-drawer".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-    let class = StoredValue::new(class);
+        has_custom_class_name: class_name.is_some(),
+    });
+    let class = StoredValue::new(logic::compose_class_name(class_name, state));
 
     let title_id = format!("{id_base}-title");
     let description_id = format!("{id_base}-description");
@@ -48,7 +51,7 @@ pub fn Drawer(
 
     let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
 
-    if view_state.show_description {
+    if state.show_description {
         view! {
             <Sheet
                 open=open
@@ -60,11 +63,22 @@ pub fn Drawer(
                 on_exit_complete=on_exit_complete
             >
                 {move || {
-                    let class = class.get_value();
                     let children = children.get_value();
                     view! {
-                        <div class=class data-slot="drawer">
-                            <Show when=move || view_state.show_close_button>
+                        <div
+                            class=move || class.get_value()
+                            data-slot="drawer"
+                            data-state=state.state_attr
+                            data-placement=state.placement_attr
+                            data-description=state.description_attr
+                            data-footer=state.footer_attr
+                            data-close-button=state.close_button_attr
+                            data-with-description=state.show_description.then_some("true")
+                            data-with-footer=state.show_footer.then_some("true")
+                            data-close-visible=state.show_close_button.then_some("true")
+                            data-custom-class=state.has_custom_class_name.then_some("true")
+                        >
+                            <Show when=move || state.show_close_button>
                                 <span class="ui-drawer__close" data-slot="drawer-close">
                                     <IconButton
                                         aria_label=close_label
@@ -89,7 +103,7 @@ pub fn Drawer(
                                 <h2 class="ui-drawer__title" id=move || title_id_attr.get() data-slot="drawer-title">
                                     {move || title.get_value()}
                                 </h2>
-                                <Show when=move || view_state.show_description>
+                                <Show when=move || state.show_description>
                                     <p class="ui-drawer__description" id=move || description_id_attr.get() data-slot="drawer-description">
                                         {move || description.get_value().unwrap_or_default()}
                                     </p>
@@ -100,7 +114,7 @@ pub fn Drawer(
                                 {children()}
                             </div>
 
-                            <Show when=move || view_state.show_footer>
+                            <Show when=move || state.show_footer>
                                 <div class="ui-drawer__footer" data-slot="drawer-footer">
                                     {move || footer.get_value().map(|slot| slot.run())}
                                 </div>
@@ -110,6 +124,7 @@ pub fn Drawer(
                 }}
             </Sheet>
         }
+        .into_any()
     } else {
         view! {
             <Sheet
@@ -121,11 +136,22 @@ pub fn Drawer(
                 on_exit_complete=on_exit_complete
             >
                 {move || {
-                    let class = class.get_value();
                     let children = children.get_value();
                     view! {
-                        <div class=class data-slot="drawer">
-                            <Show when=move || view_state.show_close_button>
+                        <div
+                            class=move || class.get_value()
+                            data-slot="drawer"
+                            data-state=state.state_attr
+                            data-placement=state.placement_attr
+                            data-description=state.description_attr
+                            data-footer=state.footer_attr
+                            data-close-button=state.close_button_attr
+                            data-with-description=state.show_description.then_some("true")
+                            data-with-footer=state.show_footer.then_some("true")
+                            data-close-visible=state.show_close_button.then_some("true")
+                            data-custom-class=state.has_custom_class_name.then_some("true")
+                        >
+                            <Show when=move || state.show_close_button>
                                 <span class="ui-drawer__close" data-slot="drawer-close">
                                     <IconButton
                                         aria_label=close_label
@@ -150,7 +176,7 @@ pub fn Drawer(
                                 <h2 class="ui-drawer__title" id=move || title_id_attr.get() data-slot="drawer-title">
                                     {move || title.get_value()}
                                 </h2>
-                                <Show when=move || view_state.show_description>
+                                <Show when=move || state.show_description>
                                     <p class="ui-drawer__description" id=move || description_id_attr.get() data-slot="drawer-description">
                                         {move || description.get_value().unwrap_or_default()}
                                     </p>
@@ -161,7 +187,7 @@ pub fn Drawer(
                                 {children()}
                             </div>
 
-                            <Show when=move || view_state.show_footer>
+                            <Show when=move || state.show_footer>
                                 <div class="ui-drawer__footer" data-slot="drawer-footer">
                                     {move || footer.get_value().map(|slot| slot.run())}
                                 </div>
@@ -171,5 +197,6 @@ pub fn Drawer(
                 }}
             </Sheet>
         }
+        .into_any()
     }
 }

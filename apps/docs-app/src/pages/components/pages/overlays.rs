@@ -514,52 +514,118 @@ pub(super) fn sheet() -> AnyView {
 }
 
 pub(super) fn drawer() -> AnyView {
-    let (open_raw, set_open_raw) = signal(false);
-    let open: Signal<bool> = Signal::derive(move || open_raw.get());
-    let (present, set_present) = signal(open.get_untracked());
+    let (open_semantic_raw, set_open_semantic_raw) = signal(false);
+    let open_semantic: Signal<bool> = Signal::derive(move || open_semantic_raw.get());
+    let (present_semantic, set_present_semantic) = signal(open_semantic.get_untracked());
     Effect::new(move |_| {
-        if open.get() {
-            set_present.set(true);
+        if open_semantic.get() {
+            set_present_semantic.set(true);
         }
     });
 
-    let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-    let open_drawer: OnPress = Callback::new(move |_| set_open_raw.set(true));
-    let on_exit_complete = Callback::new(move |_| set_present.set(false));
+    let close_semantic: OnPress = Callback::new(move |_| set_open_semantic_raw.set(false));
+    let open_semantic_drawer: OnPress = Callback::new(move |_| set_open_semantic_raw.set(true));
+    let on_semantic_exit_complete = Callback::new(move |_| set_present_semantic.set(false));
 
-    let code = r#"<Drawer open=open id_base="dr".to_string() title="Drawer".to_string()
-  on_close=close on_exit_complete=finish_exit>...</Drawer>"#;
+    let (open_custom_raw, set_open_custom_raw) = signal(false);
+    let open_custom: Signal<bool> = Signal::derive(move || open_custom_raw.get());
+    let (present_custom, set_present_custom) = signal(open_custom.get_untracked());
+    Effect::new(move |_| {
+        if open_custom.get() {
+            set_present_custom.set(true);
+        }
+    });
+
+    let close_custom: OnPress = Callback::new(move |_| set_open_custom_raw.set(false));
+    let open_custom_drawer: OnPress = Callback::new(move |_| set_open_custom_raw.set(true));
+    let on_custom_exit_complete = Callback::new(move |_| set_present_custom.set(false));
+
+    let semantic_code = r#"<Drawer
+  open=open
+  id_base="dr".to_string()
+  title="Drawer".to_string()
+  description="Sheet composition with header/body/footer slots.".to_string()
+  placement=DrawerPlacement::Right
+  footer=move || view! { ... }
+  on_close=close
+  on_exit_complete=finish_exit
+>
+  ...
+</Drawer>"#;
+
+    let custom_code = r#"<Drawer
+  open=open
+  id_base="dr-left".to_string()
+  title="Left drawer".to_string()
+  placement=DrawerPlacement::Left
+  show_close_button=false
+  class_name="docs-drawer-custom".to_string()
+  on_close=close
+  on_exit_complete=finish_exit
+>
+  ...
+</Drawer>"#;
 
     view! {
         <ComponentPage
             title="Drawer"
             slug="drawer"
             group="Overlays"
-            description="Drawer is a Sheet composition with header/body/footer slots."
+            description="Sheet composition with centralized placement/description/footer/close state attrs and stable drawer slots."
         >
-            <Playground title="Right drawer" code=code>
+            <Playground title="Right Drawer + Slots" code=semantic_code>
                 <div class="docs-row">
-                    <Button on_press=open_drawer>"Open drawer"</Button>
+                    <Button on_press=open_semantic_drawer>"Open right drawer"</Button>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
                 </div>
 
-                <Show when=move || present.get()>
+                <Show when=move || present_semantic.get()>
                     <Drawer
-                        open=open
-                        id_base="docs-drawer".to_string()
+                        open=open_semantic
+                        id_base="docs-drawer-right".to_string()
                         title="Drawer title".to_string()
-                        description="This uses Sheet + slots.".to_string()
+                        description="Drawer composes Sheet and keeps labeled/description semantics aligned.".to_string()
                         placement=DrawerPlacement::Right
-                        on_close=on_close
+                        on_close=close_semantic
                         footer=move || view! {
                             <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=on_close>"Close"</Button>
+                                <Button variant=ButtonVariant::Secondary on_press=close_semantic>"Cancel"</Button>
+                                <Button on_press=close_semantic>"Apply"</Button>
                             </div>
                         }
-                        on_exit_complete=on_exit_complete
+                        on_exit_complete=on_semantic_exit_complete
                     >
-                        <div class="docs-stack">
+                        <div class="docs-stack docs-stack--tight">
                             <div>"Drawer body"</div>
-                            <div class="ui-muted">"Try Esc/backdrop close."</div>
+                            <div class="ui-muted">"Esc/backdrop closes; focus trap remains active."</div>
+                        </div>
+                    </Drawer>
+                </Show>
+            </Playground>
+
+            <Playground title="Left Drawer + Custom Class" code=custom_code>
+                <div class="docs-row">
+                    <Button on_press=open_custom_drawer>"Open left drawer"</Button>
+                    <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
+                </div>
+
+                <Show when=move || present_custom.get()>
+                    <Drawer
+                        open=open_custom
+                        id_base="docs-drawer-left".to_string()
+                        title="Left drawer".to_string()
+                        placement=DrawerPlacement::Left
+                        show_close_button=false
+                        class_name="docs-drawer-custom".to_string()
+                        on_close=close_custom
+                        on_exit_complete=on_custom_exit_complete
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Title-only path keeps `aria-describedby` unset."</div>
+                            <div class="ui-muted">"Custom class validates class merge + state attrs."</div>
+                            <div class="docs-row docs-row--end">
+                                <Button variant=ButtonVariant::Secondary on_press=close_custom>"Dismiss"</Button>
+                            </div>
                         </div>
                     </Drawer>
                 </Show>
@@ -568,7 +634,6 @@ pub(super) fn drawer() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn tooltip() -> AnyView {
     let code = r#"<Tooltip content=move || view!{ "Tooltip" }>
   <Button>"Hover"</Button>
