@@ -467,8 +467,29 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
 }
 
 pub(super) fn link_button() -> AnyView {
-    let code = r#"<LinkButton href="https://example.com".to_string()>
-  "External link"
+    let code = r#"<LinkButton
+  href="https://example.com/docs".to_string()
+  target="_blank"
+  rel="sponsored".to_string()
+>
+  "Open docs"
+</LinkButton>"#;
+
+    let states_code = r#"<LinkButton href="https://example.com/small".to_string() size=ButtonSize::Sm>
+  "Small"
+</LinkButton>
+<LinkButton href="https://example.com/default".to_string() size=ButtonSize::Default>
+  "Default"
+</LinkButton>
+<LinkButton
+  href="https://example.com/large".to_string()
+  size=ButtonSize::Lg
+  variant=ButtonVariant::Secondary
+>
+  "Large secondary"
+</LinkButton>
+<LinkButton href="https://example.com/disabled".to_string() disabled=true>
+  "Disabled"
 </LinkButton>"#;
 
     view! {
@@ -476,16 +497,64 @@ pub(super) fn link_button() -> AnyView {
             title="LinkButton"
             slug="link-button"
             group="Actions"
-            description="Button styling on an anchor element."
+            description="Button styling on anchors with Spectrum-style disabled semantics and secure rel handling for external targets."
         >
-            <Playground title="Anchor button" code=code>
-                <div class="docs-row">
-                    <LinkButton href="https://example.com".to_string() target="_blank">
-                        "External link"
-                    </LinkButton>
-                    <LinkButton href="#".to_string() disabled=true variant=ButtonVariant::Secondary>
-                        "Disabled"
-                    </LinkButton>
+            <Playground title="External target + rel hardening" code=code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <LinkButton
+                            href="https://example.com/docs".to_string()
+                            target="_blank"
+                            rel="sponsored".to_string()
+                            aria_label="Open docs in a new tab".to_string()
+                        >
+                            "Open docs"
+                        </LinkButton>
+                        <LinkButton href="https://example.com/changelog".to_string()>
+                            "Same tab"
+                        </LinkButton>
+                        <LinkButton href="   ".to_string() variant=ButtonVariant::Ghost>
+                            "Missing href"
+                        </LinkButton>
+                    </div>
+                    <span class="ui-muted">
+                        "_blank links auto-append noopener+noreferrer; blank href is normalized as non-navigable."
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Variant + size + disabled matrix" code=states_code>
+                <div class="docs-stack">
+                    <div class="docs-row">
+                        <LinkButton href="https://example.com/small".to_string() size=ButtonSize::Sm>
+                            "Small"
+                        </LinkButton>
+                        <LinkButton
+                            href="https://example.com/default".to_string()
+                            size=ButtonSize::Default
+                        >
+                            "Default"
+                        </LinkButton>
+                        <LinkButton
+                            href="https://example.com/large".to_string()
+                            size=ButtonSize::Lg
+                            variant=ButtonVariant::Secondary
+                        >
+                            "Large secondary"
+                        </LinkButton>
+                    </div>
+                    <div class="docs-row">
+                        <LinkButton href="https://example.com/disabled".to_string() disabled=true>
+                            "Disabled"
+                        </LinkButton>
+                        <LinkButton
+                            href="https://example.com/disabled-ghost".to_string()
+                            variant=ButtonVariant::Ghost
+                            disabled=true
+                        >
+                            "Disabled ghost"
+                        </LinkButton>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
