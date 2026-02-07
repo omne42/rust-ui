@@ -725,6 +725,22 @@ a {
   background: color-mix(in oklch, var(--ui-border), var(--ui-accent) 60%);
 }
 
+.docs-scroll-shadow-item {
+  padding: 6px 10px;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid var(--ui-border);
+  background: var(--ui-bg);
+  color: var(--ui-fg-muted);
+  font-size: 12px;
+}
+
+.docs-scroll-shadow-custom {
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 35%);
+  background: var(--ui-bg-muted);
+  padding: 6px;
+}
+
 .docs-skeleton-line {
   height: 14px;
   width: 100%;

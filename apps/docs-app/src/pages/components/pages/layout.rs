@@ -236,7 +236,14 @@ pub(super) fn spacer() -> AnyView {
 }
 
 pub(super) fn scroll_shadow() -> AnyView {
-    let code = r#"<ScrollShadow max_height_px=160>
+    let default_code = r#"<ScrollShadow max_height_px=160>
+  {rows}
+</ScrollShadow>"#;
+
+    let custom_class_code = r#"<ScrollShadow
+  max_height_px=120
+  class_name="docs-scroll-shadow-custom".to_string()
+>
   {rows}
 </ScrollShadow>"#;
 
@@ -245,13 +252,31 @@ pub(super) fn scroll_shadow() -> AnyView {
             title="ScrollShadow"
             slug="scroll-shadow"
             group="Layout"
-            description="Adds top/bottom shadow indicators for scrollable content."
+            description="Adds top/bottom shadow indicators with centralized edge/max-height state attrs."
         >
-            <Playground title="Scrollable" code=code>
+            <Playground title="Default Scrollable" code=default_code>
                 <ScrollShadow max_height_px=160>
-                    <div class="docs-stack">
-                        {(1..=24)
-                            .map(|idx| view! { <div class="ui-muted">{format!("Row {idx}")}</div> })
+                    <div class="docs-stack docs-stack--tight">
+                        {(1..=20)
+                            .map(|idx| {
+                                view! { <div class="docs-scroll-shadow-item">{format!("Activity {idx}")}</div> }
+                            })
+                            .collect_view()}
+                    </div>
+                </ScrollShadow>
+            </Playground>
+
+            <Playground title="Custom Height + Class" code=custom_class_code>
+                <ScrollShadow max_height_px=120 class_name="docs-scroll-shadow-custom".to_string()>
+                    <div class="docs-stack docs-stack--tight">
+                        {(1..=16)
+                            .map(|idx| {
+                                view! {
+                                    <div class="docs-scroll-shadow-item">
+                                        {format!("Notification {idx}")}
+                                    </div>
+                                }
+                            })
                             .collect_view()}
                     </div>
                 </ScrollShadow>

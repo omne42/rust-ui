@@ -3,8 +3,18 @@ pub const CSS: &str = r#"
   position: relative;
 }
 
+.ui-scroll-shadow--scrollable,
+.ui-scroll-shadow[data-scrollable="true"] {
+  isolation: isolate;
+}
+
 .ui-scroll-shadow__viewport {
   overflow: auto;
+  max-height: var(--ui-scroll-shadow-max-h, 280px);
+}
+
+.ui-scroll-shadow--max-height-custom .ui-scroll-shadow__viewport,
+.ui-scroll-shadow[data-max-height="custom"] .ui-scroll-shadow__viewport {
   max-height: var(--ui-scroll-shadow-max-h, 280px);
 }
 
@@ -45,11 +55,17 @@ pub const CSS: &str = r#"
   );
 }
 
-.ui-scroll-shadow[data-shadow-top="true"]::before {
+.ui-scroll-shadow--shadow-top::before,
+.ui-scroll-shadow[data-shadow-top="true"]::before,
+.ui-scroll-shadow[data-state="top"]::before,
+.ui-scroll-shadow[data-state="both"]::before {
   opacity: 1;
 }
 
-.ui-scroll-shadow[data-shadow-bottom="true"]::after {
+.ui-scroll-shadow--shadow-bottom::after,
+.ui-scroll-shadow[data-shadow-bottom="true"]::after,
+.ui-scroll-shadow[data-state="bottom"]::after,
+.ui-scroll-shadow[data-state="both"]::after {
   opacity: 1;
 }
 "#;

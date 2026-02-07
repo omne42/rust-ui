@@ -1,4 +1,4 @@
-use crate::scroll_shadow::logic::compute_scroll_shadow_edges;
+use crate::scroll_shadow::logic::{self, ScrollShadowStateInput, compute_scroll_shadow_edges};
 use leptos::{ev, html, prelude::*};
 use std::rc::Rc;
 
@@ -8,6 +8,13 @@ pub fn ScrollShadow(
     #[prop(optional)] max_height_px: Option<u32>,
     children: Children,
 ) -> impl IntoView {
+    let class_name = logic::normalize_optional_text(class_name);
+    let state = logic::resolve_state(ScrollShadowStateInput {
+        max_height_px,
+        has_custom_class_name: class_name.is_some(),
+    });
+    let class = logic::compose_class_name(class_name, state);
+
     let viewport_ref: NodeRef<html::Div> = NodeRef::new();
     let (shadow_top, set_shadow_top) = signal(false);
     let (shadow_bottom, set_shadow_bottom) = signal(false);
@@ -89,19 +96,13 @@ pub fn ScrollShadow(
 
     let on_scroll = {
         let update = Rc::clone(&update);
-        move |_ev: ev::Event| update.as_ref()()
+        move |_event: ev::Event| update.as_ref()()
     };
-
-    let base_class = "ui-scroll-shadow".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
 
     #[cfg(target_arch = "wasm32")]
     let set_max_height = {
         let viewport_ref = viewport_ref;
-        let max_height_px = StoredValue::new(max_height_px);
+        let max_height_px = StoredValue::new(state.max_height_px);
         move || {
             use leptos::wasm_bindgen::JsCast;
 
@@ -121,7 +122,7 @@ pub fn ScrollShadow(
 
     #[cfg(not(target_arch = "wasm32"))]
     let set_max_height = {
-        let _ = max_height_px;
+        let _ = state.max_height_px;
         || {}
     };
 
@@ -133,9 +134,20 @@ pub fn ScrollShadow(
     view! {
         <div
             class=class
+            class:ui-scroll-shadow--shadow-top=move || shadow_top.get()
+            class:ui-scroll-shadow--shadow-bottom=move || shadow_bottom.get()
+            class:ui-scroll-shadow--scrollable=move || {
+                logic::is_scrollable(shadow_top.get(), shadow_bottom.get())
+            }
             data-slot="scroll-shadow"
-            data-shadow-top=move || if shadow_top.get() { Some("true") } else { None }
-            data-shadow-bottom=move || if shadow_bottom.get() { Some("true") } else { None }
+            data-max-height=state.max_height_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-state=move || logic::edge_state_attr(shadow_top.get(), shadow_bottom.get())
+            data-scrollable=move || {
+                logic::is_scrollable(shadow_top.get(), shadow_bottom.get()).then_some("true")
+            }
+            data-shadow-top=move || shadow_top.get().then_some("true")
+            data-shadow-bottom=move || shadow_bottom.get().then_some("true")
         >
             <div
                 class="ui-scroll-shadow__viewport"
