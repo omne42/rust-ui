@@ -7,15 +7,18 @@ pub const CSS: &str = r#"
   overflow: hidden;
 }
 
-.ui-skeleton--variant-rect {
+.ui-skeleton--variant-rect,
+.ui-skeleton[data-variant="rect"] {
   border-radius: var(--ui-radius-md);
 }
 
-.ui-skeleton--variant-circle {
+.ui-skeleton--variant-circle,
+.ui-skeleton[data-variant="circle"] {
   border-radius: 9999px;
 }
 
-.ui-skeleton--shimmer::after {
+.ui-skeleton--shimmer::after,
+.ui-skeleton[data-shimmer="true"]::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -29,6 +32,11 @@ pub const CSS: &str = r#"
   animation: ui-skeleton-shimmer 1.25s ease-in-out infinite;
 }
 
+.ui-skeleton--still,
+.ui-skeleton[data-still="true"] {
+  animation: none;
+}
+
 @keyframes ui-skeleton-shimmer {
   0% {
     transform: translateX(-100%);
@@ -39,7 +47,8 @@ pub const CSS: &str = r#"
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ui-skeleton--shimmer::after {
+  .ui-skeleton--shimmer::after,
+  .ui-skeleton[data-shimmer="true"]::after {
     animation: none;
   }
 }

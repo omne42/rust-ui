@@ -216,21 +216,45 @@ pub(super) fn chip() -> AnyView {
 }
 
 pub(super) fn skeleton() -> AnyView {
-    let code = r#"<Skeleton variant=SkeletonVariant::Rect class_name="...".to_string() />"#;
+    let shimmer_code = r#"<Skeleton variant=SkeletonVariant::Rect shimmer=true class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Circle shimmer=true class_name="docs-skeleton-avatar".to_string() />"#;
+
+    let still_code = r#"<Skeleton variant=SkeletonVariant::Rect shimmer=false class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Circle shimmer=false class_name="docs-skeleton-avatar".to_string() />"#;
 
     view! {
         <ComponentPage
             title="Skeleton"
             slug="skeleton"
             group="Display"
-            description="Skeleton placeholder blocks."
+            description="Skeleton placeholder blocks with centralized variant/shimmer state attrs."
         >
-            <Playground title="Skeletons" code=code>
+            <Playground title="Shimmer" code=shimmer_code>
                 <div class="docs-stack">
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
                     <Skeleton variant=SkeletonVariant::Circle class_name="docs-skeleton-avatar".to_string() />
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-card".to_string() />
+                </div>
+            </Playground>
+
+            <Playground title="Still" code=still_code>
+                <div class="docs-stack">
+                    <Skeleton
+                        variant=SkeletonVariant::Rect
+                        shimmer=false
+                        class_name="docs-skeleton-line".to_string()
+                    />
+                    <Skeleton
+                        variant=SkeletonVariant::Rect
+                        shimmer=false
+                        class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
+                    />
+                    <Skeleton
+                        variant=SkeletonVariant::Circle
+                        shimmer=false
+                        class_name="docs-skeleton-avatar".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>
