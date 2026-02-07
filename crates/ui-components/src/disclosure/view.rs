@@ -1,4 +1,4 @@
-use crate::disclosure::{DisclosureIds, DisclosureMotion, motion};
+use crate::disclosure::{DisclosureIds, DisclosureMotion, logic, motion};
 use crate::overlay_open;
 use leptos::{html, prelude::*};
 use ui_headless::{
@@ -29,6 +29,8 @@ pub fn Disclosure(
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
+
+    let state = Signal::derive(move || logic::resolve_state(open.get(), disabled));
 
     let on_press = Callback::new(move |_| {
         let next = !open.get_untracked();
@@ -63,19 +65,28 @@ pub fn Disclosure(
         .unwrap_or(base_class);
 
     view! {
-        <div class=class data-slot="disclosure">
+        <div
+            class=class
+            data-slot="disclosure"
+            data-open=move || state.get().is_open.then_some("true")
+            data-closed=move || state.get().is_closed.then_some("true")
+            data-disabled=move || state.get().is_disabled.then_some("true")
+        >
             <button
                 type="button"
                 class="ui-disclosure__trigger"
                 class:ui-disclosure__trigger--focus-visible=move || focus_ring.is_focus_visible.get()
-                id=trigger_id
+                id=trigger_id.clone()
+                data-slot="disclosure-trigger"
                 aria-label=aria_label
                 aria-expanded=move || if open.get() { "true" } else { "false" }
                 aria-controls=panel_id.clone()
                 disabled=disabled
                 data-open=move || if open.get() { Some("true") } else { None }
+                data-closed=move || (!open.get()).then_some("true")
                 data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
                 data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
+                data-disabled=disabled.then_some("true")
                 role=aria.attrs.role
                 tabindex=aria.attrs.tabindex
                 aria-disabled=aria.attrs.aria_disabled
@@ -121,9 +132,10 @@ pub fn Disclosure(
                 class="ui-disclosure__panel"
                 node_ref=panel_ref
                 role="region"
-                aria-labelledby=id_base.clone() + "-trigger"
+                aria-labelledby=trigger_id
                 hidden=move || panel_hidden.get()
                 data-open=move || if open.get() { Some("true") } else { None }
+                data-closed=move || (!open.get()).then_some("true")
                 data-slot="disclosure-panel"
             >
                 <div

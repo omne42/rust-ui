@@ -171,8 +171,27 @@ let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(nex
 }
 
 pub(super) fn disclosure() -> AnyView {
-    let code = r#"<Disclosure id_base="disc".to_string() label="Details".to_string()>
+    let (open, set_open) = signal(true);
+    let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+
+    let code = r#"let (open, set_open) = signal(true);
+let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+<Disclosure
+  id_base="disc".to_string()
+  label="Details".to_string()
+  open=open.into()
+  on_open_change=on_open_change
+>
   <div>"Hidden content"</div>
+</Disclosure>"#;
+
+    let states_code = r#"<Disclosure
+  id_base="disc-disabled".to_string()
+  label="Disabled details".to_string()
+  default_open=false
+  disabled=true
+>
+  <div>"Disabled content"</div>
 </Disclosure>"#;
 
     view! {
@@ -180,15 +199,43 @@ pub(super) fn disclosure() -> AnyView {
             title="Disclosure"
             slug="disclosure"
             group="Collections"
-            description="Single disclosure panel with animated indicator and panel motion."
+            description="Single disclosure panel with HeroUI-level spring motion and Spectrum-style root state attrs."
         >
-            <Playground title="Disclosure" code=code>
-                <Disclosure id_base="docs-disclosure".to_string() label="Details".to_string() default_open=true>
-                    <div class="docs-stack">
-                        <div>"Hidden content"</div>
-                        <div class="ui-muted">"Uses the same open-state contract as overlays."</div>
-                    </div>
-                </Disclosure>
+            <Playground title="Controlled" code=code>
+                <div class="docs-stack">
+                    <Disclosure
+                        id_base="docs-disclosure".to_string()
+                        label="Details".to_string()
+                        open=open.into()
+                        on_open_change=on_open_change
+                    >
+                        <div class="docs-stack">
+                            <div>"Hidden content"</div>
+                            <div class="ui-muted">"Uses the same open-state contract as overlays."</div>
+                        </div>
+                    </Disclosure>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || open.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled" code=states_code>
+                <div class="docs-stack">
+                    <Disclosure
+                        id_base="docs-disclosure-disabled".to_string()
+                        label="Disabled details".to_string()
+                        default_open=false
+                        disabled=true
+                    >
+                        <div class="docs-stack">
+                            <div>"Disabled content"</div>
+                            <div class="ui-muted">"Disabled disclosure keeps trigger non-interactive."</div>
+                        </div>
+                    </Disclosure>
+                    <span class="ui-muted">"disabled: true"</span>
+                </div>
             </Playground>
         </ComponentPage>
     }
