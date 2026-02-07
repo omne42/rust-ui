@@ -1,4 +1,5 @@
 mod actions;
+mod actions_extra;
 mod collections;
 mod display;
 mod files;
@@ -15,6 +16,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "button",
         group: "Actions",
         page: actions::button,
+    },
+    ComponentDoc {
+        name: "ActionBar",
+        slug: "action-bar",
+        group: "Actions",
+        page: actions_extra::action_bar,
     },
     ComponentDoc {
         name: "ActionButton",

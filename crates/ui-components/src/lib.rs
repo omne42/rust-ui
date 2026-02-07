@@ -7,6 +7,7 @@ mod overlay_open;
 mod presence;
 
 pub mod accordion;
+pub mod action_bar;
 pub mod action_button;
 pub mod action_button_group;
 pub mod action_menu;
@@ -92,6 +93,7 @@ pub mod toggle_button_group;
 pub mod tooltip;
 
 pub use accordion::{Accordion, AccordionMotion, AccordionSelectionMode};
+pub use action_bar::{ActionBar, ActionBarMotion, ActionBarPosition};
 pub use action_button::{
     ActionButton, ActionButtonLoadingPlacement, ActionButtonMotion, ActionButtonSize,
 };

@@ -14,6 +14,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: adds a `Slider` docs page with controlled/on-change and disabled/reduced-motion playground scenarios.
 - `ui-components`: adds `<InputGroup>` to compose inputs with shared addons, attachment/disabled/invalid state markers, and centralized aria/class state derivation.
 - `apps/docs-app`: adds an `InputGroup` docs page with attached and detached playground scenarios.
+- `ui-components`: adds `<ActionBar>` with centralized selection/visibility/label state derivation, Spectrum-style `data-*` contracts, and spring-driven visibility motion.
+- `apps/docs-app`: adds an `ActionBar` docs page with selection controls, clear-action flow, top/bottom placement, and reduced-motion playground scenarios.
 
 - Cargo workspace scaffold with layered crates (`ui-core`, `ui-headless`, `ui-theme`, `ui-components`) and demo apps (`web-demo`, `tauri-demo`).
 - `ui-core`: initial headless state primitive `use_toggle_state` with unit tests.
