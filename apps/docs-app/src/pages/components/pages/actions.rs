@@ -1161,6 +1161,9 @@ pub(super) fn share_button() -> AnyView {
         ShareButtonItem::new(SharePlatform::Facebook, "   "),
     ];
 
+    let custom_items_for_matrix = custom_items.clone();
+    let custom_items_for_custom = custom_items.clone();
+
     let code = r#"let on_icon_press = Callback::new(|platform: SharePlatform| {
   logging::log!("pressed: {platform:?}");
 });
@@ -1170,16 +1173,24 @@ pub(super) fn share_button() -> AnyView {
   icon=ShareButtonIconPlacement::Prefix
   from=FlipDirection::Left
   label="Share now".to_string()
-  items=custom_items.clone()
+  items=custom_items_for_matrix.clone()
 />
 <ShareButton icon=ShareButtonIconPlacement::None label="Iconless".to_string() />"#;
+
+    let custom_code = r#"<ShareButton
+  class_name="docs-share-button-custom".to_string()
+  icon=ShareButtonIconPlacement::Prefix
+  from=FlipDirection::Right
+  label="Share docs".to_string()
+  items=custom_items.clone()
+/>"#;
 
     view! {
         <ComponentPage
             title="ShareButton"
             slug="share-button"
             group="Actions"
-            description="Flip-based share surface with Spectrum-style item/placement attrs and HeroUI-grade spring motion."
+            description="Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion."
         >
             <Playground title="Default + callback" code=code>
                 <div class="docs-stack">
@@ -1204,13 +1215,13 @@ pub(super) fn share_button() -> AnyView {
                             icon=ShareButtonIconPlacement::Prefix
                             from=FlipDirection::Left
                             label="Share now".to_string()
-                            items=custom_items.clone()
+                            items=custom_items_for_matrix.clone()
                             on_icon_press=on_icon_press
                         />
                         <ShareButton
                             icon=ShareButtonIconPlacement::None
                             label="Iconless".to_string()
-                            items=custom_items.clone()
+                            items=custom_items_for_matrix.clone()
                         />
                     </div>
                     <span class="ui-muted">
@@ -1218,10 +1229,28 @@ pub(super) fn share_button() -> AnyView {
                     </span>
                 </div>
             </Playground>
+
+            <Playground title="Custom Class + Direction" code=custom_code>
+                <div class="docs-row">
+                    <ShareButton
+                        class_name="docs-share-button-custom".to_string()
+                        icon=ShareButtonIconPlacement::Prefix
+                        from=FlipDirection::Right
+                        label="Share docs".to_string()
+                        items=custom_items_for_custom.clone()
+                    />
+                    <ShareButton
+                        class_name="docs-share-button-custom".to_string()
+                        label="Share defaults".to_string()
+                        icon=ShareButtonIconPlacement::Suffix
+                    />
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
+
 pub(super) fn action_menu() -> AnyView {
     let default_items = vec![
         "Profile".to_string(),

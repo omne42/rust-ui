@@ -62,19 +62,47 @@ impl ShareButtonIconPlacement {
             ShareButtonIconPlacement::None => "none",
         }
     }
+
+    pub fn class_name(self) -> &'static str {
+        match self {
+            ShareButtonIconPlacement::Prefix => "ui-share-button--icon-prefix",
+            ShareButtonIconPlacement::Suffix => "ui-share-button--icon-suffix",
+            ShareButtonIconPlacement::None => "ui-share-button--icon-none",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ShareButtonStateInput {
+    pub provided_item_count: usize,
+    pub resolved_item_count: usize,
+    pub uses_default_items: bool,
+    pub icon_placement: ShareButtonIconPlacement,
+    pub has_custom_label: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_press_handler: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ShareButtonState {
-    pub item_count: usize,
+    pub provided_item_count: usize,
+    pub resolved_item_count: usize,
     pub has_items: bool,
-    pub is_empty: bool,
+    pub state_attr: &'static str,
+    pub state_class: &'static str,
     pub uses_default_items: bool,
+    pub items_source_attr: &'static str,
+    pub items_source_class: &'static str,
     pub icon_placement: ShareButtonIconPlacement,
     pub icon_placement_attr: &'static str,
+    pub icon_placement_class: &'static str,
     pub has_custom_label: bool,
-    pub has_custom_class_name: bool,
+    pub label_source_attr: &'static str,
+    pub label_source_class: &'static str,
     pub has_custom_press_handler: bool,
+    pub handler_source_attr: &'static str,
+    pub handler_source_class: &'static str,
+    pub has_custom_class_name: bool,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -135,47 +163,70 @@ pub fn resolve_icon_button_size(size: ButtonSize) -> ButtonSize {
     }
 }
 
-pub fn resolve_state(
-    item_count: usize,
-    uses_default_items: bool,
-    icon_placement: ShareButtonIconPlacement,
-    has_custom_label: bool,
-    has_custom_class_name: bool,
-    has_custom_press_handler: bool,
-) -> ShareButtonState {
+pub fn resolve_state(input: ShareButtonStateInput) -> ShareButtonState {
+    let has_items = input.resolved_item_count > 0;
+    let (state_attr, state_class) = if has_items {
+        ("ready", "ui-share-button--state-ready")
+    } else {
+        ("empty", "ui-share-button--state-empty")
+    };
+
+    let (items_source_attr, items_source_class) = if input.uses_default_items {
+        ("default", "ui-share-button--default-items")
+    } else {
+        ("custom", "ui-share-button--custom-items")
+    };
+
+    let (label_source_attr, label_source_class) = if input.has_custom_label {
+        ("custom", "ui-share-button--custom-label")
+    } else {
+        ("default", "ui-share-button--default-label")
+    };
+
+    let (handler_source_attr, handler_source_class) = if input.has_custom_press_handler {
+        ("provided", "ui-share-button--with-handler")
+    } else {
+        ("none", "ui-share-button--without-handler")
+    };
+
     ShareButtonState {
-        item_count,
-        has_items: item_count > 0,
-        is_empty: item_count == 0,
-        uses_default_items,
-        icon_placement,
-        icon_placement_attr: icon_placement.as_attr(),
-        has_custom_label,
-        has_custom_class_name,
-        has_custom_press_handler,
+        provided_item_count: input.provided_item_count,
+        resolved_item_count: input.resolved_item_count,
+        has_items,
+        state_attr,
+        state_class,
+        uses_default_items: input.uses_default_items,
+        items_source_attr,
+        items_source_class,
+        icon_placement: input.icon_placement,
+        icon_placement_attr: input.icon_placement.as_attr(),
+        icon_placement_class: input.icon_placement.class_name(),
+        has_custom_label: input.has_custom_label,
+        label_source_attr,
+        label_source_class,
+        has_custom_press_handler: input.has_custom_press_handler,
+        handler_source_attr,
+        handler_source_class,
+        has_custom_class_name: input.has_custom_class_name,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ShareButtonState) -> String {
     let mut classes = vec![
         "ui-share-button".to_string(),
-        format!("ui-share-button--icon-{}", state.icon_placement_attr),
+        state.state_class.to_string(),
+        state.items_source_class.to_string(),
+        state.icon_placement_class.to_string(),
+        state.label_source_class.to_string(),
+        state.handler_source_class.to_string(),
     ];
 
     if state.has_items {
         classes.push("ui-share-button--has-items".to_string());
     }
-    if state.is_empty {
-        classes.push("ui-share-button--empty".to_string());
-    }
-    if state.uses_default_items {
-        classes.push("ui-share-button--default-items".to_string());
-    }
-    if state.has_custom_label {
-        classes.push("ui-share-button--custom-label".to_string());
-    }
-    if state.has_custom_press_handler {
-        classes.push("ui-share-button--with-handler".to_string());
+
+    if state.has_custom_class_name {
+        classes.push("ui-share-button--custom-class".to_string());
     }
 
     if state.has_custom_class_name
@@ -235,30 +286,52 @@ mod tests {
 
     #[test]
     fn resolve_state_tracks_items_icon_placement_and_metadata() {
-        let state = resolve_state(3, true, ShareButtonIconPlacement::Prefix, true, true, true);
-        assert_eq!(state.item_count, 3);
+        let state = resolve_state(ShareButtonStateInput {
+            provided_item_count: 0,
+            resolved_item_count: 3,
+            uses_default_items: true,
+            icon_placement: ShareButtonIconPlacement::Prefix,
+            has_custom_label: true,
+            has_custom_class_name: true,
+            has_custom_press_handler: true,
+        });
+
+        assert_eq!(state.provided_item_count, 0);
+        assert_eq!(state.resolved_item_count, 3);
         assert!(state.has_items);
-        assert!(!state.is_empty);
+        assert_eq!(state.state_attr, "ready");
         assert!(state.uses_default_items);
+        assert_eq!(state.items_source_attr, "default");
         assert_eq!(state.icon_placement_attr, "prefix");
-        assert!(state.has_custom_label);
+        assert_eq!(state.icon_placement_class, "ui-share-button--icon-prefix");
+        assert_eq!(state.label_source_attr, "custom");
+        assert_eq!(state.handler_source_attr, "provided");
         assert!(state.has_custom_class_name);
-        assert!(state.has_custom_press_handler);
     }
 
     #[test]
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
-            resolve_state(2, false, ShareButtonIconPlacement::Suffix, true, true, true),
+            resolve_state(ShareButtonStateInput {
+                provided_item_count: 2,
+                resolved_item_count: 2,
+                uses_default_items: false,
+                icon_placement: ShareButtonIconPlacement::Suffix,
+                has_custom_label: true,
+                has_custom_class_name: true,
+                has_custom_press_handler: false,
+            }),
         );
 
         for token in [
             "ui-share-button",
+            "ui-share-button--state-ready",
+            "ui-share-button--custom-items",
             "ui-share-button--icon-suffix",
-            "ui-share-button--has-items",
             "ui-share-button--custom-label",
-            "ui-share-button--with-handler",
+            "ui-share-button--without-handler",
+            "ui-share-button--custom-class",
             "custom",
         ] {
             assert!(

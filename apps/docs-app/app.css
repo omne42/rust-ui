@@ -969,3 +969,10 @@ a {
   border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 40%);
   background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 24%);
 }
+
+.docs-share-button-custom {
+  border-radius: var(--ui-radius-lg);
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 36%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 20%);
+  padding: 2px;
+}

@@ -25,13 +25,15 @@ fn share_button_uses_logic_state_model() {
     let logic_source = load_source("src/button_share/logic.rs");
 
     for needle in [
+        "pub struct ShareButtonStateInput",
         "pub struct ShareButtonState",
         "pub struct ResolvedShareItems",
         "pub fn normalize_optional_text(",
         "pub fn resolve_items(",
-        "pub fn resolve_state(",
+        "pub fn resolve_state(input: ShareButtonStateInput)",
         "pub fn compose_class_name(",
-        "pub fn as_attr(self) -> &'static str",
+        "pub items_source_attr: &'static str",
+        "pub handler_source_attr: &'static str",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -42,8 +44,9 @@ fn share_button_uses_logic_state_model() {
     for needle in [
         "let label = logic::normalize_optional_text(label);",
         "let class_name = logic::normalize_optional_text(class_name);",
+        "let provided_item_count = items.len();",
         "let resolved_items = logic::resolve_items(&items);",
-        "let state = logic::resolve_state(",
+        "let state = logic::resolve_state(ShareButtonStateInput {",
         "let class = logic::compose_class_name(class_name, state);",
     ] {
         assert!(
@@ -64,6 +67,8 @@ fn share_button_uses_flip_button_and_button_group_composition() {
         "front=move ||",
         "back=move ||",
         "<ButtonGroup attached=true>",
+        "data-slot=\"share-button-front\"",
+        "data-slot=\"share-button-back\"",
     ] {
         assert!(
             source.contains(needle),
@@ -78,14 +83,17 @@ fn share_button_emits_spectrum_style_data_attributes() {
 
     for needle in [
         "data-slot=\"share-button\"",
-        "data-state=if state.is_empty { \"empty\" } else { \"ready\" }",
-        "data-count=state.item_count.to_string()",
-        "data-icon=state.icon_placement_attr",
-        "data-empty=state.is_empty.then_some(\"true\")",
+        "data-state=state.state_attr",
+        "data-provided-count=state.provided_item_count.to_string()",
+        "data-count=state.resolved_item_count.to_string()",
         "data-has-items=state.has_items.then_some(\"true\")",
-        "data-default-items=state.uses_default_items.then_some(\"true\")",
-        "data-custom-label=state.has_custom_label.then_some(\"true\")",
-        "data-has-handler=state.has_custom_press_handler.then_some(\"true\")",
+        "data-items-source=state.items_source_attr",
+        "data-icon=state.icon_placement_attr",
+        "data-label-source=state.label_source_attr",
+        "data-handler-source=state.handler_source_attr",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-slot=\"share-button-platform\"",
+        "data-platform=platform_attr",
     ] {
         assert!(
             source.contains(needle),
@@ -131,4 +139,24 @@ fn share_button_preserves_optional_press_handler_without_markup_branching() {
         !source.contains("match on_icon_press"),
         "ShareButton should avoid duplicating markup based on handler presence."
     );
+}
+
+#[test]
+fn share_button_styles_include_state_marker_contracts() {
+    let source = load_source("src/button_share/styles.rs");
+
+    for selector in [
+        ".ui-share-button--state-ready",
+        ".ui-share-button[data-state=\"ready\"]",
+        ".ui-share-button--icon-prefix",
+        ".ui-share-button[data-icon=\"none\"] [data-slot=\"share-button-trigger-icon\"]",
+        ".ui-share-button__platform[data-platform=\"github\"] .ui-button",
+        ".ui-share-button--custom-class",
+        ".ui-share-button[data-custom-class=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "ShareButton styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
 }
