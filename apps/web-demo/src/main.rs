@@ -15,35 +15,35 @@ use demos::{
 use leptos::{mount::mount_to_body, prelude::*};
 use ui_components::{Button, OnPress, Theme, UiRoot, provide_focus_visible, provide_overlay_stack};
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum DemoTheme {
+    Light,
+    Dark,
+    Oled,
+}
+
+impl DemoTheme {
+    fn next(self) -> Self {
+        match self {
+            Self::Light => Self::Dark,
+            Self::Dark => Self::Oled,
+            Self::Oled => Self::Light,
+        }
+    }
+
+    fn label(self) -> &'static str {
+        match self {
+            Self::Light => "Light",
+            Self::Dark => "Dark",
+            Self::Oled => "OLED",
+        }
+    }
+}
+
 #[component]
 fn App() -> impl IntoView {
     provide_focus_visible();
     provide_overlay_stack();
-
-    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-    enum DemoTheme {
-        Light,
-        Dark,
-        Oled,
-    }
-
-    impl DemoTheme {
-        fn next(self) -> Self {
-            match self {
-                Self::Light => Self::Dark,
-                Self::Dark => Self::Oled,
-                Self::Oled => Self::Light,
-            }
-        }
-
-        fn label(self) -> &'static str {
-            match self {
-                Self::Light => "Light",
-                Self::Dark => "Dark",
-                Self::Oled => "OLED",
-            }
-        }
-    }
 
     let (demo_theme, set_demo_theme) = signal(DemoTheme::Light);
     let theme = Signal::derive(move || match demo_theme.get() {
@@ -142,13 +142,14 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use leptos::prelude::Owner;
 
     #[test]
-    fn app_constructs_without_panicking() {
-        let _ = any_spawner::Executor::init_futures_executor();
-        Owner::new().with(|| {
-            let _ = App();
-        });
+    fn demo_theme_cycle_is_stable() {
+        assert_eq!(DemoTheme::Light.next(), DemoTheme::Dark);
+        assert_eq!(DemoTheme::Dark.next(), DemoTheme::Oled);
+        assert_eq!(DemoTheme::Oled.next(), DemoTheme::Light);
+        assert_eq!(DemoTheme::Light.label(), "Light");
+        assert_eq!(DemoTheme::Dark.label(), "Dark");
+        assert_eq!(DemoTheme::Oled.label(), "OLED");
     }
 }

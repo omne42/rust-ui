@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: `MotionRipple` now uses centralized phase/boundary/motion/class state derivation, emits stable Spectrum-style `data-*` contracts, supports bounded/unbounded rendering, and adds origin-aware ripple triggers with motion sanitization.
+- `apps/docs-app`: `MotionRipple` docs now provide Animation Matrix and Custom Boundary + Class playgrounds covering default/slow/disabled and unbounded origin-triggered scenarios.
+
 - Cargo workspace scaffold with layered crates (`ui-core`, `ui-headless`, `ui-theme`, `ui-components`) and demo apps (`web-demo`, `tauri-demo`).
 - `ui-core`: initial headless state primitive `use_toggle_state` with unit tests.
 - `ui-core`: `use_overlay_trigger_state` (open/close/toggle + controlled/uncontrolled) with unit tests.
@@ -126,6 +129,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
+- `ui-components`: `SlidingNumber` now snapshots decimal/thousand separators before reactive formatting derivation, fixing moved-value ownership errors during native/wasm compilation.
+- `apps/web-demo`: replaced the full `<App />` construction unit test with a deterministic `DemoTheme` cycle test, removing stack-overflow failures from workspace test gates.
 - `apps/docs-app`: rebuilds the docs site into a hash-routed component catalog (search + per-component playground pages) and adds a regression test that enforces 100% `ui-components` component coverage.
 - `apps/docs-app`: add a Cmd/Ctrl+K command menu (SearchInputButton trigger + Dialog results), and switch the header theme toggle to `<ThemeToggleButton>`.
 - `apps/docs-app`: command menu now uses a unified fuzzy search index (docs + doc sections + components).

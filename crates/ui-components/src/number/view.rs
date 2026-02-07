@@ -131,14 +131,17 @@ pub fn SlidingNumber(
         logic::compose_sliding_number_class_name(class_name.get_value(), state.get())
     });
 
+    let decimal_separator_for_format = decimal_separator.clone();
+    let thousand_separator_for_format = thousand_separator.clone();
+
     let formatted = Signal::derive(move || {
         format_static_number(
             number.get(),
             NumberFormatOptions {
                 pad_start,
-                decimal_separator: &decimal_separator,
+                decimal_separator: &decimal_separator_for_format,
                 decimal_places,
-                thousand_separator: thousand_separator.as_deref(),
+                thousand_separator: thousand_separator_for_format.as_deref(),
             },
         )
     });

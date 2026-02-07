@@ -1270,33 +1270,144 @@ pub(super) fn illustrated_message() -> AnyView {
 }
 
 pub(super) fn motion_ripple() -> AnyView {
-    let ripple_ref: NodeRef<html::Span> = NodeRef::new();
-    let on_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(ripple_ref, RippleMotion::default());
+    let default_ref: NodeRef<html::Span> = NodeRef::new();
+    let slow_ref: NodeRef<html::Span> = NodeRef::new();
+    let static_ref: NodeRef<html::Span> = NodeRef::new();
+    let custom_ref: NodeRef<html::Span> = NodeRef::new();
+    let unbounded_ref: NodeRef<html::Span> = NodeRef::new();
+
+    let default_motion = RippleMotion::default();
+    let slow_motion = RippleMotion {
+        duration_ms: 880,
+        ..RippleMotion::default()
+    };
+    let static_motion = RippleMotion::disabled();
+    let custom_motion = RippleMotion {
+        duration_ms: 620,
+        ..RippleMotion::default()
+    };
+    let unbounded_motion = RippleMotion {
+        duration_ms: 520,
+        ..RippleMotion::default()
     };
 
-    let code = r#"<button on:click=...>
-  <MotionRipple node_ref=ripple_ref />
-</button>"#;
+    let on_default_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple(default_ref, default_motion);
+    };
+    let on_slow_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple(slow_ref, slow_motion);
+    };
+    let on_static_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple(static_ref, static_motion);
+    };
+    let on_custom_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple(custom_ref, custom_motion);
+    };
+    let on_unbounded_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple_at(
+            unbounded_ref,
+            unbounded_motion,
+            18.0,
+            48.0,
+        );
+    };
+
+    let matrix_code = r#"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />
+<MotionRipple node_ref=slow_ref motion=RippleMotion { duration_ms: 880, ..RippleMotion::default() } />
+<MotionRipple node_ref=static_ref motion=RippleMotion::disabled() />"#;
+
+    let custom_code = r#"<MotionRipple
+  node_ref=custom_ref
+  motion=RippleMotion { duration_ms: 620, ..RippleMotion::default() }
+  class_name="docs-ripple-custom".to_string()
+/>
+<MotionRipple
+  node_ref=unbounded_ref
+  bounded=false
+  motion=RippleMotion { duration_ms: 520, ..RippleMotion::default() }
+  class_name="docs-ripple-custom".to_string()
+/>"#;
 
     view! {
         <ComponentPage
             title="MotionRipple"
             slug="motion-ripple"
             group="Display"
-            description="WAAPI-driven ripple effect surface (animate-ui style)."
+            description="Ripple overlay with centralized boundary/motion/class source attrs and WAAPI trigger helpers."
         >
-            <Playground title="Ripple" code=code>
-                <button class="docs-ripple-surface" type="button" on:click=on_click>
-                    <span class="docs-ripple-label">"Click for ripple"</span>
-                    <MotionRipple node_ref=ripple_ref class_name="docs-ripple-item".to_string() />
-                </button>
+            <Playground title="Animation Matrix" code=matrix_code>
+                <div class="docs-row">
+                    <button class="docs-ripple-surface" type="button" on:click=on_default_click>
+                        <span class="docs-ripple-label">"Default (420ms)"</span>
+                        <MotionRipple
+                            node_ref=default_ref
+                            motion=default_motion
+                            class_name="docs-ripple-item".to_string()
+                        />
+                    </button>
+
+                    <button
+                        class="docs-ripple-surface docs-ripple-surface--slow"
+                        type="button"
+                        on:click=on_slow_click
+                    >
+                        <span class="docs-ripple-label">"Slow (880ms)"</span>
+                        <MotionRipple
+                            node_ref=slow_ref
+                            motion=slow_motion
+                            class_name="docs-ripple-item".to_string()
+                        />
+                    </button>
+
+                    <button
+                        class="docs-ripple-surface docs-ripple-surface--static"
+                        type="button"
+                        on:click=on_static_click
+                    >
+                        <span class="docs-ripple-label">"Disabled"</span>
+                        <MotionRipple
+                            node_ref=static_ref
+                            motion=static_motion
+                            class_name="docs-ripple-item".to_string()
+                        />
+                    </button>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Boundary + Class" code=custom_code>
+                <div class="docs-row">
+                    <button
+                        class="docs-ripple-surface docs-ripple-surface--accent"
+                        type="button"
+                        on:click=on_custom_click
+                    >
+                        <span class="docs-ripple-label">"Custom Class"</span>
+                        <MotionRipple
+                            node_ref=custom_ref
+                            motion=custom_motion
+                            class_name="docs-ripple-custom".to_string()
+                        />
+                    </button>
+
+                    <button
+                        class="docs-ripple-surface docs-ripple-surface--unbounded"
+                        type="button"
+                        on:click=on_unbounded_click
+                    >
+                        <span class="docs-ripple-label">"Unbounded + Origin"</span>
+                        <MotionRipple
+                            node_ref=unbounded_ref
+                            bounded=false
+                            motion=unbounded_motion
+                            class_name="docs-ripple-custom".to_string()
+                        />
+                    </button>
+                </div>
             </Playground>
         </ComponentPage>
     }
     .into_any()
 }
-
 pub(super) fn static_number() -> AnyView {
     let matrix_code = r#"<StaticNumber number=12345.67 decimal_places=2 thousand_separator=",".to_string() />
 <StaticNumber number=-9876.5 decimal_places=1 thousand_separator=",".to_string() />

@@ -821,10 +821,39 @@ a {
   box-shadow: var(--ui-shadow-sm);
   color: var(--ui-accent);
   cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease;
 }
 
 .docs-ripple-surface:hover {
   border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 25%);
+  transform: translateY(-1px);
+}
+
+.docs-ripple-surface--slow {
+  color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 16%);
+}
+
+.docs-ripple-surface--static {
+  color: var(--ui-fg-muted);
+}
+
+.docs-ripple-surface--accent {
+  color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 12%);
+  background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 18%);
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 32%);
+}
+
+.docs-ripple-surface--unbounded {
+  overflow: visible;
+}
+
+.docs-ripple-item {
+  opacity: 0;
+}
+
+.docs-ripple-custom {
+  opacity: 0;
+  background: color-mix(in oklch, var(--ui-accent), transparent 55%);
 }
 
 .docs-ripple-label {
@@ -834,7 +863,6 @@ a {
   font-weight: 600;
   color: var(--ui-fg);
 }
-
 .docs-command-menu__trigger {
   width: min(360px, 44vw);
 }
