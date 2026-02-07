@@ -114,6 +114,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms::input,
     },
     ComponentDoc {
+        name: "Label",
+        slug: "label",
+        group: "Forms",
+        page: forms_extra::label,
+    },
+    ComponentDoc {
         name: "InputGroup",
         slug: "input-group",
         group: "Forms",

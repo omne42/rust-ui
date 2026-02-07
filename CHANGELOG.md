@@ -18,6 +18,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: adds an `ActionBar` docs page with selection controls, clear-action flow, top/bottom placement, and reduced-motion playground scenarios.
 - `ui-components`: adds `<Well>` with centralized tone/density/inset/label state derivation and Spectrum-style `data-*` contracts for stable styling hooks.
 - `apps/docs-app`: adds a `Well` docs page with tone+density matrix and custom label/class playground coverage.
+- `ui-components`: adds `<Label>` with centralized emphasis/required/disabled/source state derivation and Spectrum-style `data-*` contracts.
+- `apps/docs-app`: adds a `Label` docs page with emphasis/required matrix and custom indicator/class playground coverage.
 
 - Cargo workspace scaffold with layered crates (`ui-core`, `ui-headless`, `ui-theme`, `ui-components`) and demo apps (`web-demo`, `tauri-demo`).
 - `ui-core`: initial headless state primitive `use_toggle_state` with unit tests.

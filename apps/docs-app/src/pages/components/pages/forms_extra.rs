@@ -1,7 +1,59 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Slider, SliderMotion};
+use ui_components::{Label, LabelEmphasis, Slider, SliderMotion};
+
+pub(super) fn label() -> AnyView {
+    let emphasis_code = r#"<Label text="Name".to_string() for_id="name".to_string() required=true />
+<Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
+<Label text="Critical".to_string() emphasis=LabelEmphasis::Strong required=true />"#;
+
+    let custom_code = r#"<Label
+  text="Assignee".to_string()
+  for_id="assignee".to_string()
+  required=true
+  required_indicator="(required)".to_string()
+  class_name="docs-label-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Label"
+            slug="label"
+            group="Forms"
+            description="Form label primitive with centralized required/emphasis/source state contracts."
+        >
+            <Playground title="Emphasis + Required" code=emphasis_code>
+                <div class="docs-stack">
+                    <Label text="Name".to_string() for_id="docs-label-name".to_string() required=true />
+                    <input id="docs-label-name" class="docs-search__input" type="text" placeholder="Type name" />
+
+                    <Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
+                    <Label text="Critical".to_string() emphasis=LabelEmphasis::Strong required=true />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Indicator + Class" code=custom_code>
+                <div class="docs-stack">
+                    <Label
+                        text="Assignee".to_string()
+                        for_id="docs-label-assignee".to_string()
+                        required=true
+                        required_indicator="(required)".to_string()
+                        class_name="docs-label-custom".to_string()
+                    />
+                    <input
+                        id="docs-label-assignee"
+                        class="docs-search__input"
+                        type="text"
+                        placeholder="Owner"
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn slider() -> AnyView {
     let (value, set_value) = signal(36.0_f64);

@@ -52,6 +52,7 @@ pub mod input;
 pub mod input_group;
 pub mod input_otp;
 pub mod kbd;
+pub mod label;
 pub mod link;
 pub mod link_button;
 pub mod listbox;
@@ -155,6 +156,7 @@ pub use input::{Input, InputLabelPlacement, InputMotion, InputSize, InputVariant
 pub use input_group::InputGroup;
 pub use input_otp::InputOtp;
 pub use kbd::{Kbd, KbdSize};
+pub use label::{Label, LabelEmphasis};
 pub use link::Link;
 pub use link_button::LinkButton;
 pub use listbox::ListBox;
