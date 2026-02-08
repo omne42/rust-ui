@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<View>` with centralized surface token normalization (`background/border/padding/radius/shadow/element`) and Spectrum-style `data-*` state/source contracts.
+- `apps/docs-app`: adds a `View` docs page with surface-token matrix and element/fluid/custom-class playground coverage.
 - `ui-components`: adds `<Tree>` with centralized hierarchy normalization, controllable expand/selection state, and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `Tree` docs page with expanded-root and strong compact playground coverage.
 - `ui-components`: adds `<TimeField>` with centralized hour/minute normalization, controllable value flow, and Spectrum-style `data-*` state/source contracts.

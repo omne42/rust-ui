@@ -3,7 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Divider, DividerOrientation, ScrollShadow,
-    Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, Well,
+    Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
+    ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
     WellDensity, WellTone,
 };
 
@@ -80,6 +81,100 @@ pub(super) fn card() -> AnyView {
                             <div class="ui-muted">"Verifies `data-custom-class` + class merge."</div>
                         </div>
                     </Card>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn view() -> AnyView {
+    let surface_code = r#"<View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
+  <div>"Subtle surface"</div>
+</View>
+<View
+  background=ViewBackground::Accent
+  border=ViewBorder::Strong
+  padding=ViewPadding::Lg
+  radius=ViewRadius::Lg
+  shadow=ViewShadow::Md
+>
+  <div>"Accent emphasis surface"</div>
+</View>"#;
+
+    let element_code = r#"<View
+  element=ViewElement::Section
+  background=ViewBackground::Subtle
+  border=ViewBorder::Subtle
+  padding=ViewPadding::Sm
+  radius=ViewRadius::Sm
+  fluid=true
+  class_name="docs-view-custom".to_string()
+  aria_label="Release notes".to_string()
+>
+  <div>"Section container"</div>
+</View>
+<View element=ViewElement::Span padding=ViewPadding::Sm border=ViewBorder::Subtle>
+  <span>"Inline view"</span>
+</View>"#;
+
+    view! {
+        <ComponentPage
+            title="View"
+            slug="view"
+            group="Layout"
+            description="General-purpose Spectrum-style container with centralized surface token state and stable data markers."
+        >
+            <Playground title="Surface Tokens" code=surface_code>
+                <div class="docs-stack">
+                    <View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Subtle surface"</strong>
+                            <span class="ui-muted">"Border + radius + padding from tokenized state attrs."</span>
+                        </div>
+                    </View>
+
+                    <View
+                        background=ViewBackground::Accent
+                        border=ViewBorder::Strong
+                        padding=ViewPadding::Lg
+                        radius=ViewRadius::Lg
+                        shadow=ViewShadow::Md
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Accent emphasis"</strong>
+                            <span class="ui-muted">"Accent background with strong border and stronger elevation."</span>
+                        </div>
+                    </View>
+                </div>
+            </Playground>
+
+            <Playground title="Element + Fluid + Custom Class" code=element_code>
+                <div class="docs-stack">
+                    <View
+                        element=ViewElement::Section
+                        background=ViewBackground::Subtle
+                        border=ViewBorder::Subtle
+                        padding=ViewPadding::Sm
+                        radius=ViewRadius::Sm
+                        fluid=true
+                        class_name="docs-view-custom".to_string()
+                        aria_label="Release notes".to_string()
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Section container"</strong>
+                            <span class="ui-muted">"Verifies section element + fluid width + custom class marker."</span>
+                        </div>
+                    </View>
+
+                    <View
+                        element=ViewElement::Span
+                        border=ViewBorder::Subtle
+                        padding=ViewPadding::Sm
+                        radius=ViewRadius::Sm
+                    >
+                        <span>"Inline view"</span>
+                    </View>
                 </div>
             </Playground>
         </ComponentPage>
