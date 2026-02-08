@@ -14,6 +14,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: adds a `TimeField` docs page with controlled step and strong-tone custom-placeholder playground coverage.
 - `ui-components`: adds `<DateRangePicker>` with dual-DatePicker composition, centralized range validity/value-shape derivation, and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `DateRangePicker` docs page with controlled shared-month and invalid-range hint playground coverage.
+- `ui-components`: adds `<DateField>` with centralized year/month/day normalization, controllable value flow, and Spectrum-style `data-*` state/source contracts.
+- `apps/docs-app`: adds a `DateField` docs page with controlled value and strong-tone custom-placeholder playground coverage.
 - `ui-components`: adds `<DatePicker>` with centralized open/value controllable state, popover-calendar composition, and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `DatePicker` docs page with outside-days and Monday-first strong-tone playground coverage.
 - `ui-components`: adds `<Calendar>` with centralized Gregorian month-grid derivation, weekday policy normalization, and Spectrum-style `data-*` state contracts.

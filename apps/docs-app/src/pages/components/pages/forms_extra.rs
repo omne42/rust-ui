@@ -2,8 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Calendar, CalendarFirstWeekday, CalendarTone, DatePicker, DatePickerTone, DateRangePicker,
-    DateRangePickerTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
+    Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
+    DatePickerTone, DateRangePicker, DateRangePickerTone, Label, LabelEmphasis, Slider,
+    SliderMotion, TimeField, TimeFieldTone,
 };
 
 pub(super) fn label() -> AnyView {
@@ -415,6 +416,69 @@ let (end_day, set_end_day) = signal(Some(19_u8));
                     default_end_day=12
                     tone=DateRangePickerTone::Strong
                     class_name="docs-date-range-picker-custom".to_string()
+                />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn date_field() -> AnyView {
+    let (value, set_value) = signal(Some("2026-03-14".to_string()));
+    let on_value_change = Callback::new(move |next: Option<String>| {
+        set_value.set(next);
+    });
+
+    let code = r#"let (value, set_value) = signal(Some("2026-03-14".to_string()));
+let on_value_change = Callback::new(move |next: Option<String>| {
+  set_value.set(next);
+});
+
+<DateField
+  id_base="invoice-date".to_string()
+  label="Invoice date".to_string()
+  value=value
+  on_value_change=on_value_change
+/>"#;
+
+    let states_code = r#"<DateField
+  id_base="ship-date".to_string()
+  label="Ship date".to_string()
+  tone=DateFieldTone::Strong
+  default_value="2026-07-22".to_string()
+  placeholder="year-month-day".to_string()
+  class_name="docs-date-field-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="DateField"
+            slug="date-field"
+            group="Forms"
+            description="Segmented date entry field with centralized year/month/day normalization and Spectrum-style state/source contracts."
+        >
+            <Playground title="Controlled Value" code=code>
+                <div class="docs-stack">
+                    <DateField
+                        id_base="docs-date-field-controlled".to_string()
+                        label="Invoice date".to_string()
+                        value=value
+                        on_value_change=on_value_change
+                    />
+                    <span class="ui-muted">
+                        "value: " {move || value.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Strong Tone + Custom Placeholder" code=states_code>
+                <DateField
+                    id_base="docs-date-field-strong".to_string()
+                    label="Ship date".to_string()
+                    tone=DateFieldTone::Strong
+                    default_value="2026-07-22".to_string()
+                    placeholder="year-month-day".to_string()
+                    class_name="docs-date-field-custom".to_string()
                 />
             </Playground>
         </ComponentPage>
