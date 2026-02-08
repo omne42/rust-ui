@@ -3,10 +3,11 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
-    DividerOrientation, Footer, FooterTone, Header, HeaderTone, Heading, HeadingLevel, HeadingTone,
-    ScrollShadow, Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis,
-    SpacerSize, View, ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow,
-    Well, WellDensity, WellTone,
+    DividerOrientation, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap, Footer,
+    FooterTone, Header, HeaderTone, Heading, HeadingLevel, HeadingTone, ScrollShadow, Separator,
+    SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
+    ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
+    WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -183,6 +184,100 @@ pub(super) fn view() -> AnyView {
     .into_any()
 }
 
+pub(super) fn flex() -> AnyView {
+    let matrix_code = r#"<Flex direction=FlexDirection::Row wrap=FlexWrap::Wrap gap=FlexGap::Md align=FlexAlign::Center>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Alpha"</View>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Beta"</View>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Gamma"</View>
+</Flex>
+<Flex direction=FlexDirection::Column gap=FlexGap::Sm align=FlexAlign::Stretch>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Line 1"</View>
+  <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"Line 2"</View>
+</Flex>"#;
+
+    let inline_code = r#"<Flex
+  inline=true
+  justify=FlexJustify::SpaceBetween
+  align=FlexAlign::Baseline
+  gap=FlexGap::Lg
+  class_name="docs-flex-inline".to_string()
+>
+  <Heading level=HeadingLevel::H5>"Inline Flex"</Heading>
+  <Content tone=ContentTone::Muted>"Baseline aligned helper text."</Content>
+  <Footer tone=FooterTone::Muted>"Updated now"</Footer>
+</Flex>"#;
+
+    view! {
+        <ComponentPage
+            title="Flex"
+            slug="flex"
+            group="Layout"
+            description="Spectrum-style flex layout primitive with centralized direction/wrap/alignment/gap normalization and stable data-state contracts."
+        >
+            <Playground title="Direction + Wrap + Gap" code=matrix_code>
+                <div class="docs-stack">
+                    <Flex
+                        direction=FlexDirection::Row
+                        wrap=FlexWrap::Wrap
+                        gap=FlexGap::Md
+                        align=FlexAlign::Center
+                        aria_label="Tag cloud layout".to_string()
+                    >
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Alpha"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Beta"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Gamma"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Delta"
+                        </View>
+                    </Flex>
+
+                    <Flex
+                        direction=FlexDirection::Column
+                        gap=FlexGap::Sm
+                        align=FlexAlign::Stretch
+                        class_name="docs-flex-column".to_string()
+                    >
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Line 1"
+                        </View>
+                        <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
+                            "Line 2"
+                        </View>
+                    </Flex>
+                </div>
+            </Playground>
+
+            <Playground title="Inline + Distribution" code=inline_code>
+                <div class="docs-stack">
+                    <Flex
+                        inline=true
+                        justify=FlexJustify::SpaceBetween
+                        align=FlexAlign::Baseline
+                        gap=FlexGap::Lg
+                        class_name="docs-flex-inline".to_string()
+                    >
+                        <Heading level=HeadingLevel::H5 tone=HeadingTone::Strong>
+                            "Inline Flex"
+                        </Heading>
+                        <Content tone=ContentTone::Muted>
+                            "Baseline aligned helper text."
+                        </Content>
+                        <Footer tone=FooterTone::Muted bordered=true>
+                            "Updated now"
+                        </Footer>
+                    </Flex>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 pub(super) fn content() -> AnyView {
     let semantic_code = r#"<Content>
   <p>"Primary body content"</p>

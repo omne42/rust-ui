@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Flex>` as a Spectrum-style layout primitive with centralized direction/wrap/justify/align/gap normalization and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `Flex` docs page with direction/wrap/gap and inline/distribution playground coverage.
+
 - `ui-components`: adds `<Keyboard>` as a Spectrum-style keyboard command primitive (`<kbd>`) with centralized tone/compact normalization and stable `data-*` source/state contracts.
 - `apps/docs-app`: adds a `Keyboard` docs page with tone and compact/custom-class playground coverage.
 - `ui-components`: adds `<Heading>` as a Spectrum-style semantic heading primitive (`h1`..`h6`) with centralized level/tone/truncate normalization and stable `data-*` source/state contracts.

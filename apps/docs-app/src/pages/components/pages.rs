@@ -248,6 +248,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: layout::view,
     },
     ComponentDoc {
+        name: "Flex",
+        slug: "flex",
+        group: "Layout",
+        page: layout::flex,
+    },
+    ComponentDoc {
         name: "Content",
         slug: "content",
         group: "Layout",
