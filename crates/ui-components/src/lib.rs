@@ -119,6 +119,7 @@ pub mod switch;
 pub mod switch_group;
 pub mod table;
 pub mod tabs;
+pub mod tag;
 pub mod tag_group;
 pub mod text;
 pub mod text_area;

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Tag>` as a Spectrum/HeroUI-style tag primitive with centralized variant/size/remove-action/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `Tag` docs page with variant/size matrix and removable/disabled/custom-class playground coverage.
+
 - `ui-components`: adds `<DateInputGroup>` as a Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `DateInputGroup` docs page with DateField composition and secondary/full-width/invalid TimeField playground coverage.
 

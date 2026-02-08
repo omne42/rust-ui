@@ -2,6 +2,7 @@ mod actions;
 mod actions_extra;
 mod collections;
 mod collections_extra;
+mod collections_groups;
 mod display;
 mod display_extra;
 mod files;
@@ -692,6 +693,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "pagination",
         group: "Collections",
         page: collections::pagination,
+    },
+    ComponentDoc {
+        name: "Tag",
+        slug: "tag",
+        group: "Collections",
+        page: collections_groups::tag,
     },
     ComponentDoc {
         name: "TagGroup",
