@@ -1,7 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{ColorArea, ColorField, ColorSlider, ColorSliderChannel, ColorSliderMotion};
+use ui_components::{
+    ColorArea, ColorField, ColorSlider, ColorSliderChannel, ColorSliderMotion, ColorWheel,
+    ColorWheelMotion,
+};
 
 pub(super) fn color_field() -> AnyView {
     let (value, set_value) = signal(Some("#4f46e5".to_string()));
@@ -222,6 +225,86 @@ let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
                         track_end_color="#38bdf8".to_string()
                         motion=reduced_motion
                         class_name="docs-color-slider-custom".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_wheel() -> AnyView {
+    let (value, set_value) = signal(32.0_f64);
+    let on_value_change = Callback::new(move |next: f64| set_value.set(next));
+
+    let (disabled_value, set_disabled_value) = signal(248.0_f64);
+    let on_disabled_change = Callback::new(move |next: f64| set_disabled_value.set(next));
+
+    let reduced_motion = ColorWheelMotion::disabled();
+
+    let basic_code = r##"let (value, set_value) = signal(32.0_f64);
+let on_value_change = Callback::new(move |next: f64| set_value.set(next));
+
+<ColorWheel
+  id_base="docs-color-wheel-hue".to_string()
+  label="Hue wheel".to_string()
+  value=value.into()
+  on_value_change=on_value_change
+/>"##;
+
+    let states_code = r##"let reduced_motion = ColorWheelMotion::disabled();
+
+<ColorWheel
+  id_base="docs-color-wheel-disabled".to_string()
+  label="Disabled wheel".to_string()
+  value=disabled_value.into()
+  on_value_change=on_disabled_change
+  disabled=true
+/>
+<ColorWheel
+  id_base="docs-color-wheel-custom".to_string()
+  label="Brand hue".to_string()
+  default_value=282.0
+  motion=reduced_motion
+  class_name="docs-color-wheel-custom".to_string()
+/>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorWheel"
+            slug="color-wheel"
+            group="Forms"
+            description="Spectrum-compatible hue wheel with centralized value/step/wrap-around normalization, spring-driven thumb motion, and stable slot/data-state contracts."
+        >
+            <Playground title="Controlled Hue Wheel" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorWheel
+                        id_base="docs-color-wheel-hue".to_string()
+                        label="Hue wheel".to_string()
+                        value=value.into()
+                        on_value_change=on_value_change
+                    />
+                    <span class="ui-muted">
+                        "hue: " {move || format!("{:.0}°", value.get())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Reduced Motion + Custom Class" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorWheel
+                        id_base="docs-color-wheel-disabled".to_string()
+                        label="Disabled wheel".to_string()
+                        value=disabled_value.into()
+                        on_value_change=on_disabled_change
+                        disabled=true
+                    />
+                    <ColorWheel
+                        id_base="docs-color-wheel-custom".to_string()
+                        label="Brand hue".to_string()
+                        default_value=282.0
+                        motion=reduced_motion
+                        class_name="docs-color-wheel-custom".to_string()
                     />
                 </div>
             </Playground>

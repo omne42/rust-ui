@@ -23,6 +23,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<ColorSlider>` as a Spectrum-compatible single-channel color slider with centralized channel/range/value normalization, spring motion integration, and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSlider` docs page with controlled hue and disabled/custom-track/reduced-motion playground coverage.
 
+- `ui-components`: adds `<ColorWheel>` as a Spectrum-compatible hue wheel with centralized value/step/wrap-around normalization, spring-driven thumb motion, and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `ColorWheel` docs page with controlled hue and disabled/reduced-motion/custom-class playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 

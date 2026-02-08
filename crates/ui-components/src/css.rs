@@ -40,6 +40,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::color_area::styles::CSS);
     out.push_str(crate::color_field::styles::CSS);
     out.push_str(crate::color_slider::styles::CSS);
+    out.push_str(crate::color_wheel::styles::CSS);
     out.push_str(crate::color_swatch::styles::CSS);
     out.push_str(crate::color_swatch_picker::styles::CSS);
     out.push_str(crate::icon::styles::CSS);

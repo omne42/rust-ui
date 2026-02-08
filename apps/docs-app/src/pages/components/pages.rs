@@ -240,6 +240,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_color::color_slider,
     },
     ComponentDoc {
+        name: "ColorWheel",
+        slug: "color-wheel",
+        group: "Forms",
+        page: forms_color::color_wheel,
+    },
+    ComponentDoc {
         name: "NumberField",
         slug: "number-field",
         group: "Forms",
