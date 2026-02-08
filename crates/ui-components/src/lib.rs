@@ -38,6 +38,7 @@ pub mod clear_button;
 pub mod close_button;
 pub mod code;
 pub mod code_block;
+pub mod color_field;
 pub mod color_swatch;
 pub mod color_swatch_picker;
 pub mod combo_box;
@@ -183,6 +184,7 @@ pub use clear_button::{ClearButton, ClearButtonVariant};
 pub use close_button::{CloseButton, CloseButtonSize, CloseButtonVariant};
 pub use code::{Code, CodeVariant};
 pub use code_block::{CodeBlock, CodeBlockMotion};
+pub use color_field::ColorField;
 pub use color_swatch::{
     ColorSwatch, ColorSwatchAlpha, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,
 };

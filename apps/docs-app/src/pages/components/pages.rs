@@ -7,6 +7,7 @@ mod display;
 mod display_extra;
 mod files;
 mod forms;
+mod forms_color;
 mod forms_extra;
 mod forms_groups;
 mod layout;
@@ -219,6 +220,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "search-field",
         group: "Forms",
         page: forms::search_field,
+    },
+    ComponentDoc {
+        name: "ColorField",
+        slug: "color-field",
+        group: "Forms",
+        page: forms_color::color_field,
     },
     ComponentDoc {
         name: "NumberField",
