@@ -531,6 +531,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::illustrated_message,
     },
     ComponentDoc {
+        name: "EmptyState",
+        slug: "empty-state",
+        group: "Display",
+        page: display_extra::empty_state,
+    },
+    ComponentDoc {
         name: "MotionRipple",
         slug: "motion-ripple",
         group: "Display",

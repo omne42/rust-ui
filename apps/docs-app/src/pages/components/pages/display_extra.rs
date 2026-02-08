@@ -2,8 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, Text,
-    TextAlign, TextElement, TextTone, TextWeight,
+    EmptyState, EmptyStateAlign, EmptyStateTone, Keyboard, KeyboardTone, LabeledValue,
+    LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -157,6 +157,92 @@ pub(super) fn text() -> AnyView {
                         class_name="docs-text-custom".to_string()
                     />
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn empty_state() -> AnyView {
+    let tone_code = r#"<EmptyState
+  title="No projects yet".to_string()
+  description="Create your first project to unlock dashboards and team workflows.".to_string()
+  tone=EmptyStateTone::Default
+  icon=move || view! { <span>"📁"</span> }
+  actions=move || view! {
+    <ui_components::Button>"Create project"</ui_components::Button>
+  }
+/>
+<EmptyState
+  title="Nothing matched".to_string()
+  description="Try a different query or clear filters.".to_string()
+  tone=EmptyStateTone::Muted
+  align=EmptyStateAlign::Center
+/>"#;
+
+    let state_code = r#"<EmptyState
+  title="Deployments paused".to_string()
+  description="Approvals are required before resuming this environment.".to_string()
+  tone=EmptyStateTone::Accent
+  compact=true
+  bordered=true
+  class_name="docs-empty-state-custom".to_string()
+  icon=move || view! { <span>"⏸"</span> }
+  actions=move || view! {
+    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+      "Review approvals"
+    </ui_components::Button>
+  }
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="EmptyState"
+            slug="empty-state"
+            group="Display"
+            description="Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers."
+        >
+            <Playground title="Tone + Alignment + Actions" code=tone_code>
+                <div class="docs-stack">
+                    <EmptyState
+                        title="No projects yet".to_string()
+                        description="Create your first project to unlock dashboards and team workflows.".to_string()
+                        tone=EmptyStateTone::Default
+                        icon=move || view! { <span>"📁"</span> }
+                        actions=move || {
+                            view! {
+                                <ui_components::Button>
+                                    "Create project"
+                                </ui_components::Button>
+                            }
+                        }
+                    />
+                    <EmptyState
+                        title="Nothing matched".to_string()
+                        description="Try a different query or clear filters.".to_string()
+                        tone=EmptyStateTone::Muted
+                        align=EmptyStateAlign::Center
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Compact + Bordered + Custom Class" code=state_code>
+                <EmptyState
+                    title="Deployments paused".to_string()
+                    description="Approvals are required before resuming this environment.".to_string()
+                    tone=EmptyStateTone::Accent
+                    compact=true
+                    bordered=true
+                    class_name="docs-empty-state-custom".to_string()
+                    icon=move || view! { <span>"⏸"</span> }
+                    actions=move || {
+                        view! {
+                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                                "Review approvals"
+                            </ui_components::Button>
+                        }
+                    }
+                />
             </Playground>
         </ComponentPage>
     }

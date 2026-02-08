@@ -1131,6 +1131,7 @@ a {
 .docs-help-text-custom,
 .docs-fieldset-custom,
 .docs-field-error-custom,
-.docs-error-message-custom {
+.docs-error-message-custom,
+.docs-empty-state-custom {
   border-radius: var(--ui-radius-sm);
 }

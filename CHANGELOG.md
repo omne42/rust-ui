@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<EmptyState>` as a Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source normalization and stable `data-*` state contracts.
+- `apps/docs-app`: adds an `EmptyState` docs page with tone/alignment/actions and compact/bordered/custom-class playground coverage.
+
 - `ui-components`: adds `<ErrorMessage>` as a Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds an `ErrorMessage` docs page with tone variants and truncate/disabled/element/custom-class playground coverage.
 
