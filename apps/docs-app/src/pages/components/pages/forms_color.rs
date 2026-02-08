@@ -2,8 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    ColorArea, ColorField, ColorSlider, ColorSliderChannel, ColorSliderMotion, ColorWheel,
-    ColorWheelMotion,
+    ColorArea, ColorField, ColorPicker, ColorSlider, ColorSliderChannel, ColorSliderMotion,
+    ColorSwatchPicker, ColorSwatchPickerItem, ColorWheel, ColorWheelMotion,
 };
 
 pub(super) fn color_field() -> AnyView {
@@ -306,6 +306,133 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
                         motion=reduced_motion
                         class_name="docs-color-wheel-custom".to_string()
                     />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_picker() -> AnyView {
+    let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
+    let on_selected_change =
+        Callback::new(move |next: Option<String>| set_selected_color.set(next));
+
+    let (open, set_open) = signal(false);
+    let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+
+    let (swatches, _set_swatches) = signal(vec![
+        ColorSwatchPickerItem::named("#ef4444", "Red"),
+        ColorSwatchPickerItem::named("#f59e0b", "Amber"),
+        ColorSwatchPickerItem::named("#10b981", "Emerald"),
+        ColorSwatchPickerItem::named("#3b82f6", "Blue"),
+        ColorSwatchPickerItem::named("#8b5cf6", "Violet"),
+    ]);
+
+    let selected_color_signal: Signal<Option<String>> = selected_color.into();
+    let open_signal: Signal<bool> = open.into();
+
+    let basic_code = r##"let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
+let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));
+let (open, set_open) = signal(false);
+let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+
+let (swatches, _set_swatches) = signal(vec![
+  ColorSwatchPickerItem::named("#ef4444", "Red"),
+  ColorSwatchPickerItem::named("#3b82f6", "Blue"),
+]);
+let selected_color_signal: Signal<Option<String>> = selected_color.into();
+let open_signal: Signal<bool> = open.into();
+
+<ColorPicker
+  id_base="docs-color-picker-basic".to_string()
+  label="Fill".to_string()
+  selected_color=selected_color_signal
+  on_selected_change=on_selected_change
+  open=open_signal
+  on_open_change=on_open_change
+>
+  <ColorSwatchPicker
+    swatches=swatches
+    selected_color=selected_color_signal
+    on_selected_change=on_selected_change
+  />
+</ColorPicker>"##;
+
+    let states_code = r##"<ColorPicker
+  id_base="docs-color-picker-disabled".to_string()
+  label="Disabled".to_string()
+  default_selected_color="#0ea5e9".to_string()
+  disabled=true
+  class_name="docs-color-picker-custom".to_string()
+>
+  <div class="ui-muted">"Disabled picker content"</div>
+</ColorPicker>
+
+<ColorPicker
+  id_base="docs-color-picker-open".to_string()
+  label="Open by default".to_string()
+  default_selected_color="#8b5cf6".to_string()
+  default_open=true
+>
+  <div class="docs-stack docs-stack--tight">
+    <span class="ui-muted">"Custom content area"</span>
+  </div>
+</ColorPicker>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorPicker"
+            slug="color-picker"
+            group="Forms"
+            description="Spectrum-compatible color picker primitive that composes swatch trigger + popover content with controllable color/open state and stable slot/data-state contracts."
+        >
+            <Playground title="Controlled Color + Controlled Open" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorPicker
+                        id_base="docs-color-picker-basic".to_string()
+                        label="Fill".to_string()
+                        selected_color=selected_color_signal
+                        on_selected_change=on_selected_change
+                        open=open_signal
+                        on_open_change=on_open_change
+                    >
+                        <ColorSwatchPicker
+                            swatches=swatches
+                            selected_color=selected_color_signal
+                            on_selected_change=on_selected_change
+                        />
+                    </ColorPicker>
+
+                    <span class="ui-muted">
+                        "selected: " {move || selected_color.get().unwrap_or_else(|| "none".to_string())}
+                        " · open: " {move || if open.get() { "true" } else { "false" }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Default Open + Custom Class" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorPicker
+                        id_base="docs-color-picker-disabled".to_string()
+                        label="Disabled".to_string()
+                        default_selected_color="#0ea5e9".to_string()
+                        disabled=true
+                        class_name="docs-color-picker-custom".to_string()
+                    >
+                        <div class="ui-muted">"Disabled picker content"</div>
+                    </ColorPicker>
+
+                    <ColorPicker
+                        id_base="docs-color-picker-open".to_string()
+                        label="Open by default".to_string()
+                        default_selected_color="#8b5cf6".to_string()
+                        default_open=true
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <span class="ui-muted">"Custom content area"</span>
+                        </div>
+                    </ColorPicker>
                 </div>
             </Playground>
         </ComponentPage>
