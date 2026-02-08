@@ -129,6 +129,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::label,
     },
     ComponentDoc {
+        name: "Field",
+        slug: "field",
+        group: "Forms",
+        page: forms_extra::field,
+    },
+    ComponentDoc {
         name: "InputGroup",
         slug: "input-group",
         group: "Forms",

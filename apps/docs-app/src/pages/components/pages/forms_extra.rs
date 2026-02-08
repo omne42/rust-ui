@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
-    DatePickerTone, DateRangePicker, DateRangePickerTone, Label, LabelEmphasis, Slider,
-    SliderMotion, TimeField, TimeFieldTone,
+    DatePickerTone, DateRangePicker, DateRangePickerTone, Field, FieldOrientation, FieldTone,
+    Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
 };
 
 pub(super) fn label() -> AnyView {
@@ -59,6 +59,66 @@ pub(super) fn label() -> AnyView {
     .into_any()
 }
 
+pub(super) fn field() -> AnyView {
+    let required_code = r#"<Field
+  label="Email".to_string()
+  required=true
+  description="We'll only use this for release notes.".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="name@example.com" />
+</Field>"#;
+
+    let invalid_code = r#"<Field
+  orientation=FieldOrientation::Horizontal
+  tone=FieldTone::Muted
+  invalid=true
+  error_message="A valid email is required".to_string()
+  class_name="docs-field-custom".to_string()
+>
+  <input class="docs-search__input" type="email" placeholder="owner@company.com" />
+</Field>"#;
+
+    view! {
+        <ComponentPage
+            title="Field"
+            slug="field"
+            group="Forms"
+            description="Form field wrapper with centralized orientation/tone/validation/message-state modeling and stable data contracts."
+        >
+            <Playground title="Required + Description" code=required_code>
+                <Field
+                    label="Email".to_string()
+                    required=true
+                    description="We'll only use this for release notes.".to_string()
+                    aria_label="Email field".to_string()
+                >
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="name@example.com"
+                    />
+                </Field>
+            </Playground>
+
+            <Playground title="Horizontal + Invalid + Custom Class" code=invalid_code>
+                <Field
+                    orientation=FieldOrientation::Horizontal
+                    tone=FieldTone::Muted
+                    invalid=true
+                    error_message="A valid email is required".to_string()
+                    class_name="docs-field-custom".to_string()
+                >
+                    <input
+                        class="docs-search__input"
+                        type="email"
+                        placeholder="owner@company.com"
+                    />
+                </Field>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 pub(super) fn slider() -> AnyView {
     let (value, set_value) = signal(36.0_f64);
     let (last_change, set_last_change) = signal("none".to_string());

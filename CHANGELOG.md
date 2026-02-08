@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Field>` as a Spectrum-style form field wrapper with centralized orientation/tone/validation/message-state normalization and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `Field` docs page with required/description and horizontal-invalid custom-class playground coverage.
+
 - `ui-components`: adds `<Grid>` as a Spectrum-style layout primitive with centralized columns/rows/gap/alignment normalization and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `Grid` docs page with columns/gap and auto-fit/dense/equal-rows playground coverage.
 
