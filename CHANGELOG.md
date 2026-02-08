@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ColorSwatchPicker>` as a Spectrum-compatible selectable swatch group with centralized color normalization, single-selection state, keyboard roving, and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `ColorSwatchPicker` docs page with basic selection and transparency/disabled/custom-class playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 

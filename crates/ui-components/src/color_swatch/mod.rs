@@ -7,6 +7,10 @@ pub use logic::{
 };
 pub use view::ColorSwatch;
 
+pub fn sanitize_color_value(value: Option<String>) -> Option<String> {
+    logic::sanitize_color_value(value)
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ColorSwatchStateInput {
     pub size: ColorSwatchSize,

@@ -12,6 +12,7 @@ pub fn ColorSwatch(
     #[prop(optional)] rounding: ColorSwatchRounding,
     #[prop(optional)] shape: ColorSwatchShape,
     #[prop(optional, default = true)] bordered: bool,
+    #[prop(optional, default = false)] decorative: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -39,8 +40,9 @@ pub fn ColorSwatch(
     view! {
         <div
             class=class
-            role="img"
-            aria-label=aria_label
+            role=(!decorative).then_some("img")
+            aria-label=(!decorative).then_some(aria_label)
+            aria-hidden=decorative.then_some("true")
             style=logic::compose_inline_style(color.as_deref()).unwrap_or_default()
             data-slot="color-swatch"
             data-size=state.size_attr
@@ -50,6 +52,7 @@ pub fn ColorSwatch(
             data-state=state.data_state_attr
             data-has-color=state.has_color.then_some("true")
             data-bordered=state.is_bordered.then_some("true")
+            data-decorative=decorative.then_some("true")
             data-aria-source=state.aria_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr

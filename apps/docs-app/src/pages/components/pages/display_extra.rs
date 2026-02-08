@@ -2,10 +2,10 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, EmptyState,
-    EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone,
-    LabeledValue, LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement,
-    TextTone, TextWeight,
+    ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
+    ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone,
+    Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, Text,
+    TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -383,6 +383,72 @@ pub(super) fn color_swatch() -> AnyView {
                     />
                     <ColorSwatch color="".to_string() bordered=true />
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_swatch_picker() -> AnyView {
+    let swatches = vec![
+        ColorSwatchPickerItem::named("#A00", "Red"),
+        ColorSwatchPickerItem::named("#f80", "Orange"),
+        ColorSwatchPickerItem::named("#080", "Green"),
+        ColorSwatchPickerItem::named("#08f", "Blue"),
+    ];
+
+    let disabled_swatches = vec![
+        ColorSwatchPickerItem::named("#A00", "Red"),
+        ColorSwatchPickerItem::named("rgba(14, 116, 144, 0.4)", "Cyan 40%").disabled(true),
+        ColorSwatchPickerItem::named("rgba(255, 0, 0, 0)", "Transparent"),
+        ColorSwatchPickerItem::new("#08f"),
+    ];
+
+    let basic_code = r##"<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("#f80", "Orange"),
+    ColorSwatchPickerItem::named("#080", "Green"),
+    ColorSwatchPickerItem::named("#08f", "Blue"),
+  ]).0
+  default_selected_color="#f80".to_string()
+/>"##;
+
+    let state_code = r##"<ColorSwatchPicker
+  swatches=signal(vec![
+    ColorSwatchPickerItem::named("#A00", "Red"),
+    ColorSwatchPickerItem::named("rgba(14, 116, 144, 0.4)", "Cyan 40%").disabled(true),
+    ColorSwatchPickerItem::named("rgba(255, 0, 0, 0)", "Transparent"),
+    ColorSwatchPickerItem::new("#08f"),
+  ]).0
+  shape=ColorSwatchShape::Wide
+  rounding=ColorSwatchRounding::Default
+  class_name="docs-color-swatch-picker-custom".to_string()
+  aria_label="Fill color".to_string()
+/>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorSwatchPicker"
+            slug="color-swatch-picker"
+            group="Display"
+            description="Spectrum-compatible selectable swatch group with centralized color normalization, single-selection state, keyboard roving, and stable slot/data state markers."
+        >
+            <Playground title="Basic Selection" code=basic_code>
+                <ColorSwatchPicker
+                    swatches=signal(swatches).0
+                    default_selected_color="#f80".to_string()
+                />
+            </Playground>
+
+            <Playground title="Transparency + Disabled + Custom Class" code=state_code>
+                <ColorSwatchPicker
+                    swatches=signal(disabled_swatches).0
+                    shape=ColorSwatchShape::Wide
+                    rounding=ColorSwatchRounding::Default
+                    class_name="docs-color-swatch-picker-custom".to_string()
+                    aria_label="Fill color".to_string()
+                />
             </Playground>
         </ComponentPage>
     }

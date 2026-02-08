@@ -39,6 +39,7 @@ pub mod close_button;
 pub mod code;
 pub mod code_block;
 pub mod color_swatch;
+pub mod color_swatch_picker;
 pub mod combo_box;
 pub mod content;
 pub mod contextual_help;
@@ -184,6 +185,7 @@ pub use code_block::{CodeBlock, CodeBlockMotion};
 pub use color_swatch::{
     ColorSwatch, ColorSwatchAlpha, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,
 };
+pub use color_swatch_picker::{ColorSwatchPicker, ColorSwatchPickerItem};
 pub use combo_box::{ComboBox, ComboBoxMotion};
 pub use content::{Content, ContentTone};
 pub use contextual_help::{ContextualHelp, ContextualHelpMotion, ContextualHelpVariant};

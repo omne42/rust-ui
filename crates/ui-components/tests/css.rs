@@ -29,6 +29,8 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-checkbox", ".ui-checkbox {"),
         (".ui-checkbox-group", ".ui-checkbox-group {"),
         (".ui-chip", ".ui-chip {"),
+        (".ui-color-swatch", ".ui-color-swatch {"),
+        (".ui-color-swatch-picker", ".ui-color-swatch-picker {"),
         (".ui-image", ".ui-image {"),
         (".ui-tag-group", ".ui-tag-group {"),
         (".ui-card", ".ui-card {"),
