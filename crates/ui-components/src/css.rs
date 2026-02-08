@@ -71,6 +71,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::file_trigger::styles::CSS);
     out.push_str(crate::drop_zone::styles::CSS);
     out.push_str(crate::field::styles::CSS);
+    out.push_str(crate::field_button::styles::CSS);
     out.push_str(crate::form::styles::CSS);
     out.push_str(crate::segmented_control::styles::CSS);
     out.push_str(crate::scroll_shadow::styles::CSS);

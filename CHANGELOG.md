@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<FieldButton>` as a Spectrum-style field-trigger primitive with centralized quiet/invalid/active/disabled normalization, headless press/hover/focus integration, and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `FieldButton` docs page with default/quiet and invalid-active/disabled playground coverage.
+
 - `ui-components`: adds `<HelpText>` as a Spectrum-style assistance primitive with centralized description/error resolution, tone/icon state derivation, and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `HelpText` docs page with description and invalid/icon/disabled error playground coverage.
 

@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
-    ActionGroupSelectionMode, ActionGroupTone,
+    ActionGroupSelectionMode, ActionGroupTone, FieldButton,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -99,6 +99,63 @@ let selected_count_signal = Signal::derive(move || selected_count.get());
     .into_any()
 }
 
+pub(super) fn field_button() -> AnyView {
+    let default_code = r#"<FieldButton aria_label="Open options".to_string()>
+  "Options"
+</FieldButton>
+<FieldButton quiet=true aria_label="Open calendar".to_string()>
+  "📅"
+</FieldButton>"#;
+
+    let state_code = r#"<FieldButton
+  invalid=true
+  is_active=true
+  aria_label="Invalid trigger".to_string()
+  class_name="docs-field-button-custom".to_string()
+>
+  "Needs fix"
+</FieldButton>
+<FieldButton disabled=true aria_label="Disabled trigger".to_string()>
+  "Disabled"
+</FieldButton>"#;
+
+    view! {
+        <ComponentPage
+            title="FieldButton"
+            slug="field-button"
+            group="Actions"
+            description="Spectrum-style field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
+        >
+            <Playground title="Default + Quiet" code=default_code>
+                <div class="docs-row">
+                    <FieldButton aria_label="Open options".to_string()>
+                        "Options"
+                    </FieldButton>
+                    <FieldButton quiet=true aria_label="Open calendar".to_string()>
+                        "📅"
+                    </FieldButton>
+                </div>
+            </Playground>
+
+            <Playground title="Invalid + Active + Disabled" code=state_code>
+                <div class="docs-row">
+                    <FieldButton
+                        invalid=true
+                        is_active=true
+                        aria_label="Invalid trigger".to_string()
+                        class_name="docs-field-button-custom".to_string()
+                    >
+                        "Needs fix"
+                    </FieldButton>
+                    <FieldButton disabled=true aria_label="Disabled trigger".to_string()>
+                        "Disabled"
+                    </FieldButton>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 pub(super) fn action_group() -> AnyView {
     let items = vec![
         ActionGroupItem::new("align-left", "Align Left"),

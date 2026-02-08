@@ -33,6 +33,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: actions::action_button,
     },
     ComponentDoc {
+        name: "FieldButton",
+        slug: "field-button",
+        group: "Actions",
+        page: actions_extra::field_button,
+    },
+    ComponentDoc {
         name: "ActionButtonGroup",
         slug: "action-button-group",
         group: "Actions",
