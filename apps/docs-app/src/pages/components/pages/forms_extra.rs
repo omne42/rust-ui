@@ -4,8 +4,97 @@ use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
     DatePickerTone, DateRangePicker, DateRangePickerTone, Field, FieldOrientation, FieldTone,
-    HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
+    Fieldset, FieldsetOrientation, FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis,
+    Slider, SliderMotion, TimeField, TimeFieldTone,
 };
+
+pub(super) fn fieldset() -> AnyView {
+    let default_code = r#"<Fieldset
+  legend="Notification channels".to_string()
+  description="Pick every channel you want to receive release updates from.".to_string()
+  required=true
+>
+  <label><input type="checkbox" /> "Email"</label>
+  <label><input type="checkbox" /> "SMS"</label>
+</Fieldset>"#;
+
+    let invalid_code = r#"<Fieldset
+  orientation=FieldsetOrientation::Horizontal
+  tone=FieldsetTone::Muted
+  invalid=true
+  error_message="Pick at least one channel".to_string()
+  class_name="docs-fieldset-custom".to_string()
+  actions=move || view! {
+    <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>
+      "Manage channels"
+    </ui_components::Button>
+  }
+>
+  <label><input type="checkbox" /> "Email"</label>
+  <label><input type="checkbox" /> "SMS"</label>
+</Fieldset>"#;
+
+    view! {
+        <ComponentPage
+            title="Fieldset"
+            slug="fieldset"
+            group="Forms"
+            description="Spectrum/HeroUI-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts."
+        >
+            <Playground title="Legend + Description" code=default_code>
+                <Fieldset
+                    legend="Notification channels".to_string()
+                    description="Pick every channel you want to receive release updates from.".to_string()
+                    required=true
+                    aria_label="Notification channel group".to_string()
+                >
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Email"</span>
+                    </label>
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"SMS"</span>
+                    </label>
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Push"</span>
+                    </label>
+                </Fieldset>
+            </Playground>
+
+            <Playground title="Horizontal + Invalid + Actions" code=invalid_code>
+                <Fieldset
+                    orientation=FieldsetOrientation::Horizontal
+                    tone=FieldsetTone::Muted
+                    invalid=true
+                    error_message="Pick at least one channel".to_string()
+                    class_name="docs-fieldset-custom".to_string()
+                    actions=move || {
+                        view! {
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                size=ui_components::ButtonSize::Sm
+                            >
+                                "Manage channels"
+                            </ui_components::Button>
+                        }
+                    }
+                >
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"Email"</span>
+                    </label>
+                    <label class="docs-choice-row">
+                        <input type="checkbox" />
+                        <span>"SMS"</span>
+                    </label>
+                </Fieldset>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn label() -> AnyView {
     let emphasis_code = r#"<Label text="Name".to_string() for_id="name".to_string() required=true />

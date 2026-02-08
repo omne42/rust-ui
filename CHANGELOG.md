@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Fieldset>` as a Spectrum/HeroUI-style group primitive with centralized orientation/tone/validation/message/action-state normalization and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `Fieldset` docs page with legend/description and horizontal-invalid/actions playground coverage.
+
 - `ui-components`: adds `<ClearButton>` as a Spectrum-style clear affordance with centralized variant/inset/focus-mode normalization, headless press/hover/focus integration, and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `ClearButton` docs page with default/over-background and inset/focus-mode/disabled playground coverage.
 
