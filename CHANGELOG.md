@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Icon>` as a Spectrum-compatible glyph primitive with centralized size/tone/accessibility/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds an `Icon` docs page with size/tone matrix and accessible/disabled/custom-class playground coverage.
+
 - `ui-components`: aligns `<TagGroup>` to compose `<Tag>` primitives (instead of `<Chip>`), and unifies variant/size contracts to `TagVariant` + `TagSize` for better HeroUI/Spectrum parity.
 - `apps/docs-app`: updates `TagGroup` docs wording/examples to reflect Tag-based composition semantics.
 

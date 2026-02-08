@@ -68,6 +68,7 @@ pub mod header;
 pub mod heading;
 pub mod help_text;
 pub mod hover_card;
+pub mod icon;
 pub mod icon_button;
 pub mod illustrated_message;
 pub mod image;
@@ -209,6 +210,7 @@ pub use header::{Header, HeaderTone};
 pub use heading::{Heading, HeadingLevel, HeadingTone};
 pub use help_text::{HelpText, HelpTextTone};
 pub use hover_card::{HoverCard, HoverCardMotion};
+pub use icon::{Icon, IconSize, IconTone};
 pub use icon_button::IconButton;
 pub use illustrated_message::{
     IllustratedMessage, IllustratedMessageMotion, IllustratedMessageOrientation,

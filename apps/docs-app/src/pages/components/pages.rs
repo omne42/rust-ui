@@ -545,6 +545,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::image,
     },
     ComponentDoc {
+        name: "Icon",
+        slug: "icon",
+        group: "Display",
+        page: display_extra::icon,
+    },
+    ComponentDoc {
         name: "IllustratedMessage",
         slug: "illustrated-message",
         group: "Display",

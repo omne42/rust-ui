@@ -2,8 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    EmptyState, EmptyStateAlign, EmptyStateTone, Keyboard, KeyboardTone, LabeledValue,
-    LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement, TextTone, TextWeight,
+    EmptyState, EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone,
+    LabeledValue, LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement,
+    TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -156,6 +157,80 @@ pub(super) fn text() -> AnyView {
                         truncate=true
                         class_name="docs-text-custom".to_string()
                     />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn icon() -> AnyView {
+    let matrix_code = r#"<Icon size=IconSize::Sm tone=IconTone::Default decorative=true>"✓"</Icon>
+<Icon size=IconSize::Md tone=IconTone::Muted decorative=true>"⚙"</Icon>
+<Icon size=IconSize::Lg tone=IconTone::Accent decorative=true>"★"</Icon>
+<Icon size=IconSize::Lg tone=IconTone::Danger decorative=true>"⚠"</Icon>"#;
+
+    let states_code = r#"<Icon
+  size=IconSize::Md
+  tone=IconTone::Accent
+  decorative=false
+  aria_label="Sync successful".to_string()
+>
+  "✓"
+</Icon>
+<Icon
+  size=IconSize::Lg
+  tone=IconTone::Muted
+  disabled=true
+  class_name="docs-icon-custom".to_string()
+  decorative=true
+>
+  "⚙"
+</Icon>"#;
+
+    view! {
+        <ComponentPage
+            title="Icon"
+            slug="icon"
+            group="Display"
+            description="Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers."
+        >
+            <Playground title="Size + Tone Matrix" code=matrix_code>
+                <div class="docs-row">
+                    <Icon size=IconSize::Sm tone=IconTone::Default decorative=true>
+                        "✓"
+                    </Icon>
+                    <Icon size=IconSize::Md tone=IconTone::Muted decorative=true>
+                        "⚙"
+                    </Icon>
+                    <Icon size=IconSize::Lg tone=IconTone::Accent decorative=true>
+                        "★"
+                    </Icon>
+                    <Icon size=IconSize::Lg tone=IconTone::Danger decorative=true>
+                        "⚠"
+                    </Icon>
+                </div>
+            </Playground>
+
+            <Playground title="Accessible + Disabled + Custom Class" code=states_code>
+                <div class="docs-row">
+                    <Icon
+                        size=IconSize::Md
+                        tone=IconTone::Accent
+                        decorative=false
+                        aria_label="Sync successful".to_string()
+                    >
+                        "✓"
+                    </Icon>
+                    <Icon
+                        size=IconSize::Lg
+                        tone=IconTone::Muted
+                        disabled=true
+                        class_name="docs-icon-custom".to_string()
+                        decorative=true
+                    >
+                        "⚙"
+                    </Icon>
                 </div>
             </Playground>
         </ComponentPage>
