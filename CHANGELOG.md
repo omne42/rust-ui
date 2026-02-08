@@ -20,6 +20,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<ColorArea>` as a Spectrum-compatible two-axis color selection primitive with centralized step/grid normalization, keyboard navigation, and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `ColorArea` docs page with controlled grid selection and disabled/custom-grid/custom-class playground coverage.
 
+- `ui-components`: adds `<ColorSlider>` as a Spectrum-compatible single-channel color slider with centralized channel/range/value normalization, spring motion integration, and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `ColorSlider` docs page with controlled hue and disabled/custom-track/reduced-motion playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 
