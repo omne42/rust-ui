@@ -13,6 +13,7 @@ mod forms_groups;
 mod layout;
 mod layout_extra;
 mod overlays;
+mod overlays_extra;
 
 use super::ComponentDoc;
 
@@ -813,7 +814,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         name: "Underlay",
         slug: "underlay",
         group: "Overlays",
-        page: overlays::underlay,
+        page: overlays_extra::underlay,
     },
     ComponentDoc {
         name: "Popover",
@@ -844,6 +845,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "sheet",
         group: "Overlays",
         page: overlays::sheet,
+    },
+    ComponentDoc {
+        name: "Tray",
+        slug: "tray",
+        group: "Overlays",
+        page: overlays_extra::tray,
     },
     ComponentDoc {
         name: "Drawer",

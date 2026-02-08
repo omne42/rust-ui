@@ -115,6 +115,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::dialog::styles::CSS);
     out.push_str(crate::alert_dialog::styles::CSS);
     out.push_str(crate::sheet::styles::CSS);
+    out.push_str(crate::tray::styles::CSS);
     out.push_str(crate::drawer::styles::CSS);
     out.push_str(crate::meter::styles::CSS);
     out.push_str(crate::illustrated_message::styles::CSS);

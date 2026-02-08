@@ -143,6 +143,7 @@ pub mod toast;
 pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod tooltip;
+pub mod tray;
 pub mod tree;
 pub mod underlay;
 pub mod view;
@@ -313,6 +314,7 @@ pub use toggle_button::{ToggleButton, ToggleButtonMotion, ToggleButtonSize, Togg
 pub use toggle_button_group::{ToggleButtonGroup, ToggleButtonGroupOrientation};
 pub use tooltip::Tooltip;
 pub use tooltip::TooltipMotion;
+pub use tray::{Tray, TrayMotion};
 pub use tree::{Tree, TreeDensity, TreeNode, TreeTone};
 pub use ui_headless::{MenuItemKind, OnPress, provide_focus_visible, provide_overlay_stack};
 pub use ui_theme::Theme;

@@ -5,7 +5,7 @@ use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
     Dialog, Drawer, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, Sheet,
     SheetPlacement, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, Tooltip,
-    Underlay, provide_toast_store,
+    provide_toast_store,
 };
 
 pub(super) fn overlay() -> AnyView {
@@ -800,101 +800,6 @@ store.push_simple("Saved");"#;
                     <Button variant=ButtonVariant::Destructive on_press=push_danger>"Push danger"</Button>
                 </div>
                 <ToastViewport />
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
-}
-
-pub(super) fn underlay() -> AnyView {
-    let (open_scrim_raw, set_open_scrim_raw) = signal(false);
-    let open_scrim: Signal<bool> = Signal::derive(move || open_scrim_raw.get());
-
-    let close_scrim: OnPress = Callback::new(move |_| set_open_scrim_raw.set(false));
-    let open_scrim_underlay: OnPress = Callback::new(move |_| set_open_scrim_raw.set(true));
-
-    let (open_transparent_raw, set_open_transparent_raw) = signal(false);
-    let open_transparent: Signal<bool> = Signal::derive(move || open_transparent_raw.get());
-    let disabled_open: Signal<bool> = Signal::derive(|| true);
-
-    let close_transparent: OnPress = Callback::new(move |_| set_open_transparent_raw.set(false));
-    let open_transparent_underlay: OnPress =
-        Callback::new(move |_| set_open_transparent_raw.set(true));
-
-    let code = r#"let (open, set_open) = signal(false);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
-
-<Underlay
-  id_base="docs-underlay-basic".to_string()
-  open=open_signal
-  on_close=Callback::new(move |_| set_open.set(false))
-/>"#;
-
-    let state_code = r#"<Underlay
-  id_base="docs-underlay-transparent".to_string()
-  open=open_signal
-  transparent=true
-  class_name="docs-underlay-custom".to_string()
-  on_close=close
-/>
-<Underlay
-  id_base="docs-underlay-disabled".to_string()
-  open=Signal::derive(|| true)
-  disabled=true
-/>"#;
-
-    view! {
-        <ComponentPage
-            title="Underlay"
-            slug="underlay"
-            group="Overlays"
-            description="Spectrum-compatible full-viewport underlay primitive with centralized open/transparent/disabled state derivation, close-interaction contracts, and stable slot/data-state markers."
-        >
-            <Playground title="Scrim + Click To Close" code=code>
-                <div class="docs-row">
-                    <Button on_press=open_scrim_underlay>
-                        {move || if open_scrim_raw.get() { "Underlay open" } else { "Open underlay" }}
-                    </Button>
-                    <span class="ui-muted">"open: " {move || open_scrim_raw.get().to_string()}</span>
-                </div>
-
-                <Underlay
-                    id_base="docs-underlay-basic".to_string()
-                    open=open_scrim
-                    on_close=close_scrim
-                />
-            </Playground>
-
-            <Playground title="Transparent + Disabled + Custom Class" code=state_code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Secondary on_press=open_transparent_underlay>
-                        {move || {
-                            if open_transparent_raw.get() {
-                                "Transparent underlay open"
-                            } else {
-                                "Open transparent underlay"
-                            }
-                        }}
-                    </Button>
-                    <span class="ui-muted">
-                        "transparent open: " {move || open_transparent_raw.get().to_string()}
-                    </span>
-                </div>
-
-                <Underlay
-                    id_base="docs-underlay-transparent".to_string()
-                    open=open_transparent
-                    transparent=true
-                    class_name="docs-underlay-custom".to_string()
-                    on_close=close_transparent
-                />
-
-                <Underlay
-                    id_base="docs-underlay-disabled".to_string()
-                    open=disabled_open
-                    disabled=true
-                    class_name="docs-underlay-disabled".to_string()
-                />
             </Playground>
         </ComponentPage>
     }
