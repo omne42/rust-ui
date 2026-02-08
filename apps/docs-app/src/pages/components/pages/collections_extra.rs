@@ -3,9 +3,10 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, ListBoxItem, MenuItem, MenuItemKind,
-    MenuSection, MenuSectionHeadingTone, Table, TableCellAlign, TableColumn, TableDensity,
-    TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, ListBoxItem, ListBoxSection,
+    ListBoxSectionHeadingTone, MenuItem, MenuItemKind, MenuSection, MenuSectionHeadingTone, Table,
+    TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
+    TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -413,6 +414,129 @@ pub(super) fn listbox_item() -> AnyView {
                     <span class="ui-muted">
                         "focused item selected: "
                         {move || selected_states.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn listbox_section() -> AnyView {
+    let (selected_primary, set_selected_primary) = signal(true);
+    let toggle_primary = Callback::new(move |_| {
+        set_selected_primary.update(|value| *value = !*value);
+    });
+
+    let (selected_secondary, set_selected_secondary) = signal(true);
+    let toggle_secondary = Callback::new(move |_| {
+        set_selected_secondary.update(|value| *value = !*value);
+    });
+
+    let code = r#"<ListBoxSection
+  title="Preferred regions".to_string()
+  item_count=3
+  aria_label="Preferred regions section".to_string()
+>
+  <ListBoxItem index=0 selected=true show_selection_indicator=true>"US East"</ListBoxItem>
+  <ListBoxItem index=1>"EU West"</ListBoxItem>
+  <ListBoxItem index=2>"AP South"</ListBoxItem>
+</ListBoxSection>"#;
+
+    let states_code = r#"let (selected, set_selected) = signal(true);
+
+<ListBoxSection
+  title="Advanced targets".to_string()
+  heading_tone=ListBoxSectionHeadingTone::Quiet
+  item_count=2
+  sticky_heading=true
+  show_divider=true
+  class_name="docs-listbox-section-custom".to_string()
+>
+  <ListBoxItem
+    index=0
+    selected=selected.get()
+    focused=true
+    show_selection_indicator=true
+    on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
+  >
+    "Primary target"
+  </ListBoxItem>
+  <ListBoxItem index=1 disabled=true>"Disabled fallback"</ListBoxItem>
+</ListBoxSection>
+
+<ListBoxSection title="Empty section".to_string() item_count=0 disabled=true>
+  <span class="ui-muted">"No options available"</span>
+</ListBoxSection>"#;
+
+    view! {
+        <ComponentPage
+            title="ListBoxSection"
+            slug="listbox-section"
+            group="Collections"
+            description="Spectrum/HeroUI-style listbox section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
+        >
+            <Playground title="Default Section" code=code>
+                <ListBoxSection
+                    title="Preferred regions".to_string()
+                    item_count=3
+                    aria_label="Preferred regions section".to_string()
+                >
+                    <ListBoxItem index=0 selected=true show_selection_indicator=true>
+                        "US East"
+                    </ListBoxItem>
+                    <ListBoxItem index=1>
+                        "EU West"
+                    </ListBoxItem>
+                    <ListBoxItem index=2>
+                        "AP South"
+                    </ListBoxItem>
+                </ListBoxSection>
+            </Playground>
+
+            <Playground title="Quiet + Sticky + Divider + Empty" code=states_code>
+                <div class="docs-stack">
+                    <ListBoxSection
+                        title="Advanced targets".to_string()
+                        heading_tone=ListBoxSectionHeadingTone::Quiet
+                        item_count=2
+                        sticky_heading=true
+                        show_divider=true
+                        class_name="docs-listbox-section-custom".to_string()
+                    >
+                        <ListBoxItem
+                            index=0
+                            selected=selected_primary.get()
+                            focused=true
+                            show_selection_indicator=true
+                            on_press=toggle_primary
+                        >
+                            "Primary target"
+                        </ListBoxItem>
+                        <ListBoxItem
+                            index=1
+                            selected=selected_secondary.get()
+                            has_divider=true
+                            show_selection_indicator=true
+                            on_press=toggle_secondary
+                        >
+                            "Secondary target"
+                        </ListBoxItem>
+                    </ListBoxSection>
+
+                    <ListBoxSection
+                        title="Empty section".to_string()
+                        item_count=0
+                        disabled=true
+                    >
+                        <span class="ui-muted">"No options available"</span>
+                    </ListBoxSection>
+
+                    <span class="ui-muted">
+                        "primary selected: "
+                        {move || selected_primary.get().to_string()}
+                        " · secondary selected: "
+                        {move || selected_secondary.get().to_string()}
                     </span>
                 </div>
             </Playground>
