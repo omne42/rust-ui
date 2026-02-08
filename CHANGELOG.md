@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<MenuItem>` as a Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `MenuItem` docs page with action/checkbox and radio/submenu/disabled playground coverage.
+
 - `ui-components`: adds `<Dropdown>` as a Spectrum/HeroUI-style trigger-driven menu primitive with centralized state/source normalization and `MenuTrigger` composition contracts.
 - `apps/docs-app`: adds a `Dropdown` docs page with default and controlled/persistent/disabled-item playground coverage.
 

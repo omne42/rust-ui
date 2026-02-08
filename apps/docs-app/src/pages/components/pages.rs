@@ -622,6 +622,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections::menu,
     },
     ComponentDoc {
+        name: "MenuItem",
+        slug: "menu-item",
+        group: "Collections",
+        page: collections_extra::menu_item,
+    },
+    ComponentDoc {
         name: "MenuTrigger",
         slug: "menu-trigger",
         group: "Collections",

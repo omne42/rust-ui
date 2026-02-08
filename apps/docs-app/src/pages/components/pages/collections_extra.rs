@@ -3,9 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, MenuItemKind, Table, TableCellAlign,
-    TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode,
-    TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, MenuItem, MenuItemKind, Table,
+    TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
+    TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -318,6 +318,128 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
                     <span class="ui-muted">
                         "expanded: "
                         {move || format!("{:?}", expanded_single.get())}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn menu_item() -> AnyView {
+    let (checkbox_checked, set_checkbox_checked) = signal(true);
+    let checkbox_kind = MenuItemKind::Checkbox {
+        is_checked: Signal::derive(move || checkbox_checked.get()),
+    };
+
+    let (radio_selected, set_radio_selected) = signal(true);
+    let radio_kind = MenuItemKind::Radio {
+        is_checked: Signal::derive(move || radio_selected.get()),
+    };
+
+    let toggle_checkbox = Callback::new(move |_| {
+        set_checkbox_checked.update(|value| *value = !*value);
+    });
+
+    let toggle_radio = Callback::new(move |_| {
+        set_radio_selected.update(|value| *value = !*value);
+    });
+
+    let code = r#"<MenuItem
+  index=0
+  kind=MenuItemKind::Action
+  aria_label="Open profile".to_string()
+>
+  "Open profile"
+</MenuItem>
+
+let (checked, set_checked) = signal(true);
+let checkbox_kind = MenuItemKind::Checkbox {
+  is_checked: Signal::derive(move || checked.get()),
+};
+
+<MenuItem
+  index=1
+  kind=checkbox_kind
+  on_press=Callback::new(move |_| set_checked.update(|value| *value = !*value))
+>
+  "Pin to favorites"
+</MenuItem>"#;
+
+    let states_code = r#"let (is_primary, set_is_primary) = signal(true);
+let radio_kind = MenuItemKind::Radio {
+  is_checked: Signal::derive(move || is_primary.get()),
+};
+
+<MenuItem
+  id="docs-menu-item-radio".to_string()
+  index=2
+  kind=radio_kind
+  focused=true
+  has_submenu=true
+  on_press=Callback::new(move |_| set_is_primary.update(|value| *value = !*value))
+  class_name="docs-menu-item-custom".to_string()
+>
+  "Set as primary workspace"
+</MenuItem>
+
+<MenuItem index=3 disabled=true>
+  "Disabled destructive action"
+</MenuItem>"#;
+
+    view! {
+        <ComponentPage
+            title="MenuItem"
+            slug="menu-item"
+            group="Collections"
+            description="Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts."
+        >
+            <Playground title="Action + Checkbox" code=code>
+                <div class="docs-stack">
+                    <MenuItem
+                        index=0
+                        kind=MenuItemKind::Action
+                        aria_label="Open profile".to_string()
+                    >
+                        "Open profile"
+                    </MenuItem>
+
+                    <MenuItem
+                        index=1
+                        kind=checkbox_kind
+                        on_press=toggle_checkbox
+                    >
+                        "Pin to favorites"
+                    </MenuItem>
+
+                    <span class="ui-muted">
+                        "checkbox checked: "
+                        {move || checkbox_checked.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Radio + Submenu + Disabled" code=states_code>
+                <div class="docs-stack">
+                    <MenuItem
+                        id="docs-menu-item-radio".to_string()
+                        index=2
+                        kind=radio_kind
+                        focused=true
+                        has_submenu=true
+                        on_press=toggle_radio
+                        class_name="docs-menu-item-custom".to_string()
+                    >
+                        "Set as primary workspace"
+                    </MenuItem>
+
+                    <MenuItem index=3 disabled=true>
+                        "Disabled destructive action"
+                    </MenuItem>
+
+                    <span class="ui-muted">
+                        "radio selected: "
+                        {move || radio_selected.get().to_string()}
                     </span>
                 </div>
             </Playground>
