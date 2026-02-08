@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<DateInputGroup>` as a Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `DateInputGroup` docs page with DateField composition and secondary/full-width/invalid TimeField playground coverage.
+
 - `ui-components`: adds `<ListBoxSection>` as a Spectrum/HeroUI-style listbox grouping primitive with centralized heading/item/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ListBoxSection` docs page with default and quiet/sticky/divider/empty playground coverage.
 

@@ -196,6 +196,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms::input_group,
     },
     ComponentDoc {
+        name: "DateInputGroup",
+        slug: "date-input-group",
+        group: "Forms",
+        page: forms_groups::date_input_group,
+    },
+    ComponentDoc {
         name: "TextField",
         slug: "text-field",
         group: "Forms",
