@@ -4,9 +4,9 @@ use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
     DatePickerTone, DateRangePicker, DateRangePickerTone, Description, DescriptionElement,
-    DescriptionTone, Field, FieldError, FieldErrorTone, FieldOrientation, FieldTone, Fieldset,
-    FieldsetOrientation, FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis, Slider,
-    SliderMotion, TimeField, TimeFieldTone,
+    DescriptionTone, ErrorMessage, ErrorMessageElement, ErrorMessageTone, Field, FieldError,
+    FieldErrorTone, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation, FieldsetTone,
+    HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
 };
 
 pub(super) fn field_error() -> AnyView {
@@ -77,6 +77,73 @@ pub(super) fn field_error() -> AnyView {
                         disabled=true
                         show_icon=true
                         class_name="docs-field-error-custom".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn error_message() -> AnyView {
+    let tone_code = r#"<ErrorMessage text="Invalid email address".to_string() />
+<ErrorMessage
+  text="Username contains unsupported characters.".to_string()
+  tone=ErrorMessageTone::Neutral
+/>
+<ErrorMessage
+  text="Verification code expired, request a new one.".to_string()
+  tone=ErrorMessageTone::Negative
+/>"#;
+
+    let state_code = r#"<ErrorMessage
+  text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
+  truncate=true
+  class_name="docs-error-message-custom".to_string()
+/>
+<ErrorMessage
+  text="This error remains visible but marked as disabled for read-only states.".to_string()
+  disabled=true
+  element=ErrorMessageElement::Div
+  aria_label="Disabled error message".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="ErrorMessage"
+            slug="error-message"
+            group="Forms"
+            description="Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts."
+        >
+            <Playground title="Tone Variants" code=tone_code>
+                <div class="docs-stack">
+                    <ErrorMessage
+                        text="Invalid email address".to_string()
+                        aria_label="Email error".to_string()
+                    />
+                    <ErrorMessage
+                        text="Username contains unsupported characters.".to_string()
+                        tone=ErrorMessageTone::Neutral
+                    />
+                    <ErrorMessage
+                        text="Verification code expired, request a new one.".to_string()
+                        tone=ErrorMessageTone::Negative
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Truncate + Disabled + Element + Custom Class" code=state_code>
+                <div class="docs-stack docs-error-message-limit">
+                    <ErrorMessage
+                        text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
+                        truncate=true
+                        class_name="docs-error-message-custom".to_string()
+                    />
+                    <ErrorMessage
+                        text="This error remains visible but marked as disabled for read-only states.".to_string()
+                        disabled=true
+                        element=ErrorMessageElement::Div
+                        aria_label="Disabled error message".to_string()
                     />
                 </div>
             </Playground>

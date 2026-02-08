@@ -1114,6 +1114,10 @@ a {
   max-width: 22rem;
 }
 
+.docs-error-message-limit {
+  max-width: 22rem;
+}
+
 .docs-choice-row {
   display: inline-flex;
   align-items: center;
@@ -1126,6 +1130,7 @@ a {
 .docs-field-custom,
 .docs-help-text-custom,
 .docs-fieldset-custom,
-.docs-field-error-custom {
+.docs-field-error-custom,
+.docs-error-message-custom {
   border-radius: var(--ui-radius-sm);
 }

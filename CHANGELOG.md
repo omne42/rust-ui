@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ErrorMessage>` as a Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds an `ErrorMessage` docs page with tone variants and truncate/disabled/element/custom-class playground coverage.
+
 - `ui-components`: adds `<FieldError>` as a Spectrum/HeroUI-style field validation primitive with centralized visibility/tone/message normalization and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `FieldError` docs page with visible/tone and hidden/disabled/custom-class playground coverage.
 
