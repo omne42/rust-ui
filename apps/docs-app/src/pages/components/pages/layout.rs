@@ -2,10 +2,10 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    AutoHeight, AutoHeightMotion, Card, CardVariant, Divider, DividerOrientation, ScrollShadow,
-    Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
-    ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
-    WellDensity, WellTone,
+    AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
+    DividerOrientation, ScrollShadow, Separator, SeparatorElementType, SeparatorOrientation,
+    Spacer, SpacerAxis, SpacerSize, View, ViewBackground, ViewBorder, ViewElement, ViewPadding,
+    ViewRadius, ViewShadow, Well, WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -176,6 +176,63 @@ pub(super) fn view() -> AnyView {
                         <span>"Inline view"</span>
                     </View>
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn content() -> AnyView {
+    let semantic_code = r#"<Content>
+  <p>"Primary body content"</p>
+</Content>
+<Content tone=ContentTone::Muted>
+  <p>"Secondary muted content"</p>
+</Content>"#;
+
+    let padded_code = r#"<View border=ViewBorder::Subtle radius=ViewRadius::Md>
+  <Content
+    padded=true
+    aria_label="Dialog content".to_string()
+    class_name="docs-content-custom".to_string()
+  >
+    <p>"Padded container content"</p>
+  </Content>
+</View>"#;
+
+    view! {
+        <ComponentPage
+            title="Content"
+            slug="content"
+            group="Layout"
+            description="Semantic primary-content region (`<section>`) with centralized tone/padding/source state contracts."
+        >
+            <Playground title="Semantic Section + Tone" code=semantic_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <div class="docs-stack">
+                        <Content>
+                            <p>"Primary body content for a container region."</p>
+                        </Content>
+                        <Content tone=ContentTone::Muted>
+                            <p>"Secondary muted notes that still stay in the same semantic content slot."</p>
+                        </Content>
+                    </div>
+                </View>
+            </Playground>
+
+            <Playground title="Padded + Custom Aria/Class" code=padded_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Content
+                        padded=true
+                        aria_label="Dialog content".to_string()
+                        class_name="docs-content-custom".to_string()
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Padded content region"</strong>
+                            <span class="ui-muted">"Verifies padding marker + custom class source contract."</span>
+                        </div>
+                    </Content>
+                </View>
             </Playground>
         </ComponentPage>
     }

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Content>` as a Spectrum-style semantic section primitive with centralized tone/padding normalization and stable `data-*` source/state contracts.
+- `apps/docs-app`: adds a `Content` docs page with semantic-tone and padded-custom-class playground coverage.
 - `ui-components`: adds `<View>` with centralized surface token normalization (`background/border/padding/radius/shadow/element`) and Spectrum-style `data-*` state/source contracts.
 - `apps/docs-app`: adds a `View` docs page with surface-token matrix and element/fluid/custom-class playground coverage.
 - `ui-components`: adds `<Tree>` with centralized hierarchy normalization, controllable expand/selection state, and Spectrum-style `data-*` contracts.

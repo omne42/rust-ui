@@ -248,6 +248,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: layout::view,
     },
     ComponentDoc {
+        name: "Content",
+        slug: "content",
+        group: "Layout",
+        page: layout::content,
+    },
+    ComponentDoc {
         name: "Divider",
         slug: "divider",
         group: "Layout",
