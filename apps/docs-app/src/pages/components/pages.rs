@@ -38,6 +38,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: actions::action_button_group,
     },
     ComponentDoc {
+        name: "ActionGroup",
+        slug: "action-group",
+        group: "Actions",
+        page: actions_extra::action_group,
+    },
+    ComponentDoc {
         name: "ActionMenu",
         slug: "action-menu",
         group: "Actions",

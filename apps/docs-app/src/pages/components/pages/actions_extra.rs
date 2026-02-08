@@ -1,7 +1,11 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{ActionBar, ActionBarMotion, ActionBarPosition, ActionButton};
+use std::collections::BTreeSet;
+use ui_components::{
+    ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
+    ActionGroupSelectionMode, ActionGroupTone,
+};
 
 pub(super) fn action_bar() -> AnyView {
     let (selected_count, set_selected_count) = signal(0_usize);
@@ -89,6 +93,92 @@ let selected_count_signal = Signal::derive(move || selected_count.get());
                         "Top placement + custom labels + motion disabled."
                     </span>
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn action_group() -> AnyView {
+    let items = vec![
+        ActionGroupItem::new("align-left", "Align Left"),
+        ActionGroupItem::new("align-center", "Align Center"),
+        ActionGroupItem::new("align-right", "Align Right"),
+        ActionGroupItem::new("align-justify", "Justify").disabled(true),
+    ];
+
+    let (selected_ids, set_selected_ids) = signal(BTreeSet::from(["align-left".to_string()]));
+    let (last_action, set_last_action) = signal("none".to_string());
+
+    let on_selected_change = Callback::new(move |next: BTreeSet<String>| {
+        set_selected_ids.set(next);
+    });
+
+    let on_action = Callback::new(move |id: String| {
+        set_last_action.set(id);
+    });
+
+    let items_primary = items.clone();
+    let items_secondary = items;
+
+    let code = r#"let items = vec![
+  ActionGroupItem::new("align-left", "Align Left"),
+  ActionGroupItem::new("align-center", "Align Center"),
+  ActionGroupItem::new("align-right", "Align Right"),
+];
+
+<ActionGroup
+  id_base="text-align".to_string()
+  items=items
+  selected_ids=selected_ids
+  on_selected_change=on_selected_change
+  on_action=on_action
+/>"#;
+
+    let states_code = r#"<ActionGroup
+  id_base="text-style".to_string()
+  items=items
+  selection_mode=ActionGroupSelectionMode::Multiple
+  default_selected_ids=BTreeSet::from(["align-left".to_string(), "align-center".to_string()])
+  tone=ActionGroupTone::Strong
+  class_name="docs-action-group-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="ActionGroup"
+            slug="action-group"
+            group="Actions"
+            description="Selectable action cluster with centralized selection normalization and Spectrum-style state/source data contracts."
+        >
+            <Playground title="Single Selection + Action Callback" code=code>
+                <div class="docs-stack">
+                    <ActionGroup
+                        id_base="docs-action-group-single".to_string()
+                        items=items_primary
+                        selected_ids=selected_ids
+                        on_selected_change=on_selected_change
+                        on_action=on_action
+                    />
+                    <span class="ui-muted">
+                        "selected: " {move || selected_ids.get().iter().cloned().collect::<Vec<_>>().join(", ")}
+                        " · last action: " {move || last_action.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Multiple + Strong Tone" code=states_code>
+                <ActionGroup
+                    id_base="docs-action-group-multiple".to_string()
+                    items=items_secondary
+                    selection_mode=ActionGroupSelectionMode::Multiple
+                    default_selected_ids=BTreeSet::from([
+                        "align-left".to_string(),
+                        "align-center".to_string(),
+                    ])
+                    tone=ActionGroupTone::Strong
+                    class_name="docs-action-group-custom".to_string()
+                />
             </Playground>
         </ComponentPage>
     }

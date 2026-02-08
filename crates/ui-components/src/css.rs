@@ -8,6 +8,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::button::styles::CSS);
     out.push_str(crate::action_button::styles::CSS);
     out.push_str(crate::action_button_group::styles::CSS);
+    out.push_str(crate::action_group::styles::CSS);
     out.push_str(crate::button_copy::styles::CSS);
     out.push_str(crate::button_search_input::styles::CSS);
     out.push_str(crate::button_flip::styles::CSS);

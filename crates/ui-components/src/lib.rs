@@ -10,6 +10,7 @@ pub mod accordion;
 pub mod action_bar;
 pub mod action_button;
 pub mod action_button_group;
+pub mod action_group;
 pub mod action_menu;
 pub mod alert;
 pub mod alert_dialog;
@@ -110,6 +111,7 @@ pub use action_button::{
 pub use action_button_group::{
     ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
 };
+pub use action_group::{ActionGroup, ActionGroupItem, ActionGroupSelectionMode, ActionGroupTone};
 pub use action_menu::{ActionMenu, ActionMenuMotion};
 pub use active_highlight::ActiveHighlightMotion;
 pub use alert::{Alert, AlertVariant};
