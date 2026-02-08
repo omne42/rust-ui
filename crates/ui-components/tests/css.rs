@@ -86,6 +86,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-meter", ".ui-meter {"),
         (".ui-radio", ".ui-radio {"),
         (".ui-tabs", ".ui-tabs {"),
+        (".ui-step-list", ".ui-step-list {"),
         (".ui-accordion", ".ui-accordion {"),
         (".ui-disclosure", ".ui-disclosure {"),
         (".ui-tooltip", ".ui-tooltip {"),

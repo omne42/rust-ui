@@ -92,6 +92,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::scroll_shadow::styles::CSS);
     out.push_str(crate::radio::styles::CSS);
     out.push_str(crate::tabs::styles::CSS);
+    out.push_str(crate::step_list::styles::CSS);
     out.push_str(crate::accordion::styles::CSS);
     out.push_str(crate::disclosure::styles::CSS);
     out.push_str(crate::disclosure_group::styles::CSS);

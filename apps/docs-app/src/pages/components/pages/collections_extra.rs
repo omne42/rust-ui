@@ -4,9 +4,9 @@ use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
     DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, ListBoxItem, ListBoxSection,
-    ListBoxSectionHeadingTone, MenuItem, MenuItemKind, MenuSection, MenuSectionHeadingTone, Table,
-    TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
-    TreeDensity, TreeNode, TreeTone,
+    ListBoxSectionHeadingTone, MenuItem, MenuItemKind, MenuSection, MenuSectionHeadingTone,
+    StepList, StepListItem, StepListOrientation, StepListSize, Table, TableCellAlign, TableColumn,
+    TableDensity, TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -104,6 +104,96 @@ let rows = vec![
                     sticky_header=true
                     empty_label="No active incidents".to_string()
                     class_name="docs-table-custom".to_string()
+                />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn step_list() -> AnyView {
+    let steps = vec![
+        StepListItem::new("account", "Account").described("Create account and verify email"),
+        StepListItem::new("shipping", "Shipping").described("Choose shipping address"),
+        StepListItem::new("payment", "Payment").described("Add payment method"),
+        StepListItem::new("review", "Review").described("Confirm and place order"),
+    ];
+
+    let steps_with_disabled = vec![
+        StepListItem::new("plan", "Plan").described("Pick your subscription tier"),
+        StepListItem::new("profile", "Profile").described("Fill organization details"),
+        StepListItem::new("billing", "Billing")
+            .described("Billing is locked until profile is approved")
+            .disabled(true),
+        StepListItem::new("launch", "Launch").described("Start using the workspace"),
+    ];
+
+    let (selected_index, set_selected_index) = signal(Some(1_usize));
+    let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_index.set(next));
+
+    let code = r#"let (selected_index, set_selected_index) = signal(Some(1_usize));
+let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_index.set(next));
+
+<StepList
+  steps=signal(vec![
+    StepListItem::new("account", "Account").described("Create account and verify email"),
+    StepListItem::new("shipping", "Shipping").described("Choose shipping address"),
+    StepListItem::new("payment", "Payment").described("Add payment method"),
+    StepListItem::new("review", "Review").described("Confirm and place order"),
+  ]).0
+  selected_index=selected_index.into()
+  on_selected_change=on_selected_change
+  completed_indices=vec![0]
+/>"#;
+
+    let states_code = r#"<StepList
+  steps=signal(vec![
+    StepListItem::new("plan", "Plan").described("Pick your subscription tier"),
+    StepListItem::new("profile", "Profile").described("Fill organization details"),
+    StepListItem::new("billing", "Billing").described("Billing is locked").disabled(true),
+    StepListItem::new("launch", "Launch").described("Start using the workspace"),
+  ]).0
+  orientation=StepListOrientation::Vertical
+  size=StepListSize::L
+  emphasized=true
+  completed_indices=vec![0, 1]
+  default_selected_index=3
+  class_name="docs-step-list-custom".to_string()
+  aria_label="Workspace setup steps".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="StepList"
+            slug="step-list"
+            group="Collections"
+            description="Spectrum-compatible step progression primitive with centralized orientation/size/status normalization and stable slot + data-state contracts."
+        >
+            <Playground title="Controlled Selection" code=code>
+                <div class="docs-stack docs-stack--tight">
+                    <StepList
+                        steps=signal(steps).0
+                        selected_index=selected_index.into()
+                        on_selected_change=on_selected_change
+                        completed_indices=vec![0]
+                    />
+                    <span class="ui-muted">
+                        "selected index: "
+                        {move || selected_index.get().map_or("none".to_string(), |index| index.to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Vertical + Emphasized + Disabled" code=states_code>
+                <StepList
+                    steps=signal(steps_with_disabled).0
+                    orientation=StepListOrientation::Vertical
+                    size=StepListSize::L
+                    emphasized=true
+                    completed_indices=vec![0, 1]
+                    default_selected_index=3
+                    class_name="docs-step-list-custom".to_string()
+                    aria_label="Workspace setup steps".to_string()
                 />
             </Playground>
         </ComponentPage>

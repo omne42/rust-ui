@@ -731,6 +731,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections::tag_group,
     },
     ComponentDoc {
+        name: "StepList",
+        slug: "step-list",
+        group: "Collections",
+        page: collections_extra::step_list,
+    },
+    ComponentDoc {
         name: "Table",
         slug: "table",
         group: "Collections",
