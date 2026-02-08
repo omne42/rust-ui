@@ -2,9 +2,111 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Grid, GridAlign, GridColumns, GridGap, GridJustify, GridRows, Surface, SurfaceElevation,
-    SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
+    AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
+    GridJustify, GridRows, Surface, SurfaceElevation, SurfaceTone, View, ViewBackground,
+    ViewBorder, ViewPadding, ViewRadius,
 };
+
+pub(super) fn aspect_ratio() -> AnyView {
+    let preset_code = r#"<AspectRatio ratio=AspectRatioPreset::Square radius=AspectRatioRadius::Sm fill=true>
+  <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::None>"1:1"</View>
+</AspectRatio>
+<AspectRatio ratio=AspectRatioPreset::Video radius=AspectRatioRadius::Md fill=true>
+  <View background=ViewBackground::Accent border=ViewBorder::None padding=ViewPadding::Sm radius=ViewRadius::None>"16:9"</View>
+</AspectRatio>
+<AspectRatio ratio=AspectRatioPreset::Portrait radius=AspectRatioRadius::Md fill=true>
+  <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::None>"3:4"</View>
+</AspectRatio>"#;
+
+    let framed_code = r#"<AspectRatio
+  ratio=AspectRatioPreset::UltraWide
+  radius=AspectRatioRadius::Lg
+  bordered=true
+  fill=true
+  aria_label="Release trailer preview".to_string()
+  class_name="docs-aspect-ratio-custom".to_string()
+>
+  <View
+    background=ViewBackground::Accent
+    border=ViewBorder::None
+    padding=ViewPadding::Md
+    radius=ViewRadius::None
+  >
+    "21:9 framed media"
+  </View>
+</AspectRatio>"#;
+
+    view! {
+        <ComponentPage
+            title="AspectRatio"
+            slug="aspect-ratio"
+            group="Layout"
+            description="Shadcn/HeroUI-compatible media frame primitive with centralized ratio/radius/frame/source normalization and stable state-marker contracts."
+        >
+            <Playground title="Ratio Presets" code=preset_code>
+                <div class="docs-stack">
+                    <AspectRatio ratio=AspectRatioPreset::Square radius=AspectRatioRadius::Sm fill=true>
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::None
+                        >
+                            "1:1"
+                        </View>
+                    </AspectRatio>
+
+                    <AspectRatio ratio=AspectRatioPreset::Video radius=AspectRatioRadius::Md fill=true>
+                        <View
+                            background=ViewBackground::Accent
+                            border=ViewBorder::None
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::None
+                        >
+                            "16:9"
+                        </View>
+                    </AspectRatio>
+
+                    <AspectRatio
+                        ratio=AspectRatioPreset::Portrait
+                        radius=AspectRatioRadius::Md
+                        fill=true
+                    >
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::None
+                        >
+                            "3:4"
+                        </View>
+                    </AspectRatio>
+                </div>
+            </Playground>
+
+            <Playground title="Bordered + Fill + Custom Aria/Class" code=framed_code>
+                <AspectRatio
+                    ratio=AspectRatioPreset::UltraWide
+                    radius=AspectRatioRadius::Lg
+                    bordered=true
+                    fill=true
+                    aria_label="Release trailer preview".to_string()
+                    class_name="docs-aspect-ratio-custom".to_string()
+                >
+                    <View
+                        background=ViewBackground::Accent
+                        border=ViewBorder::None
+                        padding=ViewPadding::Md
+                        radius=ViewRadius::None
+                    >
+                        "21:9 framed media"
+                    </View>
+                </AspectRatio>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn grid() -> AnyView {
     let columns_code = r#"<Grid columns=GridColumns::Three gap=GridGap::Md>

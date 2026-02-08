@@ -2,6 +2,7 @@
 pub fn push_components_css(out: &mut String) {
     out.push_str("\n@layer ui {\n");
     out.push_str(crate::active_highlight::CSS);
+    out.push_str(crate::aspect_ratio::styles::CSS);
     out.push_str(crate::avatar::styles::CSS);
     out.push_str(crate::avatar_group::styles::CSS);
     out.push_str(crate::action_bar::styles::CSS);

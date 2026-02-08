@@ -335,6 +335,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: layout_extra::grid,
     },
     ComponentDoc {
+        name: "AspectRatio",
+        slug: "aspect-ratio",
+        group: "Layout",
+        page: layout_extra::aspect_ratio,
+    },
+    ComponentDoc {
         name: "Content",
         slug: "content",
         group: "Layout",

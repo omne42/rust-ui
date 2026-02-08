@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<AspectRatio>` as a Shadcn/HeroUI-compatible media-frame primitive with centralized ratio/radius/frame/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds an `AspectRatio` docs page with ratio presets and bordered/fill/custom-aria playground coverage.
+
 - `ui-components`: adds `<Icon>` as a Spectrum-compatible glyph primitive with centralized size/tone/accessibility/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds an `Icon` docs page with size/tone matrix and accessible/disabled/custom-class playground coverage.
 

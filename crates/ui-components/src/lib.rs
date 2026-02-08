@@ -14,6 +14,7 @@ pub mod action_group;
 pub mod action_menu;
 pub mod alert;
 pub mod alert_dialog;
+pub mod aspect_ratio;
 pub mod auto_height;
 pub mod autocomplete;
 pub mod avatar;
@@ -149,6 +150,7 @@ pub use alert::{Alert, AlertVariant};
 pub use alert_dialog::{
     AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant,
 };
+pub use aspect_ratio::{AspectRatio, AspectRatioPreset, AspectRatioRadius};
 pub use auto_height::{AutoHeight, AutoHeightMotion};
 pub use autocomplete::{Autocomplete, AutocompleteMotion};
 pub use avatar::{Avatar, AvatarSize};
