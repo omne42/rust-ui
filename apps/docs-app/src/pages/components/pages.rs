@@ -228,6 +228,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_color::color_field,
     },
     ComponentDoc {
+        name: "ColorArea",
+        slug: "color-area",
+        group: "Forms",
+        page: forms_color::color_area,
+    },
+    ComponentDoc {
         name: "NumberField",
         slug: "number-field",
         group: "Forms",

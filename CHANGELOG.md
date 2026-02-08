@@ -17,6 +17,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<ColorField>` as a Spectrum-compatible color input primitive with centralized label/placeholder/aria/state normalization, sanitized preview rendering, and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `ColorField` docs page with controlled value and invalid/disabled/custom-class playground coverage.
 
+- `ui-components`: adds `<ColorArea>` as a Spectrum-compatible two-axis color selection primitive with centralized step/grid normalization, keyboard navigation, and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `ColorArea` docs page with controlled grid selection and disabled/custom-grid/custom-class playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 
