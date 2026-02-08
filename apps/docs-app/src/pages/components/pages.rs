@@ -616,6 +616,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections::list_box,
     },
     ComponentDoc {
+        name: "ListBoxItem",
+        slug: "listbox-item",
+        group: "Collections",
+        page: collections_extra::listbox_item,
+    },
+    ComponentDoc {
         name: "Menu",
         slug: "menu",
         group: "Collections",

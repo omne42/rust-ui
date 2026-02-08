@@ -3,9 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, MenuItem, MenuItemKind, MenuSection,
-    MenuSectionHeadingTone, Table, TableCellAlign, TableColumn, TableDensity, TableLayout,
-    TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, ListBoxItem, MenuItem, MenuItemKind,
+    MenuSection, MenuSectionHeadingTone, Table, TableCellAlign, TableColumn, TableDensity,
+    TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -318,6 +318,101 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
                     <span class="ui-muted">
                         "expanded: "
                         {move || format!("{:?}", expanded_single.get())}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn listbox_item() -> AnyView {
+    let (selected_default, set_selected_default) = signal(true);
+    let toggle_default = Callback::new(move |_| {
+        set_selected_default.update(|value| *value = !*value);
+    });
+
+    let (selected_states, set_selected_states) = signal(true);
+    let toggle_states = Callback::new(move |_| {
+        set_selected_states.update(|value| *value = !*value);
+    });
+
+    let code = r#"let (selected, set_selected) = signal(true);
+
+<ListBoxItem
+  index=0
+  selected=selected.get()
+  show_selection_indicator=true
+  on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
+>
+  "San Francisco"
+</ListBoxItem>"#;
+
+    let states_code = r#"let (selected, set_selected) = signal(true);
+
+<ListBoxItem
+  id="docs-listbox-item-focused".to_string()
+  index=1
+  selected=selected.get()
+  focused=true
+  has_divider=true
+  show_selection_indicator=true
+  class_name="docs-listbox-item-custom".to_string()
+  on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
+>
+  "Tokyo"
+</ListBoxItem>
+
+<ListBoxItem index=2 disabled=true>
+  "Disabled option"
+</ListBoxItem>"#;
+
+    view! {
+        <ComponentPage
+            title="ListBoxItem"
+            slug="listbox-item"
+            group="Collections"
+            description="Spectrum/HeroUI-style listbox option primitive with centralized selection/focus/divider/source normalization and stable `slot` + `data-*` state contracts."
+        >
+            <Playground title="Selectable Option" code=code>
+                <div class="docs-stack">
+                    <ListBoxItem
+                        index=0
+                        selected=selected_default.get()
+                        show_selection_indicator=true
+                        on_press=toggle_default
+                    >
+                        "San Francisco"
+                    </ListBoxItem>
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || selected_default.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Focused + Divider + Disabled" code=states_code>
+                <div class="docs-stack">
+                    <ListBoxItem
+                        id="docs-listbox-item-focused".to_string()
+                        index=1
+                        selected=selected_states.get()
+                        focused=true
+                        has_divider=true
+                        show_selection_indicator=true
+                        class_name="docs-listbox-item-custom".to_string()
+                        on_press=toggle_states
+                    >
+                        "Tokyo"
+                    </ListBoxItem>
+
+                    <ListBoxItem index=2 disabled=true>
+                        "Disabled option"
+                    </ListBoxItem>
+
+                    <span class="ui-muted">
+                        "focused item selected: "
+                        {move || selected_states.get().to_string()}
                     </span>
                 </div>
             </Playground>
