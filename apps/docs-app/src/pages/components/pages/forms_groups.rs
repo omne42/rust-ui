@@ -2,8 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    DateField, DateFieldTone, DateInputGroup, DateInputGroupVariant, Switch, SwitchGroup,
-    SwitchGroupOrientation, SwitchGroupTone, TimeField, TimeFieldTone,
+    DateField, DateFieldTone, DateInputGroup, DateInputGroupVariant, Field, FieldGroup,
+    FieldGroupDensity, FieldGroupOrientation, Switch, SwitchGroup, SwitchGroupOrientation,
+    SwitchGroupTone, TimeField, TimeFieldTone,
 };
 
 pub(super) fn switch_group() -> AnyView {
@@ -106,6 +107,96 @@ pub(super) fn switch_group() -> AnyView {
                         {move || maintenance_mode.get().to_string()}
                     </span>
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn field_group() -> AnyView {
+    let base_code = r#"<FieldGroup
+  id_base="account-fields".to_string()
+  label="Account details".to_string()
+  description="Group related fields to keep form scanning predictable.".to_string()
+>
+  <Field label="Name".to_string()>
+    <input class="docs-search__input" type="text" placeholder="Ada Lovelace" />
+  </Field>
+  <Field label="Email".to_string()>
+    <input class="docs-search__input" type="email" placeholder="ada@example.com" />
+  </Field>
+</FieldGroup>"#;
+
+    let states_code = r#"<FieldGroup
+  orientation=FieldGroupOrientation::Horizontal
+  density=FieldGroupDensity::Compact
+  invalid=true
+  disabled=true
+  class_name="docs-field-group-custom".to_string()
+  aria_label="Billing field cluster".to_string()
+>
+  <Field label="VAT ID".to_string() invalid=true disabled=true error_message="VAT ID is required".to_string()>
+    <input class="docs-search__input" type="text" disabled />
+  </Field>
+  <Field label="Purchase Order".to_string() disabled=true>
+    <input class="docs-search__input" type="text" disabled />
+  </Field>
+</FieldGroup>"#;
+
+    view! {
+        <ComponentPage
+            title="FieldGroup"
+            slug="field-group"
+            group="Forms"
+            description="Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers."
+        >
+            <Playground title="Vertical + Label + Description" code=base_code>
+                <FieldGroup
+                    id_base="docs-field-group-account".to_string()
+                    label="Account details".to_string()
+                    description="Group related fields to keep form scanning predictable.".to_string()
+                >
+                    <Field label="Name".to_string()>
+                        <input
+                            class="docs-search__input"
+                            type="text"
+                            placeholder="Ada Lovelace"
+                        />
+                    </Field>
+
+                    <Field label="Email".to_string()>
+                        <input
+                            class="docs-search__input"
+                            type="email"
+                            placeholder="ada@example.com"
+                        />
+                    </Field>
+                </FieldGroup>
+            </Playground>
+
+            <Playground title="Horizontal + Compact + Invalid + Disabled" code=states_code>
+                <FieldGroup
+                    id_base="docs-field-group-billing".to_string()
+                    orientation=FieldGroupOrientation::Horizontal
+                    density=FieldGroupDensity::Compact
+                    invalid=true
+                    disabled=true
+                    class_name="docs-field-group-custom".to_string()
+                    aria_label="Billing field cluster".to_string()
+                >
+                    <Field
+                        label="VAT ID".to_string()
+                        invalid=true
+                        disabled=true
+                        error_message="VAT ID is required".to_string()
+                    >
+                        <input class="docs-search__input" type="text" disabled />
+                    </Field>
+
+                    <Field label="Purchase Order".to_string() disabled=true>
+                        <input class="docs-search__input" type="text" disabled />
+                    </Field>
+                </FieldGroup>
             </Playground>
         </ComponentPage>
     }

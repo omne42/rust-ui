@@ -47,6 +47,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<Tray>` as a Spectrum-compatible bottom tray primitive composed from `Sheet`, with centralized description/footer/close/height contracts and stable `slot` + `data-*` state markers.
 - `apps/docs-app`: adds a `Tray` docs page with semantic footer actions and fixed-height/title-only/custom-class playground coverage.
 
+- `ui-components`: adds `<FieldGroup>` as a Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class state derivation and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `FieldGroup` docs page with vertical labeled grouping and horizontal compact invalid/disabled playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 

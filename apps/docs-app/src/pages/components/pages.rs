@@ -187,6 +187,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::fieldset,
     },
     ComponentDoc {
+        name: "FieldGroup",
+        slug: "field-group",
+        group: "Forms",
+        page: forms_groups::field_group,
+    },
+    ComponentDoc {
         name: "HelpText",
         slug: "help-text",
         group: "Forms",

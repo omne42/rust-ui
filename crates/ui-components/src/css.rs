@@ -94,6 +94,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::field::styles::CSS);
     out.push_str(crate::field_button::styles::CSS);
     out.push_str(crate::field_error::styles::CSS);
+    out.push_str(crate::field_group::styles::CSS);
     out.push_str(crate::error_message::styles::CSS);
     out.push_str(crate::fieldset::styles::CSS);
     out.push_str(crate::form::styles::CSS);
