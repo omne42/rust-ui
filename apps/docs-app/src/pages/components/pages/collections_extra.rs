@@ -3,9 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, MenuItem, MenuItemKind, Table,
-    TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
-    TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, MenuItem, MenuItemKind, MenuSection,
+    MenuSectionHeadingTone, Table, TableCellAlign, TableColumn, TableDensity, TableLayout,
+    TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -440,6 +440,125 @@ let radio_kind = MenuItemKind::Radio {
                     <span class="ui-muted">
                         "radio selected: "
                         {move || radio_selected.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn menu_section() -> AnyView {
+    let (pinned_checked, set_pinned_checked) = signal(true);
+    let pinned_kind = MenuItemKind::Checkbox {
+        is_checked: Signal::derive(move || pinned_checked.get()),
+    };
+
+    let (primary_checked, set_primary_checked) = signal(true);
+    let primary_kind = MenuItemKind::Radio {
+        is_checked: Signal::derive(move || primary_checked.get()),
+    };
+
+    let toggle_pinned = Callback::new(move |_| set_pinned_checked.update(|value| *value = !*value));
+    let toggle_primary =
+        Callback::new(move |_| set_primary_checked.update(|value| *value = !*value));
+
+    let code = r#"<MenuSection
+  title="Workspace actions".to_string()
+  item_count=3
+  aria_label="Workspace actions section".to_string()
+>
+  <MenuItem index=0 kind=MenuItemKind::Action>"Open workspace"</MenuItem>
+  <MenuItem index=1 kind=MenuItemKind::Action>"Rename workspace"</MenuItem>
+  <MenuItem index=2 kind=MenuItemKind::Action>"Archive workspace"</MenuItem>
+</MenuSection>"#;
+
+    let states_code = r#"let (checked, set_checked) = signal(true);
+let radio_kind = MenuItemKind::Radio {
+  is_checked: Signal::derive(move || checked.get()),
+};
+
+<MenuSection
+  title="Advanced routing".to_string()
+  heading_tone=MenuSectionHeadingTone::Quiet
+  item_count=2
+  sticky_heading=true
+  show_divider=true
+  class_name="docs-menu-section-custom".to_string()
+>
+  <MenuItem kind=radio_kind has_submenu=true on_press=Callback::new(move |_| set_checked.update(|value| *value = !*value))>
+    "Set as primary route"
+  </MenuItem>
+  <MenuItem disabled=true>"Disabled fallback action"</MenuItem>
+</MenuSection>
+
+<MenuSection title="Empty state".to_string() item_count=0 disabled=true>
+  <span class="ui-muted">"No actions available"</span>
+</MenuSection>"#;
+
+    view! {
+        <ComponentPage
+            title="MenuSection"
+            slug="menu-section"
+            group="Collections"
+            description="Spectrum/HeroUI-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
+        >
+            <Playground title="Default Section" code=code>
+                <MenuSection
+                    title="Workspace actions".to_string()
+                    item_count=3
+                    aria_label="Workspace actions section".to_string()
+                >
+                    <MenuItem index=0 kind=MenuItemKind::Action>
+                        "Open workspace"
+                    </MenuItem>
+                    <MenuItem index=1 kind=MenuItemKind::Action>
+                        "Rename workspace"
+                    </MenuItem>
+                    <MenuItem index=2 kind=MenuItemKind::Action>
+                        "Archive workspace"
+                    </MenuItem>
+                </MenuSection>
+            </Playground>
+
+            <Playground title="Quiet + Sticky + Divider + Empty" code=states_code>
+                <div class="docs-stack">
+                    <MenuSection
+                        title="Advanced routing".to_string()
+                        heading_tone=MenuSectionHeadingTone::Quiet
+                        item_count=2
+                        sticky_heading=true
+                        show_divider=true
+                        class_name="docs-menu-section-custom".to_string()
+                    >
+                        <MenuItem
+                            kind=primary_kind
+                            has_submenu=true
+                            on_press=toggle_primary
+                        >
+                            "Set as primary route"
+                        </MenuItem>
+                        <MenuItem
+                            kind=pinned_kind
+                            on_press=toggle_pinned
+                        >
+                            "Pin fallback route"
+                        </MenuItem>
+                    </MenuSection>
+
+                    <MenuSection
+                        title="Empty state".to_string()
+                        item_count=0
+                        disabled=true
+                    >
+                        <span class="ui-muted">"No actions available"</span>
+                    </MenuSection>
+
+                    <span class="ui-muted">
+                        "primary selected: "
+                        {move || primary_checked.get().to_string()}
+                        " · pinned: "
+                        {move || pinned_checked.get().to_string()}
                     </span>
                 </div>
             </Playground>

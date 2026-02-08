@@ -105,6 +105,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::listbox::styles::CSS);
     out.push_str(crate::menu::styles::CSS);
     out.push_str(crate::menu_item::styles::CSS);
+    out.push_str(crate::menu_section::styles::CSS);
     out.push_str(crate::select::styles::CSS);
     out.push_str(crate::dropdown::styles::CSS);
     out.push_str(crate::dropdown_menu::styles::CSS);

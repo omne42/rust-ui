@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<MenuSection>` as a Spectrum/HeroUI-style menu grouping primitive with centralized heading/item/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `MenuSection` docs page with default and quiet/sticky/divider/empty playground coverage.
+
 - `ui-components`: adds `<MenuItem>` as a Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `MenuItem` docs page with action/checkbox and radio/submenu/disabled playground coverage.
 
