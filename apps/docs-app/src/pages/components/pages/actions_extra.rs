@@ -4,7 +4,8 @@ use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
-    ActionGroupSelectionMode, ActionGroupTone, ClearButton, FieldButton,
+    ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
+    CloseButtonVariant, FieldButton,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -221,6 +222,50 @@ pub(super) fn clear_button() -> AnyView {
     }
     .into_any()
 }
+pub(super) fn close_button() -> AnyView {
+    let basic_code = r#"<CloseButton />
+<CloseButton variant=CloseButtonVariant::OverBackground />
+<CloseButton aria_label="Dismiss popover".to_string() />"#;
+
+    let state_code = r#"<CloseButton size=CloseButtonSize::Sm />
+<CloseButton size=CloseButtonSize::Lg />
+<CloseButton
+  size=CloseButtonSize::Xl
+  disabled=true
+  class_name="docs-close-button-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="CloseButton"
+            slug="close-button"
+            group="Actions"
+            description="Spectrum/HeroUI-style close affordance with default icon fallback, centralized variant+size contracts, and stable state/source data markers."
+        >
+            <Playground title="Default + OverBackground + Custom Label" code=basic_code>
+                <div class="docs-row">
+                    <CloseButton />
+                    <CloseButton variant=CloseButtonVariant::OverBackground />
+                    <CloseButton aria_label="Dismiss popover".to_string() />
+                </div>
+            </Playground>
+
+            <Playground title="Size Matrix + Disabled + Custom Class" code=state_code>
+                <div class="docs-row">
+                    <CloseButton size=CloseButtonSize::Sm />
+                    <CloseButton size=CloseButtonSize::Lg />
+                    <CloseButton
+                        size=CloseButtonSize::Xl
+                        disabled=true
+                        class_name="docs-close-button-custom".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
 pub(super) fn action_group() -> AnyView {
     let items = vec![
         ActionGroupItem::new("align-left", "Align Left"),
