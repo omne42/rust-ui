@@ -49,6 +49,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-auto-height", ".ui-auto-height {"),
         (".ui-ripple", ".ui-ripple {"),
         (".ui-overlay", ".ui-overlay {"),
+        (".ui-underlay", ".ui-underlay {"),
         (".ui-popover", ".ui-popover {"),
         // Modal styles use `.ui-modal__*` selectors today, but we require the `.ui-modal` prefix to
         // appear in the aggregated output.

@@ -810,6 +810,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: overlays::overlay,
     },
     ComponentDoc {
+        name: "Underlay",
+        slug: "underlay",
+        group: "Overlays",
+        page: overlays::underlay,
+    },
+    ComponentDoc {
         name: "Popover",
         slug: "popover",
         group: "Overlays",

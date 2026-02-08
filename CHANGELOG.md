@@ -41,6 +41,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<ColorLoupe>` as a Spectrum-compatible color loupe overlay primitive with centralized open/disabled/position normalization, checkerboard alpha preview, and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorLoupe` docs page with open-position buckets and disabled/custom-label/custom-class playground coverage.
 
+- `ui-components`: adds `<Underlay>` as a Spectrum-compatible full-viewport underlay primitive with centralized open/transparent/disabled state derivation, close-interaction contracts, and stable `slot` + `data-*` state markers.
+- `apps/docs-app`: adds an `Underlay` docs page with scrim-dismiss and transparent/disabled/custom-class playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 

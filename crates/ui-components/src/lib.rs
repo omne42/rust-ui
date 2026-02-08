@@ -144,6 +144,7 @@ pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod tooltip;
 pub mod tree;
+pub mod underlay;
 pub mod view;
 pub mod well;
 
@@ -315,6 +316,7 @@ pub use tooltip::TooltipMotion;
 pub use tree::{Tree, TreeDensity, TreeNode, TreeTone};
 pub use ui_headless::{MenuItemKind, OnPress, provide_focus_visible, provide_overlay_stack};
 pub use ui_theme::Theme;
+pub use underlay::Underlay;
 pub use view::{
     View, ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow,
 };
