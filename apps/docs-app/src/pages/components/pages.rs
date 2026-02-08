@@ -266,6 +266,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: layout::footer,
     },
     ComponentDoc {
+        name: "Heading",
+        slug: "heading",
+        group: "Layout",
+        page: layout::heading,
+    },
+    ComponentDoc {
         name: "Divider",
         slug: "divider",
         group: "Layout",

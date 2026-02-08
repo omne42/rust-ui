@@ -3,10 +3,10 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
-    DividerOrientation, Footer, FooterTone, Header, HeaderTone, ScrollShadow, Separator,
-    SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
-    ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
-    WellDensity, WellTone,
+    DividerOrientation, Footer, FooterTone, Header, HeaderTone, Heading, HeadingLevel, HeadingTone,
+    ScrollShadow, Separator, SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis,
+    SpacerSize, View, ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow,
+    Well, WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -363,6 +363,56 @@ pub(super) fn footer() -> AnyView {
                     >
                         <p>"Cancel · Save"</p>
                     </Footer>
+                </View>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn heading() -> AnyView {
+    let levels_code = r#"<Heading level=HeadingLevel::H1>"Display title"</Heading>
+<Heading level=HeadingLevel::H3>"Section title"</Heading>
+<Heading level=HeadingLevel::H5 tone=HeadingTone::Muted>"Meta heading"</Heading>"#;
+
+    let states_code = r#"<Heading
+  level=HeadingLevel::H4
+  tone=HeadingTone::Strong
+  truncate=true
+  class_name="docs-heading-custom".to_string()
+  aria_label="Truncated heading".to_string()
+>
+  "Long heading title that intentionally exceeds the available inline width to verify truncation"
+</Heading>"#;
+
+    view! {
+        <ComponentPage
+            title="Heading"
+            slug="heading"
+            group="Layout"
+            description="Spectrum-style semantic heading (`<h1>`..`<h6>`) with centralized level/tone/truncate contracts."
+        >
+            <Playground title="Heading Levels + Tone" code=levels_code>
+                <div class="docs-stack">
+                    <Heading level=HeadingLevel::H1>"Display title"</Heading>
+                    <Heading level=HeadingLevel::H3>"Section title"</Heading>
+                    <Heading level=HeadingLevel::H5 tone=HeadingTone::Muted>
+                        "Meta heading"
+                    </Heading>
+                </div>
+            </Playground>
+
+            <Playground title="Strong + Truncate + Custom Aria/Class" code=states_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Heading
+                        level=HeadingLevel::H4
+                        tone=HeadingTone::Strong
+                        truncate=true
+                        class_name="docs-heading-custom".to_string()
+                        aria_label="Truncated heading".to_string()
+                    >
+                        "Long heading title that intentionally exceeds the available inline width to verify truncation"
+                    </Heading>
                 </View>
             </Playground>
         </ComponentPage>

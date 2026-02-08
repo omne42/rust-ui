@@ -51,6 +51,7 @@ pub mod file_trigger;
 pub mod footer;
 pub mod form;
 pub mod header;
+pub mod heading;
 pub mod hover_card;
 pub mod icon_button;
 pub mod illustrated_message;
@@ -167,6 +168,7 @@ pub use file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};
 pub use footer::{Footer, FooterTone};
 pub use form::{Form, FormLabelAlign, FormLabelPosition, use_form_context};
 pub use header::{Header, HeaderTone};
+pub use heading::{Heading, HeadingLevel, HeadingTone};
 pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon_button::IconButton;
 pub use illustrated_message::{
