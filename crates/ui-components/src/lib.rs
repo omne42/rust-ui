@@ -108,6 +108,7 @@ pub mod spacer;
 pub mod spinner;
 pub mod status_light;
 pub mod switch;
+pub mod switch_group;
 pub mod table;
 pub mod tabs;
 pub mod tag_group;
@@ -246,6 +247,7 @@ pub use spinner::{Spinner, SpinnerSize};
 pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};
 pub use switch::Switch;
 pub use switch::SwitchMotion;
+pub use switch_group::{SwitchGroup, SwitchGroupOrientation, SwitchGroupTone};
 pub use table::{
     Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant,
 };

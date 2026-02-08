@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SwitchGroup>` as a Spectrum/HeroUI-style grouped switch primitive with centralized orientation/tone/validation/message-state normalization and stable `data-*` contracts.
+- `apps/docs-app`: adds a `SwitchGroup` docs page with required/description and horizontal-invalid-disabled/custom-class playground coverage.
+
 - `ui-components`: adds `<EmptyState>` as a Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source normalization and stable `data-*` state contracts.
 - `apps/docs-app`: adds an `EmptyState` docs page with tone/alignment/actions and compact/bordered/custom-class playground coverage.
 

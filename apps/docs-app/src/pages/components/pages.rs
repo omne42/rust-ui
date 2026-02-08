@@ -7,6 +7,7 @@ mod display_extra;
 mod files;
 mod forms;
 mod forms_extra;
+mod forms_groups;
 mod layout;
 mod layout_extra;
 mod overlays;
@@ -241,6 +242,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "switch",
         group: "Forms",
         page: forms::switch,
+    },
+    ComponentDoc {
+        name: "SwitchGroup",
+        slug: "switch-group",
+        group: "Forms",
+        page: forms_groups::switch_group,
     },
     ComponentDoc {
         name: "RadioGroup",

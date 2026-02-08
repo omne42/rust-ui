@@ -1132,6 +1132,7 @@ a {
 .docs-fieldset-custom,
 .docs-field-error-custom,
 .docs-error-message-custom,
-.docs-empty-state-custom {
+.docs-empty-state-custom,
+.docs-switch-group-custom {
   border-radius: var(--ui-radius-sm);
 }
