@@ -4,10 +4,86 @@ use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
     DatePickerTone, DateRangePicker, DateRangePickerTone, Description, DescriptionElement,
-    DescriptionTone, Field, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation,
-    FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField,
-    TimeFieldTone,
+    DescriptionTone, Field, FieldError, FieldErrorTone, FieldOrientation, FieldTone, Fieldset,
+    FieldsetOrientation, FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis, Slider,
+    SliderMotion, TimeField, TimeFieldTone,
 };
+
+pub(super) fn field_error() -> AnyView {
+    let default_code = r#"<FieldError
+  visible=true
+  message="Email is required".to_string()
+/>
+<FieldError
+  visible=true
+  tone=FieldErrorTone::Neutral
+  message="Password should include at least one symbol".to_string()
+/>
+<FieldError
+  visible=true
+  tone=FieldErrorTone::Negative
+  show_icon=true
+  message="Two-factor code is invalid".to_string()
+/>
+"#;
+
+    let hidden_code = r#"<FieldError
+  visible=false
+  message="This text should not render when hidden".to_string()
+/>
+<FieldError
+  visible=true
+  disabled=true
+  show_icon=true
+  class_name="docs-field-error-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="FieldError"
+            slug="field-error"
+            group="Forms"
+            description="Spectrum/HeroUI-style field error primitive with centralized visibility/tone/message normalization and stable data contracts."
+        >
+            <Playground title="Visible + Tone" code=default_code>
+                <div class="docs-stack">
+                    <FieldError
+                        visible=true
+                        message="Email is required".to_string()
+                        aria_label="Email error".to_string()
+                    />
+                    <FieldError
+                        visible=true
+                        tone=FieldErrorTone::Neutral
+                        message="Password should include at least one symbol".to_string()
+                    />
+                    <FieldError
+                        visible=true
+                        tone=FieldErrorTone::Negative
+                        show_icon=true
+                        message="Two-factor code is invalid".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Hidden + Disabled + Custom Class" code=hidden_code>
+                <div class="docs-stack">
+                    <FieldError
+                        visible=false
+                        message="This text should not render when hidden".to_string()
+                    />
+                    <FieldError
+                        visible=true
+                        disabled=true
+                        show_icon=true
+                        class_name="docs-field-error-custom".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn description() -> AnyView {
     let tone_code = r#"<Description

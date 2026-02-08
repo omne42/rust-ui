@@ -159,6 +159,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_extra::description,
     },
     ComponentDoc {
+        name: "FieldError",
+        slug: "field-error",
+        group: "Forms",
+        page: forms_extra::field_error,
+    },
+    ComponentDoc {
         name: "Field",
         slug: "field",
         group: "Forms",

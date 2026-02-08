@@ -1125,6 +1125,7 @@ a {
 .docs-label-custom,
 .docs-field-custom,
 .docs-help-text-custom,
-.docs-fieldset-custom {
+.docs-fieldset-custom,
+.docs-field-error-custom {
   border-radius: var(--ui-radius-sm);
 }
