@@ -1,5 +1,5 @@
 use crate::{
-    chip::{Chip, ChipSize, ChipVariant},
+    tag::{Tag as TagPrimitive, TagSize, TagVariant},
     tag_group::{
         Tag,
         logic::{merge_describedby_ids, normalize_optional_text, resolve_state},
@@ -13,8 +13,8 @@ pub fn TagGroup(
     tags: ReadSignal<Vec<Tag>>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] on_remove: Option<Callback<Tag>>,
-    #[prop(optional)] variant: ChipVariant,
-    #[prop(optional)] size: ChipSize,
+    #[prop(optional)] variant: TagVariant,
+    #[prop(optional)] size: TagSize,
     #[prop(optional, into)] id_base: Option<String>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] description: Option<String>,
@@ -139,26 +139,27 @@ pub fn TagGroup(
                                 None
                             };
 
-                            let chip: AnyView = match dismiss {
-                                Some(on_dismiss) => view! {
-                                    <Chip
+                            let tag_view: AnyView = match dismiss {
+                                Some(on_remove) => view! {
+                                    <TagPrimitive
                                         disabled=is_disabled
                                         variant=variant
                                         size=size
-                                        on_dismiss=on_dismiss
+                                        removable=true
+                                        on_remove=on_remove
                                     >
                                         {tag_label.clone()}
-                                    </Chip>
+                                    </TagPrimitive>
                                 }
                                 .into_any(),
                                 None => view! {
-                                    <Chip
+                                    <TagPrimitive
                                         disabled=is_disabled
                                         variant=variant
                                         size=size
                                     >
                                         {tag_label}
-                                    </Chip>
+                                    </TagPrimitive>
                                 }
                                 .into_any(),
                             };
@@ -172,7 +173,7 @@ pub fn TagGroup(
                                     data-disabled=is_disabled.then_some("true")
                                     data-removable=is_removable.then_some("true")
                                 >
-                                    {chip}
+                                    {tag_view}
                                 </li>
                             }
                         })

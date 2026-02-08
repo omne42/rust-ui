@@ -108,6 +108,30 @@ fn tag_group_merges_external_and_internal_describedby_ids() {
 }
 
 #[test]
+fn tag_group_composes_tag_primitive_instead_of_chip() {
+    let source = load_source("src/tag_group/view.rs");
+
+    for needle in [
+        "tag::{Tag as TagPrimitive, TagSize, TagVariant}",
+        "<TagPrimitive",
+        "variant=variant",
+        "size=size",
+        "removable=true",
+        "on_remove=on_remove",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TagGroup should compose Tag primitive contracts; missing `{needle}`."
+        );
+    }
+
+    assert!(
+        !source.contains("<Chip"),
+        "TagGroup should no longer compose Chip directly after Tag alignment."
+    );
+}
+
+#[test]
 fn tag_group_styles_include_description_and_error_states() {
     let source = load_source("src/tag_group/styles.rs");
 

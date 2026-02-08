@@ -269,6 +269,7 @@ pub use table::{
     Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant,
 };
 pub use tabs::{Tabs, TabsKeyboardActivation, TabsMotion};
+pub use tag::{TagSize, TagVariant};
 pub use tag_group::{Tag, TagGroup};
 pub use text::{Text, TextAlign, TextElement, TextTone, TextWeight};
 pub use text_area::TextArea;

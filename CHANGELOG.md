@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: aligns `<TagGroup>` to compose `<Tag>` primitives (instead of `<Chip>`), and unifies variant/size contracts to `TagVariant` + `TagSize` for better HeroUI/Spectrum parity.
+- `apps/docs-app`: updates `TagGroup` docs wording/examples to reflect Tag-based composition semantics.
+
 - `ui-components`: adds `<Tag>` as a Spectrum/HeroUI-style tag primitive with centralized variant/size/remove-action/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `Tag` docs page with variant/size matrix and removable/disabled/custom-class playground coverage.
 

@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{ChipSize, ChipVariant, Pagination, Tag, TagGroup};
+use ui_components::{Pagination, Tag, TagGroup, TagSize, TagVariant};
 
 #[component]
 pub fn PaginationDemo() -> impl IntoView {
@@ -20,7 +20,7 @@ pub fn PaginationDemo() -> impl IntoView {
     view! {
         <section id="pagination" class="demo-card">
             <h2>"Pagination / TagGroup"</h2>
-            <p>"Pagination is state-driven; TagGroup composes Chips with dismiss actions."</p>
+            <p>"Pagination is state-driven; TagGroup composes Tag primitives with dismiss actions."</p>
 
             <div class="demo-grid-2">
                 <div class="demo-stack">
@@ -42,8 +42,8 @@ pub fn PaginationDemo() -> impl IntoView {
                     <TagGroup
                         tags=tags
                         label="Selected tags"
-                        variant=ChipVariant::Outline
-                        size=ChipSize::Sm
+                        variant=TagVariant::Surface
+                        size=TagSize::Sm
                         on_remove=on_remove
                     />
                 </div>
