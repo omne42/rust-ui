@@ -2,7 +2,7 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorPicker, ColorSlider,
+    ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorHandle, ColorPicker, ColorSlider,
     ColorSliderChannel, ColorSliderMotion, ColorSwatchPicker, ColorSwatchPickerItem, ColorThumb,
     ColorWheel, ColorWheelMotion,
 };
@@ -645,6 +645,110 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
                         default_alpha=64.0
                         default_area=(0.46, 0.88)
                         motion=reduced_motion
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_handle() -> AnyView {
+    let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
+
+    let basic_code = r##"let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
+
+<div style=surface_style>
+  <ColorHandle
+    id_base="docs-color-handle-idle".to_string()
+    color="#f59e0b".to_string()
+    x_percent=22.0
+    y_percent=72.0
+  />
+  <ColorHandle
+    id_base="docs-color-handle-focused".to_string()
+    color="#10b981".to_string()
+    focused=true
+    x_percent=52.0
+    y_percent=44.0
+  />
+  <ColorHandle
+    id_base="docs-color-handle-dragging".to_string()
+    color="#3b82f6".to_string()
+    dragging=true
+    x_percent=82.0
+    y_percent=28.0
+  />
+</div>"##;
+
+    let states_code = r##"<div style=surface_style>
+  <ColorHandle
+    id_base="docs-color-handle-disabled".to_string()
+    color="#a78bfa".to_string()
+    disabled=true
+    x_percent=30.0
+    y_percent=56.0
+  />
+  <ColorHandle
+    id_base="docs-color-handle-custom".to_string()
+    color="rgba(56, 189, 248, 0.72)".to_string()
+    dragging=true
+    show_loupe=false
+    x_percent=70.0
+    y_percent=40.0
+    class_name="docs-color-handle-custom".to_string()
+  />
+</div>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorHandle"
+            slug="color-handle"
+            group="Forms"
+            description="Spectrum-compatible draggable color handle primitive with composed thumb/loupe behavior, centralized state derivation, and stable slot/data-state contracts."
+        >
+            <Playground title="Focused + Dragging + Position" code=basic_code>
+                <div style=surface_style>
+                    <ColorHandle
+                        id_base="docs-color-handle-idle".to_string()
+                        color="#f59e0b".to_string()
+                        x_percent=22.0
+                        y_percent=72.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-focused".to_string()
+                        color="#10b981".to_string()
+                        focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-dragging".to_string()
+                        color="#3b82f6".to_string()
+                        dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Class + Loupe Off" code=states_code>
+                <div style=surface_style>
+                    <ColorHandle
+                        id_base="docs-color-handle-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                    />
+                    <ColorHandle
+                        id_base="docs-color-handle-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        dragging=true
+                        show_loupe=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        class_name="docs-color-handle-custom".to_string()
                     />
                 </div>
             </Playground>

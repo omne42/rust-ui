@@ -41,6 +41,7 @@ pub mod code_block;
 pub mod color_area;
 pub mod color_editor;
 pub mod color_field;
+pub mod color_handle;
 pub mod color_picker;
 pub mod color_slider;
 pub mod color_swatch;
@@ -193,6 +194,7 @@ pub use code_block::{CodeBlock, CodeBlockMotion};
 pub use color_area::ColorArea;
 pub use color_editor::{ColorEditor, ColorEditorFormat};
 pub use color_field::ColorField;
+pub use color_handle::ColorHandle;
 pub use color_picker::ColorPicker;
 pub use color_slider::{ColorSlider, ColorSliderChannel, ColorSliderMotion};
 pub use color_swatch::{

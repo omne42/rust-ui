@@ -35,6 +35,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<ColorEditor>` as a Spectrum-compatible color composition primitive with centralized HSB channel normalization, format-state modeling, and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `ColorEditor` docs page with controlled color/format and disabled/alpha-hidden/reduced-motion playground coverage.
 
+- `ui-components`: adds `<ColorHandle>` as a Spectrum-compatible draggable handle primitive with composed thumb/loupe behavior, centralized state derivation, and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `ColorHandle` docs page with focused/dragging positions and disabled/loupe-off/custom-class playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 
