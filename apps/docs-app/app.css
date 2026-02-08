@@ -1105,3 +1105,26 @@ a {
   background: color-mix(in oklch, var(--ui-bg), var(--ui-accent-soft) 20%);
   padding: 2px;
 }
+
+.docs-description-custom {
+  color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 28%);
+}
+
+.docs-description-limit {
+  max-width: 22rem;
+}
+
+.docs-choice-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--ui-fg);
+}
+
+.docs-label-custom,
+.docs-field-custom,
+.docs-help-text-custom,
+.docs-fieldset-custom {
+  border-radius: var(--ui-radius-sm);
+}

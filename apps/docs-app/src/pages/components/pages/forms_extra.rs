@@ -3,10 +3,78 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
-    DatePickerTone, DateRangePicker, DateRangePickerTone, Field, FieldOrientation, FieldTone,
-    Fieldset, FieldsetOrientation, FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis,
-    Slider, SliderMotion, TimeField, TimeFieldTone,
+    DatePickerTone, DateRangePicker, DateRangePickerTone, Description, DescriptionElement,
+    DescriptionTone, Field, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation,
+    FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField,
+    TimeFieldTone,
 };
+
+pub(super) fn description() -> AnyView {
+    let tone_code = r#"<Description
+  text="This appears below the field as guidance.".to_string()
+  tone=DescriptionTone::Default
+/>
+<Description
+  text="Two-factor code expired. Request a new one.".to_string()
+  tone=DescriptionTone::Negative
+/>"#;
+
+    let truncate_code = r#"<Description
+  text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
+  element=DescriptionElement::Span
+  truncate=true
+  class_name="docs-description-custom".to_string()
+/>
+<Description
+  text="Disabled helper text".to_string()
+  disabled=true
+  tone=DescriptionTone::Muted
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Description"
+            slug="description"
+            group="Forms"
+            description="Spectrum/HeroUI-style form description primitive with centralized tone/state/source contracts and stable slot semantics."
+        >
+            <Playground title="Tone Variants" code=tone_code>
+                <div class="docs-stack">
+                    <Description
+                        text="This appears below the field as guidance.".to_string()
+                        tone=DescriptionTone::Default
+                        aria_label="Name helper".to_string()
+                    />
+                    <Description
+                        text="Optional details are only visible to admins.".to_string()
+                        tone=DescriptionTone::Muted
+                    />
+                    <Description
+                        text="Two-factor code expired. Request a new one.".to_string()
+                        tone=DescriptionTone::Negative
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Truncate + Element + Disabled" code=truncate_code>
+                <div class="docs-stack docs-description-limit">
+                    <Description
+                        text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
+                        element=DescriptionElement::Span
+                        truncate=true
+                        class_name="docs-description-custom".to_string()
+                    />
+                    <Description
+                        text="Disabled helper text".to_string()
+                        disabled=true
+                        tone=DescriptionTone::Muted
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn fieldset() -> AnyView {
     let default_code = r#"<Fieldset

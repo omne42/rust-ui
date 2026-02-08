@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Description>` as a Spectrum/HeroUI-style form helper primitive with centralized tone/disabled/truncate normalization and stable `slot` + `data-*` state/source contracts.
+- `apps/docs-app`: adds a `Description` docs page with tone variants and truncate/element/disabled playground coverage.
+
 - `ui-components`: adds `<Fieldset>` as a Spectrum/HeroUI-style group primitive with centralized orientation/tone/validation/message/action-state normalization and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `Fieldset` docs page with legend/description and horizontal-invalid/actions playground coverage.
 

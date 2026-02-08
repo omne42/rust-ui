@@ -107,6 +107,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::flex::styles::CSS);
     out.push_str(crate::view::styles::CSS);
     out.push_str(crate::content::styles::CSS);
+    out.push_str(crate::description::styles::CSS);
     out.push_str(crate::header::styles::CSS);
     out.push_str(crate::footer::styles::CSS);
     out.push_str(crate::heading::styles::CSS);

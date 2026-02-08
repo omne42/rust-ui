@@ -43,6 +43,7 @@ pub mod contextual_help;
 pub mod date_field;
 pub mod date_picker;
 pub mod date_range_picker;
+pub mod description;
 pub mod dialog;
 pub mod disclosure;
 pub mod divider;
@@ -169,6 +170,7 @@ pub use contextual_help::{ContextualHelp, ContextualHelpMotion, ContextualHelpVa
 pub use date_field::{DateField, DateFieldIds, DateFieldTone};
 pub use date_picker::{DatePicker, DatePickerIds, DatePickerTone};
 pub use date_range_picker::{DateRangePicker, DateRangePickerTone};
+pub use description::{Description, DescriptionElement, DescriptionTone};
 pub use dialog::{Dialog, DialogMotion, DialogSize};
 pub use disclosure::Disclosure;
 pub use disclosure::DisclosureMotion;
