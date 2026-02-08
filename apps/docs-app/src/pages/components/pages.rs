@@ -246,6 +246,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_color::color_wheel,
     },
     ComponentDoc {
+        name: "ColorThumb",
+        slug: "color-thumb",
+        group: "Forms",
+        page: forms_color::color_thumb,
+    },
+    ComponentDoc {
         name: "ColorPicker",
         slug: "color-picker",
         group: "Forms",

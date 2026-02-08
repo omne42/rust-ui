@@ -44,6 +44,7 @@ pub mod color_picker;
 pub mod color_slider;
 pub mod color_swatch;
 pub mod color_swatch_picker;
+pub mod color_thumb;
 pub mod color_wheel;
 pub mod combo_box;
 pub mod content;
@@ -196,6 +197,7 @@ pub use color_swatch::{
     ColorSwatch, ColorSwatchAlpha, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,
 };
 pub use color_swatch_picker::{ColorSwatchPicker, ColorSwatchPickerItem};
+pub use color_thumb::ColorThumb;
 pub use color_wheel::{ColorWheel, ColorWheelMotion};
 pub use combo_box::{ComboBox, ComboBoxMotion};
 pub use content::{Content, ContentTone};

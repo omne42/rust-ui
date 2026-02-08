@@ -3,7 +3,7 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     ColorArea, ColorField, ColorPicker, ColorSlider, ColorSliderChannel, ColorSliderMotion,
-    ColorSwatchPicker, ColorSwatchPickerItem, ColorWheel, ColorWheelMotion,
+    ColorSwatchPicker, ColorSwatchPickerItem, ColorThumb, ColorWheel, ColorWheelMotion,
 };
 
 pub(super) fn color_field() -> AnyView {
@@ -433,6 +433,110 @@ let open_signal: Signal<bool> = open.into();
                             <span class="ui-muted">"Custom content area"</span>
                         </div>
                     </ColorPicker>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_thumb() -> AnyView {
+    let board_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm); background: color-mix(in oklch, var(--ui-bg), var(--ui-fg) 2%);";
+
+    let basic_code = r##"let board_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm);";
+
+<div style=board_style>
+  <ColorThumb
+    id_base="docs-color-thumb-idle".to_string()
+    color="#f59e0b".to_string()
+    x_percent=22.0
+    y_percent=72.0
+  />
+  <ColorThumb
+    id_base="docs-color-thumb-focused".to_string()
+    color="#10b981".to_string()
+    focused=true
+    x_percent=52.0
+    y_percent=44.0
+  />
+  <ColorThumb
+    id_base="docs-color-thumb-dragging".to_string()
+    color="#3b82f6".to_string()
+    dragging=true
+    x_percent=82.0
+    y_percent=28.0
+  />
+</div>"##;
+
+    let states_code = r##"<div style=board_style>
+  <ColorThumb
+    id_base="docs-color-thumb-disabled".to_string()
+    color="#a78bfa".to_string()
+    disabled=true
+    x_percent=30.0
+    y_percent=56.0
+  />
+  <ColorThumb
+    id_base="docs-color-thumb-custom".to_string()
+    color="rgba(56, 189, 248, 0.72)".to_string()
+    dragging=true
+    show_loupe=false
+    x_percent=70.0
+    y_percent=40.0
+    class_name="docs-color-thumb-custom".to_string()
+  />
+</div>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorThumb"
+            slug="color-thumb"
+            group="Forms"
+            description="Spectrum-compatible draggable color thumb primitive with focus/drag/loupe state contracts, sanitized color source handling, and stable slot/data-state markers."
+        >
+            <Playground title="Focused + Dragging + Position" code=basic_code>
+                <div style=board_style>
+                    <ColorThumb
+                        id_base="docs-color-thumb-idle".to_string()
+                        color="#f59e0b".to_string()
+                        x_percent=22.0
+                        y_percent=72.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-focused".to_string()
+                        color="#10b981".to_string()
+                        focused=true
+                        x_percent=52.0
+                        y_percent=44.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-dragging".to_string()
+                        color="#3b82f6".to_string()
+                        dragging=true
+                        x_percent=82.0
+                        y_percent=28.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Class + Loupe Off" code=states_code>
+                <div style=board_style>
+                    <ColorThumb
+                        id_base="docs-color-thumb-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        disabled=true
+                        x_percent=30.0
+                        y_percent=56.0
+                    />
+                    <ColorThumb
+                        id_base="docs-color-thumb-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        dragging=true
+                        show_loupe=false
+                        x_percent=70.0
+                        y_percent=40.0
+                        class_name="docs-color-thumb-custom".to_string()
+                    />
                 </div>
             </Playground>
         </ComponentPage>
