@@ -10,6 +10,7 @@ mod forms;
 mod forms_color;
 mod forms_extra;
 mod forms_groups;
+mod forms_groups_extra;
 mod layout;
 mod layout_extra;
 mod overlays;
@@ -299,6 +300,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "checkbox",
         group: "Forms",
         page: forms::checkbox,
+    },
+    ComponentDoc {
+        name: "CheckboxField",
+        slug: "checkbox-field",
+        group: "Forms",
+        page: forms_groups_extra::checkbox_field,
     },
     ComponentDoc {
         name: "CheckboxGroup",

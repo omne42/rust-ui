@@ -27,6 +27,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-toggle-button", ".ui-toggle-button {"),
         (".ui-toggle-button-group", ".ui-toggle-button-group {"),
         (".ui-checkbox", ".ui-checkbox {"),
+        (".ui-checkbox-field", ".ui-checkbox-field {"),
         (".ui-checkbox-group", ".ui-checkbox-group {"),
         (".ui-chip", ".ui-chip {"),
         (".ui-color-area", ".ui-color-area {"),
