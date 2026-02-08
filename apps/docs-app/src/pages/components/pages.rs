@@ -404,6 +404,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::kbd,
     },
     ComponentDoc {
+        name: "Keyboard",
+        slug: "keyboard",
+        group: "Display",
+        page: display_extra::keyboard,
+    },
+    ComponentDoc {
         name: "Snippet",
         slug: "snippet",
         group: "Display",

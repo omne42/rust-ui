@@ -2,8 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    LabeledValue, LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement,
-    TextTone, TextWeight,
+    Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, Text,
+    TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -59,6 +59,48 @@ pub(super) fn labeled_value() -> AnyView {
                         orientation=LabeledValueOrientation::Inline
                         tone=LabeledValueTone::Default
                     />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn keyboard() -> AnyView {
+    let tone_code = r#"<Keyboard>"⌘K"</Keyboard>
+<Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>"#;
+
+    let compact_code = r#"<Keyboard
+  compact=true
+  aria_label="Open command palette".to_string()
+  class_name="docs-keyboard-custom".to_string()
+>
+  "Ctrl+Shift+P"
+</Keyboard>"#;
+
+    view! {
+        <ComponentPage
+            title="Keyboard"
+            slug="keyboard"
+            group="Display"
+            description="Keyboard command primitive (`<kbd>`) with centralized tone/compact/source state contracts."
+        >
+            <Playground title="Tone" code=tone_code>
+                <div class="docs-row">
+                    <Keyboard>"⌘K"</Keyboard>
+                    <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
+                </div>
+            </Playground>
+
+            <Playground title="Compact + Custom Aria/Class" code=compact_code>
+                <div class="docs-row">
+                    <Keyboard
+                        compact=true
+                        aria_label="Open command palette".to_string()
+                        class_name="docs-keyboard-custom".to_string()
+                    >
+                        "Ctrl+Shift+P"
+                    </Keyboard>
                 </div>
             </Playground>
         </ComponentPage>

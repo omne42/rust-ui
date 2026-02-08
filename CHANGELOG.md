@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Keyboard>` as a Spectrum-style keyboard command primitive (`<kbd>`) with centralized tone/compact normalization and stable `data-*` source/state contracts.
+- `apps/docs-app`: adds a `Keyboard` docs page with tone and compact/custom-class playground coverage.
 - `ui-components`: adds `<Heading>` as a Spectrum-style semantic heading primitive (`h1`..`h6`) with centralized level/tone/truncate normalization and stable `data-*` source/state contracts.
 - `apps/docs-app`: adds a `Heading` docs page with level/tone and truncate/custom-class playground coverage.
 - `ui-components`: adds `<Footer>` as a Spectrum-style semantic footer primitive with centralized tone/border normalization and stable `data-*` source/state contracts.

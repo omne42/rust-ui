@@ -61,6 +61,7 @@ pub mod input;
 pub mod input_group;
 pub mod input_otp;
 pub mod kbd;
+pub mod keyboard;
 pub mod label;
 pub mod labeled_value;
 pub mod link;
@@ -180,6 +181,7 @@ pub use input::{Input, InputLabelPlacement, InputMotion, InputSize, InputVariant
 pub use input_group::InputGroup;
 pub use input_otp::InputOtp;
 pub use kbd::{Kbd, KbdSize};
+pub use keyboard::{Keyboard, KeyboardTone};
 pub use label::{Label, LabelEmphasis};
 pub use labeled_value::{LabeledValue, LabeledValueOrientation, LabeledValueTone};
 pub use link::Link;
