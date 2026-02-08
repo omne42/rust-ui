@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
-    ActionGroupSelectionMode, ActionGroupTone, FieldButton,
+    ActionGroupSelectionMode, ActionGroupTone, ClearButton, FieldButton,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -150,6 +150,71 @@ pub(super) fn field_button() -> AnyView {
                     <FieldButton disabled=true aria_label="Disabled trigger".to_string()>
                         "Disabled"
                     </FieldButton>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn clear_button() -> AnyView {
+    let basic_code = r#"<ClearButton aria_label="Clear query".to_string()>
+  "×"
+</ClearButton>
+<ClearButton variant=ClearButtonVariant::OverBackground aria_label="Dismiss overlay".to_string()>
+  "×"
+</ClearButton>"#;
+
+    let state_code = r#"<ClearButton
+  inset=true
+  prevent_focus=true
+  aria_label="Clear token".to_string()
+  class_name="docs-clear-button-custom".to_string()
+>
+  "×"
+</ClearButton>
+<ClearButton disabled=true exclude_from_tab_order=true aria_label="Disabled clear".to_string()>
+  "×"
+</ClearButton>"#;
+
+    view! {
+        <ComponentPage
+            title="ClearButton"
+            slug="clear-button"
+            group="Actions"
+            description="Spectrum-style clear affordance with centralized variant/inset/focus-mode normalization and stable state/source data contracts."
+        >
+            <Playground title="Default + OverBackground" code=basic_code>
+                <div class="docs-row">
+                    <ClearButton aria_label="Clear query".to_string()>
+                        "×"
+                    </ClearButton>
+                    <ClearButton
+                        variant=ui_components::ClearButtonVariant::OverBackground
+                        aria_label="Dismiss overlay".to_string()
+                    >
+                        "×"
+                    </ClearButton>
+                </div>
+            </Playground>
+
+            <Playground title="Inset + Focus Mode + Disabled" code=state_code>
+                <div class="docs-row">
+                    <ClearButton
+                        inset=true
+                        prevent_focus=true
+                        aria_label="Clear token".to_string()
+                        class_name="docs-clear-button-custom".to_string()
+                    >
+                        "×"
+                    </ClearButton>
+                    <ClearButton
+                        disabled=true
+                        exclude_from_tab_order=true
+                        aria_label="Disabled clear".to_string()
+                    >
+                        "×"
+                    </ClearButton>
                 </div>
             </Playground>
         </ComponentPage>

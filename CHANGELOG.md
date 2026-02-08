@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ClearButton>` as a Spectrum-style clear affordance with centralized variant/inset/focus-mode normalization, headless press/hover/focus integration, and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `ClearButton` docs page with default/over-background and inset/focus-mode/disabled playground coverage.
+
 - `ui-components`: adds `<FieldButton>` as a Spectrum-style field-trigger primitive with centralized quiet/invalid/active/disabled normalization, headless press/hover/focus integration, and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `FieldButton` docs page with default/quiet and invalid-active/disabled playground coverage.
 
