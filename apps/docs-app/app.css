@@ -1106,6 +1106,12 @@ a {
   padding: 2px;
 }
 
+.docs-dropdown-custom {
+  border-radius: var(--ui-radius-md);
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 34%);
+  background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 14%);
+}
+
 .docs-disclosure-group-custom {
   border-radius: var(--ui-radius-md);
   background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 10%);
@@ -1145,6 +1151,7 @@ a {
 .docs-empty-state-custom,
 .docs-switch-group-custom,
 .docs-disclosure-group-custom,
-.docs-surface-custom {
+.docs-surface-custom,
+.docs-dropdown-custom {
   border-radius: var(--ui-radius-sm);
 }

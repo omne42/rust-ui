@@ -3,8 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Table, TableCellAlign, TableColumn,
-    TableDensity, TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, MenuItemKind, Table, TableCellAlign,
+    TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode,
+    TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -317,6 +318,113 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
                     <span class="ui-muted">
                         "expanded: "
                         {move || format!("{:?}", expanded_single.get())}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn dropdown() -> AnyView {
+    let items = vec![
+        "Profile".to_string(),
+        "Settings".to_string(),
+        "Sign out".to_string(),
+    ];
+
+    let controlled_items = vec![
+        "Rename".to_string(),
+        "Duplicate".to_string(),
+        "Archive".to_string(),
+    ];
+
+    let (last_action, set_last_action) = signal(None::<usize>);
+    let on_action = Callback::new(move |index: usize| set_last_action.set(Some(index)));
+
+    let (open_raw, set_open_raw) = signal(false);
+    let open_signal: Signal<bool> = Signal::derive(move || open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));
+
+    let code = r#"<Dropdown
+  id_base="profile-dropdown".to_string()
+  items=vec!["Profile".to_string(), "Settings".to_string(), "Sign out".to_string()]
+  on_action=on_action
+>
+  "Open actions"
+</Dropdown>"#;
+
+    let states_code = r#"let (open, set_open) = signal(false);
+let open_signal: Signal<bool> = Signal::derive(move || open.get());
+
+<Dropdown
+  id_base="controlled-dropdown".to_string()
+  items=vec!["Rename".to_string(), "Duplicate".to_string(), "Archive".to_string()]
+  on_action=on_action
+  open=open_signal
+  on_open_change=Callback::new(move |next| set_open.set(next))
+  close_on_action=false
+  disabled_indices=vec![1]
+  item_kinds=vec![
+    MenuItemKind::Action,
+    MenuItemKind::Action,
+    MenuItemKind::Action,
+  ]
+  class_name="docs-dropdown-custom".to_string()
+>
+  "Controlled dropdown"
+</Dropdown>"#;
+
+    view! {
+        <ComponentPage
+            title="Dropdown"
+            slug="dropdown"
+            group="Collections"
+            description="Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts and MenuTrigger-based interaction behavior."
+        >
+            <Playground title="Default" code=code>
+                <div class="docs-row">
+                    <Dropdown
+                        id_base="docs-dropdown-default".to_string()
+                        items=items
+                        on_action=on_action
+                    >
+                        "Open actions"
+                    </Dropdown>
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || {
+                            last_action
+                                .get()
+                                .map(|idx| idx.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + Persistent + Disabled Item" code=states_code>
+                <div class="docs-stack">
+                    <Dropdown
+                        id_base="docs-dropdown-controlled".to_string()
+                        items=controlled_items
+                        on_action=on_action
+                        open=open_signal
+                        on_open_change=on_open_change
+                        close_on_action=false
+                        disabled_indices=vec![1]
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                        class_name="docs-dropdown-custom".to_string()
+                    >
+                        "Controlled dropdown"
+                    </Dropdown>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || open_raw.get().to_string()}
                     </span>
                 </div>
             </Playground>

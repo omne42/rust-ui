@@ -50,6 +50,7 @@ pub mod disclosure_group;
 pub mod divider;
 pub mod drawer;
 pub mod drop_zone;
+pub mod dropdown;
 pub mod dropdown_menu;
 pub mod empty_state;
 pub mod error_message;
@@ -184,6 +185,7 @@ pub use disclosure_group::{DisclosureGroup, DisclosureGroupMotion, DisclosureGro
 pub use divider::{Divider, DividerOrientation};
 pub use drawer::{Drawer, DrawerMotion, DrawerPlacement};
 pub use drop_zone::{DropZone, DropZoneMotion, DroppedFile};
+pub use dropdown::Dropdown;
 pub use dropdown_menu::{DropdownMenu, DropdownMenuMotion};
 pub use empty_state::{EmptyState, EmptyStateAlign, EmptyStateTone};
 pub use error_message::{ErrorMessage, ErrorMessageElement, ErrorMessageTone};

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Dropdown>` as a Spectrum/HeroUI-style trigger-driven menu primitive with centralized state/source normalization and `MenuTrigger` composition contracts.
+- `apps/docs-app`: adds a `Dropdown` docs page with default and controlled/persistent/disabled-item playground coverage.
+
 - `ui-components`: adds `<Surface>` as a Spectrum/HeroUI-style foundational container primitive with centralized tone/elevation/frame/source normalization and stable `data-*` state contracts.
 - `apps/docs-app`: adds a `Surface` docs page with tone/elevation/frame and custom-aria/custom-class playground coverage.
 
