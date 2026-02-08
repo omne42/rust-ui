@@ -49,6 +49,7 @@ pub mod drop_zone;
 pub mod dropdown_menu;
 pub mod file_trigger;
 pub mod form;
+pub mod header;
 pub mod hover_card;
 pub mod icon_button;
 pub mod illustrated_message;
@@ -163,6 +164,7 @@ pub use drop_zone::{DropZone, DropZoneMotion, DroppedFile};
 pub use dropdown_menu::{DropdownMenu, DropdownMenuMotion};
 pub use file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};
 pub use form::{Form, FormLabelAlign, FormLabelPosition, use_form_context};
+pub use header::{Header, HeaderTone};
 pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon_button::IconButton;
 pub use illustrated_message::{

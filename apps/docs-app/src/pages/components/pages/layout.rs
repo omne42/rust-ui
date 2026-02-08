@@ -3,9 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
-    DividerOrientation, ScrollShadow, Separator, SeparatorElementType, SeparatorOrientation,
-    Spacer, SpacerAxis, SpacerSize, View, ViewBackground, ViewBorder, ViewElement, ViewPadding,
-    ViewRadius, ViewShadow, Well, WellDensity, WellTone,
+    DividerOrientation, Header, HeaderTone, ScrollShadow, Separator, SeparatorElementType,
+    SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View, ViewBackground, ViewBorder,
+    ViewElement, ViewPadding, ViewRadius, ViewShadow, Well, WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -231,6 +231,68 @@ pub(super) fn content() -> AnyView {
                             <strong>"Padded content region"</strong>
                             <span class="ui-muted">"Verifies padding marker + custom class source contract."</span>
                         </div>
+                    </Content>
+                </View>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn header() -> AnyView {
+    let semantic_code = r#"<Header>
+  <h3>"Dialog title"</h3>
+</Header>
+<Header tone=HeaderTone::Strong>
+  <h3>"Strong header"</h3>
+</Header>"#;
+
+    let bordered_code = r#"<View border=ViewBorder::Subtle radius=ViewRadius::Md>
+  <Header
+    tone=HeaderTone::Strong
+    bordered=true
+    aria_label="Settings header".to_string()
+    class_name="docs-header-custom".to_string()
+  >
+    <h3>"Settings"</h3>
+  </Header>
+  <Content padded=true>
+    <p>"Header above content, matching Spectrum container semantics."</p>
+  </Content>
+</View>"#;
+
+    view! {
+        <ComponentPage
+            title="Header"
+            slug="header"
+            group="Layout"
+            description="Semantic container header (`<header>`) with centralized tone/border/source state contracts."
+        >
+            <Playground title="Semantic Header + Tone" code=semantic_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <div class="docs-stack">
+                        <Header>
+                            <h3>"Dialog title"</h3>
+                        </Header>
+                        <Header tone=HeaderTone::Strong>
+                            <h3>"Strong header"</h3>
+                        </Header>
+                    </div>
+                </View>
+            </Playground>
+
+            <Playground title="Bordered + Custom Aria/Class" code=bordered_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Header
+                        tone=HeaderTone::Strong
+                        bordered=true
+                        aria_label="Settings header".to_string()
+                        class_name="docs-header-custom".to_string()
+                    >
+                        <h3>"Settings"</h3>
+                    </Header>
+                    <Content padded=true>
+                        <p>"Header above content, matching Spectrum container semantics."</p>
                     </Content>
                 </View>
             </Playground>

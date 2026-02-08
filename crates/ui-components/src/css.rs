@@ -99,6 +99,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::tree::styles::CSS);
     out.push_str(crate::view::styles::CSS);
     out.push_str(crate::content::styles::CSS);
+    out.push_str(crate::header::styles::CSS);
     out.push_str("\n}\n");
 }
 
