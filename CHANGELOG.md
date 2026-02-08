@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Footer>` as a Spectrum-style semantic footer primitive with centralized tone/border normalization and stable `data-*` source/state contracts.
+- `apps/docs-app`: adds a `Footer` docs page with semantic-tone and bordered-container playground coverage.
 - `ui-components`: adds `<Header>` as a Spectrum-style semantic header primitive with centralized tone/border normalization and stable `data-*` source/state contracts.
 - `apps/docs-app`: adds a `Header` docs page with semantic-tone and bordered-container playground coverage.
 - `ui-components`: adds `<Content>` as a Spectrum-style semantic section primitive with centralized tone/padding normalization and stable `data-*` source/state contracts.

@@ -3,9 +3,10 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
-    DividerOrientation, Header, HeaderTone, ScrollShadow, Separator, SeparatorElementType,
-    SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View, ViewBackground, ViewBorder,
-    ViewElement, ViewPadding, ViewRadius, ViewShadow, Well, WellDensity, WellTone,
+    DividerOrientation, Footer, FooterTone, Header, HeaderTone, ScrollShadow, Separator,
+    SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
+    ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
+    WellDensity, WellTone,
 };
 
 pub(super) fn card() -> AnyView {
@@ -294,6 +295,74 @@ pub(super) fn header() -> AnyView {
                     <Content padded=true>
                         <p>"Header above content, matching Spectrum container semantics."</p>
                     </Content>
+                </View>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn footer() -> AnyView {
+    let semantic_code = r#"<Footer>
+  <p>"Cancel · Save"</p>
+</Footer>
+<Footer tone=FooterTone::Muted>
+  <p>"Secondary action hint"</p>
+</Footer>"#;
+
+    let bordered_code = r#"<View border=ViewBorder::Subtle radius=ViewRadius::Md>
+  <Header bordered=true>
+    <h3>"Profile settings"</h3>
+  </Header>
+  <Content padded=true>
+    <p>"Main settings body"</p>
+  </Content>
+  <Footer
+    tone=FooterTone::Muted
+    bordered=true
+    aria_label="Settings footer".to_string()
+    class_name="docs-footer-custom".to_string()
+  >
+    <p>"Cancel · Save"</p>
+  </Footer>
+</View>"#;
+
+    view! {
+        <ComponentPage
+            title="Footer"
+            slug="footer"
+            group="Layout"
+            description="Semantic container footer (`<footer>`) with centralized tone/border/source state contracts."
+        >
+            <Playground title="Semantic Footer + Tone" code=semantic_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <div class="docs-stack">
+                        <Footer>
+                            <p>"Cancel · Save"</p>
+                        </Footer>
+                        <Footer tone=FooterTone::Muted>
+                            <p>"Secondary action hint"</p>
+                        </Footer>
+                    </div>
+                </View>
+            </Playground>
+
+            <Playground title="Bordered + Custom Aria/Class" code=bordered_code>
+                <View border=ViewBorder::Subtle radius=ViewRadius::Md>
+                    <Header bordered=true>
+                        <h3>"Profile settings"</h3>
+                    </Header>
+                    <Content padded=true>
+                        <p>"Main settings body"</p>
+                    </Content>
+                    <Footer
+                        tone=FooterTone::Muted
+                        bordered=true
+                        aria_label="Settings footer".to_string()
+                        class_name="docs-footer-custom".to_string()
+                    >
+                        <p>"Cancel · Save"</p>
+                    </Footer>
                 </View>
             </Playground>
         </ComponentPage>
