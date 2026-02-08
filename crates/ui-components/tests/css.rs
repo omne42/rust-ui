@@ -31,6 +31,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-chip", ".ui-chip {"),
         (".ui-color-area", ".ui-color-area {"),
         (".ui-color-field", ".ui-color-field {"),
+        (".ui-color-editor", ".ui-color-editor {"),
         (".ui-color-picker", ".ui-color-picker {"),
         (".ui-color-slider", ".ui-color-slider {"),
         (".ui-color-thumb", ".ui-color-thumb {"),

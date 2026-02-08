@@ -2,8 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    ColorArea, ColorField, ColorPicker, ColorSlider, ColorSliderChannel, ColorSliderMotion,
-    ColorSwatchPicker, ColorSwatchPickerItem, ColorThumb, ColorWheel, ColorWheelMotion,
+    ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorPicker, ColorSlider,
+    ColorSliderChannel, ColorSliderMotion, ColorSwatchPicker, ColorSwatchPickerItem, ColorThumb,
+    ColorWheel, ColorWheelMotion,
 };
 
 pub(super) fn color_field() -> AnyView {
@@ -536,6 +537,114 @@ pub(super) fn color_thumb() -> AnyView {
                         x_percent=70.0
                         y_percent=40.0
                         class_name="docs-color-thumb-custom".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_editor() -> AnyView {
+    let (selected_color, set_selected_color) = signal(Some("#4f46e5".to_string()));
+    let on_selected_change =
+        Callback::new(move |next: Option<String>| set_selected_color.set(next));
+
+    let (format, set_format) = signal(ColorEditorFormat::Hex);
+    let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.set(next));
+
+    let selected_color_signal: Signal<Option<String>> = selected_color.into();
+    let format_signal: Signal<ColorEditorFormat> = format.into();
+
+    let reduced_motion = ColorSliderMotion::disabled();
+
+    let basic_code = r##"let (selected_color, set_selected_color) = signal(Some("#4f46e5".to_string()));
+let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));
+
+let (format, set_format) = signal(ColorEditorFormat::Hex);
+let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.set(next));
+
+let selected_color_signal: Signal<Option<String>> = selected_color.into();
+let format_signal: Signal<ColorEditorFormat> = format.into();
+
+<ColorEditor
+  id_base="docs-color-editor-basic".to_string()
+  label="Color editor".to_string()
+  selected_color=selected_color_signal
+  on_selected_change=on_selected_change
+  format=format_signal
+  on_format_change=on_format_change
+/>"##;
+
+    let states_code = r##"let reduced_motion = ColorSliderMotion::disabled();
+
+<ColorEditor
+  id_base="docs-color-editor-disabled".to_string()
+  label="Disabled editor".to_string()
+  default_selected_color="#0ea5e9".to_string()
+  default_format=ColorEditorFormat::Rgb
+  hide_alpha_channel=true
+  disabled=true
+  class_name="docs-color-editor-custom".to_string()
+/>
+
+<ColorEditor
+  id_base="docs-color-editor-motion".to_string()
+  label="Brand editor".to_string()
+  default_format=ColorEditorFormat::Hsb
+  default_hue=282.0
+  default_alpha=64.0
+  default_area=(0.46, 0.88)
+  motion=reduced_motion
+/>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorEditor"
+            slug="color-editor"
+            group="Forms"
+            description="Spectrum-compatible color editor primitive that composes color area + sliders + field + format switching with controllable color/format state and stable slot/data-state contracts."
+        >
+            <Playground title="Controlled Color + Controlled Format" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorEditor
+                        id_base="docs-color-editor-basic".to_string()
+                        label="Color editor".to_string()
+                        selected_color=selected_color_signal
+                        on_selected_change=on_selected_change
+                        format=format_signal
+                        on_format_change=on_format_change
+                    />
+
+                    <span class="ui-muted">
+                        "value: "
+                        {move || selected_color.get().unwrap_or_else(|| "none".to_string())}
+                        " · format: "
+                        {move || format.get().as_attr()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Alpha Hidden + Reduced Motion" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorEditor
+                        id_base="docs-color-editor-disabled".to_string()
+                        label="Disabled editor".to_string()
+                        default_selected_color="#0ea5e9".to_string()
+                        default_format=ColorEditorFormat::Rgb
+                        hide_alpha_channel=true
+                        disabled=true
+                        class_name="docs-color-editor-custom".to_string()
+                    />
+
+                    <ColorEditor
+                        id_base="docs-color-editor-motion".to_string()
+                        label="Brand editor".to_string()
+                        default_format=ColorEditorFormat::Hsb
+                        default_hue=282.0
+                        default_alpha=64.0
+                        default_area=(0.46, 0.88)
+                        motion=reduced_motion
                     />
                 </div>
             </Playground>

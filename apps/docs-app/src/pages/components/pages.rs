@@ -228,6 +228,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_color::color_field,
     },
     ComponentDoc {
+        name: "ColorEditor",
+        slug: "color-editor",
+        group: "Forms",
+        page: forms_color::color_editor,
+    },
+    ComponentDoc {
         name: "ColorArea",
         slug: "color-area",
         group: "Forms",
