@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Grid>` as a Spectrum-style layout primitive with centralized columns/rows/gap/alignment normalization and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `Grid` docs page with columns/gap and auto-fit/dense/equal-rows playground coverage.
+
 - `ui-components`: adds `<Flex>` as a Spectrum-style layout primitive with centralized direction/wrap/justify/align/gap normalization and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `Flex` docs page with direction/wrap/gap and inline/distribution playground coverage.
 

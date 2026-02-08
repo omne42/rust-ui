@@ -8,6 +8,7 @@ mod files;
 mod forms;
 mod forms_extra;
 mod layout;
+mod layout_extra;
 mod overlays;
 
 use super::ComponentDoc;
@@ -252,6 +253,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "flex",
         group: "Layout",
         page: layout::flex,
+    },
+    ComponentDoc {
+        name: "Grid",
+        slug: "grid",
+        group: "Layout",
+        page: layout_extra::grid,
     },
     ComponentDoc {
         name: "Content",
