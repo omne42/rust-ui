@@ -53,6 +53,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<CheckboxField>` as a Spectrum/HeroUI-style checkbox-field primitive with centralized tone/indicator/aria/class state derivation and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `CheckboxField` docs page with controlled description and indicator-end quiet invalid/disabled playground coverage.
 
+- `ui-components`: adds `<Legend>` as a Spectrum/HeroUI-compatible fieldset legend primitive with centralized tone/required/disabled state derivation and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `Legend` docs page with required semantics and tone/custom-indicator/disabled playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 

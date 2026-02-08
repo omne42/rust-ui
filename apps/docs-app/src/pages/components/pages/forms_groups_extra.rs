@@ -1,7 +1,9 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{CheckboxField, CheckboxFieldIndicatorPlacement, CheckboxFieldTone};
+use ui_components::{
+    CheckboxField, CheckboxFieldIndicatorPlacement, CheckboxFieldTone, Legend, LegendTone,
+};
 
 pub(super) fn checkbox_field() -> AnyView {
     let (newsletter, set_newsletter) = signal(true);
@@ -84,6 +86,66 @@ pub(super) fn checkbox_field() -> AnyView {
                         " · read-only: " {move || read_only.get().to_string()}
                     </span>
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn legend() -> AnyView {
+    let required_code = r#"<fieldset class=\"docs-stack\"> 
+  <Legend
+    text=\"Notification settings\".to_string()
+    required=true
+  />
+</fieldset>"#;
+
+    let states_code = r#"<fieldset class=\"docs-stack\"> 
+  <Legend
+    text=\"Billing preferences\".to_string()
+    tone=LegendTone::Muted
+    required_indicator=\"(required)\".to_string()
+    class_name=\"docs-legend-custom\".to_string()
+  />
+  <Legend
+    text=\"Read-only group\".to_string()
+    tone=LegendTone::Strong
+    disabled=true
+  />
+</fieldset>"#;
+
+    view! {
+        <ComponentPage
+            title="Legend"
+            slug="legend"
+            group="Forms"
+            description="Spectrum/HeroUI-compatible fieldset legend primitive with centralized tone/required/disabled contracts and stable slot/data-state markers."
+        >
+            <Playground title="Required Legend" code=required_code>
+                <fieldset class="docs-stack">
+                    <Legend text="Notification settings".to_string() required=true />
+                    <div class="ui-muted">
+                        "Legend stays semantic inside fieldset and exposes required marker contracts."
+                    </div>
+                </fieldset>
+            </Playground>
+
+            <Playground title="Tone + Custom Indicator + Disabled" code=states_code>
+                <fieldset class="docs-stack">
+                    <Legend
+                        text="Billing preferences".to_string()
+                        tone=LegendTone::Muted
+                        required=true
+                        required_indicator="(required)".to_string()
+                        class_name="docs-legend-custom".to_string()
+                    />
+
+                    <Legend
+                        text="Read-only group".to_string()
+                        tone=LegendTone::Strong
+                        disabled=true
+                    />
+                </fieldset>
             </Playground>
         </ComponentPage>
     }
