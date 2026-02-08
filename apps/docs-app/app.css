@@ -1131,6 +1131,11 @@ a {
   color: var(--ui-fg);
 }
 
+.docs-surface-custom {
+  border-color: color-mix(in oklch, var(--ui-border), var(--ui-accent) 34%);
+  background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 18%);
+}
+
 .docs-label-custom,
 .docs-field-custom,
 .docs-help-text-custom,
@@ -1139,6 +1144,7 @@ a {
 .docs-error-message-custom,
 .docs-empty-state-custom,
 .docs-switch-group-custom,
-.docs-disclosure-group-custom {
+.docs-disclosure-group-custom,
+.docs-surface-custom {
   border-radius: var(--ui-radius-sm);
 }

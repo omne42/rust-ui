@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Surface>` as a Spectrum/HeroUI-style foundational container primitive with centralized tone/elevation/frame/source normalization and stable `data-*` state contracts.
+- `apps/docs-app`: adds a `Surface` docs page with tone/elevation/frame and custom-aria/custom-class playground coverage.
+
 - `ui-components`: adds `<DisclosureGroup>` as a Spectrum/HeroUI-style grouped disclosure primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals.
 - `apps/docs-app`: adds a `DisclosureGroup` docs page with multiple-controlled and single-disabled/custom-class playground coverage.
 
