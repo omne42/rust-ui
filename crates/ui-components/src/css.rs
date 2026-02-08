@@ -42,6 +42,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::code::styles::CSS);
     out.push_str(crate::code_block::styles::CSS);
     out.push_str(crate::snippet::styles::CSS);
+    out.push_str(crate::text::styles::CSS);
     out.push_str(crate::label::styles::CSS);
     out.push_str(crate::labeled_value::styles::CSS);
     out.push_str(crate::kbd::styles::CSS);

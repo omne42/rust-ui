@@ -1,7 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{LabeledValue, LabeledValueOrientation, LabeledValueTone};
+use ui_components::{
+    LabeledValue, LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement,
+    TextTone, TextWeight,
+};
 
 pub(super) fn labeled_value() -> AnyView {
     let orientation_code = r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />
@@ -55,6 +58,61 @@ pub(super) fn labeled_value() -> AnyView {
                         value="99.95%".to_string()
                         orientation=LabeledValueOrientation::Inline
                         tone=LabeledValueTone::Default
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn text() -> AnyView {
+    let tone_code = r#"<Text text="Primary body copy".to_string() />
+<Text text="Subtle metadata".to_string() tone=TextTone::Subtle />
+<Text text="Strong headline".to_string() tone=TextTone::Strong weight=TextWeight::Bold />"#;
+
+    let states_code = r#"<Text
+  text="Centered label".to_string()
+  align=TextAlign::Center
+  element=TextElement::Div
+/>
+<Text
+  text="Long text that truncates when width is constrained by the container around it".to_string()
+  truncate=true
+  class_name="docs-text-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Text"
+            slug="text"
+            group="Display"
+            description="Typography primitive with centralized tone/alignment/weight/source state contracts and Spectrum-style data markers."
+        >
+            <Playground title="Tone + Weight Matrix" code=tone_code>
+                <div class="docs-stack">
+                    <Text text="Primary body copy".to_string() />
+                    <Text text="Subtle metadata".to_string() tone=TextTone::Subtle />
+                    <Text
+                        text="Strong headline".to_string()
+                        tone=TextTone::Strong
+                        weight=TextWeight::Bold
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Alignment + Truncate + Element" code=states_code>
+                <div class="docs-stack">
+                    <Text
+                        text="Centered label".to_string()
+                        align=TextAlign::Center
+                        weight=TextWeight::Semibold
+                        element=TextElement::Div
+                    />
+                    <Text
+                        text="Long text that truncates when width is constrained by the container around it".to_string()
+                        truncate=true
+                        class_name="docs-text-custom".to_string()
                     />
                 </div>
             </Playground>

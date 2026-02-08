@@ -392,6 +392,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display_extra::labeled_value,
     },
     ComponentDoc {
+        name: "Text",
+        slug: "text",
+        group: "Display",
+        page: display_extra::text,
+    },
+    ComponentDoc {
         name: "Avatar",
         slug: "avatar",
         group: "Display",
