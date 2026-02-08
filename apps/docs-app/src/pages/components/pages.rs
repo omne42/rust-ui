@@ -551,6 +551,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::image,
     },
     ComponentDoc {
+        name: "ColorSwatch",
+        slug: "color-swatch",
+        group: "Display",
+        page: display_extra::color_swatch,
+    },
+    ComponentDoc {
         name: "Icon",
         slug: "icon",
         group: "Display",

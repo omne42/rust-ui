@@ -38,6 +38,7 @@ pub mod clear_button;
 pub mod close_button;
 pub mod code;
 pub mod code_block;
+pub mod color_swatch;
 pub mod combo_box;
 pub mod content;
 pub mod contextual_help;
@@ -180,6 +181,9 @@ pub use clear_button::{ClearButton, ClearButtonVariant};
 pub use close_button::{CloseButton, CloseButtonSize, CloseButtonVariant};
 pub use code::{Code, CodeVariant};
 pub use code_block::{CodeBlock, CodeBlockMotion};
+pub use color_swatch::{
+    ColorSwatch, ColorSwatchAlpha, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,
+};
 pub use combo_box::{ComboBox, ComboBoxMotion};
 pub use content::{Content, ContentTone};
 pub use contextual_help::{ContextualHelp, ContextualHelpMotion, ContextualHelpVariant};

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
+
 - `ui-components`: adds `<AspectRatio>` as a Shadcn/HeroUI-compatible media-frame primitive with centralized ratio/radius/frame/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds an `AspectRatio` docs page with ratio presets and bordered/fill/custom-aria playground coverage.
 

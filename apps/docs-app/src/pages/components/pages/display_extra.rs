@@ -2,7 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    EmptyState, EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone,
+    ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, EmptyState,
+    EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone,
     LabeledValue, LabeledValueOrientation, LabeledValueTone, Text, TextAlign, TextElement,
     TextTone, TextWeight,
 };
@@ -318,6 +319,70 @@ pub(super) fn empty_state() -> AnyView {
                         }
                     }
                 />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_swatch() -> AnyView {
+    let size_code = r##"<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Xs />
+<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Sm />
+<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Md />
+<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Lg rounding=ColorSwatchRounding::Full />"##;
+
+    let state_code = r#"<ColorSwatch
+  color="rgba(38, 99, 235, 0.35)".to_string()
+  color_name="Brand blue".to_string()
+  aria_label="Background color".to_string()
+  shape=ColorSwatchShape::Wide
+  rounding=ColorSwatchRounding::Default
+  class_name="docs-color-swatch-custom".to_string()
+/>
+<ColorSwatch
+  color="rgba(255, 0, 0, 0)".to_string()
+  color_name="No fill".to_string()
+  bordered=true
+/>
+<ColorSwatch color="".to_string() bordered=true />"#;
+
+    view! {
+        <ComponentPage
+            title="ColorSwatch"
+            slug="color-swatch"
+            group="Display"
+            description="Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source contracts and stable slot/data markers."
+        >
+            <Playground title="Size + Rounding" code=size_code>
+                <div class="docs-row">
+                    <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Xs />
+                    <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Sm />
+                    <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Md />
+                    <ColorSwatch
+                        color="#ffcc00".to_string()
+                        size=ColorSwatchSize::Lg
+                        rounding=ColorSwatchRounding::Full
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Transparency + Accessible Label + Shape" code=state_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ColorSwatch
+                        color="rgba(38, 99, 235, 0.35)".to_string()
+                        color_name="Brand blue".to_string()
+                        aria_label="Background color".to_string()
+                        shape=ColorSwatchShape::Wide
+                        rounding=ColorSwatchRounding::Default
+                        class_name="docs-color-swatch-custom".to_string()
+                    />
+                    <ColorSwatch
+                        color="rgba(255, 0, 0, 0)".to_string()
+                        color_name="No fill".to_string()
+                        bordered=true
+                    />
+                    <ColorSwatch color="".to_string() bordered=true />
+                </div>
             </Playground>
         </ComponentPage>
     }
