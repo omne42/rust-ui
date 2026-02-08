@@ -38,6 +38,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<ColorHandle>` as a Spectrum-compatible draggable handle primitive with composed thumb/loupe behavior, centralized state derivation, and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `ColorHandle` docs page with focused/dragging positions and disabled/loupe-off/custom-class playground coverage.
 
+- `ui-components`: adds `<ColorLoupe>` as a Spectrum-compatible color loupe overlay primitive with centralized open/disabled/position normalization, checkerboard alpha preview, and stable `slot` + `data-*` state contracts.
+- `apps/docs-app`: adds a `ColorLoupe` docs page with open-position buckets and disabled/custom-label/custom-class playground coverage.
+
 - `ui-components`: adds `<ColorSwatch>` as a Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source normalization and stable `slot` + `data-*` state contracts.
 - `apps/docs-app`: adds a `ColorSwatch` docs page with size/rounding and transparency/accessible-label/shape playground coverage.
 

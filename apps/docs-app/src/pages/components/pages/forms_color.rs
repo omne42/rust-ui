@@ -2,9 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorHandle, ColorPicker, ColorSlider,
-    ColorSliderChannel, ColorSliderMotion, ColorSwatchPicker, ColorSwatchPickerItem, ColorThumb,
-    ColorWheel, ColorWheelMotion,
+    ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorHandle, ColorLoupe, ColorPicker,
+    ColorSlider, ColorSliderChannel, ColorSliderMotion, ColorSwatchPicker, ColorSwatchPickerItem,
+    ColorThumb, ColorWheel, ColorWheelMotion,
 };
 
 pub(super) fn color_field() -> AnyView {
@@ -749,6 +749,114 @@ pub(super) fn color_handle() -> AnyView {
                         x_percent=70.0
                         y_percent=40.0
                         class_name="docs-color-handle-custom".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn color_loupe() -> AnyView {
+    let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm); background: color-mix(in oklch, var(--ui-bg), var(--ui-fg) 2%);";
+
+    let basic_code = r##"let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm);";
+
+<div style=surface_style>
+  <ColorLoupe
+    id_base="docs-color-loupe-start".to_string()
+    color="#f59e0b".to_string()
+    open=true
+    x_percent=18.0
+    y_percent=74.0
+  />
+  <ColorLoupe
+    id_base="docs-color-loupe-center".to_string()
+    color="#10b981".to_string()
+    open=true
+    x_percent=50.0
+    y_percent=48.0
+  />
+  <ColorLoupe
+    id_base="docs-color-loupe-end".to_string()
+    color="#3b82f6".to_string()
+    open=true
+    x_percent=82.0
+    y_percent=24.0
+  />
+</div>"##;
+
+    let states_code = r##"<div style=surface_style>
+  <ColorLoupe
+    id_base="docs-color-loupe-disabled".to_string()
+    color="#a78bfa".to_string()
+    open=true
+    disabled=true
+    x_percent=32.0
+    y_percent=58.0
+  />
+  <ColorLoupe
+    id_base="docs-color-loupe-custom".to_string()
+    color="rgba(56, 189, 248, 0.72)".to_string()
+    open=true
+    x_percent=72.0
+    y_percent=36.0
+    aria_label="Accent loupe".to_string()
+    class_name="docs-color-loupe-custom".to_string()
+  />
+</div>"##;
+
+    view! {
+        <ComponentPage
+            title="ColorLoupe"
+            slug="color-loupe"
+            group="Forms"
+            description="Spectrum-compatible color loupe overlay primitive with centralized open/disabled/position normalization, checkerboard alpha preview, and stable slot/data-state contracts."
+        >
+            <Playground title="Open + Position Buckets" code=basic_code>
+                <div style=surface_style>
+                    <ColorLoupe
+                        id_base="docs-color-loupe-start".to_string()
+                        color="#f59e0b".to_string()
+                        open=true
+                        x_percent=18.0
+                        y_percent=74.0
+                    />
+                    <ColorLoupe
+                        id_base="docs-color-loupe-center".to_string()
+                        color="#10b981".to_string()
+                        open=true
+                        x_percent=50.0
+                        y_percent=48.0
+                    />
+                    <ColorLoupe
+                        id_base="docs-color-loupe-end".to_string()
+                        color="#3b82f6".to_string()
+                        open=true
+                        x_percent=82.0
+                        y_percent=24.0
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Label + Custom Class" code=states_code>
+                <div style=surface_style>
+                    <ColorLoupe
+                        id_base="docs-color-loupe-disabled".to_string()
+                        color="#a78bfa".to_string()
+                        open=true
+                        disabled=true
+                        x_percent=32.0
+                        y_percent=58.0
+                    />
+                    <ColorLoupe
+                        id_base="docs-color-loupe-custom".to_string()
+                        color="rgba(56, 189, 248, 0.72)".to_string()
+                        open=true
+                        x_percent=72.0
+                        y_percent=36.0
+                        aria_label="Accent loupe".to_string()
+                        class_name="docs-color-loupe-custom".to_string()
                     />
                 </div>
             </Playground>
