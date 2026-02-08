@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<HelpText>` as a Spectrum-style assistance primitive with centralized description/error resolution, tone/icon state derivation, and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `HelpText` docs page with description and invalid/icon/disabled error playground coverage.
+
 - `ui-components`: adds `<Field>` as a Spectrum-style form field wrapper with centralized orientation/tone/validation/message-state normalization and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `Field` docs page with required/description and horizontal-invalid custom-class playground coverage.
 

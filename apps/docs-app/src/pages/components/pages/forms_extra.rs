@@ -4,7 +4,7 @@ use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
     DatePickerTone, DateRangePicker, DateRangePickerTone, Field, FieldOrientation, FieldTone,
-    Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
+    HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
 };
 
 pub(super) fn label() -> AnyView {
@@ -114,6 +114,59 @@ pub(super) fn field() -> AnyView {
                         placeholder="owner@company.com"
                     />
                 </Field>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn help_text() -> AnyView {
+    let description_code = r#"<HelpText
+  description="Use at least 12 characters.".to_string()
+/>"#;
+
+    let error_code = r#"<HelpText
+  invalid=true
+  show_error_icon=true
+  error_message="Password does not meet complexity requirements.".to_string()
+  class_name="docs-help-text-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="HelpText"
+            slug="help-text"
+            group="Forms"
+            description="Spectrum-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts."
+        >
+            <Playground title="Description (Neutral)" code=description_code>
+                <div class="docs-stack">
+                    <HelpText
+                        description="Use at least 12 characters.".to_string()
+                        aria_label="Password hint".to_string()
+                    />
+                    <HelpText
+                        tone=HelpTextTone::Neutral
+                        description="This value is visible to project admins only.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Invalid + Error Icon" code=error_code>
+                <div class="docs-stack">
+                    <HelpText
+                        invalid=true
+                        show_error_icon=true
+                        error_message="Password does not meet complexity requirements.".to_string()
+                        class_name="docs-help-text-custom".to_string()
+                    />
+                    <HelpText
+                        invalid=true
+                        tone=HelpTextTone::Negative
+                        error_message="Two-factor token expired. Request a new code.".to_string()
+                        disabled=true
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }

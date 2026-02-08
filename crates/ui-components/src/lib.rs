@@ -55,6 +55,7 @@ pub mod form;
 pub mod grid;
 pub mod header;
 pub mod heading;
+pub mod help_text;
 pub mod hover_card;
 pub mod icon_button;
 pub mod illustrated_message;
@@ -176,6 +177,7 @@ pub use form::{Form, FormLabelAlign, FormLabelPosition, use_form_context};
 pub use grid::{Grid, GridAlign, GridColumns, GridGap, GridJustify, GridRows};
 pub use header::{Header, HeaderTone};
 pub use heading::{Heading, HeadingLevel, HeadingTone};
+pub use help_text::{HelpText, HelpTextTone};
 pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon_button::IconButton;
 pub use illustrated_message::{
