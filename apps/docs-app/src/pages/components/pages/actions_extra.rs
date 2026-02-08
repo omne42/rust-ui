@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
     ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
-    CloseButtonVariant, FieldButton,
+    CloseButtonVariant, FieldButton, LogicButton, LogicButtonVariant,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -259,6 +259,60 @@ pub(super) fn close_button() -> AnyView {
                         disabled=true
                         class_name="docs-close-button-custom".to_string()
                     />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn logic_button() -> AnyView {
+    let basic_code = r#"<LogicButton variant=LogicButtonVariant::And>
+  "AND"
+</LogicButton>
+<LogicButton variant=LogicButtonVariant::Or>
+  "OR"
+</LogicButton>"#;
+
+    let state_code = r#"<LogicButton
+  variant=LogicButtonVariant::And
+  class_name="docs-logic-button-custom".to_string()
+>
+  "Custom"
+</LogicButton>
+<LogicButton variant=LogicButtonVariant::Or disabled=true>
+  "Disabled"
+</LogicButton>"#;
+
+    view! {
+        <ComponentPage
+            title="LogicButton"
+            slug="logic-button"
+            group="Actions"
+            description="Spectrum-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts."
+        >
+            <Playground title="AND + OR variants" code=basic_code>
+                <div class="docs-row">
+                    <LogicButton variant=LogicButtonVariant::And>
+                        "AND"
+                    </LogicButton>
+                    <LogicButton variant=LogicButtonVariant::Or>
+                        "OR"
+                    </LogicButton>
+                </div>
+            </Playground>
+
+            <Playground title="Custom class + Disabled" code=state_code>
+                <div class="docs-row">
+                    <LogicButton
+                        variant=LogicButtonVariant::And
+                        class_name="docs-logic-button-custom".to_string()
+                    >
+                        "Custom"
+                    </LogicButton>
+                    <LogicButton variant=LogicButtonVariant::Or disabled=true>
+                        "Disabled"
+                    </LogicButton>
                 </div>
             </Playground>
         </ComponentPage>

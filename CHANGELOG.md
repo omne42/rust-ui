@@ -14,6 +14,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<CloseButton>` as a Spectrum/HeroUI-style close affordance with centralized variant/size normalization, default icon fallback, and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `CloseButton` docs page with default/over-background/custom-label and size/disabled/custom-class playground coverage.
 
+- `ui-components`: adds `<LogicButton>` as a Spectrum-style boolean operator primitive with centralized and/or variant normalization, headless press/hover/focus integration, and stable `data-*` state/source contracts.
+- `apps/docs-app`: adds a `LogicButton` docs page with and/or variants and custom-class/disabled playground coverage.
+
 - `ui-components`: adds `<FieldButton>` as a Spectrum-style field-trigger primitive with centralized quiet/invalid/active/disabled normalization, headless press/hover/focus integration, and stable `data-*` state/source contracts.
 - `apps/docs-app`: adds a `FieldButton` docs page with default/quiet and invalid-active/disabled playground coverage.
 

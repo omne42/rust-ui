@@ -74,6 +74,7 @@ pub mod labeled_value;
 pub mod link;
 pub mod link_button;
 pub mod listbox;
+pub mod logic_button;
 pub mod menu;
 pub mod menu_trigger;
 pub mod meter;
@@ -201,6 +202,7 @@ pub use labeled_value::{LabeledValue, LabeledValueOrientation, LabeledValueTone}
 pub use link::Link;
 pub use link_button::LinkButton;
 pub use listbox::ListBox;
+pub use logic_button::{LogicButton, LogicButtonVariant};
 pub use menu::Menu;
 pub use menu_trigger::MenuTrigger;
 pub use meter::{Meter, MeterMotion, MeterSize, MeterVariant};
