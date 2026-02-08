@@ -87,6 +87,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::tabs::styles::CSS);
     out.push_str(crate::accordion::styles::CSS);
     out.push_str(crate::disclosure::styles::CSS);
+    out.push_str(crate::disclosure_group::styles::CSS);
     out.push_str(crate::overlay::styles::CSS);
     out.push_str(crate::popover::styles::CSS);
     out.push_str(crate::tooltip::styles::CSS);

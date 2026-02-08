@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
-    TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Table, TableCellAlign, TableColumn,
+    TableDensity, TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -179,6 +179,146 @@ pub(super) fn tree() -> AnyView {
                     default_selected_id="svc-api".to_string()
                     class_name="docs-tree-custom".to_string()
                 />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn disclosure_group() -> AnyView {
+    let labels = vec![
+        "Account security".to_string(),
+        "Billing preferences".to_string(),
+        "Incident escalation".to_string(),
+    ];
+
+    let single_labels = vec![
+        "Region routing".to_string(),
+        "Failover strategy".to_string(),
+        "Legacy endpoints".to_string(),
+    ];
+
+    let (expanded_multi, set_expanded_multi) = signal(BTreeSet::from([0_usize]));
+    let on_multi_change = Callback::new(move |next: BTreeSet<usize>| set_expanded_multi.set(next));
+
+    let (expanded_single, set_expanded_single) = signal(BTreeSet::from([1_usize]));
+    let on_single_change =
+        Callback::new(move |next: BTreeSet<usize>| set_expanded_single.set(next));
+
+    let code = r#"let (expanded, set_expanded) = signal(BTreeSet::from([0_usize]));
+let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded.set(next));
+
+<DisclosureGroup
+  labels=vec![
+    "Account security".to_string(),
+    "Billing preferences".to_string(),
+    "Incident escalation".to_string(),
+  ]
+  id_base="ops-disclosure-group".to_string()
+  expanded_indices=expanded.into()
+  on_expanded_change=on_expanded_change
+  selection_mode=DisclosureGroupSelectionMode::Multiple
+>
+  <div>"Security policy details"</div>
+  <div>"Billing ownership details"</div>
+  <div>"Escalation chain details"</div>
+</DisclosureGroup>"#;
+
+    let states_code = r#"let (expanded, set_expanded) = signal(BTreeSet::from([1_usize]));
+let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded.set(next));
+
+<DisclosureGroup
+  labels=vec![
+    "Region routing".to_string(),
+    "Failover strategy".to_string(),
+    "Legacy endpoints".to_string(),
+  ]
+  id_base="ops-disclosure-group-single".to_string()
+  expanded_indices=expanded.into()
+  on_expanded_change=on_expanded_change
+  selection_mode=DisclosureGroupSelectionMode::Single
+  disabled_indices=vec![2]
+  class_name="docs-disclosure-group-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="DisclosureGroup"
+            slug="disclosure-group"
+            group="Collections"
+            description="Spectrum/HeroUI-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals."
+        >
+            <Playground title="Multiple + Controlled" code=code>
+                <div class="docs-stack">
+                    <DisclosureGroup
+                        labels=labels
+                        id_base="docs-disclosure-group-multiple".to_string()
+                        expanded_indices=expanded_multi.into()
+                        on_expanded_change=on_multi_change
+                        selection_mode=DisclosureGroupSelectionMode::Multiple
+                        aria_label="Operational disclosure sections".to_string()
+                    >
+                        <div class="docs-stack">
+                            <strong>"Account security"</strong>
+                            <span class="ui-muted">
+                                "MFA, session policies, and login anomaly rules."
+                            </span>
+                        </div>
+                        <div class="docs-stack">
+                            <strong>"Billing preferences"</strong>
+                            <span class="ui-muted">
+                                "Invoice owner, tax profile, and payment method fallback."
+                            </span>
+                        </div>
+                        <div class="docs-stack">
+                            <strong>"Incident escalation"</strong>
+                            <span class="ui-muted">
+                                "Pager rotation, severity matrix, and incident runbook links."
+                            </span>
+                        </div>
+                    </DisclosureGroup>
+                    <span class="ui-muted">
+                        "expanded: "
+                        {move || format!("{:?}", expanded_multi.get())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Single + Disabled Item + Custom Class" code=states_code>
+                <div class="docs-stack">
+                    <DisclosureGroup
+                        labels=single_labels
+                        id_base="docs-disclosure-group-single".to_string()
+                        expanded_indices=expanded_single.into()
+                        on_expanded_change=on_single_change
+                        selection_mode=DisclosureGroupSelectionMode::Single
+                        disabled_indices=vec![2]
+                        class_name="docs-disclosure-group-custom".to_string()
+                    >
+                        <div class="docs-stack">
+                            <strong>"Region routing"</strong>
+                            <span class="ui-muted">
+                                "Traffic enters through geo routing with weighted failover."
+                            </span>
+                        </div>
+                        <div class="docs-stack">
+                            <strong>"Failover strategy"</strong>
+                            <span class="ui-muted">
+                                "Single-expanded mode keeps one active policy focused at a time."
+                            </span>
+                        </div>
+                        <div class="docs-stack">
+                            <strong>"Legacy endpoints"</strong>
+                            <span class="ui-muted">
+                                "Disabled section stays non-interactive for decommissioning."
+                            </span>
+                        </div>
+                    </DisclosureGroup>
+                    <span class="ui-muted">
+                        "expanded: "
+                        {move || format!("{:?}", expanded_single.get())}
+                    </span>
+                </div>
             </Playground>
         </ComponentPage>
     }

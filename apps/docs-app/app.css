@@ -1106,6 +1106,11 @@ a {
   padding: 2px;
 }
 
+.docs-disclosure-group-custom {
+  border-radius: var(--ui-radius-md);
+  background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 10%);
+}
+
 .docs-description-custom {
   color: color-mix(in oklch, var(--ui-accent), var(--ui-fg) 28%);
 }
@@ -1133,6 +1138,7 @@ a {
 .docs-field-error-custom,
 .docs-error-message-custom,
 .docs-empty-state-custom,
-.docs-switch-group-custom {
+.docs-switch-group-custom,
+.docs-disclosure-group-custom {
   border-radius: var(--ui-radius-sm);
 }

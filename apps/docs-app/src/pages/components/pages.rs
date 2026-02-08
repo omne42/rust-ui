@@ -592,6 +592,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections::disclosure,
     },
     ComponentDoc {
+        name: "DisclosureGroup",
+        slug: "disclosure-group",
+        group: "Collections",
+        page: collections_extra::disclosure_group,
+    },
+    ComponentDoc {
         name: "Tabs",
         slug: "tabs",
         group: "Collections",

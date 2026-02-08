@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<DisclosureGroup>` as a Spectrum/HeroUI-style grouped disclosure primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals.
+- `apps/docs-app`: adds a `DisclosureGroup` docs page with multiple-controlled and single-disabled/custom-class playground coverage.
+
 - `ui-components`: adds `<SwitchGroup>` as a Spectrum/HeroUI-style grouped switch primitive with centralized orientation/tone/validation/message-state normalization and stable `data-*` contracts.
 - `apps/docs-app`: adds a `SwitchGroup` docs page with required/description and horizontal-invalid-disabled/custom-class playground coverage.
 
