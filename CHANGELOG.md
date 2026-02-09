@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SidebarRail>` as a Shadcn-compatible sidebar rail primitive with controlled/uncontrolled open-state normalization, side-aware state contracts, and stable `data-*` markers.
+- `apps/docs-app`: adds a `SidebarRail` docs page with default-rail and controlled right-rail playground coverage.
+
 - `ui-components`: adds `<SidebarTrigger>` as a Shadcn-compatible sidebar trigger primitive with controlled/uncontrolled open-state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds a `SidebarTrigger` docs page with default-trigger and controlled custom-label playground coverage.
 

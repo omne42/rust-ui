@@ -461,6 +461,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         layout_extra::sidebar_header
     ),
     component_doc!(
+        "SidebarRail",
+        "sidebar-rail",
+        "Layout",
+        layout_extra::sidebar_rail
+    ),
+    component_doc!(
         "SidebarTrigger",
         "sidebar-trigger",
         "Layout",
