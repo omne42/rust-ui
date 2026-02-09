@@ -38,6 +38,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<Sidenav>` as an upstream-name-compatible wrapper over `Sidebar`, preserving Spectrum side-navigation controlled/uncontrolled accessibility contracts and HeroUI-level trigger/rail interaction behavior.
 - `apps/docs-app`: adds a `Sidenav` docs page with controlled floating and icon-collapsible/no-shortcut playground coverage.
 
+- `ui-components`: adds `<SplitView>` as an upstream-name-compatible wrapper over `Resizable`, preserving Spectrum split-pane controlled/uncontrolled accessibility contracts and HeroUI-level drag/keyboard handle interaction behavior.
+- `apps/docs-app`: adds a `SplitView` docs page with horizontal default and controlled vertical-bounds playground coverage.
+
 - `ui-components`: adds `<InfieldButton>` as a Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds an `InfieldButton` docs page with default/quiet and invalid/active/disabled playground coverage.
 

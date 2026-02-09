@@ -26,6 +26,7 @@ mod forms_native;
 mod layout;
 mod layout_extra;
 mod layout_extra_sidenav;
+mod layout_extra_split_view;
 mod overlays;
 mod overlays_extra;
 
@@ -40,6 +41,7 @@ use self::forms_extra_search as fxs;
 use self::forms_extra_textfield as fxt;
 use self::layout_extra as lx;
 use self::layout_extra_sidenav as lxs;
+use self::layout_extra_split_view as lxv;
 use self::overlays as ov;
 use super::ComponentDoc;
 
@@ -105,18 +107,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         actions::button_group
     ),
     component_doc!("FlipButton", "flip-button", "Actions", actions::flip_button),
-    ComponentDoc {
-        name: "IconButton",
-        slug: "icon-button",
-        group: "Actions",
-        page: actions::icon_button,
-    },
-    ComponentDoc {
-        name: "LinkButton",
-        slug: "link-button",
-        group: "Actions",
-        page: actions::link_button,
-    },
+    component_doc!("IconButton", "icon-button", "Actions", actions::icon_button),
+    component_doc!("LinkButton", "link-button", "Actions", actions::link_button),
     ComponentDoc {
         name: "SearchInputButton",
         slug: "search-input-button",
@@ -457,6 +449,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         layout_extra::scroll_area
     ),
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
+    component_doc!("SplitView", "split-view", "Layout", lxv::split_view),
     component_doc!("Sidebar", "sidebar", "Layout", lx::sidebar),
     component_doc!("Sidenav", "sidenav", "Layout", lxs::sidenav),
     component_doc!(
