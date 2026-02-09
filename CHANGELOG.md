@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds shadcn-compatible `item` primitive family (`Item`, `ItemGroup`, `ItemSeparator`, `ItemMedia`, `ItemContent`, `ItemTitle`, `ItemDescription`, `ItemActions`, `ItemHeader`, `ItemFooter`) with stable slot/variant contracts.
+- `apps/docs-app`: adds item primitive docs/playground coverage for media-content-actions and header-footer composition layouts.
+
 - `ui-components`: adds `radio_group` compatibility module that re-exports `RadioGroup` as-is and aliases `Radio` to `RadioGroupItem` for shadcn naming parity.
 - `apps/docs-app`: reuses existing `RadioGroup` docs/playground coverage for `radio-group` compatibility semantics.
 

@@ -113,6 +113,7 @@ pub mod inline_alert;
 pub mod input;
 pub mod input_group;
 pub mod input_otp;
+pub mod item;
 pub mod kbd;
 pub mod keyboard;
 pub mod label;
@@ -337,6 +338,10 @@ pub use inline_alert::{InlineAlert, InlineAlertFill, InlineAlertMotion, InlineAl
 pub use input::{Input, InputLabelPlacement, InputMotion, InputSize, InputVariant};
 pub use input_group::InputGroup;
 pub use input_otp::InputOtp;
+pub use item::{
+    Item, ItemActions, ItemContent, ItemDescription, ItemFooter, ItemGroup, ItemHeader, ItemMedia,
+    ItemMediaVariant, ItemSeparator, ItemSize, ItemTitle, ItemVariant,
+};
 pub use kbd::{Kbd, KbdSize};
 pub use keyboard::{Keyboard, KeyboardTone};
 pub use label::{Label, LabelEmphasis};

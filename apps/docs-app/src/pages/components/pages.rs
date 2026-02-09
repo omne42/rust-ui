@@ -6,12 +6,15 @@ mod collections_breadcrumb;
 mod collections_breadcrumb_catalog;
 mod collections_breadcrumb_shadcn;
 mod collections_command;
+mod collections_core_catalog;
 mod collections_extra;
 mod collections_extra_combobox;
 mod collections_extra_picker;
 mod collections_extra_tags;
 mod collections_extra_top_nav;
 mod collections_groups;
+mod collections_item_catalog;
+mod collections_item_shadcn;
 mod display;
 mod display_extra;
 mod display_extra_asset;
@@ -729,24 +732,24 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     collections_breadcrumb_catalog::BREADCRUMB_PAGE_DOC,
     collections_breadcrumb_catalog::BREADCRUMB_SEPARATOR_DOC,
     collections_breadcrumb_catalog::BREADCRUMB_ELLIPSIS_DOC,
+    collections_item_catalog::ITEM_DOC,
+    collections_item_catalog::ITEM_GROUP_DOC,
+    collections_item_catalog::ITEM_SEPARATOR_DOC,
+    collections_item_catalog::ITEM_MEDIA_DOC,
+    collections_item_catalog::ITEM_CONTENT_DOC,
+    collections_item_catalog::ITEM_TITLE_DOC,
+    collections_item_catalog::ITEM_DESCRIPTION_DOC,
+    collections_item_catalog::ITEM_ACTIONS_DOC,
+    collections_item_catalog::ITEM_HEADER_DOC,
+    collections_item_catalog::ITEM_FOOTER_DOC,
     component_doc!(
         "Breadcrumbs",
         "breadcrumbs",
         "Collections",
         collections::breadcrumbs
     ),
-    ComponentDoc {
-        name: "Accordion",
-        slug: "accordion",
-        group: "Collections",
-        page: collections::accordion,
-    },
-    ComponentDoc {
-        name: "Disclosure",
-        slug: "disclosure",
-        group: "Collections",
-        page: collections::disclosure,
-    },
+    collections_core_catalog::ACCORDION_DOC,
+    collections_core_catalog::DISCLOSURE_DOC,
     ComponentDoc {
         name: "Collapsible",
         slug: "collapsible",
@@ -759,12 +762,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Collections",
         page: collections_extra::disclosure_group,
     },
-    ComponentDoc {
-        name: "Tabs",
-        slug: "tabs",
-        group: "Collections",
-        page: collections::tabs,
-    },
+    collections_core_catalog::TABS_DOC,
     ComponentDoc {
         name: "ListBox",
         slug: "listbox",
