@@ -202,6 +202,7 @@ mod tests {
             "dnd" => &["drop-zone", "file-trigger"],
             "theme-dark" => &["ui-root"],
             "theme-default" => &["ui-root"],
+            "theme-express" => &["ui-root"],
             "theme-light" => &["ui-root"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],

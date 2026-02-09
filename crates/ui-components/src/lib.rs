@@ -202,6 +202,7 @@ pub mod textarea;
 pub mod textfield;
 pub mod theme_dark;
 pub mod theme_default;
+pub mod theme_express;
 pub mod theme_light;
 pub mod thumbnail;
 pub mod time_field;
