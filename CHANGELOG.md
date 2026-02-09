@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `theme_default` compatibility module with `default_theme()` (`Theme::light()`) for `@react-spectrum/theme-default` naming parity.
+- `apps/docs-app`: maps the new `theme-default` module to the existing `ui-root` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds `dnd` compatibility module that re-exports `DropZone`/`FileTrigger` contracts for `@react-spectrum/dnd` naming parity in component space.
 - `apps/docs-app`: maps the new `dnd` module to existing `drop-zone` + `file-trigger` docs/playground coverage for module-level catalog parity.
 
