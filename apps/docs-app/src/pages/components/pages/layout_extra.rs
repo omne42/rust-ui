@@ -2,6 +2,8 @@
 mod layout_extra_sidebar_content;
 #[path = "layout_extra_sidebar_footer.rs"]
 mod layout_extra_sidebar_footer;
+#[path = "layout_extra_sidebar_trigger.rs"]
+mod layout_extra_sidebar_trigger;
 #[path = "layout_extra_surface.rs"]
 mod layout_extra_surface;
 
@@ -631,6 +633,10 @@ pub(super) fn sidebar_header() -> AnyView {
         </ComponentPage>
     }
     .into_any()
+}
+
+pub(super) fn sidebar_trigger() -> AnyView {
+    layout_extra_sidebar_trigger::sidebar_trigger()
 }
 
 pub(super) fn sidebar_content() -> AnyView {

@@ -145,6 +145,7 @@ pub mod sidebar_footer;
 pub mod sidebar_group;
 pub mod sidebar_header;
 pub mod sidebar_menu;
+pub mod sidebar_trigger;
 pub mod skeleton;
 pub mod skeleton_group;
 pub mod slider;
@@ -344,6 +345,7 @@ pub use sidebar_footer::SidebarFooter;
 pub use sidebar_group::SidebarGroup;
 pub use sidebar_header::SidebarHeader;
 pub use sidebar_menu::{SidebarMenu, SidebarMenuItem, SidebarMenuMotion, SidebarMenuSubItem};
+pub use sidebar_trigger::SidebarTrigger;
 pub use skeleton::{Skeleton, SkeletonVariant};
 pub use skeleton_group::{
     SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
