@@ -47,6 +47,7 @@ pub mod coachmark;
 pub mod code;
 pub mod code_block;
 pub mod collapsible;
+pub mod color;
 pub mod color_area;
 pub mod color_editor;
 pub mod color_field;
