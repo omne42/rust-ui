@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `radio_group` compatibility module that re-exports `RadioGroup` as-is and aliases `Radio` to `RadioGroupItem` for shadcn naming parity.
+- `apps/docs-app`: reuses existing `RadioGroup` docs/playground coverage for `radio-group` compatibility semantics.
+
 - `ui-components`: adds shadcn-compatible `breadcrumb` primitive family (`BreadcrumbList`, `BreadcrumbItem`, `BreadcrumbLink`, `BreadcrumbPage`, `BreadcrumbSeparator`, `BreadcrumbEllipsis`) with stable slot contracts.
 - `apps/docs-app`: adds breadcrumb primitive docs/playground coverage for link/current-page and ellipsis-overflow compositions.
 
