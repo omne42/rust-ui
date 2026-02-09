@@ -139,6 +139,7 @@ pub mod skeleton;
 pub mod skeleton_group;
 pub mod slider;
 pub mod snippet;
+pub mod sonner;
 pub mod spacer;
 pub mod spinner;
 pub mod status_light;
@@ -328,6 +329,7 @@ pub use skeleton_group::{
 };
 pub use slider::{Slider, SliderMotion};
 pub use snippet::Snippet;
+pub use sonner::{Sonner, SonnerPosition};
 pub use spacer::{Spacer, SpacerAxis, SpacerSize};
 pub use spinner::{Spinner, SpinnerSize};
 pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};

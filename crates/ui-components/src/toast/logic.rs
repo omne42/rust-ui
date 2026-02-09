@@ -88,6 +88,16 @@ pub fn compose_toast_class_name(
     classes.join(" ")
 }
 
+pub fn compose_toast_viewport_class_name(base_class_name: Option<String>) -> String {
+    let mut classes = vec!["ui-toast-viewport".to_string()];
+
+    if let Some(base_class_name) = normalize_optional_text(base_class_name) {
+        classes.push(base_class_name);
+    }
+
+    classes.join(" ")
+}
+
 #[derive(Clone, Debug)]
 pub struct ToastOptions {
     pub title: String,

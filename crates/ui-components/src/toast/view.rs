@@ -1,5 +1,5 @@
 use crate::OnPress;
-use crate::toast::{ToastMotion, ToastStoreOptions, logic, motion};
+use crate::toast::{ToastMotion, ToastStore, ToastStoreOptions, logic, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
 
 #[component]
@@ -97,8 +97,14 @@ pub fn ToastViewport(
     #[prop(optional)] motion: ToastMotion,
     #[prop(optional, default = true)] portal: bool,
     #[prop(optional, default = 3)] max_toasts: usize,
+    #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] store: Option<ToastStore>,
 ) -> impl IntoView {
-    let store = crate::toast::use_toast_store()
+    let viewport_class_name = logic::compose_toast_viewport_class_name(class_name);
+    let viewport_class_name = StoredValue::new(viewport_class_name);
+
+    let store = store
+        .or_else(crate::toast::use_toast_store)
         .unwrap_or_else(|| crate::toast::provide_toast_store(ToastStoreOptions { max_toasts }));
     let store = StoredValue::new(store);
 
@@ -139,7 +145,11 @@ pub fn ToastViewport(
     if portal {
         view! {
             <Portal>
-                <div class="ui-toast-viewport" data-ui-overlay-portal="" data-slot="toast-viewport">
+                <div
+                    class=move || viewport_class_name.get_value()
+                    data-ui-overlay-portal=""
+                    data-slot="toast-viewport"
+                >
                     <For each=move || items.get() key=|toast| toast.id.clone() children=render_item />
                 </div>
             </Portal>
@@ -147,7 +157,7 @@ pub fn ToastViewport(
         .into_any()
     } else {
         view! {
-            <div class="ui-toast-viewport" data-slot="toast-viewport">
+            <div class=move || viewport_class_name.get_value() data-slot="toast-viewport">
                 <For each=move || items.get() key=|toast| toast.id.clone() children=render_item />
             </div>
         }

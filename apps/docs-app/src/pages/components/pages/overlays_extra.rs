@@ -1,7 +1,10 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{BottomSheet, Button, ButtonVariant, OnPress, Tray, Underlay};
+use ui_components::{
+    BottomSheet, Button, ButtonVariant, OnPress, Sonner, SonnerPosition, ToastOptions,
+    ToastStoreOptions, ToastVariant, Tray, Underlay, provide_toast_store,
+};
 
 pub(super) fn bottom_sheet() -> AnyView {
     let (open_semantic_raw, set_open_semantic_raw) = signal(false);
@@ -245,6 +248,85 @@ pub(super) fn tray() -> AnyView {
                         </div>
                     </Tray>
                 </Show>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn sonner() -> AnyView {
+    let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
+    let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
+
+    let push_saved: OnPress = Callback::new(move |_| {
+        portal_store.get_value().push_simple("Saved");
+    });
+    let push_danger: OnPress = Callback::new(move |_| {
+        portal_store.get_value().push.run(ToastOptions {
+            title: "Publish failed".to_string(),
+            description: Some("Check network and retry.".to_string()),
+            variant: ToastVariant::Danger,
+            duration_ms: Some(6000),
+        });
+    });
+
+    let push_inline: OnPress = Callback::new(move |_| {
+        inline_store.get_value().push.run(ToastOptions {
+            title: "Undo available".to_string(),
+            description: Some("Item moved to archive.".to_string()),
+            variant: ToastVariant::Accent,
+            duration_ms: Some(5000),
+        });
+    });
+    let clear_inline: OnPress = Callback::new(move |_| inline_store.get_value().clear.run(()));
+
+    let basic_code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+<Sonner store=store.clone() />
+store.push_simple("Saved");"#;
+
+    let state_code = r#"<Sonner
+  store=store.clone()
+  portal=false
+  position=SonnerPosition::TopCenter
+  max_toasts=2
+  class_name="docs-sonner-inline".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Sonner"
+            slug="sonner"
+            group="Overlays"
+            description="Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner state data contracts."
+        >
+            <Playground title="Portal Queue + Variants" code=basic_code>
+                <div class="docs-row">
+                    <Button variant=ButtonVariant::Secondary on_press=push_saved>
+                        "Push success"
+                    </Button>
+                    <Button variant=ButtonVariant::Destructive on_press=push_danger>
+                        "Push danger"
+                    </Button>
+                </div>
+                <Sonner store=portal_store.get_value() />
+            </Playground>
+
+            <Playground title="Inline Top-Center + Max Queue" code=state_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=push_inline>"Push accent"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=clear_inline>
+                            "Clear"
+                        </Button>
+                    </div>
+                    <Sonner
+                        store=inline_store.get_value()
+                        portal=false
+                        position=SonnerPosition::TopCenter
+                        max_toasts=2
+                        class_name="docs-sonner-inline".to_string()
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }

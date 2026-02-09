@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Sonner>` as a Shadcn/HeroUI-compatible toast host that composes `ToastViewport` with position presets, queue limits, and stable `data-*` state contracts.
+- `apps/docs-app`: adds a `Sonner` docs page with portal queue and inline top-center playground coverage.
+
 - `ui-components`: adds `<Breadcrumb>` as a Shadcn-compatible singular breadcrumb primitive that wraps `<Breadcrumbs>` with identical props and Spectrum-style state data contracts.
 - `apps/docs-app`: adds a `Breadcrumb` docs page and playground coverage without regressing existing `Breadcrumbs` docs.
 
