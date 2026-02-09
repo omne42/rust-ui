@@ -8,6 +8,7 @@ mod collections_groups;
 mod display;
 mod display_extra;
 mod display_extra_swatch;
+mod display_extra_thumbnail;
 mod files;
 mod forms;
 mod forms_color;
@@ -644,6 +645,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::avatar_group,
     },
     component_doc!("Image", "image", "Display", display::image),
+    component_doc!(
+        "Thumbnail",
+        "thumbnail",
+        "Display",
+        display_extra_thumbnail::thumbnail
+    ),
     component_doc!(
         "ColorSwatch",
         "color-swatch",

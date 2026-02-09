@@ -49,6 +49,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-color-swatch-picker", ".ui-color-swatch-picker {"),
         (".ui-swatch", ".ui-swatch {"),
         (".ui-image", ".ui-image {"),
+        (".ui-thumbnail", ".ui-thumbnail {"),
         (".ui-infield-button", ".ui-infield-button {"),
         (".ui-tag-group", ".ui-tag-group {"),
         (".ui-card", ".ui-card {"),
