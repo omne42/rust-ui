@@ -35,6 +35,7 @@ mod forms_groups_extra;
 mod forms_native;
 mod layout;
 mod layout_extra;
+mod layout_extra_direction;
 mod layout_extra_sidenav;
 mod layout_extra_split_view;
 mod overlays;
@@ -448,14 +449,10 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("Spacer", "spacer", "Layout", layout::spacer),
     component_doc!("Well", "well", "Layout", layout::well),
     component_doc!("Surface", "surface", "Layout", layout_extra::surface),
-    component_doc!(
-        "ScrollArea",
-        "scroll-area",
-        "Layout",
-        layout_extra::scroll_area
-    ),
+    layout_extra::SCROLL_AREA_DOC,
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
     component_doc!("SplitView", "split-view", "Layout", lxv::split_view),
+    layout_extra_direction::DIRECTION_PROVIDER_DOC,
     component_doc!("Sidebar", "sidebar", "Layout", lx::sidebar),
     component_doc!("Sidenav", "sidenav", "Layout", lxs::sidenav),
     component_doc!(

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<DirectionProvider>` as a shadcn/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot/data-direction markers.
+- `apps/docs-app`: adds a `DirectionProvider` docs page with LTR and RTL playground coverage.
+
 - `ui-components`: adds shadcn-compatible `<Empty>` composition primitives (`Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`, `EmptyContent`, `EmptyMedia`) with stable slot/variant contracts.
 - `apps/docs-app`: adds an `Empty` docs page with icon-header and content-action playground coverage.
 

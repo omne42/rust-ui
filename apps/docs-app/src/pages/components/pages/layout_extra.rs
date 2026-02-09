@@ -17,7 +17,14 @@ mod layout_extra_sidebar_trigger;
 #[path = "layout_extra_surface.rs"]
 mod layout_extra_surface;
 
-use crate::pages::components::ComponentPage;
+use crate::pages::components::{ComponentDoc, ComponentPage};
+
+pub(super) const SCROLL_AREA_DOC: ComponentDoc = ComponentDoc {
+    name: "ScrollArea",
+    slug: "scroll-area",
+    group: "Layout",
+    page: scroll_area,
+};
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{

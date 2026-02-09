@@ -181,6 +181,7 @@ mod tests {
             "button-search-input" => &["search-input-button"],
             "button-share" => &["share-button"],
             "button-theme-toggle" => &["theme-toggle-button"],
+            "direction" => &["direction-provider"],
             "number" => &["static-number", "sliding-number"],
             "ripple" => &["motion-ripple"],
             "root" => &["ui-root"],
