@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `story_utils` compatibility module with `story_theme()` + `UiRoot` contracts for `-spectrum/story-utils` naming parity.
+- `apps/docs-app`: maps the new `story-utils` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds `s2` compatibility module that re-exports `Theme` + `UiRoot` contracts for `-spectrum/s2` naming parity.
 - `apps/docs-app`: maps the new `s2` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
 
