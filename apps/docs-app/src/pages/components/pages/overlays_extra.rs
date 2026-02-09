@@ -3,7 +3,7 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     BottomSheet, Button, ButtonVariant, OnPress, Sonner, SonnerPosition, ToastOptions,
-    ToastStoreOptions, ToastVariant, Tray, Underlay, provide_toast_store,
+    ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, Underlay, provide_toast_store,
 };
 
 pub(super) fn bottom_sheet() -> AnyView {
@@ -325,6 +325,85 @@ store.push_simple("Saved");"#;
                         position=SonnerPosition::TopCenter
                         max_toasts=2
                         class_name="docs-sonner-inline".to_string()
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn toaster() -> AnyView {
+    let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
+    let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
+
+    let push_saved: OnPress = Callback::new(move |_| {
+        portal_store.get_value().push_simple("Synced");
+    });
+    let push_warning: OnPress = Callback::new(move |_| {
+        portal_store.get_value().push.run(ToastOptions {
+            title: "Action required".to_string(),
+            description: Some("Session expires soon.".to_string()),
+            variant: ToastVariant::Accent,
+            duration_ms: Some(5000),
+        });
+    });
+
+    let push_inline: OnPress = Callback::new(move |_| {
+        inline_store.get_value().push.run(ToastOptions {
+            title: "Draft restored".to_string(),
+            description: Some("Recovered from autosave.".to_string()),
+            variant: ToastVariant::Default,
+            duration_ms: Some(4500),
+        });
+    });
+    let clear_inline: OnPress = Callback::new(move |_| inline_store.get_value().clear.run(()));
+
+    let basic_code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+<Toaster store=store.clone() />
+store.push_simple("Synced");"#;
+
+    let state_code = r#"<Toaster
+  store=store.clone()
+  portal=false
+  position=ToasterPosition::TopCenter
+  max_toasts=2
+  class_name="docs-toaster-inline".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Toaster"
+            slug="toaster"
+            group="Overlays"
+            description="Shadcn-compatible toast host that composes Sonner/ToastViewport with normalized position, queue, and stable toaster-level data-state contracts."
+        >
+            <Playground title="Portal Queue Host" code=basic_code>
+                <div class="docs-row">
+                    <Button variant=ButtonVariant::Secondary on_press=push_saved>
+                        "Push success"
+                    </Button>
+                    <Button on_press=push_warning>
+                        "Push accent"
+                    </Button>
+                </div>
+                <Toaster store=portal_store.get_value() />
+            </Playground>
+
+            <Playground title="Inline Top-Center Host" code=state_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=push_inline>"Push inline toast"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=clear_inline>
+                            "Clear"
+                        </Button>
+                    </div>
+                    <Toaster
+                        store=inline_store.get_value()
+                        portal=false
+                        position=ToasterPosition::TopCenter
+                        max_toasts=2
+                        class_name="docs-toaster-inline".to_string()
                     />
                 </div>
             </Playground>

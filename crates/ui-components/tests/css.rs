@@ -125,6 +125,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-illustrated-message", ".ui-illustrated-message {"),
         (".ui-toast", ".ui-toast {"),
         (".ui-sonner", ".ui-sonner {"),
+        (".ui-toaster", ".ui-toaster {"),
         (".ui-toggle", ".ui-toggle {"),
         (".ui-drawer", ".ui-drawer {"),
     ];

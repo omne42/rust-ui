@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Toaster>` as a Shadcn-compatible host that composes `Sonner` with toaster-level position/portal/queue contracts and stable `data-*` state markers.
+- `apps/docs-app`: adds a `Toaster` docs page with portal-host and inline top-center playground coverage.
+
 - `ui-components`: adds `<Sonner>` as a Shadcn/HeroUI-compatible toast host that composes `ToastViewport` with position presets, queue limits, and stable `data-*` state contracts.
 - `apps/docs-app`: adds a `Sonner` docs page with portal queue and inline top-center playground coverage.
 

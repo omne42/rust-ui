@@ -987,6 +987,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     },
     component_doc!("Toast", "toast", "Overlays", overlays::toast),
     component_doc!("Sonner", "sonner", "Overlays", overlays_extra::sonner),
+    component_doc!("Toaster", "toaster", "Overlays", overlays_extra::toaster),
     component_doc!(
         "ToastViewport",
         "toast-viewport",
