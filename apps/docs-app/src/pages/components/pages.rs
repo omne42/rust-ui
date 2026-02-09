@@ -1,6 +1,7 @@
 mod actions;
 mod actions_extra;
 mod collections;
+mod collections_breadcrumb;
 mod collections_command;
 mod collections_extra;
 mod collections_groups;
@@ -32,18 +33,13 @@ macro_rules! component_doc {
 }
 
 pub(super) const CATALOG: &[ComponentDoc] = &[
-    ComponentDoc {
-        name: "Button",
-        slug: "button",
-        group: "Actions",
-        page: actions::button,
-    },
-    ComponentDoc {
-        name: "ActionBar",
-        slug: "action-bar",
-        group: "Actions",
-        page: actions_extra::action_bar,
-    },
+    component_doc!("Button", "button", "Actions", actions::button),
+    component_doc!(
+        "ActionBar",
+        "action-bar",
+        "Actions",
+        actions_extra::action_bar
+    ),
     ComponentDoc {
         name: "ActionButton",
         slug: "action-button",
@@ -731,12 +727,18 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Files",
         page: files::drop_zone,
     },
-    ComponentDoc {
-        name: "Breadcrumbs",
-        slug: "breadcrumbs",
-        group: "Collections",
-        page: collections::breadcrumbs,
-    },
+    component_doc!(
+        "Breadcrumb",
+        "breadcrumb",
+        "Collections",
+        collections_breadcrumb::breadcrumb
+    ),
+    component_doc!(
+        "Breadcrumbs",
+        "breadcrumbs",
+        "Collections",
+        collections::breadcrumbs
+    ),
     ComponentDoc {
         name: "Accordion",
         slug: "accordion",

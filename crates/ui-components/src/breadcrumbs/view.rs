@@ -2,6 +2,27 @@ use crate::breadcrumbs::{BreadcrumbItem, logic};
 use leptos::prelude::*;
 
 #[component]
+pub fn Breadcrumb(
+    items: Vec<BreadcrumbItem>,
+    #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] class_name: Option<String>,
+) -> impl IntoView {
+    match (aria_label, class_name) {
+        (Some(aria_label), Some(class_name)) => {
+            view! { <Breadcrumbs items=items aria_label=aria_label class_name=class_name /> }
+                .into_any()
+        }
+        (Some(aria_label), None) => {
+            view! { <Breadcrumbs items=items aria_label=aria_label /> }.into_any()
+        }
+        (None, Some(class_name)) => {
+            view! { <Breadcrumbs items=items class_name=class_name /> }.into_any()
+        }
+        (None, None) => view! { <Breadcrumbs items=items /> }.into_any(),
+    }
+}
+
+#[component]
 pub fn Breadcrumbs(
     items: Vec<BreadcrumbItem>,
     #[prop(optional, into)] aria_label: Option<String>,

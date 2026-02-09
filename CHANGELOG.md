@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Breadcrumb>` as a Shadcn-compatible singular breadcrumb primitive that wraps `<Breadcrumbs>` with identical props and Spectrum-style state data contracts.
+- `apps/docs-app`: adds a `Breadcrumb` docs page and playground coverage without regressing existing `Breadcrumbs` docs.
+
 - `ui-components`: adds `<ToggleGroup>` as a Shadcn-compatible grouped-toggle primitive with single/multiple selection modes, controllable selected-id sets, and Spectrum-style root `data-*` state contracts.
 - `apps/docs-app`: adds a `ToggleGroup` docs page with multiple/attached and single/vertical/disabled-item playground coverage.
 

@@ -190,7 +190,7 @@ pub use avatar_group::{AvatarGroup, AvatarGroupItem};
 pub use badge::Badge;
 pub use badge::BadgeVariant;
 pub use bottom_sheet::{BottomSheet, BottomSheetMotion};
-pub use breadcrumbs::{BreadcrumbItem, Breadcrumbs};
+pub use breadcrumbs::{Breadcrumb, BreadcrumbItem, Breadcrumbs};
 pub use button::Button;
 pub use button::{ButtonLoadingPlacement, ButtonMotion, ButtonSize, ButtonVariant};
 pub use button_copy::{ButtonCopy, ButtonCopyMotion};
