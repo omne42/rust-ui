@@ -186,6 +186,7 @@ mod tests {
             "ripple" => &["motion-ripple"],
             "root" => &["ui-root"],
             "provider" => &["ui-root"],
+            "rac" => &["ui-root"],
             "layout" => &["flex", "grid"],
             "overlays" => &["overlay", "popover", "modal", "tray"],
             "color" => &[

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `rac` compatibility module mirroring HeroUI `rac` surface (`Direction`/`I18nProvider`/`Collection` reexports + locale/filter helpers) for shared component integration ergonomics.
+- `apps/docs-app`: maps the new `rac` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds `test_utils` compatibility module exposing `snapshot_theme_css` for `-spectrum/test-utils` naming parity and snapshot-style theme contract reuse.
 - `apps/docs-app`: maps the new `test-utils` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
 

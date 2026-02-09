@@ -151,6 +151,7 @@ pub mod progress;
 pub mod progress_bar;
 pub mod progress_circle;
 pub mod provider;
+pub mod rac;
 pub mod radio;
 pub mod radio_group;
 pub mod resizable;
