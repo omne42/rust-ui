@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `theme_dark` compatibility module with `dark_theme()` (`Theme::dark()`) for `-spectrum/theme-dark` naming parity.
+- `apps/docs-app`: maps the new `theme-dark` module to the existing `ui-root` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds `theme_light` compatibility module with `light_theme()` (`Theme::light()`) for `-spectrum/theme-light` naming parity.
 - `apps/docs-app`: maps the new `theme-light` module to the existing `ui-root` docs/playground coverage for module-level catalog parity.
 

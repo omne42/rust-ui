@@ -200,6 +200,7 @@ mod tests {
             ],
             "list" => &["listbox", "item"],
             "dnd" => &["drop-zone", "file-trigger"],
+            "theme-dark" => &["ui-root"],
             "theme-default" => &["ui-root"],
             "theme-light" => &["ui-root"],
             "toast" => &["toast-viewport"],
