@@ -138,6 +138,7 @@ pub mod navigation_menu;
 pub mod number;
 pub mod number_field;
 pub mod overlay;
+pub mod overlays;
 pub mod pagination;
 pub mod picker;
 pub mod picker_button;

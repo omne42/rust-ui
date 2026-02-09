@@ -187,6 +187,7 @@ mod tests {
             "root" => &["ui-root"],
             "provider" => &["ui-root"],
             "layout" => &["flex", "grid"],
+            "overlays" => &["overlay", "popover", "modal", "tray"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],
