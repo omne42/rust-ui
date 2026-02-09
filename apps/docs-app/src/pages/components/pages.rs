@@ -530,6 +530,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::skeleton,
     },
     ComponentDoc {
+        name: "SkeletonGroup",
+        slug: "skeleton-group",
+        group: "Display",
+        page: display_extra::skeleton_group,
+    },
+    ComponentDoc {
         name: "CircularProgress",
         slug: "circular-progress",
         group: "Display",

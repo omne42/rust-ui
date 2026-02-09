@@ -126,6 +126,7 @@ pub mod select;
 pub mod separator;
 pub mod sheet;
 pub mod skeleton;
+pub mod skeleton_group;
 pub mod slider;
 pub mod snippet;
 pub mod spacer;
@@ -297,6 +298,9 @@ pub use select::Select;
 pub use separator::{Separator, SeparatorElementType, SeparatorMotion, SeparatorOrientation};
 pub use sheet::{Sheet, SheetMotion, SheetPlacement};
 pub use skeleton::{Skeleton, SkeletonVariant};
+pub use skeleton_group::{
+    SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
+};
 pub use slider::{Slider, SliderMotion};
 pub use snippet::Snippet;
 pub use spacer::{Spacer, SpacerAxis, SpacerSize};

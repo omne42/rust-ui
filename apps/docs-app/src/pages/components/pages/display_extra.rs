@@ -4,8 +4,9 @@ use leptos::prelude::*;
 use ui_components::{
     ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
     ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone,
-    Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, Text,
-    TextAlign, TextElement, TextTone, TextWeight,
+    Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, Skeleton,
+    SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
+    SkeletonVariant, Text, TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -449,6 +450,123 @@ pub(super) fn color_swatch_picker() -> AnyView {
                     class_name="docs-color-swatch-picker-custom".to_string()
                     aria_label="Fill color".to_string()
                 />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn skeleton_group() -> AnyView {
+    let loading_code = r#"<SkeletonGroup
+  is_loading=true
+  variant=SkeletonGroupVariant::Shimmer
+  layout=SkeletonGroupLayout::Vertical
+>
+  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
+  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
+</SkeletonGroup>"#;
+
+    let state_code = r#"<SkeletonGroup
+  is_loading=false
+  is_skeleton_only=false
+  variant=SkeletonGroupVariant::None
+>
+  <div class="ui-muted">"Loaded content rendered by parent group."</div>
+</SkeletonGroup>
+
+<SkeletonGroup
+  is_loading=false
+  is_skeleton_only=true
+  variant=SkeletonGroupVariant::Pulse
+  class_name="docs-skeleton-group-custom".to_string()
+>
+  <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
+</SkeletonGroup>"#;
+
+    view! {
+        <ComponentPage
+            title="SkeletonGroup"
+            slug="skeleton-group"
+            group="Display"
+            description="Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers."
+        >
+            <Playground title="Shimmer + Pulse Layout" code=loading_code>
+                <div class="docs-stack">
+                    <SkeletonGroup
+                        is_loading=true
+                        variant=SkeletonGroupVariant::Shimmer
+                        layout=SkeletonGroupLayout::Vertical
+                        density=SkeletonGroupDensity::Comfortable
+                    >
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            class_name="docs-skeleton-line".to_string()
+                        />
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
+                        />
+                    </SkeletonGroup>
+
+                    <SkeletonGroup
+                        is_loading=true
+                        variant=SkeletonGroupVariant::Pulse
+                        layout=SkeletonGroupLayout::Horizontal
+                        density=SkeletonGroupDensity::Compact
+                        aria_label="Profile placeholders".to_string()
+                        class_name="docs-skeleton-group-custom".to_string()
+                    >
+                        <Skeleton
+                            variant=SkeletonVariant::Circle
+                            shimmer=false
+                            class_name="docs-skeleton-avatar".to_string()
+                        />
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            shimmer=false
+                            class_name="docs-skeleton-line".to_string()
+                        />
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            shimmer=false
+                            class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
+                        />
+                    </SkeletonGroup>
+                </div>
+            </Playground>
+
+            <Playground title="Loaded + Skeleton Only" code=state_code>
+                <div class="docs-stack">
+                    <SkeletonGroup
+                        is_loading=false
+                        is_skeleton_only=false
+                        variant=SkeletonGroupVariant::None
+                    >
+                        <div class="ui-muted">
+                            "Loaded content rendered by parent group."
+                        </div>
+                    </SkeletonGroup>
+
+                    <SkeletonGroup
+                        is_loading=false
+                        is_skeleton_only=true
+                        variant=SkeletonGroupVariant::Pulse
+                        class_name="docs-skeleton-group-custom".to_string()
+                    >
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            class_name="docs-skeleton-line".to_string()
+                        />
+                        <Skeleton
+                            variant=SkeletonVariant::Rect
+                            class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
+                        />
+                    </SkeletonGroup>
+
+                    <div class="ui-muted">
+                        "When `is_skeleton_only=true` and loading is finished, the skeleton group hides itself."
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }

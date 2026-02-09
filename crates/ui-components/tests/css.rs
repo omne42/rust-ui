@@ -67,6 +67,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-autocomplete", ".ui-autocomplete {"),
         (".ui-combo-box", ".ui-combo-box {"),
         (".ui-skeleton", ".ui-skeleton {"),
+        (".ui-skeleton-group", ".ui-skeleton-group {"),
         (".ui-link", ".ui-link {"),
         (".ui-legend", ".ui-legend {"),
         (".ui-link-button", ".ui-link-button"),

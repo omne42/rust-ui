@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SkeletonGroup>` as a Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility derivation and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `SkeletonGroup` docs page with shimmer/pulse layout and loaded/skeleton-only visibility playground coverage.
+
 - `ui-components`: adds `<FormField>` as a Spectrum/HeroUI-style form-field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `FormField` docs page with switch-description and checkbox invalid/disabled playground coverage.
 
