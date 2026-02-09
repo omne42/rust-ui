@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds shadcn-compatible `<Empty>` composition primitives (`Empty`, `EmptyHeader`, `EmptyTitle`, `EmptyDescription`, `EmptyContent`, `EmptyMedia`) with stable slot/variant contracts.
+- `apps/docs-app`: adds an `Empty` docs page with icon-header and content-action playground coverage.
+
 - `ui-components`: adds `<Icons>` as a Spectrum-compatible `@spectrum-web-components/icons` wrapper, mapping medium/large scale and ui/workflow set resolution onto `IconsUi`/`IconsWorkflow` with stable data-state markers.
 - `apps/docs-app`: adds an `Icons` docs page with set-scale matrix and custom workflow glyph extension playground coverage.
 

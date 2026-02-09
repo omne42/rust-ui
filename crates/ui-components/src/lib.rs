@@ -78,6 +78,7 @@ pub mod drop_zone;
 pub mod dropdown;
 pub mod dropdown_menu;
 pub mod dropzone;
+pub mod empty;
 pub mod empty_state;
 pub mod error_message;
 pub mod error_view;
@@ -293,6 +294,9 @@ pub use drop_zone::{DropZone, DropZoneMotion, DroppedFile};
 pub use dropdown::Dropdown;
 pub use dropdown_menu::{DropdownMenu, DropdownMenuMotion};
 pub use dropzone::Dropzone;
+pub use empty::{
+    Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle,
+};
 pub use empty_state::{EmptyState, EmptyStateAlign, EmptyStateTone};
 pub use error_message::{ErrorMessage, ErrorMessageElement, ErrorMessageTone};
 pub use error_view::{ErrorView, ErrorViewMotion, ErrorViewTone};
