@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SidebarHeader>` as a Shadcn-compatible sidebar header region primitive with centralized aria/disabled/source-state normalization and stable `data-*` markers.
+- `apps/docs-app`: adds a `SidebarHeader` docs page with default and disabled custom-class playground coverage.
+
 - `ui-components`: adds `<SidebarGroup>` as a Shadcn-compatible sidebar section primitive with label/action header regions, controlled/uncontrolled collapsible state, and Spectrum-style `data-*` markers.
 - `apps/docs-app`: adds a `SidebarGroup` docs page with label+action and controlled collapsible-group playground coverage.
 

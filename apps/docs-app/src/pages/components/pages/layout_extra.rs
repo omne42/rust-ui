@@ -1,12 +1,15 @@
+#[path = "layout_extra_surface.rs"]
+mod layout_extra_surface;
+
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
     GridJustify, GridRows, Resizable, ResizableOrientation, ScrollArea, ScrollAreaOrientation,
-    Sidebar, SidebarCollapsible, SidebarGroup, SidebarMenu, SidebarMenuItem, SidebarMenuSubItem,
-    SidebarSide, SidebarVariant, Surface, SurfaceElevation, SurfaceTone, View, ViewBackground,
-    ViewBorder, ViewPadding, ViewRadius,
+    Sidebar, SidebarCollapsible, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuItem,
+    SidebarMenuSubItem, SidebarSide, SidebarVariant, View, ViewBackground, ViewBorder, ViewPadding,
+    ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -557,6 +560,75 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
     .into_any()
 }
 
+pub(super) fn sidebar_header() -> AnyView {
+    let basic_code = r#"<SidebarHeader aria_label="Workspace header".to_string()>
+  <strong>"Workspace"</strong>
+  <span class="ui-muted">"5 active projects"</span>
+</SidebarHeader>"#;
+
+    let disabled_code = r#"<SidebarHeader
+  disabled=true
+  aria_label="Disabled inspector header".to_string()
+  class_name="docs-sidebar-header-custom".to_string()
+>
+  <strong>"Inspector"</strong>
+  <span class="ui-muted">"Read-only mode"</span>
+</SidebarHeader>"#;
+
+    view! {
+        <ComponentPage
+            title="SidebarHeader"
+            slug="sidebar-header"
+            group="Layout"
+            description="Shadcn-compatible sidebar header region primitive with centralized disabled/source-state contracts and Spectrum-style data markers."
+        >
+            <Playground title="Default Header Region" code=basic_code>
+                <Sidebar
+                    side=SidebarSide::Left
+                    variant=SidebarVariant::Sidebar
+                    collapsible=SidebarCollapsible::Offcanvas
+                    show_trigger=false
+                    aria_label="Sidebar header playground".to_string()
+                >
+                    <SidebarHeader aria_label="Workspace header".to_string()>
+                        <strong>"Workspace"</strong>
+                        <span class="ui-muted">"5 active projects"</span>
+                    </SidebarHeader>
+                    <div class="docs-stack docs-stack--tight">
+                        <span>"Dashboard"</span>
+                        <span>"Projects"</span>
+                        <span>"Billing"</span>
+                    </div>
+                </Sidebar>
+            </Playground>
+
+            <Playground title="Disabled + Custom Class" code=disabled_code>
+                <Sidebar
+                    side=SidebarSide::Left
+                    variant=SidebarVariant::Inset
+                    collapsible=SidebarCollapsible::Icon
+                    show_trigger=false
+                    aria_label="Disabled header sidebar".to_string()
+                >
+                    <SidebarHeader
+                        disabled=true
+                        aria_label="Disabled inspector header".to_string()
+                        class_name="docs-sidebar-header-custom".to_string()
+                    >
+                        <strong>"Inspector"</strong>
+                        <span class="ui-muted">"Read-only mode"</span>
+                    </SidebarHeader>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Tokens"</span>
+                        <span class="ui-muted">"Layers"</span>
+                    </div>
+                </Sidebar>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
 pub(super) fn sidebar_group() -> AnyView {
     let group_items = vec![
         SidebarMenuItem {
@@ -895,83 +967,5 @@ let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
 }
 
 pub(super) fn surface() -> AnyView {
-    let tone_code = r#"<Surface tone=SurfaceTone::Default elevation=SurfaceElevation::Raised>
-  <div>"Default raised surface"</div>
-</Surface>
-<Surface tone=SurfaceTone::Subtle elevation=SurfaceElevation::Flat bordered=true>
-  <div>"Subtle flat bordered surface"</div>
-</Surface>
-<Surface tone=SurfaceTone::Strong elevation=SurfaceElevation::Floating padded=false>
-  <div>"Strong floating compact surface"</div>
-</Surface>"#;
-
-    let custom_code = r#"<Surface
-  tone=SurfaceTone::Strong
-  elevation=SurfaceElevation::Floating
-  bordered=true
-  aria_label="Deployment summary".to_string()
-  class_name="docs-surface-custom".to_string()
->
-  <div>"Custom class + aria source marker"</div>
-</Surface>"#;
-
-    view! {
-        <ComponentPage
-            title="Surface"
-            slug="surface"
-            group="Layout"
-            description="Spectrum/HeroUI-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers."
-        >
-            <Playground title="Tone + Elevation + Frame" code=tone_code>
-                <div class="docs-stack">
-                    <Surface tone=SurfaceTone::Default elevation=SurfaceElevation::Raised>
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Default raised"</strong>
-                            <span class="ui-muted">"Primary neutral container for page-level composition."</span>
-                        </div>
-                    </Surface>
-
-                    <Surface
-                        tone=SurfaceTone::Subtle
-                        elevation=SurfaceElevation::Flat
-                        bordered=true
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Subtle flat bordered"</strong>
-                            <span class="ui-muted">"Low-emphasis container using only border contrast."</span>
-                        </div>
-                    </Surface>
-
-                    <Surface
-                        tone=SurfaceTone::Strong
-                        elevation=SurfaceElevation::Floating
-                        padded=false
-                    >
-                        <div class="docs-stack docs-stack--tight">
-                            <strong>"Strong floating compact"</strong>
-                            <span class="ui-muted">"Higher emphasis with floating elevation and explicit tight content."</span>
-                        </div>
-                    </Surface>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Aria + Class" code=custom_code>
-                <Surface
-                    tone=SurfaceTone::Strong
-                    elevation=SurfaceElevation::Floating
-                    bordered=true
-                    aria_label="Deployment summary".to_string()
-                    class_name="docs-surface-custom".to_string()
-                >
-                    <div class="docs-stack docs-stack--tight">
-                        <strong>"Deployment summary"</strong>
-                        <span class="ui-muted">
-                            "Verifies custom aria source + custom class merge contracts."
-                        </span>
-                    </div>
-                </Surface>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
+    layout_extra_surface::surface()
 }

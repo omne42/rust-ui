@@ -480,6 +480,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
     component_doc!("Sidebar", "sidebar", "Layout", layout_extra::sidebar),
     component_doc!(
+        "SidebarHeader",
+        "sidebar-header",
+        "Layout",
+        layout_extra::sidebar_header
+    ),
+    component_doc!(
         "SidebarGroup",
         "sidebar-group",
         "Layout",

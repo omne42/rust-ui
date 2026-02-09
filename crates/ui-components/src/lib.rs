@@ -141,6 +141,7 @@ pub mod separator;
 pub mod sheet;
 pub mod sidebar;
 pub mod sidebar_group;
+pub mod sidebar_header;
 pub mod sidebar_menu;
 pub mod skeleton;
 pub mod skeleton_group;
@@ -337,6 +338,7 @@ pub use separator::{Separator, SeparatorElementType, SeparatorMotion, SeparatorO
 pub use sheet::{Sheet, SheetMotion, SheetPlacement};
 pub use sidebar::{Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant};
 pub use sidebar_group::SidebarGroup;
+pub use sidebar_header::SidebarHeader;
 pub use sidebar_menu::{SidebarMenu, SidebarMenuItem, SidebarMenuMotion, SidebarMenuSubItem};
 pub use skeleton::{Skeleton, SkeletonVariant};
 pub use skeleton_group::{
