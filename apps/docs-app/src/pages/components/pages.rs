@@ -15,6 +15,7 @@ mod forms;
 mod forms_color;
 mod forms_extra;
 mod forms_extra_field_label;
+mod forms_extra_textfield;
 mod forms_groups;
 mod forms_groups_extra;
 mod forms_native;
@@ -27,6 +28,7 @@ use self::actions as a;
 use self::actions_extra as ax;
 use self::collections_extra_combobox as cxb;
 use self::forms_extra_field_label as fxl;
+use self::forms_extra_textfield as fxt;
 use self::layout_extra as lx;
 use self::overlays as ov;
 use super::ComponentDoc;
@@ -227,6 +229,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Forms",
         page: forms::text_field,
     },
+    component_doc!("Textfield", "textfield", "Forms", fxt::textfield),
     ComponentDoc {
         name: "TextArea",
         slug: "text-area",

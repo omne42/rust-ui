@@ -175,6 +175,7 @@ pub mod text;
 pub mod text_area;
 pub mod text_field;
 pub mod textarea;
+pub mod textfield;
 pub mod thumbnail;
 pub mod time_field;
 pub mod toast;
@@ -390,6 +391,7 @@ pub use text::{Text, TextAlign, TextElement, TextTone, TextWeight};
 pub use text_area::TextArea;
 pub use text_field::TextField;
 pub use textarea::Textarea;
+pub use textfield::Textfield;
 pub use thumbnail::{Thumbnail, ThumbnailMotion, ThumbnailSize};
 pub use time_field::{TimeField, TimeFieldIds, TimeFieldTone};
 pub use toast::{
