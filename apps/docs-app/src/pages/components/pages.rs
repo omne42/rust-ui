@@ -11,6 +11,7 @@ mod display_extra;
 mod display_extra_swatch;
 mod display_extra_thumbnail;
 mod files;
+mod files_extra_dropzone;
 mod forms;
 mod forms_color;
 mod forms_extra;
@@ -27,6 +28,7 @@ mod overlays_extra;
 use self::actions as a;
 use self::actions_extra as ax;
 use self::collections_extra_combobox as cxb;
+use self::files_extra_dropzone as fdz;
 use self::forms_extra_field_label as fxl;
 use self::forms_extra_textfield as fxt;
 use self::layout_extra as lx;
@@ -714,6 +716,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Files",
         page: files::drop_zone,
     },
+    component_doc!("Dropzone", "dropzone", "Files", fdz::dropzone),
     component_doc!(
         "Breadcrumb",
         "breadcrumb",

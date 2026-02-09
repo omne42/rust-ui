@@ -23,6 +23,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<Textfield>` as an upstream-name-compatible wrapper over `TextField`, preserving Spectrum accessibility/state contracts.
 - `apps/docs-app`: adds a `Textfield` docs page with basic and required/invalid playground coverage.
 
+- `ui-components`: adds `<Dropzone>` as an upstream-name-compatible wrapper over `DropZone`, preserving Spectrum drag/drop + paste accessibility contracts and HeroUI-grade spring interaction motion behavior.
+- `apps/docs-app`: adds a `Dropzone` docs page with drop/paste and disabled playground coverage.
+
 - `ui-components`: adds `<InfieldButton>` as a Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds an `InfieldButton` docs page with default/quiet and invalid/active/disabled playground coverage.
 
