@@ -146,6 +146,7 @@ pub mod tag_group;
 pub mod text;
 pub mod text_area;
 pub mod text_field;
+pub mod textarea;
 pub mod time_field;
 pub mod toast;
 pub mod toggle_button;
@@ -328,6 +329,7 @@ pub use tag_group::{Tag, TagGroup};
 pub use text::{Text, TextAlign, TextElement, TextTone, TextWeight};
 pub use text_area::TextArea;
 pub use text_field::TextField;
+pub use textarea::Textarea;
 pub use time_field::{TimeField, TimeFieldIds, TimeFieldTone};
 pub use toast::{
     Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport,

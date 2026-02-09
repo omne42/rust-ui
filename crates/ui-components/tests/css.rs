@@ -89,6 +89,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-status-light", ".ui-status-light {"),
         (".ui-text-field", ".ui-text-field {"),
         (".ui-text-area", ".ui-text-area {"),
+        (".ui-textarea", ".ui-textarea {"),
         (".ui-number-field", ".ui-number-field {"),
         (".ui-input", ".ui-input {"),
         (".ui-input-otp", ".ui-input-otp {"),

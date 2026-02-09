@@ -230,6 +230,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms::text_area,
     },
     ComponentDoc {
+        name: "Textarea",
+        slug: "textarea",
+        group: "Forms",
+        page: forms_extra::textarea,
+    },
+    ComponentDoc {
         name: "SearchField",
         slug: "search-field",
         group: "Forms",

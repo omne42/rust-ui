@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Textarea>` as a Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics, stable `data-*` state contracts, and dedicated `ui-textarea` styling hooks.
+- `apps/docs-app`: adds a `Textarea` docs page with basic and invalid-error playground coverage.
+
 - `ui-components`: adds `<Toast>` as a Spectrum/HeroUI-style toast primitive with centralized title/description/class normalization, explicit open/closing state contracts, and spring-driven entry/exit motion hooks.
 - `apps/docs-app`: adds a `Toast` docs page with basic dismiss and danger custom-motion playground coverage.
 

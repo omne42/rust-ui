@@ -6,7 +6,8 @@ use ui_components::{
     DatePickerTone, DateRangePicker, DateRangePickerTone, Description, DescriptionElement,
     DescriptionTone, ErrorMessage, ErrorMessageElement, ErrorMessageTone, Field, FieldError,
     FieldErrorTone, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation, FieldsetTone,
-    HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, TimeField, TimeFieldTone,
+    HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, Textarea, TimeField,
+    TimeFieldTone,
 };
 
 pub(super) fn field_error() -> AnyView {
@@ -472,6 +473,66 @@ pub(super) fn help_text() -> AnyView {
     }
     .into_any()
 }
+pub(super) fn textarea() -> AnyView {
+    let (value_basic, set_value_basic) = signal(String::new());
+    let (value_invalid, set_value_invalid) = signal("Pending review".to_string());
+    let invalid_signal: Signal<bool> = Signal::derive(|| true);
+
+    let basic_code = r#"let (value, set_value) = signal(String::new());
+<Textarea id="about".to_string()
+  label="About".to_string()
+  value=value
+  set_value=set_value
+  placeholder="Write something…".to_string()
+/>"#;
+
+    let invalid_code = r#"let invalid: Signal<bool> = Signal::derive(|| true);
+<Textarea
+  id="summary".to_string()
+  label="Summary".to_string()
+  value=value
+  set_value=set_value
+  invalid=invalid
+  error="Summary must include at least 20 characters.".to_string()
+  rows=5
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Textarea"
+            slug="textarea"
+            group="Forms"
+            description="Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics and stable state markers."
+        >
+            <Playground title="Basic Textarea" code=basic_code>
+                <Textarea
+                    id="docs-textarea-basic".to_string()
+                    label="About".to_string()
+                    value=value_basic
+                    set_value=set_value_basic
+                    placeholder="Write something…".to_string()
+                />
+            </Playground>
+
+            <Playground title="Invalid + Error" code=invalid_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Textarea
+                        id="docs-textarea-invalid".to_string()
+                        label="Summary".to_string()
+                        value=value_invalid
+                        set_value=set_value_invalid
+                        invalid=invalid_signal
+                        error="Summary must include at least 20 characters.".to_string()
+                        rows=5
+                    />
+                    <span class="ui-muted">"value: " {move || value_invalid.get()}</span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
 pub(super) fn slider() -> AnyView {
     let (value, set_value) = signal(36.0_f64);
     let (last_change, set_last_change) = signal("none".to_string());
