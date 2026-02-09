@@ -13,6 +13,7 @@ mod collections_groups;
 mod display;
 mod display_extra;
 mod display_extra_asset;
+mod display_extra_iconset;
 mod display_extra_swatch;
 mod display_extra_thumbnail;
 mod files;
@@ -629,18 +630,13 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Display",
         page: display_extra::text,
     },
-    ComponentDoc {
-        name: "Avatar",
-        slug: "avatar",
-        group: "Display",
-        page: display::avatar,
-    },
-    ComponentDoc {
-        name: "AvatarGroup",
-        slug: "avatar-group",
-        group: "Display",
-        page: display::avatar_group,
-    },
+    component_doc!("Avatar", "avatar", "Display", display::avatar),
+    component_doc!(
+        "AvatarGroup",
+        "avatar-group",
+        "Display",
+        display::avatar_group
+    ),
     component_doc!("Image", "image", "Display", display::image),
     component_doc!("Asset", "asset", "Display", display_extra_asset::asset),
     component_doc!(
@@ -663,6 +659,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         display_extra::color_swatch_picker
     ),
     component_doc!("Icon", "icon", "Display", display_extra::icon),
+    component_doc!(
+        "Iconset",
+        "iconset",
+        "Display",
+        display_extra_iconset::iconset
+    ),
     ComponentDoc {
         name: "IllustratedMessage",
         slug: "illustrated-message",

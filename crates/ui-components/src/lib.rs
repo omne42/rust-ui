@@ -99,6 +99,7 @@ pub mod help_text;
 pub mod hover_card;
 pub mod icon;
 pub mod icon_button;
+pub mod iconset;
 pub mod illustrated_message;
 pub mod image;
 pub mod infield_button;
@@ -312,6 +313,7 @@ pub use help_text::{HelpText, HelpTextTone};
 pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon::{Icon, IconSize, IconTone};
 pub use icon_button::IconButton;
+pub use iconset::{Iconset, IconsetGlyph, IconsetSize, IconsetTone};
 pub use illustrated_message::{
     IllustratedMessage, IllustratedMessageMotion, IllustratedMessageOrientation,
 };

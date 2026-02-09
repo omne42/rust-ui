@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Iconset>` as a Spectrum-compatible iconset registry wrapper, resolving `iconset:icon` references onto `Icon` with namespace/source state markers and accessibility fallbacks.
+- `apps/docs-app`: adds an `Iconset` docs page with namespaced registry and fallback-source playground coverage.
+
 - `ui-components`: adds `<Coachmark>` as a Spectrum-compatible guided-tour overlay primitive, composed on `ContextualHelp`/`Popover` contracts with optional asset, step, and CTA navigation semantics plus HeroUI-level spring motion reuse.
 - `apps/docs-app`: adds a `Coachmark` docs page with step/cta/asset-variant and controlled image/actions playground coverage.
 
