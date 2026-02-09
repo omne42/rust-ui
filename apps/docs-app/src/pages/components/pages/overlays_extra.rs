@@ -1,7 +1,135 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Button, ButtonVariant, OnPress, Tray, Underlay};
+use ui_components::{BottomSheet, Button, ButtonVariant, OnPress, Tray, Underlay};
+
+pub(super) fn bottom_sheet() -> AnyView {
+    let (open_semantic_raw, set_open_semantic_raw) = signal(false);
+    let open_semantic: Signal<bool> = Signal::derive(move || open_semantic_raw.get());
+    let (present_semantic, set_present_semantic) = signal(open_semantic.get_untracked());
+    Effect::new(move |_| {
+        if open_semantic.get() {
+            set_present_semantic.set(true);
+        }
+    });
+
+    let close_semantic: OnPress = Callback::new(move |_| set_open_semantic_raw.set(false));
+    let open_semantic_sheet: OnPress = Callback::new(move |_| set_open_semantic_raw.set(true));
+    let on_semantic_exit_complete = Callback::new(move |_| set_present_semantic.set(false));
+
+    let (open_detached_raw, set_open_detached_raw) = signal(false);
+    let open_detached: Signal<bool> = Signal::derive(move || open_detached_raw.get());
+    let (present_detached, set_present_detached) = signal(open_detached.get_untracked());
+    Effect::new(move |_| {
+        if open_detached.get() {
+            set_present_detached.set(true);
+        }
+    });
+
+    let close_detached: OnPress = Callback::new(move |_| set_open_detached_raw.set(false));
+    let open_detached_sheet: OnPress = Callback::new(move |_| set_open_detached_raw.set(true));
+    let on_detached_exit_complete = Callback::new(move |_| set_present_detached.set(false));
+
+    let semantic_code = r#"<BottomSheet
+  open=open
+  id_base="bottom-sheet".to_string()
+  title="Update available".to_string()
+  description="A newer version with security improvements is ready to install.".to_string()
+  on_close=close
+  footer=move || view! { ... }
+  on_exit_complete=finish_exit
+>
+  ...
+</BottomSheet>"#;
+
+    let detached_code = r#"<BottomSheet
+  open=open
+  id_base="bottom-sheet-detached".to_string()
+  title="Quick actions".to_string()
+  detached=true
+  bottom_inset_px=16.0
+  show_close_button=false
+  class_name="docs-bottom-sheet-custom".to_string()
+  on_close=close
+  on_exit_complete=finish_exit
+>
+  ...
+</BottomSheet>"#;
+
+    view! {
+        <ComponentPage
+            title="BottomSheet"
+            slug="bottom-sheet"
+            group="Overlays"
+            description="Spectrum/HeroUI-style bottom sheet primitive composed from Sheet with centralized handle/description/footer/detached contracts and stable slot/data-state markers."
+        >
+            <Playground title="Semantic Bottom Sheet" code=semantic_code>
+                <div class="docs-row">
+                    <Button on_press=open_semantic_sheet>"Open bottom sheet"</Button>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
+                </div>
+
+                <Show when=move || present_semantic.get()>
+                    <BottomSheet
+                        open=open_semantic
+                        id_base="docs-bottom-sheet-semantic".to_string()
+                        title="Update available".to_string()
+                        description="A newer version with security improvements is ready to install.".to_string()
+                        on_close=close_semantic
+                        footer=move || view! {
+                            <div class="docs-row docs-row--end">
+                                <Button variant=ButtonVariant::Secondary on_press=close_semantic>
+                                    "Later"
+                                </Button>
+                                <Button on_press=close_semantic>"Install"</Button>
+                            </div>
+                        }
+                        on_exit_complete=on_semantic_exit_complete
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>
+                                "Bottom sheet uses Sheet(bottom) + spring motion with stable a11y wiring."
+                            </div>
+                            <div class="ui-muted">"Esc/backdrop closes. Focus trap remains active."</div>
+                        </div>
+                    </BottomSheet>
+                </Show>
+            </Playground>
+
+            <Playground title="Detached + Title Only + Custom Class" code=detached_code>
+                <div class="docs-row">
+                    <Button on_press=open_detached_sheet>"Open detached sheet"</Button>
+                    <span class="ui-muted">"open: " {move || open_detached_raw.get().to_string()}</span>
+                </div>
+
+                <Show when=move || present_detached.get()>
+                    <BottomSheet
+                        open=open_detached
+                        id_base="docs-bottom-sheet-detached".to_string()
+                        title="Quick actions".to_string()
+                        detached=true
+                        bottom_inset_px=16.0
+                        show_close_button=false
+                        class_name="docs-bottom-sheet-custom".to_string()
+                        on_close=close_detached
+                        on_exit_complete=on_detached_exit_complete
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Title-only mode keeps `aria-describedby` unset."</div>
+                            <div class="ui-muted">"Detached mode applies inset and rounded surface styling."</div>
+                            <div class="docs-row docs-row--end">
+                                <Button variant=ButtonVariant::Secondary on_press=close_detached>
+                                    "Dismiss"
+                                </Button>
+                            </div>
+                        </div>
+                    </BottomSheet>
+                </Show>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn tray() -> AnyView {
     let (open_semantic_raw, set_open_semantic_raw) = signal(false);

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<BottomSheet>` as a Spectrum/HeroUI-style bottom sheet primitive composed from `Sheet`, with centralized handle/description/footer/detached state derivation and stable `slot` + `data-*` contracts.
+- `apps/docs-app`: adds a `BottomSheet` docs page with semantic action-footer and detached title-only playground coverage.
+
 - `ui-components`: adds `<SkeletonGroup>` as a Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility derivation and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `SkeletonGroup` docs page with shimmer/pulse layout and loaded/skeleton-only visibility playground coverage.
 

@@ -98,6 +98,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-segmented-control", ".ui-segmented-control {"),
         (".ui-scroll-shadow", ".ui-scroll-shadow {"),
         (".ui-sheet", ".ui-sheet {"),
+        (".ui-bottom-sheet", ".ui-bottom-sheet {"),
         (".ui-tray", ".ui-tray {"),
         (".ui-meter", ".ui-meter {"),
         (".ui-radio", ".ui-radio {"),

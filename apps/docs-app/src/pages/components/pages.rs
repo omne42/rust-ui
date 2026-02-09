@@ -878,6 +878,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: overlays::sheet,
     },
     ComponentDoc {
+        name: "BottomSheet",
+        slug: "bottom-sheet",
+        group: "Overlays",
+        page: overlays_extra::bottom_sheet,
+    },
+    ComponentDoc {
         name: "Tray",
         slug: "tray",
         group: "Overlays",
