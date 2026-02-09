@@ -159,6 +159,7 @@ pub mod toast;
 pub mod toggle;
 pub mod toggle_button;
 pub mod toggle_button_group;
+pub mod toggle_group;
 pub mod tooltip;
 pub mod tray;
 pub mod tree;
@@ -353,6 +354,9 @@ pub use toast::{
 pub use toggle::{Toggle, ToggleMotion, ToggleSize, ToggleVariant};
 pub use toggle_button::{ToggleButton, ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant};
 pub use toggle_button_group::{ToggleButtonGroup, ToggleButtonGroupOrientation};
+pub use toggle_group::{
+    ToggleGroup, ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode,
+};
 pub use tooltip::Tooltip;
 pub use tooltip::TooltipMotion;
 pub use tray::{Tray, TrayMotion};

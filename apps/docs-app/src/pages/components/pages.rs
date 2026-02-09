@@ -20,6 +20,17 @@ mod overlays_extra;
 
 use super::ComponentDoc;
 
+macro_rules! component_doc {
+    ($name:literal, $slug:literal, $group:literal, $page:path) => {
+        ComponentDoc {
+            name: $name,
+            slug: $slug,
+            group: $group,
+            page: $page,
+        }
+    };
+}
+
 pub(super) const CATALOG: &[ComponentDoc] = &[
     ComponentDoc {
         name: "Button",
@@ -135,30 +146,21 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Actions",
         page: actions::toggle_button,
     },
-    ComponentDoc {
-        name: "Toggle",
-        slug: "toggle",
-        group: "Actions",
-        page: actions_extra::toggle,
-    },
-    ComponentDoc {
-        name: "ToggleButtonGroup",
-        slug: "toggle-button-group",
-        group: "Actions",
-        page: actions::toggle_button_group,
-    },
-    ComponentDoc {
-        name: "Form",
-        slug: "form",
-        group: "Forms",
-        page: forms::form,
-    },
-    ComponentDoc {
-        name: "Input",
-        slug: "input",
-        group: "Forms",
-        page: forms::input,
-    },
+    component_doc!("Toggle", "toggle", "Actions", actions_extra::toggle),
+    component_doc!(
+        "ToggleButtonGroup",
+        "toggle-button-group",
+        "Actions",
+        actions::toggle_button_group
+    ),
+    component_doc!(
+        "ToggleGroup",
+        "toggle-group",
+        "Actions",
+        actions_extra::toggle_group
+    ),
+    component_doc!("Form", "form", "Forms", forms::form),
+    component_doc!("Input", "input", "Forms", forms::input),
     ComponentDoc {
         name: "Label",
         slug: "label",

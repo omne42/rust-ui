@@ -21,6 +21,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::ripple::styles::CSS);
     out.push_str(crate::toggle_button::styles::CSS);
     out.push_str(crate::toggle_button_group::styles::CSS);
+    out.push_str(crate::toggle_group::styles::CSS);
     out.push_str(crate::badge::styles::CSS);
     out.push_str(crate::status_light::styles::CSS);
     out.push_str(crate::checkbox::styles::CSS);

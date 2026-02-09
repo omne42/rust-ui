@@ -5,8 +5,8 @@ use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
     ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
-    CloseButtonVariant, FieldButton, LogicButton, LogicButtonVariant, Toggle, ToggleSize,
-    ToggleVariant,
+    CloseButtonVariant, FieldButton, LogicButton, LogicButtonVariant, Toggle, ToggleGroup,
+    ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleSize, ToggleVariant,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -479,6 +479,117 @@ let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
                     >
                         "Disabled"
                     </Toggle>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn toggle_group() -> AnyView {
+    let style_items = vec![
+        ToggleGroupItem::new("bold", "Bold"),
+        ToggleGroupItem::new("italic", "Italic"),
+        ToggleGroupItem::new("underline", "Underline"),
+    ];
+
+    let (style_selected_raw, set_style_selected_raw) =
+        signal(BTreeSet::from(["bold".to_string(), "italic".to_string()]));
+    let style_selected: Signal<BTreeSet<String>> = Signal::derive(move || style_selected_raw.get());
+    let on_style_selected_change =
+        Callback::new(move |next: BTreeSet<String>| set_style_selected_raw.set(next));
+
+    let alignment_items = vec![
+        ToggleGroupItem::new("left", "Left"),
+        ToggleGroupItem::new("center", "Center"),
+        ToggleGroupItem::new("right", "Right").disabled(true),
+    ];
+
+    let (alignment_selected_raw, set_alignment_selected_raw) =
+        signal(BTreeSet::from(["center".to_string()]));
+    let alignment_selected: Signal<BTreeSet<String>> =
+        Signal::derive(move || alignment_selected_raw.get());
+    let on_alignment_selected_change =
+        Callback::new(move |next: BTreeSet<String>| set_alignment_selected_raw.set(next));
+
+    let code = r#"let (selected, set_selected) = signal(BTreeSet::from(["bold".to_string()]));
+let selected_signal: Signal<BTreeSet<String>> = Signal::derive(move || selected.get());
+
+<ToggleGroup
+  id_base="formatting".to_string()
+  items=items
+  selected_ids=selected_signal
+  on_selected_ids_change=Callback::new(move |next| set_selected.set(next))
+  selection_mode=ToggleGroupSelectionMode::Multiple
+  attached=true
+/>"#;
+
+    let states_code = r#"<ToggleGroup
+  id_base="alignment".to_string()
+  items=alignment_items
+  selected_ids=alignment_selected
+  on_selected_ids_change=on_alignment_selected_change
+  selection_mode=ToggleGroupSelectionMode::Single
+  orientation=ToggleGroupOrientation::Vertical
+  attached=false
+  aria_label="Alignment controls".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="ToggleGroup"
+            slug="toggle-group"
+            group="Actions"
+            description="Shadcn-compatible grouped toggle primitive with controlled selection modes and Spectrum-style root state contracts."
+        >
+            <Playground title="Multiple + Attached" code=code>
+                <div class="docs-stack docs-stack--tight">
+                    <ToggleGroup
+                        id_base="docs-toggle-group-formatting".to_string()
+                        items=style_items
+                        selected_ids=style_selected
+                        on_selected_ids_change=on_style_selected_change
+                        selection_mode=ToggleGroupSelectionMode::Multiple
+                        attached=true
+                    />
+                    <span class="ui-muted">
+                        "selected ids: "
+                        {move || {
+                            style_selected_raw
+                                .get()
+                                .iter()
+                                .cloned()
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Single + Vertical + Disabled Item" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ToggleGroup
+                        id_base="docs-toggle-group-alignment".to_string()
+                        items=alignment_items
+                        selected_ids=alignment_selected
+                        on_selected_ids_change=on_alignment_selected_change
+                        selection_mode=ToggleGroupSelectionMode::Single
+                        orientation=ToggleGroupOrientation::Vertical
+                        attached=false
+                        aria_label="Alignment controls".to_string()
+                        class_name="docs-toggle-group-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "alignment selected: "
+                        {move || {
+                            alignment_selected_raw
+                                .get()
+                                .iter()
+                                .cloned()
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        }}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

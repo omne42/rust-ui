@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ToggleGroup>` as a Shadcn-compatible grouped-toggle primitive with single/multiple selection modes, controllable selected-id sets, and Spectrum-style root `data-*` state contracts.
+- `apps/docs-app`: adds a `ToggleGroup` docs page with multiple/attached and single/vertical/disabled-item playground coverage.
+
 - `ui-components`: adds `<NativeSelect>` as a Spectrum-compatible native `<select>` primitive with controllable selected-index state, normalized options, and root `data-*` state contracts for styling/testing.
 - `apps/docs-app`: adds a `NativeSelect` docs page with controlled placeholder and required/invalid/disabled playground coverage.
 
