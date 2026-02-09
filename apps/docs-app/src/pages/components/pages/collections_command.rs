@@ -2,7 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use std::sync::Arc;
-use ui_components::{Command, CommandGroup, CommandItem, ContextMenu, MenuItemKind};
+use ui_components::{
+    Command, CommandGroup, CommandItem, ContextMenu, MenuItemKind, Menubar, MenubarMenu,
+};
 
 pub(super) fn command() -> AnyView {
     let groups: Arc<[CommandGroup]> = Arc::from(vec![
@@ -224,6 +226,177 @@ pub(super) fn context_menu() -> AnyView {
                         }}
                     </span>
                     <span class="ui-muted">"close_on_action: false (selection keeps menu open)"</span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn menubar() -> AnyView {
+    let default_menus = vec![
+        MenubarMenu::new(
+            "file",
+            "File",
+            vec![
+                "New Tab".to_string(),
+                "New Window".to_string(),
+                "Save".to_string(),
+            ],
+        )
+        .disabled_indices(vec![2])
+        .item_kinds(vec![
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+        ]),
+        MenubarMenu::new(
+            "edit",
+            "Edit",
+            vec!["Undo".to_string(), "Redo".to_string(), "Find".to_string()],
+        )
+        .item_kinds(vec![
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+        ]),
+        MenubarMenu::new(
+            "view",
+            "View",
+            vec![
+                "Zoom In".to_string(),
+                "Zoom Out".to_string(),
+                "Actual Size".to_string(),
+            ],
+        )
+        .item_kinds(vec![
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+        ]),
+    ];
+
+    let controlled_menus = vec![
+        MenubarMenu::new(
+            "window",
+            "Window",
+            vec![
+                "Minimize".to_string(),
+                "Zoom".to_string(),
+                "Bring All to Front".to_string(),
+            ],
+        )
+        .item_kinds(vec![
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+        ]),
+        MenubarMenu::new(
+            "help",
+            "Help",
+            vec!["Search".to_string(), "Documentation".to_string()],
+        )
+        .item_kinds(vec![MenuItemKind::Action, MenuItemKind::Action]),
+        MenubarMenu::new("tools", "Tools", vec!["Inspector".to_string()]).disabled(true),
+    ];
+
+    let (last_action, set_last_action) = signal(None::<(usize, usize)>);
+    let on_action = Callback::new(move |action: (usize, usize)| set_last_action.set(Some(action)));
+
+    let (last_controlled_action, set_last_controlled_action) = signal(None::<(usize, usize)>);
+    let on_controlled_action =
+        Callback::new(move |action: (usize, usize)| set_last_controlled_action.set(Some(action)));
+
+    let (controlled_open_raw, set_controlled_open_raw) = signal(None::<usize>);
+    let controlled_open: Signal<Option<usize>> = Signal::derive(move || controlled_open_raw.get());
+    let on_open_index_change = Callback::new(move |next: Option<usize>| {
+        set_controlled_open_raw.set(next);
+    });
+
+    let code = r#"let menus = vec![
+  MenubarMenu::new("file", "File", vec!["New Tab".to_string(), "New Window".to_string()]),
+  MenubarMenu::new("edit", "Edit", vec!["Undo".to_string(), "Redo".to_string()]),
+];
+
+<Menubar
+  id_base="docs-menubar".to_string()
+  menus=menus
+  on_action=Callback::new(move |(menu_index, item_index)| {
+    set_last_action.set(Some((menu_index, item_index)));
+  })
+/>"#;
+
+    let states_code = r#"let (open_menu, set_open_menu) = signal(None::<usize>);
+let open_menu_signal: Signal<Option<usize>> = Signal::derive(move || open_menu.get());
+
+<Menubar
+  id_base="docs-menubar-controlled".to_string()
+  menus=menus
+  on_action=on_action
+  close_on_action=false
+  open_index=open_menu_signal
+  on_open_index_change=Callback::new(move |next| set_open_menu.set(next))
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Menubar"
+            slug="menubar"
+            group="Collections"
+            description="Shadcn-compatible persistent menubar with horizontal trigger navigation, Spectrum-style state attrs, and HeroUI-level spring popover motion reuse."
+        >
+            <Playground title="Desktop Menubar + Action Dispatch" code=code>
+                <div class="docs-stack docs-stack--tight">
+                    <Menubar
+                        id_base="docs-menubar-default".to_string()
+                        menus=default_menus
+                        on_action=on_action
+                    />
+                    <span class="ui-muted">
+                        "last action (menu:item): "
+                        {move || {
+                            last_action
+                                .get()
+                                .map(|(menu_index, item_index)| {
+                                    format!("{}:{}", menu_index, item_index)
+                                })
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Open + Persistent + Disabled Menu" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Menubar
+                        id_base="docs-menubar-controlled".to_string()
+                        menus=controlled_menus
+                        on_action=on_controlled_action
+                        close_on_action=false
+                        open_index=controlled_open
+                        on_open_index_change=on_open_index_change
+                        class_name="docs-menubar-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "open menu index: "
+                        {move || {
+                            controlled_open_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                    <span class="ui-muted">
+                        "last action (menu:item): "
+                        {move || {
+                            last_controlled_action
+                                .get()
+                                .map(|(menu_index, item_index)| {
+                                    format!("{}:{}", menu_index, item_index)
+                                })
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

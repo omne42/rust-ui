@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Menubar>` as a Shadcn-compatible persistent menubar with horizontal trigger navigation, controllable open-index state, Spectrum-style root `data-*` contracts, and HeroUI-level popover spring motion reuse.
+- `apps/docs-app`: adds a `Menubar` docs page with desktop action-dispatch and controlled-open/persistent/disabled-menu playground coverage.
+
 - `ui-components`: adds `<ContextMenu>` as a Shadcn-compatible context trigger menu with right-click + keyboard open semantics (`ContextMenu` / `Shift+F10`), Spectrum-style root `data-*` contracts, and HeroUI-level popover spring motion reuse.
 - `apps/docs-app`: adds a `ContextMenu` docs page with right-click/keyboard-open and persistent-open/disabled-item playground coverage.
 
