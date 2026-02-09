@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Asset>` as a Spectrum-compatible primitive for file/folder/custom media representation, composed on Thumbnail state contracts and HeroUI-level spring focus-selection motion reuse.
+- `apps/docs-app`: adds an `Asset` docs page with file/folder variants and custom-image focused-state playground coverage.
+
 - `ui-components`: adds `<TopNav>` as an upstream-name-compatible wrapper over `NavigationMenu`, preserving Spectrum top-nav selection/accessibility contracts and HeroUI-level active-indicator spring motion behavior.
 - `apps/docs-app`: adds a `TopNav` docs page with default-selection/roving-focus and controlled-label/disabled-item playground coverage.
 

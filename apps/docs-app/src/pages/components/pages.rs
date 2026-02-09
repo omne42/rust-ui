@@ -12,6 +12,7 @@ mod collections_extra_top_nav;
 mod collections_groups;
 mod display;
 mod display_extra;
+mod display_extra_asset;
 mod display_extra_swatch;
 mod display_extra_thumbnail;
 mod files;
@@ -640,6 +641,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display::avatar_group,
     },
     component_doc!("Image", "image", "Display", display::image),
+    component_doc!("Asset", "asset", "Display", display_extra_asset::asset),
     component_doc!(
         "Thumbnail",
         "thumbnail",
