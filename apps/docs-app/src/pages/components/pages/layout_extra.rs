@@ -4,8 +4,9 @@ use leptos::prelude::*;
 use ui_components::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
     GridJustify, GridRows, Resizable, ResizableOrientation, ScrollArea, ScrollAreaOrientation,
-    Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant, Surface, SurfaceElevation,
-    SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
+    Sidebar, SidebarCollapsible, SidebarMenu, SidebarMenuItem, SidebarMenuSubItem, SidebarSide,
+    SidebarVariant, Surface, SurfaceElevation, SurfaceTone, View, ViewBackground, ViewBorder,
+    ViewPadding, ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -549,6 +550,182 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
                         "controlled open: "
                         {move || if open_raw.get() { "true" } else { "false" }}
                     </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn sidebar_menu() -> AnyView {
+    let badge_items = vec![
+        SidebarMenuItem {
+            id: "projects".to_string(),
+            label: "Projects".to_string(),
+            href: Some("/projects".to_string()),
+            badge: Some("24".to_string()),
+            action_label: Some("Project actions".to_string()),
+            disabled: false,
+            sub_items: vec![],
+            default_sub_open: false,
+        },
+        SidebarMenuItem {
+            id: "support".to_string(),
+            label: "Support".to_string(),
+            href: Some("/support".to_string()),
+            badge: Some("3".to_string()),
+            action_label: Some("Support actions".to_string()),
+            disabled: false,
+            sub_items: vec![],
+            default_sub_open: false,
+        },
+        SidebarMenuItem {
+            id: "billing".to_string(),
+            label: "Billing".to_string(),
+            href: Some("/billing".to_string()),
+            badge: Some("1".to_string()),
+            action_label: Some("Billing actions".to_string()),
+            disabled: false,
+            sub_items: vec![],
+            default_sub_open: false,
+        },
+    ];
+
+    let collapsible_items = vec![
+        SidebarMenuItem {
+            id: "workspace".to_string(),
+            label: "Workspace".to_string(),
+            href: None,
+            badge: None,
+            action_label: Some("Workspace actions".to_string()),
+            disabled: false,
+            sub_items: vec![
+                SidebarMenuSubItem {
+                    id: "overview".to_string(),
+                    label: "Overview".to_string(),
+                    href: Some("/workspace/overview".to_string()),
+                    disabled: false,
+                },
+                SidebarMenuSubItem {
+                    id: "tokens".to_string(),
+                    label: "Design tokens".to_string(),
+                    href: Some("/workspace/tokens".to_string()),
+                    disabled: false,
+                },
+            ],
+            default_sub_open: true,
+        },
+        SidebarMenuItem {
+            id: "releases".to_string(),
+            label: "Releases".to_string(),
+            href: None,
+            badge: None,
+            action_label: Some("Release actions".to_string()),
+            disabled: false,
+            sub_items: vec![SidebarMenuSubItem {
+                id: "changelog".to_string(),
+                label: "Changelog".to_string(),
+                href: Some("/releases/changelog".to_string()),
+                disabled: false,
+            }],
+            default_sub_open: false,
+        },
+    ];
+
+    let (last_action, set_last_action) = signal("none".to_string());
+    let on_action = Callback::new(move |id: String| set_last_action.set(id));
+
+    let (last_item_action, set_last_item_action) = signal("none".to_string());
+    let on_item_action = Callback::new(move |id: String| set_last_item_action.set(id));
+
+    let (active_raw, set_active_raw) = signal(Some("tokens".to_string()));
+    let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
+    let on_active_change = Callback::new(move |next: Option<String>| set_active_raw.set(next));
+
+    let badge_code = r#"<SidebarMenu
+  items=items
+  on_action=Callback::new(move |id: String| set_last_action.set(id))
+  on_item_action=Callback::new(move |id: String| set_last_item_action.set(id))
+/>"#;
+
+    let controlled_code = r#"let (active_raw, set_active_raw) = signal(Some("tokens".to_string()));
+let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
+
+<SidebarMenu
+  items=items
+  active_id=active
+  on_active_id_change=Callback::new(move |next| set_active_raw.set(next))
+  allow_submenu_collapse=true
+  show_badges=false
+  show_actions=true
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="SidebarMenu"
+            slug="sidebar-menu"
+            group="Layout"
+            description="Shadcn-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, Spectrum-style data contracts, and HeroUI-level active-highlight motion."
+        >
+            <Playground title="Badge + Item Action" code=badge_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Sidebar
+                        collapsible=SidebarCollapsible::Offcanvas
+                        show_trigger=false
+                        aria_label="Menu playground sidebar".to_string()
+                    >
+                        <div class="ui-sidebar__header">
+                            <strong>"Primary navigation"</strong>
+                        </div>
+                        <SidebarMenu
+                            id_base="docs-sidebar-menu-badge".to_string()
+                            items=badge_items
+                            on_action=on_action
+                            on_item_action=on_item_action
+                            aria_label="Primary menu".to_string()
+                        />
+                        <div class="ui-sidebar__footer">
+                            <span class="ui-muted">"Action: " {move || last_action.get()} " · Item action: " {move || last_item_action.get()}</span>
+                        </div>
+                    </Sidebar>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + Collapsible Submenu" code=controlled_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Sidebar
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::Icon
+                        show_trigger=false
+                        aria_label="Controlled menu sidebar".to_string()
+                    >
+                        <div class="ui-sidebar__header">
+                            <strong>"Workspace sections"</strong>
+                        </div>
+                        <SidebarMenu
+                            id_base="docs-sidebar-menu-controlled".to_string()
+                            items=collapsible_items
+                            active_id=active
+                            on_active_id_change=on_active_change
+                            on_action=on_action
+                            on_item_action=on_item_action
+                            allow_submenu_collapse=true
+                            show_badges=false
+                            show_actions=true
+                            keyboard_shortcut_key="k".to_string()
+                            aria_label="Workspace menu".to_string()
+                            class_name="docs-sidebar-menu-custom".to_string()
+                        />
+                        <div class="ui-sidebar__footer">
+                            <span class="ui-muted">
+                                "active: "
+                                {move || active_raw.get().unwrap_or_else(|| "none".to_string())}
+                            </span>
+                        </div>
+                    </Sidebar>
                 </div>
             </Playground>
         </ComponentPage>
