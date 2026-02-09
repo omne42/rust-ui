@@ -5,6 +5,7 @@ mod collections_breadcrumb;
 mod collections_command;
 mod collections_extra;
 mod collections_extra_combobox;
+mod collections_extra_tags;
 mod collections_groups;
 mod display;
 mod display_extra;
@@ -29,6 +30,7 @@ mod overlays_extra;
 use self::actions as a;
 use self::actions_extra as ax;
 use self::collections_extra_combobox as cxb;
+use self::collections_extra_tags as cxt;
 use self::files_extra_dropzone as fdz;
 use self::forms_extra_field_label as fxl;
 use self::forms_extra_search as fxs;
@@ -889,6 +891,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Collections",
         page: collections::tag_group,
     },
+    component_doc!("Tags", "tags", "Collections", cxt::tags),
     ComponentDoc {
         name: "StepList",
         slug: "step-list",

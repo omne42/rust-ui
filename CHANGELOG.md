@@ -29,6 +29,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<Search>` as an upstream-name-compatible wrapper over `SearchField`, preserving Spectrum search accessibility/state contracts and HeroUI-grade clear-button spring motion behavior.
 - `apps/docs-app`: adds a `Search` docs page with submit/clear and required/invalid playground coverage.
 
+- `ui-components`: adds `<Tags>` as an upstream-name-compatible wrapper over `TagGroup`, preserving Spectrum tags collection accessibility/state contracts and HeroUI-level removable chip interaction patterns.
+- `apps/docs-app`: adds a `Tags` docs page with removable and disabled playground coverage.
+
 - `ui-components`: adds `<InfieldButton>` as a Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds an `InfieldButton` docs page with default/quiet and invalid/active/disabled playground coverage.
 

@@ -173,6 +173,7 @@ pub mod table;
 pub mod tabs;
 pub mod tag;
 pub mod tag_group;
+pub mod tags;
 pub mod text;
 pub mod text_area;
 pub mod text_field;
@@ -391,6 +392,7 @@ pub use table::{
 pub use tabs::{Tabs, TabsKeyboardActivation, TabsMotion};
 pub use tag::{TagSize, TagVariant};
 pub use tag_group::{Tag, TagGroup};
+pub use tags::Tags;
 pub use text::{Text, TextAlign, TextElement, TextTone, TextWeight};
 pub use text_area::TextArea;
 pub use text_field::TextField;
