@@ -3,6 +3,8 @@ mod actions_extra;
 mod actions_extra_picker_button;
 mod collections;
 mod collections_breadcrumb;
+mod collections_breadcrumb_catalog;
+mod collections_breadcrumb_shadcn;
 mod collections_command;
 mod collections_extra;
 mod collections_extra_combobox;
@@ -720,12 +722,13 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: files::drop_zone,
     },
     component_doc!("Dropzone", "dropzone", "Files", fdz::dropzone),
-    component_doc!(
-        "Breadcrumb",
-        "breadcrumb",
-        "Collections",
-        collections_breadcrumb::breadcrumb
-    ),
+    collections_breadcrumb_catalog::BREADCRUMB_DOC,
+    collections_breadcrumb_catalog::BREADCRUMB_LIST_DOC,
+    collections_breadcrumb_catalog::BREADCRUMB_ITEM_DOC,
+    collections_breadcrumb_catalog::BREADCRUMB_LINK_DOC,
+    collections_breadcrumb_catalog::BREADCRUMB_PAGE_DOC,
+    collections_breadcrumb_catalog::BREADCRUMB_SEPARATOR_DOC,
+    collections_breadcrumb_catalog::BREADCRUMB_ELLIPSIS_DOC,
     component_doc!(
         "Breadcrumbs",
         "breadcrumbs",

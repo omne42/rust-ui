@@ -8,53 +8,72 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn breadcrumb_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/breadcrumbs/mod.rs");
-    let crate_source = load_source("src/lib.rs");
+fn breadcrumb_does_not_expose_view_module() {
+    let source = load_source("src/breadcrumb/mod.rs");
 
     assert!(
-        module_source.contains("pub use view::{Breadcrumb, Breadcrumbs};"),
-        "breadcrumbs module should export `Breadcrumb` and `Breadcrumbs`."
-    );
-    assert!(
-        crate_source.contains("pub use breadcrumbs::{Breadcrumb, BreadcrumbItem, Breadcrumbs};"),
-        "crate root should re-export breadcrumb contracts."
+        !source.contains("pub mod view"),
+        "Breadcrumb internals should stay private; found `pub mod view`."
     );
 }
 
 #[test]
-fn breadcrumb_wraps_breadcrumbs_with_identical_contract() {
-    let source = load_source("src/breadcrumbs/view.rs");
+fn breadcrumb_is_exported_from_module_and_registered_in_crate() {
+    let module_source = load_source("src/breadcrumb/mod.rs");
+    let crate_source = load_source("src/lib.rs");
+
+    assert!(
+        module_source.contains("pub use view::{"),
+        "breadcrumb module should export breadcrumb primitive family."
+    );
+    assert!(
+        crate_source.contains("pub mod breadcrumb;"),
+        "crate root should register breadcrumb module."
+    );
+}
+
+#[test]
+fn breadcrumb_primitives_expose_slot_contracts() {
+    let source = load_source("src/breadcrumb/view.rs");
 
     for needle in [
         "pub fn Breadcrumb(",
-        "items: Vec<BreadcrumbItem>",
-        "#[prop(optional, into)] aria_label: Option<String>",
-        "#[prop(optional, into)] class_name: Option<String>",
-        "<Breadcrumbs items=items aria_label=aria_label class_name=class_name />",
+        "pub fn BreadcrumbList(",
+        "pub fn BreadcrumbItem(",
+        "pub fn BreadcrumbLink(",
+        "pub fn BreadcrumbPage(",
+        "pub fn BreadcrumbSeparator(",
+        "pub fn BreadcrumbEllipsis(",
+        "data-slot=\"breadcrumb\"",
+        "data-slot=\"breadcrumb-list\"",
+        "data-slot=\"breadcrumb-item\"",
+        "data-slot=\"breadcrumb-link\"",
+        "data-slot=\"breadcrumb-page\"",
+        "data-slot=\"breadcrumb-separator\"",
+        "data-slot=\"breadcrumb-ellipsis\"",
     ] {
         assert!(
             source.contains(needle),
-            "Breadcrumb wrapper should include `{needle}` to preserve Breadcrumbs behavior."
+            "Breadcrumb primitive family should include `{needle}`."
         );
     }
 }
 
 #[test]
-fn breadcrumb_uses_existing_breadcrumbs_state_data_contracts() {
-    let source = load_source("src/breadcrumbs/view.rs");
+fn breadcrumb_docs_page_exists() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+    );
 
     for needle in [
-        "data-slot=\"breadcrumbs\"",
-        "data-empty=state.is_empty.then_some(\"true\")",
-        "data-has-items=state.has_items.then_some(\"true\")",
-        "data-has-links=state.has_links.then_some(\"true\")",
-        "data-has-current-page=state.has_current_page.then_some(\"true\")",
-        "data-count=state.item_count.to_string()",
+        "pub(super) fn breadcrumb_primitives() -> AnyView",
+        "title=\"BreadcrumbList\"",
+        "slug=\"breadcrumb-list\"",
+        "<BreadcrumbList",
     ] {
         assert!(
             source.contains(needle),
-            "Breadcrumb should rely on existing Breadcrumbs data contracts; missing `{needle}`."
+            "collections_breadcrumb_shadcn docs page should contain `{needle}`."
         );
     }
 }

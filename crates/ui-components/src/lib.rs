@@ -23,6 +23,7 @@ pub mod avatar;
 pub mod avatar_group;
 pub mod badge;
 pub mod bottom_sheet;
+pub mod breadcrumb;
 pub mod breadcrumbs;
 pub mod button;
 pub mod button_copy;
