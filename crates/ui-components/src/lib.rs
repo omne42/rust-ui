@@ -156,6 +156,7 @@ pub mod radio_group;
 pub mod resizable;
 pub mod ripple;
 pub mod root;
+pub mod s2;
 pub mod scroll_area;
 pub mod scroll_shadow;
 pub mod search;

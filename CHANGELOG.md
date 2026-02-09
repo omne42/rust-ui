@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `s2` compatibility module that re-exports `Theme` + `UiRoot` contracts for `-spectrum/s2` naming parity.
+- `apps/docs-app`: maps the new `s2` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds `utils` compatibility module that re-exports core interaction hooks (`use_press`, `use_hover`, `use_focus_ring`) and option contracts from `ui_headless` for `-spectrum/utils` parity.
 - `apps/docs-app`: maps the new `utils` module to existing `button` docs/playground coverage where these hook contracts are consumed.
 
