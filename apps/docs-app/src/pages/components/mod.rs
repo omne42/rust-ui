@@ -198,6 +198,7 @@ mod tests {
                 "color-editor",
                 "color-swatch-picker",
             ],
+            "list" => &["listbox", "item"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `list` compatibility module that re-exports `ListView` (via `ListBox`) and `Item` contracts for `@react-spectrum/list` naming parity.
+- `apps/docs-app`: maps the new `list` module to existing `listbox` + `item` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds `color` compatibility module that re-exports Spectrum color family contracts (`ColorArea`, `ColorWheel`, `ColorSlider`, `ColorField`, `ColorSwatch`, `ColorPicker`, `ColorEditor`, `ColorSwatchPicker`) for `@react-spectrum/color` naming parity.
 - `apps/docs-app`: maps the new `color` module to existing color docs/playground coverage across forms and display catalogs.
 
