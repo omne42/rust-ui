@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<IconsUi>` as a Spectrum-compatible `icons-ui` wrapper with built-in UI icon registry defaults, namespace normalization, and `Iconset` accessibility/source-state contracts.
+- `apps/docs-app`: adds an `IconsUi` docs page with built-in glyph and custom-registry extension playground coverage.
+
 - `ui-components`: adds `<Iconset>` as a Spectrum-compatible iconset registry wrapper, resolving `iconset:icon` references onto `Icon` with namespace/source state markers and accessibility fallbacks.
 - `apps/docs-app`: adds an `Iconset` docs page with namespaced registry and fallback-source playground coverage.
 

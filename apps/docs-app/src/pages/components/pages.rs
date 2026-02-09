@@ -13,6 +13,7 @@ mod collections_groups;
 mod display;
 mod display_extra;
 mod display_extra_asset;
+mod display_extra_icons_ui;
 mod display_extra_iconset;
 mod display_extra_swatch;
 mod display_extra_thumbnail;
@@ -35,21 +36,14 @@ mod overlays;
 mod overlays_extra;
 mod overlays_extra_coachmark;
 
-use self::actions as a;
-use self::actions_extra as ax;
-use self::actions_extra_picker_button as apb;
-use self::collections_extra_combobox as cxb;
-use self::collections_extra_picker as cxp;
-use self::collections_extra_tags as cxt;
-use self::collections_extra_top_nav as cxtn;
-use self::files_extra_dropzone as fdz;
-use self::forms_extra_field_label as fxl;
-use self::forms_extra_search as fxs;
-use self::forms_extra_textfield as fxt;
-use self::layout_extra as lx;
-use self::layout_extra_sidenav as lxs;
-use self::layout_extra_split_view as lxv;
-use self::overlays as ov;
+use self::{
+    actions as a, actions_extra as ax, actions_extra_picker_button as apb,
+    collections_extra_combobox as cxb, collections_extra_picker as cxp,
+    collections_extra_tags as cxt, collections_extra_top_nav as cxtn, files_extra_dropzone as fdz,
+    forms_extra_field_label as fxl, forms_extra_search as fxs, forms_extra_textfield as fxt,
+    layout_extra as lx, layout_extra_sidenav as lxs, layout_extra_split_view as lxv,
+    overlays as ov,
+};
 use super::ComponentDoc;
 
 macro_rules! component_doc {
@@ -665,48 +659,54 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Display",
         display_extra_iconset::iconset
     ),
-    ComponentDoc {
-        name: "IllustratedMessage",
-        slug: "illustrated-message",
-        group: "Display",
-        page: display::illustrated_message,
-    },
-    ComponentDoc {
-        name: "EmptyState",
-        slug: "empty-state",
-        group: "Display",
-        page: display_extra::empty_state,
-    },
-    ComponentDoc {
-        name: "ErrorView",
-        slug: "error-view",
-        group: "Display",
-        page: display_extra::error_view,
-    },
-    ComponentDoc {
-        name: "PressableFeedback",
-        slug: "pressable-feedback",
-        group: "Display",
-        page: display_extra::pressable_feedback,
-    },
-    ComponentDoc {
-        name: "MotionRipple",
-        slug: "motion-ripple",
-        group: "Display",
-        page: display::motion_ripple,
-    },
-    ComponentDoc {
-        name: "StaticNumber",
-        slug: "static-number",
-        group: "Display",
-        page: display::static_number,
-    },
-    ComponentDoc {
-        name: "SlidingNumber",
-        slug: "sliding-number",
-        group: "Display",
-        page: display::sliding_number,
-    },
+    component_doc!(
+        "IconsUi",
+        "icons-ui",
+        "Display",
+        display_extra_icons_ui::icons_ui
+    ),
+    component_doc!(
+        "IllustratedMessage",
+        "illustrated-message",
+        "Display",
+        display::illustrated_message
+    ),
+    component_doc!(
+        "EmptyState",
+        "empty-state",
+        "Display",
+        display_extra::empty_state
+    ),
+    component_doc!(
+        "ErrorView",
+        "error-view",
+        "Display",
+        display_extra::error_view
+    ),
+    component_doc!(
+        "PressableFeedback",
+        "pressable-feedback",
+        "Display",
+        display_extra::pressable_feedback
+    ),
+    component_doc!(
+        "MotionRipple",
+        "motion-ripple",
+        "Display",
+        display::motion_ripple
+    ),
+    component_doc!(
+        "StaticNumber",
+        "static-number",
+        "Display",
+        display::static_number
+    ),
+    component_doc!(
+        "SlidingNumber",
+        "sliding-number",
+        "Display",
+        display::sliding_number
+    ),
     ComponentDoc {
         name: "FileTrigger",
         slug: "file-trigger",
