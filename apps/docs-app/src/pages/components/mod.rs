@@ -207,6 +207,7 @@ mod tests {
             "utils" => &["button"],
             "s2" => &["ui-root"],
             "story-utils" => &["ui-root"],
+            "style-macro-s1" => &["ui-root"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],

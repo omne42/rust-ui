@@ -188,6 +188,7 @@ pub mod split_view;
 pub mod status_light;
 pub mod step_list;
 pub mod story_utils;
+pub mod style_macro_s1;
 pub mod surface;
 pub mod swatch;
 pub mod switch;

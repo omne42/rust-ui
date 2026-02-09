@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `style_macro_s1` compatibility module that exposes layered CSS assembly (`build_s1_layer_css`) on top of `push_components_css` for `-spectrum/style-macro-s1` naming parity.
+- `apps/docs-app`: maps the new `style-macro-s1` module to existing `ui-root` docs/playground coverage where layered CSS injection is documented.
+
 - `ui-components`: adds `story_utils` compatibility module with `story_theme()` + `UiRoot` contracts for `-spectrum/story-utils` naming parity.
 - `apps/docs-app`: maps the new `story-utils` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
 
