@@ -6,6 +6,7 @@ mod collections_breadcrumb;
 mod collections_command;
 mod collections_extra;
 mod collections_extra_combobox;
+mod collections_extra_picker;
 mod collections_extra_tags;
 mod collections_groups;
 mod display;
@@ -34,6 +35,7 @@ use self::actions as a;
 use self::actions_extra as ax;
 use self::actions_extra_picker_button as apb;
 use self::collections_extra_combobox as cxb;
+use self::collections_extra_picker as cxp;
 use self::collections_extra_tags as cxt;
 use self::files_extra_dropzone as fdz;
 use self::forms_extra_field_label as fxl;
@@ -825,6 +827,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Collections",
         page: collections::select,
     },
+    component_doc!("Picker", "picker", "Collections", cxp::picker),
     component_doc!(
         "ComboBox",
         "combo-box",
