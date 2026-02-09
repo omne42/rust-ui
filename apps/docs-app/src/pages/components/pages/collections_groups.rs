@@ -2,6 +2,7 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::tag::{Tag, TagSize, TagVariant};
+use ui_components::{Collapsible, CollapsibleMotion};
 
 pub(super) fn tag() -> AnyView {
     let (remove_count, set_remove_count) = signal(0_u32);
@@ -96,6 +97,85 @@ let on_remove_beta = Callback::new(move |_| {
                     <span class="ui-muted">
                         "remove count: " {move || remove_count.get().to_string()}
                     </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn collapsible() -> AnyView {
+    let (open, set_open) = signal(true);
+    let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+
+    let basic_code = r#"let (open, set_open) = signal(true);
+let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+
+<Collapsible
+  id_base="collapsible".to_string()
+  title="Advanced options".to_string()
+  open=open.into()
+  on_open_change=on_open_change
+>
+  <div>"Content"</div>
+</Collapsible>"#;
+
+    let states_code = r#"<Collapsible
+  id_base="collapsible-disabled".to_string()
+  title="Disabled section".to_string()
+  default_open=false
+  disabled=true
+  class_name="docs-collapsible-custom".to_string()
+  motion=CollapsibleMotion {
+    panel_offset_y_px: 6.0,
+    ..CollapsibleMotion::default()
+  }
+>
+  <div>"Hidden"</div>
+</Collapsible>"#;
+
+    let custom_motion = CollapsibleMotion {
+        panel_offset_y_px: 6.0,
+        ..CollapsibleMotion::default()
+    };
+
+    view! {
+        <ComponentPage
+            title="Collapsible"
+            slug="collapsible"
+            group="Collections"
+            description="Shadcn-compatible collapsible primitive built on Disclosure semantics with HeroUI-level spring panel motion and stable state contracts."
+        >
+            <Playground title="Controlled Collapsible" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Collapsible
+                        id_base="docs-collapsible".to_string()
+                        title="Advanced options".to_string()
+                        open=open.into()
+                        on_open_change=on_open_change
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Panel content with disclosure-level semantics."</div>
+                            <div class="ui-muted">"Escape/keyboard behavior follows the trigger press contract."</div>
+                        </div>
+                    </Collapsible>
+                    <span class="ui-muted">"open: " {move || open.get().to_string()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled + Custom Motion" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Collapsible
+                        id_base="docs-collapsible-disabled".to_string()
+                        title="Disabled section".to_string()
+                        default_open=false
+                        disabled=true
+                        class_name="docs-collapsible-custom".to_string()
+                        motion=custom_motion
+                    >
+                        <div>"This content is intentionally not reachable while disabled."</div>
+                    </Collapsible>
+                    <span class="ui-muted">"disabled: true"</span>
                 </div>
             </Playground>
         </ComponentPage>

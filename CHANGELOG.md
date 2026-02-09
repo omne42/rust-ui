@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Collapsible>` as a Shadcn-compatible disclosure primitive with HeroUI-level spring motion reuse, `ui-collapsible` state-class contracts, and Disclosure-composed semantics.
+- `apps/docs-app`: adds a `Collapsible` docs page with controlled and disabled/custom-motion playground coverage.
+
 - `ui-components`: adds `<Textarea>` as a Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics, stable `data-*` state contracts, and dedicated `ui-textarea` styling hooks.
 - `apps/docs-app`: adds a `Textarea` docs page with basic and invalid-error playground coverage.
 

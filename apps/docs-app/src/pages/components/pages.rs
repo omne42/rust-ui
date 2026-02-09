@@ -734,6 +734,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections::disclosure,
     },
     ComponentDoc {
+        name: "Collapsible",
+        slug: "collapsible",
+        group: "Collections",
+        page: collections_groups::collapsible,
+    },
+    ComponentDoc {
         name: "DisclosureGroup",
         slug: "disclosure-group",
         group: "Collections",
