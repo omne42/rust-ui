@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ContextMenu>` as a Shadcn-compatible context trigger menu with right-click + keyboard open semantics (`ContextMenu` / `Shift+F10`), Spectrum-style root `data-*` contracts, and HeroUI-level popover spring motion reuse.
+- `apps/docs-app`: adds a `ContextMenu` docs page with right-click/keyboard-open and persistent-open/disabled-item playground coverage.
+
 - `ui-components`: adds `<Command>` as a Shadcn-compatible command palette with grouped search/filtering, listbox keyboard semantics, and HeroUI-level spring active-highlight motion.
 - `apps/docs-app`: adds a `Command` docs page with grouped keyboard-action and custom placeholder/empty-label playground coverage.
 

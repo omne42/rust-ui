@@ -62,6 +62,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-menu", ".ui-menu {"),
         (".ui-select", ".ui-select {"),
         (".ui-dropdown-menu", ".ui-dropdown-menu {"),
+        (".ui-context-menu", ".ui-context-menu {"),
         (".ui-action-menu", ".ui-action-menu {"),
         (".ui-badge", ".ui-badge {"),
         (".ui-circular-progress", ".ui-circular-progress {"),

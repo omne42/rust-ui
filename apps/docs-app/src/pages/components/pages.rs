@@ -831,6 +831,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections_command::command,
     },
     ComponentDoc {
+        name: "ContextMenu",
+        slug: "context-menu",
+        group: "Collections",
+        page: collections_command::context_menu,
+    },
+    ComponentDoc {
         name: "DropdownMenu",
         slug: "dropdown-menu",
         group: "Collections",
