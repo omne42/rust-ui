@@ -100,6 +100,7 @@ pub mod hover_card;
 pub mod icon;
 pub mod icon_button;
 pub mod icons_ui;
+pub mod icons_workflow;
 pub mod iconset;
 pub mod illustrated_message;
 pub mod image;
@@ -315,6 +316,7 @@ pub use hover_card::{HoverCard, HoverCardMotion};
 pub use icon::{Icon, IconSize, IconTone};
 pub use icon_button::IconButton;
 pub use icons_ui::{IconsUi, IconsUiSize, IconsUiTone};
+pub use icons_workflow::{IconsWorkflow, IconsWorkflowSize, IconsWorkflowTone};
 pub use iconset::{Iconset, IconsetGlyph, IconsetSize, IconsetTone};
 pub use illustrated_message::{
     IllustratedMessage, IllustratedMessageMotion, IllustratedMessageOrientation,
