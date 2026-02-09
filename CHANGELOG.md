@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SidebarGroup>` as a Shadcn-compatible sidebar section primitive with label/action header regions, controlled/uncontrolled collapsible state, and Spectrum-style `data-*` markers.
+- `apps/docs-app`: adds a `SidebarGroup` docs page with label+action and controlled collapsible-group playground coverage.
+
 - `ui-components`: adds `<SidebarMenu>` as a Shadcn-compatible sidebar navigation menu with badges/actions/sub-items, controlled active-id state, collapsible submenu behavior, Spectrum-style `data-*` markers, and HeroUI-level active-highlight motion reuse.
 - `apps/docs-app`: adds a `SidebarMenu` docs page with badge/action dispatch and controlled collapsible-submenu playground coverage.
 

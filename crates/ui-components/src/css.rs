@@ -132,6 +132,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::alert_dialog::styles::CSS);
     out.push_str(crate::sheet::styles::CSS);
     out.push_str(crate::sidebar::styles::CSS);
+    out.push_str(crate::sidebar_group::styles::CSS);
     out.push_str(crate::sidebar_menu::styles::CSS);
     out.push_str(crate::bottom_sheet::styles::CSS);
     out.push_str(crate::tray::styles::CSS);

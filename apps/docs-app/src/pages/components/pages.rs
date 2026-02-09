@@ -438,18 +438,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Layout",
         page: layout::content,
     },
-    ComponentDoc {
-        name: "Header",
-        slug: "header",
-        group: "Layout",
-        page: layout::header,
-    },
-    ComponentDoc {
-        name: "Footer",
-        slug: "footer",
-        group: "Layout",
-        page: layout::footer,
-    },
+    component_doc!("Header", "header", "Layout", layout::header),
+    component_doc!("Footer", "footer", "Layout", layout::footer),
     ComponentDoc {
         name: "Heading",
         slug: "heading",
@@ -489,6 +479,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
     component_doc!("Sidebar", "sidebar", "Layout", layout_extra::sidebar),
+    component_doc!(
+        "SidebarGroup",
+        "sidebar-group",
+        "Layout",
+        layout_extra::sidebar_group
+    ),
     component_doc!(
         "SidebarMenu",
         "sidebar-menu",
