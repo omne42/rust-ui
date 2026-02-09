@@ -128,6 +128,7 @@ pub mod number;
 pub mod number_field;
 pub mod overlay;
 pub mod pagination;
+pub mod picker_button;
 pub mod popover;
 pub mod pressable_feedback;
 pub mod progress;
@@ -337,6 +338,7 @@ pub use number_field::NumberField;
 pub use overlay::Overlay;
 pub use overlay::OverlayMotion;
 pub use pagination::Pagination;
+pub use picker_button::PickerButton;
 pub use popover::Popover;
 pub use popover::PopoverMotion;
 pub use pressable_feedback::{
