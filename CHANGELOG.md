@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<InfieldButton>` as a Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state normalization and stable `data-*` markers.
+- `apps/docs-app`: adds an `InfieldButton` docs page with default/quiet and invalid/active/disabled playground coverage.
+
 - `ui-components`: adds `<FieldLabel>` as a Spectrum-compatible field label primitive with centralized tone/required/source-state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds a `FieldLabel` docs page with tone/required and custom indicator/aria/class playground coverage.
 

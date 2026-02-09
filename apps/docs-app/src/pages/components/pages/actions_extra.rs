@@ -5,8 +5,9 @@ use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
     ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
-    CloseButtonVariant, FieldButton, LogicButton, LogicButtonVariant, Toggle, ToggleGroup,
-    ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleSize, ToggleVariant,
+    CloseButtonVariant, FieldButton, InfieldButton, LogicButton, LogicButtonVariant, Toggle,
+    ToggleGroup, ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleSize,
+    ToggleVariant,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -152,6 +153,64 @@ pub(super) fn field_button() -> AnyView {
                     <FieldButton disabled=true aria_label="Disabled trigger".to_string()>
                         "Disabled"
                     </FieldButton>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn infield_button() -> AnyView {
+    let default_code = r#"<InfieldButton aria_label="Open in-field options".to_string()>
+  "⋯"
+</InfieldButton>
+<InfieldButton quiet=true aria_label="Open calendar".to_string()>
+  "📅"
+</InfieldButton>"#;
+
+    let state_code = r#"<InfieldButton
+  invalid=true
+  is_active=true
+  aria_label="Invalid in-field trigger".to_string()
+  class_name="docs-infield-button-custom".to_string()
+>
+  "Needs fix"
+</InfieldButton>
+<InfieldButton disabled=true aria_label="Disabled in-field trigger".to_string()>
+  "Disabled"
+</InfieldButton>"#;
+
+    view! {
+        <ComponentPage
+            title="InfieldButton"
+            slug="infield-button"
+            group="Actions"
+            description="Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
+        >
+            <Playground title="Default + Quiet" code=default_code>
+                <div class="docs-row">
+                    <InfieldButton aria_label="Open in-field options".to_string()>
+                        "⋯"
+                    </InfieldButton>
+                    <InfieldButton quiet=true aria_label="Open calendar".to_string()>
+                        "📅"
+                    </InfieldButton>
+                </div>
+            </Playground>
+
+            <Playground title="Invalid + Active + Disabled" code=state_code>
+                <div class="docs-row">
+                    <InfieldButton
+                        invalid=true
+                        is_active=true
+                        aria_label="Invalid in-field trigger".to_string()
+                        class_name="docs-infield-button-custom".to_string()
+                    >
+                        "Needs fix"
+                    </InfieldButton>
+                    <InfieldButton disabled=true aria_label="Disabled in-field trigger".to_string()>
+                        "Disabled"
+                    </InfieldButton>
                 </div>
             </Playground>
         </ComponentPage>

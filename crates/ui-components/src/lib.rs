@@ -96,6 +96,7 @@ pub mod icon;
 pub mod icon_button;
 pub mod illustrated_message;
 pub mod image;
+pub mod infield_button;
 pub mod inline_alert;
 pub mod input;
 pub mod input_group;
@@ -295,6 +296,7 @@ pub use illustrated_message::{
     IllustratedMessage, IllustratedMessageMotion, IllustratedMessageOrientation,
 };
 pub use image::{Image, ImageMotion, ImageRadius, ImageShadow};
+pub use infield_button::InfieldButton;
 pub use inline_alert::{InlineAlert, InlineAlertFill, InlineAlertMotion, InlineAlertTone};
 pub use input::{Input, InputLabelPlacement, InputMotion, InputSize, InputVariant};
 pub use input_group::InputGroup;

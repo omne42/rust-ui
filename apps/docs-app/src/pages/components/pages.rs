@@ -42,12 +42,18 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("Button", "button", "Actions", actions::button),
     component_doc!("ActionBar", "action-bar", "Actions", ax::action_bar),
     component_doc!("ActionButton", "action-button", "Actions", a::action_button),
-    ComponentDoc {
-        name: "FieldButton",
-        slug: "field-button",
-        group: "Actions",
-        page: actions_extra::field_button,
-    },
+    component_doc!(
+        "FieldButton",
+        "field-button",
+        "Actions",
+        actions_extra::field_button
+    ),
+    component_doc!(
+        "InfieldButton",
+        "infield-button",
+        "Actions",
+        actions_extra::infield_button
+    ),
     ComponentDoc {
         name: "ClearButton",
         slug: "clear-button",
