@@ -807,6 +807,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections_command::menubar,
     },
     ComponentDoc {
+        name: "NavigationMenu",
+        slug: "navigation-menu",
+        group: "Collections",
+        page: collections_command::navigation_menu,
+    },
+    ComponentDoc {
         name: "Dropdown",
         slug: "dropdown",
         group: "Collections",

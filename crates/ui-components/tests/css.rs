@@ -61,6 +61,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         // Use the base selector to avoid false positives from `.ui-menu-trigger`.
         (".ui-menu", ".ui-menu {"),
         (".ui-menubar", ".ui-menubar {"),
+        (".ui-navigation-menu", ".ui-navigation-menu {"),
         (".ui-select", ".ui-select {"),
         (".ui-dropdown-menu", ".ui-dropdown-menu {"),
         (".ui-context-menu", ".ui-context-menu {"),

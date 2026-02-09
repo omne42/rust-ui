@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<NavigationMenu>` as a Shadcn-compatible horizontal navigation primitive with roving keyboard focus, controllable selected-id state, Spectrum-style root `data-*` contracts, and HeroUI-level spring active-highlight motion reuse.
+- `apps/docs-app`: adds a `NavigationMenu` docs page with default roving-selection and controlled-selection (`activate_on_focus=false`) playground coverage.
+
 - `ui-components`: adds `<Menubar>` as a Shadcn-compatible persistent menubar with horizontal trigger navigation, controllable open-index state, Spectrum-style root `data-*` contracts, and HeroUI-level popover spring motion reuse.
 - `apps/docs-app`: adds a `Menubar` docs page with desktop action-dispatch and controlled-open/persistent/disabled-menu playground coverage.
 

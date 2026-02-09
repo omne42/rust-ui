@@ -4,6 +4,7 @@ use leptos::prelude::*;
 use std::sync::Arc;
 use ui_components::{
     Command, CommandGroup, CommandItem, ContextMenu, MenuItemKind, Menubar, MenubarMenu,
+    NavigationMenu, NavigationMenuItem,
 };
 
 pub(super) fn command() -> AnyView {
@@ -396,6 +397,96 @@ let open_menu_signal: Signal<Option<usize>> = Signal::derive(move || open_menu.g
                                 })
                                 .unwrap_or_else(|| "None".to_string())
                         }}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn navigation_menu() -> AnyView {
+    let base_items = vec![
+        NavigationMenuItem::new("overview", "Overview", "/docs/overview"),
+        NavigationMenuItem::new("components", "Components", "/docs/components"),
+        NavigationMenuItem::new("patterns", "Patterns", "/docs/patterns"),
+        NavigationMenuItem::new("tokens", "Tokens", "/docs/tokens").disabled(true),
+    ];
+
+    let controlled_items = vec![
+        NavigationMenuItem::new("home", "Home", "/"),
+        NavigationMenuItem::new("docs", "Docs", "/docs"),
+        NavigationMenuItem::new("blog", "Blog", "/blog"),
+    ];
+
+    let (last_selected, set_last_selected) = signal("none".to_string());
+    let on_selected_id_change = Callback::new(move |next: Option<String>| {
+        set_last_selected.set(next.unwrap_or_else(|| "none".to_string()))
+    });
+
+    let (controlled_selected_raw, set_controlled_selected_raw) = signal(Some("docs".to_string()));
+    let controlled_selected: Signal<Option<String>> =
+        Signal::derive(move || controlled_selected_raw.get());
+    let on_controlled_selected_change = Callback::new(move |next: Option<String>| {
+        set_controlled_selected_raw.set(next);
+    });
+
+    let code = r#"<NavigationMenu
+  id_base=\"docs-navigation-menu\".to_string()
+  items=items
+  default_selected_id=\"components\".to_string()
+  on_selected_id_change=Callback::new(move |next: Option<String>| {
+    set_last_selected.set(next.unwrap_or_else(|| \"none\".to_string()));
+  })
+/>"#;
+
+    let states_code = r#"let (selected, set_selected) = signal(Some(\"docs\".to_string()));
+let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.get());
+
+<NavigationMenu
+  id_base=\"docs-navigation-menu-controlled\".to_string()
+  items=items
+  selected_id=selected_signal
+  on_selected_id_change=Callback::new(move |next| set_selected.set(next))
+  activate_on_focus=false
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="NavigationMenu"
+            slug="navigation-menu"
+            group="Collections"
+            description="Shadcn-compatible horizontal navigation menu with roving keyboard focus, controllable selection state, Spectrum data contracts, and HeroUI-level active-highlight spring motion reuse."
+        >
+            <Playground title="Default + Roving Focus + Selection" code=code>
+                <div class="docs-stack docs-stack--tight">
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-default".to_string()
+                        items=base_items
+                        default_selected_id="components".to_string()
+                        on_selected_id_change=on_selected_id_change
+                    />
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || last_selected.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Selection + activate_on_focus=false" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-controlled".to_string()
+                        items=controlled_items
+                        selected_id=controlled_selected
+                        on_selected_id_change=on_controlled_selected_change
+                        activate_on_focus=false
+                        aria_label="Header navigation".to_string()
+                        class_name="docs-navigation-menu-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "controlled selected: "
+                        {move || controlled_selected_raw.get().unwrap_or_else(|| "none".to_string())}
                     </span>
                 </div>
             </Playground>
