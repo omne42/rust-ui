@@ -13,6 +13,7 @@ mod collections_groups;
 mod display;
 mod display_extra;
 mod display_extra_asset;
+mod display_extra_icons;
 mod display_extra_icons_catalog;
 mod display_extra_icons_ui;
 mod display_extra_icons_workflow;
@@ -655,6 +656,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         display_extra::color_swatch_picker
     ),
     component_doc!("Icon", "icon", "Display", display_extra::icon),
+    display_extra_icons_catalog::ICONS_DOC,
     display_extra_icons_catalog::ICONSET_DOC,
     display_extra_icons_catalog::ICONS_UI_DOC,
     display_extra_icons_catalog::ICONS_WORKFLOW_DOC,

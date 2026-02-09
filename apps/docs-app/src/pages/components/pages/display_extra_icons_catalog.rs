@@ -1,5 +1,12 @@
 use crate::pages::components::ComponentDoc;
 
+pub(super) const ICONS_DOC: ComponentDoc = ComponentDoc {
+    name: "Icons",
+    slug: "icons",
+    group: "Display",
+    page: super::display_extra_icons::icons,
+};
+
 pub(super) const ICONSET_DOC: ComponentDoc = ComponentDoc {
     name: "Iconset",
     slug: "iconset",

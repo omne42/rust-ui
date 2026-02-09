@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Icons>` as a Spectrum-compatible `@spectrum-web-components/icons` wrapper, mapping medium/large scale and ui/workflow set resolution onto `IconsUi`/`IconsWorkflow` with stable data-state markers.
+- `apps/docs-app`: adds an `Icons` docs page with set-scale matrix and custom workflow glyph extension playground coverage.
+
 - `ui-components`: adds `<IconsWorkflow>` as a Spectrum-compatible `icons-workflow` wrapper with workflow namespace normalization, default workflow glyph registry, and `Iconset` accessibility/source-state contracts.
 - `apps/docs-app`: adds an `IconsWorkflow` docs page with built-in workflow glyph and custom-extension playground coverage.
 
