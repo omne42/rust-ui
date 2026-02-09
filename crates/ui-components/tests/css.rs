@@ -33,6 +33,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-chip", ".ui-chip {"),
         (".ui-collapsible", ".ui-collapsible {"),
         (".ui-command", ".ui-command {"),
+        (".ui-command-dialog", ".ui-command-dialog {"),
         (".ui-color-area", ".ui-color-area {"),
         (".ui-color-field", ".ui-color-field {"),
         (".ui-color-handle", ".ui-color-handle {"),

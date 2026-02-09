@@ -42,6 +42,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::chip::styles::CSS);
     out.push_str(crate::collapsible::styles::CSS);
     out.push_str(crate::command::styles::CSS);
+    out.push_str(crate::command_dialog::styles::CSS);
     out.push_str(crate::color_area::styles::CSS);
     out.push_str(crate::color_field::styles::CSS);
     out.push_str(crate::color_handle::styles::CSS);

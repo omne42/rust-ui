@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::sync::Arc;
 use ui_components::{
-    Carousel, CarouselItem, CarouselOrientation, Command, CommandGroup, CommandItem, ContextMenu,
-    MenuItemKind, Menubar, MenubarMenu, NavigationMenu, NavigationMenuItem,
+    Carousel, CarouselItem, CarouselOrientation, Command, CommandDialog, CommandGroup, CommandItem,
+    ContextMenu, MenuItemKind, Menubar, MenubarMenu, NavigationMenu, NavigationMenuItem,
 };
 
 pub(super) fn command() -> AnyView {
@@ -592,6 +592,146 @@ let selected_signal: Signal<Option<usize>> = Signal::derive(move || selected.get
                                 .unwrap_or_else(|| "None".to_string())
                         }}
                     </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn command_dialog() -> AnyView {
+    let groups: Arc<[CommandGroup]> = Arc::from(vec![
+        CommandGroup::new(
+            "Suggestions",
+            vec![
+                CommandItem::new("calendar", "Calendar")
+                    .keywords(vec!["date".to_string(), "event".to_string()])
+                    .shortcut("⌘K"),
+                CommandItem::new("search-emoji", "Search Emoji")
+                    .keywords(vec!["emoji".to_string(), "icon".to_string()])
+                    .shortcut("⌘E"),
+                CommandItem::new("calculator", "Calculator")
+                    .keywords(vec!["math".to_string(), "compute".to_string()]),
+            ],
+        ),
+        CommandGroup::new(
+            "Settings",
+            vec![
+                CommandItem::new("profile", "Profile").shortcut("⌘P"),
+                CommandItem::new("billing", "Billing").shortcut("⌘B"),
+                CommandItem::new("team", "Team").disabled(true),
+            ],
+        ),
+    ]);
+
+    let persistent_groups: Arc<[CommandGroup]> = Arc::from(vec![
+        CommandGroup::new(
+            "Workspace",
+            vec![
+                CommandItem::new("new-file", "New File")
+                    .keywords(vec!["create".to_string(), "document".to_string()])
+                    .shortcut("⌘N"),
+                CommandItem::new("new-window", "New Window")
+                    .keywords(vec!["window".to_string(), "workspace".to_string()])
+                    .shortcut("⌘⇧N"),
+            ],
+        ),
+        CommandGroup::new(
+            "Account",
+            vec![
+                CommandItem::new("preferences", "Preferences").shortcut("⌘,"),
+                CommandItem::new("manage-billing", "Manage Billing").shortcut("⌘⇧B"),
+                CommandItem::new("admin-only", "Admin Only").disabled(true),
+            ],
+        ),
+    ]);
+
+    let (open_raw, set_open_raw) = signal(false);
+    let open: Signal<bool> = Signal::derive(move || open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));
+
+    let (last_action, set_last_action) = signal("none".to_string());
+    let on_action = Callback::new(move |id: String| set_last_action.set(id));
+
+    let (last_persistent_action, set_last_persistent_action) = signal("none".to_string());
+    let on_persistent_action = Callback::new(move |id: String| set_last_persistent_action.set(id));
+
+    let code = r#"let (open_raw, set_open_raw) = signal(false);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+
+<CommandDialog
+  groups=groups
+  open=open
+  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
+  on_action=Callback::new(move |id: String| set_last_action.set(id))
+/>"#;
+
+    let states_code = r#"<CommandDialog
+  groups=groups
+  default_open=true
+  close_on_action=false
+  placeholder="Search pages, actions, and settings...".to_string()
+  empty_label="No command matches your search.".to_string()
+  class_name="docs-command-dialog-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="CommandDialog"
+            slug="command-dialog"
+            group="Collections"
+            description="Shadcn-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits Spectrum data contracts, and reuses HeroUI-level overlay/active-highlight spring motion."
+        >
+            <Playground title="Controlled Open + Action Close" code=code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row" style="display:flex; gap:0.75rem; align-items:center;">
+                        <button type="button" on:click=move |_| set_open_raw.set(true)>
+                            "Open CommandDialog"
+                        </button>
+                        <button type="button" on:click=move |_| set_open_raw.set(false)>
+                            "Close"
+                        </button>
+                    </div>
+                    <CommandDialog
+                        id_base="docs-command-dialog-controlled".to_string()
+                        title="Quick Actions".to_string()
+                        description="Press ⌘K-style filtering and Enter to run actions.".to_string()
+                        groups=groups.clone()
+                        open=open
+                        on_open_change=on_open_change
+                        on_action=on_action
+                    />
+                    <span class="ui-muted">
+                        "open: "
+                        {move || if open_raw.get() { "true" } else { "false" }}
+                    </span>
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || last_action.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Persistent + Custom Labels" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <CommandDialog
+                        id_base="docs-command-dialog-persistent".to_string()
+                        title="Workspace Commands".to_string()
+                        description="close_on_action=false keeps the dialog open after choosing an action.".to_string()
+                        groups=persistent_groups
+                        default_open=true
+                        close_on_action=false
+                        on_action=on_persistent_action
+                        placeholder="Search pages, actions, and settings...".to_string()
+                        empty_label="No command matches your search.".to_string()
+                        aria_label="Workspace command dialog".to_string()
+                        class_name="docs-command-dialog-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || last_persistent_action.get()}
+                    </span>
+                    <span class="ui-muted">"close_on_action: false (dialog stays open)"</span>
                 </div>
             </Playground>
         </ComponentPage>

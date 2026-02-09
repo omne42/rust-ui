@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<CommandDialog>` as a Shadcn-compatible command overlay that composes `Modal` + `Command` with controllable open state, persistent-action mode, and Spectrum-style `data-*` contracts.
+- `apps/docs-app`: adds a `CommandDialog` docs page with controlled open/action-close and persistent-action playground coverage.
+
 - `ui-components`: adds `<ScrollArea>` as a Shadcn-compatible scroll container with orientation/max-height/disabled normalization and stable `data-*` state contracts.
 - `apps/docs-app`: adds a `ScrollArea` docs page with vertical list and horizontal/both-disabled playground coverage.
 

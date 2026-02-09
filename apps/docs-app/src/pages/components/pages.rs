@@ -19,6 +19,9 @@ mod layout_extra;
 mod overlays;
 mod overlays_extra;
 
+use self::actions as a;
+use self::actions_extra as ax;
+use self::overlays as ov;
 use super::ComponentDoc;
 
 macro_rules! component_doc {
@@ -34,18 +37,8 @@ macro_rules! component_doc {
 
 pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("Button", "button", "Actions", actions::button),
-    component_doc!(
-        "ActionBar",
-        "action-bar",
-        "Actions",
-        actions_extra::action_bar
-    ),
-    ComponentDoc {
-        name: "ActionButton",
-        slug: "action-button",
-        group: "Actions",
-        page: actions::action_button,
-    },
+    component_doc!("ActionBar", "action-bar", "Actions", ax::action_bar),
+    component_doc!("ActionButton", "action-button", "Actions", a::action_button),
     ComponentDoc {
         name: "FieldButton",
         slug: "field-button",
@@ -147,7 +140,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "ToggleButtonGroup",
         "toggle-button-group",
         "Actions",
-        actions::toggle_button_group
+        a::toggle_button_group
     ),
     component_doc!(
         "ToggleGroup",
@@ -861,6 +854,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: collections_command::command,
     },
     ComponentDoc {
+        name: "CommandDialog",
+        slug: "command-dialog",
+        group: "Collections",
+        page: collections_command::command_dialog,
+    },
+    ComponentDoc {
         name: "ContextMenu",
         slug: "context-menu",
         group: "Collections",
@@ -993,6 +992,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "ToastViewport",
         "toast-viewport",
         "Overlays",
-        overlays::toast_viewport
+        ov::toast_viewport
     ),
 ];
