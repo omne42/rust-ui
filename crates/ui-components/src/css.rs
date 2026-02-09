@@ -130,6 +130,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::meter::styles::CSS);
     out.push_str(crate::illustrated_message::styles::CSS);
     out.push_str(crate::toast::styles::CSS);
+    out.push_str(crate::toggle::styles::CSS);
     out.push_str(crate::listbox::styles::CSS);
     out.push_str(crate::listbox_item::styles::CSS);
     out.push_str(crate::listbox_section::styles::CSS);

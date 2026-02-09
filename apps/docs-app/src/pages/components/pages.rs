@@ -134,6 +134,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: actions::toggle_button,
     },
     ComponentDoc {
+        name: "Toggle",
+        slug: "toggle",
+        group: "Actions",
+        page: actions_extra::toggle,
+    },
+    ComponentDoc {
         name: "ToggleButtonGroup",
         slug: "toggle-button-group",
         group: "Actions",

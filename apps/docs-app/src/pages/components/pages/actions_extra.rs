@@ -5,7 +5,8 @@ use std::collections::BTreeSet;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
     ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
-    CloseButtonVariant, FieldButton, LogicButton, LogicButtonVariant,
+    CloseButtonVariant, FieldButton, LogicButton, LogicButtonVariant, Toggle, ToggleSize,
+    ToggleVariant,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -400,6 +401,85 @@ pub(super) fn action_group() -> AnyView {
                     tone=ActionGroupTone::Strong
                     class_name="docs-action-group-custom".to_string()
                 />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn toggle() -> AnyView {
+    let (pressed, set_pressed) = signal(false);
+    let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
+
+    let basic_code = r#"let (pressed, set_pressed) = signal(false);
+let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
+
+<Toggle
+  pressed=pressed
+  set_pressed=set_pressed
+  on_pressed_change=on_pressed_change
+>
+  "Bold"
+</Toggle>"#;
+
+    let states_code = r#"<Toggle
+  pressed=pressed
+  set_pressed=set_pressed
+  variant=ToggleVariant::Outline
+  size=ToggleSize::Sm
+>
+  "Italic"
+</Toggle>
+<Toggle
+  pressed=pressed
+  set_pressed=set_pressed
+  variant=ToggleVariant::Ghost
+  disabled=true
+>
+  "Disabled"
+</Toggle>"#;
+
+    view! {
+        <ComponentPage
+            title="Toggle"
+            slug="toggle"
+            group="Actions"
+            description="Shadcn-compatible single toggle primitive with Spectrum-style press/focus contracts and HeroUI-grade spring press motion."
+        >
+            <Playground title="Controlled Toggle" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Toggle
+                            pressed=pressed
+                            set_pressed=set_pressed
+                            on_pressed_change=on_pressed_change
+                        >
+                            "Bold"
+                        </Toggle>
+                        <span class="ui-muted">"pressed: " {move || pressed.get().to_string()}</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Outline + Ghost + Disabled" code=states_code>
+                <div class="docs-row">
+                    <Toggle
+                        pressed=pressed
+                        set_pressed=set_pressed
+                        variant=ToggleVariant::Outline
+                        size=ToggleSize::Sm
+                    >
+                        "Italic"
+                    </Toggle>
+                    <Toggle
+                        pressed=pressed
+                        set_pressed=set_pressed
+                        variant=ToggleVariant::Ghost
+                        disabled=true
+                    >
+                        "Disabled"
+                    </Toggle>
+                </div>
             </Playground>
         </ComponentPage>
     }

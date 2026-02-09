@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Toggle>` as a Shadcn-compatible toggle primitive with centralized pressed-state flow, Spectrum-style `data-*` contracts, and HeroUI-grade spring press motion reuse.
+- `apps/docs-app`: adds a `Toggle` docs page with controlled and outline/ghost-disabled playground coverage.
+
 - `ui-components`: adds `<Collapsible>` as a Shadcn-compatible disclosure primitive with HeroUI-level spring motion reuse, `ui-collapsible` state-class contracts, and Disclosure-composed semantics.
 - `apps/docs-app`: adds a `Collapsible` docs page with controlled and disabled/custom-motion playground coverage.
 

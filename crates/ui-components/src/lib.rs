@@ -150,6 +150,7 @@ pub mod text_field;
 pub mod textarea;
 pub mod time_field;
 pub mod toast;
+pub mod toggle;
 pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod tooltip;
@@ -337,6 +338,7 @@ pub use toast::{
     Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport,
     provide_toast_store,
 };
+pub use toggle::{Toggle, ToggleMotion, ToggleSize, ToggleVariant};
 pub use toggle_button::{ToggleButton, ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant};
 pub use toggle_button_group::{ToggleButtonGroup, ToggleButtonGroupOrientation};
 pub use tooltip::Tooltip;

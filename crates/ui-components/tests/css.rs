@@ -117,6 +117,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-alert-dialog", ".ui-alert-dialog {"),
         (".ui-illustrated-message", ".ui-illustrated-message {"),
         (".ui-toast", ".ui-toast {"),
+        (".ui-toggle", ".ui-toggle {"),
         (".ui-drawer", ".ui-drawer {"),
     ];
 
