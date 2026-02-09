@@ -1,5 +1,5 @@
 use crate::overlay_open;
-use crate::select::logic;
+use crate::select::{SelectMotion, logic};
 use crate::{Button, ListBox, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc, time::Duration};
@@ -18,6 +18,7 @@ pub fn Select(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] motion: SelectMotion,
 ) -> impl IntoView {
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
@@ -217,6 +218,12 @@ pub fn Select(
             data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
             data-has-disabled-options=move || state.get().has_disabled_options.then_some("true")
             data-disabled-option-count=move || state.get().disabled_option_count.to_string()
+            data-motion-source=if motion == SelectMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != SelectMotion::default()).then_some("true")
         >
             <Button
                 id=trigger_id.get_value()
@@ -236,6 +243,7 @@ pub fn Select(
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=placement
+                    motion=motion.popover
                     on_exit_complete=presence.finish_exit
                 >
                     <div class="ui-select__panel" data-slot="select-panel">

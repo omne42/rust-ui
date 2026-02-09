@@ -406,7 +406,7 @@ pub use search_field::{SearchField, SearchFieldMotion};
 pub use segmented_control::{
     SegmentedControl, SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize,
 };
-pub use select::Select;
+pub use select::{Select, SelectMotion};
 pub use separator::{Separator, SeparatorElementType, SeparatorMotion, SeparatorOrientation};
 pub use sheet::{Sheet, SheetMotion, SheetPlacement};
 pub use sidebar::{Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant};

@@ -56,6 +56,7 @@ fn select_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "motion: SelectMotion",
     ] {
         assert!(
             source.contains(needle),
@@ -87,6 +88,7 @@ fn select_uses_presence_to_allow_exit_motion() {
 
     for needle in [
         "use_presence(open)",
+        "motion=motion.popover",
         "on_exit_complete=presence.finish_exit",
     ] {
         assert!(
@@ -114,6 +116,8 @@ fn select_exposes_root_state_and_slot_data_attributes() {
         "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
         "data-has-disabled-options=move || state.get().has_disabled_options.then_some(\"true\")",
         "data-disabled-option-count=move || state.get().disabled_option_count.to_string()",
+        "data-motion-source=if motion == SelectMotion::default()",
+        "data-custom-motion=(motion != SelectMotion::default()).then_some(\"true\")",
         "data-slot=\"select-panel\"",
     ] {
         assert!(
@@ -143,4 +147,22 @@ fn select_centralizes_trigger_disabled_logic() {
         logic_source.contains("pub fn resolve_trigger_disabled"),
         "Select logic should expose a dedicated helper for disabled/empty trigger semantics."
     );
+}
+
+#[test]
+fn select_exposes_motion_contract_and_internal_module() {
+    let mod_source = load_source("src/select/mod.rs");
+    let motion_source = load_source("src/select/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::SelectMotion;",
+        "pub struct SelectMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "Select motion contract should include `{needle}` for HeroUI-style spring customization."
+        );
+    }
 }
