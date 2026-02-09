@@ -1,3 +1,5 @@
+#[path = "layout_extra_sidebar_content.rs"]
+mod layout_extra_sidebar_content;
 #[path = "layout_extra_sidebar_footer.rs"]
 mod layout_extra_sidebar_footer;
 #[path = "layout_extra_surface.rs"]
@@ -629,6 +631,10 @@ pub(super) fn sidebar_header() -> AnyView {
         </ComponentPage>
     }
     .into_any()
+}
+
+pub(super) fn sidebar_content() -> AnyView {
+    layout_extra_sidebar_content::sidebar_content()
 }
 
 pub(super) fn sidebar_footer() -> AnyView {

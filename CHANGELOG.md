@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SidebarContent>` as a Shadcn-compatible sidebar content region primitive with centralized padding/scroll/source-state normalization and stable `data-*` markers.
+- `apps/docs-app`: adds a `SidebarContent` docs page with default-scrollable and compact-static custom-class playground coverage.
+
 - `ui-components`: adds `<SidebarFooter>` as a Shadcn-compatible sidebar footer region primitive with centralized border/disabled/source-state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds a `SidebarFooter` docs page with bordered and disabled custom-class playground coverage.
 
