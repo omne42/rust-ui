@@ -122,6 +122,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-sidebar-header", ".ui-sidebar-header {"),
         (".ui-sidebar-group", ".ui-sidebar-group {"),
         (".ui-sidebar-menu", ".ui-sidebar-menu {"),
+        (".ui-sidebar-menu-badge", ".ui-sidebar-menu-badge {"),
         (".ui-bottom-sheet", ".ui-bottom-sheet {"),
         (".ui-tray", ".ui-tray {"),
         (".ui-meter", ".ui-meter {"),

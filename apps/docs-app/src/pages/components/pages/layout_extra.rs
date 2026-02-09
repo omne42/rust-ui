@@ -6,6 +6,8 @@ mod layout_extra_sidebar_footer;
 mod layout_extra_sidebar_group;
 #[path = "layout_extra_sidebar_inset.rs"]
 mod layout_extra_sidebar_inset;
+#[path = "layout_extra_sidebar_menu_badge.rs"]
+mod layout_extra_sidebar_menu_badge;
 #[path = "layout_extra_sidebar_rail.rs"]
 mod layout_extra_sidebar_rail;
 #[path = "layout_extra_sidebar_trigger.rs"]
@@ -662,6 +664,10 @@ pub(super) fn sidebar_inset() -> AnyView {
 
 pub(super) fn sidebar_group() -> AnyView {
     layout_extra_sidebar_group::sidebar_group()
+}
+
+pub(super) fn sidebar_menu_badge() -> AnyView {
+    layout_extra_sidebar_menu_badge::sidebar_menu_badge()
 }
 
 pub(super) fn sidebar_menu() -> AnyView {

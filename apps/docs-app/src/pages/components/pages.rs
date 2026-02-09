@@ -484,6 +484,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("SidebarGroup", "sidebar-group", "Layout", lx::sidebar_group),
     component_doc!("SidebarMenu", "sidebar-menu", "Layout", lx::sidebar_menu),
     component_doc!(
+        "SidebarMenuBadge",
+        "sidebar-menu-badge",
+        "Layout",
+        lx::sidebar_menu_badge
+    ),
+    component_doc!(
         "ScrollShadow",
         "scroll-shadow",
         "Layout",
