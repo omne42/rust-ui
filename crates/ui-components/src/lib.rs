@@ -217,6 +217,7 @@ pub mod top_nav;
 pub mod tray;
 pub mod tree;
 pub mod underlay;
+pub mod utils;
 pub mod view;
 pub mod well;
 

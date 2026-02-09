@@ -204,6 +204,7 @@ mod tests {
             "theme-default" => &["ui-root"],
             "theme-express" => &["ui-root"],
             "theme-light" => &["ui-root"],
+            "utils" => &["button"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],
