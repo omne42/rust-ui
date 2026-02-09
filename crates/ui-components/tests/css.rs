@@ -114,6 +114,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-scroll-shadow", ".ui-scroll-shadow {"),
         (".ui-sheet", ".ui-sheet {"),
         (".ui-sidebar", ".ui-sidebar {"),
+        (".ui-sidebar-footer", ".ui-sidebar-footer {"),
         (".ui-sidebar-header", ".ui-sidebar-header {"),
         (".ui-sidebar-group", ".ui-sidebar-group {"),
         (".ui-sidebar-menu", ".ui-sidebar-menu {"),

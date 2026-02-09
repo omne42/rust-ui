@@ -440,18 +440,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     },
     component_doc!("Header", "header", "Layout", layout::header),
     component_doc!("Footer", "footer", "Layout", layout::footer),
-    ComponentDoc {
-        name: "Heading",
-        slug: "heading",
-        group: "Layout",
-        page: layout::heading,
-    },
-    ComponentDoc {
-        name: "Divider",
-        slug: "divider",
-        group: "Layout",
-        page: layout::divider,
-    },
+    component_doc!("Heading", "heading", "Layout", layout::heading),
+    component_doc!("Divider", "divider", "Layout", layout::divider),
     ComponentDoc {
         name: "Separator",
         slug: "separator",
@@ -484,6 +474,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "sidebar-header",
         "Layout",
         layout_extra::sidebar_header
+    ),
+    component_doc!(
+        "SidebarFooter",
+        "sidebar-footer",
+        "Layout",
+        layout_extra::sidebar_footer
     ),
     component_doc!(
         "SidebarGroup",
