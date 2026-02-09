@@ -129,6 +129,7 @@ pub mod progress_circle;
 pub mod radio;
 pub mod ripple;
 pub mod root;
+pub mod scroll_area;
 pub mod scroll_shadow;
 pub mod search_field;
 pub mod segmented_control;
@@ -316,6 +317,7 @@ pub use progress_circle::{ProgressCircle, ProgressCircleMotion};
 pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
 pub use ripple::{MotionRipple, RippleMotion};
 pub use root::UiRoot;
+pub use scroll_area::{ScrollArea, ScrollAreaOrientation};
 pub use scroll_shadow::ScrollShadow;
 pub use search_field::{SearchField, SearchFieldMotion};
 pub use segmented_control::{

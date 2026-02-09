@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
-    GridJustify, GridRows, Surface, SurfaceElevation, SurfaceTone, View, ViewBackground,
-    ViewBorder, ViewPadding, ViewRadius,
+    GridJustify, GridRows, ScrollArea, ScrollAreaOrientation, Surface, SurfaceElevation,
+    SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -203,6 +203,91 @@ pub(super) fn grid() -> AnyView {
                         "Errors"
                     </View>
                 </Grid>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn scroll_area() -> AnyView {
+    let default_code = r#"<ScrollArea max_height_px=180>
+  {rows}
+</ScrollArea>"#;
+
+    let state_code = r#"<ScrollArea
+  orientation=ScrollAreaOrientation::Horizontal
+  max_height_px=120
+  class_name="docs-scroll-area-custom".to_string()
+>
+  {chips}
+</ScrollArea>
+<ScrollArea
+  orientation=ScrollAreaOrientation::Both
+  disabled=true
+  max_height_px=120
+  aria_label="Disabled logs".to_string()
+>
+  {grid}
+</ScrollArea>"#;
+
+    view! {
+        <ComponentPage
+            title="ScrollArea"
+            slug="scroll-area"
+            group="Layout"
+            description="Shadcn-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts."
+        >
+            <Playground title="Vertical + Max Height" code=default_code>
+                <ScrollArea max_height_px=180>
+                    <div class="docs-stack docs-stack--tight">
+                        {(1..=24)
+                            .map(|idx| {
+                                view! { <div class="docs-scroll-shadow-item">{format!("Release note {idx}")}</div> }
+                            })
+                            .collect_view()}
+                    </div>
+                </ScrollArea>
+            </Playground>
+
+            <Playground title="Horizontal + Both + Disabled" code=state_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ScrollArea
+                        orientation=ScrollAreaOrientation::Horizontal
+                        max_height_px=120
+                        class_name="docs-scroll-area-custom".to_string()
+                    >
+                        <div class="docs-row">
+                            {(1..=16)
+                                .map(|idx| {
+                                    view! {
+                                        <span class="ui-chip ui-chip--flat docs-scroll-area-chip">
+                                            {format!("Tag {idx}")}
+                                        </span>
+                                    }
+                                })
+                                .collect_view()}
+                        </div>
+                    </ScrollArea>
+
+                    <ScrollArea
+                        orientation=ScrollAreaOrientation::Both
+                        disabled=true
+                        max_height_px=120
+                        aria_label="Disabled logs".to_string()
+                    >
+                        <div class="docs-scroll-area-grid">
+                            {(1..=20)
+                                .map(|idx| {
+                                    view! {
+                                        <div class="docs-scroll-shadow-item">
+                                            {format!("Cell {idx}")}
+                                        </div>
+                                    }
+                                })
+                                .collect_view()}
+                        </div>
+                    </ScrollArea>
+                </div>
             </Playground>
         </ComponentPage>
     }

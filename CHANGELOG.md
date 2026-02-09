@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ScrollArea>` as a Shadcn-compatible scroll container with orientation/max-height/disabled normalization and stable `data-*` state contracts.
+- `apps/docs-app`: adds a `ScrollArea` docs page with vertical list and horizontal/both-disabled playground coverage.
+
 - `ui-components`: adds `<Toaster>` as a Shadcn-compatible host that composes `Sonner` with toaster-level position/portal/queue contracts and stable `data-*` state markers.
 - `apps/docs-app`: adds a `Toaster` docs page with portal-host and inline top-center playground coverage.
 

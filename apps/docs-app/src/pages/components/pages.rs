@@ -487,18 +487,19 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Layout",
         page: layout::well,
     },
-    ComponentDoc {
-        name: "Surface",
-        slug: "surface",
-        group: "Layout",
-        page: layout_extra::surface,
-    },
-    ComponentDoc {
-        name: "ScrollShadow",
-        slug: "scroll-shadow",
-        group: "Layout",
-        page: layout::scroll_shadow,
-    },
+    component_doc!("Surface", "surface", "Layout", layout_extra::surface),
+    component_doc!(
+        "ScrollArea",
+        "scroll-area",
+        "Layout",
+        layout_extra::scroll_area
+    ),
+    component_doc!(
+        "ScrollShadow",
+        "scroll-shadow",
+        "Layout",
+        layout::scroll_shadow
+    ),
     ComponentDoc {
         name: "AutoHeight",
         slug: "auto-height",

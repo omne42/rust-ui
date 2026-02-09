@@ -110,6 +110,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::form::styles::CSS);
     out.push_str(crate::form_field::styles::CSS);
     out.push_str(crate::segmented_control::styles::CSS);
+    out.push_str(crate::scroll_area::styles::CSS);
     out.push_str(crate::scroll_shadow::styles::CSS);
     out.push_str(crate::radio::styles::CSS);
     out.push_str(crate::tabs::styles::CSS);
