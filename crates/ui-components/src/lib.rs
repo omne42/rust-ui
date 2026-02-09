@@ -145,6 +145,7 @@ pub mod pressable_feedback;
 pub mod progress;
 pub mod progress_bar;
 pub mod progress_circle;
+pub mod provider;
 pub mod radio;
 pub mod radio_group;
 pub mod resizable;
@@ -377,6 +378,7 @@ pub use pressable_feedback::{
 pub use progress::{Progress, ProgressMotion, ProgressRange};
 pub use progress_bar::{ProgressBar, ProgressBarSize, ProgressBarVariant};
 pub use progress_circle::{ProgressCircle, ProgressCircleMotion};
+pub use provider::Provider;
 pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
 pub use radio_group::RadioGroupItem;
 pub use resizable::{Resizable, ResizableOrientation};

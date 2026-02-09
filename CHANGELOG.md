@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds react-spectrum-compatible `Provider` alias that re-exports `UiRoot` for naming parity while preserving existing root theme/safe-area contracts.
+- `apps/docs-app`: maps the new `provider` module to the existing `ui-root` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds shadcn-compatible `item` primitive family (`Item`, `ItemGroup`, `ItemSeparator`, `ItemMedia`, `ItemContent`, `ItemTitle`, `ItemDescription`, `ItemActions`, `ItemHeader`, `ItemFooter`) with stable slot/variant contracts.
 - `apps/docs-app`: adds item primitive docs/playground coverage for media-content-actions and header-footer composition layouts.
 

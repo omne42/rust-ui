@@ -185,6 +185,7 @@ mod tests {
             "number" => &["static-number", "sliding-number"],
             "ripple" => &["motion-ripple"],
             "root" => &["ui-root"],
+            "provider" => &["ui-root"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],
