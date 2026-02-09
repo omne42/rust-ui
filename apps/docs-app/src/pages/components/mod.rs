@@ -199,6 +199,7 @@ mod tests {
                 "color-swatch-picker",
             ],
             "list" => &["listbox", "item"],
+            "dnd" => &["drop-zone", "file-trigger"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],
