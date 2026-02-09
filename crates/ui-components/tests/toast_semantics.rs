@@ -18,6 +18,21 @@ fn toast_does_not_expose_logic_module() {
 }
 
 #[test]
+fn toast_is_publicly_exported_from_toast_module_and_crate_root() {
+    let toast_mod = load_source("src/toast/mod.rs");
+    let crate_root = load_source("src/lib.rs");
+
+    assert!(
+        toast_mod.contains("pub use view::{Toast, ToastViewport};"),
+        "toast::mod should re-export both Toast and ToastViewport."
+    );
+    assert!(
+        crate_root.contains("Toast, ToastMotion"),
+        "crate root should expose Toast together with toast types."
+    );
+}
+
+#[test]
 fn toast_viewport_marks_portaled_content_as_overlay_portal() {
     let source = load_source("src/toast/view.rs");
 
@@ -32,7 +47,7 @@ fn toast_viewport_marks_portaled_content_as_overlay_portal() {
 }
 
 #[test]
-fn toast_items_have_spectrum_style_accessibility_semantics() {
+fn toast_has_spectrum_style_accessibility_semantics() {
     let source = load_source("src/toast/view.rs");
 
     for needle in [
@@ -49,7 +64,24 @@ fn toast_items_have_spectrum_style_accessibility_semantics() {
 }
 
 #[test]
-fn toast_items_support_escape_to_dismiss() {
+fn toast_has_state_and_description_data_contracts() {
+    let source = load_source("src/toast/view.rs");
+
+    for needle in [
+        "data-state=",
+        "data-description=if has_description { \"present\" } else { \"absent\" }",
+        "data-custom-class=has_custom_class_name.then_some(\"true\")",
+        "data-open=move || open.get().then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Toast should expose `{needle}` for styling/state contracts."
+        );
+    }
+}
+
+#[test]
+fn toast_supports_escape_to_dismiss() {
     let source = load_source("src/toast/view.rs");
 
     assert!(

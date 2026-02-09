@@ -4,8 +4,8 @@ use leptos::prelude::*;
 use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
     Dialog, Drawer, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, Sheet,
-    SheetPlacement, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, Tooltip,
-    provide_toast_store,
+    SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
+    ToastViewport, Tooltip, provide_toast_store,
 };
 
 pub(super) fn overlay() -> AnyView {
@@ -767,6 +767,98 @@ pub(super) fn contextual_help() -> AnyView {
     }
     .into_any()
 }
+pub(super) fn toast() -> AnyView {
+    let (open_default_raw, set_open_default_raw) = signal(true);
+    let open_default: Signal<bool> = Signal::derive(move || open_default_raw.get());
+    let close_default: OnPress = Callback::new(move |_| set_open_default_raw.set(false));
+    let reopen_default: OnPress = Callback::new(move |_| set_open_default_raw.set(true));
+
+    let (open_danger_raw, set_open_danger_raw) = signal(true);
+    let open_danger: Signal<bool> = Signal::derive(move || open_danger_raw.get());
+    let close_danger: OnPress = Callback::new(move |_| set_open_danger_raw.set(false));
+    let reopen_danger: OnPress = Callback::new(move |_| set_open_danger_raw.set(true));
+
+    let code_basic = r#"let (open, set_open) = signal(true);
+let open_signal: Signal<bool> = Signal::derive(move || open.get());
+<Toast
+  id="docs-toast-basic".to_string()
+  title="Saved".to_string()
+  description="Cloud sync completed.".to_string()
+  open=open_signal
+  on_close=Callback::new(move |_| set_open.set(false))
+/>"#;
+
+    let code_danger = r#"let motion = ToastMotion { initial_y_px: 18.0, initial_scale: 0.96, ..ToastMotion::default() };
+<Toast
+  id="docs-toast-danger".to_string()
+  title="Failed".to_string()
+  description="Retry required.".to_string()
+  variant=ToastVariant::Danger
+  class_name="docs-toast-custom".to_string()
+  motion=motion
+  open=open_signal
+/>"#;
+
+    let danger_motion = ToastMotion {
+        initial_y_px: 18.0,
+        initial_scale: 0.96,
+        ..ToastMotion::default()
+    };
+
+    view! {
+        <ComponentPage
+            title="Toast"
+            slug="toast"
+            group="Overlays"
+            description="Single toast primitive with Spectrum-style aria contracts, explicit open state, and spring-based entry/exit motion."
+        >
+            <Playground title="Basic Toast + Escape/Close" code=code_basic>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button variant=ButtonVariant::Secondary on_press=reopen_default>
+                            "Re-open basic toast"
+                        </Button>
+                        <span class="ui-muted">
+                            "open: " {move || open_default_raw.get().to_string()}
+                        </span>
+                    </div>
+                    <Toast
+                        id="docs-toast-basic".to_string()
+                        title="Saved".to_string()
+                        description="Cloud sync completed.".to_string()
+                        open=open_default
+                        on_close=close_default
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Danger Variant + Custom Motion" code=code_danger>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button variant=ButtonVariant::Destructive on_press=reopen_danger>
+                            "Re-open danger toast"
+                        </Button>
+                        <span class="ui-muted">
+                            "open: " {move || open_danger_raw.get().to_string()}
+                        </span>
+                    </div>
+                    <Toast
+                        id="docs-toast-danger".to_string()
+                        title="Failed".to_string()
+                        description="Retry required.".to_string()
+                        variant=ToastVariant::Danger
+                        class_name="docs-toast-custom".to_string()
+                        motion=danger_motion
+                        open=open_danger
+                        on_close=close_danger
+                    />
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
 pub(super) fn toast_viewport() -> AnyView {
     let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
     let store = StoredValue::new(store);

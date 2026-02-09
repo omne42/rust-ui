@@ -330,7 +330,8 @@ pub use text_area::TextArea;
 pub use text_field::TextField;
 pub use time_field::{TimeField, TimeFieldIds, TimeFieldTone};
 pub use toast::{
-    ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
+    Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport,
+    provide_toast_store,
 };
 pub use toggle_button::{ToggleButton, ToggleButtonMotion, ToggleButtonSize, ToggleButtonVariant};
 pub use toggle_button_group::{ToggleButtonGroup, ToggleButtonGroupOrientation};

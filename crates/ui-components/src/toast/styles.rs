@@ -29,6 +29,31 @@ pub const CSS: &str = r#"
   will-change: transform, opacity;
 }
 
+.ui-toast--open,
+.ui-toast[data-state="open"] {
+  --ui-toast-open: 1;
+}
+
+.ui-toast--closing,
+.ui-toast[data-state="closing"] {
+  --ui-toast-open: 0;
+}
+
+.ui-toast--with-description,
+.ui-toast[data-description="present"] {
+  --ui-toast-description-lines: 2;
+}
+
+.ui-toast--title-only,
+.ui-toast[data-description="absent"] {
+  --ui-toast-description-lines: 0;
+}
+
+.ui-toast--custom-class,
+.ui-toast[data-custom-class="true"] {
+  --ui-toast-custom-class: 1;
+}
+
 .ui-toast__content {
   min-width: 0;
   display: flex;

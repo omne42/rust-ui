@@ -37,6 +37,57 @@ impl ToastVariant {
     }
 }
 
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn normalize_title(value: String) -> String {
+    let trimmed = value.trim();
+    if trimmed.is_empty() {
+        "Notification".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+pub fn normalize_description(value: Option<String>) -> Option<String> {
+    normalize_optional_text(value)
+}
+
+pub fn compose_toast_class_name(
+    base_class_name: Option<String>,
+    variant: ToastVariant,
+    is_open: bool,
+    has_description: bool,
+    has_custom_class_name: bool,
+) -> String {
+    let mut classes = vec!["ui-toast".to_string(), variant.class_name().to_string()];
+
+    if is_open {
+        classes.push("ui-toast--open".to_string());
+    } else {
+        classes.push("ui-toast--closing".to_string());
+    }
+
+    if has_description {
+        classes.push("ui-toast--with-description".to_string());
+    } else {
+        classes.push("ui-toast--title-only".to_string());
+    }
+
+    if has_custom_class_name {
+        classes.push("ui-toast--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
+    }
+
+    classes.join(" ")
+}
+
 #[derive(Clone, Debug)]
 pub struct ToastOptions {
     pub title: String,
@@ -361,5 +412,47 @@ mod tests {
         assert_eq!(opts.title, "Hello");
         assert_eq!(opts.variant, ToastVariant::Default);
         assert!(opts.duration_ms.is_some());
+    }
+
+    #[test]
+    fn normalize_helpers_trim_values() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some("  \n\t ".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some("  docs-toast  ".to_string())),
+            Some("docs-toast".to_string())
+        );
+
+        assert_eq!(normalize_title("  Saved  ".to_string()), "Saved");
+        assert_eq!(normalize_title("\n\t".to_string()), "Notification");
+        assert_eq!(
+            normalize_description(Some("  done  ".to_string())),
+            Some("done".to_string())
+        );
+    }
+
+    #[test]
+    fn compose_toast_class_name_tracks_state_markers() {
+        let class_name = compose_toast_class_name(
+            Some("docs-toast-custom".to_string()),
+            ToastVariant::Accent,
+            false,
+            true,
+            true,
+        );
+
+        for token in [
+            "ui-toast",
+            "ui-toast--variant-accent",
+            "ui-toast--closing",
+            "ui-toast--with-description",
+            "ui-toast--custom-class",
+            "docs-toast-custom",
+        ] {
+            assert!(
+                class_name.contains(token),
+                "composed class should include `{token}`"
+            );
+        }
     }
 }

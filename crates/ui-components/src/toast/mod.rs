@@ -8,4 +8,4 @@ pub use logic::{
     use_toast_store,
 };
 pub use motion::ToastMotion;
-pub use view::ToastViewport;
+pub use view::{Toast, ToastViewport};

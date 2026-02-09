@@ -926,6 +926,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: overlays::contextual_help,
     },
     ComponentDoc {
+        name: "Toast",
+        slug: "toast",
+        group: "Overlays",
+        page: overlays::toast,
+    },
+    ComponentDoc {
         name: "ToastViewport",
         slug: "toast-viewport",
         group: "Overlays",

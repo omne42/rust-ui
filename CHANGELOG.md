@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Toast>` as a Spectrum/HeroUI-style toast primitive with centralized title/description/class normalization, explicit open/closing state contracts, and spring-driven entry/exit motion hooks.
+- `apps/docs-app`: adds a `Toast` docs page with basic dismiss and danger custom-motion playground coverage.
+
 - `ui-components`: adds `<PressableFeedback>` as a Spectrum/HeroUI-style press feedback container with centralized effect/tone/boundary/source state derivation, spring-driven press/highlight motion, and optional ripple integration.
 - `apps/docs-app`: adds a `PressableFeedback` docs page with highlight/scale and ripple/custom-motion playground coverage.
 
