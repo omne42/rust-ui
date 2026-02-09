@@ -314,6 +314,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: forms_groups_extra::checkbox_field,
     },
     ComponentDoc {
+        name: "FormField",
+        slug: "form-field",
+        group: "Forms",
+        page: forms_groups_extra::form_field,
+    },
+    ComponentDoc {
         name: "CheckboxGroup",
         slug: "checkbox-group",
         group: "Forms",

@@ -92,6 +92,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-file-trigger", ".ui-file-trigger {"),
         (".ui-drop-zone", ".ui-drop-zone {"),
         (".ui-form", ".ui-form {"),
+        (".ui-form-field", ".ui-form-field {"),
         (".ui-field-group", ".ui-field-group {"),
         (".ui-segmented-control", ".ui-segmented-control {"),
         (".ui-scroll-shadow", ".ui-scroll-shadow {"),

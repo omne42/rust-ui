@@ -2,7 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    CheckboxField, CheckboxFieldIndicatorPlacement, CheckboxFieldTone, Legend, LegendTone,
+    CheckboxField, CheckboxFieldIndicatorPlacement, CheckboxFieldTone, FormField,
+    FormFieldIndicatorPlacement, FormFieldIndicatorVariant, FormFieldTone, Legend, LegendTone,
 };
 
 pub(super) fn checkbox_field() -> AnyView {
@@ -83,6 +84,100 @@ pub(super) fn checkbox_field() -> AnyView {
 
                     <span class="ui-muted">
                         "terms: " {move || terms.get().to_string()}
+                        " · read-only: " {move || read_only.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn form_field() -> AnyView {
+    let (marketing, set_marketing) = signal(true);
+    let (tos, set_tos) = signal(false);
+    let (read_only, set_read_only) = signal(true);
+
+    let code = r#"let (marketing, set_marketing) = signal(true);
+
+<FormField
+  selected=marketing
+  set_selected=set_marketing
+  id_base="marketing-form-field".to_string()
+  label="Subscribe to product updates".to_string()
+  description="Receive release notes and occasional best-practice tips.".to_string()
+  indicator_placement=FormFieldIndicatorPlacement::Start
+/>"#;
+
+    let states_code = r#"let (tos, set_tos) = signal(false);
+
+<FormField
+  selected=tos
+  set_selected=set_tos
+  id_base="terms-form-field".to_string()
+  label="Accept terms of service".to_string()
+  description="Required before continuing checkout.".to_string()
+  indicator_variant=FormFieldIndicatorVariant::Checkbox
+  indicator_placement=FormFieldIndicatorPlacement::End
+  tone=FormFieldTone::Quiet
+  invalid=true
+  error_message="Please accept terms to continue.".to_string()
+  class_name="docs-form-field-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="FormField"
+            slug="form-field"
+            group="Forms"
+            description="Spectrum/HeroUI-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers."
+        >
+            <Playground title="Switch Indicator + Description" code=code>
+                <div class="docs-stack">
+                    <FormField
+                        selected=marketing
+                        set_selected=set_marketing
+                        id_base="docs-form-field-marketing".to_string()
+                        label="Subscribe to product updates".to_string()
+                        description="Receive release notes and occasional best-practice tips.".to_string()
+                        indicator_placement=FormFieldIndicatorPlacement::Start
+                    />
+                    <span class="ui-muted">
+                        "marketing: " {move || marketing.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Checkbox Indicator + Quiet + Invalid/Disabled" code=states_code>
+                <div class="docs-stack">
+                    <FormField
+                        selected=tos
+                        set_selected=set_tos
+                        id_base="docs-form-field-tos".to_string()
+                        label="Accept terms of service".to_string()
+                        description="Required before continuing checkout.".to_string()
+                        indicator_variant=FormFieldIndicatorVariant::Checkbox
+                        indicator_placement=FormFieldIndicatorPlacement::End
+                        tone=FormFieldTone::Quiet
+                        invalid=true
+                        error_message="Please accept terms to continue.".to_string()
+                        class_name="docs-form-field-custom".to_string()
+                    />
+
+                    <FormField
+                        selected=read_only
+                        set_selected=set_read_only
+                        id_base="docs-form-field-read-only".to_string()
+                        label="Maintenance window alerts".to_string()
+                        description="Read-only preference inherited from organization policy.".to_string()
+                        indicator_variant=FormFieldIndicatorVariant::Checkbox
+                        indicator_placement=FormFieldIndicatorPlacement::End
+                        disabled=true
+                        aria_label="Maintenance alerts (read only)".to_string()
+                    />
+
+                    <span class="ui-muted">
+                        "tos: " {move || tos.get().to_string()}
                         " · read-only: " {move || read_only.get().to_string()}
                     </span>
                 </div>
