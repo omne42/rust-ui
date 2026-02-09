@@ -157,6 +157,7 @@ pub mod sidebar_menu_action;
 pub mod sidebar_menu_badge;
 pub mod sidebar_rail;
 pub mod sidebar_trigger;
+pub mod sidenav;
 pub mod skeleton;
 pub mod skeleton_group;
 pub mod slider;
@@ -372,6 +373,7 @@ pub use sidebar_menu_action::SidebarMenuAction;
 pub use sidebar_menu_badge::SidebarMenuBadge;
 pub use sidebar_rail::SidebarRail;
 pub use sidebar_trigger::SidebarTrigger;
+pub use sidenav::Sidenav;
 pub use skeleton::{Skeleton, SkeletonVariant};
 pub use skeleton_group::{
     SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,

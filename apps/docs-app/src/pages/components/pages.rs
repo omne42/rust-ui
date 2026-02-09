@@ -25,6 +25,7 @@ mod forms_groups_extra;
 mod forms_native;
 mod layout;
 mod layout_extra;
+mod layout_extra_sidenav;
 mod overlays;
 mod overlays_extra;
 
@@ -38,6 +39,7 @@ use self::forms_extra_field_label as fxl;
 use self::forms_extra_search as fxs;
 use self::forms_extra_textfield as fxt;
 use self::layout_extra as lx;
+use self::layout_extra_sidenav as lxs;
 use self::overlays as ov;
 use super::ComponentDoc;
 
@@ -102,12 +104,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Actions",
         actions::button_group
     ),
-    ComponentDoc {
-        name: "FlipButton",
-        slug: "flip-button",
-        group: "Actions",
-        page: actions::flip_button,
-    },
+    component_doc!("FlipButton", "flip-button", "Actions", actions::flip_button),
     ComponentDoc {
         name: "IconButton",
         slug: "icon-button",
@@ -461,6 +458,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
     component_doc!("Sidebar", "sidebar", "Layout", lx::sidebar),
+    component_doc!("Sidenav", "sidenav", "Layout", lxs::sidenav),
     component_doc!(
         "SidebarHeader",
         "sidebar-header",

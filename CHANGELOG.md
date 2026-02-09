@@ -35,6 +35,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<PickerButton>` as an upstream-name-compatible wrapper over `FieldButton`, preserving Spectrum picker-trigger accessibility/state contracts and HeroUI-level press/focus interaction behavior.
 - `apps/docs-app`: adds a `PickerButton` docs page with interactive and state-matrix playground coverage.
 
+- `ui-components`: adds `<Sidenav>` as an upstream-name-compatible wrapper over `Sidebar`, preserving Spectrum side-navigation controlled/uncontrolled accessibility contracts and HeroUI-level trigger/rail interaction behavior.
+- `apps/docs-app`: adds a `Sidenav` docs page with controlled floating and icon-collapsible/no-shortcut playground coverage.
+
 - `ui-components`: adds `<InfieldButton>` as a Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds an `InfieldButton` docs page with default/quiet and invalid/active/disabled playground coverage.
 
