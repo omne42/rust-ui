@@ -2,13 +2,13 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
-    ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
-    ErrorViewTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue,
-    LabeledValueOrientation, LabeledValueTone, PressableFeedback, PressableFeedbackEffect,
-    PressableFeedbackMotion, PressableFeedbackTone, RippleMotion, Skeleton, SkeletonGroup,
-    SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Text,
-    TextAlign, TextElement, TextTone, TextWeight,
+    Chart, ChartKind, ChartPoint, ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem,
+    ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, EmptyState, EmptyStateAlign,
+    EmptyStateTone, ErrorView, ErrorViewMotion, ErrorViewTone, Icon, IconSize, IconTone, Keyboard,
+    KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, PressableFeedback,
+    PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone, RippleMotion,
+    Skeleton, SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
+    SkeletonVariant, Text, TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -758,6 +758,93 @@ pub(super) fn skeleton_group() -> AnyView {
                     <div class="ui-muted">
                         "When `is_skeleton_only=true` and loading is finished, the skeleton group hides itself."
                     </div>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn chart() -> AnyView {
+    let revenue_points = vec![
+        ChartPoint::new("jan", "Jan", 12.0),
+        ChartPoint::new("feb", "Feb", 18.5),
+        ChartPoint::new("mar", "Mar", 17.2),
+        ChartPoint::new("apr", "Apr", 24.7),
+        ChartPoint::new("may", "May", 28.1),
+    ];
+
+    let line_points = vec![
+        ChartPoint::new("q1", "Q1", 42.0),
+        ChartPoint::new("q2", "Q2", 56.0),
+        ChartPoint::new("q3", "Q3", 51.0),
+        ChartPoint::new("q4", "Q4", 63.0),
+    ];
+
+    let (last_action, set_last_action) = signal("none".to_string());
+    let on_action = Callback::new(move |id: String| set_last_action.set(id));
+
+    let (controlled_active_raw, set_controlled_active_raw) = signal(1_usize);
+    let controlled_active: Signal<usize> = Signal::derive(move || controlled_active_raw.get());
+    let on_controlled_active_change =
+        Callback::new(move |next: usize| set_controlled_active_raw.set(next));
+
+    let bar_code = r#"<Chart
+  id_base="docs-chart-bar".to_string()
+  points=points
+  kind=ChartKind::Bar
+  on_action=Callback::new(move |id: String| set_last_action.set(id))
+/>"#;
+
+    let line_code = r#"let (active_raw, set_active_raw) = signal(1_usize);
+let active: Signal<usize> = Signal::derive(move || active_raw.get());
+
+<Chart
+  id_base="docs-chart-line".to_string()
+  points=points
+  kind=ChartKind::Line
+  active_index=active
+  on_active_index_change=Callback::new(move |next| set_active_raw.set(next))
+  class_name="docs-chart-custom".to_string()
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Chart"
+            slug="chart"
+            group="Display"
+            description="Shadcn-compatible chart primitive with bar/line modes, controlled active-index state, Spectrum-style data contracts, and HeroUI-level spring highlight motion for legends."
+        >
+            <Playground title="Bar + Hover/Keyboard + Action" code=bar_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Chart
+                        id_base="docs-chart-bar".to_string()
+                        points=revenue_points
+                        kind=ChartKind::Bar
+                        on_action=on_action
+                    />
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || last_action.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled Line + Active Index" code=line_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Chart
+                        id_base="docs-chart-line".to_string()
+                        points=line_points
+                        kind=ChartKind::Line
+                        active_index=controlled_active
+                        on_active_index_change=on_controlled_active_change
+                        aria_label="Quarterly growth line chart".to_string()
+                        class_name="docs-chart-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "controlled active index: "
+                        {move || controlled_active_raw.get().to_string()}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

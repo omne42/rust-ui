@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Chart>` as a Shadcn-compatible chart primitive with bar/line modes, controlled/uncontrolled active-index flow, Spectrum-style `data-*` contracts, and HeroUI-level legend highlight motion.
+- `apps/docs-app`: adds a `Chart` docs page with bar action-dispatch and controlled line-highlight playground coverage.
+
 - `ui-components`: adds `<Resizable>` as a Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer+keyboard separator semantics, and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `Resizable` docs page with horizontal grip and controlled-vertical bounded playground coverage.
 

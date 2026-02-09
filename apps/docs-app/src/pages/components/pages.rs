@@ -526,6 +526,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Display",
         page: display::chip,
     },
+    component_doc!("Chart", "chart", "Display", display_extra::chart),
     ComponentDoc {
         name: "Skeleton",
         slug: "skeleton",
