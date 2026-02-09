@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Carousel>` as a Shadcn-compatible carousel primitive with controllable slide index, orientation-aware keyboard navigation, Spectrum-style root `data-*` contracts, and HeroUI-level spring indicator-highlight motion reuse.
+- `apps/docs-app`: adds a `Carousel` docs page with default indicator-motion and controlled vertical/no-loop playground coverage.
+
 - `ui-components`: adds `<NavigationMenu>` as a Shadcn-compatible horizontal navigation primitive with roving keyboard focus, controllable selected-id state, Spectrum-style root `data-*` contracts, and HeroUI-level spring active-highlight motion reuse.
 - `apps/docs-app`: adds a `NavigationMenu` docs page with default roving-selection and controlled-selection (`activate_on_focus=false`) playground coverage.
 

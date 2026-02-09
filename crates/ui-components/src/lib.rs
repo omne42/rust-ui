@@ -31,6 +31,7 @@ pub mod button_share;
 pub mod button_theme_toggle;
 pub mod calendar;
 pub mod card;
+pub mod carousel;
 pub mod checkbox;
 pub mod checkbox_field;
 pub mod checkbox_group;
@@ -200,6 +201,7 @@ pub use button_share::{
 pub use button_theme_toggle::{ThemeMode, ThemeToggleButton, ThemeToggleMotion};
 pub use calendar::{Calendar, CalendarFirstWeekday, CalendarGridCell, CalendarTone};
 pub use card::{Card, CardVariant};
+pub use carousel::{Carousel, CarouselItem, CarouselMotion, CarouselOrientation};
 pub use checkbox::Checkbox;
 pub use checkbox::motion::CheckboxMotion;
 pub use checkbox::{CheckboxSize, CheckboxVariant};

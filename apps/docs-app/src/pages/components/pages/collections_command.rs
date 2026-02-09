@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::sync::Arc;
 use ui_components::{
-    Command, CommandGroup, CommandItem, ContextMenu, MenuItemKind, Menubar, MenubarMenu,
-    NavigationMenu, NavigationMenuItem,
+    Carousel, CarouselItem, CarouselOrientation, Command, CommandGroup, CommandItem, ContextMenu,
+    MenuItemKind, Menubar, MenubarMenu, NavigationMenu, NavigationMenuItem,
 };
 
 pub(super) fn command() -> AnyView {
@@ -487,6 +487,110 @@ let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.ge
                     <span class="ui-muted">
                         "controlled selected: "
                         {move || controlled_selected_raw.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn carousel() -> AnyView {
+    let base_items = vec![
+        CarouselItem::new("welcome", "Welcome")
+            .description("Build Spectrum-compatible surfaces with production-grade motion."),
+        CarouselItem::new("tokens", "Theme Tokens")
+            .description("Tune OKLCH and OLED tokens without breaking component contracts."),
+        CarouselItem::new("shipping", "Shipping")
+            .description("Run format + check + pre-commit and ship with confidence."),
+    ];
+
+    let vertical_items = vec![
+        CarouselItem::new("a", "Alpha").description("Vertical orientation demo."),
+        CarouselItem::new("b", "Beta")
+            .description("Second slide.")
+            .disabled(true),
+        CarouselItem::new("c", "Gamma").description("Loop disabled demo."),
+    ];
+
+    let (last_selected, set_last_selected) = signal(None::<usize>);
+    let on_selected_change = Callback::new(move |next: Option<usize>| set_last_selected.set(next));
+
+    let (controlled_selected_raw, set_controlled_selected_raw) = signal(Some(0_usize));
+    let controlled_selected: Signal<Option<usize>> =
+        Signal::derive(move || controlled_selected_raw.get());
+    let on_controlled_selected_change = Callback::new(move |next: Option<usize>| {
+        set_controlled_selected_raw.set(next);
+    });
+
+    let code = r#"<Carousel
+  id_base=\"docs-carousel\".to_string()
+  items=items
+  default_selected_index=1
+  on_selected_index_change=Callback::new(move |next: Option<usize>| {
+    set_last_selected.set(next);
+  })
+/>"#;
+
+    let states_code = r#"let (selected, set_selected) = signal(Some(0_usize));
+let selected_signal: Signal<Option<usize>> = Signal::derive(move || selected.get());
+
+<Carousel
+  id_base=\"docs-carousel-vertical\".to_string()
+  items=items
+  selected_index=selected_signal
+  on_selected_index_change=Callback::new(move |next| set_selected.set(next))
+  orientation=CarouselOrientation::Vertical
+  loop_navigation=false
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="Carousel"
+            slug="carousel"
+            group="Collections"
+            description="Shadcn-compatible carousel with controllable slide index, orientation-aware keyboard navigation, Spectrum data contracts, and HeroUI-level spring indicator-highlight motion reuse."
+        >
+            <Playground title="Default + Indicator Motion" code=code>
+                <div class="docs-stack docs-stack--tight">
+                    <Carousel
+                        id_base="docs-carousel-default".to_string()
+                        items=base_items
+                        default_selected_index=1
+                        on_selected_index_change=on_selected_change
+                    />
+                    <span class="ui-muted">
+                        "selected index: "
+                        {move || {
+                            last_selected
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Controlled + Vertical + No Loop" code=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Carousel
+                        id_base="docs-carousel-vertical".to_string()
+                        items=vertical_items
+                        selected_index=controlled_selected
+                        on_selected_index_change=on_controlled_selected_change
+                        orientation=CarouselOrientation::Vertical
+                        loop_navigation=false
+                        aria_label="Feature carousel".to_string()
+                        class_name="docs-carousel-custom".to_string()
+                    />
+                    <span class="ui-muted">
+                        "controlled selected: "
+                        {move || {
+                            controlled_selected_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
                     </span>
                 </div>
             </Playground>
