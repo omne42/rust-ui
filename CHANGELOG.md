@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `MenuTrigger` with explicit `MenuTriggerMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style menu popover animation parity with HeroUI expectations.
 - `ui-components`: upgrades `Select` with explicit `SelectMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style overlay animation parity with HeroUI expectations.
 - `ui-components`: upgrades `Dropdown` with explicit `DropdownMotion` (`PopoverMotion` passthrough), adding stable motion source markers (`data-motion-source`/`data-custom-motion`) for HeroUI-level spring tuning and regression-safe styling.
 - `apps/docs-app`: extends `Dropdown` docs with a motion-tuned controlled playground showing custom spring-style popover configuration.

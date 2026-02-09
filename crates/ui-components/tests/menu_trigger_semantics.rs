@@ -62,6 +62,7 @@ fn menu_trigger_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "motion: MenuTriggerMotion",
     ] {
         assert!(
             source.contains(needle),
@@ -94,6 +95,7 @@ fn menu_trigger_uses_presence_to_allow_exit_motion() {
 
     for needle in [
         "use_presence(open)",
+        "motion=motion.popover",
         "on_exit_complete=presence.finish_exit",
     ] {
         assert!(
@@ -124,6 +126,8 @@ fn menu_trigger_emits_spectrum_style_root_data_attributes() {
         "data-custom-label=state.has_custom_aria_label.then_some(\"true\")",
         "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
         "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
+        "data-motion-source=if motion == MenuTriggerMotion::default()",
+        "data-custom-motion=(motion != MenuTriggerMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
@@ -180,10 +184,33 @@ fn menu_trigger_uses_logic_for_empty_and_disabled_trigger_state() {
 fn menu_trigger_styles_include_disabled_and_persistent_markers() {
     let source = load_source("src/menu_trigger/styles.rs");
 
-    for needle in [".ui-menu-trigger--persistent", ".ui-menu-trigger--disabled"] {
+    for needle in [
+        ".ui-menu-trigger--persistent",
+        ".ui-menu-trigger--disabled",
+        ".ui-menu-trigger[data-motion-source=\"custom\"]",
+        ".ui-menu-trigger[data-custom-motion=\"true\"]",
+    ] {
         assert!(
             source.contains(needle),
             "MenuTrigger styles should include `{needle}` for stable visual state contracts."
+        );
+    }
+}
+
+#[test]
+fn menu_trigger_exposes_motion_contract_and_internal_module() {
+    let mod_source = load_source("src/menu_trigger/mod.rs");
+    let motion_source = load_source("src/menu_trigger/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::MenuTriggerMotion;",
+        "pub struct MenuTriggerMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "MenuTrigger motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

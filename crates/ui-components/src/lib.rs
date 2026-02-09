@@ -372,7 +372,7 @@ pub use logic_button::{LogicButton, LogicButtonVariant};
 pub use menu::Menu;
 pub use menu_item::MenuItem;
 pub use menu_section::{MenuSection, MenuSectionHeadingTone};
-pub use menu_trigger::MenuTrigger;
+pub use menu_trigger::{MenuTrigger, MenuTriggerMotion};
 pub use menubar::{Menubar, MenubarMenu, MenubarMotion};
 pub use meter::{Meter, MeterMotion, MeterSize, MeterVariant};
 pub use modal::Modal;

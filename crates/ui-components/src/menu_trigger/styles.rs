@@ -10,4 +10,9 @@ pub const CSS: &str = r#"
 .ui-menu-trigger--disabled {
   opacity: 0.72;
 }
+
+.ui-menu-trigger[data-motion-source="custom"],
+.ui-menu-trigger[data-custom-motion="true"] {
+  --ui-menu-trigger-custom-motion: 1;
+}
 "#;

@@ -1,4 +1,4 @@
-use crate::menu_trigger::logic;
+use crate::menu_trigger::{MenuTriggerMotion, logic};
 use crate::overlay_open;
 use crate::{Button, Menu, MenuItemKind, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
@@ -17,6 +17,7 @@ pub fn MenuTrigger(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] motion: MenuTriggerMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -132,6 +133,12 @@ pub fn MenuTrigger(
             data-custom-label=state.has_custom_aria_label.then_some("true")
             data-has-disabled-items=state.has_disabled_items.then_some("true")
             data-has-item-kinds=state.has_item_kinds.then_some("true")
+            data-motion-source=if motion == MenuTriggerMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != MenuTriggerMotion::default()).then_some("true")
             on:keydown=on_key_down
         >
             <Button
@@ -153,6 +160,7 @@ pub fn MenuTrigger(
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=placement
+                    motion=motion.popover
                     on_exit_complete=presence.finish_exit
                 >
                     {move || {
