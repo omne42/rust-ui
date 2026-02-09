@@ -21,6 +21,7 @@ mod overlays_extra;
 
 use self::actions as a;
 use self::actions_extra as ax;
+use self::layout_extra as lx;
 use self::overlays as ov;
 use super::ComponentDoc;
 
@@ -453,49 +454,35 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         layout_extra::scroll_area
     ),
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
-    component_doc!("Sidebar", "sidebar", "Layout", layout_extra::sidebar),
+    component_doc!("Sidebar", "sidebar", "Layout", lx::sidebar),
     component_doc!(
         "SidebarHeader",
         "sidebar-header",
         "Layout",
-        layout_extra::sidebar_header
+        lx::sidebar_header
     ),
-    component_doc!(
-        "SidebarRail",
-        "sidebar-rail",
-        "Layout",
-        layout_extra::sidebar_rail
-    ),
+    component_doc!("SidebarRail", "sidebar-rail", "Layout", lx::sidebar_rail),
     component_doc!(
         "SidebarTrigger",
         "sidebar-trigger",
         "Layout",
-        layout_extra::sidebar_trigger
+        lx::sidebar_trigger
     ),
     component_doc!(
         "SidebarContent",
         "sidebar-content",
         "Layout",
-        layout_extra::sidebar_content
+        lx::sidebar_content
     ),
     component_doc!(
         "SidebarFooter",
         "sidebar-footer",
         "Layout",
-        layout_extra::sidebar_footer
+        lx::sidebar_footer
     ),
-    component_doc!(
-        "SidebarGroup",
-        "sidebar-group",
-        "Layout",
-        layout_extra::sidebar_group
-    ),
-    component_doc!(
-        "SidebarMenu",
-        "sidebar-menu",
-        "Layout",
-        layout_extra::sidebar_menu
-    ),
+    component_doc!("SidebarInset", "sidebar-inset", "Layout", lx::sidebar_inset),
+    component_doc!("SidebarGroup", "sidebar-group", "Layout", lx::sidebar_group),
+    component_doc!("SidebarMenu", "sidebar-menu", "Layout", lx::sidebar_menu),
     component_doc!(
         "ScrollShadow",
         "scroll-shadow",

@@ -115,6 +115,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-sheet", ".ui-sheet {"),
         (".ui-sidebar", ".ui-sidebar {"),
         (".ui-sidebar-content", ".ui-sidebar-content {"),
+        (".ui-sidebar-inset", ".ui-sidebar-inset {"),
         (".ui-sidebar-rail", ".ui-sidebar-rail {"),
         (".ui-sidebar-trigger", ".ui-sidebar-trigger {"),
         (".ui-sidebar-footer", ".ui-sidebar-footer {"),

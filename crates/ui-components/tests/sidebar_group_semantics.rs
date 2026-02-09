@@ -130,7 +130,15 @@ fn sidebar_group_styles_include_header_content_and_state_markers() {
 
 #[test]
 fn sidebar_group_docs_page_exists_in_layout_extra() {
-    let docs = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+    let layout_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+    let docs =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_group.rs");
+
+    assert!(
+        layout_extra.contains("pub(super) fn sidebar_group() -> AnyView"),
+        "layout_extra should expose sidebar_group route entry.",
+    );
 
     for needle in [
         "pub(super) fn sidebar_group() -> AnyView",
