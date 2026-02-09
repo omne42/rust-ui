@@ -198,6 +198,7 @@ pub mod tabs;
 pub mod tag;
 pub mod tag_group;
 pub mod tags;
+pub mod test_utils;
 pub mod text;
 pub mod text_area;
 pub mod text_field;
