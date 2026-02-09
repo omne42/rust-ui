@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Sidebar>` as a Shadcn-compatible navigation rail with controlled/uncontrolled open state, side/variant/collapsible contracts, keyboard shortcut toggling, and Spectrum-style `data-*` markers.
+- `apps/docs-app`: adds a `Sidebar` docs page with offcanvas slot regions and controlled right-inset icon-collapse playground coverage.
+
 - `ui-components`: adds `<Chart>` as a Shadcn-compatible chart primitive with bar/line modes, controlled/uncontrolled active-index flow, Spectrum-style `data-*` contracts, and HeroUI-level legend highlight motion.
 - `apps/docs-app`: adds a `Chart` docs page with bar action-dispatch and controlled line-highlight playground coverage.
 

@@ -488,6 +488,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         layout_extra::scroll_area
     ),
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
+    component_doc!("Sidebar", "sidebar", "Layout", layout_extra::sidebar),
     component_doc!(
         "ScrollShadow",
         "scroll-shadow",

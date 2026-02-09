@@ -4,8 +4,8 @@ use leptos::prelude::*;
 use ui_components::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
     GridJustify, GridRows, Resizable, ResizableOrientation, ScrollArea, ScrollAreaOrientation,
-    Surface, SurfaceElevation, SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding,
-    ViewRadius,
+    Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant, Surface, SurfaceElevation,
+    SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -409,6 +409,145 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                     <span class="ui-muted">
                         "controlled split: "
                         {move || format!("{:.1}%", split_raw.get())}
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn sidebar() -> AnyView {
+    let basic_code = r#"<Sidebar
+  side=SidebarSide::Left
+  variant=SidebarVariant::Sidebar
+  collapsible=SidebarCollapsible::Offcanvas
+>
+  <div class="ui-sidebar__header"><strong>"Workspace"</strong></div>
+  <div class="ui-sidebar__content">
+    <span>"Dashboard"</span>
+    <span>"Analytics"</span>
+    <span>"Settings"</span>
+  </div>
+  <div class="ui-sidebar__footer"><span>"Free plan"</span></div>
+</Sidebar>"#;
+
+    let controlled_code = r#"let (open_raw, set_open_raw) = signal(true);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+let on_open_change = Callback::new(move |next| set_open_raw.set(next));
+
+<button class="ui-button" on:click=move |_| set_open_raw.update(|open| *open = !*open)>
+  "Toggle right sidebar"
+</button>
+
+<Sidebar
+  open=open
+  on_open_change=on_open_change
+  side=SidebarSide::Right
+  variant=SidebarVariant::Inset
+  collapsible=SidebarCollapsible::Icon
+  show_trigger=false
+  class_name="docs-sidebar-custom".to_string()
+>
+  <div class="ui-sidebar__header"><strong>"Inspector"</strong></div>
+  <div class="ui-sidebar__content"><span>"Layers"</span><span>"Tokens"</span></div>
+  <div class="ui-sidebar__footer"><span>"Ctrl+B / Cmd+B"</span></div>
+</Sidebar>"#;
+
+    let (open_raw, set_open_raw) = signal(true);
+    let open: Signal<bool> = Signal::derive(move || open_raw.get());
+    let on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));
+
+    view! {
+        <ComponentPage
+            title="Sidebar"
+            slug="sidebar"
+            group="Layout"
+            description="Shadcn-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and Spectrum-style data markers."
+        >
+            <Playground title="Offcanvas + Slot Markers" code=basic_code>
+                <Sidebar
+                    side=SidebarSide::Left
+                    variant=SidebarVariant::Sidebar
+                    collapsible=SidebarCollapsible::Offcanvas
+                    aria_label="Project navigation sidebar".to_string()
+                >
+                    <div class="ui-sidebar__header">
+                        <div class="docs-stack docs-stack--tight">
+                            <strong>"Workspace"</strong>
+                            <span class="ui-muted">"Navigation + quick status"</span>
+                        </div>
+                    </div>
+
+                    <div class="ui-sidebar__content">
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::Sm
+                        >
+                            "Dashboard"
+                        </View>
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::Sm
+                        >
+                            "Analytics"
+                        </View>
+                        <View
+                            background=ViewBackground::Subtle
+                            border=ViewBorder::Subtle
+                            padding=ViewPadding::Sm
+                            radius=ViewRadius::Sm
+                        >
+                            "Settings"
+                        </View>
+                    </div>
+
+                    <div class="ui-sidebar__footer">
+                        <span class="ui-muted">"Free plan · 2 seats"</span>
+                    </div>
+                </Sidebar>
+            </Playground>
+
+            <Playground title="Controlled + Right Inset/Icon" code=controlled_code>
+                <div class="docs-stack docs-stack--tight">
+                    <button
+                        class="ui-button"
+                        type="button"
+                        on:click=move |_| set_open_raw.update(|open| *open = !*open)
+                    >
+                        "Toggle right sidebar"
+                    </button>
+
+                    <Sidebar
+                        open=open
+                        on_open_change=on_open_change
+                        side=SidebarSide::Right
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::Icon
+                        show_trigger=false
+                        class_name="docs-sidebar-custom".to_string()
+                        aria_label="Inspector sidebar".to_string()
+                    >
+                        <div class="ui-sidebar__header">
+                            <strong>"Inspector"</strong>
+                        </div>
+                        <div class="ui-sidebar__content">
+                            <span>"Layers"</span>
+                            <span>"Tokens"</span>
+                            <span>"Motion"</span>
+                        </div>
+                        <div class="ui-sidebar__footer">
+                            <span class="ui-muted">"Ctrl+B / Cmd+B"</span>
+                        </div>
+                    </Sidebar>
+
+                    <span class="ui-muted">
+                        "controlled open: "
+                        {move || if open_raw.get() { "true" } else { "false" }}
                     </span>
                 </div>
             </Playground>

@@ -139,6 +139,7 @@ pub mod segmented_control;
 pub mod select;
 pub mod separator;
 pub mod sheet;
+pub mod sidebar;
 pub mod skeleton;
 pub mod skeleton_group;
 pub mod slider;
@@ -332,6 +333,7 @@ pub use segmented_control::{
 pub use select::Select;
 pub use separator::{Separator, SeparatorElementType, SeparatorMotion, SeparatorOrientation};
 pub use sheet::{Sheet, SheetMotion, SheetPlacement};
+pub use sidebar::{Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant};
 pub use skeleton::{Skeleton, SkeletonVariant};
 pub use skeleton_group::{
     SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
