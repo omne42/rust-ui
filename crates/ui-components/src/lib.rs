@@ -139,6 +139,7 @@ pub mod ripple;
 pub mod root;
 pub mod scroll_area;
 pub mod scroll_shadow;
+pub mod search;
 pub mod search_field;
 pub mod segmented_control;
 pub mod select;
@@ -349,6 +350,7 @@ pub use ripple::{MotionRipple, RippleMotion};
 pub use root::UiRoot;
 pub use scroll_area::{ScrollArea, ScrollAreaOrientation};
 pub use scroll_shadow::ScrollShadow;
+pub use search::Search;
 pub use search_field::{SearchField, SearchFieldMotion};
 pub use segmented_control::{
     SegmentedControl, SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize,

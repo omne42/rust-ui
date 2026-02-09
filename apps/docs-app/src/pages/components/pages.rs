@@ -16,6 +16,7 @@ mod forms;
 mod forms_color;
 mod forms_extra;
 mod forms_extra_field_label;
+mod forms_extra_search;
 mod forms_extra_textfield;
 mod forms_groups;
 mod forms_groups_extra;
@@ -30,6 +31,7 @@ use self::actions_extra as ax;
 use self::collections_extra_combobox as cxb;
 use self::files_extra_dropzone as fdz;
 use self::forms_extra_field_label as fxl;
+use self::forms_extra_search as fxs;
 use self::forms_extra_textfield as fxt;
 use self::layout_extra as lx;
 use self::overlays as ov;
@@ -250,6 +252,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Forms",
         page: forms::search_field,
     },
+    component_doc!("Search", "search", "Forms", fxs::search),
     ComponentDoc {
         name: "ColorField",
         slug: "color-field",
