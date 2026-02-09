@@ -98,6 +98,7 @@ fn style_equals_is_only_used_in_approved_files() {
         PathBuf::from("src/color_slider/view.rs"),
         PathBuf::from("src/hover_card/view.rs"),
         PathBuf::from("src/tooltip/view.rs"),
+        PathBuf::from("src/swatch/view.rs"),
     ]
     .into_iter()
     .collect();

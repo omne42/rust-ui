@@ -7,6 +7,7 @@ mod collections_extra;
 mod collections_groups;
 mod display;
 mod display_extra;
+mod display_extra_swatch;
 mod files;
 mod forms;
 mod forms_color;
@@ -642,30 +643,21 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Display",
         page: display::avatar_group,
     },
-    ComponentDoc {
-        name: "Image",
-        slug: "image",
-        group: "Display",
-        page: display::image,
-    },
-    ComponentDoc {
-        name: "ColorSwatch",
-        slug: "color-swatch",
-        group: "Display",
-        page: display_extra::color_swatch,
-    },
-    ComponentDoc {
-        name: "ColorSwatchPicker",
-        slug: "color-swatch-picker",
-        group: "Display",
-        page: display_extra::color_swatch_picker,
-    },
-    ComponentDoc {
-        name: "Icon",
-        slug: "icon",
-        group: "Display",
-        page: display_extra::icon,
-    },
+    component_doc!("Image", "image", "Display", display::image),
+    component_doc!(
+        "ColorSwatch",
+        "color-swatch",
+        "Display",
+        display_extra::color_swatch
+    ),
+    component_doc!("Swatch", "swatch", "Display", display_extra_swatch::swatch),
+    component_doc!(
+        "ColorSwatchPicker",
+        "color-swatch-picker",
+        "Display",
+        display_extra::color_swatch_picker
+    ),
+    component_doc!("Icon", "icon", "Display", display_extra::icon),
     ComponentDoc {
         name: "IllustratedMessage",
         slug: "illustrated-message",

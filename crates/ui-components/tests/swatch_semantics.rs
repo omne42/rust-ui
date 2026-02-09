@@ -1,0 +1,86 @@
+use std::fs;
+use std::path::Path;
+
+fn load_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn swatch_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/swatch/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Swatch internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn swatch_is_exported_from_module_and_crate_root() {
+    let module_source = load_source("src/swatch/mod.rs");
+    let crate_source = load_source("src/lib.rs");
+
+    assert!(
+        module_source.contains("pub use view::Swatch;"),
+        "swatch module should export `Swatch`."
+    );
+    assert!(
+        crate_source
+            .contains("pub use swatch::{Swatch, SwatchBorder, SwatchMotion, SwatchRounding, SwatchShape, SwatchSize};"),
+        "crate root should re-export Swatch contract."
+    );
+}
+
+#[test]
+fn swatch_attaches_motion_driver() {
+    let source = load_source("src/swatch/view.rs");
+
+    assert!(
+        source.contains("attach_motion"),
+        "Swatch should attach its motion driver to deliver spring-based selection feedback."
+    );
+}
+
+#[test]
+fn swatch_motion_uses_spring_animator() {
+    let source = load_source("src/swatch/motion.rs");
+
+    assert!(
+        source.contains("SpringAnimator"),
+        "Swatch motion should animate via springs to match the repo motion spec."
+    );
+}
+
+#[test]
+fn swatch_styles_use_css_variables_for_motion() {
+    let source = load_source("src/swatch/styles.rs");
+
+    for name in ["--ui-swatch-scale", "--ui-swatch-ring-opacity"] {
+        assert!(
+            source.contains(name),
+            "Swatch styles should define `{name}` so motion updates only touch CSS variables."
+        );
+    }
+}
+
+#[test]
+fn swatch_docs_page_exists_in_display_extra_swatch() {
+    let display_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+
+    for needle in [
+        "pub(super) fn swatch() -> AnyView",
+        "title=\"Swatch\"",
+        "slug=\"swatch\"",
+        "<Swatch",
+    ] {
+        assert!(
+            display_extra.contains(needle),
+            "display_extra_swatch docs page should contain `{needle}`."
+        );
+    }
+}

@@ -11,6 +11,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<AlertBanner>` as a Spectrum-compatible banner alert primitive with centralized tone/fill/content contracts and HeroUI-grade spring reveal motion.
 - `apps/docs-app`: adds an `AlertBanner` docs page with tone/fill and bold hidden-icon custom-class playground coverage.
 
+- `ui-components`: adds `<Swatch>` as a Spectrum-compatible fill preview primitive with centralized size/shape/rounding/border/state contracts and HeroUI-grade spring selection motion.
+- `apps/docs-app`: adds a `Swatch` docs page with size/shape/rounding and mixed/nothing/disabled controlled playground coverage.
+
 - `ui-components`: adds `<InfieldButton>` as a Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds an `InfieldButton` docs page with default/quiet and invalid/active/disabled playground coverage.
 
