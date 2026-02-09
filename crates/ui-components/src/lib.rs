@@ -201,6 +201,7 @@ pub mod text_field;
 pub mod textarea;
 pub mod textfield;
 pub mod theme_default;
+pub mod theme_light;
 pub mod thumbnail;
 pub mod time_field;
 pub mod toast;
