@@ -118,6 +118,7 @@ pub mod kbd;
 pub mod keyboard;
 pub mod label;
 pub mod labeled_value;
+pub mod layout;
 pub mod legend;
 pub mod link;
 pub mod link_button;

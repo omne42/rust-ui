@@ -186,6 +186,7 @@ mod tests {
             "ripple" => &["motion-ripple"],
             "root" => &["ui-root"],
             "provider" => &["ui-root"],
+            "layout" => &["flex", "grid"],
             "toast" => &["toast-viewport"],
             "active-highlight" => &[],
             _ => &[],

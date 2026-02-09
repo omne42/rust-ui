@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `layout` compatibility module that re-exports `Flex`/`Grid` contracts for `@react-spectrum/layout` naming parity.
+- `apps/docs-app`: maps the new `layout` module to existing `flex` + `grid` docs/playground coverage for module-level catalog parity.
+
 - `ui-components`: adds react-spectrum-compatible `Provider` alias that re-exports `UiRoot` for naming parity while preserving existing root theme/safe-area contracts.
 - `apps/docs-app`: maps the new `provider` module to the existing `ui-root` docs/playground coverage for module-level catalog parity.
 
