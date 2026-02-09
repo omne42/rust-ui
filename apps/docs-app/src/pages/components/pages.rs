@@ -8,6 +8,7 @@ mod collections_extra;
 mod collections_extra_combobox;
 mod collections_extra_picker;
 mod collections_extra_tags;
+mod collections_extra_top_nav;
 mod collections_groups;
 mod display;
 mod display_extra;
@@ -37,6 +38,7 @@ use self::actions_extra_picker_button as apb;
 use self::collections_extra_combobox as cxb;
 use self::collections_extra_picker as cxp;
 use self::collections_extra_tags as cxt;
+use self::collections_extra_top_nav as cxtn;
 use self::files_extra_dropzone as fdz;
 use self::forms_extra_field_label as fxl;
 use self::forms_extra_search as fxs;
@@ -815,6 +817,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Collections",
         page: collections_command::navigation_menu,
     },
+    component_doc!("TopNav", "top-nav", "Collections", cxtn::top_nav),
     ComponentDoc {
         name: "Dropdown",
         slug: "dropdown",

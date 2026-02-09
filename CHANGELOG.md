@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<TopNav>` as an upstream-name-compatible wrapper over `NavigationMenu`, preserving Spectrum top-nav selection/accessibility contracts and HeroUI-level active-indicator spring motion behavior.
+- `apps/docs-app`: adds a `TopNav` docs page with default-selection/roving-focus and controlled-label/disabled-item playground coverage.
+
 - `ui-components`: adds `<AlertBanner>` as a Spectrum-compatible banner alert primitive with centralized tone/fill/content contracts and HeroUI-grade spring reveal motion.
 - `apps/docs-app`: adds an `AlertBanner` docs page with tone/fill and bold hidden-icon custom-class playground coverage.
 

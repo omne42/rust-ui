@@ -192,6 +192,7 @@ pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod toggle_group;
 pub mod tooltip;
+pub mod top_nav;
 pub mod tray;
 pub mod tree;
 pub mod underlay;
@@ -421,6 +422,7 @@ pub use toggle_group::{
 };
 pub use tooltip::Tooltip;
 pub use tooltip::TooltipMotion;
+pub use top_nav::{TopNav, TopNavItem, TopNavMotion};
 pub use tray::{Tray, TrayMotion};
 pub use tree::{Tree, TreeDensity, TreeNode, TreeTone};
 pub use ui_headless::{MenuItemKind, OnPress, provide_focus_visible, provide_overlay_stack};
