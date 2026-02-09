@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Dropdown` with explicit `DropdownMotion` (`PopoverMotion` passthrough), adding stable motion source markers (`data-motion-source`/`data-custom-motion`) for HeroUI-level spring tuning and regression-safe styling.
+- `apps/docs-app`: extends `Dropdown` docs with a motion-tuned controlled playground showing custom spring-style popover configuration.
+
 - `ui-components`: adds `rac` compatibility module mirroring HeroUI `rac` surface (`Direction`/`I18nProvider`/`Collection` reexports + locale/filter helpers) for shared component integration ergonomics.
 - `apps/docs-app`: maps the new `rac` module to existing `ui-root` docs/playground coverage for module-level catalog parity.
 

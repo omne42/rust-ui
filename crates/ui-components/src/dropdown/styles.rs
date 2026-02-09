@@ -22,4 +22,9 @@ pub const CSS: &str = r#"
 .ui-dropdown__trigger {
   min-width: 0;
 }
+
+.ui-dropdown[data-motion-source="custom"],
+.ui-dropdown[data-custom-motion="true"] {
+  --ui-dropdown-custom-motion: 1;
+}
 "#;

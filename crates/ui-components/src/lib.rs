@@ -312,7 +312,7 @@ pub use disclosure_group::{DisclosureGroup, DisclosureGroupMotion, DisclosureGro
 pub use divider::{Divider, DividerOrientation};
 pub use drawer::{Drawer, DrawerMotion, DrawerPlacement};
 pub use drop_zone::{DropZone, DropZoneMotion, DroppedFile};
-pub use dropdown::Dropdown;
+pub use dropdown::{Dropdown, DropdownMotion};
 pub use dropdown_menu::{DropdownMenu, DropdownMenuMotion};
 pub use dropzone::Dropzone;
 pub use empty::{

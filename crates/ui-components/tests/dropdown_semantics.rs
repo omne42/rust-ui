@@ -64,6 +64,7 @@ fn dropdown_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "motion: DropdownMotion",
     ] {
         assert!(
             source.contains(needle),
@@ -92,6 +93,8 @@ fn dropdown_emits_spectrum_style_state_data_attributes() {
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
         "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
+        "data-motion-source=if motion == DropdownMotion::default()",
+        "data-custom-motion=(motion != DropdownMotion::default()).then_some(\"true\")",
         "data-aria-source=state.aria_source_attr",
         "data-class-source=state.class_source_attr",
     ] {
@@ -112,6 +115,7 @@ fn dropdown_composes_button_popover_and_menu() {
         "aria_expanded=open",
         "aria_controls_signal=aria_controls",
         "<Popover",
+        "motion=motion.popover",
         "<Menu",
         "on_exit_complete=presence.finish_exit",
     ] {
@@ -133,10 +137,30 @@ fn dropdown_styles_include_persistent_and_disabled_markers() {
         ".ui-dropdown[data-keep-open-on-action=\"true\"]",
         ".ui-dropdown--custom-class",
         ".ui-dropdown[data-custom-class=\"true\"]",
+        ".ui-dropdown[data-motion-source=\"custom\"]",
+        ".ui-dropdown[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(selector),
             "Dropdown styles should include `{selector}` as stable visual-state contracts."
+        );
+    }
+}
+
+#[test]
+fn dropdown_exposes_motion_contract_and_internal_module() {
+    let mod_source = load_source("src/dropdown/mod.rs");
+    let motion_source = load_source("src/dropdown/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::DropdownMotion;",
+        "pub struct DropdownMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "Dropdown motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

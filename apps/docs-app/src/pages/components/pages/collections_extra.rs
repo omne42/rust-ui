@@ -3,10 +3,11 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, ListBoxItem, ListBoxSection,
-    ListBoxSectionHeadingTone, MenuItem, MenuItemKind, MenuSection, MenuSectionHeadingTone,
-    StepList, StepListItem, StepListOrientation, StepListSize, Table, TableCellAlign, TableColumn,
-    TableDensity, TableLayout, TableRow, TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, DropdownMotion, ListBoxItem,
+    ListBoxSection, ListBoxSectionHeadingTone, MenuItem, MenuItemKind, MenuSection,
+    MenuSectionHeadingTone, PopoverMotion, StepList, StepListItem, StepListOrientation,
+    StepListSize, Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow,
+    TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
 };
 
 pub(super) fn table() -> AnyView {
@@ -882,7 +883,6 @@ pub(super) fn dropdown() -> AnyView {
         "Settings".to_string(),
         "Sign out".to_string(),
     ];
-
     let controlled_items = vec![
         "Rename".to_string(),
         "Duplicate".to_string(),
@@ -915,30 +915,33 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   on_open_change=Callback::new(move |next| set_open.set(next))
   close_on_action=false
   disabled_indices=vec![1]
-  item_kinds=vec![
-    MenuItemKind::Action,
-    MenuItemKind::Action,
-    MenuItemKind::Action,
-  ]
+  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]
+  motion=DropdownMotion {
+    popover: PopoverMotion { initial_scale: 0.94, offset_y_px: 12.0, ..PopoverMotion::default() },
+  }
   class_name="docs-dropdown-custom".to_string()
 >
   "Controlled dropdown"
 </Dropdown>"#;
+
+    let motion = DropdownMotion {
+        popover: PopoverMotion {
+            initial_scale: 0.94,
+            offset_y_px: 12.0,
+            ..PopoverMotion::default()
+        },
+    };
 
     view! {
         <ComponentPage
             title="Dropdown"
             slug="dropdown"
             group="Collections"
-            description="Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts and MenuTrigger-based interaction behavior."
+            description="Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion."
         >
             <Playground title="Default" code=code>
                 <div class="docs-row">
-                    <Dropdown
-                        id_base="docs-dropdown-default".to_string()
-                        items=items
-                        on_action=on_action
-                    >
+                    <Dropdown id_base="docs-dropdown-default".to_string() items=items on_action=on_action>
                         "Open actions"
                     </Dropdown>
                     <span class="ui-muted">
@@ -953,7 +956,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled + Persistent + Disabled Item" code=states_code>
+            <Playground title="Controlled + Persistent + Motion" code=states_code>
                 <div class="docs-stack">
                     <Dropdown
                         id_base="docs-dropdown-controlled".to_string()
@@ -968,14 +971,12 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                             MenuItemKind::Action,
                             MenuItemKind::Action,
                         ]
+                        motion=motion
                         class_name="docs-dropdown-custom".to_string()
                     >
                         "Controlled dropdown"
                     </Dropdown>
-                    <span class="ui-muted">
-                        "open: "
-                        {move || open_raw.get().to_string()}
-                    </span>
+                    <span class="ui-muted">"open: " {move || open_raw.get().to_string()}</span>
                 </div>
             </Playground>
         </ComponentPage>

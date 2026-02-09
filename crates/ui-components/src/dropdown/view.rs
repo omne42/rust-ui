@@ -1,4 +1,4 @@
-use crate::dropdown::logic;
+use crate::dropdown::{DropdownMotion, logic};
 use crate::overlay_open;
 use crate::{Button, Menu, MenuItemKind, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
@@ -17,6 +17,7 @@ pub fn Dropdown(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] motion: DropdownMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -127,6 +128,12 @@ pub fn Dropdown(
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-has-disabled-items=state.has_disabled_items.then_some("true")
             data-has-item-kinds=state.has_item_kinds.then_some("true")
+            data-motion-source=if motion == DropdownMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != DropdownMotion::default()).then_some("true")
             data-aria-source=state.aria_source_attr
             data-class-source=state.class_source_attr
             data-item-count=state.item_count.to_string()
@@ -153,6 +160,7 @@ pub fn Dropdown(
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=placement
+                    motion=motion.popover
                     on_exit_complete=presence.finish_exit
                 >
                     {move || {
