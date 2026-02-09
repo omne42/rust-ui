@@ -4,6 +4,7 @@ mod collections;
 mod collections_breadcrumb;
 mod collections_command;
 mod collections_extra;
+mod collections_extra_combobox;
 mod collections_groups;
 mod display;
 mod display_extra;
@@ -24,6 +25,7 @@ mod overlays_extra;
 
 use self::actions as a;
 use self::actions_extra as ax;
+use self::collections_extra_combobox as cxb;
 use self::forms_extra_field_label as fxl;
 use self::layout_extra as lx;
 use self::overlays as ov;
@@ -56,18 +58,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Actions",
         actions_extra::infield_button
     ),
-    ComponentDoc {
-        name: "ClearButton",
-        slug: "clear-button",
-        group: "Actions",
-        page: actions_extra::clear_button,
-    },
-    ComponentDoc {
-        name: "CloseButton",
-        slug: "close-button",
-        group: "Actions",
-        page: actions_extra::close_button,
-    },
+    component_doc!("ClearButton", "clear-button", "Actions", ax::clear_button),
+    component_doc!("CloseButton", "close-button", "Actions", ax::close_button),
     ComponentDoc {
         name: "LogicButton",
         slug: "logic-button",
@@ -833,18 +825,19 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Collections",
         page: collections::select,
     },
-    ComponentDoc {
-        name: "ComboBox",
-        slug: "combo-box",
-        group: "Collections",
-        page: collections::combo_box,
-    },
-    ComponentDoc {
-        name: "Autocomplete",
-        slug: "autocomplete",
-        group: "Collections",
-        page: collections::autocomplete,
-    },
+    component_doc!(
+        "ComboBox",
+        "combo-box",
+        "Collections",
+        collections::combo_box
+    ),
+    component_doc!("Combobox", "combobox", "Collections", cxb::combobox),
+    component_doc!(
+        "Autocomplete",
+        "autocomplete",
+        "Collections",
+        collections::autocomplete
+    ),
     ComponentDoc {
         name: "Command",
         slug: "command",
