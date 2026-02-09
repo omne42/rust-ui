@@ -39,6 +39,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::card::styles::CSS);
     out.push_str(crate::carousel::styles::CSS);
     out.push_str(crate::alert::styles::CSS);
+    out.push_str(crate::alert_banner::styles::CSS);
     out.push_str(crate::inline_alert::styles::CSS);
     out.push_str(crate::chip::styles::CSS);
     out.push_str(crate::chart::styles::CSS);

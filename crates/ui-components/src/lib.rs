@@ -13,6 +13,7 @@ pub mod action_button_group;
 pub mod action_group;
 pub mod action_menu;
 pub mod alert;
+pub mod alert_banner;
 pub mod alert_dialog;
 pub mod aspect_ratio;
 pub mod auto_height;
@@ -198,6 +199,7 @@ pub use action_group::{ActionGroup, ActionGroupItem, ActionGroupSelectionMode, A
 pub use action_menu::{ActionMenu, ActionMenuMotion};
 pub use active_highlight::ActiveHighlightMotion;
 pub use alert::{Alert, AlertVariant};
+pub use alert_banner::{AlertBanner, AlertBannerFill, AlertBannerMotion, AlertBannerTone};
 pub use alert_dialog::{
     AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant,
 };

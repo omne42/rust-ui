@@ -12,6 +12,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
 
     let required_selectors = [
         (".ui-alert", ".ui-alert {"),
+        (".ui-alert-banner", ".ui-alert-banner {"),
         (".ui-inline-alert", ".ui-inline-alert {"),
         (".ui-avatar", ".ui-avatar {"),
         (".ui-avatar-group", ".ui-avatar-group {"),

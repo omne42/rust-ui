@@ -507,30 +507,26 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("AutoHeight", "auto-height", "Layout", layout::auto_height),
     component_doc!("UiRoot", "ui-root", "Layout", layout::ui_root),
-    ComponentDoc {
-        name: "Alert",
-        slug: "alert",
-        group: "Display",
-        page: display::alert,
-    },
-    ComponentDoc {
-        name: "InlineAlert",
-        slug: "inline-alert",
-        group: "Display",
-        page: display::inline_alert,
-    },
-    ComponentDoc {
-        name: "Badge",
-        slug: "badge",
-        group: "Display",
-        page: display::badge,
-    },
-    ComponentDoc {
-        name: "StatusLight",
-        slug: "status-light",
-        group: "Display",
-        page: display::status_light,
-    },
+    component_doc!("Alert", "alert", "Display", display::alert),
+    component_doc!(
+        "AlertBanner",
+        "alert-banner",
+        "Display",
+        display_extra::alert_banner
+    ),
+    component_doc!(
+        "InlineAlert",
+        "inline-alert",
+        "Display",
+        display::inline_alert
+    ),
+    component_doc!("Badge", "badge", "Display", display::badge),
+    component_doc!(
+        "StatusLight",
+        "status-light",
+        "Display",
+        display::status_light
+    ),
     ComponentDoc {
         name: "Chip",
         slug: "chip",

@@ -2,14 +2,89 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    Chart, ChartKind, ChartPoint, ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem,
-    ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, EmptyState, EmptyStateAlign,
-    EmptyStateTone, ErrorView, ErrorViewMotion, ErrorViewTone, Icon, IconSize, IconTone, Keyboard,
-    KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, PressableFeedback,
-    PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone, RippleMotion,
-    Skeleton, SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
-    SkeletonVariant, Text, TextAlign, TextElement, TextTone, TextWeight,
+    AlertBanner, AlertBannerFill, AlertBannerTone, Chart, ChartKind, ChartPoint, ColorSwatch,
+    ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
+    ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
+    ErrorViewTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue,
+    LabeledValueOrientation, LabeledValueTone, PressableFeedback, PressableFeedbackEffect,
+    PressableFeedbackMotion, PressableFeedbackTone, RippleMotion, Skeleton, SkeletonGroup,
+    SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Text,
+    TextAlign, TextElement, TextTone, TextWeight,
 };
+
+pub(super) fn alert_banner() -> AnyView {
+    let tone_code = r#"<AlertBanner
+  tone=AlertBannerTone::Info
+  fill=AlertBannerFill::Border
+  title="Updates available".to_string()
+  description="A new version is ready to install.".to_string()
+>
+  "Install now to keep your workspace secure."
+</AlertBanner>
+<AlertBanner
+  tone=AlertBannerTone::Negative
+  fill=AlertBannerFill::Subtle
+  title="Deployment failed".to_string()
+  description="Rollback completed. Review incident timeline.".to_string()
+>
+  "Check logs before retrying."
+</AlertBanner>"#;
+
+    let custom_code = r#"<AlertBanner
+  tone=AlertBannerTone::Notice
+  fill=AlertBannerFill::Bold
+  hide_icon=true
+  title="Maintenance window".to_string()
+  description="Service may be degraded during migration.".to_string()
+  class_name="docs-alert-banner-custom".to_string()
+>
+  "Follow status page for live updates."
+</AlertBanner>"#;
+
+    view! {
+        <ComponentPage
+            title="AlertBanner"
+            slug="alert-banner"
+            group="Display"
+            description="Spectrum-compatible alert banner with centralized tone/fill/content contracts and HeroUI-grade spring reveal motion."
+        >
+            <Playground title="Tone + Fill" code=tone_code>
+                <div class="docs-stack">
+                    <AlertBanner
+                        tone=AlertBannerTone::Info
+                        fill=AlertBannerFill::Border
+                        title="Updates available".to_string()
+                        description="A new version is ready to install.".to_string()
+                    >
+                        "Install now to keep your workspace secure."
+                    </AlertBanner>
+                    <AlertBanner
+                        tone=AlertBannerTone::Negative
+                        fill=AlertBannerFill::Subtle
+                        title="Deployment failed".to_string()
+                        description="Rollback completed. Review incident timeline.".to_string()
+                    >
+                        "Check logs before retrying."
+                    </AlertBanner>
+                </div>
+            </Playground>
+
+            <Playground title="Bold + Hidden Icon + Custom Class" code=custom_code>
+                <AlertBanner
+                    tone=AlertBannerTone::Notice
+                    fill=AlertBannerFill::Bold
+                    hide_icon=true
+                    title="Maintenance window".to_string()
+                    description="Service may be degraded during migration.".to_string()
+                    class_name="docs-alert-banner-custom".to_string()
+                >
+                    "Follow status page for live updates."
+                </AlertBanner>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
 
 pub(super) fn labeled_value() -> AnyView {
     let orientation_code = r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />
