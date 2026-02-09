@@ -12,6 +12,7 @@ mod forms_color;
 mod forms_extra;
 mod forms_groups;
 mod forms_groups_extra;
+mod forms_native;
 mod layout;
 mod layout_extra;
 mod overlays;
@@ -217,6 +218,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "input-group",
         group: "Forms",
         page: forms::input_group,
+    },
+    ComponentDoc {
+        name: "NativeSelect",
+        slug: "native-select",
+        group: "Forms",
+        page: forms_native::native_select,
     },
     ComponentDoc {
         name: "DateInputGroup",

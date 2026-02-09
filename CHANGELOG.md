@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<NativeSelect>` as a Spectrum-compatible native `<select>` primitive with controllable selected-index state, normalized options, and root `data-*` state contracts for styling/testing.
+- `apps/docs-app`: adds a `NativeSelect` docs page with controlled placeholder and required/invalid/disabled playground coverage.
+
 - `ui-components`: adds `<Carousel>` as a Shadcn-compatible carousel primitive with controllable slide index, orientation-aware keyboard navigation, Spectrum-style root `data-*` contracts, and HeroUI-level spring indicator-highlight motion reuse.
 - `apps/docs-app`: adds a `Carousel` docs page with default indicator-motion and controlled vertical/no-loop playground coverage.
 

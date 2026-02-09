@@ -64,6 +64,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-menubar", ".ui-menubar {"),
         (".ui-navigation-menu", ".ui-navigation-menu {"),
         (".ui-select", ".ui-select {"),
+        (".ui-native-select", ".ui-native-select {"),
         (".ui-dropdown-menu", ".ui-dropdown-menu {"),
         (".ui-context-menu", ".ui-context-menu {"),
         (".ui-action-menu", ".ui-action-menu {"),
