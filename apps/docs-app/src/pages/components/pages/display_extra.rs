@@ -3,10 +3,11 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
-    ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, Icon, IconSize, IconTone,
-    Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation, LabeledValueTone, Skeleton,
-    SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
-    SkeletonVariant, Text, TextAlign, TextElement, TextTone, TextWeight,
+    ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
+    ErrorViewTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue,
+    LabeledValueOrientation, LabeledValueTone, Skeleton, SkeletonGroup, SkeletonGroupDensity,
+    SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Text, TextAlign, TextElement,
+    TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -320,6 +321,98 @@ pub(super) fn empty_state() -> AnyView {
                         }
                     }
                 />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn error_view() -> AnyView {
+    let basic_code = r#"<ErrorView
+  is_invalid=true
+  message="Please enter a valid email address".to_string()
+/>
+<ErrorView
+  is_invalid=false
+  message="This error stays hidden until the field becomes invalid.".to_string()
+/>"#;
+
+    let state_code = r#"<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  compact=true
+  bordered=true
+  class_name="docs-error-view-custom".to_string()
+  motion=ErrorViewMotion {
+    hidden_translate_px: 12.0,
+    hidden_opacity: 0.0,
+    hidden_scale: 0.95,
+    ..ErrorViewMotion::default()
+  }
+  icon=move || view! {
+    <Icon size=IconSize::Sm tone=IconTone::Danger decorative=true>"⚠"</Icon>
+  }
+  actions=move || view! {
+    <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+      "Retry"
+    </ui_components::Button>
+  }
+>
+  <span>"Validation failed. Check highlighted fields and retry."</span>
+</ErrorView>"#;
+
+    view! {
+        <ComponentPage
+            title="ErrorView"
+            slug="error-view"
+            group="Display"
+            description="Spectrum/HeroUI-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers."
+        >
+            <Playground title="Invalid Visibility" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <ErrorView
+                        is_invalid=true
+                        message="Please enter a valid email address".to_string()
+                    />
+                    <ErrorView
+                        is_invalid=false
+                        message="This error stays hidden until the field becomes invalid.".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Content + Motion + Actions" code=state_code>
+                <ErrorView
+                    is_invalid=true
+                    tone=ErrorViewTone::Neutral
+                    compact=true
+                    bordered=true
+                    class_name="docs-error-view-custom".to_string()
+                    motion=ErrorViewMotion {
+                        hidden_translate_px: 12.0,
+                        hidden_opacity: 0.0,
+                        hidden_scale: 0.95,
+                        ..ErrorViewMotion::default()
+                    }
+                    icon=move || {
+                        view! {
+                            <Icon size=IconSize::Sm tone=IconTone::Danger decorative=true>
+                                "⚠"
+                            </Icon>
+                        }
+                    }
+                    actions=move || {
+                        view! {
+                            <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                                "Retry"
+                            </ui_components::Button>
+                        }
+                    }
+                >
+                    <span>
+                        "Validation failed. Check highlighted fields and retry."
+                    </span>
+                </ErrorView>
             </Playground>
         </ComponentPage>
     }

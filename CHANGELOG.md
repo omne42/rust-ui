@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<ErrorView>` as a Spectrum/HeroUI-style validation error container with centralized visibility/content/source state derivation, spring-driven motion contracts, and stable `slot` + `data-*` markers.
+- `apps/docs-app`: adds an `ErrorView` docs page with invalid-visibility and custom-content/motion/actions playground coverage.
+
 - `ui-components`: adds `<BottomSheet>` as a Spectrum/HeroUI-style bottom sheet primitive composed from `Sheet`, with centralized handle/description/footer/detached state derivation and stable `slot` + `data-*` contracts.
 - `apps/docs-app`: adds a `BottomSheet` docs page with semantic action-footer and detached title-only playground coverage.
 

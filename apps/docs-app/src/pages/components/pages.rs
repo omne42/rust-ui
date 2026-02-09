@@ -668,6 +668,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display_extra::empty_state,
     },
     ComponentDoc {
+        name: "ErrorView",
+        slug: "error-view",
+        group: "Display",
+        page: display_extra::error_view,
+    },
+    ComponentDoc {
         name: "MotionRipple",
         slug: "motion-ripple",
         group: "Display",
