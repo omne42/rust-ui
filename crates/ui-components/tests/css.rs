@@ -109,6 +109,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-form", ".ui-form {"),
         (".ui-form-field", ".ui-form-field {"),
         (".ui-field-group", ".ui-field-group {"),
+        (".ui-field-label", ".ui-field-label {"),
         (".ui-segmented-control", ".ui-segmented-control {"),
         (".ui-scroll-area", ".ui-scroll-area {"),
         (".ui-scroll-shadow", ".ui-scroll-shadow {"),

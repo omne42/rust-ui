@@ -11,6 +11,7 @@ mod files;
 mod forms;
 mod forms_color;
 mod forms_extra;
+mod forms_extra_field_label;
 mod forms_groups;
 mod forms_groups_extra;
 mod forms_native;
@@ -21,6 +22,7 @@ mod overlays_extra;
 
 use self::actions as a;
 use self::actions_extra as ax;
+use self::forms_extra_field_label as fxl;
 use self::layout_extra as lx;
 use self::overlays as ov;
 use super::ComponentDoc;
@@ -151,12 +153,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("Form", "form", "Forms", forms::form),
     component_doc!("Input", "input", "Forms", forms::input),
-    ComponentDoc {
-        name: "Label",
-        slug: "label",
-        group: "Forms",
-        page: forms_extra::label,
-    },
+    component_doc!("Label", "label", "Forms", forms_extra::label),
+    component_doc!("FieldLabel", "field-label", "Forms", fxl::field_label),
     ComponentDoc {
         name: "Legend",
         slug: "legend",

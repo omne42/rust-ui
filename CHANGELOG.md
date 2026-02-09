@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<FieldLabel>` as a Spectrum-compatible field label primitive with centralized tone/required/source-state normalization and stable `data-*` markers.
+- `apps/docs-app`: adds a `FieldLabel` docs page with tone/required and custom indicator/aria/class playground coverage.
+
 - `ui-components`: adds `<SidebarMenuAction>` as a Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds a `SidebarMenuAction` docs page with hover-only action press and always-visible disabled custom-class playground coverage.
 
