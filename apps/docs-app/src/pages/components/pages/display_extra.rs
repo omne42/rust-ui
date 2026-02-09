@@ -5,9 +5,10 @@ use ui_components::{
     ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
     ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
     ErrorViewTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue,
-    LabeledValueOrientation, LabeledValueTone, Skeleton, SkeletonGroup, SkeletonGroupDensity,
-    SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Text, TextAlign, TextElement,
-    TextTone, TextWeight,
+    LabeledValueOrientation, LabeledValueTone, PressableFeedback, PressableFeedbackEffect,
+    PressableFeedbackMotion, PressableFeedbackTone, RippleMotion, Skeleton, SkeletonGroup,
+    SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Text,
+    TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn labeled_value() -> AnyView {
@@ -413,6 +414,104 @@ pub(super) fn error_view() -> AnyView {
                         "Validation failed. Check highlighted fields and retry."
                     </span>
                 </ErrorView>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn pressable_feedback() -> AnyView {
+    let (press_count, set_press_count) = signal(0u32);
+    let on_press_count = Callback::new(move |_| {
+        set_press_count.update(|count| *count += 1);
+    });
+
+    let basic_code = r#"<PressableFeedback
+  effect=PressableFeedbackEffect::Highlight
+  tone=PressableFeedbackTone::Accent
+  on_press=on_press_count
+>
+  <div class="docs-ripple-surface">"Press me"</div>
+</PressableFeedback>"#;
+
+    let custom_code = r#"<PressableFeedback
+  effect=PressableFeedbackEffect::HighlightRipple
+  tone=PressableFeedbackTone::Neutral
+  bounded=false
+  motion=PressableFeedbackMotion {
+    pressed_scale: 0.94,
+    highlight_opacity: 0.2,
+    ripple: RippleMotion {
+      duration_ms: 720,
+      ..RippleMotion::default()
+    },
+    ..PressableFeedbackMotion::default()
+  }
+  class_name="docs-pressable-feedback-custom".to_string()
+>
+  <div class="docs-ripple-surface docs-ripple-surface--accent">"Custom feedback"</div>
+</PressableFeedback>
+
+<PressableFeedback is_disabled=true effect=PressableFeedbackEffect::Highlight>
+  <div class="docs-ripple-surface docs-ripple-surface--static">"Disabled"</div>
+</PressableFeedback>"#;
+
+    view! {
+        <ComponentPage
+            title="PressableFeedback"
+            slug="pressable-feedback"
+            group="Display"
+            description="HeroUI-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition."
+        >
+            <Playground title="Scale + Highlight" code=basic_code>
+                <div class="docs-stack docs-stack--tight">
+                    <PressableFeedback
+                        effect=PressableFeedbackEffect::Highlight
+                        tone=PressableFeedbackTone::Accent
+                        on_press=on_press_count
+                    >
+                        <div class="docs-ripple-surface">
+                            "Press me"
+                        </div>
+                    </PressableFeedback>
+
+                    <div class="ui-muted">
+                        {move || format!("Press count: {}", press_count.get())}
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Highlight + Ripple + Custom Motion" code=custom_code>
+                <div class="docs-stack docs-stack--tight">
+                    <PressableFeedback
+                        effect=PressableFeedbackEffect::HighlightRipple
+                        tone=PressableFeedbackTone::Neutral
+                        bounded=false
+                        motion=PressableFeedbackMotion {
+                            pressed_scale: 0.94,
+                            highlight_opacity: 0.2,
+                            ripple: RippleMotion {
+                                duration_ms: 720,
+                                ..RippleMotion::default()
+                            },
+                            ..PressableFeedbackMotion::default()
+                        }
+                        class_name="docs-pressable-feedback-custom".to_string()
+                    >
+                        <div class="docs-ripple-surface docs-ripple-surface--accent">
+                            "Custom feedback"
+                        </div>
+                    </PressableFeedback>
+
+                    <PressableFeedback
+                        is_disabled=true
+                        effect=PressableFeedbackEffect::Highlight
+                    >
+                        <div class="docs-ripple-surface docs-ripple-surface--static">
+                            "Disabled"
+                        </div>
+                    </PressableFeedback>
+                </div>
             </Playground>
         </ComponentPage>
     }

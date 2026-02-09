@@ -674,6 +674,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: display_extra::error_view,
     },
     ComponentDoc {
+        name: "PressableFeedback",
+        slug: "pressable-feedback",
+        group: "Display",
+        page: display_extra::pressable_feedback,
+    },
+    ComponentDoc {
         name: "MotionRipple",
         slug: "motion-ripple",
         group: "Display",

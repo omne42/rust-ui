@@ -72,6 +72,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::progress_bar::styles::CSS);
     out.push_str(crate::progress::styles::CSS);
     out.push_str(crate::progress_circle::styles::CSS);
+    out.push_str(crate::pressable_feedback::styles::CSS);
     out.push_str(crate::link_button::styles::CSS);
     out.push_str(crate::logic_button::styles::CSS);
     out.push_str(crate::autocomplete::styles::CSS);

@@ -81,6 +81,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-progress-bar", ".ui-progress-bar {"),
         (".ui-progress", ".ui-progress {"),
         (".ui-progress-circle", ".ui-progress-circle {"),
+        (".ui-pressable-feedback", ".ui-pressable-feedback {"),
         (".ui-static-number", ".ui-static-number {"),
         (".ui-sliding-number", ".ui-sliding-number {"),
         (".ui-pagination", ".ui-pagination {"),

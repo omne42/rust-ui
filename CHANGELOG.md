@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<PressableFeedback>` as a Spectrum/HeroUI-style press feedback container with centralized effect/tone/boundary/source state derivation, spring-driven press/highlight motion, and optional ripple integration.
+- `apps/docs-app`: adds a `PressableFeedback` docs page with highlight/scale and ripple/custom-motion playground coverage.
+
 - `ui-components`: adds `<ErrorView>` as a Spectrum/HeroUI-style validation error container with centralized visibility/content/source state derivation, spring-driven motion contracts, and stable `slot` + `data-*` markers.
 - `apps/docs-app`: adds an `ErrorView` docs page with invalid-visibility and custom-content/motion/actions playground coverage.
 

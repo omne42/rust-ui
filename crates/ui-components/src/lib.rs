@@ -115,6 +115,7 @@ pub mod number_field;
 pub mod overlay;
 pub mod pagination;
 pub mod popover;
+pub mod pressable_feedback;
 pub mod progress;
 pub mod progress_bar;
 pub mod progress_circle;
@@ -287,6 +288,9 @@ pub use overlay::OverlayMotion;
 pub use pagination::Pagination;
 pub use popover::Popover;
 pub use popover::PopoverMotion;
+pub use pressable_feedback::{
+    PressableFeedback, PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone,
+};
 pub use progress::{Progress, ProgressMotion, ProgressRange};
 pub use progress_bar::{ProgressBar, ProgressBarSize, ProgressBarVariant};
 pub use progress_circle::{ProgressCircle, ProgressCircleMotion};
