@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<SidebarMenuAction>` as a Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable `data-*` markers.
+- `apps/docs-app`: adds a `SidebarMenuAction` docs page with hover-only action press and always-visible disabled custom-class playground coverage.
+
 - `ui-components`: adds `<SidebarMenuBadge>` as a Shadcn-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable `data-*` markers.
 - `apps/docs-app`: adds a `SidebarMenuBadge` docs page with numeric and muted-disabled custom-class playground coverage.
 
