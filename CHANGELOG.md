@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Coachmark>` as a Spectrum-compatible guided-tour overlay primitive, composed on `ContextualHelp`/`Popover` contracts with optional asset, step, and CTA navigation semantics plus HeroUI-level spring motion reuse.
+- `apps/docs-app`: adds a `Coachmark` docs page with step/cta/asset-variant and controlled image/actions playground coverage.
+
 - `ui-components`: adds `<Asset>` as a Spectrum-compatible primitive for file/folder/custom media representation, composed on Thumbnail state contracts and HeroUI-level spring focus-selection motion reuse.
 - `apps/docs-app`: adds an `Asset` docs page with file/folder variants and custom-image focused-state playground coverage.
 

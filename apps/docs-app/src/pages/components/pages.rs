@@ -32,6 +32,7 @@ mod layout_extra_sidenav;
 mod layout_extra_split_view;
 mod overlays;
 mod overlays_extra;
+mod overlays_extra_coachmark;
 
 use self::actions as a;
 use self::actions_extra as ax;
@@ -967,24 +968,20 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         group: "Overlays",
         page: overlays::drawer,
     },
-    ComponentDoc {
-        name: "Tooltip",
-        slug: "tooltip",
-        group: "Overlays",
-        page: overlays::tooltip,
-    },
-    ComponentDoc {
-        name: "HoverCard",
-        slug: "hover-card",
-        group: "Overlays",
-        page: overlays::hover_card,
-    },
-    ComponentDoc {
-        name: "ContextualHelp",
-        slug: "contextual-help",
-        group: "Overlays",
-        page: overlays::contextual_help,
-    },
+    component_doc!("Tooltip", "tooltip", "Overlays", overlays::tooltip),
+    component_doc!("HoverCard", "hover-card", "Overlays", overlays::hover_card),
+    component_doc!(
+        "ContextualHelp",
+        "contextual-help",
+        "Overlays",
+        overlays::contextual_help
+    ),
+    component_doc!(
+        "Coachmark",
+        "coachmark",
+        "Overlays",
+        overlays_extra_coachmark::coachmark
+    ),
     component_doc!("Toast", "toast", "Overlays", overlays::toast),
     component_doc!("Sonner", "sonner", "Overlays", overlays_extra::sonner),
     component_doc!("Toaster", "toaster", "Overlays", overlays_extra::toaster),
