@@ -54,6 +54,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-separator", ".ui-separator {"),
         (".ui-auto-height", ".ui-auto-height {"),
         (".ui-ripple", ".ui-ripple {"),
+        (".ui-resizable", ".ui-resizable {"),
         (".ui-overlay", ".ui-overlay {"),
         (".ui-underlay", ".ui-underlay {"),
         (".ui-popover", ".ui-popover {"),

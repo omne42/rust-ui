@@ -3,8 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
-    GridJustify, GridRows, ScrollArea, ScrollAreaOrientation, Surface, SurfaceElevation,
-    SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
+    GridJustify, GridRows, Resizable, ResizableOrientation, ScrollArea, ScrollAreaOrientation,
+    Surface, SurfaceElevation, SurfaceTone, View, ViewBackground, ViewBorder, ViewPadding,
+    ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -287,6 +288,128 @@ pub(super) fn scroll_area() -> AnyView {
                                 .collect_view()}
                         </div>
                     </ScrollArea>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn resizable() -> AnyView {
+    let horizontal_code = r#"<Resizable
+  orientation=ResizableOrientation::Horizontal
+  default_split_percent=36.0
+  with_handle=true
+  first=move || view! { <div>"Sidebar"</div> }
+  second=move || view! { <div>"Content"</div> }
+/>"#;
+
+    let vertical_code = r#"let (split_raw, set_split_raw) = signal(58.0_f64);
+let split: Signal<f64> = Signal::derive(move || split_raw.get());
+
+<Resizable
+  orientation=ResizableOrientation::Vertical
+  split_percent=split
+  on_split_percent_change=Callback::new(move |next| set_split_raw.set(next))
+  min_split_percent=25.0
+  max_split_percent=80.0
+  with_handle=true
+  class_name="docs-resizable-custom".to_string()
+  first=move || view! { <div>"Header"</div> }
+  second=move || view! { <div>"Body"</div> }
+/>"#;
+
+    let (split_raw, set_split_raw) = signal(58.0_f64);
+    let split: Signal<f64> = Signal::derive(move || split_raw.get());
+    let on_split_change = Callback::new(move |next: f64| {
+        set_split_raw.set(next);
+    });
+
+    view! {
+        <ComponentPage
+            title="Resizable"
+            slug="resizable"
+            group="Layout"
+            description="Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and Spectrum-style state data contracts."
+        >
+            <Playground title="Horizontal + Handle Grip" code=horizontal_code>
+                <Resizable
+                    orientation=ResizableOrientation::Horizontal
+                    default_split_percent=36.0
+                    with_handle=true
+                    first=move || {
+                        view! {
+                            <View
+                                background=ViewBackground::Subtle
+                                border=ViewBorder::Subtle
+                                padding=ViewPadding::Md
+                                radius=ViewRadius::None
+                            >
+                                <div class="docs-stack docs-stack--tight">
+                                    <strong>"Sidebar"</strong>
+                                    <span class="ui-muted">"Drag handle or Arrow keys to resize."</span>
+                                </div>
+                            </View>
+                        }
+                    }
+                    second=move || {
+                        view! {
+                            <View
+                                background=ViewBackground::Default
+                                border=ViewBorder::None
+                                padding=ViewPadding::Md
+                                radius=ViewRadius::None
+                            >
+                                <div class="docs-stack docs-stack--tight">
+                                    <strong>"Content"</strong>
+                                    <span class="ui-muted">"Resizable panel body with scroll-safe overflow."</span>
+                                </div>
+                            </View>
+                        }
+                    }
+                />
+            </Playground>
+
+            <Playground title="Controlled + Vertical Bounds" code=vertical_code>
+                <div class="docs-stack docs-stack--tight">
+                    <Resizable
+                        orientation=ResizableOrientation::Vertical
+                        split_percent=split
+                        on_split_percent_change=on_split_change
+                        min_split_percent=25.0
+                        max_split_percent=80.0
+                        with_handle=true
+                        aria_label="Deployment regions split".to_string()
+                        class_name="docs-resizable-custom".to_string()
+                        first=move || {
+                            view! {
+                                <View
+                                    background=ViewBackground::Subtle
+                                    border=ViewBorder::Subtle
+                                    padding=ViewPadding::Md
+                                    radius=ViewRadius::None
+                                >
+                                    <strong>"Header"</strong>
+                                </View>
+                            }
+                        }
+                        second=move || {
+                            view! {
+                                <View
+                                    background=ViewBackground::Default
+                                    border=ViewBorder::None
+                                    padding=ViewPadding::Md
+                                    radius=ViewRadius::None
+                                >
+                                    <strong>"Body"</strong>
+                                </View>
+                            }
+                        }
+                    />
+                    <span class="ui-muted">
+                        "controlled split: "
+                        {move || format!("{:.1}%", split_raw.get())}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

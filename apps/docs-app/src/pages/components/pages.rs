@@ -487,24 +487,15 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Layout",
         layout_extra::scroll_area
     ),
+    component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
     component_doc!(
         "ScrollShadow",
         "scroll-shadow",
         "Layout",
         layout::scroll_shadow
     ),
-    ComponentDoc {
-        name: "AutoHeight",
-        slug: "auto-height",
-        group: "Layout",
-        page: layout::auto_height,
-    },
-    ComponentDoc {
-        name: "UiRoot",
-        slug: "ui-root",
-        group: "Layout",
-        page: layout::ui_root,
-    },
+    component_doc!("AutoHeight", "auto-height", "Layout", layout::auto_height),
+    component_doc!("UiRoot", "ui-root", "Layout", layout::ui_root),
     ComponentDoc {
         name: "Alert",
         slug: "alert",

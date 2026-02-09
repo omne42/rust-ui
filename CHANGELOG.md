@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Resizable>` as a Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer+keyboard separator semantics, and Spectrum-style `data-*` contracts.
+- `apps/docs-app`: adds a `Resizable` docs page with horizontal grip and controlled-vertical bounded playground coverage.
+
 - `ui-components`: adds `<CommandDialog>` as a Shadcn-compatible command overlay that composes `Modal` + `Command` with controllable open state, persistent-action mode, and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `CommandDialog` docs page with controlled open/action-close and persistent-action playground coverage.
 
