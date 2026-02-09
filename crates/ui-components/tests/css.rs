@@ -31,6 +31,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-checkbox-group", ".ui-checkbox-group {"),
         (".ui-chip", ".ui-chip {"),
         (".ui-collapsible", ".ui-collapsible {"),
+        (".ui-command", ".ui-command {"),
         (".ui-color-area", ".ui-color-area {"),
         (".ui-color-field", ".ui-color-field {"),
         (".ui-color-handle", ".ui-color-handle {"),

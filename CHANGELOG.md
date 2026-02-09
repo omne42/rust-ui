@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `<Command>` as a Shadcn-compatible command palette with grouped search/filtering, listbox keyboard semantics, and HeroUI-level spring active-highlight motion.
+- `apps/docs-app`: adds a `Command` docs page with grouped keyboard-action and custom placeholder/empty-label playground coverage.
+
 - `ui-components`: adds `<Toggle>` as a Shadcn-compatible toggle primitive with centralized pressed-state flow, Spectrum-style `data-*` contracts, and HeroUI-grade spring press motion reuse.
 - `apps/docs-app`: adds a `Toggle` docs page with controlled and outline/ghost-disabled playground coverage.
 

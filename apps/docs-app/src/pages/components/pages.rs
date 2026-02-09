@@ -1,6 +1,7 @@
 mod actions;
 mod actions_extra;
 mod collections;
+mod collections_command;
 mod collections_extra;
 mod collections_groups;
 mod display;
@@ -822,6 +823,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         slug: "autocomplete",
         group: "Collections",
         page: collections::autocomplete,
+    },
+    ComponentDoc {
+        name: "Command",
+        slug: "command",
+        group: "Collections",
+        page: collections_command::command,
     },
     ComponentDoc {
         name: "DropdownMenu",
