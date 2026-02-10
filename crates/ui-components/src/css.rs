@@ -92,6 +92,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::combo_box::styles::CSS);
     out.push_str(crate::combobox::styles::CSS);
     out.push_str(crate::text_field::styles::CSS);
+    out.push_str(crate::textfield::styles::CSS);
     out.push_str(crate::date_field::styles::CSS);
     out.push_str(crate::date_input_group::styles::CSS);
     out.push_str(crate::time_field::styles::CSS);
