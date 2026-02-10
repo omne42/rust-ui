@@ -120,6 +120,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::drop_zone::styles::CSS);
     out.push_str(crate::dropzone::styles::CSS);
     out.push_str(crate::empty_state::styles::CSS);
+    out.push_str(crate::empty::styles::CSS);
     out.push_str(crate::error_view::styles::CSS);
     out.push_str(crate::field::styles::CSS);
     out.push_str(crate::field_button::styles::CSS);

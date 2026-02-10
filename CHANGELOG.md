@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Empty` to a full `logic/styles/view` slice with centralized slot/media/source-state normalization, stable Spectrum-style `data-*` wrapper contracts, and hardened alias composition for `Empty*` primitives.
+- `apps/docs-app`: extends `Empty` docs with a `State + Source Markers` playground to inspect `data-slot`/`data-state`/`data-class-source`/`data-variant`/`data-variant-source` contracts across `Empty*` slots.
+
 - `ui-components`: upgrades `SplitView` to a full `logic/styles/view` slice with centralized split/bounds/aria/class/handler source-state normalization, stable Spectrum-style `data-*` wrapper contracts, and hardened alias composition over `Resizable`.
 - `apps/docs-app`: extends `SplitView` docs with a `State + Source Markers` playground to inspect `data-state`/`data-orientation`/`data-split-mode`/`data-default-split-source`/`data-bounds-source`/`data-label-source`/`data-class-source`/`data-handler-source` contracts.
 - `ui-components`: upgrades `Tags` to a full `logic/styles/view` slice with centralized tag/a11y/source-state normalization, stable Spectrum-style `data-*` wrapper contracts, and hardened alias composition over `TagGroup`.

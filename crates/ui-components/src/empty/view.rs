@@ -1,43 +1,30 @@
+use crate::empty::{EmptyPartStateInput, EmptySlot, logic};
 use leptos::prelude::*;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum EmptyMediaVariant {
-    #[default]
-    Default,
-    Icon,
-}
-
-impl EmptyMediaVariant {
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            EmptyMediaVariant::Default => "default",
-            EmptyMediaVariant::Icon => "icon",
-        }
-    }
-}
-
-fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-fn compose_class(base: &'static str, class_name: Option<String>) -> String {
-    normalize_optional_text(class_name)
-        .map(|class_name| format!("{base} {class_name}"))
-        .unwrap_or_else(|| base.to_string())
-}
 
 #[component]
 pub fn Empty(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = compose_class("ui-empty", class_name);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let state = logic::resolve_state(EmptyPartStateInput {
+        slot: EmptySlot::Root,
+        media_variant: logic::EmptyMediaVariant::default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
 
     view! {
-        <div class=class_name data-slot="empty">
+        <div
+            class=class_name
+            data-slot=state.slot_attr
+            data-state=state.state_attr
+            data-class-source=state.class_source_attr
+            data-variant-source=state.variant_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </div>
     }
@@ -48,10 +35,25 @@ pub fn EmptyHeader(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = compose_class("ui-empty__header", class_name);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let state = logic::resolve_state(EmptyPartStateInput {
+        slot: EmptySlot::Header,
+        media_variant: logic::EmptyMediaVariant::default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
 
     view! {
-        <div class=class_name data-slot="empty-header">
+        <div
+            class=class_name
+            data-slot=state.slot_attr
+            data-state=state.state_attr
+            data-class-source=state.class_source_attr
+            data-variant-source=state.variant_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </div>
     }
@@ -62,10 +64,25 @@ pub fn EmptyTitle(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = compose_class("ui-empty__title", class_name);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let state = logic::resolve_state(EmptyPartStateInput {
+        slot: EmptySlot::Title,
+        media_variant: logic::EmptyMediaVariant::default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
 
     view! {
-        <div class=class_name data-slot="empty-title">
+        <div
+            class=class_name
+            data-slot=state.slot_attr
+            data-state=state.state_attr
+            data-class-source=state.class_source_attr
+            data-variant-source=state.variant_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </div>
     }
@@ -76,10 +93,25 @@ pub fn EmptyDescription(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = compose_class("ui-empty__description", class_name);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let state = logic::resolve_state(EmptyPartStateInput {
+        slot: EmptySlot::Description,
+        media_variant: logic::EmptyMediaVariant::default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
 
     view! {
-        <div class=class_name data-slot="empty-description">
+        <div
+            class=class_name
+            data-slot=state.slot_attr
+            data-state=state.state_attr
+            data-class-source=state.class_source_attr
+            data-variant-source=state.variant_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </div>
     }
@@ -90,10 +122,25 @@ pub fn EmptyContent(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = compose_class("ui-empty__content", class_name);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let state = logic::resolve_state(EmptyPartStateInput {
+        slot: EmptySlot::Content,
+        media_variant: logic::EmptyMediaVariant::default(),
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
 
     view! {
-        <div class=class_name data-slot="empty-content">
+        <div
+            class=class_name
+            data-slot=state.slot_attr
+            data-state=state.state_attr
+            data-class-source=state.class_source_attr
+            data-variant-source=state.variant_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </div>
     }
@@ -101,14 +148,30 @@ pub fn EmptyContent(
 
 #[component]
 pub fn EmptyMedia(
-    #[prop(optional)] variant: EmptyMediaVariant,
+    #[prop(optional)] variant: logic::EmptyMediaVariant,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = compose_class("ui-empty__media", class_name);
+    let class_name = logic::normalize_optional_text(class_name);
+
+    let state = logic::resolve_state(EmptyPartStateInput {
+        slot: EmptySlot::Media,
+        media_variant: variant,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
 
     view! {
-        <div class=class_name data-slot="empty-icon" data-variant=variant.as_attr()>
+        <div
+            class=class_name
+            data-slot=state.slot_attr
+            data-state=state.state_attr
+            data-variant=state.media_variant_attr
+            data-class-source=state.class_source_attr
+            data-variant-source=state.variant_source_attr
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
             {children()}
         </div>
     }
