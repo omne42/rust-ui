@@ -1,5 +1,6 @@
 use crate::alert_dialog::{
-    AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant, logic,
+    AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogPartStateInput, AlertDialogSlot,
+    AlertDialogVariant, logic,
 };
 use crate::overlay::Overlay;
 use crate::{Button, ButtonVariant, OnPress};
@@ -21,7 +22,6 @@ fn focus_button_soon(node_ref: NodeRef<html::Button>) {
         return;
     }
 
-    // Retry once on the next tick (mount/focus trap may run first).
     let Some(window) = web_sys::window() else {
         return;
     };
@@ -53,59 +53,154 @@ pub fn AlertDialog(
     #[prop(optional, into)] secondary_label: Option<String>,
     #[prop(optional)] on_secondary: Option<OnPress>,
     #[prop(optional)] on_cancel: Option<OnPress>,
-    #[prop(optional)] confirm_disabled: bool,
-    #[prop(optional)] secondary_disabled: bool,
-    #[prop(optional)] auto_focus_button: AlertDialogAutoFocusButton,
+    #[prop(optional, default = logic::DEFAULT_CONFIRM_DISABLED)] confirm_disabled: bool,
+    #[prop(optional, default = logic::DEFAULT_SECONDARY_DISABLED)] secondary_disabled: bool,
+    #[prop(optional, default = logic::DEFAULT_AUTO_FOCUS_BUTTON)]
+    auto_focus_button: AlertDialogAutoFocusButton,
     #[prop(optional)] variant: AlertDialogVariant,
     #[prop(optional)] motion: AlertDialogMotion,
     #[prop(optional)] on_exit_complete: Option<Callback<()>>,
 ) -> impl IntoView {
-    let cancel_label = cancel_label.unwrap_or_else(|| "Cancel".to_string());
-    let secondary_label = secondary_label.filter(|value| !value.trim().is_empty());
+    let id_base = logic::normalize_id_base(id_base);
+    let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
 
-    let view_state = logic::resolve_view_state(
-        description.as_deref(),
-        &cancel_label,
-        secondary_label.as_deref(),
-    );
-
+    let title = logic::normalize_required_text(title, logic::DEFAULT_TITLE);
+    let has_custom_title = title != logic::DEFAULT_TITLE;
     let title = StoredValue::new(title);
-    let description = StoredValue::new(description);
-    let cancel_label = StoredValue::new(cancel_label);
-    let secondary_label = StoredValue::new(secondary_label);
-    let confirm_label = StoredValue::new(confirm_label);
-    let class = StoredValue::new(format!("ui-alert-dialog {}", variant.class_name()));
 
-    let on_cancel = StoredValue::new(on_cancel);
+    let description = logic::normalize_optional_text(description);
+    let show_description = description.is_some();
+    let has_custom_description = show_description;
+    let description = StoredValue::new(description);
+
+    let confirm_label = logic::normalize_required_text(confirm_label, logic::DEFAULT_CONFIRM_LABEL);
+    let has_custom_confirm_label = confirm_label != logic::DEFAULT_CONFIRM_LABEL;
+    let confirm_label = StoredValue::new(confirm_label);
+
+    let cancel_label = logic::normalize_cancel_label(cancel_label);
+    let has_custom_cancel_label = cancel_label != logic::DEFAULT_CANCEL_LABEL;
+    let show_cancel = !cancel_label.trim().is_empty();
+    let cancel_label = StoredValue::new(cancel_label);
+
+    let secondary_label = logic::normalize_secondary_label(secondary_label);
+    let has_custom_secondary_label = secondary_label.is_some();
+    let show_secondary = secondary_label.is_some();
+    let secondary_label = StoredValue::new(secondary_label);
+
+    let has_custom_on_secondary = on_secondary.is_some();
+    let has_custom_on_cancel = on_cancel.is_some();
     let on_secondary = StoredValue::new(on_secondary);
+    let on_cancel = StoredValue::new(on_cancel);
+
+    let has_custom_auto_focus_button = auto_focus_button != logic::DEFAULT_AUTO_FOCUS_BUTTON;
+    let has_custom_motion = motion != AlertDialogMotion::default();
+    let has_on_exit_complete = on_exit_complete.is_some();
+
+    let on_close = StoredValue::new(on_close);
+    let on_confirm = StoredValue::new(on_confirm);
+    let on_exit_complete =
+        StoredValue::new(on_exit_complete.unwrap_or_else(|| Callback::new(|_| {})));
 
     let title_id = format!("{id_base}-title");
     let description_id = format!("{id_base}-description");
     let title_id_attr: Signal<String> = title_id.clone().into();
     let description_id_attr: Signal<String> = description_id.clone().into();
 
-    let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
+    let root_state = Memo::new(move |_| {
+        logic::resolve_state(AlertDialogPartStateInput {
+            slot: AlertDialogSlot::Root,
+            is_open: open.get(),
+            variant,
+            auto_focus_button,
+            show_description,
+            show_cancel,
+            show_secondary,
+            confirm_disabled,
+            secondary_disabled,
+            has_custom_id_base,
+            has_custom_title,
+            has_custom_description,
+            has_custom_confirm_label,
+            has_custom_cancel_label,
+            has_custom_secondary_label,
+            has_custom_on_cancel,
+            has_custom_on_secondary,
+            has_custom_auto_focus_button,
+            has_custom_motion,
+            has_on_exit_complete,
+        })
+    });
+    let root_class = Memo::new(move |_| logic::compose_class_name(None, root_state.get()));
 
-    let on_close_for_cancel = on_close;
-    let on_close_for_secondary = on_close;
-    let on_close_for_confirm = on_close;
+    let make_state = |slot| {
+        logic::resolve_state(AlertDialogPartStateInput {
+            slot,
+            is_open: open.get_untracked(),
+            variant,
+            auto_focus_button,
+            show_description,
+            show_cancel,
+            show_secondary,
+            confirm_disabled,
+            secondary_disabled,
+            has_custom_id_base,
+            has_custom_title,
+            has_custom_description,
+            has_custom_confirm_label,
+            has_custom_cancel_label,
+            has_custom_secondary_label,
+            has_custom_on_cancel,
+            has_custom_on_secondary,
+            has_custom_auto_focus_button,
+            has_custom_motion,
+            has_on_exit_complete,
+        })
+    };
+
+    let header_state = make_state(AlertDialogSlot::Header);
+    let header_class = StoredValue::new(logic::compose_class_name(None, header_state));
+
+    let header_text_state = make_state(AlertDialogSlot::HeaderText);
+    let header_text_class = StoredValue::new(logic::compose_class_name(None, header_text_state));
+
+    let type_icon_state = make_state(AlertDialogSlot::TypeIcon);
+    let type_icon_class = StoredValue::new(logic::compose_class_name(None, type_icon_state));
+
+    let title_state = make_state(AlertDialogSlot::Title);
+    let title_class = StoredValue::new(logic::compose_class_name(None, title_state));
+
+    let description_state = make_state(AlertDialogSlot::Description);
+    let description_class = StoredValue::new(logic::compose_class_name(None, description_state));
+
+    let footer_state = make_state(AlertDialogSlot::Footer);
+    let footer_class = StoredValue::new(logic::compose_class_name(None, footer_state));
+
+    let cancel_state = make_state(AlertDialogSlot::CancelAction);
+    let cancel_class = StoredValue::new(logic::compose_class_name(None, cancel_state));
+
+    let secondary_state = make_state(AlertDialogSlot::SecondaryAction);
+    let secondary_class = StoredValue::new(logic::compose_class_name(None, secondary_state));
+
+    let confirm_state = make_state(AlertDialogSlot::ConfirmAction);
+    let confirm_class = StoredValue::new(logic::compose_class_name(None, confirm_state));
+
     let on_cancel_press: OnPress = Callback::new(move |_| {
-        on_close_for_cancel.run(());
+        on_close.get_value().run(());
         if let Some(callback) = on_cancel.get_value() {
             callback.run(());
         }
     });
 
     let on_secondary_press: OnPress = Callback::new(move |_| {
-        on_close_for_secondary.run(());
+        on_close.get_value().run(());
         if let Some(callback) = on_secondary.get_value() {
             callback.run(());
         }
     });
 
     let on_confirm_press: OnPress = Callback::new(move |_| {
-        on_close_for_confirm.run(());
-        on_confirm.run(());
+        on_close.get_value().run(());
+        on_confirm.get_value().run(());
     });
 
     let confirm_variant = match variant {
@@ -115,11 +210,6 @@ pub fn AlertDialog(
         | AlertDialogVariant::Warning
         | AlertDialogVariant::Error => ButtonVariant::Default,
     };
-
-    let show_type_icon = matches!(
-        variant,
-        AlertDialogVariant::Warning | AlertDialogVariant::Error
-    );
 
     let cancel_ref: NodeRef<html::Button> = NodeRef::new();
     let secondary_ref: NodeRef<html::Button> = NodeRef::new();
@@ -131,16 +221,15 @@ pub fn AlertDialog(
             focus_state.set_value(false);
             return;
         }
+
         if focus_state.get_value() {
             return;
         }
         focus_state.set_value(true);
 
         let target = match auto_focus_button {
-            AlertDialogAutoFocusButton::Cancel if view_state.show_cancel => Some(cancel_ref),
-            AlertDialogAutoFocusButton::Secondary if view_state.show_secondary => {
-                Some(secondary_ref)
-            }
+            AlertDialogAutoFocusButton::Cancel if show_cancel => Some(cancel_ref),
+            AlertDialogAutoFocusButton::Secondary if show_secondary => Some(secondary_ref),
             AlertDialogAutoFocusButton::Confirm => Some(confirm_ref),
             AlertDialogAutoFocusButton::None => None,
             _ => None,
@@ -154,27 +243,58 @@ pub fn AlertDialog(
     let content = move || {
         view! {
             <div
-                class=move || class.get_value()
-                data-slot="alert-dialog"
-                data-state=move || if open.get() { "open" } else { "closed" }
+                class=move || root_class.get()
+                data-slot=move || root_state.get().slot_attr
+                data-state=move || root_state.get().state_attr
                 data-open=move || open.get().then_some("true")
                 data-closed=move || (!open.get()).then_some("true")
-                data-variant=variant.data_attr()
-                data-with-description=view_state.show_description.then_some("true")
-                data-show-cancel=view_state.show_cancel.then_some("true")
-                data-show-secondary=view_state.show_secondary.then_some("true")
-                data-confirm-disabled=confirm_disabled.then_some("true")
-                data-secondary-disabled=secondary_disabled.then_some("true")
-                data-motion-source=if motion == AlertDialogMotion::default() {
-                    "default"
-                } else {
-                    "custom"
+                data-variant=move || root_state.get().variant_attr
+                data-description=move || root_state.get().description_attr
+                data-cancel=move || root_state.get().cancel_attr
+                data-secondary=move || root_state.get().secondary_attr
+                data-confirm-disabled=move || root_state.get().confirm_disabled_attr
+                data-secondary-disabled=move || root_state.get().secondary_disabled_attr
+                data-auto-focus=move || root_state.get().auto_focus_attr
+                data-with-description=move || root_state.get().show_description.then_some("true")
+                data-show-cancel=move || root_state.get().show_cancel.then_some("true")
+                data-show-secondary=move || root_state.get().show_secondary.then_some("true")
+                data-with-type-icon=move || root_state.get().show_type_icon.then_some("true")
+                data-custom-variant=move || root_state.get().has_custom_variant.then_some("true")
+                data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
+                data-custom-title=move || root_state.get().has_custom_title.then_some("true")
+                data-custom-description=move || root_state.get().has_custom_description.then_some("true")
+                data-custom-confirm=move || root_state.get().has_custom_confirm_label.then_some("true")
+                data-custom-cancel=move || root_state.get().has_custom_cancel_label.then_some("true")
+                data-custom-secondary=move || root_state.get().has_custom_secondary_label.then_some("true")
+                data-custom-auto-focus=move || {
+                    root_state.get().has_custom_auto_focus_button.then_some("true")
                 }
-                data-custom-motion=(motion != AlertDialogMotion::default()).then_some("true")
+                data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
+                data-custom-exit=move || root_state.get().has_on_exit_complete.then_some("true")
+                data-variant-source=move || root_state.get().variant_source_attr
+                data-id-source=move || root_state.get().id_source_attr
+                data-title-source=move || root_state.get().title_source_attr
+                data-description-source=move || root_state.get().description_source_attr
+                data-cancel-source=move || root_state.get().cancel_source_attr
+                data-secondary-source=move || root_state.get().secondary_source_attr
+                data-confirm-source=move || root_state.get().confirm_source_attr
+                data-auto-focus-source=move || root_state.get().auto_focus_source_attr
+                data-motion-source=move || root_state.get().motion_source_attr
+                data-exit-source=move || root_state.get().exit_source_attr
             >
-                <div class="ui-alert-dialog__header" data-slot="alert-dialog-header">
-                    <Show when=move || show_type_icon>
-                        <span class="ui-alert-dialog__type-icon" data-slot="alert-dialog-type-icon" aria-hidden="true">
+                <div
+                    class=move || header_class.with_value(|class_name| class_name.clone())
+                    data-slot=header_state.slot_attr
+                    data-state=header_state.state_attr
+                >
+                    <Show when=move || root_state.get().show_type_icon>
+                        <span
+                            class=move || type_icon_class.with_value(|class_name| class_name.clone())
+                            data-slot=type_icon_state.slot_attr
+                            data-state=type_icon_state.state_attr
+                            data-variant=type_icon_state.variant_attr
+                            aria-hidden="true"
+                        >
                             {match variant {
                                 AlertDialogVariant::Warning => view! {
                                     <svg viewBox="0 0 20 20" fill="none">
@@ -226,15 +346,29 @@ pub fn AlertDialog(
                         </span>
                     </Show>
 
-                    <div class="ui-alert-dialog__header-text" data-slot="alert-dialog-header-text">
-                        <h2 class="ui-alert-dialog__title" id=move || title_id_attr.get() data-slot="alert-dialog-title">
+                    <div
+                        class=move || header_text_class.with_value(|class_name| class_name.clone())
+                        data-slot=header_text_state.slot_attr
+                        data-state=header_text_state.state_attr
+                    >
+                        <h2
+                            class=move || title_class.with_value(|class_name| class_name.clone())
+                            id=move || title_id_attr.get()
+                            data-slot=title_state.slot_attr
+                            data-state=title_state.state_attr
+                            data-title-source=title_state.title_source_attr
+                        >
                             {move || title.get_value()}
                         </h2>
-                        <Show when=move || view_state.show_description>
+                        <Show when=move || root_state.get().show_description>
                             <p
-                                class="ui-alert-dialog__description"
+                                class=move || {
+                                    description_class.with_value(|class_name| class_name.clone())
+                                }
                                 id=move || description_id_attr.get()
-                                data-slot="alert-dialog-description"
+                                data-slot=description_state.slot_attr
+                                data-state=description_state.state_attr
+                                data-description-source=description_state.description_source_attr
                             >
                                 {move || description.get_value().unwrap_or_default()}
                             </p>
@@ -242,66 +376,93 @@ pub fn AlertDialog(
                     </div>
                 </div>
 
-                <div class="ui-alert-dialog__footer" data-slot="alert-dialog-footer">
-                    <Show when=move || view_state.show_cancel>
-                        <Button
-                            variant=ButtonVariant::Secondary
-                            disabled=false
-                            node_ref=cancel_ref
-                            on_press=on_cancel_press
+                <div
+                    class=move || footer_class.with_value(|class_name| class_name.clone())
+                    data-slot=footer_state.slot_attr
+                    data-state=footer_state.state_attr
+                >
+                    <Show when=move || root_state.get().show_cancel>
+                        <span
+                            class=move || cancel_class.with_value(|class_name| class_name.clone())
+                            data-slot=cancel_state.slot_attr
+                            data-state=cancel_state.state_attr
+                            data-cancel-source=cancel_state.cancel_source_attr
                         >
-                            {move || cancel_label.get_value()}
-                        </Button>
+                            <Button
+                                variant=ButtonVariant::Secondary
+                                disabled=false
+                                node_ref=cancel_ref
+                                on_press=on_cancel_press
+                            >
+                                {move || cancel_label.get_value()}
+                            </Button>
+                        </span>
                     </Show>
-                    <Show when=move || view_state.show_secondary>
-                        <Button
-                            variant=ButtonVariant::Secondary
-                            disabled=secondary_disabled
-                            node_ref=secondary_ref
-                            on_press=on_secondary_press
+                    <Show when=move || root_state.get().show_secondary>
+                        <span
+                            class=move || secondary_class.with_value(|class_name| class_name.clone())
+                            data-slot=secondary_state.slot_attr
+                            data-state=secondary_state.state_attr
+                            data-secondary-source=secondary_state.secondary_source_attr
                         >
-                            {move || secondary_label.get_value().unwrap_or_default()}
-                        </Button>
+                            <Button
+                                variant=ButtonVariant::Secondary
+                                disabled=secondary_disabled
+                                node_ref=secondary_ref
+                                on_press=on_secondary_press
+                            >
+                                {move || secondary_label.get_value().unwrap_or_default()}
+                            </Button>
+                        </span>
                     </Show>
-                    <Button
-                        variant=confirm_variant
-                        disabled=confirm_disabled
-                        node_ref=confirm_ref
-                        on_press=on_confirm_press
+                    <span
+                        class=move || confirm_class.with_value(|class_name| class_name.clone())
+                        data-slot=confirm_state.slot_attr
+                        data-state=confirm_state.state_attr
+                        data-confirm-source=confirm_state.confirm_source_attr
                     >
-                        {move || confirm_label.get_value()}
-                    </Button>
+                        <Button
+                            variant=confirm_variant
+                            disabled=confirm_disabled
+                            node_ref=confirm_ref
+                            on_press=on_confirm_press
+                        >
+                            {move || confirm_label.get_value()}
+                        </Button>
+                    </span>
                 </div>
             </div>
         }
     };
 
-    if view_state.show_description {
+    if show_description {
         view! {
             <Overlay
                 open=open
-                on_close=on_close
+                on_close=on_close.get_value()
                 role="alertdialog"
                 aria_labelledby=title_id.clone()
                 aria_describedby=description_id.clone()
                 motion=motion.overlay
-                on_exit_complete=on_exit_complete
+                on_exit_complete=on_exit_complete.get_value()
             >
                 {content()}
             </Overlay>
         }
+        .into_any()
     } else {
         view! {
             <Overlay
                 open=open
-                on_close=on_close
+                on_close=on_close.get_value()
                 role="alertdialog"
                 aria_labelledby=title_id.clone()
                 motion=motion.overlay
-                on_exit_complete=on_exit_complete
+                on_exit_complete=on_exit_complete.get_value()
             >
                 {content()}
             </Overlay>
         }
+        .into_any()
     }
 }

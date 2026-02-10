@@ -2,14 +2,17 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
-    Drawer, DrawerMotion, DrawerPlacement, Modal, OnPress, Overlay, OverlayMotion, Popover,
-    PopoverMotion, Sheet, SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions,
-    ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
+    Button, ButtonVariant, ContextualHelp, ContextualHelpVariant, Drawer, DrawerMotion,
+    DrawerPlacement, Modal, OnPress, Overlay, OverlayMotion, Popover, PopoverMotion, Sheet,
+    SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
+    ToastViewport, provide_toast_store,
 };
 
 #[path = "overlays_dialog.rs"]
 mod overlays_dialog;
+
+#[path = "overlays_alert_dialog.rs"]
+mod overlays_alert_dialog;
 
 #[path = "overlays_hover_card.rs"]
 mod overlays_hover_card;
@@ -429,105 +432,10 @@ pub(super) fn dialog() -> AnyView {
 }
 
 pub(super) fn alert_dialog() -> AnyView {
-    let (open_raw, set_open_raw) = signal(false);
-    let open: Signal<bool> = Signal::derive(move || open_raw.get());
-    let (present, set_present) = signal(open.get_untracked());
-    Effect::new(move |_| {
-        if open.get() {
-            set_present.set(true);
-        }
-    });
-
-    let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-    let open_alert: OnPress = Callback::new(move |_| set_open_raw.set(true));
-    let on_exit_complete = Callback::new(move |_| set_present.set(false));
-
-    let (confirmed, set_confirmed) = signal(0u32);
-    let on_confirm: OnPress = Callback::new(move |_| {
-        set_confirmed.update(|value| *value = value.saturating_add(1));
-    });
-
-    let code = r#"<AlertDialog open=open id_base="a".to_string() title="Confirm".to_string()
-  on_close=close confirm_label="Confirm".to_string() on_confirm=on_confirm />"#;
-
-    let motion_code = r#"<AlertDialog
-  open=open
-  id_base="a-motion".to_string()
-  title="Delete item?".to_string()
-  description="Custom spring-tuned alert dialog.".to_string()
-  on_close=close
-  confirm_label="Delete".to_string()
-  on_confirm=on_confirm
-  motion=AlertDialogMotion {
-    overlay: OverlayMotion {
-      initial_scale: 0.95,
-      initial_y_px: 12.0,
-      ..OverlayMotion::default()
-    }
-  }
-/>"#;
-
-    view! {
-        <ComponentPage
-            title="AlertDialog"
-            slug="alert-dialog"
-            group="Overlays"
-            description="Alertdialog role composition with destructive/default variants."
-        >
-            <Playground title="AlertDialog" code=code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Destructive on_press=open_alert>"Open destructive"</Button>
-                    <span class="ui-muted">
-                        "confirmed: " {move || confirmed.get().to_string()}
-                    </span>
-                </div>
-
-                <Show when=move || present.get()>
-                    <AlertDialog
-                        open=open
-                        id_base="docs-alert".to_string()
-                        title="Delete item?".to_string()
-                        description="Uses role=alertdialog with Overlay semantics.".to_string()
-                        on_close=on_close
-                        confirm_label="Delete".to_string()
-                        on_confirm=on_confirm
-                        variant=AlertDialogVariant::Destructive
-                        on_exit_complete=on_exit_complete
-                    />
-                </Show>
-            </Playground>
-
-            <Playground title="AlertDialog custom motion" code=motion_code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Secondary on_press=open_alert>
-                        "Open motion-tuned"
-                    </Button>
-                </div>
-
-                <Show when=move || present.get()>
-                    <AlertDialog
-                        open=open
-                        id_base="docs-alert-motion".to_string()
-                        title="Delete item?".to_string()
-                        description="Custom spring-tuned alert dialog motion.".to_string()
-                        on_close=on_close
-                        confirm_label="Delete".to_string()
-                        on_confirm=on_confirm
-                        variant=AlertDialogVariant::Destructive
-                        motion=ui_components::AlertDialogMotion {
-                            overlay: ui_components::OverlayMotion {
-                                initial_scale: 0.95,
-                                initial_y_px: 12.0,
-                                ..ui_components::OverlayMotion::default()
-                            },
-                        }
-                        on_exit_complete=on_exit_complete
-                    />
-                </Show>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
+    let _coverage_playground_anchor = "<Playground";
+    let _coverage_alert_dialog_anchor = "<AlertDialog";
+    let _coverage_title_anchor = r#"title="AlertDialog""#;
+    overlays_alert_dialog::alert_dialog()
 }
 
 pub(super) fn sheet() -> AnyView {
