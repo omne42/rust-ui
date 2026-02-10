@@ -104,6 +104,13 @@ pub fn Input(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == InputMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != InputMotion::default()).then_some("true");
+
     let input_type = input_type.unwrap_or("text");
     let clear_button_ref: NodeRef<html::Button> = NodeRef::new();
 
@@ -157,6 +164,8 @@ pub fn Input(
             data-required=move || required.get().then_some("true")
             data-filled=move || view_state.get().is_filled.then_some("true")
             data-filled-within=move || view_state.get().is_filled_within.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
         >
             <Show when=move || view_state.get().show_label>
                 <label

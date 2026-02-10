@@ -9,6 +9,11 @@ pub const CSS: &str = r#"
   --ui-input-padding-y: var(--ui-space-sm);
 }
 
+.ui-input[data-motion-source="custom"],
+.ui-input[data-custom-motion="true"] {
+  --ui-input-custom-motion: 1;
+}
+
 .ui-input--size-sm {
   --ui-input-height: 32px;
   --ui-input-padding-x: var(--ui-space-sm);

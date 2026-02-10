@@ -74,6 +74,21 @@ fn input_attaches_clear_motion_driver() {
 }
 
 #[test]
+fn input_styles_include_motion_marker_contracts() {
+    let source = load_source("src/input/styles.rs");
+
+    for selector in [
+        ".ui-input[data-motion-source=\"custom\"]",
+        ".ui-input[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Input styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
+}
+
+#[test]
 fn input_styles_define_clear_motion_css_vars() {
     let source = load_source("src/input/styles.rs");
 
@@ -108,6 +123,8 @@ fn input_emits_spectrum_style_state_data_attributes() {
         "data-disabled",
         "data-read-only",
         "data-required",
+        "data-motion-source",
+        "data-custom-motion",
     ] {
         assert!(
             source.contains(attr),
