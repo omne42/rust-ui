@@ -6,8 +6,32 @@ pub const CSS: &str = r#"
 }
 
 .ui-popover[data-motion-source="custom"],
-.ui-popover[data-custom-motion="true"] {
+.ui-popover[data-custom-motion="true"],
+.ui-popover--custom-motion {
   --ui-popover-custom-motion: 1;
+}
+
+.ui-popover[data-placement-source="custom"],
+.ui-popover--custom-placement {
+  --ui-popover-placement-source: custom;
+}
+
+.ui-popover[data-modal-source="custom"],
+.ui-popover[data-modal="non-modal"],
+.ui-popover[data-non-modal="true"],
+.ui-popover--non-modal {
+  --ui-popover-modal-source: custom;
+}
+
+.ui-popover[data-class-source="custom"],
+.ui-popover--custom-class {
+  --ui-popover-class-source: custom;
+}
+
+.ui-popover[data-exit-source="custom"],
+.ui-popover[data-custom-exit="true"],
+.ui-popover--custom-exit {
+  --ui-popover-exit-source: custom;
 }
 
 .ui-popover[data-state="open"],
@@ -39,6 +63,10 @@ pub const CSS: &str = r#"
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));
   will-change: transform, opacity;
+}
+
+.ui-popover__panel[data-state="panel"] {
+  --ui-popover-panel: 1;
 }
 
 .ui-popover__panel[data-placement="bottom-start"] {

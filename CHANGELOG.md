@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Popover` to a full `logic/styles/view` slice with centralized modal/placement/exit/source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level spring motion behavior.
+- `apps/docs-app`: extends `Popover` docs with a `State + Source Markers` playground to inspect `data-state`/`data-modal`/`data-motion-source`/`data-placement-source`/`data-modal-source`/`data-exit-source` contracts.
+
 - `ui-components`: upgrades `Toggle` to a full `logic/styles/view` slice with centralized interaction/variant/size/aria/handler source-state normalization, stable Spectrum-style `data-*` contracts, and preserved HeroUI-level press motion behavior.
 - `apps/docs-app`: extends `Toggle` docs with a `State + Source Markers` playground to inspect `data-state`/`data-interaction`/`data-variant-source`/`data-motion-source`/`data-aria-source`/`data-handler-source` contracts.
 

@@ -183,6 +183,8 @@ pub(super) fn popover() -> AnyView {
   anchor_ref=anchor_ref
   on_close=close
   motion=custom_motion
+  is_modal=false
+  class_name="docs-popover-state".to_string()
   on_exit_complete=finish_exit
 >
   ...
@@ -218,7 +220,11 @@ pub(super) fn popover() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="Custom Motion Popover" code=motion_code>
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-modal`, `data-motion-source`, `data-placement-source`, `data-modal-source`, and `data-exit-source` contracts."
+                code=motion_code
+            >
                 <div class="docs-row">
                     <Button
                         node_ref=custom_anchor_ref
@@ -242,12 +248,14 @@ pub(super) fn popover() -> AnyView {
                         anchor_ref=custom_anchor_ref
                         on_close=close_custom
                         motion=custom_motion
+                        is_modal=false
+                        class_name="docs-popover-state".to_string()
                         on_exit_complete=on_custom_exit_complete
                     >
                         <div class="docs-stack">
                             <div>"Custom spring-like popover motion"</div>
                             <div class="ui-muted">
-                                "Tuned via PopoverMotion { initial_scale, offset_y_px, spring }."
+                                "Inspect `data-modal-source`/`data-placement-source` while tuning PopoverMotion."
                             </div>
                             <Button variant=ButtonVariant::Secondary on_press=close_custom>
                                 "Close"
