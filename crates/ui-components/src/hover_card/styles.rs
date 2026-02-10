@@ -5,6 +5,22 @@ pub const CSS: &str = r#"
   justify-content: center;
 }
 
+.ui-hover-card[data-motion-source="custom"],
+.ui-hover-card[data-custom-motion="true"] {
+  --ui-hover-card-custom-motion: 1;
+}
+
+.ui-hover-card[data-disabled="true"] {
+  opacity: 0.72;
+}
+
+.ui-hover-card[data-state="open"],
+.ui-hover-card[data-open="true"],
+.ui-hover-card[data-state="closed"],
+.ui-hover-card[data-closed="true"] {
+  cursor: default;
+}
+
 .ui-hover-card__trigger {
   all: unset;
   display: inline-flex;

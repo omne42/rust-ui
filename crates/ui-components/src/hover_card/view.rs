@@ -166,7 +166,21 @@ pub fn HoverCard(
     };
 
     view! {
-        <span class=class data-slot="hover-card">
+        <span
+                class=class
+                data-slot="hover-card"
+                data-state=move || if open_signal.get() { "open" } else { "closed" }
+                data-open=move || open_signal.get().then_some("true")
+                data-closed=move || (!open_signal.get()).then_some("true")
+                data-disabled=disabled.then_some("true")
+                data-enabled=(!disabled).then_some("true")
+                data-motion-source=if motion == HoverCardMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != HoverCardMotion::default()).then_some("true")
+            >
             <span
                 class="ui-hover-card__trigger"
                 data-slot="hover-card-trigger"
