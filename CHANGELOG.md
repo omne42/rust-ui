@@ -12,6 +12,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: extends `Asset` docs with a `State + Source Markers` playground to inspect `data-state`/`data-label-source`/`data-content-source`/`data-class-source` contracts.
 - `ui-components`: upgrades `Coachmark` to a full `logic/styles/view` slice with centralized heading/step/footer/asset source normalization, stable Spectrum-style `data-*` state/source contracts, and deduplicated controlled/uncontrolled composition through a shared ContextualHelp pipeline.
 - `apps/docs-app`: extends `Coachmark` docs with a `State + Source Markers` playground to inspect `data-state`/`data-open-mode`/`data-label-source`/`data-class-source` and content-level `data-asset-source` contracts.
+- `ui-components`: upgrades `Breadcrumb` primitives to a full `logic/styles/view` slice with centralized aria/href/separator content normalization, stable Spectrum-style `data-*` state/source contracts, and dedicated `breadcrumb` CSS layered through `ui-components/src/css.rs`.
+- `apps/docs-app`: extends `BreadcrumbList` docs with a `State + Source Markers` playground to inspect `data-state`/`data-aria-source`/`data-class-source`/`data-href-state`/`data-content-source` contracts.
 
 - `ui-components`: upgrades `Menu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `NavigationMenu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.

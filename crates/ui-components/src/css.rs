@@ -71,6 +71,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::skeleton_group::styles::CSS);
     out.push_str(crate::link::styles::CSS);
     out.push_str(crate::legend::styles::CSS);
+    out.push_str(crate::breadcrumb::styles::CSS);
     out.push_str(crate::breadcrumbs::styles::CSS);
     out.push_str(crate::code::styles::CSS);
     out.push_str(crate::code_block::styles::CSS);
