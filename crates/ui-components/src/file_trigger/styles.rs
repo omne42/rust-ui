@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-sm);
 }
 
+.ui-file-trigger[data-motion-source="custom"],
+.ui-file-trigger[data-custom-motion="true"] {
+  --ui-file-trigger-custom-motion: 1;
+}
+
 .ui-file-trigger__input {
   position: absolute;
   width: 1px;

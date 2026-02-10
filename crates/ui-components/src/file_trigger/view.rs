@@ -79,7 +79,16 @@ pub fn FileTrigger(
     }
 
     view! {
-        <span class="ui-file-trigger" data-slot="file-trigger">
+        <span
+                class="ui-file-trigger"
+                data-slot="file-trigger"
+                data-motion-source=if motion == FileTriggerMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != FileTriggerMotion::default()).then_some("true")
+            >
             <input
                 class="ui-file-trigger__input"
                 data-slot="file-trigger-input"

@@ -1,14 +1,35 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{DropZone, DropZoneMotion, DroppedFile, FileTrigger, FileTriggerFile};
+use ui_components::{
+    ButtonMotion, DropZone, DropZoneMotion, DroppedFile, FileTrigger, FileTriggerFile,
+    FileTriggerMotion,
+};
 
 pub(super) fn file_trigger() -> AnyView {
     let (files, set_files) = signal(Vec::<FileTriggerFile>::new());
     let on_files = Callback::new(move |next: Vec<FileTriggerFile>| set_files.set(next));
 
+    let (custom_files, set_custom_files) = signal(Vec::<FileTriggerFile>::new());
+    let on_custom_files =
+        Callback::new(move |next: Vec<FileTriggerFile>| set_custom_files.set(next));
+
     let code = r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
 <FileTrigger multiple=true on_files=on_files>"Pick files"</FileTrigger>"#;
+
+    let motion_code = r#"<FileTrigger
+  multiple=true
+  motion=FileTriggerMotion {
+    trigger: ButtonMotion {
+      hover_scale: 1.04,
+      tap_scale: 0.94,
+      ..ButtonMotion::default()
+    }
+  }
+  on_files=on_files
+>
+  "Pick files (custom motion)"
+</FileTrigger>"#;
 
     view! {
         <ComponentPage
@@ -27,6 +48,52 @@ pub(super) fn file_trigger() -> AnyView {
                             let list = files.get();
                             if list.is_empty() {
                                 view! { <div class="ui-muted">"No files selected."</div> }.into_any()
+                            } else {
+                                view! {
+                                    <ul class="docs-list">
+                                        {list
+                                            .into_iter()
+                                            .map(|file| {
+                                                view! {
+                                                    <li>
+                                                        <code>{file.name}</code>
+                                                        <span class="ui-muted">" ("{file.size}" bytes)"</span>
+                                                    </li>
+                                                }
+                                            })
+                                            .collect_view()}
+                                    </ul>
+                                }
+                                .into_any()
+                            }
+                        }}
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground title="Pick files with custom motion" code=motion_code>
+                <div class="docs-stack">
+                    <FileTrigger
+                        multiple=true
+                        motion=FileTriggerMotion {
+                            trigger: ButtonMotion {
+                                hover_scale: 1.04,
+                                tap_scale: 0.94,
+                                ..ButtonMotion::default()
+                            },
+                        }
+                        on_files=on_custom_files
+                    >
+                        "Pick files (custom motion)"
+                    </FileTrigger>
+                    <div class="docs-stack docs-stack--tight">
+                        {move || {
+                            let list = custom_files.get();
+                            if list.is_empty() {
+                                view! {
+                                    <div class="ui-muted">"No files selected (custom motion example)."</div>
+                                }
+                                .into_any()
                             } else {
                                 view! {
                                     <ul class="docs-list">

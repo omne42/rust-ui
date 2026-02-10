@@ -38,6 +38,22 @@ fn file_trigger_forwards_motion_to_button() {
 }
 
 #[test]
+fn file_trigger_emits_motion_source_markers() {
+    let source = load_source("src/file_trigger/view.rs");
+
+    for needle in [
+        "data-slot=\"file-trigger\"",
+        "data-motion-source=if motion == FileTriggerMotion::default()",
+        "data-custom-motion=(motion != FileTriggerMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "FileTrigger should expose `{needle}` for Spectrum/HeroUI motion inspection."
+        );
+    }
+}
+
+#[test]
 fn file_trigger_input_is_hidden_from_tab_order() {
     let source = load_source("src/file_trigger/view.rs");
 
@@ -65,4 +81,37 @@ fn file_trigger_supports_directory_and_capture_attrs() {
         source.contains("set_attribute(\"capture\""),
         "FileTrigger should support media capture via the `capture` attribute."
     );
+}
+
+#[test]
+fn file_trigger_styles_include_motion_marker_contracts() {
+    let source = load_source("src/file_trigger/styles.rs");
+
+    for selector in [
+        ".ui-file-trigger[data-motion-source=\"custom\"]",
+        ".ui-file-trigger[data-custom-motion=\"true\"]",
+        ".ui-file-trigger__input",
+    ] {
+        assert!(
+            source.contains(selector),
+            "FileTrigger styles should include `{selector}` as stable contracts."
+        );
+    }
+}
+
+#[test]
+fn file_trigger_motion_contract_exposes_default_and_custom_trigger_tests() {
+    let source = load_source("src/file_trigger/motion.rs");
+
+    for needle in [
+        "pub struct FileTriggerMotion",
+        "pub trigger: ButtonMotion",
+        "fn default_motion_uses_default_button_motion_contract()",
+        "fn supports_custom_button_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "FileTrigger motion module should include `{needle}` for HeroUI-level motion contract coverage."
+        );
+    }
 }
