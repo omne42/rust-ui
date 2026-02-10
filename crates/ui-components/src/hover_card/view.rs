@@ -1,4 +1,4 @@
-use crate::hover_card::{HoverCardMotion, motion};
+use crate::hover_card::{HoverCardMotion, HoverCardPartStateInput, HoverCardSlot, logic, motion};
 use leptos::{children::ViewFn, ev, html, portal::Portal, prelude::*};
 use ui_headless::{
     HoverCardTriggerOptions, PopoverPlacement, PopoverPositionOptions, use_hover_card_trigger,
@@ -23,13 +23,17 @@ pub fn HoverCard(
     children: Children,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] placement: PopoverPlacement,
-    #[prop(optional, default = 140)] open_delay_ms: u64,
-    #[prop(optional, default = 180)] close_delay_ms: u64,
+    #[prop(optional, default = logic::DEFAULT_OPEN_DELAY_MS)] open_delay_ms: u64,
+    #[prop(optional, default = logic::DEFAULT_CLOSE_DELAY_MS)] close_delay_ms: u64,
     #[prop(optional)] motion: HoverCardMotion,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
-    let id = id.unwrap_or_else(|| format!("ui-hover-card-{}", next_id()));
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_motion = motion != HoverCardMotion::default();
+    let has_custom_delays = logic::has_custom_delays(open_delay_ms, close_delay_ms);
+
+    let (id, has_custom_id) = logic::resolve_id(id, format!("ui-hover-card-{}", next_id()));
     let id = StoredValue::new(id);
 
     let trigger = use_hover_card_trigger(HoverCardTriggerOptions {
@@ -39,6 +43,40 @@ pub fn HoverCard(
     });
     let open_signal: Signal<bool> = trigger.state.is_open.into();
     let presence = crate::presence::use_presence(open_signal);
+
+    let root_state = logic::resolve_part_state(HoverCardPartStateInput {
+        slot: HoverCardSlot::Root,
+        open: open_signal.get_untracked(),
+        disabled,
+        has_custom_class_name: class_name.is_some(),
+        has_custom_motion,
+        has_custom_delays,
+        has_custom_id,
+    });
+    let root_class = logic::compose_class_name(class_name, root_state);
+
+    let trigger_state = logic::resolve_part_state(HoverCardPartStateInput {
+        slot: HoverCardSlot::Trigger,
+        open: false,
+        disabled,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_custom_delays,
+        has_custom_id,
+    });
+    let trigger_class = logic::compose_class_name(None, trigger_state);
+
+    let panel_state = logic::resolve_part_state(HoverCardPartStateInput {
+        slot: HoverCardSlot::Panel,
+        open: false,
+        disabled,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_custom_delays,
+        has_custom_id,
+    });
+    let panel_class = logic::compose_class_name(None, panel_state);
+    let panel_class = StoredValue::new(panel_class);
 
     let anchor_ref: NodeRef<html::Span> = NodeRef::new();
     let panel_ref: NodeRef<html::Div> = NodeRef::new();
@@ -58,29 +96,15 @@ pub fn HoverCard(
         motion,
     );
 
-    let base_class = "ui-hover-card".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
     let content = StoredValue::new(content);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if ev.key() != "Escape" {
-            return;
-        }
-
-        if !open_signal.get_untracked() {
-            return;
-        }
-
         #[cfg(target_arch = "wasm32")]
         let is_composing = ev.is_composing();
         #[cfg(not(target_arch = "wasm32"))]
         let is_composing = false;
 
-        if is_composing {
+        if !logic::should_handle_escape(&ev.key(), open_signal.get_untracked(), is_composing) {
             return;
         }
 
@@ -157,33 +181,41 @@ pub fn HoverCard(
     };
 
     let panel_vars = move || {
-        format!(
-            "--ui-hover-card-top: {}px; --ui-hover-card-left: {}px; --ui-hover-card-anchor-width: {}px;",
+        logic::compose_panel_vars(
             position.top_px.get(),
             position.left_px.get(),
-            position.anchor_width_px.get()
+            position.anchor_width_px.get(),
         )
     };
 
     view! {
         <span
-                class=class
-                data-slot="hover-card"
-                data-state=move || if open_signal.get() { "open" } else { "closed" }
-                data-open=move || open_signal.get().then_some("true")
-                data-closed=move || (!open_signal.get()).then_some("true")
-                data-disabled=disabled.then_some("true")
-                data-enabled=(!disabled).then_some("true")
-                data-motion-source=if motion == HoverCardMotion::default() {
-                    "default"
-                } else {
-                    "custom"
-                }
-                data-custom-motion=(motion != HoverCardMotion::default()).then_some("true")
-            >
+            class=root_class
+            data-slot=root_state.slot_attr
+            data-state=move || logic::state_attr_for_open(open_signal.get())
+            data-open=move || open_signal.get().then_some("true")
+            data-closed=move || (!open_signal.get()).then_some("true")
+            data-disabled=root_state.is_disabled.then_some("true")
+            data-enabled=(!root_state.is_disabled).then_some("true")
+            data-class-source=root_state.class_source_attr
+            data-motion-source=root_state.motion_source_attr
+            data-delay-source=root_state.delay_source_attr
+            data-id-source=root_state.id_source_attr
+            data-custom-class=root_state.has_custom_class_name.then_some("true")
+            data-custom-motion=root_state.has_custom_motion.then_some("true")
+            data-custom-delay=root_state.has_custom_delays.then_some("true")
+            data-custom-id=root_state.has_custom_id.then_some("true")
+        >
             <span
-                class="ui-hover-card__trigger"
-                data-slot="hover-card-trigger"
+                class=trigger_class
+                data-slot=trigger_state.slot_attr
+                data-state=trigger_state.state_attr
+                data-disabled=trigger_state.is_disabled.then_some("true")
+                data-enabled=(!trigger_state.is_disabled).then_some("true")
+                data-class-source=trigger_state.class_source_attr
+                data-motion-source=trigger_state.motion_source_attr
+                data-delay-source=trigger_state.delay_source_attr
+                data-id-source=trigger_state.id_source_attr
                 node_ref=anchor_ref
                 on:pointerenter=move |_| trigger.handlers.on_trigger_pointer_enter.run(())
                 on:pointerleave=move |_| trigger.handlers.on_trigger_pointer_leave.run(())
@@ -197,13 +229,22 @@ pub fn HoverCard(
             <Show when=move || presence.is_present.get()>
                 <Portal>
                     <div
-                        class="ui-hover-card__panel"
+                        class=move || panel_class.with_value(|class_name| class_name.clone())
                         node_ref=panel_ref
                         id=move || id.with_value(|id| id.clone())
                         role="tooltip"
                         data-ui-overlay-portal=""
                         data-placement=move || position.placement.get().as_str()
-                        data-slot="hover-card-panel"
+                        data-slot=panel_state.slot_attr
+                        data-state=panel_state.state_attr
+                        data-open=move || open_signal.get().then_some("true")
+                        data-closed=move || (!open_signal.get()).then_some("true")
+                        data-disabled=panel_state.is_disabled.then_some("true")
+                        data-enabled=(!panel_state.is_disabled).then_some("true")
+                        data-class-source=panel_state.class_source_attr
+                        data-motion-source=panel_state.motion_source_attr
+                        data-delay-source=panel_state.delay_source_attr
+                        data-id-source=panel_state.id_source_attr
                         style=panel_vars
                         on:pointerenter=move |_| trigger.handlers.on_panel_pointer_enter.run(())
                         on:pointerleave=move |_| trigger.handlers.on_panel_pointer_leave.run(())

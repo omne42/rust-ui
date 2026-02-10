@@ -3,13 +3,16 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
-    Drawer, DrawerMotion, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover,
-    PopoverMotion, Sheet, SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions,
-    ToastStoreOptions, ToastVariant, ToastViewport, Tooltip, provide_toast_store,
+    Drawer, DrawerMotion, DrawerPlacement, Modal, OnPress, Overlay, Popover, PopoverMotion, Sheet,
+    SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
+    ToastViewport, Tooltip, provide_toast_store,
 };
 
 #[path = "overlays_dialog.rs"]
 mod overlays_dialog;
+
+#[path = "overlays_hover_card.rs"]
+mod overlays_hover_card;
 
 pub(super) fn overlay() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
@@ -750,34 +753,7 @@ pub(super) fn tooltip() -> AnyView {
 }
 
 pub(super) fn hover_card() -> AnyView {
-    let code = r##"<HoverCard content=move || view!{ <div>...</div> }>
-  <a href="#">"Hover"</a>
-</HoverCard>"##;
-
-    view! {
-        <ComponentPage
-            title="HoverCard"
-            slug="hover-card"
-            group="Overlays"
-            description="Hover/focus triggered card with open/close delays."
-        >
-            <Playground title="HoverCard" code=code>
-                <div class="docs-row">
-                    <HoverCard content=move || view! {
-                        <div class="docs-stack">
-                            <div>"HoverCard content"</div>
-                            <div class="ui-muted">"Moves with placement + spring enter/exit."</div>
-                        </div>
-                    }>
-                        <a href="#" class="ui-muted" on:click=move |ev| ev.prevent_default()>
-                            "Hover me"
-                        </a>
-                    </HoverCard>
-                </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
+    overlays_hover_card::hover_card()
 }
 
 pub(super) fn contextual_help() -> AnyView {

@@ -5,20 +5,36 @@ pub const CSS: &str = r#"
   justify-content: center;
 }
 
-.ui-hover-card[data-motion-source="custom"],
-.ui-hover-card[data-custom-motion="true"] {
-  --ui-hover-card-custom-motion: 1;
+.ui-hover-card[data-state="open"],
+.ui-hover-card[data-open="true"],
+.ui-hover-card[data-state="closed"],
+.ui-hover-card[data-closed="true"] {
+  cursor: default;
 }
 
 .ui-hover-card[data-disabled="true"] {
   opacity: 0.72;
 }
 
-.ui-hover-card[data-state="open"],
-.ui-hover-card[data-open="true"],
-.ui-hover-card[data-state="closed"],
-.ui-hover-card[data-closed="true"] {
-  cursor: default;
+.ui-hover-card[data-class-source="custom"],
+.ui-hover-card--custom-class {
+  --ui-hover-card-class-source: custom;
+}
+
+.ui-hover-card[data-motion-source="custom"],
+.ui-hover-card[data-custom-motion="true"],
+.ui-hover-card--custom-motion {
+  --ui-hover-card-custom-motion: 1;
+}
+
+.ui-hover-card[data-delay-source="custom"],
+.ui-hover-card--custom-delay {
+  --ui-hover-card-delay-source: custom;
+}
+
+.ui-hover-card[data-id-source="custom"],
+.ui-hover-card--custom-id {
+  --ui-hover-card-id-source: custom;
 }
 
 .ui-hover-card__trigger {
@@ -28,6 +44,10 @@ pub const CSS: &str = r#"
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
   cursor: default;
+}
+
+.ui-hover-card__trigger[data-state="trigger"] {
+  --ui-hover-card-trigger: 1;
 }
 
 .ui-hover-card__trigger:focus-visible {
@@ -53,6 +73,10 @@ pub const CSS: &str = r#"
   opacity: var(--ui-hover-card-opacity, 0);
   transform: translateY(var(--ui-hover-card-y, 8px)) scale(var(--ui-hover-card-scale, 0.98));
   will-change: transform, opacity;
+}
+
+.ui-hover-card__panel[data-state="panel"] {
+  --ui-hover-card-panel: 1;
 }
 
 .ui-hover-card__panel[data-placement="bottom-start"] {
