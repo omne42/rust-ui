@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Toaster` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level toast-stack spring orchestration tuning.
 - `ui-components`: upgrades `Toast` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level toast spring reveal tuning.
 - `ui-components`: upgrades `InlineAlert` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `InlineAlertMotion` contract tests for HeroUI-level spring reveal tuning.
 - `ui-components`: upgrades `ButtonCopy` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `ButtonCopyMotion` contract tests for HeroUI-level spring interaction tuning.

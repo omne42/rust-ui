@@ -44,6 +44,13 @@ pub fn Toaster(
         logic::ToasterPosition::BottomRight => SonnerPosition::BottomRight,
     };
 
+    let motion_source = if motion == ToastMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ToastMotion::default()).then_some("true");
+
     view! {
         <section
             class=root_class_name
@@ -53,6 +60,8 @@ pub fn Toaster(
             data-max-toasts=state.max_toasts.to_string()
             data-aria-source=state.aria_source_attr
             data-class-source=state.class_source_attr
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             role="region"
             aria-label=aria_label
         >

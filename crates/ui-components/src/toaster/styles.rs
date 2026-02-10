@@ -7,6 +7,11 @@ pub const CSS: &str = r#"
   width: 100%;
 }
 
+.ui-toaster[data-motion-source="custom"],
+.ui-toaster[data-custom-motion="true"] {
+  --ui-toaster-custom-motion: 1;
+}
+
 .ui-toaster[data-portal="false"] {
   display: flex;
   width: 100%;

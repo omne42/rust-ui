@@ -45,12 +45,29 @@ fn toaster_exposes_spectrum_style_state_and_accessibility_contracts() {
         "data-max-toasts=state.max_toasts.to_string()",
         "data-aria-source=state.aria_source_attr",
         "data-class-source=state.class_source_attr",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
         "role=\"region\"",
         "aria-label=aria_label",
     ] {
         assert!(
             source.contains(needle),
             "Toaster should include `{needle}` for state/a11y contracts."
+        );
+    }
+}
+
+#[test]
+fn toaster_styles_include_motion_marker_contracts() {
+    let source = load_source("src/toaster/styles.rs");
+
+    for selector in [
+        ".ui-toaster[data-motion-source=\"custom\"]",
+        ".ui-toaster[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Toaster styles should include `{selector}` as stable custom-motion selectors."
         );
     }
 }
