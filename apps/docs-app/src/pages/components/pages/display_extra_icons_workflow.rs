@@ -16,6 +16,16 @@ pub(super) fn icons_workflow() -> AnyView {
   class_name="docs-icons-workflow-custom".to_string()
 />"#;
 
+    let markers_code = r#"<IconsWorkflow
+  icon="success".to_string()
+  glyphs=vec![IconsetGlyph::new("workflow:success", "✓").with_aria_label("Workflow Success")]
+  size=IconsWorkflowSize::Lg
+  tone=IconsWorkflowTone::Muted
+  decorative=false
+  aria_label="Explicit workflow success icon".to_string()
+  class_name="docs-icons-workflow-state".to_string()
+/>"#;
+
     view! {
         <ComponentPage
             title="IconsWorkflow"
@@ -44,11 +54,35 @@ pub(super) fn icons_workflow() -> AnyView {
                 <div class="docs-row">
                     <IconsWorkflow
                         icon="workflow:deploy".to_string()
-                        glyphs=vec![IconsetGlyph::new("workflow:deploy", "🚀").with_aria_label("Workflow Deploy")]
+                        glyphs=vec![
+                            IconsetGlyph::new("workflow:deploy", "🚀")
+                                .with_aria_label("Workflow Deploy"),
+                        ]
                         size=IconsWorkflowSize::Lg
                         tone=IconsWorkflowTone::Default
                         decorative=false
                         class_name="docs-icons-workflow-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect wrapper markers like `data-state`, `data-icon-reference-source`, `data-aria-source`, `data-class-source`, `data-glyph-source`, `data-size-source`, and `data-tone-source`."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <IconsWorkflow
+                        icon="success".to_string()
+                        glyphs=vec![
+                            IconsetGlyph::new("workflow:success", "✓")
+                                .with_aria_label("Workflow Success"),
+                        ]
+                        size=IconsWorkflowSize::Lg
+                        tone=IconsWorkflowTone::Muted
+                        decorative=false
+                        aria_label="Explicit workflow success icon".to_string()
+                        class_name="docs-icons-workflow-state".to_string()
                     />
                 </div>
             </Playground>

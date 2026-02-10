@@ -1,36 +1,7 @@
 use super::{IconsWorkflowSize, IconsWorkflowTone, IconsetGlyph};
 use crate::Iconset;
+use crate::icons_workflow::{IconsWorkflowStateInput, logic};
 use leptos::prelude::*;
-
-fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-fn normalize_icon_reference(icon: String) -> String {
-    let icon = icon.trim();
-    if icon.is_empty() {
-        return "workflow:help".to_string();
-    }
-
-    if icon.contains(':') {
-        return icon.to_string();
-    }
-
-    format!("workflow:{icon}")
-}
-
-fn default_workflow_glyphs() -> Vec<IconsetGlyph> {
-    vec![
-        IconsetGlyph::new("workflow:help", "?").with_aria_label("Workflow Help"),
-        IconsetGlyph::new("workflow:success", "✓").with_aria_label("Workflow Success"),
-        IconsetGlyph::new("workflow:warning", "⚠").with_aria_label("Workflow Warning"),
-        IconsetGlyph::new("workflow:info", "ℹ").with_aria_label("Workflow Info"),
-        IconsetGlyph::new("workflow:settings", "⚙").with_aria_label("Workflow Settings"),
-    ]
-}
 
 #[component]
 pub fn IconsWorkflow(
@@ -43,23 +14,56 @@ pub fn IconsWorkflow(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] glyphs: Vec<IconsetGlyph>,
 ) -> impl IntoView {
-    let icon = normalize_icon_reference(icon);
+    let (icon, _icon_reference_source, has_explicit_icon_reference, used_default_icon_reference) =
+        logic::normalize_icon_reference(icon);
     let icon_reference = icon.clone();
 
-    let mut registry = default_workflow_glyphs();
-    registry.extend(glyphs);
-
-    let aria_label = normalize_optional_text(aria_label).unwrap_or_default();
-
-    let class_name = normalize_optional_text(class_name)
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+    let class_name_for_wrapper = class_name.clone();
+    let class_name_for_inner = class_name
         .map(|class_name| format!("ui-icons-workflow {class_name}"))
         .unwrap_or_else(|| "ui-icons-workflow".to_string());
 
+    let aria_label = logic::normalize_optional_text(aria_label);
+    let has_custom_aria_label = aria_label.is_some();
+    let aria_label_for_inner = aria_label.unwrap_or_default();
+
+    let state = logic::resolve_state(IconsWorkflowStateInput {
+        disabled,
+        decorative,
+        has_explicit_icon_reference,
+        used_default_icon_reference,
+        has_custom_aria_label,
+        has_custom_class_name,
+        has_custom_glyphs: !glyphs.is_empty(),
+        has_custom_size: size != IconsWorkflowSize::default(),
+        has_custom_tone: tone != IconsWorkflowTone::default(),
+    });
+
+    let class = logic::compose_class_name(class_name_for_wrapper, state);
+
+    let mut registry = logic::default_workflow_glyphs();
+    registry.extend(glyphs);
+
     view! {
         <span
+            class=class
             data-slot="icons-workflow"
+            data-state=state.state_attr
             data-icon-reference=icon_reference
-            data-disabled=disabled.then_some("true")
+            data-icon-reference-source=state.icon_reference_source_attr
+            data-aria-source=state.aria_source_attr
+            data-class-source=state.class_source_attr
+            data-glyph-source=state.glyph_source_attr
+            data-size-source=state.size_source_attr
+            data-tone-source=state.tone_source_attr
+            data-disabled=state.is_disabled.then_some("true")
+            data-decorative=state.is_decorative.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-custom-glyphs=state.has_custom_glyphs.then_some("true")
+            data-custom-size=state.has_custom_size.then_some("true")
+            data-custom-tone=state.has_custom_tone.then_some("true")
         >
             <Iconset
                 icon=icon
@@ -69,8 +73,8 @@ pub fn IconsWorkflow(
                 tone=tone
                 disabled=disabled
                 decorative=decorative
-                aria_label=aria_label
-                class_name=class_name
+                aria_label=aria_label_for_inner
+                class_name=class_name_for_inner
             />
         </span>
     }
