@@ -58,6 +58,12 @@ pub fn FlipButton(
             data-inactive=move || state.get().is_inactive.then_some("true")
             data-hovered=move || state.get().is_hovered.then_some("true")
             data-focus-within=move || state.get().is_focus_within.then_some("true")
+            data-motion-source=if motion == FlipButtonMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != FlipButtonMotion::default()).then_some("true")
             on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
             on:focusin=move |_| focus_within.handlers.on_focus_in.run(())

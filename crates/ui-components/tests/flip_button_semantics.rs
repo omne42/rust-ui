@@ -78,6 +78,8 @@ fn flip_button_emits_spectrum_style_data_attributes() {
         "data-inactive=move || state.get().is_inactive.then_some(\"true\")",
         "data-hovered=move || state.get().is_hovered.then_some(\"true\")",
         "data-focus-within=move || state.get().is_focus_within.then_some(\"true\")",
+        "data-motion-source=if motion == FlipButtonMotion::default()",
+        "data-custom-motion=(motion != FlipButtonMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -93,6 +95,8 @@ fn flip_button_styles_include_state_marker_contracts() {
     for selector in [
         ".ui-flip-button--custom-class",
         ".ui-flip-button[data-custom-class=\"true\"]",
+        ".ui-flip-button[data-motion-source=\"custom\"]",
+        ".ui-flip-button[data-custom-motion=\"true\"]",
         ".ui-flip-button--state-active .ui-flip-button__front",
         ".ui-flip-button[data-state=\"active\"] .ui-flip-button__back",
         ".ui-flip-button--from-top .ui-flip-button__front",
@@ -139,6 +143,22 @@ fn flip_button_exposes_front_and_back_face_slots() {
         assert!(
             source.contains(needle),
             "FlipButton should include `{needle}` to make face composition contract explicit."
+        );
+    }
+}
+
+#[test]
+fn flip_button_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/button_flip/motion.rs");
+
+    for needle in [
+        "pub struct FlipButtonMotion",
+        "fn default_motion_matches_flip_button_spring_contract()",
+        "fn supports_custom_flip_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "FlipButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
         );
     }
 }

@@ -11,6 +11,11 @@ pub const CSS: &str = r#"
   border-radius: inherit;
 }
 
+.ui-flip-button[data-motion-source="custom"],
+.ui-flip-button[data-custom-motion="true"] {
+  --ui-flip-custom-motion: 1;
+}
+
 .ui-flip-button__face {
   grid-area: stack;
   display: inline-flex;

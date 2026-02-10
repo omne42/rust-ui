@@ -101,3 +101,40 @@ pub fn attach_motion(
     _motion: FlipButtonMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_matches_flip_button_spring_contract() {
+        let motion = FlipButtonMotion::default();
+
+        assert_eq!(
+            motion.spring,
+            ui_motion::spring::SpringConfig {
+                stiffness: 260.0,
+                damping: 18.0,
+                mass: 1.0,
+                ..Default::default()
+            }
+        );
+    }
+
+    #[test]
+    fn supports_custom_flip_motion_contract() {
+        let motion = FlipButtonMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 292.0,
+                damping: 20.0,
+                mass: 1.0,
+                precision: 0.002,
+            },
+        };
+
+        assert_eq!(motion.spring.stiffness, 292.0);
+        assert_eq!(motion.spring.damping, 20.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.002);
+    }
+}

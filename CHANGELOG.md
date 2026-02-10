@@ -10,6 +10,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: upgrades `InlineAlert` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `InlineAlertMotion` contract tests for HeroUI-level spring reveal tuning.
 - `ui-components`: upgrades `ButtonCopy` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `ButtonCopyMotion` contract tests for HeroUI-level spring interaction tuning.
+- `ui-components`: upgrades `FlipButton` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `FlipButtonMotion` contract tests for HeroUI-level spring flip tuning.
 - `ui-components`: upgrades `AutoHeight` with explicit root motion source markers (`data-motion-source`/`data-custom-motion`) and `AutoHeightMotion` contract tests for HeroUI-level spring height interpolation tuning.
 - `ui-components`: upgrades `AlertBanner` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `AlertBannerMotion` contract tests for HeroUI-level spring reveal tuning.
 - `apps/docs-app`: extends `AlertBanner` docs with a custom-motion playground showing `AlertBannerMotion` customization and motion marker inspection.
