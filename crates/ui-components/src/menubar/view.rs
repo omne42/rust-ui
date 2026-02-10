@@ -1,4 +1,6 @@
-use crate::menubar::{MenubarMenu, MenubarMotion, logic};
+use crate::menubar::{
+    MenuOpenFocusStrategy, MenubarMenu, MenubarMotion, MenubarPartStateInput, MenubarSlot, logic,
+};
 use crate::overlay_open;
 use crate::{Menu, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
@@ -33,18 +35,31 @@ pub fn Menubar(
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let id_base = logic::normalize_id_base(id_base);
+    let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
     let id_base = StoredValue::new(id_base);
 
     let menus = logic::resolve_menus(&id_base.get_value(), menus);
-    let menus: StoredValue<Arc<[logic::MenubarMenuResolved]>> = StoredValue::new(Arc::from(menus));
+    let menus: StoredValue<Arc<[crate::menubar::MenubarMenuResolved]>> =
+        StoredValue::new(Arc::from(menus));
     let menu_count = menus.get_value().len();
+
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+    let class_name = StoredValue::new(class_name);
+
+    let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
+    let has_custom_placement = placement != logic::DEFAULT_PLACEMENT;
+    let has_custom_open_index = open_index.is_some();
+    let has_custom_default_open_index = default_open_index.is_some();
+    let has_custom_on_open_index_change = on_open_index_change.is_some();
+    let has_custom_motion = motion != MenubarMotion::default();
 
     let default_open_index = logic::sanitize_open_index_for_menus(
         logic::normalize_open_index(default_open_index, menu_count),
         menus.get_value().as_ref(),
     );
 
-    let is_controlled = open_index.is_some();
+    let is_controlled = has_custom_open_index;
     let open_state = overlay_open::use_controllable_state(
         open_index,
         Some(default_open_index),
@@ -60,25 +75,34 @@ pub fn Menubar(
         open_state.request_change.run(next);
     });
 
-    let has_custom_class_name = class_name.is_some();
-
-    let state = Signal::derive(move || {
-        logic::resolve_state(logic::MenubarStateInput {
+    let root_state = Memo::new(move |_| {
+        logic::resolve_state(MenubarPartStateInput {
+            slot: MenubarSlot::Root,
             menu_count,
             open_index: open_index.get(),
             has_disabled_menus: menus
                 .get_value()
                 .iter()
                 .any(|menu| menu.is_trigger_disabled),
-            has_custom_class_name,
+            close_on_action,
             is_controlled,
             placement,
+            has_custom_id_base,
+            has_custom_class_name,
+            has_custom_close_on_action,
+            has_custom_placement,
+            has_custom_open_index,
+            has_custom_default_open_index,
+            has_custom_on_open_index_change,
+            has_custom_motion,
         })
     });
+    let root_state_for_class = root_state;
+    let root_class = Memo::new(move |_| {
+        logic::compose_class_name(class_name.get_value(), root_state_for_class.get())
+    });
 
-    let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));
-
-    let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
+    let (open_focus, set_open_focus) = signal(MenuOpenFocusStrategy::First);
 
     let trigger_refs: Arc<Vec<NodeRef<html::Button>>> =
         Arc::new((0..menu_count).map(|_| NodeRef::new()).collect());
@@ -130,7 +154,7 @@ pub fn Menubar(
                 }
 
                 let key = ev.key();
-                if let Some(focus_strategy) = logic::focus_strategy_for_open_key(&key) {
+                if let Some(focus_strategy) = crate::menubar::focus_strategy_for_open_key(&key) {
                     set_open_focus.set(focus_strategy);
                     request_open_index_change.run(Some(index));
                     ev.prevent_default();
@@ -142,7 +166,7 @@ pub fn Menubar(
                         if let Some(next_index) =
                             logic::next_enabled_menu_index(menus.get_value().as_ref(), index, 1)
                         {
-                            set_open_focus.set(logic::MenuOpenFocusStrategy::First);
+                            set_open_focus.set(MenuOpenFocusStrategy::First);
                             request_open_index_change.run(Some(next_index));
                             focus_trigger(&trigger_refs, next_index);
                             ev.prevent_default();
@@ -152,7 +176,7 @@ pub fn Menubar(
                         if let Some(next_index) =
                             logic::next_enabled_menu_index(menus.get_value().as_ref(), index, -1)
                         {
-                            set_open_focus.set(logic::MenuOpenFocusStrategy::First);
+                            set_open_focus.set(MenuOpenFocusStrategy::First);
                             request_open_index_change.run(Some(next_index));
                             focus_trigger(&trigger_refs, next_index);
                             ev.prevent_default();
@@ -178,33 +202,48 @@ pub fn Menubar(
             }
         };
 
+        let menu_slot = MenubarSlot::Menu;
+        let trigger_slot = MenubarSlot::Trigger;
+
         view! {
             <div
-                class="ui-menubar__menu"
-                data-slot="menubar-menu"
+                class=menu_slot.base_class()
+                data-slot=menu_slot.as_attr()
                 data-index=index
+                data-state=move || {
+                    if open.get() {
+                        "open"
+                    } else if menu_is_trigger_disabled {
+                        "disabled"
+                    } else {
+                        "closed"
+                    }
+                }
                 data-open=move || open.get().then_some("true")
                 data-disabled=menu_is_trigger_disabled.then_some("true")
                 data-empty=(!menu_has_items).then_some("true")
             >
                 <button
                     type="button"
-                    class="ui-menubar__trigger"
+                    class=trigger_slot.base_class()
                     node_ref=trigger_ref
                     id=menu_trigger_id.get_value()
                     role="menuitem"
                     tabindex="0"
                     disabled=menu_is_trigger_disabled
                     aria-haspopup="menu"
-                    aria-expanded=move || {
+                    aria-expanded=move || if open.get() { "true" } else { "false" }
+                    aria-controls=move || open.get().then_some(menu_id.get_value())
+                    data-slot=trigger_slot.as_attr()
+                    data-state=move || {
                         if open.get() {
-                            "true"
+                            "open"
+                        } else if menu_is_trigger_disabled {
+                            "disabled"
                         } else {
-                            "false"
+                            "closed"
                         }
                     }
-                    aria-controls=move || open.get().then_some(menu_id.get_value())
-                    data-slot="menubar-trigger"
                     on:click=move |_| on_trigger_press.run(())
                     on:keydown=on_key_down
                     on:pointerenter=on_pointer_enter
@@ -247,26 +286,47 @@ pub fn Menubar(
 
     view! {
         <div
-            class=move || class.get()
+            class=move || root_class.get()
             role="menubar"
-            data-slot="menubar"
-            data-state=move || state.get().data_state_attr
-            data-open=move || state.get().has_open_menu.then_some("true")
-            data-closed=move || (!state.get().has_open_menu).then_some("true")
-            data-empty=move || state.get().is_empty.then_some("true")
-            data-has-menus=move || state.get().has_menus.then_some("true")
-            data-open-index=move || state.get().open_index.map(|index| index.to_string())
-            data-menu-count=move || state.get().menu_count.to_string()
-            data-has-disabled-menus=move || state.get().has_disabled_menus.then_some("true")
-            data-controlled=move || state.get().is_controlled.then_some("true")
-            data-uncontrolled=move || state.get().is_uncontrolled.then_some("true")
-            data-placement=move || state.get().placement_attr
-            data-motion-source=if motion == MenubarMotion::default() {
-                "default"
-            } else {
-                "custom"
+            data-slot=move || root_state.get().slot_attr
+            data-state=move || root_state.get().state_attr
+            data-menus=move || root_state.get().menu_attr
+            data-open=move || root_state.get().open_attr
+            data-closed=move || root_state.get().closed_attr
+            data-empty=move || root_state.get().is_empty.then_some("true")
+            data-has-menus=move || root_state.get().has_menus.then_some("true")
+            data-open-index=move || root_state.get().open_index.map(|index| index.to_string())
+            data-menu-count=move || root_state.get().menu_count.to_string()
+            data-has-disabled-menus=move || root_state.get().has_disabled_menus.then_some("true")
+            data-action-mode=move || root_state.get().action_attr
+            data-open-mode=move || root_state.get().open_mode_attr
+            data-controlled=move || root_state.get().is_controlled.then_some("true")
+            data-uncontrolled=move || root_state.get().is_uncontrolled.then_some("true")
+            data-placement=move || root_state.get().placement_attr
+            data-close-on-action=move || root_state.get().close_on_action.then_some("true")
+            data-keep-open-on-action=move || root_state.get().keep_open_on_action.then_some("true")
+            data-id-source=move || root_state.get().id_source_attr
+            data-class-source=move || root_state.get().class_source_attr
+            data-close-on-action-source=move || root_state.get().close_on_action_source_attr
+            data-placement-source=move || root_state.get().placement_source_attr
+            data-open-index-source=move || root_state.get().open_index_source_attr
+            data-default-open-index-source=move || root_state.get().default_open_index_source_attr
+            data-open-index-change-source=move || root_state.get().open_index_change_source_attr
+            data-motion-source=move || root_state.get().motion_source_attr
+            data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
+            data-custom-class=move || root_state.get().has_custom_class_name.then_some("true")
+            data-custom-close-on-action=move || {
+                root_state.get().has_custom_close_on_action.then_some("true")
             }
-            data-custom-motion=(motion != MenubarMotion::default()).then_some("true")
+            data-custom-placement=move || root_state.get().has_custom_placement.then_some("true")
+            data-custom-open-index=move || root_state.get().has_custom_open_index.then_some("true")
+            data-custom-default-open-index=move || {
+                root_state.get().has_custom_default_open_index.then_some("true")
+            }
+            data-custom-open-index-change=move || {
+                root_state.get().has_custom_on_open_index_change.then_some("true")
+            }
+            data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
         >
             <For each=move || menu_indices.get_value() key=|index| *index children=render_menu />
         </div>

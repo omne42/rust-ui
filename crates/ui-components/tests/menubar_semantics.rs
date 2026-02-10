@@ -8,6 +8,42 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn menubar_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/menubar/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Menubar internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn menubar_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/menubar/mod.rs");
+
+    for needle in [
+        "pub struct MenubarMenu",
+        "pub enum MenubarSlot",
+        "pub enum MenuOpenFocusStrategy",
+        "pub struct MenubarMenuIds",
+        "pub struct MenubarMenuResolved",
+        "pub struct MenubarPartStateInput",
+        "pub struct MenubarPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_CLOSE_ON_ACTION",
+        "DEFAULT_PLACEMENT",
+        "pub use crate::dropdown_menu::DropdownMenuMotion as MenubarMotion;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "menubar::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
 fn menubar_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/menubar/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -17,52 +53,65 @@ fn menubar_is_exported_from_module_and_crate_root() {
         "menubar module should export `Menubar`."
     );
     assert!(
-        module_source.contains("pub use logic::MenubarMenu;"),
-        "menubar module should export `MenubarMenu`."
-    );
-    assert!(
-        module_source.contains("MenubarMotion"),
-        "menubar module should expose a motion alias."
-    );
-    assert!(
         crate_source.contains("pub use menubar::{Menubar, MenubarMenu, MenubarMotion};"),
         "crate root should re-export menubar contracts."
     );
 }
 
 #[test]
-fn menubar_uses_logic_state_model() {
-    let view_source = load_source("src/menubar/view.rs");
-    let logic_source = load_source("src/menubar/logic.rs");
+fn menubar_logic_exposes_state_helpers() {
+    let source = load_source("src/menubar/logic.rs");
 
     for needle in [
-        "pub struct MenubarMenu",
-        "pub struct MenubarMenuResolved",
-        "pub struct MenubarStateInput",
-        "pub struct MenubarState",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_menus(",
+        "pub fn state_attr(menu_count: usize, has_open_menu: bool)",
+        "pub fn menu_attr(menu_count: usize)",
+        "pub fn action_attr(close_on_action: bool)",
+        "pub fn open_mode_attr(is_controlled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(id_base: String)",
+        "pub fn resolve_menus(id_base: &str, menus: Vec<MenubarMenu>)",
         "pub fn sanitize_open_index_for_menus(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
         "pub fn next_enabled_menu_index(",
+        "pub fn resolve_state(input: MenubarPartStateInput) -> MenubarPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: MenubarPartState)",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "Menubar logic should include `{needle}` for centralized state derivation."
+            source.contains(needle),
+            "Menubar logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn menubar_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/menubar/view.rs");
 
     for needle in [
-        "let menus = logic::resolve_menus(&id_base.get_value(), menus);",
-        "let open_state = overlay_open::use_controllable_state(",
-        "let state = Signal::derive(move ||",
-        "logic::resolve_state(logic::MenubarStateInput {",
-        "let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));",
+        "logic::normalize_id_base(id_base)",
+        "logic::resolve_menus(&id_base.get_value(), menus)",
+        "logic::resolve_state(MenubarPartStateInput {",
+        "slot: MenubarSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-menus=move || root_state.get().menu_attr",
+        "data-action-mode=move || root_state.get().action_attr",
+        "data-open-mode=move || root_state.get().open_mode_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-close-on-action-source=move || root_state.get().close_on_action_source_attr",
+        "data-placement-source=move || root_state.get().placement_source_attr",
+        "data-open-index-source=move || root_state.get().open_index_source_attr",
+        "data-default-open-index-source=move || root_state.get().default_open_index_source_attr",
+        "data-open-index-change-source=move || root_state.get().open_index_change_source_attr",
+        "data-motion-source=move || root_state.get().motion_source_attr",
+        "data-custom-id=move || root_state.get().has_custom_id_base.then_some(\"true\")",
+        "data-custom-open-index=move || root_state.get().has_custom_open_index.then_some(\"true\")",
+        "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
-            view_source.contains(needle),
-            "Menubar view should derive wrapper state through logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "Menubar view should include `{needle}` for stable state/source marker contracts."
         );
     }
 }
@@ -75,10 +124,13 @@ fn menubar_supports_controlled_and_uncontrolled_open_state() {
         "open_index: Option<Signal<Option<usize>>>",
         "default_open_index: Option<usize>",
         "on_open_index_change: Option<Callback<Option<usize>>>",
+        "overlay_open::use_controllable_state(",
+        "let has_custom_open_index = open_index.is_some()",
+        "let has_custom_default_open_index = default_open_index.is_some()",
     ] {
         assert!(
             source.contains(needle),
-            "Menubar should accept `{needle}` for controlled/uncontrolled open index state."
+            "Menubar should support `{needle}` for controllable open index state."
         );
     }
 }
@@ -92,7 +144,7 @@ fn menubar_exposes_keyboard_and_trigger_contracts() {
         "role=\"menuitem\"",
         "on:keydown=on_key_down",
         "on:pointerenter=on_pointer_enter",
-        "if let Some(focus_strategy) = logic::focus_strategy_for_open_key(&key)",
+        "crate::menubar::focus_strategy_for_open_key(&key)",
         "logic::next_enabled_menu_index(menus.get_value().as_ref(), index, 1)",
         "logic::next_enabled_menu_index(menus.get_value().as_ref(), index, -1)",
         "focus_trigger(&trigger_refs, next_index);",
@@ -100,33 +152,6 @@ fn menubar_exposes_keyboard_and_trigger_contracts() {
         assert!(
             source.contains(needle),
             "Menubar should wire `{needle}` to match menubar keyboard + pointer semantics."
-        );
-    }
-}
-
-#[test]
-fn menubar_emits_spectrum_root_state_data_attributes() {
-    let source = load_source("src/menubar/view.rs");
-
-    for needle in [
-        "data-slot=\"menubar\"",
-        "data-state=move || state.get().data_state_attr",
-        "data-open=move || state.get().has_open_menu.then_some(\"true\")",
-        "data-closed=move || (!state.get().has_open_menu).then_some(\"true\")",
-        "data-empty=move || state.get().is_empty.then_some(\"true\")",
-        "data-has-menus=move || state.get().has_menus.then_some(\"true\")",
-        "data-open-index=move || state.get().open_index.map(|index| index.to_string())",
-        "data-menu-count=move || state.get().menu_count.to_string()",
-        "data-has-disabled-menus=move || state.get().has_disabled_menus.then_some(\"true\")",
-        "data-controlled=move || state.get().is_controlled.then_some(\"true\")",
-        "data-uncontrolled=move || state.get().is_uncontrolled.then_some(\"true\")",
-        "data-placement=move || state.get().placement_attr",
-        "data-motion-source=if motion == MenubarMotion::default()",
-        "data-custom-motion=(motion != MenubarMotion::default()).then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(needle),
-            "Menubar should set `{needle}` so it can be styled/tested with Spectrum-compatible selectors."
         );
     }
 }
@@ -151,21 +176,28 @@ fn menubar_renders_menu_in_popover_with_presence_and_motion() {
 }
 
 #[test]
-fn menubar_styles_include_open_disabled_and_empty_markers() {
+fn menubar_styles_include_state_and_source_markers() {
     let source = load_source("src/menubar/styles.rs");
 
     for needle in [
         ".ui-menubar {",
         ".ui-menubar__trigger {",
         ".ui-menubar--open",
-        ".ui-menubar--empty",
-        ".ui-menubar__menu[data-disabled=\"true\"]",
+        ".ui-menubar[data-state=\"open\"]",
+        ".ui-menubar--persistent",
+        ".ui-menubar[data-action-mode=\"keep-open\"]",
+        ".ui-menubar[data-open-mode=\"controlled\"]",
+        ".ui-menubar[data-id-source=\"custom\"]",
+        ".ui-menubar[data-class-source=\"custom\"]",
+        ".ui-menubar[data-close-on-action-source=\"custom\"]",
+        ".ui-menubar[data-open-index-source=\"custom\"]",
+        ".ui-menubar[data-open-index-change-source=\"custom\"]",
         ".ui-menubar[data-motion-source=\"custom\"]",
         ".ui-menubar[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
-            "Menubar styles should include `{needle}` for stable visual state contracts."
+            "Menubar styles should include `{needle}` as stable state/source contracts."
         );
     }
 }
@@ -183,6 +215,30 @@ fn menubar_uses_dropdown_menu_motion_alias_contract() {
         assert!(
             mod_source.contains(needle) || dropdown_motion_source.contains(needle),
             "Menubar motion alias contract should include `{needle}` for HeroUI-style spring customization."
+        );
+    }
+}
+
+#[test]
+fn menubar_docs_page_contains_state_source_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn menubar() -> AnyView",
+        "title=\"Menubar\"",
+        "slug=\"menubar\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-class-source",
+        "data-close-on-action-source",
+        "data-open-index-source",
+        "data-motion-source",
+        "<Menubar",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Menubar docs page should contain `{needle}`."
         );
     }
 }

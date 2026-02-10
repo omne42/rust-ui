@@ -397,6 +397,39 @@ pub(super) fn menubar() -> AnyView {
         MenubarMenu::new("tools", "Tools", vec!["Inspector".to_string()]).disabled(true),
     ];
 
+    let marker_menus = vec![
+        MenubarMenu::new(
+            "workspace",
+            "Workspace",
+            vec![
+                "Open File".to_string(),
+                "Open Folder".to_string(),
+                "Save All".to_string(),
+            ],
+        )
+        .disabled_indices(vec![2])
+        .item_kinds(vec![
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+        ]),
+        MenubarMenu::new(
+            "run",
+            "Run",
+            vec![
+                "Run".to_string(),
+                "Debug".to_string(),
+                "Profile".to_string(),
+            ],
+        )
+        .item_kinds(vec![
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+            MenuItemKind::Action,
+        ]),
+        MenubarMenu::new("help", "Help", vec!["Docs".to_string()]),
+    ];
+
     let (last_action, set_last_action) = signal(None::<(usize, usize)>);
     let on_action = Callback::new(move |action: (usize, usize)| set_last_action.set(Some(action)));
 
@@ -409,6 +442,15 @@ pub(super) fn menubar() -> AnyView {
     let on_open_index_change = Callback::new(move |next: Option<usize>| {
         set_controlled_open_raw.set(next);
     });
+
+    let (marker_open_raw, set_marker_open_raw) = signal(Some(0usize));
+    let marker_open: Signal<Option<usize>> = Signal::derive(move || marker_open_raw.get());
+    let on_marker_open_change =
+        Callback::new(move |next: Option<usize>| set_marker_open_raw.set(next));
+
+    let (last_marker_action, set_last_marker_action) = signal(None::<(usize, usize)>);
+    let on_marker_action =
+        Callback::new(move |action: (usize, usize)| set_last_marker_action.set(Some(action)));
 
     let code = r#"let menus = vec![
   MenubarMenu::new("file", "File", vec!["New Tab".to_string(), "New Window".to_string()]),
@@ -435,12 +477,42 @@ let open_menu_signal: Signal<Option<usize>> = Signal::derive(move || open_menu.g
   on_open_index_change=Callback::new(move |next| set_open_menu.set(next))
 />"#;
 
+    let marker_code = r#"let (open_raw, set_open_raw) = signal(Some(0usize));
+let open_signal: Signal<Option<usize>> = Signal::derive(move || open_raw.get());
+
+<Menubar
+  id_base="docs-menubar-markers".to_string()
+  menus=menus
+  on_action=on_action
+  close_on_action=false
+  placement=ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()
+  open_index=open_signal
+  default_open_index=1
+  on_open_index_change=Callback::new(move |next| set_open_raw.set(next))
+  class_name="docs-menubar-custom".to_string()
+  motion=ui_components::MenubarMotion {
+    popover: ui_components::PopoverMotion {
+      initial_scale: 0.94,
+      offset_y_px: 10.0,
+      ..ui_components::PopoverMotion::default()
+    },
+  }
+/>"#;
+
+    let marker_motion = ui_components::MenubarMotion {
+        popover: ui_components::PopoverMotion {
+            initial_scale: 0.94,
+            offset_y_px: 10.0,
+            ..ui_components::PopoverMotion::default()
+        },
+    };
+
     view! {
         <ComponentPage
             title="Menubar"
             slug="menubar"
             group="Collections"
-            description="Shadcn-compatible persistent menubar with horizontal trigger navigation, Spectrum-style state attrs, and HeroUI-level spring popover motion reuse."
+            description="Shadcn-compatible persistent menubar with horizontal trigger navigation, Spectrum-style state/source attrs, and HeroUI-level spring popover motion reuse."
         >
             <Playground title="Desktop Menubar + Action Dispatch" code=code>
                 <div class="docs-stack docs-stack--tight">
@@ -487,6 +559,57 @@ let open_menu_signal: Signal<Option<usize>> = Signal::derive(move || open_menu.g
                         "last action (menu:item): "
                         {move || {
                             last_controlled_action
+                                .get()
+                                .map(|(menu_index, item_index)| {
+                                    format!("{}:{}", menu_index, item_index)
+                                })
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(Some(0))>
+                            "Open Menu 0"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(Some(1))>
+                            "Open Menu 1"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(None)>
+                            "Close"
+                        </button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-class-source / data-close-on-action-source / data-open-index-source / data-motion-source in DevTools."
+                    </div>
+                    <Menubar
+                        id_base="docs-menubar-markers".to_string()
+                        menus=marker_menus
+                        on_action=on_marker_action
+                        close_on_action=false
+                        placement=ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()
+                        open_index=marker_open
+                        default_open_index=1
+                        on_open_index_change=on_marker_open_change
+                        class_name="docs-menubar-custom".to_string()
+                        motion=marker_motion
+                    />
+                    <span class="ui-muted">
+                        "open menu index: "
+                        {move || {
+                            marker_open_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                    <span class="ui-muted">
+                        "last action (menu:item): "
+                        {move || {
+                            last_marker_action
                                 .get()
                                 .map(|(menu_index, item_index)| {
                                     format!("{}:{}", menu_index, item_index)

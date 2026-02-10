@@ -1,114 +1,48 @@
 use std::collections::BTreeSet;
 use std::sync::Arc;
 
-use crate::MenuItemKind;
+use crate::menubar::{
+    MenubarMenu, MenubarMenuIds, MenubarMenuResolved, MenubarPartState, MenubarPartStateInput,
+    MenubarSlot,
+};
 use ui_headless::PopoverPlacement;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MenubarMenu {
-    pub id: String,
-    pub label: String,
-    pub items: Vec<String>,
-    pub disabled_indices: Vec<usize>,
-    pub item_kinds: Vec<MenuItemKind>,
-    pub disabled: bool,
-}
+pub const DEFAULT_ID_BASE: &str = "menubar";
+pub const DEFAULT_CLOSE_ON_ACTION: bool = true;
+pub const DEFAULT_PLACEMENT: PopoverPlacement = PopoverPlacement::BottomStart;
 
-impl MenubarMenu {
-    pub fn new(id: impl Into<String>, label: impl Into<String>, items: Vec<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            items,
-            disabled_indices: Vec::new(),
-            item_kinds: Vec::new(),
-            disabled: false,
-        }
-    }
-
-    pub fn disabled_indices(mut self, disabled_indices: Vec<usize>) -> Self {
-        self.disabled_indices = disabled_indices;
-        self
-    }
-
-    pub fn item_kinds(mut self, item_kinds: Vec<MenuItemKind>) -> Self {
-        self.item_kinds = item_kinds;
-        self
-    }
-
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
+pub fn state_attr(menu_count: usize, has_open_menu: bool) -> &'static str {
+    if menu_count == 0 {
+        "empty"
+    } else if has_open_menu {
+        "open"
+    } else {
+        "closed"
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum MenuOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
-}
-
-impl MenuOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
-        }
+pub fn menu_attr(menu_count: usize) -> &'static str {
+    if menu_count == 0 {
+        "empty"
+    } else {
+        "populated"
     }
 }
 
-pub fn focus_strategy_for_open_key(key: &str) -> Option<MenuOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
-        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
-        _ => None,
+pub fn action_attr(close_on_action: bool) -> &'static str {
+    if close_on_action {
+        "close"
+    } else {
+        "keep-open"
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MenubarMenuIds {
-    pub trigger_id: String,
-    pub menu_id: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct MenubarMenuResolved {
-    pub id: String,
-    pub label: String,
-    pub items: Arc<[String]>,
-    pub disabled_indices: Vec<usize>,
-    pub item_kinds: Vec<MenuItemKind>,
-    pub is_trigger_disabled: bool,
-    pub has_items: bool,
-    pub trigger_id: String,
-    pub menu_id: String,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct MenubarStateInput {
-    pub menu_count: usize,
-    pub open_index: Option<usize>,
-    pub has_disabled_menus: bool,
-    pub has_custom_class_name: bool,
-    pub is_controlled: bool,
-    pub placement: PopoverPlacement,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct MenubarState {
-    pub menu_count: usize,
-    pub is_empty: bool,
-    pub has_menus: bool,
-    pub open_index: Option<usize>,
-    pub has_open_menu: bool,
-    pub has_disabled_menus: bool,
-    pub has_custom_class_name: bool,
-    pub is_controlled: bool,
-    pub is_uncontrolled: bool,
-    pub placement: PopoverPlacement,
-    pub placement_attr: &'static str,
-    pub data_state_attr: &'static str,
+pub fn open_mode_attr(is_controlled: bool) -> &'static str {
+    if is_controlled {
+        "controlled"
+    } else {
+        "uncontrolled"
+    }
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -119,7 +53,7 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| "menubar".to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
 }
 
 fn sanitize_token(value: &str, fallback: &str) -> String {
@@ -200,7 +134,7 @@ pub fn resolve_menus(id_base: &str, menus: Vec<MenubarMenu>) -> Vec<MenubarMenuR
 
         let item_count = items.len();
         let disabled_indices = normalize_disabled_indices(menu.disabled_indices, item_count);
-        let item_kinds: Vec<MenuItemKind> = menu.item_kinds.into_iter().take(item_count).collect();
+        let item_kinds = menu.item_kinds.into_iter().take(item_count).collect();
 
         let is_trigger_disabled = menu.disabled || item_count == 0;
         let ids = resolve_menu_ids(id_base, &unique_id);
@@ -252,56 +186,102 @@ pub fn next_enabled_menu_index(
     None
 }
 
-pub fn resolve_state(input: MenubarStateInput) -> MenubarState {
+fn source_attr(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+pub fn resolve_state(input: MenubarPartStateInput) -> MenubarPartState {
     let has_menus = input.menu_count > 0;
     let has_open_menu = input.open_index.is_some();
+    let is_empty = !has_menus;
+    let keep_open_on_action = !input.close_on_action;
 
-    let data_state_attr = if !has_menus {
-        "empty"
-    } else if has_open_menu {
-        "open"
-    } else {
-        "closed"
-    };
-
-    MenubarState {
-        menu_count: input.menu_count,
-        is_empty: !has_menus,
-        has_menus,
-        open_index: input.open_index,
-        has_open_menu,
-        has_disabled_menus: input.has_disabled_menus,
-        has_custom_class_name: input.has_custom_class_name,
-        is_controlled: input.is_controlled,
-        is_uncontrolled: !input.is_controlled,
+    MenubarPartState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: state_attr(input.menu_count, has_open_menu),
+        menu_attr: menu_attr(input.menu_count),
+        action_attr: action_attr(input.close_on_action),
+        open_mode_attr: open_mode_attr(input.is_controlled),
         placement: input.placement,
         placement_attr: input.placement.as_str(),
-        data_state_attr,
+        open_attr: has_open_menu.then_some("true"),
+        closed_attr: (!has_open_menu).then_some("true"),
+        menu_count: input.menu_count,
+        open_index: input.open_index,
+        has_open_menu,
+        is_empty,
+        has_menus,
+        has_disabled_menus: input.has_disabled_menus,
+        close_on_action: input.close_on_action,
+        keep_open_on_action,
+        is_controlled: input.is_controlled,
+        is_uncontrolled: !input.is_controlled,
+        has_custom_id_base: input.has_custom_id_base,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_close_on_action: input.has_custom_close_on_action,
+        has_custom_placement: input.has_custom_placement,
+        has_custom_open_index: input.has_custom_open_index,
+        has_custom_default_open_index: input.has_custom_default_open_index,
+        has_custom_on_open_index_change: input.has_custom_on_open_index_change,
+        has_custom_motion: input.has_custom_motion,
+        id_source_attr: source_attr(input.has_custom_id_base),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        close_on_action_source_attr: source_attr(input.has_custom_close_on_action),
+        placement_source_attr: source_attr(input.has_custom_placement),
+        open_index_source_attr: source_attr(input.has_custom_open_index),
+        default_open_index_source_attr: source_attr(input.has_custom_default_open_index),
+        open_index_change_source_attr: source_attr(input.has_custom_on_open_index_change),
+        motion_source_attr: source_attr(input.has_custom_motion),
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: MenubarState) -> String {
-    let mut classes = vec![
-        "ui-menubar".to_string(),
-        format!("ui-menubar--placement-{}", state.placement_attr),
-    ];
+pub fn compose_class_name(base_class_name: Option<String>, state: MenubarPartState) -> String {
+    let mut classes = vec![state.base_class.to_string()];
 
-    if state.is_empty {
-        classes.push("ui-menubar--empty".to_string());
-    }
-    if state.has_open_menu {
-        classes.push("ui-menubar--open".to_string());
-    }
-    if state.has_disabled_menus {
-        classes.push("ui-menubar--has-disabled-menus".to_string());
-    }
-    if state.is_controlled {
-        classes.push("ui-menubar--controlled".to_string());
-    }
+    if matches!(state.slot, MenubarSlot::Root) {
+        classes.push(format!("ui-menubar--placement-{}", state.placement_attr));
 
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
+        if state.is_empty {
+            classes.push("ui-menubar--empty".to_string());
+        } else {
+            classes.push("ui-menubar--has-menus".to_string());
+        }
+
+        if state.has_open_menu {
+            classes.push("ui-menubar--open".to_string());
+        } else {
+            classes.push("ui-menubar--closed".to_string());
+        }
+
+        if state.has_disabled_menus {
+            classes.push("ui-menubar--has-disabled-menus".to_string());
+        }
+
+        if state.keep_open_on_action {
+            classes.push("ui-menubar--persistent".to_string());
+        } else {
+            classes.push("ui-menubar--close-on-action".to_string());
+        }
+
+        if state.is_controlled {
+            classes.push("ui-menubar--controlled".to_string());
+        } else {
+            classes.push("ui-menubar--uncontrolled".to_string());
+        }
+
+        if state.has_custom_motion {
+            classes.push("ui-menubar--custom-motion".to_string());
+        }
+
+        if state.has_custom_class_name {
+            classes.push("ui-menubar--custom-class".to_string());
+            if let Some(base_class_name) = normalize_optional_text(base_class_name) {
+                classes.push(base_class_name);
+            }
+        }
+    } else if let Some(base_class_name) = normalize_optional_text(base_class_name) {
         classes.push(base_class_name);
     }
 
@@ -311,6 +291,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: MenubarState) 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::menubar::{MenuOpenFocusStrategy, MenubarPartStateInput, MenubarSlot};
 
     #[test]
     fn normalize_id_base_falls_back_when_blank() {
@@ -318,7 +299,7 @@ mod tests {
             normalize_id_base("  menubar-root  ".to_string()),
             "menubar-root"
         );
-        assert_eq!(normalize_id_base("   ".to_string()), "menubar");
+        assert_eq!(normalize_id_base("   ".to_string()), DEFAULT_ID_BASE);
     }
 
     #[test]
@@ -399,36 +380,92 @@ mod tests {
     #[test]
     fn focus_strategy_maps_arrow_open_keys() {
         assert_eq!(
-            focus_strategy_for_open_key("ArrowDown"),
+            crate::menubar::focus_strategy_for_open_key("ArrowDown"),
             Some(MenuOpenFocusStrategy::First)
         );
         assert_eq!(
-            focus_strategy_for_open_key("ArrowUp"),
+            crate::menubar::focus_strategy_for_open_key("ArrowUp"),
             Some(MenuOpenFocusStrategy::Last)
         );
-        assert_eq!(focus_strategy_for_open_key("Enter"), None);
+        assert_eq!(crate::menubar::focus_strategy_for_open_key("Enter"), None);
+    }
+
+    #[test]
+    fn focus_strategy_default_index() {
+        assert_eq!(MenuOpenFocusStrategy::First.default_index(4), 0);
+        assert_eq!(MenuOpenFocusStrategy::Last.default_index(4), 3);
+        assert_eq!(MenuOpenFocusStrategy::Last.default_index(0), 0);
+    }
+
+    #[test]
+    fn resolve_state_tracks_source_and_open_contracts() {
+        let state = resolve_state(MenubarPartStateInput {
+            slot: MenubarSlot::Root,
+            menu_count: 3,
+            open_index: Some(1),
+            has_disabled_menus: true,
+            close_on_action: false,
+            is_controlled: true,
+            placement: PopoverPlacement::TopEnd,
+            has_custom_id_base: true,
+            has_custom_class_name: true,
+            has_custom_close_on_action: true,
+            has_custom_placement: true,
+            has_custom_open_index: true,
+            has_custom_default_open_index: true,
+            has_custom_on_open_index_change: true,
+            has_custom_motion: true,
+        });
+
+        assert_eq!(state.slot_attr, "menubar");
+        assert_eq!(state.state_attr, "open");
+        assert_eq!(state.menu_attr, "populated");
+        assert_eq!(state.action_attr, "keep-open");
+        assert_eq!(state.open_mode_attr, "controlled");
+        assert_eq!(state.placement_attr, "top-end");
+        assert_eq!(state.id_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
+        assert_eq!(state.close_on_action_source_attr, "custom");
+        assert_eq!(state.placement_source_attr, "custom");
+        assert_eq!(state.open_index_source_attr, "custom");
+        assert_eq!(state.default_open_index_source_attr, "custom");
+        assert_eq!(state.open_index_change_source_attr, "custom");
+        assert_eq!(state.motion_source_attr, "custom");
     }
 
     #[test]
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
-            resolve_state(MenubarStateInput {
+            resolve_state(MenubarPartStateInput {
+                slot: MenubarSlot::Root,
                 menu_count: 2,
                 open_index: Some(1),
                 has_disabled_menus: true,
-                has_custom_class_name: true,
+                close_on_action: false,
                 is_controlled: true,
                 placement: PopoverPlacement::BottomStart,
+                has_custom_id_base: true,
+                has_custom_class_name: true,
+                has_custom_close_on_action: true,
+                has_custom_placement: false,
+                has_custom_open_index: true,
+                has_custom_default_open_index: false,
+                has_custom_on_open_index_change: false,
+                has_custom_motion: true,
             }),
         );
 
         for token in [
             "ui-menubar",
             "ui-menubar--placement-bottom-start",
+            "ui-menubar--has-menus",
             "ui-menubar--open",
             "ui-menubar--has-disabled-menus",
+            "ui-menubar--persistent",
             "ui-menubar--controlled",
+            "ui-menubar--custom-motion",
+            "ui-menubar--custom-class",
             "custom",
         ] {
             assert!(

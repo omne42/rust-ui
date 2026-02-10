@@ -11,6 +11,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: upgrades `ContextMenu` to a full `logic/styles/view` slice with centralized slot/open-mode/item/action/id/aria/class/disabled/placement/motion source-state normalization, stable Spectrum-style root+trigger `data-*` contracts, and preserved context-trigger + keyboard-open semantics with HeroUI-level popover spring motion reuse.
 - `apps/docs-app`: upgrades `ContextMenu` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-aria-label-source`/`data-disabled-indices-source`/`data-close-on-action-source`/`data-open-source`/`data-motion-source` contracts.
 
+- `ui-components`: upgrades `Menubar` to a full `logic/styles/view` slice with centralized slot/open-mode/menu/action/id/class/placement/open-index/motion source-state normalization, stable Spectrum-style root+menu+trigger `data-*` contracts, and preserved keyboard roving + HeroUI-level popover spring motion behavior.
+- `apps/docs-app`: upgrades `Menubar` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-class-source`/`data-close-on-action-source`/`data-open-index-source`/`data-motion-source` contracts.
+
 - `ui-components`: upgrades `Sonner` to a full `logic/styles/view` slice with centralized slot/queue/position/portal/max-toasts/aria/class/motion/store source-state normalization, stable Spectrum-style root `data-*` contracts, and preserved HeroUI-level spring toast motion behavior via `ToastMotion`.
 - `apps/docs-app`: extends `Sonner` docs with a `State + Source Markers` playground to inspect `data-state`/`data-queue`/`data-position-source`/`data-portal-source`/`data-max-toasts-source`/`data-store-source`/`data-motion-source` contracts.
 
