@@ -658,11 +658,9 @@ pub(super) fn drawer() -> AnyView {
             set_present_semantic.set(true);
         }
     });
-
     let close_semantic: OnPress = Callback::new(move |_| set_open_semantic_raw.set(false));
     let open_semantic_drawer: OnPress = Callback::new(move |_| set_open_semantic_raw.set(true));
     let on_semantic_exit_complete = Callback::new(move |_| set_present_semantic.set(false));
-
     let (open_custom_raw, set_open_custom_raw) = signal(false);
     let open_custom: Signal<bool> = Signal::derive(move || open_custom_raw.get());
     let (present_custom, set_present_custom) = signal(open_custom.get_untracked());
@@ -671,11 +669,15 @@ pub(super) fn drawer() -> AnyView {
             set_present_custom.set(true);
         }
     });
-
     let close_custom: OnPress = Callback::new(move |_| set_open_custom_raw.set(false));
     let open_custom_drawer: OnPress = Callback::new(move |_| set_open_custom_raw.set(true));
     let on_custom_exit_complete = Callback::new(move |_| set_present_custom.set(false));
-
+    let custom_motion = DrawerMotion {
+        sheet: SheetMotion {
+            initial_offset_px: 52.0,
+            ..SheetMotion::default()
+        },
+    };
     let semantic_code = r#"<Drawer
   open=open
   id_base="dr".to_string()
@@ -688,7 +690,6 @@ pub(super) fn drawer() -> AnyView {
 >
   ...
 </Drawer>"#;
-
     let custom_code = r#"<Drawer
   open=open
   id_base="dr-left".to_string()
@@ -707,7 +708,6 @@ pub(super) fn drawer() -> AnyView {
 >
   ...
 </Drawer>"#;
-
     view! {
         <ComponentPage
             title="Drawer"
@@ -720,7 +720,6 @@ pub(super) fn drawer() -> AnyView {
                     <Button on_press=open_semantic_drawer>"Open right drawer"</Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
                 </div>
-
                 <Show when=move || present_semantic.get()>
                     <Drawer
                         open=open_semantic
@@ -744,25 +743,22 @@ pub(super) fn drawer() -> AnyView {
                     </Drawer>
                 </Show>
             </Playground>
-
-            <Playground title="Left Drawer + Custom Class" code=custom_code>
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-placement-source`, `data-description-source`, `data-footer-source`, `data-motion-source`, and `data-exit-source` contracts."
+                code=custom_code
+            >
                 <div class="docs-row">
                     <Button on_press=open_custom_drawer>"Open left drawer"</Button>
                     <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
                 </div>
-
                 <Show when=move || present_custom.get()>
                     <Drawer
                         open=open_custom
                         id_base="docs-drawer-left".to_string()
                         title="Left drawer".to_string()
                         placement=DrawerPlacement::Left
-                        motion=DrawerMotion {
-                            sheet: SheetMotion {
-                                initial_offset_px: 52.0,
-                                ..SheetMotion::default()
-                            },
-                        }
+                        motion=custom_motion
                         show_close_button=false
                         class_name="docs-drawer-custom".to_string()
                         on_close=close_custom
@@ -770,7 +766,9 @@ pub(super) fn drawer() -> AnyView {
                     >
                         <div class="docs-stack docs-stack--tight">
                             <div>"Title-only path keeps `aria-describedby` unset."</div>
-                            <div class="ui-muted">"Custom class validates class merge + state attrs."</div>
+                            <div class="ui-muted">
+                                "Inspect data-placement-source / data-title-source / data-motion-source in DevTools."
+                            </div>
                             <div class="docs-row docs-row--end">
                                 <Button variant=ButtonVariant::Secondary on_press=close_custom>"Dismiss"</Button>
                             </div>
@@ -782,6 +780,7 @@ pub(super) fn drawer() -> AnyView {
     }
     .into_any()
 }
+
 pub(super) fn tooltip() -> AnyView {
     overlays_tooltip::tooltip()
 }

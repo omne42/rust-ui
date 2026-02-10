@@ -9,8 +9,45 @@ pub const CSS: &str = r#"
 }
 
 .ui-drawer[data-motion-source="custom"],
-.ui-drawer[data-custom-motion="true"] {
+.ui-drawer[data-custom-motion="true"],
+.ui-drawer--custom-motion {
   --ui-drawer-custom-motion: 1;
+}
+
+.ui-drawer[data-placement-source="custom"],
+.ui-drawer--custom-placement {
+  --ui-drawer-placement-source: custom;
+}
+
+.ui-drawer[data-description-source="custom"] {
+  --ui-drawer-description-source: custom;
+}
+
+.ui-drawer[data-footer-source="custom"] {
+  --ui-drawer-footer-source: custom;
+}
+
+.ui-drawer[data-close-source="custom"] {
+  --ui-drawer-close-source: custom;
+}
+
+.ui-drawer[data-id-source="custom"] {
+  --ui-drawer-id-source: custom;
+}
+
+.ui-drawer[data-title-source="custom"] {
+  --ui-drawer-title-source: custom;
+}
+
+.ui-drawer[data-class-source="custom"],
+.ui-drawer--custom-class {
+  --ui-drawer-class-source: custom;
+}
+
+.ui-drawer[data-exit-source="custom"],
+.ui-drawer[data-custom-exit="true"],
+.ui-drawer--custom-exit {
+  --ui-drawer-exit-source: custom;
 }
 
 .ui-drawer--placement-bottom,
@@ -42,7 +79,8 @@ pub const CSS: &str = r#"
   border-radius: inherit;
 }
 
-.ui-drawer__header {
+.ui-drawer__header,
+.ui-drawer__header[data-slot="drawer-header"] {
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-xs);
@@ -59,21 +97,32 @@ pub const CSS: &str = r#"
   padding-right: 0;
 }
 
-.ui-drawer__title {
+.ui-drawer__title,
+.ui-drawer__title[data-slot="drawer-title"] {
   font-size: 16px;
   line-height: 1.2;
   font-weight: 700;
   margin: 0;
 }
 
-.ui-drawer__description {
+.ui-drawer__title[data-title-source="custom"] {
+  --ui-drawer-title: custom;
+}
+
+.ui-drawer__description,
+.ui-drawer__description[data-slot="drawer-description"] {
   font-size: 13px;
   line-height: 1.5;
   color: var(--ui-fg-muted);
   margin: 0;
 }
 
-.ui-drawer__body {
+.ui-drawer__description[data-description-source="custom"] {
+  --ui-drawer-description: custom;
+}
+
+.ui-drawer__body,
+.ui-drawer__body[data-slot="drawer-body"] {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
@@ -82,7 +131,8 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-sm);
 }
 
-.ui-drawer__footer {
+.ui-drawer__footer,
+.ui-drawer__footer[data-slot="drawer-footer"] {
   display: flex;
   justify-content: flex-end;
   gap: var(--ui-space-sm);
@@ -95,7 +145,8 @@ pub const CSS: &str = r#"
   border-top: 1px solid var(--ui-border);
 }
 
-.ui-drawer__close {
+.ui-drawer__close,
+.ui-drawer__close[data-slot="drawer-close"] {
   position: absolute;
   top: 2px;
   right: 2px;
