@@ -20,33 +20,54 @@ pub fn TopNav(
     let label = label.unwrap_or_default();
     let class_name = class_name.unwrap_or_default();
 
+    let motion_source = if motion == TopNavMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != TopNavMotion::default()).then_some("true");
+
     if let Some(selected_id) = selected_id {
         view! {
-            <NavigationMenu
-                id_base=id_base
-                items=items
-                selected_id=selected_id
-                default_selected_id=default_selected_id
-                on_selected_id_change=on_selected_id_change
-                activate_on_focus=activate_on_focus
-                motion=motion
-                aria_label=label
-                class_name=class_name
-            />
+            <div
+                class="ui-top-nav"
+                data-slot="top-nav"
+                data-motion-source=motion_source
+                data-custom-motion=custom_motion
+            >
+                <NavigationMenu
+                    id_base=id_base
+                    items=items
+                    selected_id=selected_id
+                    default_selected_id=default_selected_id
+                    on_selected_id_change=on_selected_id_change
+                    activate_on_focus=activate_on_focus
+                    motion=motion
+                    aria_label=label
+                    class_name=class_name
+                />
+            </div>
         }
         .into_any()
     } else {
         view! {
-            <NavigationMenu
-                id_base=id_base
-                items=items
-                default_selected_id=default_selected_id
-                on_selected_id_change=on_selected_id_change
-                activate_on_focus=activate_on_focus
-                motion=motion
-                aria_label=label
-                class_name=class_name
-            />
+            <div
+                class="ui-top-nav"
+                data-slot="top-nav"
+                data-motion-source=motion_source
+                data-custom-motion=custom_motion
+            >
+                <NavigationMenu
+                    id_base=id_base
+                    items=items
+                    default_selected_id=default_selected_id
+                    on_selected_id_change=on_selected_id_change
+                    activate_on_focus=activate_on_focus
+                    motion=motion
+                    aria_label=label
+                    class_name=class_name
+                />
+            </div>
         }
         .into_any()
     }

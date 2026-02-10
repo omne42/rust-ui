@@ -36,10 +36,32 @@ fn top_nav_is_exported_from_module_and_crate_root() {
 fn top_nav_wraps_navigation_menu_contract() {
     let source = load_source("src/top_nav/view.rs");
 
-    for needle in ["pub fn TopNav(", "<NavigationMenu", "label: Option<String>"] {
+    for needle in [
+        "pub fn TopNav(",
+        "<NavigationMenu",
+        "label: Option<String>",
+        "data-slot=\"top-nav\"",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
+    ] {
         assert!(
             source.contains(needle),
             "TopNav wrapper should preserve NavigationMenu contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn top_nav_styles_include_motion_marker_contracts() {
+    let source = load_source("src/top_nav/styles.rs");
+
+    for selector in [
+        ".ui-top-nav[data-motion-source=\"custom\"]",
+        ".ui-top-nav[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "TopNav styles should include `{selector}` as stable custom-motion selectors."
         );
     }
 }
