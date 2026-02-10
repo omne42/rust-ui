@@ -8,13 +8,15 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn combobox_does_not_expose_view_module() {
+fn combobox_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/combobox/mod.rs");
 
-    assert!(
-        !source.contains("pub mod view"),
-        "Combobox internals should stay private; found `pub mod view`."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Combobox internals should stay private; found `{needle}`.",
+        );
+    }
 }
 
 #[test]
@@ -24,28 +26,96 @@ fn combobox_is_exported_from_module_and_crate_root() {
 
     assert!(
         module_source.contains("pub use view::Combobox;"),
-        "combobox module should export `Combobox`."
+        "combobox module should export `Combobox`.",
     );
     assert!(
         crate_source.contains("pub use combobox::Combobox;"),
-        "crate root should re-export `Combobox`."
+        "crate root should re-export `Combobox`.",
     );
 }
 
 #[test]
-fn combobox_wraps_combo_box_contract() {
-    let source = load_source("src/combobox/view.rs");
+fn combobox_logic_exposes_state_helpers() {
+    let source = load_source("src/combobox/logic.rs");
 
-    for needle in ["pub fn Combobox(", "<ComboBox", "motion: ComboBoxMotion"] {
+    for needle in [
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_label(",
+        "pub fn resolve_state(input: ComboboxStateInput)",
+        "pub fn compose_class_name(class_name: Option<String>, state: ComboboxState)",
+        "DEFAULT_LABEL",
+    ] {
         assert!(
             source.contains(needle),
-            "Combobox wrapper should preserve ComboBox contract marker `{needle}`."
+            "Combobox logic should include `{needle}` for centralized source/state contracts.",
         );
     }
 }
 
 #[test]
-fn combobox_docs_page_exists() {
+fn combobox_view_uses_logic_state_and_motion_contracts() {
+    let source = load_source("src/combobox/view.rs");
+
+    for needle in [
+        "logic::resolve_label(label)",
+        "logic::resolve_state(ComboboxStateInput {",
+        "logic::compose_class_name(class_name.clone(), state.get())",
+        "data-slot=\"combobox\"",
+        "data-state=move || state.get().state_attr",
+        "data-selection=move || state.get().selection_attr",
+        "data-options=move || state.get().options_attr",
+        "data-requirement=move || state.get().requirement_attr",
+        "data-label-source=move || state.get().label_source_attr",
+        "data-description-source=move || state.get().description_source_attr",
+        "data-error-source=move || state.get().error_source_attr",
+        "data-placeholder-source=move || state.get().placeholder_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Combobox view should include `{needle}` for stable marker contracts.",
+        );
+    }
+}
+
+#[test]
+fn combobox_styles_include_state_and_source_markers() {
+    let source = load_source("src/combobox/styles.rs");
+
+    for selector in [
+        ".ui-combobox {",
+        ".ui-combobox[data-state=\"disabled\"]",
+        ".ui-combobox[data-selection=\"out-of-range\"]",
+        ".ui-combobox[data-options=\"has-disabled\"]",
+        ".ui-combobox[data-requirement=\"required\"]",
+        ".ui-combobox[data-label-source=\"custom\"]",
+        ".ui-combobox[data-description-source=\"custom\"]",
+        ".ui-combobox[data-error-source=\"custom\"]",
+        ".ui-combobox[data-placeholder-source=\"custom\"]",
+        ".ui-combobox[data-motion-source=\"custom\"]",
+        ".ui-combobox[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Combobox styles should include `{selector}` as stable selectors.",
+        );
+    }
+}
+
+#[test]
+fn combobox_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::combobox::styles::CSS);"),
+        "ui-components css aggregator should include combobox styles.",
+    );
+}
+
+#[test]
+fn combobox_docs_page_contains_state_source_playground() {
     let source =
         load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_combobox.rs");
 
@@ -53,11 +123,12 @@ fn combobox_docs_page_exists() {
         "pub(super) fn combobox() -> AnyView",
         "title=\"Combobox\"",
         "slug=\"combobox\"",
-        "<Combobox",
+        "State + Source Markers",
+        "data-placeholder-source",
     ] {
         assert!(
             source.contains(needle),
-            "collections_extra_combobox docs page should contain `{needle}`."
+            "collections_extra_combobox docs page should contain `{needle}`.",
         );
     }
 }
