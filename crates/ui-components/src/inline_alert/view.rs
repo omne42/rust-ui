@@ -52,6 +52,12 @@ pub fn InlineAlert(
             data-slot="inline-alert"
             role=tone.role()
             aria-live=tone.aria_live()
+            data-motion-source=if motion == InlineAlertMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != InlineAlertMotion::default()).then_some("true")
         >
             <Show when=move || state.show_icon>
                 <span class="ui-inline-alert__icon" data-slot="inline-alert-icon">

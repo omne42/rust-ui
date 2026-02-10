@@ -17,6 +17,11 @@ pub const CSS: &str = r#"
   will-change: transform, opacity;
 }
 
+.ui-inline-alert[data-motion-source="custom"],
+.ui-inline-alert[data-custom-motion="true"] {
+  --ui-inline-alert-custom-motion: 1;
+}
+
 .ui-inline-alert__icon {
   display: inline-flex;
   align-items: center;

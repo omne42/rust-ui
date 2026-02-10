@@ -28,6 +28,22 @@ fn inline_alert_attaches_motion_driver() {
 }
 
 #[test]
+fn inline_alert_exposes_motion_source_markers() {
+    let source = load_source("src/inline_alert/view.rs");
+
+    for needle in [
+        "data-slot=\"inline-alert\"",
+        "data-motion-source=if motion == InlineAlertMotion::default()",
+        "data-custom-motion=(motion != InlineAlertMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "InlineAlert should expose `{needle}` for Spectrum/HeroUI motion inspection."
+        );
+    }
+}
+
+#[test]
 fn inline_alert_styles_use_only_css_variables_for_motion() {
     let source = load_source("src/inline_alert/styles.rs");
 
@@ -35,6 +51,8 @@ fn inline_alert_styles_use_only_css_variables_for_motion() {
         "--ui-inline-alert-opacity",
         "--ui-inline-alert-translate-y",
         "--ui-inline-alert-scale",
+        ".ui-inline-alert[data-motion-source=\"custom\"]",
+        ".ui-inline-alert[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(name),
@@ -51,4 +69,20 @@ fn inline_alert_motion_uses_spring_animator() {
         source.contains("SpringAnimator"),
         "InlineAlert motion should animate via a spring to match the repo's motion spec."
     );
+}
+
+#[test]
+fn inline_alert_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/inline_alert/motion.rs");
+
+    for needle in [
+        "pub struct InlineAlertMotion",
+        "fn default_motion_matches_inline_alert_spring_contract()",
+        "fn supports_custom_spring_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "InlineAlert motion module should include `{needle}` for HeroUI-level motion contract coverage."
+        );
+    }
 }
