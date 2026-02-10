@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `SplitView` to a full `logic/styles/view` slice with centralized split/bounds/aria/class/handler source-state normalization, stable Spectrum-style `data-*` wrapper contracts, and hardened alias composition over `Resizable`.
+- `apps/docs-app`: extends `SplitView` docs with a `State + Source Markers` playground to inspect `data-state`/`data-orientation`/`data-split-mode`/`data-default-split-source`/`data-bounds-source`/`data-label-source`/`data-class-source`/`data-handler-source` contracts.
 - `ui-components`: upgrades `Asset` to a full `logic/styles/view` slice with centralized label/source-state normalization, stable Spectrum-style `data-*` contracts, and dedicated `asset` CSS layered through `ui-components/src/css.rs`.
 - `apps/docs-app`: extends `Asset` docs with a `State + Source Markers` playground to inspect `data-state`/`data-label-source`/`data-content-source`/`data-class-source` contracts.
 - `ui-components`: upgrades `Coachmark` to a full `logic/styles/view` slice with centralized heading/step/footer/asset source normalization, stable Spectrum-style `data-*` state/source contracts, and deduplicated controlled/uncontrolled composition through a shared ContextualHelp pipeline.
