@@ -1,7 +1,9 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Button, ButtonVariant, Dialog, DialogMotion, OnPress, OverlayMotion};
+use ui_components::{
+    Button, ButtonVariant, Dialog, DialogMotion, DialogSize, OnPress, OverlayMotion,
+};
 
 pub(super) fn dialog() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
@@ -21,11 +23,15 @@ pub(super) fn dialog() -> AnyView {
   move || view!{ ... }
 </Dialog>"#;
 
-    let motion_code = r#"<Dialog
+    let marker_code = r#"<Dialog
   open=open
   on_close=close
-  id_base="d-motion".to_string()
-  title="Motion dialog".to_string()
+  id_base="docs-dialog-marker".to_string()
+  title="Marker dialog".to_string()
+  description="Inspect source markers".to_string()
+  size=DialogSize::Lg
+  close_label="Dismiss dialog"
+  class_name="docs-dialog-custom".to_string()
   motion=DialogMotion {
     overlay: OverlayMotion {
       initial_scale: 0.94,
@@ -33,6 +39,7 @@ pub(super) fn dialog() -> AnyView {
       ..OverlayMotion::default()
     }
   }
+  on_exit_complete=on_exit_complete
 >
   ...
 </Dialog>"#;
@@ -72,20 +79,29 @@ pub(super) fn dialog() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="Dialog custom motion" code=motion_code>
-                <div class="docs-row">
-                    <Button on_press=open_dialog variant=ButtonVariant::Secondary>
-                        "Open motion-tuned dialog"
-                    </Button>
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=open_dialog variant=ButtonVariant::Secondary>
+                            "Open marker dialog"
+                        </Button>
+                        <span class="ui-muted">"open: " {move || open_raw.get().to_string()}</span>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-title-source / data-description-source / data-close-source / data-motion-source in DevTools."
+                    </div>
                 </div>
 
                 <Show when=move || present.get()>
                     <Dialog
                         open=open
                         on_close=on_close
-                        id_base="docs-dialog-motion".to_string()
-                        title="Motion tuned dialog".to_string()
-                        description="Uses custom DialogMotion -> OverlayMotion spring offsets.".to_string()
+                        id_base="docs-dialog-marker".to_string()
+                        title="Marker dialog".to_string()
+                        description="Custom size, class, close label, and motion for contract inspection."
+                        size=DialogSize::Lg
+                        close_label="Dismiss dialog"
+                        class_name="docs-dialog-custom".to_string()
                         motion=DialogMotion {
                             overlay: OverlayMotion {
                                 initial_scale: 0.94,
@@ -96,9 +112,9 @@ pub(super) fn dialog() -> AnyView {
                         on_exit_complete=on_exit_complete
                     >
                         <div class="docs-stack">
-                            <div>"Custom motion path"</div>
+                            <div>"Inspect root and part data-* markers."</div>
                             <div class="ui-muted">
-                                "Tuned via DialogMotion { overlay: OverlayMotion { initial_scale, initial_y_px, spring } }."
+                                "Includes size/id/title/description/close/class/motion source contracts."
                             </div>
                             <div class="docs-row docs-row--end">
                                 <Button variant=ButtonVariant::Secondary on_press=on_close>

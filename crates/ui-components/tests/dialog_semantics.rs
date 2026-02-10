@@ -18,43 +18,109 @@ fn dialog_does_not_expose_logic_module() {
 }
 
 #[test]
-fn dialog_composes_overlay_and_labels_it_via_title_id() {
-    let source = load_source("src/dialog/view.rs");
-
-    assert!(
-        source.contains("<Overlay"),
-        "Dialog should compose `Overlay` rather than re-implementing modal semantics."
-    );
+fn dialog_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/dialog/mod.rs");
 
     for needle in [
-        "let title_id = format!(\"{id_base}-title\")",
-        "aria_labelledby=title_id.clone()",
-        "id=move || title_id_attr.get()",
+        "pub enum DialogSlot",
+        "pub struct DialogPartStateInput",
+        "pub struct DialogPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_TITLE",
+        "DEFAULT_CLOSE_LABEL",
+        "DEFAULT_SHOW_CLOSE_BUTTON",
+        "DEFAULT_SIZE",
     ] {
         assert!(
             source.contains(needle),
-            "Dialog should wire `aria-labelledby` via a stable title id (`{needle}`)."
+            "dialog::mod should include `{needle}` contracts."
         );
     }
 }
 
 #[test]
-fn dialog_only_sets_aria_describedby_when_description_is_present() {
-    let source = load_source("src/dialog/view.rs");
-
-    assert!(
-        source.contains("if view_state.show_description"),
-        "Dialog should branch on description presence so `aria-describedby` is only set when it has real content."
-    );
+fn dialog_logic_exposes_state_helpers() {
+    let source = load_source("src/dialog/logic.rs");
 
     for needle in [
-        "let description_id = format!(\"{id_base}-description\")",
-        "aria_describedby=description_id.clone()",
-        "id=move || description_id_attr.get()",
+        "pub enum DialogSize",
+        "pub fn as_attr(self) -> &'static str",
+        "pub fn state_attr(has_description: bool)",
+        "pub fn description_attr(has_description: bool)",
+        "pub fn footer_attr(has_footer: bool)",
+        "pub fn close_button_attr(show_close_button: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_required_text(value: String, fallback: &'static str)",
+        "pub fn normalize_id_base(value: String)",
+        "pub fn resolve_state(input: DialogPartStateInput) -> DialogPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: DialogPartState)",
     ] {
         assert!(
             source.contains(needle),
-            "Dialog should wire `aria-describedby` via a stable description id (`{needle}`)."
+            "Dialog logic should include `{needle}` for centralized state/source contracts."
+        );
+    }
+}
+
+#[test]
+fn dialog_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/dialog/view.rs");
+
+    for needle in [
+        "logic::normalize_id_base(id_base)",
+        "logic::normalize_required_text(title, logic::DEFAULT_TITLE)",
+        "logic::normalize_optional_text(description)",
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_state(DialogPartStateInput {",
+        "slot: DialogSlot::Root",
+        "logic::compose_class_name(class_name, root_state)",
+        "data-slot=root_state.slot_attr",
+        "data-state=root_state.state_attr",
+        "data-size=root_state.size_attr",
+        "data-description=root_state.description_attr",
+        "data-footer=root_state.footer_attr",
+        "data-close-button=root_state.close_button_attr",
+        "data-size-source=root_state.size_source_attr",
+        "data-id-source=root_state.id_source_attr",
+        "data-title-source=root_state.title_source_attr",
+        "data-description-source=root_state.description_source_attr",
+        "data-footer-source=root_state.footer_source_attr",
+        "data-close-source=root_state.close_source_attr",
+        "data-class-source=root_state.class_source_attr",
+        "data-motion-source=root_state.motion_source_attr",
+        "data-exit-source=root_state.exit_source_attr",
+        "data-custom-size=root_state.has_custom_size.then_some(\"true\")",
+        "data-custom-id=root_state.has_custom_id_base.then_some(\"true\")",
+        "data-custom-title=root_state.has_custom_title.then_some(\"true\")",
+        "data-custom-description=root_state.has_custom_description.then_some(\"true\")",
+        "data-custom-close=root_state.has_custom_close_label.then_some(\"true\")",
+        "data-custom-motion=root_state.has_custom_motion.then_some(\"true\")",
+        "data-custom-exit=root_state.has_on_exit_complete.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dialog view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn dialog_wires_aria_ids_and_optional_description_semantics() {
+    let source = load_source("src/dialog/view.rs");
+
+    for needle in [
+        "let title_id = format!(\"{id_base}-title\")",
+        "aria_labelledby=title_id.clone()",
+        "let description_id = format!(\"{id_base}-description\")",
+        "if root_state.show_description",
+        "aria_describedby=description_id.clone()",
+        "<Show when=move || root_state.show_description>",
+        "data-slot=description_state.slot_attr",
+        "data-description-source=description_state.description_source_attr",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dialog should include `{needle}` for stable a11y description wiring."
         );
     }
 }
@@ -64,7 +130,7 @@ fn dialog_close_button_uses_icon_button_with_aria_label() {
     let source = load_source("src/dialog/view.rs");
 
     for needle in [
-        "data-slot=\"dialog-close\"",
+        "data-slot=close_state.slot_attr",
         "<IconButton",
         "aria_label=close_label",
     ] {
@@ -76,48 +142,35 @@ fn dialog_close_button_uses_icon_button_with_aria_label() {
 }
 
 #[test]
-fn dialog_size_class_is_derived_from_dialog_size_enum() {
-    let source = load_source("src/dialog/view.rs");
-
-    assert!(
-        source.contains("size.class_name()"),
-        "Dialog should map `DialogSize` to a CSS class via `DialogSize::class_name()`."
-    );
-}
-
-#[test]
-fn dialog_emits_spectrum_style_state_and_motion_markers() {
-    let source = load_source("src/dialog/view.rs");
-
-    for needle in [
-        "data-slot=\"dialog\"",
-        "data-state=move || if open.get() { \"open\" } else { \"closed\" }",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-closed=move || (!open.get()).then_some(\"true\")",
-        "data-with-description=view_state.show_description.then_some(\"true\")",
-        "data-with-footer=view_state.show_footer.then_some(\"true\")",
-        "data-close-visible=view_state.show_close_button.then_some(\"true\")",
-        "data-motion-source=if motion == DialogMotion::default()",
-        "data-custom-motion=(motion != DialogMotion::default()).then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(needle),
-            "Dialog should expose `{needle}` for stable state/motion marker contracts."
-        );
-    }
-}
-
-#[test]
-fn dialog_styles_include_motion_marker_selectors() {
+fn dialog_styles_include_state_and_source_marker_selectors() {
     let source = load_source("src/dialog/styles.rs");
 
     for selector in [
         ".ui-dialog[data-motion-source=\"custom\"]",
         ".ui-dialog[data-custom-motion=\"true\"]",
+        ".ui-dialog[data-size-source=\"custom\"]",
+        ".ui-dialog[data-custom-size=\"true\"]",
+        ".ui-dialog[data-id-source=\"custom\"]",
+        ".ui-dialog[data-custom-id=\"true\"]",
+        ".ui-dialog[data-title-source=\"custom\"]",
+        ".ui-dialog[data-custom-title=\"true\"]",
+        ".ui-dialog[data-description-source=\"custom\"]",
+        ".ui-dialog[data-custom-description=\"true\"]",
+        ".ui-dialog[data-close-source=\"custom\"]",
+        ".ui-dialog[data-custom-close=\"true\"]",
+        ".ui-dialog[data-exit-source=\"custom\"]",
+        ".ui-dialog[data-custom-exit=\"true\"]",
+        ".ui-dialog--with-description",
+        ".ui-dialog[data-state=\"with-description\"]",
+        ".ui-dialog--title-only",
+        ".ui-dialog[data-close-button=\"hidden\"]",
+        ".ui-dialog__title[data-slot=\"dialog-title\"]",
+        ".ui-dialog__description[data-slot=\"dialog-description\"]",
+        ".ui-dialog__body[data-slot=\"dialog-body\"]",
     ] {
         assert!(
             source.contains(selector),
-            "Dialog styles should include `{selector}` as stable motion-marker contracts."
+            "Dialog styles should include `{selector}` as stable state/source marker contracts."
         );
     }
 }
@@ -135,6 +188,29 @@ fn dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
         assert!(
             source.contains(needle),
             "Dialog motion module should include `{needle}` for HeroUI-level contract coverage."
+        );
+    }
+}
+
+#[test]
+fn dialog_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
+
+    for needle in [
+        "pub(super) fn dialog() -> AnyView",
+        "title=\"Dialog\"",
+        "slug=\"dialog\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-title-source",
+        "data-description-source",
+        "data-close-source",
+        "data-motion-source",
+        "<Dialog",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog docs page should contain `{needle}`."
         );
     }
 }
