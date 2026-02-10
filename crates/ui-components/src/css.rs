@@ -132,6 +132,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::popover::styles::CSS);
     out.push_str(crate::tooltip::styles::CSS);
     out.push_str(crate::contextual_help::styles::CSS);
+    out.push_str(crate::coachmark::styles::CSS);
     out.push_str(crate::hover_card::styles::CSS);
     out.push_str(crate::modal::styles::CSS);
     out.push_str(crate::dialog::styles::CSS);

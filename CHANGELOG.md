@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: upgrades `Asset` to a full `logic/styles/view` slice with centralized label/source-state normalization, stable Spectrum-style `data-*` contracts, and dedicated `asset` CSS layered through `ui-components/src/css.rs`.
 - `apps/docs-app`: extends `Asset` docs with a `State + Source Markers` playground to inspect `data-state`/`data-label-source`/`data-content-source`/`data-class-source` contracts.
+- `ui-components`: upgrades `Coachmark` to a full `logic/styles/view` slice with centralized heading/step/footer/asset source normalization, stable Spectrum-style `data-*` state/source contracts, and deduplicated controlled/uncontrolled composition through a shared ContextualHelp pipeline.
+- `apps/docs-app`: extends `Coachmark` docs with a `State + Source Markers` playground to inspect `data-state`/`data-open-mode`/`data-label-source`/`data-class-source` and content-level `data-asset-source` contracts.
 
 - `ui-components`: upgrades `Menu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `NavigationMenu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.

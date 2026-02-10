@@ -43,6 +43,21 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   asset_src=\"https://picsum.photos/420/260\".to_string()
 />"#;
 
+    let markers_code = r#"<Coachmark
+  title=\"Shortcuts\".to_string()
+  aria_label=\"Coachmark help\".to_string()
+  current_step=2
+  total_steps=6
+  primary_cta=\"Next\".to_string()
+  secondary_cta=\"Back\".to_string()
+  shortcut_key=\"K\".to_string()
+  modifier_keys=vec![\"⌘\".to_string()]
+  asset_variant=CoachmarkAssetVariant::Folder
+  class_name=\"docs-coachmark-state\".to_string()
+>
+  <div>Inspect data-state/source markers on root + content.</div>
+</Coachmark>"#;
+
     view! {
         <ComponentPage
             title="Coachmark"
@@ -106,6 +121,30 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         </div>
                     </Coachmark>
                 </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, and content-level `data-asset-source` for Spectrum-compatible coachmark contracts."
+                code=markers_code
+            >
+                <Coachmark
+                    title="Shortcuts".to_string()
+                    aria_label="Coachmark help".to_string()
+                    current_step=2
+                    total_steps=6
+                    primary_cta="Next".to_string()
+                    secondary_cta="Back".to_string()
+                    shortcut_key="K".to_string()
+                    modifier_keys=vec!["⌘".to_string()]
+                    asset_variant=CoachmarkAssetVariant::Folder
+                    class_name="docs-coachmark-state".to_string()
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <div>"Inspect data-state/source markers on root + content."</div>
+                        <div class="ui-muted">"Aria label + class source + asset source contracts are explicit."</div>
+                    </div>
+                </Coachmark>
             </Playground>
         </ComponentPage>
     }
