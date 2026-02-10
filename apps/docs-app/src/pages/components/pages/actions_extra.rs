@@ -6,8 +6,8 @@ use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
     ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
     CloseButtonVariant, FieldButton, InfieldButton, LogicButton, LogicButtonVariant, Toggle,
-    ToggleGroup, ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleSize,
-    ToggleVariant,
+    ToggleGroup, ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleMotion,
+    ToggleSize, ToggleVariant,
 };
 
 pub(super) fn action_bar() -> AnyView {
@@ -498,6 +498,22 @@ let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
   "Disabled"
 </Toggle>"#;
 
+    let markers_code = r##"<Toggle
+  pressed=pressed
+  set_pressed=set_pressed
+  variant=ToggleVariant::Outline
+  size=ToggleSize::Sm
+  motion=ToggleMotion {
+    tap_scale: 0.92,
+    ..ToggleMotion::default()
+  }
+  class_name="docs-toggle-state".to_string()
+  aria_label="Toggle formatting".to_string()
+  on_pressed_change=on_pressed_change
+>
+  "Markers"
+</Toggle>"##;
+
     view! {
         <ComponentPage
             title="Toggle"
@@ -538,6 +554,31 @@ let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
                     >
                         "Disabled"
                     </Toggle>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-interaction`, `data-variant-source`, `data-motion-source`, `data-aria-source`, and `data-handler-source` contracts."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <Toggle
+                        pressed=pressed
+                        set_pressed=set_pressed
+                        variant=ToggleVariant::Outline
+                        size=ToggleSize::Sm
+                        motion=ToggleMotion {
+                            tap_scale: 0.92,
+                            ..ToggleMotion::default()
+                        }
+                        class_name="docs-toggle-state".to_string()
+                        aria_label="Toggle formatting".to_string()
+                        on_pressed_change=on_pressed_change
+                    >
+                        "Markers"
+                    </Toggle>
+                    <span class="ui-muted">"pressed: " {move || pressed.get().to_string()}</span>
                 </div>
             </Playground>
         </ComponentPage>
