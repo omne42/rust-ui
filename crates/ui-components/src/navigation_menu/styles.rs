@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   max-width: 100%;
 }
 
+.ui-navigation-menu[data-motion-source="custom"],
+.ui-navigation-menu[data-custom-motion="true"] {
+  --ui-navigation-menu-custom-motion: 1;
+}
+
 .ui-navigation-menu__list {
   position: relative;
   display: inline-flex;

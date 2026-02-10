@@ -122,6 +122,8 @@ fn navigation_menu_emits_spectrum_root_state_data_attributes() {
         "data-has-selection=move || state.get().has_selection.then_some(\"true\")",
         "data-has-focus=move || state.get().has_focus.then_some(\"true\")",
         "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
         "data-selected-id=move || selected_id.get()",
     ] {
         assert!(
@@ -156,6 +158,8 @@ fn navigation_menu_styles_include_selected_disabled_and_empty_markers() {
 
     for needle in [
         ".ui-navigation-menu {",
+        ".ui-navigation-menu[data-motion-source=\"custom\"]",
+        ".ui-navigation-menu[data-custom-motion=\"true\"]",
         ".ui-navigation-menu__list {",
         ".ui-navigation-menu__item[data-selected=\"true\"]",
         ".ui-navigation-menu__item[data-disabled=\"true\"]",

@@ -85,6 +85,13 @@ pub fn NavigationMenu(
 
     let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));
 
+    let motion_source = if motion == ActiveHighlightMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ActiveHighlightMotion::default()).then_some("true");
+
     let item_refs: Arc<Vec<NodeRef<html::A>>> =
         Arc::new((0..item_count).map(|_| NodeRef::new()).collect());
 
@@ -295,6 +302,8 @@ pub fn NavigationMenu(
             data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
             data-custom-label=state.get_untracked().has_custom_aria_label.then_some("true")
             data-custom-class=state.get_untracked().has_custom_class_name.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             data-selected-id=move || selected_id.get()
         >
             <div class="ui-navigation-menu__list" node_ref=list_ref data-slot="navigation-menu-list">
