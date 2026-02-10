@@ -8,13 +8,15 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn tags_does_not_expose_view_module() {
+fn tags_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/tags/mod.rs");
 
-    assert!(
-        !source.contains("pub mod view"),
-        "Tags internals should stay private; found `pub mod view`."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Tags internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -33,23 +35,98 @@ fn tags_is_exported_from_module_and_crate_root() {
 }
 
 #[test]
-fn tags_wraps_tag_group_contract() {
-    let source = load_source("src/tags/view.rs");
+fn tags_logic_exposes_state_helpers() {
+    let source = load_source("src/tags/logic.rs");
 
     for needle in [
-        "pub fn Tags(",
-        "<TagGroup",
-        "on_remove: Option<Callback<Tag>>",
+        "pub fn normalize_optional_text(",
+        "pub fn derive_tag_flags(",
+        "pub fn resolve_state(input: TagsStateInput)",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: TagsState)",
     ] {
         assert!(
             source.contains(needle),
-            "Tags wrapper should preserve TagGroup contract marker `{needle}`."
+            "Tags logic should include `{needle}` for centralized source/state contracts."
         );
     }
 }
 
 #[test]
-fn tags_docs_page_exists() {
+fn tags_view_uses_logic_state_contracts() {
+    let source = load_source("src/tags/view.rs");
+
+    for needle in [
+        "pub fn Tags(",
+        "logic::normalize_optional_text(id_base)",
+        "logic::normalize_optional_text(aria_label)",
+        "logic::derive_tag_flags(&tags, disabled, has_remove_handler)",
+        "logic::resolve_state(TagsStateInput {",
+        "logic::compose_class_name(class_name_for_wrapper.clone(), state.get())",
+        "<TagGroup",
+        "on_remove: Option<Callback<Tag>>",
+        "data-slot=\"tags\"",
+        "data-state=move || state.get().state_attr",
+        "data-content=move || state.get().content_attr",
+        "data-removal=move || state.get().removal_attr",
+        "data-constraint=move || state.get().constraint_attr",
+        "data-label-source=move || state.get().label_source_attr",
+        "data-describedby-source=move || state.get().describedby_source_attr",
+        "data-aria-source=move || state.get().aria_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-variant-source=move || state.get().variant_source_attr",
+        "data-size-source=move || state.get().size_source_attr",
+        "data-handler-source=move || state.get().handler_source_attr",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tags view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn tags_styles_include_state_and_source_markers() {
+    let source = load_source("src/tags/styles.rs");
+
+    for selector in [
+        ".ui-tags {",
+        ".ui-tags[data-state=\"disabled\"]",
+        ".ui-tags[data-state=\"empty\"]",
+        ".ui-tags[data-content=\"filled\"]",
+        ".ui-tags[data-removal=\"removable\"]",
+        ".ui-tags[data-removal=\"static\"]",
+        ".ui-tags[data-constraint=\"invalid\"]",
+        ".ui-tags[data-constraint=\"required\"]",
+        ".ui-tags[data-label-source=\"custom\"]",
+        ".ui-tags[data-description-source=\"custom\"]",
+        ".ui-tags[data-error-source=\"custom\"]",
+        ".ui-tags[data-describedby-source=\"custom\"]",
+        ".ui-tags[data-aria-source=\"custom\"]",
+        ".ui-tags[data-class-source=\"custom\"]",
+        ".ui-tags[data-variant-source=\"custom\"]",
+        ".ui-tags[data-size-source=\"custom\"]",
+        ".ui-tags[data-handler-source=\"custom\"]",
+        ".ui-tags--custom-class",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Tags styles should include `{selector}` as stable selectors."
+        );
+    }
+}
+
+#[test]
+fn tags_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::tags::styles::CSS);"),
+        "ui-components css aggregator should include tags styles."
+    );
+}
+
+#[test]
+fn tags_docs_page_contains_state_source_playground() {
     let source =
         load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_tags.rs");
 
@@ -57,6 +134,8 @@ fn tags_docs_page_exists() {
         "pub(super) fn tags() -> AnyView",
         "title=\"Tags\"",
         "slug=\"tags\"",
+        "State + Source Markers",
+        "data-handler-source",
         "<Tags",
     ] {
         assert!(
