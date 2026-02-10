@@ -19,6 +19,11 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
+.ui-checkbox[data-motion-source="custom"],
+.ui-checkbox[data-custom-motion="true"] {
+  --ui-checkbox-custom-motion: 1;
+}
+
 .ui-checkbox[data-state="checked"] {
   --ui-checkbox-indicator: 1;
 }

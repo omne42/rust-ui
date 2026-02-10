@@ -90,6 +90,8 @@ fn checkbox_emits_spectrum_style_state_data_attributes() {
         "data-pressed=move || state.get().is_pressed.then_some(\"true\")",
         "data-focused=move || state.get().is_focused.then_some(\"true\")",
         "data-focus-visible=move || state.get().is_focus_visible.then_some(\"true\")",
+        "data-motion-source=if motion == CheckboxMotion::default()",
+        "data-custom-motion=(motion != CheckboxMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
@@ -120,4 +122,19 @@ fn checkbox_styles_respect_prefers_reduced_motion() {
         source.contains("transition: none;"),
         "Checkbox styles should disable transitions under prefers-reduced-motion."
     );
+}
+
+#[test]
+fn checkbox_styles_include_motion_marker_contracts() {
+    let source = load_source("src/checkbox/styles.rs");
+
+    for selector in [
+        ".ui-checkbox[data-motion-source=\"custom\"]",
+        ".ui-checkbox[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Checkbox styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
 }

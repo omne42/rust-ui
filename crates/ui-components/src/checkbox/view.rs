@@ -86,6 +86,12 @@ pub fn Checkbox(
             data-pressed=move || state.get().is_pressed.then_some("true")
             data-focused=move || state.get().is_focused.then_some("true")
             data-focus-visible=move || state.get().is_focus_visible.then_some("true")
+            data-motion-source=if motion == CheckboxMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != CheckboxMotion::default()).then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
