@@ -64,6 +64,13 @@ pub fn Disclosure(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == DisclosureMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != DisclosureMotion::default()).then_some("true");
+
     view! {
         <div
             class=class
@@ -71,6 +78,8 @@ pub fn Disclosure(
             data-open=move || state.get().is_open.then_some("true")
             data-closed=move || state.get().is_closed.then_some("true")
             data-disabled=move || state.get().is_disabled.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
         >
             <button
                 type="button"

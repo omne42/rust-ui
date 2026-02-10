@@ -140,6 +140,21 @@ fn disclosure_ids_and_aria_contract_are_wired() {
 }
 
 #[test]
+fn disclosure_styles_include_motion_marker_contracts() {
+    let source = load_source("src/disclosure/styles.rs");
+
+    for selector in [
+        ".ui-disclosure[data-motion-source=\"custom\"]",
+        ".ui-disclosure[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Disclosure styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
+}
+
+#[test]
 fn disclosure_styles_define_motion_css_vars() {
     let source = load_source("src/disclosure/styles.rs");
 

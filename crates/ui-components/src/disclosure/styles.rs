@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-disclosure[data-motion-source="custom"],
+.ui-disclosure[data-custom-motion="true"] {
+  --ui-disclosure-custom-motion: 1;
+}
+
 .ui-disclosure__trigger {
   display: flex;
   align-items: center;
