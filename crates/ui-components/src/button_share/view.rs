@@ -56,6 +56,12 @@ pub fn ShareButton(
             data-label-source=state.label_source_attr
             data-handler-source=state.handler_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-motion-source=if motion == ShareButtonMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ShareButtonMotion::default()).then_some("true")
         >
             <FlipButton
                 from=from

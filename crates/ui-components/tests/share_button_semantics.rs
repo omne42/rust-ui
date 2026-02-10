@@ -92,6 +92,8 @@ fn share_button_emits_spectrum_style_data_attributes() {
         "data-label-source=state.label_source_attr",
         "data-handler-source=state.handler_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=if motion == ShareButtonMotion::default()",
+        "data-custom-motion=(motion != ShareButtonMotion::default()).then_some(\"true\")",
         "data-slot=\"share-button-platform\"",
         "data-platform=platform_attr",
     ] {
@@ -153,10 +155,28 @@ fn share_button_styles_include_state_marker_contracts() {
         ".ui-share-button__platform[data-platform=\"github\"] .ui-button",
         ".ui-share-button--custom-class",
         ".ui-share-button[data-custom-class=\"true\"]",
+        ".ui-share-button[data-motion-source=\"custom\"]",
+        ".ui-share-button[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(selector),
             "ShareButton styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn share_button_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/button_share/motion.rs");
+
+    for needle in [
+        "pub struct ShareButtonMotion",
+        "fn default_motion_matches_flip_button_defaults()",
+        "fn supports_custom_flip_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ShareButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
         );
     }
 }

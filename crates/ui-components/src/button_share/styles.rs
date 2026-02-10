@@ -19,6 +19,11 @@ pub const CSS: &str = r#"
   border-radius: inherit;
 }
 
+.ui-share-button[data-motion-source="custom"],
+.ui-share-button[data-custom-motion="true"] {
+  --ui-share-button-custom-motion: 1;
+}
+
 .ui-share-button__front,
 .ui-share-button__back {
   display: inline-flex;
