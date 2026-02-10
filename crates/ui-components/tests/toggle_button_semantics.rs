@@ -88,6 +88,8 @@ fn toggle_button_emits_spectrum_style_state_data_attributes() {
         "data-pressed=move || state.get().is_pressed.then_some(\"true\")",
         "data-focused=move || state.get().is_focused.then_some(\"true\")",
         "data-focus-visible=move || state.get().is_focus_visible.then_some(\"true\")",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
     ] {
         assert!(
             source.contains(attr),
@@ -104,6 +106,21 @@ fn toggle_button_styles_define_scale_css_var() {
         source.contains("--ui-toggle-button-scale"),
         "ToggleButton styles should define `--ui-toggle-button-scale` so motion can update scale without re-rendering."
     );
+}
+
+#[test]
+fn toggle_button_styles_include_motion_marker_contracts() {
+    let source = load_source("src/toggle_button/styles.rs");
+
+    for selector in [
+        ".ui-toggle-button[data-motion-source=\"custom\"]",
+        ".ui-toggle-button[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "ToggleButton styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
 }
 
 #[test]

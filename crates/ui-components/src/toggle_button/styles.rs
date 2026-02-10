@@ -25,6 +25,11 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
+.ui-toggle-button[data-motion-source="custom"],
+.ui-toggle-button[data-custom-motion="true"] {
+  --ui-toggle-button-custom-motion: 1;
+}
+
 .ui-toggle-button:not(:disabled) {
   cursor: pointer;
 }

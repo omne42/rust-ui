@@ -70,6 +70,13 @@ pub fn ToggleButton(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == ToggleButtonMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ToggleButtonMotion::default()).then_some("true");
+
     view! {
         <button
             type="button"
@@ -87,6 +94,8 @@ pub fn ToggleButton(
             data-pressed=move || state.get().is_pressed.then_some("true")
             data-focused=move || state.get().is_focused.then_some("true")
             data-focus-visible=move || state.get().is_focus_visible.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
