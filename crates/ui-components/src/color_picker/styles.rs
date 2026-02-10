@@ -4,6 +4,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-color-picker[data-motion-source="custom"],
+.ui-color-picker[data-custom-motion="true"] {
+  --ui-color-picker-custom-motion: 1;
+}
+
 .ui-color-picker__trigger {
   display: inline-flex;
   align-items: center;

@@ -284,7 +284,7 @@ pub use color_editor::{ColorEditor, ColorEditorFormat};
 pub use color_field::ColorField;
 pub use color_handle::ColorHandle;
 pub use color_loupe::ColorLoupe;
-pub use color_picker::ColorPicker;
+pub use color_picker::{ColorPicker, ColorPickerMotion};
 pub use color_slider::{ColorSlider, ColorSliderChannel, ColorSliderMotion};
 pub use color_swatch::{
     ColorSwatch, ColorSwatchAlpha, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,

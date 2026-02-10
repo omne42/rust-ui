@@ -1,5 +1,5 @@
 use crate::color_picker::{
-    ColorPickerStateInput,
+    ColorPickerMotion, ColorPickerStateInput,
     logic::{self},
 };
 use crate::color_swatch::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};
@@ -20,6 +20,7 @@ pub fn ColorPicker(
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional)] motion: ColorPickerMotion,
     #[prop(optional)] placement: PopoverPlacement,
     #[prop(optional)] swatch_size: ColorSwatchSize,
     #[prop(optional)] swatch_rounding: ColorSwatchRounding,
@@ -108,6 +109,12 @@ pub fn ColorPicker(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if motion == ColorPickerMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=move || (motion != ColorPickerMotion::default()).then_some("true")
         >
             <button
                 id=trigger_id.get_value()
@@ -167,6 +174,7 @@ pub fn ColorPicker(
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=placement
+                    motion=motion.popover
                     on_exit_complete=presence.finish_exit
                 >
                     {move || {
