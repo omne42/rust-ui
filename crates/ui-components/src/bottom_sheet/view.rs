@@ -87,6 +87,12 @@ pub fn BottomSheet(
                             data-handle-visible=state.show_handle.then_some("true")
                             data-close-visible=state.show_close_button.then_some("true")
                             data-custom-class=state.has_custom_class_name.then_some("true")
+                            data-motion-source=if motion == BottomSheetMotion::default() {
+                                "default"
+                            } else {
+                                "custom"
+                            }
+                            data-custom-motion=(motion != BottomSheetMotion::default()).then_some("true")
                             data-class-source=state.class_source_attr
                         >
                             <Show when=move || state.show_handle>
@@ -179,6 +185,12 @@ pub fn BottomSheet(
                             data-handle-visible=state.show_handle.then_some("true")
                             data-close-visible=state.show_close_button.then_some("true")
                             data-custom-class=state.has_custom_class_name.then_some("true")
+                            data-motion-source=if motion == BottomSheetMotion::default() {
+                                "default"
+                            } else {
+                                "custom"
+                            }
+                            data-custom-motion=(motion != BottomSheetMotion::default()).then_some("true")
                             data-class-source=state.class_source_attr
                         >
                             <Show when=move || state.show_handle>

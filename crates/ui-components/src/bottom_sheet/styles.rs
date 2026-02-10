@@ -8,6 +8,11 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
 }
 
+.ui-bottom-sheet[data-motion-source="custom"],
+.ui-bottom-sheet[data-custom-motion="true"] {
+  --ui-bottom-sheet-custom-motion: 1;
+}
+
 .ui-bottom-sheet--detached,
 .ui-bottom-sheet[data-detached="true"] {
   margin-inline: var(--ui-space-sm);

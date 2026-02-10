@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `BottomSheet` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `BottomSheetMotion` contract tests for HeroUI-level sheet-motion tuning.
+- `apps/docs-app`: extends `BottomSheet` docs with a custom-motion playground showing `BottomSheetMotion { sheet: SheetMotion { initial_offset_px, .. } }` tuning.
 - `ui-components`: upgrades `DropZone` with explicit root motion markers (`data-motion-source`/`data-custom-motion`) and `DropZoneMotion` contract tests for HeroUI-level spring hover/drop interaction tuning.
 - `apps/docs-app`: extends `DropZone` docs with a custom-motion playground showing `DropZoneMotion` tuning (`hover_scale`/`drop_scale`/`hover_highlight`).
 - `ui-components`: upgrades `Tray` with explicit root state/motion markers (`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `TrayMotion` contract tests for HeroUI-level sheet-motion passthrough tuning.

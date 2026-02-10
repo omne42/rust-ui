@@ -96,6 +96,8 @@ fn bottom_sheet_emits_spectrum_style_state_data_attributes() {
         "data-close-button=state.close_button_attr",
         "data-detached=state.detached_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=if motion == BottomSheetMotion::default()",
+        "data-custom-motion=(motion != BottomSheetMotion::default()).then_some(\"true\")",
         "data-slot=\"bottom-sheet-handle\"",
         "data-slot=\"bottom-sheet-title\"",
         "data-slot=\"bottom-sheet-description\"",
@@ -115,6 +117,8 @@ fn bottom_sheet_styles_include_state_marker_contracts() {
     let source = load_source("src/bottom_sheet/styles.rs");
 
     for selector in [
+        ".ui-bottom-sheet[data-motion-source=\"custom\"]",
+        ".ui-bottom-sheet[data-custom-motion=\"true\"]",
         ".ui-bottom-sheet--detached",
         ".ui-bottom-sheet[data-detached=\"false\"]",
         ".ui-bottom-sheet--inset-md",
@@ -145,6 +149,23 @@ fn bottom_sheet_close_button_contracts_are_preserved() {
         assert!(
             source.contains(needle),
             "BottomSheet should preserve close button contracts (`{needle}`)."
+        );
+    }
+}
+
+#[test]
+fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_tests() {
+    let source = load_source("src/bottom_sheet/motion.rs");
+
+    for needle in [
+        "pub struct BottomSheetMotion",
+        "pub sheet: crate::sheet::SheetMotion",
+        "fn default_motion_uses_default_sheet_motion_contract()",
+        "fn supports_custom_sheet_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "BottomSheet motion module should include `{needle}` for HeroUI-level contract coverage."
         );
     }
 }

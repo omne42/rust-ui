@@ -2,9 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    BottomSheet, Button, ButtonVariant, OnPress, Sonner, SonnerPosition, ToastOptions,
-    ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion, Underlay,
-    provide_toast_store,
+    BottomSheet, BottomSheetMotion, Button, ButtonVariant, OnPress, Sonner, SonnerPosition,
+    ToastOptions, ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion,
+    Underlay, provide_toast_store,
 };
 
 pub(super) fn bottom_sheet() -> AnyView {
@@ -34,6 +34,23 @@ pub(super) fn bottom_sheet() -> AnyView {
     let open_detached_sheet: OnPress = Callback::new(move |_| set_open_detached_raw.set(true));
     let on_detached_exit_complete = Callback::new(move |_| set_present_detached.set(false));
 
+    let (open_custom_motion_raw, set_open_custom_motion_raw) = signal(false);
+    let open_custom_motion: Signal<bool> = Signal::derive(move || open_custom_motion_raw.get());
+    let (present_custom_motion, set_present_custom_motion) =
+        signal(open_custom_motion.get_untracked());
+    Effect::new(move |_| {
+        if open_custom_motion.get() {
+            set_present_custom_motion.set(true);
+        }
+    });
+
+    let close_custom_motion: OnPress =
+        Callback::new(move |_| set_open_custom_motion_raw.set(false));
+    let open_custom_motion_sheet: OnPress =
+        Callback::new(move |_| set_open_custom_motion_raw.set(true));
+    let on_custom_motion_exit_complete =
+        Callback::new(move |_| set_present_custom_motion.set(false));
+
     let semantic_code = r#"<BottomSheet
   open=open
   id_base="bottom-sheet".to_string()
@@ -54,6 +71,23 @@ pub(super) fn bottom_sheet() -> AnyView {
   bottom_inset_px=16.0
   show_close_button=false
   class_name="docs-bottom-sheet-custom".to_string()
+  on_close=close
+  on_exit_complete=finish_exit
+>
+  ...
+</BottomSheet>"#;
+
+    let custom_motion_code = r#"<BottomSheet
+  open=open
+  id_base="bottom-sheet-motion".to_string()
+  title="Motion tuned".to_string()
+  description="Custom sheet motion demonstrates data-motion-source contract.".to_string()
+  motion=BottomSheetMotion {
+    sheet: ui_components::SheetMotion {
+      initial_offset_px: 64.0,
+      ..ui_components::SheetMotion::default()
+    }
+  }
   on_close=close
   on_exit_complete=finish_exit
 >
@@ -126,6 +160,35 @@ pub(super) fn bottom_sheet() -> AnyView {
                                     "Dismiss"
                                 </Button>
                             </div>
+                        </div>
+                    </BottomSheet>
+                </Show>
+            </Playground>
+
+            <Playground title="Custom Motion Contract" code=custom_motion_code>
+                <div class="docs-row">
+                    <Button on_press=open_custom_motion_sheet>"Open custom motion sheet"</Button>
+                    <span class="ui-muted">"open: " {move || open_custom_motion_raw.get().to_string()}</span>
+                </div>
+
+                <Show when=move || present_custom_motion.get()>
+                    <BottomSheet
+                        open=open_custom_motion
+                        id_base="docs-bottom-sheet-motion".to_string()
+                        title="Motion tuned".to_string()
+                        description="Custom sheet motion flips data-motion-source to custom.".to_string()
+                        motion=BottomSheetMotion {
+                            sheet: ui_components::SheetMotion {
+                                initial_offset_px: 64.0,
+                                ..ui_components::SheetMotion::default()
+                            },
+                        }
+                        on_close=close_custom_motion
+                        on_exit_complete=on_custom_motion_exit_complete
+                    >
+                        <div class="docs-stack docs-stack--tight">
+                            <div>"Motion contract switches to custom markers for style/debug hooks."</div>
+                            <div class="ui-muted">"Use devtools to inspect data-motion-source/custom-motion."</div>
                         </div>
                     </BottomSheet>
                 </Show>
