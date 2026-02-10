@@ -22,6 +22,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: extends `Combobox` docs with a `State + Source Markers` playground to inspect `data-state`/`data-selection`/`data-options`/`data-requirement`/`data-placeholder-source`/`data-motion-source` contracts.
 - `ui-components`: upgrades `Dropzone` to a full `logic/styles/view` slice with centralized label/aria/handler source normalization, stable Spectrum-style `data-*` state/source/motion contracts, and hardened wrapper composition over `DropZone`.
 - `apps/docs-app`: extends `Dropzone` docs with a `State + Source Markers` playground to inspect `data-state`/`data-label-source`/`data-aria-source`/`data-drop-handler-source`/`data-motion-source` contracts.
+- `ui-components`: upgrades `Search` to a full `logic/styles/view` slice with centralized label/description/error/handler source normalization, stable Spectrum-style `data-*` state/source/motion contracts, and hardened wrapper composition over `SearchField`.
+- `apps/docs-app`: extends `Search` docs with a `State + Source Markers` playground to inspect `data-state`/`data-value`/`data-requirement`/`data-submit-handler-source`/`data-clear-handler-source`/`data-motion-source` contracts.
 
 - `ui-components`: upgrades `Menu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `NavigationMenu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.

@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::Search;
+use ui_components::{Search, SearchFieldMotion};
 
 pub(super) fn search() -> AnyView {
     let (value, set_value) = signal(String::new());
@@ -13,6 +13,15 @@ pub(super) fn search() -> AnyView {
 
     let (required_value, set_required_value) = signal(String::new());
     let required_invalid = Signal::derive(move || required_value.get().trim().is_empty());
+
+    let (marker_value, set_marker_value) = signal("popover".to_string());
+    let (marker_submitted, set_marker_submitted) = signal(String::new());
+    let (marker_clear_count, set_marker_clear_count) = signal(0_u32);
+    let (marker_invalid, set_marker_invalid) = signal(false);
+
+    let marker_on_submit = Callback::new(move |next: String| set_marker_submitted.set(next));
+    let marker_on_clear =
+        Callback::new(move |_| set_marker_clear_count.update(|count| *count += 1));
 
     let basic_code = r#"let (value, set_value) = signal(String::new());
 let on_submit = Callback::new(|query: String| { /* ... */ });
@@ -37,6 +46,34 @@ let on_clear = Callback::new(|()| { /* ... */ });
   invalid=required_invalid
   error=\"Query is required\".to_string()
 />"#;
+
+    let markers_code = r#"let mut marker_motion = SearchFieldMotion::default();
+marker_motion.hidden_scale = 0.78;
+marker_motion.hover_scale = 1.08;
+marker_motion.tap_scale = 0.92;
+
+<Search
+  id=\"docs-search-markers\".to_string()
+  label=\"Search runtime docs\".to_string()
+  value=value
+  set_value=set_value
+  required=true
+  invalid=Signal::derive(move || invalid.get())
+  description=\"Inspect source/state marker contracts\".to_string()
+  error=\"Query is required\".to_string()
+  placeholder=\"Try: spring\".to_string()
+  class_name=\"docs-search-state\".to_string()
+  on_submit=on_submit
+  on_clear=on_clear
+  motion=marker_motion
+/>"#;
+
+    let marker_motion = SearchFieldMotion {
+        hidden_scale: 0.78,
+        hover_scale: 1.08,
+        tap_scale: 0.92,
+        ..SearchFieldMotion::default()
+    };
 
     view! {
         <ComponentPage
@@ -77,6 +114,49 @@ let on_clear = Callback::new(|()| { /* ... */ });
                     <span class="ui-muted">
                         "invalid: "
                         {move || required_invalid.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, `data-submit-handler-source`, `data-clear-handler-source`, and `data-motion-source`."
+                code=markers_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Search
+                        id="docs-search-markers".to_string()
+                        label="Search runtime docs".to_string()
+                        value=marker_value
+                        set_value=set_marker_value
+                        required=true
+                        invalid=Signal::derive(move || marker_invalid.get())
+                        description="Inspect source/state marker contracts".to_string()
+                        error="Query is required".to_string()
+                        placeholder="Try: spring".to_string()
+                        class_name="docs-search-state".to_string()
+                        on_submit=marker_on_submit
+                        on_clear=marker_on_clear
+                        motion=marker_motion
+                    />
+                    <ui_components::Button
+                        variant=ui_components::ButtonVariant::Secondary
+                        on_press=Callback::new(move |_| {
+                            set_marker_invalid.update(|value| *value = !*value)
+                        })
+                    >
+                        {move || {
+                            if marker_invalid.get() {
+                                "Clear marker invalid"
+                            } else {
+                                "Mark marker invalid"
+                            }
+                        }}
+                    </ui_components::Button>
+                    <span class="ui-muted">"marker submitted: " {move || marker_submitted.get()}</span>
+                    <span class="ui-muted">
+                        "marker clear count: "
+                        {move || marker_clear_count.get().to_string()}
                     </span>
                 </div>
             </Playground>
