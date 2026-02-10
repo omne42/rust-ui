@@ -79,6 +79,8 @@ fn action_button_emits_spectrum_style_data_attributes() {
         "data-has-start=state.has_start_content.then_some(\"true\")",
         "data-has-end=state.has_end_content.then_some(\"true\")",
         "data-has-handler=state.has_custom_press_handler.then_some(\"true\")",
+        "data-motion-source=if motion == ActionButtonMotion::default()",
+        "data-custom-motion=(motion != ActionButtonMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
@@ -140,6 +142,22 @@ fn action_button_has_spring_driven_scale_css_variable() {
 }
 
 #[test]
+fn action_button_styles_include_motion_marker_contracts() {
+    let source = load_source("src/action_button/styles.rs");
+
+    for selector in [
+        ".ui-action-button[data-motion-source=\"custom\"]",
+        ".ui-action-button[data-custom-motion=\"true\"]",
+        ".ui-action-button--focus-visible",
+    ] {
+        assert!(
+            source.contains(selector),
+            "ActionButton styles should include `{selector}` as stable state/motion contracts."
+        );
+    }
+}
+
+#[test]
 fn action_button_spinner_respects_reduced_motion() {
     let styles = load_source("src/action_button/styles.rs");
 
@@ -147,6 +165,22 @@ fn action_button_spinner_respects_reduced_motion() {
         assert!(
             styles.contains(needle),
             "ActionButton spinner should disable its CSS animation under reduced-motion via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_button_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/action_button/motion.rs");
+
+    for needle in [
+        "pub struct ActionButtonMotion",
+        "fn default_motion_matches_action_button_spring_contract()",
+        "fn supports_custom_motion_contract_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
         );
     }
 }

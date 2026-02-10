@@ -20,6 +20,11 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
+.ui-action-button[data-motion-source="custom"],
+.ui-action-button[data-custom-motion="true"] {
+  --ui-action-button-custom-motion: 1;
+}
+
 .ui-action-button:not(:disabled) {
   cursor: pointer;
 }

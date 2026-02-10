@@ -116,6 +116,12 @@ pub fn ActionButton(
             data-has-start=state.has_start_content.then_some("true")
             data-has-end=state.has_end_content.then_some("true")
             data-has-handler=state.has_custom_press_handler.then_some("true")
+            data-motion-source=if motion == ActionButtonMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ActionButtonMotion::default()).then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled

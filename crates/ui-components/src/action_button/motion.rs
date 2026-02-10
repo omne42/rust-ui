@@ -105,3 +105,46 @@ pub fn attach_motion(
     _motion: ActionButtonMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_matches_action_button_spring_contract() {
+        let motion = ActionButtonMotion::default();
+
+        assert_eq!(
+            motion.spring,
+            ui_motion::spring::SpringConfig {
+                stiffness: 260.0,
+                damping: 16.0,
+                mass: 1.0,
+                ..Default::default()
+            }
+        );
+        assert_eq!(motion.hover_scale, 1.03);
+        assert_eq!(motion.tap_scale, 0.96);
+    }
+
+    #[test]
+    fn supports_custom_motion_contract_values() {
+        let motion = ActionButtonMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 288.0,
+                damping: 19.0,
+                mass: 1.0,
+                precision: 0.002,
+            },
+            hover_scale: 1.05,
+            tap_scale: 0.93,
+        };
+
+        assert_eq!(motion.spring.stiffness, 288.0);
+        assert_eq!(motion.spring.damping, 19.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.002);
+        assert_eq!(motion.hover_scale, 1.05);
+        assert_eq!(motion.tap_scale, 0.93);
+    }
+}

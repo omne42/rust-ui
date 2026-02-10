@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `ActionButton` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `ActionButtonMotion` contract tests for HeroUI-level spring interaction tuning.
 - `ui-components`: upgrades `FileTrigger` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `FileTriggerMotion` contract tests for HeroUI-level trigger-motion tuning.
 - `apps/docs-app`: extends `FileTrigger` docs with a custom-motion playground showing `FileTriggerMotion { trigger: ButtonMotion { hover_scale/tap_scale, .. } }` tuning.
 - `ui-components`: upgrades `BottomSheet` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `BottomSheetMotion` contract tests for HeroUI-level sheet-motion tuning.
