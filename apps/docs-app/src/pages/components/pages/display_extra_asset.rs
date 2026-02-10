@@ -11,6 +11,17 @@ pub(super) fn asset() -> AnyView {
   <img src=\"https://picsum.photos/420/280\" alt=\"Preview image\" />
 </Asset>"#;
 
+    let state_code = r#"<Asset
+  variant=AssetVariant::Custom
+  size=AssetSize::Size800
+  label=\"Hero Artwork\".to_string()
+  selected=true
+  focused=true
+  class_name=\"docs-asset-state\".to_string()
+>
+  <img src=\"https://picsum.photos/500/360\" alt=\"Cover artwork\" />
+</Asset>"#;
+
     view! {
         <ComponentPage
             title="Asset"
@@ -36,6 +47,23 @@ pub(super) fn asset() -> AnyView {
             <Playground title="Custom Image + Focused State" code=custom_code>
                 <Asset size=AssetSize::Size700 selected=true focused=true>
                     <img src="https://picsum.photos/420/280" alt="Preview image" />
+                </Asset>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-label-source`, `data-content-source`, and `data-class-source` on the Asset root for Spectrum-compatible style/source contracts."
+                code=state_code
+            >
+                <Asset
+                    variant=AssetVariant::Custom
+                    size=AssetSize::Size800
+                    label="Hero Artwork".to_string()
+                    selected=true
+                    focused=true
+                    class_name="docs-asset-state".to_string()
+                >
+                    <img src="https://picsum.photos/500/360" alt="Cover artwork" />
                 </Asset>
             </Playground>
         </ComponentPage>

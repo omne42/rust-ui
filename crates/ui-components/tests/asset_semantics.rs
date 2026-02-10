@@ -15,6 +15,11 @@ fn asset_does_not_expose_view_module() {
         !source.contains("pub mod view"),
         "Asset internals should stay private; found `pub mod view`."
     );
+
+    assert!(
+        !source.contains("pub mod logic"),
+        "Asset `logic` module should stay private to avoid leaking internal state helpers."
+    );
 }
 
 #[test]
@@ -39,12 +44,65 @@ fn asset_wraps_thumbnail_contract() {
     for needle in [
         "pub fn Asset(",
         "variant: AssetVariant",
+        "logic::resolve_state(logic::AssetStateInput {",
+        "logic::compose_class_name(class_name, state)",
         "<Thumbnail",
         "data-slot=\"asset\"",
+        "data-size=state.size_attr",
+        "data-state=state.data_state_attr",
+        "data-label-source=state.label_source_attr",
+        "data-content-source=state.content_source_attr",
+        "data-class-source=state.class_source_attr",
     ] {
         assert!(
             source.contains(needle),
             "Asset wrapper should preserve Thumbnail contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn asset_styles_include_variant_state_and_accessibility_markers() {
+    let source = load_source("src/asset/styles.rs");
+
+    for selector in [
+        ".ui-asset--variant-file",
+        ".ui-asset[data-variant=\"file\"]",
+        ".ui-asset--variant-folder",
+        ".ui-asset--variant-custom",
+        ".ui-asset--selected",
+        ".ui-asset[data-selected=\"true\"]",
+        ".ui-asset--focused",
+        ".ui-asset[data-focused=\"true\"]",
+        "@media (forced-colors: active)",
+        "@media (prefers-reduced-motion: reduce)",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Asset styles should include `{selector}` for Spectrum-compatible state/accessibility contracts."
+        );
+    }
+}
+
+#[test]
+fn asset_logic_tracks_label_content_and_class_sources() {
+    let source = load_source("src/asset/logic.rs");
+
+    for needle in [
+        "pub const DEFAULT_FILE_LABEL: &str = \"File\";",
+        "pub const DEFAULT_FOLDER_LABEL: &str = \"Folder\";",
+        "pub const DEFAULT_CUSTOM_LABEL: &str = \"Asset\";",
+        "pub struct AssetStateInput",
+        "pub struct AssetState",
+        "pub fn resolve_label(label: Option<String>, variant: AssetVariant) -> String",
+        "pub fn resolve_state(input: AssetStateInput) -> AssetState",
+        "label_source_attr",
+        "content_source_attr",
+        "class_source_attr",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Asset logic should include `{needle}` for centralized state/source normalization."
         );
     }
 }

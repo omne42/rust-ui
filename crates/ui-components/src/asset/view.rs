@@ -1,25 +1,6 @@
-use super::{AssetMotion, AssetSize, AssetVariant};
+use super::{AssetMotion, AssetSize, AssetVariant, logic};
 use crate::Thumbnail;
 use leptos::prelude::*;
-
-fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-fn resolve_label(label: Option<String>, variant: AssetVariant) -> String {
-    if let Some(label) = normalize_optional_text(label) {
-        return label;
-    }
-
-    match variant {
-        AssetVariant::File => "File".to_string(),
-        AssetVariant::Folder => "Folder".to_string(),
-        AssetVariant::Custom => "Asset".to_string(),
-    }
-}
 
 #[component]
 pub fn Asset(
@@ -32,17 +13,33 @@ pub fn Asset(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] children: Option<Children>,
 ) -> impl IntoView {
-    let label = resolve_label(label, variant);
-    let class_name = normalize_optional_text(class_name)
-        .map(|class_name| format!("ui-asset {class_name}"))
-        .unwrap_or_else(|| "ui-asset".to_string());
+    let normalized_label = logic::normalize_optional_text(label);
+    let has_custom_label = normalized_label.is_some();
+    let label = logic::resolve_label(normalized_label, variant);
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_content = children.is_some() && variant == AssetVariant::Custom;
+
+    let state = logic::resolve_state(logic::AssetStateInput {
+        variant,
+        size,
+        selected,
+        focused,
+        has_custom_label,
+        has_custom_class_name: class_name.is_some(),
+        has_custom_content,
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
+
+    let label = StoredValue::new(label);
 
     let content: AnyView = match variant {
         AssetVariant::File => view! {
             <svg
                 viewBox="0 0 24 24"
                 role="img"
-                aria-label=label
+                aria-label=label.get_value()
+                class="ui-asset__icon ui-asset__icon--file"
                 data-slot="asset-file"
                 data-variant="file"
             >
@@ -67,7 +64,8 @@ pub fn Asset(
             <svg
                 viewBox="0 0 24 24"
                 role="img"
-                aria-label=label
+                aria-label=label.get_value()
+                class="ui-asset__icon ui-asset__icon--folder"
                 data-slot="asset-folder"
                 data-variant="folder"
             >
@@ -96,7 +94,8 @@ pub fn Asset(
                     <svg
                         viewBox="0 0 24 24"
                         role="img"
-                        aria-label=label
+                        aria-label=label.get_value()
+                        class="ui-asset__icon ui-asset__icon--custom-fallback"
                         data-slot="asset-custom"
                         data-variant="custom"
                     >
@@ -134,10 +133,17 @@ pub fn Asset(
             class_name=class_name
         >
             <div
+                class="ui-asset__content"
                 data-slot="asset"
-                data-variant=variant.as_attr()
-                data-selected=selected.then_some("true")
-                data-focused=focused.then_some("true")
+                data-variant=state.variant_attr
+                data-size=state.size_attr
+                data-state=state.data_state_attr
+                data-selected=state.selected.then_some("true")
+                data-focused=state.focused.then_some("true")
+                data-label-source=state.label_source_attr
+                data-class-source=state.class_source_attr
+                data-content-source=state.content_source_attr
+                data-custom-class=state.has_custom_class_name.then_some("true")
             >
                 {content}
             </div>

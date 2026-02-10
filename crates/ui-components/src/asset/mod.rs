@@ -1,6 +1,8 @@
 pub use crate::thumbnail::ThumbnailMotion as AssetMotion;
 pub use crate::thumbnail::ThumbnailSize as AssetSize;
 
+mod logic;
+pub mod styles;
 mod view;
 
 pub use view::Asset;
