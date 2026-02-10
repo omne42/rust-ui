@@ -29,45 +29,95 @@ fn toaster_is_publicly_exported_from_module_and_crate_root() {
         "toaster::mod should re-export Toaster."
     );
     assert!(
+        toaster_mod.contains("DEFAULT_PORTAL") && toaster_mod.contains("DEFAULT_MAX_TOASTS"),
+        "toaster::mod should expose default portal/max-toasts contracts."
+    );
+    assert!(
         crate_root.contains("pub use toaster::{Toaster, ToasterPosition};"),
         "crate root should expose Toaster and ToasterPosition."
     );
 }
 
 #[test]
-fn toaster_exposes_spectrum_style_state_and_accessibility_contracts() {
-    let source = load_source("src/toaster/view.rs");
+fn toaster_module_exposes_slot_and_part_state_contracts() {
+    let source = load_source("src/toaster/mod.rs");
 
     for needle in [
-        "data-slot=\"toaster\"",
-        "data-position=state.position_attr",
-        "data-portal=state.portal_attr",
-        "data-max-toasts=state.max_toasts.to_string()",
-        "data-aria-source=state.aria_source_attr",
-        "data-class-source=state.class_source_attr",
-        "data-motion-source=motion_source",
-        "data-custom-motion=custom_motion",
-        "role=\"region\"",
-        "aria-label=aria_label",
+        "pub enum ToasterSlot",
+        "pub enum ToasterStoreSource",
+        "pub struct ToasterPartStateInput",
+        "pub struct ToasterPartState",
+        "pub fn as_attr(self) -> &'static str",
+        "pub fn base_class(self) -> &'static str",
     ] {
         assert!(
             source.contains(needle),
-            "Toaster should include `{needle}` for state/a11y contracts."
+            "Toaster module should include `{needle}` for stable slot/part-state contracts."
         );
     }
 }
 
 #[test]
-fn toaster_styles_include_motion_marker_contracts() {
-    let source = load_source("src/toaster/styles.rs");
+fn toaster_view_uses_logic_state_contracts() {
+    let source = load_source("src/toaster/view.rs");
 
-    for selector in [
-        ".ui-toaster[data-motion-source=\"custom\"]",
-        ".ui-toaster[data-custom-motion=\"true\"]",
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::normalize_aria_label(aria_label)",
+        "logic::normalize_max_toasts(max_toasts)",
+        "logic::resolve_state(ToasterPartStateInput {",
+        "slot: ToasterSlot::Root",
+        "slot: ToasterSlot::Sonner",
+        "logic::compose_class_name(class_name.get_value(), root_state)",
+        "logic::compose_class_name(None, sonner_state)",
+        "logic::map_to_sonner_position(root_state.position)",
+        "data-slot=root_state.slot_attr",
+        "data-state=root_state.state_attr",
+        "data-queue=root_state.queue_attr",
+        "data-position=root_state.position_attr",
+        "data-portal=root_state.portal_attr",
+        "data-position-source=root_state.position_source_attr",
+        "data-portal-source=root_state.portal_source_attr",
+        "data-max-toasts-source=root_state.max_toasts_source_attr",
+        "data-aria-source=root_state.aria_source_attr",
+        "data-class-source=root_state.class_source_attr",
+        "data-motion-source=root_state.motion_source_attr",
+        "data-store-source=root_state.store_source_attr",
+        "data-custom-position=root_state.has_custom_position.then_some(\"true\")",
+        "data-custom-portal=root_state.has_custom_portal.then_some(\"true\")",
+        "data-custom-max-toasts=root_state.has_custom_max_toasts.then_some(\"true\")",
+        "data-custom-motion=root_state.has_custom_motion.then_some(\"true\")",
+        "data-custom-class=root_state.has_custom_class_name.then_some(\"true\")",
+        "data-sonner-slot=sonner_state.slot_attr",
+        "data-sonner-state=sonner_state.state_attr",
+        "data-sonner-position=sonner_state.position_attr",
+        "data-sonner-portal=sonner_state.portal_attr",
+        "data-sonner-queue=sonner_state.queue_attr",
+        "aria-label=aria_label.get_value()",
     ] {
         assert!(
-            source.contains(selector),
-            "Toaster styles should include `{selector}` as stable custom-motion selectors."
+            source.contains(needle),
+            "Toaster view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn toaster_view_tracks_store_source_resolution() {
+    let source = load_source("src/toaster/view.rs");
+
+    for needle in [
+        "if let Some(provided_store) = store",
+        "ToasterStoreSource::Provided",
+        "crate::toast::use_toast_store()",
+        "ToasterStoreSource::Context",
+        "crate::toast::provide_toast_store(ToastStoreOptions {",
+        "ToasterStoreSource::Local",
+        "max_toasts: normalized_max_toasts",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Toaster view should include `{needle}` for stable store-source derivation."
         );
     }
 }
@@ -79,9 +129,11 @@ fn toaster_composes_sonner_as_host_layer() {
     for needle in [
         "<Sonner",
         "store=store",
-        "position=position",
+        "position=sonner_position",
         "class_name=sonner_class_name",
-        "max_toasts=state.max_toasts",
+        "max_toasts=sonner_state.max_toasts",
+        "portal=sonner_state.portal",
+        "motion=motion",
     ] {
         assert!(
             source.contains(needle),
@@ -91,36 +143,67 @@ fn toaster_composes_sonner_as_host_layer() {
 }
 
 #[test]
-fn toaster_logic_models_positions_and_normalization() {
+fn toaster_logic_models_positions_queue_and_part_state() {
     let source = load_source("src/toaster/logic.rs");
 
     for needle in [
-        "pub enum ToasterPosition",
-        "TopLeft",
-        "TopCenter",
-        "TopRight",
-        "BottomLeft",
-        "BottomCenter",
-        "BottomRight",
+        "pub const DEFAULT_ARIA_LABEL: &str = \"Toaster notifications\";",
+        "pub const DEFAULT_PORTAL: bool = true;",
+        "pub const DEFAULT_MAX_TOASTS: usize = 3;",
         "pub fn normalize_aria_label(value: Option<String>) -> (String, bool)",
         "pub fn normalize_max_toasts(max_toasts: usize) -> usize",
-        "pub fn compose_toaster_class_name(base_class_name: Option<String>, state: &ToasterState)",
+        "pub fn state_attr(portal: bool) -> &'static str",
+        "pub fn queue_attr(max_toasts: usize) -> &'static str",
+        "pub fn resolve_state(input: ToasterPartStateInput) -> ToasterPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: ToasterPartState)",
+        "pub fn map_to_sonner_position(position: ToasterPosition)",
     ] {
         assert!(
             source.contains(needle),
-            "Toaster logic should include `{needle}` for stable contracts."
+            "Toaster logic should include `{needle}` for centralized state/source contracts."
         );
     }
 }
 
 #[test]
-fn toaster_docs_page_exists_in_overlays_extra() {
+fn toaster_styles_include_state_and_source_marker_contracts() {
+    let source = load_source("src/toaster/styles.rs");
+
+    for selector in [
+        ".ui-toaster[data-motion-source=\"custom\"]",
+        ".ui-toaster[data-custom-motion=\"true\"]",
+        ".ui-toaster[data-position-source=\"custom\"]",
+        ".ui-toaster[data-custom-position=\"true\"]",
+        ".ui-toaster[data-portal-source=\"custom\"]",
+        ".ui-toaster[data-custom-portal=\"true\"]",
+        ".ui-toaster[data-max-toasts-source=\"custom\"]",
+        ".ui-toaster[data-custom-max-toasts=\"true\"]",
+        ".ui-toaster[data-store-source=\"provided\"]",
+        ".ui-toaster[data-store-source=\"context\"]",
+        ".ui-toaster[data-store-source=\"local\"]",
+        ".ui-toaster[data-state=\"inline\"]",
+        ".ui-toaster[data-queue=\"single\"] .ui-toaster__sonner.ui-sonner",
+        ".ui-toaster[data-queue=\"bounded\"] .ui-toaster__sonner.ui-sonner",
+        ".ui-toaster__sonner[data-slot=\"toaster-sonner\"].ui-sonner",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Toaster styles should include `{selector}` as stable state/source selectors."
+        );
+    }
+}
+
+#[test]
+fn toaster_docs_page_contains_state_source_playground() {
     let docs = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
 
     for needle in [
         "pub(super) fn toaster() -> AnyView",
         "title=\"Toaster\"",
         "slug=\"toaster\"",
+        "State + Source Markers",
+        "data-position-source",
+        "data-store-source",
         "<Toaster",
     ] {
         assert!(
@@ -128,4 +211,14 @@ fn toaster_docs_page_exists_in_overlays_extra() {
             "Toaster docs page should contain `{needle}`."
         );
     }
+}
+
+#[test]
+fn toaster_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::toaster::styles::CSS);"),
+        "ui-components css aggregator should include toaster styles."
+    );
 }

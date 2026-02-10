@@ -482,6 +482,7 @@ store.push_simple("Saved");"#;
 pub(super) fn toaster() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
+    let source_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
 
     let push_saved: OnPress = Callback::new(move |_| {
         portal_store.get_value().push_simple("Synced");
@@ -505,6 +506,16 @@ pub(super) fn toaster() -> AnyView {
     });
     let clear_inline: OnPress = Callback::new(move |_| inline_store.get_value().clear.run(()));
 
+    let push_source: OnPress = Callback::new(move |_| {
+        source_store.get_value().push.run(ToastOptions {
+            title: "Promotion deployed".to_string(),
+            description: Some("Store + source markers stay inspectable.".to_string()),
+            variant: ToastVariant::Danger,
+            duration_ms: Some(5200),
+        });
+    });
+    let clear_source: OnPress = Callback::new(move |_| source_store.get_value().clear.run(()));
+
     let basic_code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
 <Toaster store=store.clone() />
 store.push_simple("Synced");"#;
@@ -517,12 +528,32 @@ store.push_simple("Synced");"#;
   class_name="docs-toaster-inline".to_string()
 />"#;
 
+    let source_code = r#"<Toaster
+  store=store.clone()
+  portal=false
+  position=ToasterPosition::TopLeft
+  max_toasts=4
+  aria_label="Alert stream".to_string()
+  class_name="docs-toaster-source".to_string()
+  motion=ToastMotion {
+    initial_y_px: 20.0,
+    initial_scale: 0.95,
+    ..ToastMotion::default()
+  }
+/>"#;
+
+    let custom_motion = ToastMotion {
+        initial_y_px: 20.0,
+        initial_scale: 0.95,
+        ..ToastMotion::default()
+    };
+
     view! {
         <ComponentPage
             title="Toaster"
             slug="toaster"
             group="Overlays"
-            description="Shadcn-compatible toast host that composes Sonner/ToastViewport with normalized position, queue, and stable toaster-level data-state contracts."
+            description="Shadcn-compatible toast host that composes Sonner/ToastViewport with centralized slot/queue/position/store source-state contracts and HeroUI-level spring motion handoff."
         >
             <Playground title="Portal Queue Host" code=basic_code>
                 <div class="docs-row">
@@ -550,6 +581,33 @@ store.push_simple("Synced");"#;
                         position=ToasterPosition::TopCenter
                         max_toasts=2
                         class_name="docs-toaster-inline".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
+                code=source_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=push_source>"Push source toast"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=clear_source>
+                            "Clear"
+                        </Button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools."
+                    </div>
+                    <Toaster
+                        store=source_store.get_value()
+                        portal=false
+                        position=ToasterPosition::TopLeft
+                        max_toasts=4
+                        aria_label="Alert stream".to_string()
+                        class_name="docs-toaster-source".to_string()
+                        motion=custom_motion
                     />
                 </div>
             </Playground>
