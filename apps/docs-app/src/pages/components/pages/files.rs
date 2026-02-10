@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{DropZone, DroppedFile, FileTrigger, FileTriggerFile};
+use ui_components::{DropZone, DropZoneMotion, DroppedFile, FileTrigger, FileTriggerFile};
 
 pub(super) fn file_trigger() -> AnyView {
     let (files, set_files) = signal(Vec::<FileTriggerFile>::new());
@@ -63,6 +63,19 @@ pub(super) fn drop_zone() -> AnyView {
   "Drop files here"
 </DropZone>"#;
 
+    let motion_code = r#"<DropZone
+  label="Upload".to_string()
+  motion=DropZoneMotion {
+    hover_scale: 1.015,
+    drop_scale: 1.03,
+    hover_highlight: 0.42,
+    ..DropZoneMotion::default()
+  }
+  on_drop_files=on_drop_files
+>
+  "Drop files here"
+</DropZone>"#;
+
     view! {
         <ComponentPage
             title="DropZone"
@@ -104,6 +117,26 @@ pub(super) fn drop_zone() -> AnyView {
                             }
                         }}
                     </div>
+                </div>
+            </Playground>
+
+            <Playground title="Drop / paste with custom motion" code=motion_code>
+                <div class="docs-stack">
+                    <DropZone
+                        label="Upload (custom motion)".to_string()
+                        motion=DropZoneMotion {
+                            hover_scale: 1.015,
+                            drop_scale: 1.03,
+                            hover_highlight: 0.42,
+                            ..DropZoneMotion::default()
+                        }
+                        on_drop_files=on_drop_files
+                    >
+                        <div class="docs-drop-zone">
+                            <div>"Drop files here"</div>
+                            <div class="ui-muted">"Custom spring scale + highlight tuning."</div>
+                        </div>
+                    </DropZone>
                 </div>
             </Playground>
         </ComponentPage>

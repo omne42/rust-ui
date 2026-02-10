@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-drop-zone[data-motion-source="custom"],
+.ui-drop-zone[data-custom-motion="true"] {
+  --ui-drop-zone-custom-motion: 1;
+}
+
 .ui-drop-zone__label {
   font-size: 13px;
   font-weight: 600;

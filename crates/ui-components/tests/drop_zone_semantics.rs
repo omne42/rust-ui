@@ -37,6 +37,9 @@ fn drop_zone_emits_spectrum_style_data_attributes() {
     let source = load_source("src/drop_zone/view.rs");
 
     for attr in [
+        "data-slot=\"drop-zone\"",
+        "data-motion-source=if motion == DropZoneMotion::default()",
+        "data-custom-motion=(motion != DropZoneMotion::default()).then_some(\"true\")",
         "data-hovered",
         "data-focused",
         "data-focus-visible",
@@ -73,4 +76,35 @@ fn drop_zone_has_spring_driven_highlight_css_var() {
         source.contains("--ui-drop-zone-highlight"),
         "DropZone styles should define `--ui-drop-zone-highlight` for spring-driven hover/drop-target feedback."
     );
+}
+
+#[test]
+fn drop_zone_styles_include_motion_marker_selectors() {
+    let source = load_source("src/drop_zone/styles.rs");
+
+    for selector in [
+        ".ui-drop-zone[data-motion-source=\"custom\"]",
+        ".ui-drop-zone[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "DropZone styles should include `{selector}` for stable motion marker contracts."
+        );
+    }
+}
+
+#[test]
+fn drop_zone_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/drop_zone/motion.rs");
+
+    for needle in [
+        "pub struct DropZoneMotion",
+        "fn default_motion_uses_expected_drop_zone_contract()",
+        "fn supports_custom_drop_zone_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "DropZone motion module should include `{needle}` for HeroUI-level regression coverage."
+        );
+    }
 }

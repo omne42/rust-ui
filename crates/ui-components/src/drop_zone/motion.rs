@@ -134,3 +134,43 @@ pub fn attach_motion(
     _motion: DropZoneMotion,
 ) {
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_uses_expected_drop_zone_contract() {
+        let motion = DropZoneMotion::default();
+
+        assert_eq!(motion.spring.stiffness, 260.0);
+        assert_eq!(motion.spring.damping, 18.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.hover_scale, 1.01);
+        assert_eq!(motion.drop_scale, 1.02);
+        assert_eq!(motion.hover_highlight, 0.35);
+    }
+
+    #[test]
+    fn supports_custom_drop_zone_motion_contract() {
+        let motion = DropZoneMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 220.0,
+                damping: 20.0,
+                mass: 1.0,
+                precision: 0.002,
+            },
+            hover_scale: 1.015,
+            drop_scale: 1.03,
+            hover_highlight: 0.42,
+        };
+
+        assert_eq!(motion.spring.stiffness, 220.0);
+        assert_eq!(motion.spring.damping, 20.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.002);
+        assert_eq!(motion.hover_scale, 1.015);
+        assert_eq!(motion.drop_scale, 1.03);
+        assert_eq!(motion.hover_highlight, 0.42);
+    }
+}

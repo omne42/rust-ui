@@ -174,7 +174,16 @@ pub fn DropZone(
     };
 
     view! {
-        <div class="ui-drop-zone" data-slot="drop-zone">
+        <div
+            class="ui-drop-zone"
+            data-slot="drop-zone"
+            data-motion-source=if motion == DropZoneMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != DropZoneMotion::default()).then_some("true")
+        >
             {label.clone().map(|label| view! {
                 <div class="ui-drop-zone__label" data-slot="drop-zone-label">{label}</div>
             })}
