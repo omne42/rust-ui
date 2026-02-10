@@ -1,11 +1,15 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{DroppedFile, Dropzone};
+use ui_components::{DropZoneMotion, DroppedFile, Dropzone};
 
 pub(super) fn dropzone() -> AnyView {
     let (files, set_files) = signal(Vec::<DroppedFile>::new());
     let on_drop_files = Callback::new(move |next: Vec<DroppedFile>| set_files.set(next));
+
+    let (marker_events, set_marker_events) = signal(0_u32);
+    let marker_on_drop_files =
+        Callback::new(move |_: Vec<DroppedFile>| set_marker_events.update(|count| *count += 1));
 
     let basic_code = r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
 <Dropzone label=\"Upload\".to_string() on_drop_files=on_drop_files>
@@ -15,6 +19,26 @@ pub(super) fn dropzone() -> AnyView {
     let disabled_code = r#"<Dropzone label=\"Disabled\".to_string() disabled=true>
   \"Dropzone disabled\"
 </Dropzone>"#;
+
+    let markers_code = r#"let mut marker_motion = DropZoneMotion::default();
+marker_motion.hover_scale = 1.02;
+marker_motion.drop_scale = 1.01;
+
+<Dropzone
+  label=\"Asset upload\".to_string()
+  aria_label=\"Asset upload area\".to_string()
+  class_name=\"docs-dropzone-state\".to_string()
+  motion=marker_motion
+  on_drop_files=Callback::new(move |_| { /* marker */ })
+>
+  <div>\"Inspect root source/state markers\"</div>
+</Dropzone>"#;
+
+    let marker_motion = DropZoneMotion {
+        hover_scale: 1.02,
+        drop_scale: 1.01,
+        ..DropZoneMotion::default()
+    };
 
     view! {
         <ComponentPage
@@ -67,6 +91,28 @@ pub(super) fn dropzone() -> AnyView {
                         <div class="ui-muted">"No pointer or drop interactions"</div>
                     </div>
                 </Dropzone>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-label-source`, `data-aria-source`, `data-drop-handler-source`, `data-class-source`, and `data-motion-source`."
+                code=markers_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Dropzone
+                        label="Asset upload".to_string()
+                        aria_label="Asset upload area".to_string()
+                        class_name="docs-dropzone-state".to_string()
+                        motion=marker_motion
+                        on_drop_files=marker_on_drop_files
+                    >
+                        <div class="docs-drop-zone">
+                            <div>"Inspect root source/state markers"</div>
+                            <div class="ui-muted">"Custom aria/handler/motion markers are explicit."</div>
+                        </div>
+                    </Dropzone>
+                    <span class="ui-muted">"marker drop events: " {move || marker_events.get().to_string()}</span>
+                </div>
             </Playground>
         </ComponentPage>
     }
