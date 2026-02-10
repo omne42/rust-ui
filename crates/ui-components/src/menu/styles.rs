@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   outline: none;
 }
 
+.ui-menu[data-motion-source="custom"],
+.ui-menu[data-custom-motion="true"] {
+  --ui-menu-custom-motion: 1;
+}
+
 .ui-menu__items {
   position: relative;
   display: flex;

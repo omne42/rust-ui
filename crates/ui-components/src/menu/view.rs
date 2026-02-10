@@ -72,6 +72,13 @@ pub fn Menu(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == ActiveHighlightMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ActiveHighlightMotion::default()).then_some("true");
+
     let accessible_name = logic::resolve_accessible_name(aria_label, aria_labelledby);
     let aria_label = StoredValue::new(accessible_name.aria_label);
     let aria_labelledby = StoredValue::new(accessible_name.aria_labelledby);
@@ -113,6 +120,8 @@ pub fn Menu(
             data-has-checked-items=move || state.get().has_checked_items.then_some("true")
             data-checked-empty=move || (!state.get().has_checked_items).then_some("true")
             data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             on:keydown=on_key_down
         >
             <div class="ui-menu__items" node_ref=items_ref data-slot="menu-items">

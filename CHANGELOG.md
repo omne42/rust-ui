@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Menu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `NavigationMenu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `TopNav` wrapper with root motion markers (`data-motion-source`/`data-custom-motion`) and stable custom-motion style selectors for HeroUI-level navigation-highlight spring tuning.
 - `ui-components`: upgrades `Sonner` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level toast-stack spring orchestration tuning.

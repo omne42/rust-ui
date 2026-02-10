@@ -55,6 +55,8 @@ fn menu_exposes_state_and_slot_data_attributes() {
         "data-has-checked-items=move || state.get().has_checked_items.then_some(\"true\")",
         "data-checked-empty=move || (!state.get().has_checked_items).then_some(\"true\")",
         "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
         "data-slot=\"menu-items\"",
         "data-slot=\"menu-highlight\"",
         "data-slot=\"menu-item\"",
@@ -124,6 +126,21 @@ fn menu_attaches_active_highlight_motion_driver() {
         assert!(
             source.contains(needle),
             "Menu should keep active-highlight motion wiring via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn menu_styles_include_motion_marker_contracts() {
+    let source = load_source("src/menu/styles.rs");
+
+    for selector in [
+        ".ui-menu[data-motion-source=\"custom\"]",
+        ".ui-menu[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Menu styles should include `{selector}` as stable custom-motion selectors."
         );
     }
 }
