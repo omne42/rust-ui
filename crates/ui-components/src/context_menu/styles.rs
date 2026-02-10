@@ -4,6 +4,11 @@ pub const CSS: &str = r#"
   align-items: stretch;
 }
 
+.ui-context-menu[data-motion-source="custom"],
+.ui-context-menu[data-custom-motion="true"] {
+  --ui-context-menu-custom-motion: 1;
+}
+
 .ui-context-menu__trigger {
   display: inline-flex;
   align-items: center;

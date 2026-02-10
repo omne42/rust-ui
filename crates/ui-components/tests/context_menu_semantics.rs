@@ -70,6 +70,7 @@ fn context_menu_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "motion: ContextMenuMotion",
     ] {
         assert!(
             source.contains(needle),
@@ -120,6 +121,8 @@ fn context_menu_emits_spectrum_root_state_data_attributes() {
         "data-custom-label=state.has_custom_aria_label.then_some(\"true\")",
         "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
         "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
+        "data-motion-source=if motion == ContextMenuMotion::default()",
+        "data-custom-motion=(motion != ContextMenuMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -157,10 +160,29 @@ fn context_menu_styles_include_disabled_and_persistent_markers() {
         ".ui-context-menu--persistent",
         ".ui-context-menu--disabled",
         ".ui-context-menu--empty",
+        ".ui-context-menu[data-motion-source=\"custom\"]",
+        ".ui-context-menu[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
             "ContextMenu styles should include `{needle}` for stable visual state contracts."
+        );
+    }
+}
+
+#[test]
+fn context_menu_uses_dropdown_menu_motion_alias_contract() {
+    let mod_source = load_source("src/context_menu/mod.rs");
+    let dropdown_motion_source = load_source("src/dropdown_menu/motion.rs");
+
+    for needle in [
+        "pub use crate::dropdown_menu::DropdownMenuMotion as ContextMenuMotion;",
+        "pub struct DropdownMenuMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || dropdown_motion_source.contains(needle),
+            "ContextMenu motion alias contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }
