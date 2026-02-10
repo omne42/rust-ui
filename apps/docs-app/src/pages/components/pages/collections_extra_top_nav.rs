@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{TopNav, TopNavItem};
+use ui_components::{TopNav, TopNavItem, TopNavMotion};
 
 pub(super) fn top_nav() -> AnyView {
     let default_items = vec![
@@ -16,6 +16,13 @@ pub(super) fn top_nav() -> AnyView {
         TopNavItem::new("workflows", "Workflows", "/workflows"),
         TopNavItem::new("reports", "Reports", "/reports").disabled(true),
         TopNavItem::new("settings", "Settings", "/settings"),
+    ];
+
+    let marker_items = vec![
+        TopNavItem::new("brand", "Brand", "/"),
+        TopNavItem::new("docs", "Docs", "/docs"),
+        TopNavItem::new("api", "API", "/api"),
+        TopNavItem::new("status", "Status", "/status"),
     ];
 
     let (last_selected, set_last_selected) = signal("none".to_string());
@@ -50,6 +57,27 @@ let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.ge
   activate_on_focus=false
   label=\"Main application sections\".to_string()
 />"#;
+
+    let markers_code = r#"let mut marker_motion = TopNavMotion::default();
+marker_motion.spring.stiffness = 320.0;
+marker_motion.spring.damping = 24.0;
+
+<TopNav
+  id_base=\"docs-top-nav-markers\".to_string()
+  items=items
+  default_selected_id=\"docs\".to_string()
+  activate_on_focus=false
+  label=\"Primary sections\".to_string()
+  class_name=\"docs-top-nav-state\".to_string()
+  motion=marker_motion
+/>"#;
+
+    let marker_motion = {
+        let mut motion = TopNavMotion::default();
+        motion.spring.stiffness = 320.0;
+        motion.spring.damping = 24.0;
+        motion
+    };
 
     view! {
         <ComponentPage
@@ -86,6 +114,22 @@ let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.ge
                         {move || controlled_selected_raw.get().unwrap_or_else(|| "none".to_string())}
                     </span>
                 </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-selection-mode`, `data-default-selection`, `data-focus-activation`, `data-label-source`, `data-class-source`, and `data-motion-source` for TopNav contract stability."
+                code=markers_code
+            >
+                <TopNav
+                    id_base="docs-top-nav-markers".to_string()
+                    items=marker_items
+                    default_selected_id="docs".to_string()
+                    activate_on_focus=false
+                    label="Primary sections".to_string()
+                    class_name="docs-top-nav-state".to_string()
+                    motion=marker_motion
+                />
             </Playground>
         </ComponentPage>
     }

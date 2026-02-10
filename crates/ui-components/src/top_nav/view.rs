@@ -1,4 +1,7 @@
-use super::{TopNavItem, TopNavMotion};
+use super::{
+    TopNavItem, TopNavMotion, TopNavStateInput,
+    logic::{self},
+};
 use crate::NavigationMenu;
 use leptos::prelude::*;
 
@@ -14,61 +17,75 @@ pub fn TopNav(
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let default_selected_id = default_selected_id.unwrap_or_default();
+    let (label, has_custom_label) = logic::normalize_label(label);
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+    let navigation_class_name = class_name.clone().unwrap_or_default();
+
+    let (default_selected_id, has_default_selected_id) =
+        logic::normalize_default_selected_id(default_selected_id);
+
     let on_selected_id_change =
         on_selected_id_change.unwrap_or_else(|| Callback::new(|_: Option<String>| {}));
-    let label = label.unwrap_or_default();
-    let class_name = class_name.unwrap_or_default();
 
-    let motion_source = if motion == TopNavMotion::default() {
-        "default"
+    let state = logic::resolve_state(TopNavStateInput {
+        is_controlled: selected_id.is_some(),
+        has_default_selected_id,
+        activate_on_focus,
+        has_custom_label,
+        has_custom_class_name,
+        has_custom_motion: motion != TopNavMotion::default(),
+    });
+
+    let class_name = logic::compose_class_name(class_name, state);
+
+    let navigation_menu: AnyView = if let Some(selected_id) = selected_id {
+        view! {
+            <NavigationMenu
+                id_base=id_base
+                items=items
+                selected_id=selected_id
+                default_selected_id=default_selected_id
+                on_selected_id_change=on_selected_id_change
+                activate_on_focus=activate_on_focus
+                motion=motion
+                aria_label=label
+                class_name=navigation_class_name
+            />
+        }
+        .into_any()
     } else {
-        "custom"
+        view! {
+            <NavigationMenu
+                id_base=id_base
+                items=items
+                default_selected_id=default_selected_id
+                on_selected_id_change=on_selected_id_change
+                activate_on_focus=activate_on_focus
+                motion=motion
+                aria_label=label
+                class_name=navigation_class_name
+            />
+        }
+        .into_any()
     };
-    let custom_motion = (motion != TopNavMotion::default()).then_some("true");
 
-    if let Some(selected_id) = selected_id {
-        view! {
-            <div
-                class="ui-top-nav"
-                data-slot="top-nav"
-                data-motion-source=motion_source
-                data-custom-motion=custom_motion
-            >
-                <NavigationMenu
-                    id_base=id_base
-                    items=items
-                    selected_id=selected_id
-                    default_selected_id=default_selected_id
-                    on_selected_id_change=on_selected_id_change
-                    activate_on_focus=activate_on_focus
-                    motion=motion
-                    aria_label=label
-                    class_name=class_name
-                />
-            </div>
-        }
-        .into_any()
-    } else {
-        view! {
-            <div
-                class="ui-top-nav"
-                data-slot="top-nav"
-                data-motion-source=motion_source
-                data-custom-motion=custom_motion
-            >
-                <NavigationMenu
-                    id_base=id_base
-                    items=items
-                    default_selected_id=default_selected_id
-                    on_selected_id_change=on_selected_id_change
-                    activate_on_focus=activate_on_focus
-                    motion=motion
-                    aria_label=label
-                    class_name=class_name
-                />
-            </div>
-        }
-        .into_any()
+    view! {
+        <div
+            class=class_name
+            data-slot="top-nav"
+            data-state=state.state_attr
+            data-selection-mode=state.selection_mode_attr
+            data-default-selection=state.default_selection_attr
+            data-has-default-selection=state.has_default_selected_id.then_some("true")
+            data-focus-activation=state.focus_activation_attr
+            data-label-source=state.label_source_attr
+            data-class-source=state.class_source_attr
+            data-motion-source=state.motion_source_attr
+            data-custom-motion=state.has_custom_motion.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+        >
+            {navigation_menu}
+        </div>
     }
 }
