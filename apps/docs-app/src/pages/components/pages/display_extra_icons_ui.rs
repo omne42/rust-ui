@@ -16,6 +16,16 @@ pub(super) fn icons_ui() -> AnyView {
   class_name="docs-icons-ui-custom".to_string()
 />"#;
 
+    let markers_code = r#"<IconsUi
+  icon="help".to_string()
+  glyphs=vec![IconsetGlyph::new("ui:help", "?").with_aria_label("UI Help")]
+  size=IconsUiSize::Lg
+  tone=IconsUiTone::Muted
+  decorative=false
+  aria_label="Explicit UI help icon".to_string()
+  class_name="docs-icons-ui-state".to_string()
+/>"#;
+
     view! {
         <ComponentPage
             title="IconsUi"
@@ -49,6 +59,26 @@ pub(super) fn icons_ui() -> AnyView {
                         tone=IconsUiTone::Default
                         decorative=false
                         class_name="docs-icons-ui-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect wrapper markers like `data-state`, `data-icon-reference-source`, `data-aria-source`, `data-class-source`, `data-glyph-source`, `data-size-source`, and `data-tone-source`."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <IconsUi
+                        icon="help".to_string()
+                        glyphs=vec![
+                            IconsetGlyph::new("ui:help", "?").with_aria_label("UI Help"),
+                        ]
+                        size=IconsUiSize::Lg
+                        tone=IconsUiTone::Muted
+                        decorative=false
+                        aria_label="Explicit UI help icon".to_string()
+                        class_name="docs-icons-ui-state".to_string()
                     />
                 </div>
             </Playground>
