@@ -65,6 +65,13 @@ pub fn Switch(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == SwitchMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != SwitchMotion::default()).then_some("true");
+
     view! {
         <button
             type="button"
@@ -82,6 +89,8 @@ pub fn Switch(
             data-hovered=move || state.get().is_hovered.then_some("true")
             data-focused=move || state.get().is_focused.then_some("true")
             data-focus-visible=move || state.get().is_focus_visible.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled

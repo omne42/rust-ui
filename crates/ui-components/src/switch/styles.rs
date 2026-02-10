@@ -17,6 +17,11 @@ pub const CSS: &str = r#"
   --ui-switch-track-bg: var(--ui-bg-muted);
 }
 
+.ui-switch[data-motion-source="custom"],
+.ui-switch[data-custom-motion="true"] {
+  --ui-switch-custom-motion: 1;
+}
+
 .ui-switch[data-state="checked"] {
   --ui-switch-thumb-x: 12px;
   --ui-switch-track-bg: var(--ui-accent);

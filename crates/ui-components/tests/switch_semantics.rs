@@ -97,6 +97,21 @@ fn switch_emits_spectrum_style_state_data_attributes() {
 }
 
 #[test]
+fn switch_styles_include_motion_marker_contracts() {
+    let source = load_source("src/switch/styles.rs");
+
+    for selector in [
+        ".ui-switch[data-motion-source=\"custom\"]",
+        ".ui-switch[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Switch styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
+}
+
+#[test]
 fn switch_motion_uses_spring_animator() {
     let source = load_source("src/switch/motion.rs");
 
