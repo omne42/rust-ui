@@ -26,6 +26,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: upgrades `AlertDialog` to a full `logic/styles/view` slice with centralized variant/description/actions/auto-focus/id/title/motion/exit source-state normalization, stable Spectrum-style `data-*` contracts, and preserved alertdialog overlay semantics.
 - `apps/docs-app`: upgrades `AlertDialog` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-title-source`/`data-description-source`/`data-cancel-source`/`data-secondary-source`/`data-auto-focus-source`/`data-motion-source` contracts.
 
+- `ui-components`: upgrades `CommandDialog` to a full `logic/styles/view` slice with centralized open-mode/description/close-on-action/id/title/placeholder/aria/handler/motion source-state normalization, stable Spectrum-style `data-*` contracts, and preserved Modal + Command composition semantics.
+- `apps/docs-app`: upgrades `CommandDialog` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-title-source`/`data-description-source`/`data-placeholder-source`/`data-action-source`/`data-overlay-motion-source` contracts.
+
 - `ui-components`: upgrades `Tray` to a full `logic/styles/view` slice with centralized description/footer/close/size/dismiss/keyboard/id/title/class/motion/exit source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level spring motion behavior via `SheetMotion`.
 - `apps/docs-app`: extends `Tray` docs with a `State + Source Markers` playground to inspect `data-state`/`data-size-source`/`data-dismiss-source`/`data-keyboard-dismiss-source`/`data-motion-source`/`data-exit-source` contracts.
 

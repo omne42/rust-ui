@@ -624,7 +624,7 @@ pub(super) fn command_dialog() -> AnyView {
         ),
     ]);
 
-    let persistent_groups: Arc<[CommandGroup]> = Arc::from(vec![
+    let marker_groups: Arc<[CommandGroup]> = Arc::from(vec![
         CommandGroup::new(
             "Workspace",
             vec![
@@ -653,8 +653,8 @@ pub(super) fn command_dialog() -> AnyView {
     let (last_action, set_last_action) = signal("none".to_string());
     let on_action = Callback::new(move |id: String| set_last_action.set(id));
 
-    let (last_persistent_action, set_last_persistent_action) = signal("none".to_string());
-    let on_persistent_action = Callback::new(move |id: String| set_last_persistent_action.set(id));
+    let (last_marker_action, set_last_marker_action) = signal("none".to_string());
+    let on_marker_action = Callback::new(move |id: String| set_last_marker_action.set(id));
 
     let code = r#"let (open_raw, set_open_raw) = signal(false);
 let open: Signal<bool> = Signal::derive(move || open_raw.get());
@@ -666,14 +666,29 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
   on_action=Callback::new(move |id: String| set_last_action.set(id))
 />"#;
 
-    let states_code = r#"<CommandDialog
+    let marker_code = r#"<CommandDialog
   groups=groups
+  id_base="docs-command-dialog-marker".to_string()
+  title="Workspace Commands".to_string()
+  description="Inspect source-state markers".to_string()
   default_open=true
   close_on_action=false
   placeholder="Search pages, actions, and settings...".to_string()
   empty_label="No command matches your search.".to_string()
+  aria_label="Workspace command dialog".to_string()
   class_name="docs-command-dialog-custom".to_string()
+  overlay_motion=ui_components::OverlayMotion {
+    initial_scale: 0.95,
+    initial_y_px: 10.0,
+    ..ui_components::OverlayMotion::default()
+  }
 />"#;
+
+    let marker_overlay_motion = ui_components::OverlayMotion {
+        initial_scale: 0.95,
+        initial_y_px: 10.0,
+        ..ui_components::OverlayMotion::default()
+    };
 
     view! {
         <ComponentPage
@@ -684,7 +699,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
         >
             <Playground title="Controlled Open + Action Close" code=code>
                 <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row" style="display:flex; gap:0.75rem; align-items:center;">
+                    <div class="docs-row">
                         <button type="button" on:click=move |_| set_open_raw.set(true)>
                             "Open CommandDialog"
                         </button>
@@ -712,24 +727,28 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 </div>
             </Playground>
 
-            <Playground title="Persistent + Custom Labels" code=states_code>
+            <Playground title="State + Source Markers" code=marker_code>
                 <div class="docs-stack docs-stack--tight">
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-title-source / data-description-source / data-placeholder-source / data-action-source / data-overlay-motion-source in DevTools."
+                    </div>
                     <CommandDialog
-                        id_base="docs-command-dialog-persistent".to_string()
+                        id_base="docs-command-dialog-marker".to_string()
                         title="Workspace Commands".to_string()
                         description="close_on_action=false keeps the dialog open after choosing an action.".to_string()
-                        groups=persistent_groups
+                        groups=marker_groups
                         default_open=true
                         close_on_action=false
-                        on_action=on_persistent_action
+                        on_action=on_marker_action
                         placeholder="Search pages, actions, and settings...".to_string()
                         empty_label="No command matches your search.".to_string()
                         aria_label="Workspace command dialog".to_string()
                         class_name="docs-command-dialog-custom".to_string()
+                        overlay_motion=marker_overlay_motion
                     />
                     <span class="ui-muted">
                         "last action: "
-                        {move || last_persistent_action.get()}
+                        {move || last_marker_action.get()}
                     </span>
                     <span class="ui-muted">"close_on_action: false (dialog stays open)"</span>
                 </div>

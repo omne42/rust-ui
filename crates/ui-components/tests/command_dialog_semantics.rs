@@ -20,6 +20,27 @@ fn command_dialog_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn command_dialog_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/command_dialog/mod.rs");
+
+    for needle in [
+        "pub enum CommandDialogSlot",
+        "pub struct CommandDialogPartStateInput",
+        "pub struct CommandDialogPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_TITLE",
+        "DEFAULT_CLOSE_ON_ACTION",
+        "DEFAULT_DISABLED",
+        "DEFAULT_DEFAULT_OPEN",
+    ] {
+        assert!(
+            source.contains(needle),
+            "command_dialog::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
 fn command_dialog_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/command_dialog/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -35,35 +56,64 @@ fn command_dialog_is_exported_from_module_and_crate_root() {
 }
 
 #[test]
-fn command_dialog_uses_logic_state_model() {
-    let logic_source = load_source("src/command_dialog/logic.rs");
-    let view_source = load_source("src/command_dialog/view.rs");
+fn command_dialog_logic_exposes_state_helpers() {
+    let source = load_source("src/command_dialog/logic.rs");
 
     for needle in [
-        "pub struct CommandDialogStateInput",
-        "pub struct CommandDialogState",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_id_base(",
-        "pub fn normalize_title(",
-        "pub fn resolve_state(",
+        "pub fn state_attr(is_open: bool)",
+        "pub fn description_attr(has_description: bool)",
+        "pub fn close_on_action_attr(close_on_action: bool)",
+        "pub fn disabled_attr(disabled: bool)",
+        "pub fn open_mode_attr(is_controlled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(value: Option<String>)",
+        "pub fn normalize_title(value: Option<String>)",
+        "pub fn resolve_state(input: CommandDialogPartStateInput) -> CommandDialogPartState",
         "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "CommandDialog logic should include `{needle}`."
+            source.contains(needle),
+            "CommandDialog logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn command_dialog_view_uses_logic_state_contracts() {
+    let source = load_source("src/command_dialog/view.rs");
 
     for needle in [
         "logic::normalize_id_base(id_base)",
         "logic::normalize_title(title)",
         "logic::normalize_optional_text(description)",
-        "logic::resolve_state(CommandDialogStateInput {",
+        "logic::resolve_state(CommandDialogPartStateInput {",
+        "slot: CommandDialogSlot::Root",
         "logic::compose_class_name(class_name.get_value(), state)",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-description=move || root_state.get().description_attr",
+        "data-open-mode=move || root_state.get().open_mode_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-title-source=move || root_state.get().title_source_attr",
+        "data-description-source=move || root_state.get().description_source_attr",
+        "data-placeholder-source=move || root_state.get().placeholder_source_attr",
+        "data-empty-label-source=move || root_state.get().empty_label_source_attr",
+        "data-aria-label-source=move || root_state.get().aria_label_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-action-source=move || root_state.get().action_source_attr",
+        "data-open-change-source=move || root_state.get().open_change_source_attr",
+        "data-default-open-source=move || root_state.get().default_open_source_attr",
+        "data-close-on-action-source=move || root_state.get().close_on_action_source_attr",
+        "data-disabled-source=move || root_state.get().disabled_source_attr",
+        "data-command-motion-source=move || root_state.get().command_motion_source_attr",
+        "data-overlay-motion-source=move || root_state.get().overlay_motion_source_attr",
+        "data-custom-class=move || root_state.get().has_custom_class_name.then_some(\"true\")",
+        "data-custom-command-motion=move ||",
+        "data-custom-overlay-motion=move ||",
     ] {
         assert!(
-            view_source.contains(needle),
-            "CommandDialog view should derive state via logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "CommandDialog view should include `{needle}` for stable state/source marker contracts."
         );
     }
 }
@@ -77,6 +127,8 @@ fn command_dialog_supports_controlled_and_uncontrolled_open_state() {
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
         "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
+        "let is_controlled = open.is_some()",
+        "let has_custom_default_open = default_open.is_some()",
     ] {
         assert!(
             source.contains(needle),
@@ -94,7 +146,9 @@ fn command_dialog_composes_modal_command_and_presence() {
         "<Modal",
         "on_close=on_close",
         "on_exit_complete=presence.finish_exit",
+        "class_name=modal_class.get_value()",
         "<Command",
+        "class_name=command_class.get_value()",
         "on_action=on_action_wrapped",
     ] {
         assert!(
@@ -105,32 +159,7 @@ fn command_dialog_composes_modal_command_and_presence() {
 }
 
 #[test]
-fn command_dialog_emits_spectrum_state_data_attributes() {
-    let source = load_source("src/command_dialog/view.rs");
-
-    for needle in [
-        "data-slot=\"command-dialog\"",
-        "data-state=move || state.get().state_attr",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-closed=move || (!open.get()).then_some(\"true\")",
-        "data-description=move || state.get().description_attr",
-        "data-close-on-action=move || state.get().close_on_action_attr",
-        "data-disabled=move || state.get().disabled.then_some(\"true\")",
-        "data-enabled=move || state.get().enabled.then_some(\"true\")",
-        "data-controlled=move || state.get().is_controlled.then_some(\"true\")",
-        "data-uncontrolled=move || state.get().is_uncontrolled.then_some(\"true\")",
-        "data-class-source=move || state.get().class_source_attr",
-        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(needle),
-            "CommandDialog should expose `{needle}` for stable styling and regression tests."
-        );
-    }
-}
-
-#[test]
-fn command_dialog_styles_include_state_marker_contracts() {
+fn command_dialog_styles_include_state_and_source_markers() {
     let source = load_source("src/command_dialog/styles.rs");
 
     for selector in [
@@ -139,10 +168,22 @@ fn command_dialog_styles_include_state_marker_contracts() {
         ".ui-command-dialog__command.ui-command {",
         ".ui-command-dialog--open",
         ".ui-command-dialog[data-state=\"open\"]",
+        ".ui-command-dialog--with-description",
+        ".ui-command-dialog[data-description=\"present\"]",
         ".ui-command-dialog--persistent",
         ".ui-command-dialog[data-close-on-action=\"false\"]",
-        ".ui-command-dialog--disabled",
-        ".ui-command-dialog[data-disabled=\"true\"]",
+        ".ui-command-dialog--controlled",
+        ".ui-command-dialog[data-open-mode=\"controlled\"]",
+        ".ui-command-dialog[data-id-source=\"custom\"]",
+        ".ui-command-dialog[data-title-source=\"custom\"]",
+        ".ui-command-dialog[data-description-source=\"custom\"]",
+        ".ui-command-dialog[data-placeholder-source=\"custom\"]",
+        ".ui-command-dialog[data-empty-label-source=\"custom\"]",
+        ".ui-command-dialog[data-aria-label-source=\"custom\"]",
+        ".ui-command-dialog[data-action-source=\"custom\"]",
+        ".ui-command-dialog[data-open-change-source=\"custom\"]",
+        ".ui-command-dialog[data-command-motion-source=\"custom\"]",
+        ".ui-command-dialog[data-overlay-motion-source=\"custom\"]",
     ] {
         assert!(
             source.contains(selector),
@@ -152,13 +193,19 @@ fn command_dialog_styles_include_state_marker_contracts() {
 }
 
 #[test]
-fn command_dialog_docs_page_exists_in_collections_command() {
+fn command_dialog_docs_page_contains_state_source_playground() {
     let docs = load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
 
     for needle in [
         "pub(super) fn command_dialog() -> AnyView",
         "title=\"CommandDialog\"",
         "slug=\"command-dialog\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-title-source",
+        "data-description-source",
+        "data-placeholder-source",
+        "data-action-source",
         "<CommandDialog",
     ] {
         assert!(
