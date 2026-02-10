@@ -24,6 +24,17 @@ pub(super) fn iconset() -> AnyView {
   class_name="docs-iconset-custom".to_string()
 />"#;
 
+    let markers_code = r#"<Iconset
+  icon="workflow:check".to_string()
+  iconset="workflow".to_string()
+  glyphs=vec![IconsetGlyph::new("workflow:check", "✓").with_aria_label("Registry Check")]
+  size=IconsetSize::Lg
+  tone=IconsetTone::Danger
+  decorative=false
+  aria_label="Explicit workflow check".to_string()
+  class_name="docs-iconset-state".to_string()
+/>"#;
+
     let workflow_glyphs = vec![
         IconsetGlyph::new("workflow:check", "✓").with_aria_label("Workflow Check"),
         IconsetGlyph::new("workflow:alert", "⚠").with_aria_label("Workflow Alert"),
@@ -64,6 +75,28 @@ pub(super) fn iconset() -> AnyView {
                         tone=IconsetTone::Muted
                         decorative=false
                         class_name="docs-iconset-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect wrapper markers like `data-state`, `data-icon-source`, `data-iconset-source`, `data-label-source`, `data-class-source`, `data-size-source`, and `data-tone-source`."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <Iconset
+                        icon="workflow:check".to_string()
+                        iconset="workflow".to_string()
+                        glyphs=vec![
+                            IconsetGlyph::new("workflow:check", "✓")
+                                .with_aria_label("Registry Check"),
+                        ]
+                        size=IconsetSize::Lg
+                        tone=IconsetTone::Danger
+                        decorative=false
+                        aria_label="Explicit workflow check".to_string()
+                        class_name="docs-iconset-state".to_string()
                     />
                 </div>
             </Playground>
