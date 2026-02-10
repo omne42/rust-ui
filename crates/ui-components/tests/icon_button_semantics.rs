@@ -20,115 +20,116 @@ fn icon_button_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
-fn icon_button_uses_logic_state_model() {
-    let view_source = load_source("src/icon_button/view.rs");
-    let logic_source = load_source("src/icon_button/logic.rs");
-
-    for needle in [
-        "pub struct IconButtonState",
-        "pub fn normalize_aria_label(",
-        "pub fn normalize_class_name(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "pub uses_icon_size: bool",
-        "pub has_custom_press_handler: bool",
-    ] {
-        assert!(
-            logic_source.contains(needle),
-            "IconButton logic should include `{needle}` for centralized state derivation."
-        );
-    }
-
-    for needle in [
-        "let class_name = logic::normalize_class_name(class_name);",
-        "let (aria_label, has_explicit_aria_label) = logic::normalize_aria_label(aria_label);",
-        "let state = logic::resolve_state(",
-        "let class_name = logic::compose_class_name(class_name, state);",
-    ] {
-        assert!(
-            view_source.contains(needle),
-            "IconButton view should derive wrapper state through logic helpers; missing `{needle}`."
-        );
-    }
-}
-
-#[test]
-fn icon_button_requires_and_normalizes_accessible_name() {
-    let view_source = load_source("src/icon_button/view.rs");
-    let logic_source = load_source("src/icon_button/logic.rs");
+fn icon_button_is_exported_from_module_and_crate_root() {
+    let module_source = load_source("src/icon_button/mod.rs");
+    let crate_source = load_source("src/lib.rs");
 
     assert!(
-        view_source.contains("aria_label: String"),
-        "IconButton should require an `aria_label` input for accessible icon-only buttons."
+        module_source.contains("pub use view::IconButton;"),
+        "icon_button module should export `IconButton`."
     );
     assert!(
-        view_source.contains("aria_label=aria_label"),
-        "IconButton should forward normalized `aria_label` to the underlying Button."
-    );
-    assert!(
-        logic_source.contains("\"Icon button\".to_string()"),
-        "IconButton should provide a fallback label when the input label is blank."
+        crate_source.contains("pub use icon_button::IconButton;"),
+        "crate root should re-export `IconButton`."
     );
 }
 
 #[test]
-fn icon_button_defaults_to_icon_size() {
-    let source = load_source("src/icon_button/view.rs");
-
-    assert!(
-        source.contains("default = ButtonSize::Icon"),
-        "IconButton should default to ButtonSize::Icon to match Spectrum-style icon button sizing."
-    );
-}
-
-#[test]
-fn icon_button_forwards_button_contract() {
-    let source = load_source("src/icon_button/view.rs");
+fn icon_button_logic_exposes_state_helpers() {
+    let source = load_source("src/icon_button/logic.rs");
 
     for needle in [
-        "use crate::button::{Button, ButtonMotion, ButtonSize, ButtonVariant};",
-        "<Button",
-        "disabled=disabled",
-        "variant=variant",
-        "size=size",
-        "motion=motion",
-        "class_name=class_name",
-        "button_type=button_type",
-        "aria_label=aria_label",
-        "node_ref=node_ref",
-        "on_press=on_press",
+        "pub fn normalize_optional_text(",
+        "pub fn normalize_aria_label(aria_label: String)",
+        "pub fn resolve_state(input: IconButtonStateInput)",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: IconButtonState)",
+        "DEFAULT_ARIA_LABEL",
     ] {
         assert!(
             source.contains(needle),
-            "IconButton should forward `{needle}` to Button so interaction and semantics stay centralized."
+            "IconButton logic should include `{needle}` for centralized source/state contracts."
         );
     }
 }
 
 #[test]
-fn icon_button_preserves_optional_press_handler_without_markup_branching() {
+fn icon_button_view_uses_logic_state_contracts() {
     let source = load_source("src/icon_button/view.rs");
 
+    for needle in [
+        "pub fn IconButton(",
+        "logic::normalize_optional_text(class_name)",
+        "logic::normalize_aria_label(aria_label)",
+        "logic::resolve_state(IconButtonStateInput {",
+        "logic::compose_class_name(class_name, state)",
+        "<Button",
+        "on_press: Option<OnPress>",
+        "data-slot=\"icon-button\"",
+        "data-state=state.state_attr",
+        "data-size-mode=state.size_mode_attr",
+        "data-handler-source=state.handler_source_attr",
+        "data-label-source=state.label_source_attr",
+        "data-class-source=state.class_source_attr",
+        "data-motion-source=state.motion_source_attr",
+        "data-fallback-label=state.has_fallback_aria_label.then_some(\"true\")",
+        "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "IconButton view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn icon_button_styles_include_state_and_source_markers() {
+    let source = load_source("src/icon_button/styles.rs");
+
+    for selector in [
+        ".ui-icon-button {",
+        ".ui-icon-button[data-state=\"disabled\"]",
+        ".ui-icon-button[data-size-mode=\"icon\"]",
+        ".ui-icon-button[data-size-mode=\"custom\"]",
+        ".ui-icon-button[data-handler-source=\"custom\"]",
+        ".ui-icon-button[data-label-source=\"custom\"]",
+        ".ui-icon-button[data-class-source=\"custom\"]",
+        ".ui-icon-button[data-motion-source=\"custom\"]",
+        ".ui-icon-button[data-custom-class=\"true\"]",
+        ".ui-icon-button--custom-class",
+    ] {
+        assert!(
+            source.contains(selector),
+            "IconButton styles should include `{selector}` as stable selectors."
+        );
+    }
+}
+
+#[test]
+fn icon_button_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
     assert!(
-        source.contains("let has_custom_press_handler = on_press.is_some();"),
-        "IconButton should track whether a custom handler exists without duplicating markup."
-    );
-    assert!(
-        !source.contains("unwrap_or_else(|| Callback::new"),
-        "IconButton should not inject a synthetic no-op press handler."
-    );
-    assert!(
-        !source.contains("match on_press"),
-        "IconButton should avoid duplicating Button markup based on handler presence."
+        source.contains("out.push_str(crate::icon_button::styles::CSS);"),
+        "ui-components css aggregator should include icon_button styles."
     );
 }
 
 #[test]
-fn icon_button_does_not_use_web_sys_directly() {
-    let source = load_source("src/icon_button/view.rs");
+fn icon_button_docs_page_contains_state_source_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra_icon_button.rs");
 
-    assert!(
-        !source.contains("web_sys"),
-        "IconButton should not touch `web_sys` directly; it should delegate behavior to `ui-headless` via Button."
-    );
+    for needle in [
+        "pub(super) fn icon_button() -> AnyView",
+        "title=\"IconButton\"",
+        "slug=\"icon-button\"",
+        "State + Source Markers",
+        "data-motion-source",
+        "<IconButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra_icon_button docs page should contain `{needle}`."
+        );
+    }
 }

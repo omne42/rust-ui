@@ -1,5 +1,6 @@
 mod actions;
 mod actions_extra;
+mod actions_extra_icon_button;
 mod actions_extra_picker_button;
 mod collections;
 mod collections_breadcrumb;
@@ -48,12 +49,12 @@ mod overlays_extra;
 mod overlays_extra_coachmark;
 
 use self::{
-    actions as a, actions_extra as ax, actions_extra_picker_button as apb,
-    collections_extra_combobox as cxb, collections_extra_picker as cxp,
-    collections_extra_tags as cxt, collections_extra_top_nav as cxtn, files_extra_dropzone as fdz,
-    forms_extra_field_label as fxl, forms_extra_search as fxs, forms_extra_textfield as fxt,
-    layout_extra as lx, layout_extra_sidenav as lxs, layout_extra_split_view as lxv,
-    overlays as ov,
+    actions as a, actions_extra as ax, actions_extra_icon_button as axib,
+    actions_extra_picker_button as apb, collections_extra_combobox as cxb,
+    collections_extra_picker as cxp, collections_extra_tags as cxt,
+    collections_extra_top_nav as cxtn, files_extra_dropzone as fdz, forms_extra_field_label as fxl,
+    forms_extra_search as fxs, forms_extra_textfield as fxt, layout_extra as lx,
+    layout_extra_sidenav as lxs, layout_extra_split_view as lxv, overlays as ov,
 };
 use super::ComponentDoc;
 
@@ -119,7 +120,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         actions::button_group
     ),
     component_doc!("FlipButton", "flip-button", "Actions", actions::flip_button),
-    component_doc!("IconButton", "icon-button", "Actions", actions::icon_button),
+    component_doc!("IconButton", "icon-button", "Actions", axib::icon_button),
     component_doc!("LinkButton", "link-button", "Actions", actions::link_button),
     ComponentDoc {
         name: "SearchInputButton",

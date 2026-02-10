@@ -1,5 +1,5 @@
 use crate::button::{Button, ButtonMotion, ButtonSize, ButtonVariant};
-use crate::icon_button::logic;
+use crate::icon_button::{IconButtonStateInput, logic};
 use leptos::{html, prelude::*};
 use ui_headless::OnPress;
 
@@ -16,19 +16,22 @@ pub fn IconButton(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
-    let has_custom_press_handler = on_press.is_some();
-    let class_name = logic::normalize_class_name(class_name);
-    let (aria_label, has_explicit_aria_label) = logic::normalize_aria_label(aria_label);
+    let class_name = logic::normalize_optional_text(class_name);
+    let class_name_for_inner = class_name.clone().unwrap_or_default();
 
-    let state = logic::resolve_state(
+    let (aria_label, has_explicit_aria_label) = logic::normalize_aria_label(aria_label);
+    let has_custom_press_handler = on_press.is_some();
+
+    let state = logic::resolve_state(IconButtonStateInput {
         disabled,
         size,
         has_custom_press_handler,
         has_explicit_aria_label,
-        class_name.is_some(),
-    );
+        has_custom_class_name: class_name.is_some(),
+        has_custom_motion: motion != ButtonMotion::default(),
+    });
 
-    let class_name = logic::compose_class_name(class_name, state);
+    let class = logic::compose_class_name(class_name, state);
 
     let maybe_on_press = on_press;
     let on_press = Callback::new(move |_| {
@@ -38,18 +41,34 @@ pub fn IconButton(
     });
 
     view! {
-        <Button
-            disabled=disabled
-            variant=variant
-            size=size
-            motion=motion
-            class_name=class_name
-            button_type=button_type
-            aria_label=aria_label
-            node_ref=node_ref
-            on_press=on_press
+        <div
+            class=class
+            data-slot="icon-button"
+            data-state=state.state_attr
+            data-size-mode=state.size_mode_attr
+            data-handler-source=state.handler_source_attr
+            data-label-source=state.label_source_attr
+            data-class-source=state.class_source_attr
+            data-motion-source=state.motion_source_attr
+            data-disabled=state.is_disabled.then_some("true")
+            data-enabled=state.is_enabled.then_some("true")
+            data-fallback-label=state.has_fallback_aria_label.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-custom-motion=state.has_custom_motion.then_some("true")
         >
-            {children()}
-        </Button>
+            <Button
+                disabled=disabled
+                variant=variant
+                size=size
+                motion=motion
+                class_name=class_name_for_inner
+                button_type=button_type
+                aria_label=aria_label
+                node_ref=node_ref
+                on_press=on_press
+            >
+                {children()}
+            </Button>
+        </div>
     }
 }
