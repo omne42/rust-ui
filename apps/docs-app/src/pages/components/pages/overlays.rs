@@ -315,6 +315,12 @@ pub(super) fn modal() -> AnyView {
     let open_custom_modal: OnPress = Callback::new(move |_| set_open_custom_raw.set(true));
     let on_custom_exit_complete = Callback::new(move |_| set_present_custom.set(false));
 
+    let custom_motion = OverlayMotion {
+        initial_scale: 0.92,
+        initial_y_px: 18.0,
+        ..OverlayMotion::default()
+    };
+
     let semantic_code = r#"<Show when=present>
   <Modal
     open=open
@@ -333,6 +339,7 @@ pub(super) fn modal() -> AnyView {
   id_base="m-custom".to_string()
   title="Title only".to_string()
   class_name="docs-modal-custom".to_string()
+  motion=custom_motion
   on_close=close
   on_exit_complete=on_exit_complete
 >
@@ -375,7 +382,11 @@ pub(super) fn modal() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="Title-only + Custom Class" code=custom_code>
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-id-source`, `data-title-source`, `data-description-source`, `data-motion-source`, and `data-exit-source` contracts."
+                code=custom_code
+            >
                 <div class="docs-row">
                     <Button on_press=open_custom_modal>"Open custom modal"</Button>
                     <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
@@ -387,12 +398,15 @@ pub(super) fn modal() -> AnyView {
                         id_base="docs-modal-custom".to_string()
                         title="Title only".to_string()
                         class_name="docs-modal-custom".to_string()
+                        motion=custom_motion
                         on_close=close_custom
                         on_exit_complete=on_custom_exit_complete
                     >
                         <div class="docs-stack docs-stack--tight">
                             <div>"No description path keeps aria-describedby unset."</div>
-                            <div class="ui-muted">"Custom class validates class merge + data-custom-class marker."</div>
+                            <div class="ui-muted">
+                                "Inspect data-id-source / data-title-source / data-motion-source in DevTools."
+                            </div>
                             <div class="docs-row docs-row--end">
                                 <Button variant=ButtonVariant::Secondary on_press=close_custom>
                                     "Dismiss"
@@ -406,6 +420,7 @@ pub(super) fn modal() -> AnyView {
     }
     .into_any()
 }
+
 pub(super) fn dialog() -> AnyView {
     let _coverage_playground_anchor = "<Playground";
     let _coverage_dialog_anchor = "<Dialog";

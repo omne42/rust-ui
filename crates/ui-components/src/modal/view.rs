@@ -1,4 +1,4 @@
-use crate::modal::logic::{self, ModalStateInput};
+use crate::modal::{ModalPartStateInput, ModalSlot, logic};
 use crate::overlay::OverlayMotion;
 use crate::{OnPress, Overlay};
 use leptos::prelude::*;
@@ -15,17 +15,70 @@ pub fn Modal(
     #[prop(optional, into)] class_name: Option<String>,
     children: ChildrenFn,
 ) -> impl IntoView {
+    let has_custom_id_base = !id_base.trim().is_empty();
+    let has_custom_title = !title.trim().is_empty();
+
     let id_base = logic::normalize_id_base(id_base);
-    let title = logic::normalize_required_text(title, "Modal");
+    let title = logic::normalize_required_text(title, logic::DEFAULT_TITLE);
     let description = logic::normalize_optional_text(description);
     let class_name = logic::normalize_optional_text(class_name);
 
-    let state = logic::resolve_state(ModalStateInput {
-        has_description: description.is_some(),
-        has_custom_class_name: class_name.is_some(),
+    let has_custom_description = description.is_some();
+    let has_custom_class_name = class_name.is_some();
+    let has_custom_motion = motion != OverlayMotion::default();
+    let has_on_exit_complete = on_exit_complete.is_some();
+
+    let root_state = logic::resolve_state(ModalPartStateInput {
+        slot: ModalSlot::Root,
+        has_description: has_custom_description,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name,
+        has_custom_motion,
+        has_on_exit_complete,
     });
-    let class = logic::compose_class_name(class_name, state);
-    let class = StoredValue::new(class);
+    let root_class = logic::compose_class_name(class_name, root_state);
+    let root_class = StoredValue::new(root_class);
+
+    let title_state = logic::resolve_state(ModalPartStateInput {
+        slot: ModalSlot::Title,
+        has_description: has_custom_description,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let title_class = logic::compose_class_name(None, title_state);
+    let title_class = StoredValue::new(title_class);
+
+    let description_state = logic::resolve_state(ModalPartStateInput {
+        slot: ModalSlot::Description,
+        has_description: has_custom_description,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let description_class = logic::compose_class_name(None, description_state);
+    let description_class = StoredValue::new(description_class);
+
+    let body_state = logic::resolve_state(ModalPartStateInput {
+        slot: ModalSlot::Body,
+        has_description: has_custom_description,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let body_class = logic::compose_class_name(None, body_state);
+    let body_class = StoredValue::new(body_class);
 
     let title: Signal<String> = title.into();
     let title_id = format!("{id_base}-title");
@@ -48,24 +101,46 @@ pub fn Modal(
                 on_exit_complete=on_exit_complete
             >
                 <div
-                    class=move || class.get_value()
-                    data-slot="modal"
-                    data-state=state.state_attr
-                    data-description=state.description_attr
-                    data-with-description=state.show_description.then_some("true")
-                    data-custom-class=state.has_custom_class_name.then_some("true")
+                    class=move || root_class.with_value(|class_name| class_name.clone())
+                    data-slot=root_state.slot_attr
+                    data-state=root_state.state_attr
+                    data-description=root_state.description_attr
+                    data-with-description=root_state.show_description.then_some("true")
+                    data-custom-class=root_state.has_custom_class_name.then_some("true")
+                    data-custom-motion=root_state.has_custom_motion.then_some("true")
+                    data-custom-exit=root_state.has_on_exit_complete.then_some("true")
+                    data-id-source=root_state.id_source_attr
+                    data-title-source=root_state.title_source_attr
+                    data-description-source=root_state.description_source_attr
+                    data-class-source=root_state.class_source_attr
+                    data-motion-source=root_state.motion_source_attr
+                    data-exit-source=root_state.exit_source_attr
                 >
-                    <h2 class="ui-modal__title" id=move || title_id_attr.get() data-slot="modal-title">
+                    <h2
+                        class=move || title_class.with_value(|class_name| class_name.clone())
+                        id=move || title_id_attr.get()
+                        data-slot=title_state.slot_attr
+                        data-state=title_state.state_attr
+                        data-title-source=title_state.title_source_attr
+                    >
                         {move || title.get()}
                     </h2>
                     <p
-                        class="ui-modal__description"
+                        class=move || {
+                            description_class.with_value(|class_name| class_name.clone())
+                        }
                         id=move || description_id_attr.get()
-                        data-slot="modal-description"
+                        data-slot=description_state.slot_attr
+                        data-state=description_state.state_attr
+                        data-description-source=description_state.description_source_attr
                     >
                         {move || description.get()}
                     </p>
-                    <div class="ui-modal__body" data-slot="modal-body">
+                    <div
+                        class=move || body_class.with_value(|class_name| class_name.clone())
+                        data-slot=body_state.slot_attr
+                        data-state=body_state.state_attr
+                    >
                         {children()}
                     </div>
                 </div>
@@ -82,17 +157,35 @@ pub fn Modal(
                 on_exit_complete=on_exit_complete
             >
                 <div
-                    class=move || class.get_value()
-                    data-slot="modal"
-                    data-state=state.state_attr
-                    data-description=state.description_attr
-                    data-with-description=state.show_description.then_some("true")
-                    data-custom-class=state.has_custom_class_name.then_some("true")
+                    class=move || root_class.with_value(|class_name| class_name.clone())
+                    data-slot=root_state.slot_attr
+                    data-state=root_state.state_attr
+                    data-description=root_state.description_attr
+                    data-with-description=root_state.show_description.then_some("true")
+                    data-custom-class=root_state.has_custom_class_name.then_some("true")
+                    data-custom-motion=root_state.has_custom_motion.then_some("true")
+                    data-custom-exit=root_state.has_on_exit_complete.then_some("true")
+                    data-id-source=root_state.id_source_attr
+                    data-title-source=root_state.title_source_attr
+                    data-description-source=root_state.description_source_attr
+                    data-class-source=root_state.class_source_attr
+                    data-motion-source=root_state.motion_source_attr
+                    data-exit-source=root_state.exit_source_attr
                 >
-                    <h2 class="ui-modal__title" id=move || title_id_attr.get() data-slot="modal-title">
+                    <h2
+                        class=move || title_class.with_value(|class_name| class_name.clone())
+                        id=move || title_id_attr.get()
+                        data-slot=title_state.slot_attr
+                        data-state=title_state.state_attr
+                        data-title-source=title_state.title_source_attr
+                    >
                         {move || title.get()}
                     </h2>
-                    <div class="ui-modal__body" data-slot="modal-body">
+                    <div
+                        class=move || body_class.with_value(|class_name| class_name.clone())
+                        data-slot=body_state.slot_attr
+                        data-state=body_state.state_attr
+                    >
                         {children()}
                     </div>
                 </div>
