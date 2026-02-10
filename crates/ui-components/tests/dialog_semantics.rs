@@ -84,3 +84,57 @@ fn dialog_size_class_is_derived_from_dialog_size_enum() {
         "Dialog should map `DialogSize` to a CSS class via `DialogSize::class_name()`."
     );
 }
+
+#[test]
+fn dialog_emits_spectrum_style_state_and_motion_markers() {
+    let source = load_source("src/dialog/view.rs");
+
+    for needle in [
+        "data-slot=\"dialog\"",
+        "data-state=move || if open.get() { \"open\" } else { \"closed\" }",
+        "data-open=move || open.get().then_some(\"true\")",
+        "data-closed=move || (!open.get()).then_some(\"true\")",
+        "data-with-description=view_state.show_description.then_some(\"true\")",
+        "data-with-footer=view_state.show_footer.then_some(\"true\")",
+        "data-close-visible=view_state.show_close_button.then_some(\"true\")",
+        "data-motion-source=if motion == DialogMotion::default()",
+        "data-custom-motion=(motion != DialogMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dialog should expose `{needle}` for stable state/motion marker contracts."
+        );
+    }
+}
+
+#[test]
+fn dialog_styles_include_motion_marker_selectors() {
+    let source = load_source("src/dialog/styles.rs");
+
+    for selector in [
+        ".ui-dialog[data-motion-source=\"custom\"]",
+        ".ui-dialog[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Dialog styles should include `{selector}` as stable motion-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
+    let source = load_source("src/dialog/motion.rs");
+
+    for needle in [
+        "pub struct DialogMotion",
+        "pub overlay: crate::overlay::OverlayMotion",
+        "fn default_motion_uses_default_overlay_motion_contract()",
+        "fn supports_custom_overlay_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dialog motion module should include `{needle}` for HeroUI-level contract coverage."
+        );
+    }
+}

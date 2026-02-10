@@ -7,6 +7,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-md);
 }
 
+.ui-dialog[data-motion-source="custom"],
+.ui-dialog[data-custom-motion="true"] {
+  --ui-dialog-custom-motion: 1;
+}
+
 .ui-dialog--size-sm {
   width: min(100%, 380px);
 }

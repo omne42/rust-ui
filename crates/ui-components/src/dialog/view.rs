@@ -56,7 +56,22 @@ pub fn Dialog(
                 motion=motion.overlay
                 on_exit_complete=on_exit_complete
             >
-                <div class=move || class.get_value() data-slot="dialog">
+                <div
+                    class=move || class.get_value()
+                    data-slot="dialog"
+                    data-state=move || if open.get() { "open" } else { "closed" }
+                    data-open=move || open.get().then_some("true")
+                    data-closed=move || (!open.get()).then_some("true")
+                    data-with-description=view_state.show_description.then_some("true")
+                    data-with-footer=view_state.show_footer.then_some("true")
+                    data-close-visible=view_state.show_close_button.then_some("true")
+                    data-motion-source=if motion == DialogMotion::default() {
+                        "default"
+                    } else {
+                        "custom"
+                    }
+                    data-custom-motion=(motion != DialogMotion::default()).then_some("true")
+                >
                     <Show when=move || view_state.show_close_button>
                         <span class="ui-dialog__close" data-slot="dialog-close">
                             <IconButton
@@ -110,7 +125,22 @@ pub fn Dialog(
                 motion=motion.overlay
                 on_exit_complete=on_exit_complete
             >
-                <div class=move || class.get_value() data-slot="dialog">
+                <div
+                    class=move || class.get_value()
+                    data-slot="dialog"
+                    data-state=move || if open.get() { "open" } else { "closed" }
+                    data-open=move || open.get().then_some("true")
+                    data-closed=move || (!open.get()).then_some("true")
+                    data-with-description=view_state.show_description.then_some("true")
+                    data-with-footer=view_state.show_footer.then_some("true")
+                    data-close-visible=view_state.show_close_button.then_some("true")
+                    data-motion-source=if motion == DialogMotion::default() {
+                        "default"
+                    } else {
+                        "custom"
+                    }
+                    data-custom-motion=(motion != DialogMotion::default()).then_some("true")
+                >
                     <Show when=move || view_state.show_close_button>
                         <span class="ui-dialog__close" data-slot="dialog-close">
                             <IconButton

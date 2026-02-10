@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Dialog` with explicit root state/motion markers (`data-state`/`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `DialogMotion` contract tests for HeroUI-level overlay-motion tuning.
+- `apps/docs-app`: extends `Dialog` docs with a custom-motion playground showing `DialogMotion { overlay: OverlayMotion { initial_scale, initial_y_px, .. } }` tuning.
 - `ui-components`: upgrades `Drawer` with explicit root state/motion markers (`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `DrawerMotion` contract tests for HeroUI-level sheet-motion passthrough tuning.
 - `apps/docs-app`: extends `Drawer` docs playground with a custom-motion example demonstrating `DrawerMotion { sheet: SheetMotion { initial_offset_px, .. } }` tuning.
 - `ui-components`: upgrades `Sheet` with explicit root state/dismiss/motion markers (`data-state`/`data-open`/`data-closed` + `data-dismissable`/`data-keyboard-dismiss-disabled` + `data-motion-source`/`data-custom-motion`) and `SheetMotion` spring/direction contract tests for HeroUI-level motion tuning.

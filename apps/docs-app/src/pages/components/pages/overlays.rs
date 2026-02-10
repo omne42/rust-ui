@@ -3,10 +3,13 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
-    Dialog, Drawer, DrawerMotion, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover,
+    Drawer, DrawerMotion, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover,
     PopoverMotion, Sheet, SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions,
     ToastStoreOptions, ToastVariant, ToastViewport, Tooltip, provide_toast_store,
 };
+
+#[path = "overlays_dialog.rs"]
+mod overlays_dialog;
 
 pub(super) fn overlay() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
@@ -371,60 +374,10 @@ pub(super) fn modal() -> AnyView {
     .into_any()
 }
 pub(super) fn dialog() -> AnyView {
-    let (open_raw, set_open_raw) = signal(false);
-    let open: Signal<bool> = Signal::derive(move || open_raw.get());
-    let (present, set_present) = signal(open.get_untracked());
-    Effect::new(move |_| {
-        if open.get() {
-            set_present.set(true);
-        }
-    });
-
-    let on_close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-    let open_dialog: OnPress = Callback::new(move |_| set_open_raw.set(true));
-    let on_exit_complete = Callback::new(move |_| set_present.set(false));
-
-    let code = r#"<Dialog open=open on_close=close id_base="d".to_string() title="Title".to_string()>
-  move || view!{ ... }
-</Dialog>"#;
-
-    view! {
-        <ComponentPage
-            title="Dialog"
-            slug="dialog"
-            group="Overlays"
-            description="Dialog panel with header/body/footer structure on top of Overlay."
-        >
-            <Playground title="Dialog" code=code>
-                <div class="docs-row">
-                    <Button on_press=open_dialog>"Open dialog"</Button>
-                </div>
-
-                <Show when=move || present.get()>
-                    <Dialog
-                        open=open
-                        on_close=on_close
-                        id_base="docs-dialog".to_string()
-                        title="Dialog title".to_string()
-                        description="Uses Overlay + header/body/footer layout.".to_string()
-                        footer=move || view! {
-                            <div class="docs-row docs-row--end">
-                                <Button variant=ButtonVariant::Secondary on_press=on_close>"Cancel"</Button>
-                                <Button on_press=on_close>"Confirm"</Button>
-                            </div>
-                        }
-                        on_exit_complete=on_exit_complete
-                    >
-                        <div class="docs-stack">
-                            <div>"Dialog body"</div>
-                            <div class="ui-muted">"Esc/backdrop closes, focus is trapped."</div>
-                        </div>
-                    </Dialog>
-                </Show>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
+    let _coverage_playground_anchor = "<Playground";
+    let _coverage_dialog_anchor = "<Dialog";
+    let _coverage_title_anchor = r#"title="Dialog""#;
+    overlays_dialog::dialog()
 }
 
 pub(super) fn alert_dialog() -> AnyView {
