@@ -1,3 +1,6 @@
+use crate::toast::{
+    ToastPartState, ToastPartStateInput, ToastViewportState, ToastViewportStateInput,
+};
 use leptos::prelude::*;
 
 fn next_id() -> u64 {
@@ -11,6 +14,10 @@ fn next_id() -> u64 {
         id
     })
 }
+
+pub const DEFAULT_TITLE: &str = "Notification";
+pub const DEFAULT_VIEWPORT_PORTAL: bool = true;
+pub const DEFAULT_VIEWPORT_MAX_TOASTS: usize = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ToastVariant {
@@ -29,12 +36,190 @@ impl ToastVariant {
         }
     }
 
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            ToastVariant::Default => "default",
+            ToastVariant::Accent => "accent",
+            ToastVariant::Danger => "danger",
+        }
+    }
+
     pub fn aria_live(self) -> &'static str {
         match self {
             ToastVariant::Danger => "assertive",
             _ => "polite",
         }
     }
+}
+
+fn source_attr(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+pub fn toast_state_attr(is_open: bool) -> &'static str {
+    if is_open { "open" } else { "closing" }
+}
+
+pub fn description_attr(has_description: bool) -> &'static str {
+    if has_description { "present" } else { "absent" }
+}
+
+pub fn close_mode_attr(has_on_close: bool) -> &'static str {
+    if has_on_close { "handler" } else { "noop" }
+}
+
+pub fn viewport_state_attr(portal: bool) -> &'static str {
+    if portal { "portal" } else { "inline" }
+}
+
+pub fn viewport_queue_attr(max_toasts: usize) -> &'static str {
+    if max_toasts <= 1 {
+        "single"
+    } else if max_toasts <= 3 {
+        "bounded"
+    } else {
+        "extended"
+    }
+}
+
+pub fn normalize_viewport_max_toasts(max_toasts: usize) -> usize {
+    max_toasts.max(1)
+}
+
+pub fn resolve_state(input: ToastPartStateInput) -> ToastPartState {
+    ToastPartState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: toast_state_attr(input.is_open),
+        variant: input.variant,
+        variant_attr: input.variant.as_attr(),
+        description_attr: description_attr(input.has_description),
+        close_mode_attr: close_mode_attr(input.has_custom_on_close),
+        open_attr: input.is_open.then_some("true"),
+        is_open: input.is_open,
+        has_description: input.has_description,
+        has_custom_id: input.has_custom_id,
+        has_custom_description: input.has_custom_description,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_motion: input.has_custom_motion,
+        has_custom_on_close: input.has_custom_on_close,
+        has_custom_on_exit_complete: input.has_custom_on_exit_complete,
+        id_source_attr: source_attr(input.has_custom_id),
+        description_source_attr: source_attr(input.has_custom_description),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        motion_source_attr: source_attr(input.has_custom_motion),
+        close_source_attr: source_attr(input.has_custom_on_close),
+        exit_source_attr: source_attr(input.has_custom_on_exit_complete),
+    }
+}
+
+pub fn compose_class_name(base_class_name: Option<String>, state: ToastPartState) -> String {
+    let mut classes = vec![
+        state.base_class.to_string(),
+        state.variant.class_name().to_string(),
+    ];
+
+    if state.is_open {
+        classes.push("ui-toast--open".to_string());
+    } else {
+        classes.push("ui-toast--closing".to_string());
+    }
+
+    if state.has_description {
+        classes.push("ui-toast--with-description".to_string());
+    } else {
+        classes.push("ui-toast--title-only".to_string());
+    }
+
+    if state.has_custom_id {
+        classes.push("ui-toast--custom-id".to_string());
+    }
+
+    if state.has_custom_description {
+        classes.push("ui-toast--custom-description".to_string());
+    }
+
+    if state.has_custom_motion {
+        classes.push("ui-toast--custom-motion".to_string());
+    }
+
+    if state.has_custom_on_close {
+        classes.push("ui-toast--custom-close".to_string());
+    }
+
+    if state.has_custom_on_exit_complete {
+        classes.push("ui-toast--custom-exit".to_string());
+    }
+
+    if state.has_custom_class_name {
+        classes.push("ui-toast--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
+    }
+
+    classes.join(" ")
+}
+
+pub fn resolve_viewport_state(input: ToastViewportStateInput) -> ToastViewportState {
+    let max_toasts = normalize_viewport_max_toasts(input.max_toasts);
+
+    ToastViewportState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: viewport_state_attr(input.portal),
+        queue_attr: viewport_queue_attr(max_toasts),
+        portal_attr: if input.portal { "true" } else { "false" },
+        max_toasts,
+        portal: input.portal,
+        has_custom_portal: input.has_custom_portal,
+        has_custom_max_toasts: input.has_custom_max_toasts,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_motion: input.has_custom_motion,
+        portal_source_attr: source_attr(input.has_custom_portal),
+        max_toasts_source_attr: source_attr(input.has_custom_max_toasts),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        motion_source_attr: source_attr(input.has_custom_motion),
+        store_source: input.store_source,
+        store_source_attr: input.store_source.as_attr(),
+    }
+}
+
+pub fn compose_viewport_class_name(
+    base_class_name: Option<String>,
+    state: ToastViewportState,
+) -> String {
+    let mut classes = vec![state.base_class.to_string()];
+
+    if state.portal {
+        classes.push("ui-toast-viewport--portal".to_string());
+    } else {
+        classes.push("ui-toast-viewport--inline".to_string());
+    }
+
+    if state.has_custom_portal {
+        classes.push("ui-toast-viewport--custom-portal".to_string());
+    }
+
+    if state.has_custom_max_toasts {
+        classes.push("ui-toast-viewport--custom-max-toasts".to_string());
+    }
+
+    if state.has_custom_motion {
+        classes.push("ui-toast-viewport--custom-motion".to_string());
+    }
+
+    if state.has_custom_class_name {
+        classes.push("ui-toast-viewport--custom-class".to_string());
+    }
+
+    if let Some(base_class_name) = normalize_optional_text(base_class_name) {
+        classes.push(base_class_name);
+    }
+
+    classes.join(" ")
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -47,7 +232,7 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
 pub fn normalize_title(value: String) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        "Notification".to_string()
+        DEFAULT_TITLE.to_string()
     } else {
         trimmed.to_string()
     }
@@ -55,47 +240,6 @@ pub fn normalize_title(value: String) -> String {
 
 pub fn normalize_description(value: Option<String>) -> Option<String> {
     normalize_optional_text(value)
-}
-
-pub fn compose_toast_class_name(
-    base_class_name: Option<String>,
-    variant: ToastVariant,
-    is_open: bool,
-    has_description: bool,
-    has_custom_class_name: bool,
-) -> String {
-    let mut classes = vec!["ui-toast".to_string(), variant.class_name().to_string()];
-
-    if is_open {
-        classes.push("ui-toast--open".to_string());
-    } else {
-        classes.push("ui-toast--closing".to_string());
-    }
-
-    if has_description {
-        classes.push("ui-toast--with-description".to_string());
-    } else {
-        classes.push("ui-toast--title-only".to_string());
-    }
-
-    if has_custom_class_name {
-        classes.push("ui-toast--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
-}
-
-pub fn compose_toast_viewport_class_name(base_class_name: Option<String>) -> String {
-    let mut classes = vec!["ui-toast-viewport".to_string()];
-
-    if let Some(base_class_name) = normalize_optional_text(base_class_name) {
-        classes.push(base_class_name);
-    }
-
-    classes.join(" ")
 }
 
 #[derive(Clone, Debug)]
@@ -322,6 +466,7 @@ impl ToastStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::toast::ToastSlot;
 
     fn with_store(max_toasts: usize, f: impl FnOnce(ToastStore)) {
         Owner::new().with(|| {
@@ -443,12 +588,20 @@ mod tests {
 
     #[test]
     fn compose_toast_class_name_tracks_state_markers() {
-        let class_name = compose_toast_class_name(
+        let class_name = compose_class_name(
             Some("docs-toast-custom".to_string()),
-            ToastVariant::Accent,
-            false,
-            true,
-            true,
+            resolve_state(ToastPartStateInput {
+                slot: ToastSlot::Root,
+                variant: ToastVariant::Accent,
+                is_open: false,
+                has_description: true,
+                has_custom_id: true,
+                has_custom_description: true,
+                has_custom_class_name: true,
+                has_custom_motion: true,
+                has_custom_on_close: true,
+                has_custom_on_exit_complete: true,
+            }),
         );
 
         for token in [

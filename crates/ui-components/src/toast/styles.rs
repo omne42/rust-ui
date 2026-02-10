@@ -11,6 +11,45 @@ pub const CSS: &str = r#"
   max-width: min(92vw, 420px);
 }
 
+.ui-toast-viewport--portal,
+.ui-toast-viewport[data-state="portal"] {
+  position: fixed;
+}
+
+.ui-toast-viewport--inline,
+.ui-toast-viewport[data-state="inline"],
+.ui-toast-viewport[data-portal="false"] {
+  position: relative;
+  right: auto;
+  bottom: auto;
+}
+
+.ui-toast-viewport[data-motion-source="custom"],
+.ui-toast-viewport[data-custom-motion="true"] {
+  --ui-toast-viewport-custom-motion: 1;
+}
+
+.ui-toast-viewport[data-store-source="provided"] {
+  --ui-toast-viewport-store-source: 1;
+}
+
+.ui-toast-viewport[data-store-source="context"] {
+  --ui-toast-viewport-store-source: 2;
+}
+
+.ui-toast-viewport[data-store-source="local"] {
+  --ui-toast-viewport-store-source: 3;
+}
+
+.ui-toast-viewport[data-queue="single"] {
+  max-width: min(92vw, 360px);
+}
+
+.ui-toast-viewport[data-queue="bounded"],
+.ui-toast-viewport[data-queue="extended"] {
+  max-width: min(92vw, 420px);
+}
+
 .ui-toast {
   pointer-events: auto;
   display: flex;
@@ -54,6 +93,26 @@ pub const CSS: &str = r#"
   --ui-toast-description-lines: 0;
 }
 
+.ui-toast[data-id-source="custom"],
+.ui-toast[data-custom-id="true"] {
+  --ui-toast-custom-id: 1;
+}
+
+.ui-toast[data-description-source="custom"],
+.ui-toast[data-custom-description="true"] {
+  --ui-toast-custom-description: 1;
+}
+
+.ui-toast[data-close-source="custom"],
+.ui-toast[data-custom-close="true"] {
+  --ui-toast-custom-close: 1;
+}
+
+.ui-toast[data-exit-source="custom"],
+.ui-toast[data-custom-exit="true"] {
+  --ui-toast-custom-exit: 1;
+}
+
 .ui-toast--custom-class,
 .ui-toast[data-custom-class="true"] {
   --ui-toast-custom-class: 1;
@@ -92,6 +151,10 @@ pub const CSS: &str = r#"
   color: var(--ui-fg-muted);
 }
 
+.ui-toast[data-close-mode="noop"] .ui-toast__close {
+  cursor: default;
+}
+
 .ui-toast__close:hover {
   background: var(--ui-accent-soft);
   color: var(--ui-fg);
@@ -102,11 +165,13 @@ pub const CSS: &str = r#"
   outline-offset: 2px;
 }
 
-.ui-toast--variant-accent {
+.ui-toast--variant-accent,
+.ui-toast[data-variant="accent"] {
   border-color: color-mix(in oklch, var(--ui-accent) 45%, var(--ui-border));
 }
 
-.ui-toast--variant-danger {
+.ui-toast--variant-danger,
+.ui-toast[data-variant="danger"] {
   border-color: color-mix(in oklch, var(--ui-danger) 45%, var(--ui-border));
 }
 "#;

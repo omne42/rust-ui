@@ -18,6 +18,28 @@ fn toast_does_not_expose_logic_module() {
 }
 
 #[test]
+fn toast_module_exposes_slot_and_part_state_contracts() {
+    let source = load_source("src/toast/mod.rs");
+
+    for needle in [
+        "pub enum ToastSlot",
+        "pub struct ToastPartStateInput",
+        "pub struct ToastPartState",
+        "pub enum ToastViewportSlot",
+        "pub enum ToastStoreSource",
+        "pub struct ToastViewportStateInput",
+        "pub struct ToastViewportState",
+        "DEFAULT_VIEWPORT_PORTAL",
+        "DEFAULT_VIEWPORT_MAX_TOASTS",
+    ] {
+        assert!(
+            source.contains(needle),
+            "toast::mod should include `{needle}` for stable toast contracts."
+        );
+    }
+}
+
+#[test]
 fn toast_is_publicly_exported_from_toast_module_and_crate_root() {
     let toast_mod = load_source("src/toast/mod.rs");
     let crate_root = load_source("src/lib.rs");
@@ -33,17 +55,99 @@ fn toast_is_publicly_exported_from_toast_module_and_crate_root() {
 }
 
 #[test]
-fn toast_viewport_marks_portaled_content_as_overlay_portal() {
+fn toast_logic_models_state_and_source_contracts() {
+    let source = load_source("src/toast/logic.rs");
+
+    for needle in [
+        "pub const DEFAULT_TITLE: &str = \"Notification\";",
+        "pub const DEFAULT_VIEWPORT_PORTAL: bool = true;",
+        "pub const DEFAULT_VIEWPORT_MAX_TOASTS: usize = 3;",
+        "pub fn toast_state_attr(is_open: bool)",
+        "pub fn description_attr(has_description: bool)",
+        "pub fn close_mode_attr(has_on_close: bool)",
+        "pub fn viewport_state_attr(portal: bool)",
+        "pub fn viewport_queue_attr(max_toasts: usize)",
+        "pub fn normalize_viewport_max_toasts(max_toasts: usize) -> usize",
+        "pub fn resolve_state(input: ToastPartStateInput) -> ToastPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: ToastPartState)",
+        "pub fn resolve_viewport_state(input: ToastViewportStateInput) -> ToastViewportState",
+        "pub fn compose_viewport_class_name(",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Toast logic should include `{needle}` for centralized source-state derivation."
+        );
+    }
+}
+
+#[test]
+fn toast_view_uses_logic_state_contracts() {
     let source = load_source("src/toast/view.rs");
 
-    assert!(
-        source.contains("<Portal>"),
-        "ToastViewport should render in a Portal by default."
-    );
-    assert!(
-        source.contains("data-ui-overlay-portal"),
-        "ToastViewport portal root should be marked as an overlay portal so modal aria-hidden logic doesn't hide it."
-    );
+    for needle in [
+        "logic::resolve_state(ToastPartStateInput {",
+        "slot: ToastSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), state.get())",
+        "data-slot=move || state.get().slot_attr",
+        "data-state=move || state.get().state_attr",
+        "data-variant=move || state.get().variant_attr",
+        "data-description=move || state.get().description_attr",
+        "data-open=move || state.get().open_attr",
+        "data-close-mode=move || state.get().close_mode_attr",
+        "data-id-source=move || state.get().id_source_attr",
+        "data-description-source=move || state.get().description_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-close-source=move || state.get().close_source_attr",
+        "data-exit-source=move || state.get().exit_source_attr",
+        "data-custom-id=move || state.get().has_custom_id.then_some(\"true\")",
+        "data-custom-description=move || state.get().has_custom_description.then_some(\"true\")",
+        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
+        "data-custom-close=move || state.get().has_custom_on_close.then_some(\"true\")",
+        "data-custom-exit=move || state.get().has_custom_on_exit_complete.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Toast view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn toast_viewport_uses_logic_state_contracts() {
+    let source = load_source("src/toast/view.rs");
+
+    for needle in [
+        "logic::resolve_viewport_state(ToastViewportStateInput {",
+        "slot: ToastViewportSlot::Root",
+        "logic::compose_viewport_class_name(class_name, viewport_state)",
+        "if let Some(provided_store) = store",
+        "ToastStoreSource::Provided",
+        "ToastStoreSource::Context",
+        "ToastStoreSource::Local",
+        "<Portal>",
+        "data-ui-overlay-portal",
+        "data-slot=move || viewport_state.get_value().slot_attr",
+        "data-state=move || viewport_state.get_value().state_attr",
+        "data-queue=move || viewport_state.get_value().queue_attr",
+        "data-portal=move || viewport_state.get_value().portal_attr",
+        "data-max-toasts=move || viewport_state.get_value().max_toasts.to_string()",
+        "data-portal-source=move || viewport_state.get_value().portal_source_attr",
+        "data-max-toasts-source=move || viewport_state.get_value().max_toasts_source_attr",
+        "data-class-source=move || viewport_state.get_value().class_source_attr",
+        "data-motion-source=move || viewport_state.get_value().motion_source_attr",
+        "data-store-source=move || viewport_state.get_value().store_source_attr",
+        "data-custom-portal=move || viewport_state.get_value().has_custom_portal.then_some(\"true\")",
+        "data-custom-max-toasts=move || viewport_state.get_value().has_custom_max_toasts.then_some(\"true\")",
+        "data-custom-class=move || viewport_state.get_value().has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=move || viewport_state.get_value().has_custom_motion.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ToastViewport should include `{needle}` for stable marker contracts."
+        );
+    }
 }
 
 #[test]
@@ -55,6 +159,7 @@ fn toast_has_spectrum_style_accessibility_semantics() {
         "aria-live=variant.aria_live()",
         "aria-atomic=\"true\"",
         "aria-label=\"Dismiss toast\"",
+        "if ev.key() == \"Escape\"",
     ] {
         assert!(
             source.contains(needle),
@@ -64,45 +169,57 @@ fn toast_has_spectrum_style_accessibility_semantics() {
 }
 
 #[test]
-fn toast_has_state_and_description_data_contracts() {
-    let source = load_source("src/toast/view.rs");
-
-    for needle in [
-        "data-state=",
-        "data-description=if has_description { \"present\" } else { \"absent\" }",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-motion-source=motion_source",
-        "data-custom-motion=custom_motion",
-        "data-custom-class=has_custom_class_name.then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(needle),
-            "Toast should expose `{needle}` for styling/state contracts."
-        );
-    }
-}
-
-#[test]
-fn toast_styles_include_motion_marker_contracts() {
+fn toast_styles_include_state_and_source_marker_contracts() {
     let source = load_source("src/toast/styles.rs");
 
     for selector in [
         ".ui-toast[data-motion-source=\"custom\"]",
         ".ui-toast[data-custom-motion=\"true\"]",
+        ".ui-toast[data-id-source=\"custom\"]",
+        ".ui-toast[data-custom-id=\"true\"]",
+        ".ui-toast[data-description-source=\"custom\"]",
+        ".ui-toast[data-custom-description=\"true\"]",
+        ".ui-toast[data-close-source=\"custom\"]",
+        ".ui-toast[data-custom-close=\"true\"]",
+        ".ui-toast[data-exit-source=\"custom\"]",
+        ".ui-toast[data-custom-exit=\"true\"]",
+        ".ui-toast[data-close-mode=\"noop\"] .ui-toast__close",
+        ".ui-toast[data-variant=\"accent\"]",
+        ".ui-toast[data-variant=\"danger\"]",
+        ".ui-toast-viewport[data-motion-source=\"custom\"]",
+        ".ui-toast-viewport[data-custom-motion=\"true\"]",
+        ".ui-toast-viewport[data-store-source=\"provided\"]",
+        ".ui-toast-viewport[data-store-source=\"context\"]",
+        ".ui-toast-viewport[data-store-source=\"local\"]",
+        ".ui-toast-viewport[data-state=\"inline\"]",
+        ".ui-toast-viewport[data-queue=\"single\"]",
     ] {
         assert!(
             source.contains(selector),
-            "Toast styles should include `{selector}` as stable custom-motion selectors."
+            "Toast styles should include `{selector}` as stable state/source selectors."
         );
     }
 }
 
 #[test]
-fn toast_supports_escape_to_dismiss() {
-    let source = load_source("src/toast/view.rs");
+fn toast_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
 
-    assert!(
-        source.contains("if ev.key() == \"Escape\""),
-        "Toast should dismiss when Escape is pressed."
-    );
+    for needle in [
+        "pub(super) fn toast() -> AnyView",
+        "title=\"Toast\"",
+        "slug=\"toast\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-description-source",
+        "data-close-source",
+        "data-exit-source",
+        "data-motion-source",
+        "<Toast",
+    ] {
+        assert!(
+            source.contains(needle),
+            "toast docs page should contain `{needle}`."
+        );
+    }
 }

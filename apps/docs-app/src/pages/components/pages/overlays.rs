@@ -928,7 +928,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Danger Variant + Custom Motion" code=code_danger>
+            <Playground title="State + Source Markers" code=code_danger>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button variant=ButtonVariant::Destructive on_press=reopen_danger>
@@ -937,6 +937,9 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                         <span class="ui-muted">
                             "open: " {move || open_danger_raw.get().to_string()}
                         </span>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-description-source / data-close-source / data-exit-source / data-motion-source in DevTools."
                     </div>
                     <Toast
                         id="docs-toast-danger".to_string()
