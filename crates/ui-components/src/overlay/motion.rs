@@ -174,3 +174,38 @@ pub fn attach_motion(
         }
     });
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_uses_flip3d_spring_contract() {
+        let motion = OverlayMotion::default();
+
+        assert_eq!(motion.spring, ui_motion::presets::spring_flip_3d());
+        assert_eq!(motion.initial_scale, 0.96);
+        assert_eq!(motion.initial_y_px, 8.0);
+    }
+
+    #[test]
+    fn supports_custom_overlay_motion_contract() {
+        let motion = OverlayMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 210.0,
+                damping: 19.0,
+                mass: 1.1,
+                precision: 0.002,
+            },
+            initial_scale: 0.94,
+            initial_y_px: 14.0,
+        };
+
+        assert_eq!(motion.spring.stiffness, 210.0);
+        assert_eq!(motion.spring.damping, 19.0);
+        assert_eq!(motion.spring.mass, 1.1);
+        assert_eq!(motion.spring.precision, 0.002);
+        assert_eq!(motion.initial_scale, 0.94);
+        assert_eq!(motion.initial_y_px, 14.0);
+    }
+}

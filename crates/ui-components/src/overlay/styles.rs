@@ -14,6 +14,30 @@ pub const CSS: &str = r#"
   --ui-overlay-panel-y: 8px;
 }
 
+.ui-overlay[data-motion-source="custom"],
+.ui-overlay[data-custom-motion="true"] {
+  --ui-overlay-custom-motion: 1;
+}
+
+.ui-overlay[data-state="open"],
+.ui-overlay[data-open="true"] {
+  pointer-events: auto;
+}
+
+.ui-overlay[data-state="closed"],
+.ui-overlay[data-closed="true"] {
+  pointer-events: auto;
+}
+
+.ui-overlay[data-dismissable="true"] .ui-overlay__backdrop {
+  cursor: pointer;
+}
+
+.ui-overlay[data-keyboard-dismiss-disabled="true"] .ui-overlay__panel {
+  outline: 1px dashed color-mix(in oklab, var(--ui-border) 72%, transparent);
+}
+
+
 .ui-overlay__backdrop {
   position: absolute;
   inset: 0;

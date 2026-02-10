@@ -65,7 +65,24 @@ pub fn Overlay(
 
     view! {
         <Portal>
-            <div class="ui-overlay" data-ui-overlay-portal="" node_ref=root_ref on:keydown=on_key_down>
+            <div
+                class="ui-overlay"
+                data-slot="overlay"
+                data-state=move || if open.get() { "open" } else { "closed" }
+                data-open=move || open.get().then_some("true")
+                data-closed=move || (!open.get()).then_some("true")
+                data-dismissable=is_dismissable.then_some("true")
+                data-keyboard-dismiss-disabled=is_keyboard_dismiss_disabled.then_some("true")
+                data-motion-source=if motion == OverlayMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != OverlayMotion::default()).then_some("true")
+                data-ui-overlay-portal=""
+                node_ref=root_ref
+                on:keydown=on_key_down
+            >
                 <div
                     class="ui-overlay__backdrop"
                     on:click=move |_| {
