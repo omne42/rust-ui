@@ -64,6 +64,8 @@ fn tabs_emits_spectrum_style_state_data_attributes() {
         "data-selection-empty=move || state.get().selected_index.is_none().then_some(\"true\")",
         "data-has-disabled-tabs=move || state.get().has_disabled_tabs.then_some(\"true\")",
         "data-keyboard-activation=match keyboard_activation",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
         "data-index=index",
         "data-selected",
         "data-hovered",
@@ -100,6 +102,21 @@ fn tabs_uses_logic_state_model() {
         view_source.contains("resolve_tabs_state(item_count, selected.get(), has_disabled_tabs)"),
         "Tabs view should derive root state through resolve_tabs_state."
     );
+}
+
+#[test]
+fn tabs_styles_include_motion_marker_contracts() {
+    let source = load_source("src/tabs/styles.rs");
+
+    for selector in [
+        ".ui-tabs[data-motion-source=\"custom\"]",
+        ".ui-tabs[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Tabs styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
 }
 
 #[test]

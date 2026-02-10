@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: 12px;
 }
 
+.ui-tabs[data-motion-source="custom"],
+.ui-tabs[data-custom-motion="true"] {
+  --ui-tabs-custom-motion: 1;
+}
+
 .ui-tabs__list {
   position: relative;
   display: inline-flex;

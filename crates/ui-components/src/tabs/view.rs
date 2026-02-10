@@ -124,6 +124,19 @@ pub fn Tabs(
     let indicator_ref: NodeRef<html::Div> = NodeRef::new();
     motion::attach_motion(list_ref, indicator_ref, tab_refs.clone(), selected, motion);
 
+    let base_class = "ui-tabs".to_string();
+    let class = class_name
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| format!("{base_class} {value}"))
+        .unwrap_or(base_class);
+
+    let motion_source = if motion == TabsMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != TabsMotion::default()).then_some("true");
+
     let tabs_view = labels
         .into_iter()
         .take(item_count)
@@ -285,10 +298,7 @@ pub fn Tabs(
 
     view! {
         <div
-            class=class_name
-                .filter(|value| !value.trim().is_empty())
-                .map(|value| format!("ui-tabs {value}"))
-                .unwrap_or_else(|| "ui-tabs".to_string())
+            class=class
             data-slot="tabs"
             data-disabled=disabled.then_some("true")
             data-empty=move || state.get().is_empty.then_some("true")
@@ -300,6 +310,8 @@ pub fn Tabs(
                 TabsKeyboardActivation::Automatic => "automatic",
                 TabsKeyboardActivation::Manual => "manual",
             }
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
         >
             <div
                 class="ui-tabs__list"
