@@ -69,6 +69,8 @@ pub fn Drawer(
                             class=move || class.get_value()
                             data-slot="drawer"
                             data-state=state.state_attr
+                            data-open=move || open.get().then_some("true")
+                            data-closed=move || (!open.get()).then_some("true")
                             data-placement=state.placement_attr
                             data-description=state.description_attr
                             data-footer=state.footer_attr
@@ -77,6 +79,12 @@ pub fn Drawer(
                             data-with-footer=state.show_footer.then_some("true")
                             data-close-visible=state.show_close_button.then_some("true")
                             data-custom-class=state.has_custom_class_name.then_some("true")
+                            data-motion-source=if motion == DrawerMotion::default() {
+                                "default"
+                            } else {
+                                "custom"
+                            }
+                            data-custom-motion=(motion != DrawerMotion::default()).then_some("true")
                         >
                             <Show when=move || state.show_close_button>
                                 <span class="ui-drawer__close" data-slot="drawer-close">
@@ -142,6 +150,8 @@ pub fn Drawer(
                             class=move || class.get_value()
                             data-slot="drawer"
                             data-state=state.state_attr
+                            data-open=move || open.get().then_some("true")
+                            data-closed=move || (!open.get()).then_some("true")
                             data-placement=state.placement_attr
                             data-description=state.description_attr
                             data-footer=state.footer_attr
@@ -150,6 +160,12 @@ pub fn Drawer(
                             data-with-footer=state.show_footer.then_some("true")
                             data-close-visible=state.show_close_button.then_some("true")
                             data-custom-class=state.has_custom_class_name.then_some("true")
+                            data-motion-source=if motion == DrawerMotion::default() {
+                                "default"
+                            } else {
+                                "custom"
+                            }
+                            data-custom-motion=(motion != DrawerMotion::default()).then_some("true")
                         >
                             <Show when=move || state.show_close_button>
                                 <span class="ui-drawer__close" data-slot="drawer-close">

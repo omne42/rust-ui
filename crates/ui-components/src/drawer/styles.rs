@@ -8,6 +8,11 @@ pub const CSS: &str = r#"
   min-height: 0;
 }
 
+.ui-drawer[data-motion-source="custom"],
+.ui-drawer[data-custom-motion="true"] {
+  --ui-drawer-custom-motion: 1;
+}
+
 .ui-drawer--placement-bottom,
 .ui-drawer[data-placement="bottom"] {
   width: 100%;

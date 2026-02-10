@@ -3,9 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
-    Dialog, Drawer, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, PopoverMotion,
-    Sheet, SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
-    ToastViewport, Tooltip, provide_toast_store,
+    Dialog, Drawer, DrawerMotion, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover,
+    PopoverMotion, Sheet, SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions,
+    ToastStoreOptions, ToastVariant, ToastViewport, Tooltip, provide_toast_store,
 };
 
 pub(super) fn overlay() -> AnyView {
@@ -635,6 +635,12 @@ pub(super) fn drawer() -> AnyView {
   id_base="dr-left".to_string()
   title="Left drawer".to_string()
   placement=DrawerPlacement::Left
+  motion=DrawerMotion {
+    sheet: SheetMotion {
+      initial_offset_px: 52.0,
+      ..SheetMotion::default()
+    }
+  }
   show_close_button=false
   class_name="docs-drawer-custom".to_string()
   on_close=close
@@ -692,6 +698,12 @@ pub(super) fn drawer() -> AnyView {
                         id_base="docs-drawer-left".to_string()
                         title="Left drawer".to_string()
                         placement=DrawerPlacement::Left
+                        motion=DrawerMotion {
+                            sheet: SheetMotion {
+                                initial_offset_px: 52.0,
+                                ..SheetMotion::default()
+                            },
+                        }
                         show_close_button=false
                         class_name="docs-drawer-custom".to_string()
                         on_close=close_custom

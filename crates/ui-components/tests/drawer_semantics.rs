@@ -98,11 +98,15 @@ fn drawer_emits_spectrum_style_state_data_attributes() {
     for attr in [
         "data-slot=\"drawer\"",
         "data-state=state.state_attr",
+        "data-open=move || open.get().then_some(\"true\")",
+        "data-closed=move || (!open.get()).then_some(\"true\")",
         "data-placement=state.placement_attr",
         "data-description=state.description_attr",
         "data-footer=state.footer_attr",
         "data-close-button=state.close_button_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=if motion == DrawerMotion::default()",
+        "data-custom-motion=(motion != DrawerMotion::default()).then_some(\"true\")",
         "data-slot=\"drawer-header\"",
         "data-slot=\"drawer-body\"",
         "data-slot=\"drawer-footer\"",
@@ -119,6 +123,8 @@ fn drawer_styles_include_state_marker_contracts() {
     let source = load_source("src/drawer/styles.rs");
 
     for selector in [
+        ".ui-drawer[data-motion-source=\"custom\"]",
+        ".ui-drawer[data-custom-motion=\"true\"]",
         ".ui-drawer--placement-left",
         ".ui-drawer[data-placement=\"right\"]",
         ".ui-drawer--with-description",
@@ -149,6 +155,23 @@ fn drawer_close_button_and_motion_contracts_are_preserved() {
         assert!(
             source.contains(needle),
             "Drawer should preserve close/motion contracts (`{needle}`)."
+        );
+    }
+}
+
+#[test]
+fn drawer_motion_contract_exposes_default_and_custom_sheet_tests() {
+    let source = load_source("src/drawer/motion.rs");
+
+    for needle in [
+        "pub struct DrawerMotion",
+        "pub sheet: crate::sheet::SheetMotion",
+        "fn default_motion_uses_default_sheet_motion_contract()",
+        "fn supports_custom_sheet_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Drawer motion module should include `{needle}` for HeroUI-level contract coverage."
         );
     }
 }
