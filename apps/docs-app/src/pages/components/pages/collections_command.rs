@@ -138,6 +138,11 @@ pub(super) fn context_menu() -> AnyView {
         "Paste".to_string(),
         "Inspect".to_string(),
     ];
+    let marker_items = vec![
+        "Duplicate".to_string(),
+        "Rename".to_string(),
+        "Delete".to_string(),
+    ];
 
     let (last_default_action, set_last_default_action) = signal(None::<usize>);
     let on_default_action =
@@ -147,8 +152,16 @@ pub(super) fn context_menu() -> AnyView {
     let on_keep_open_action =
         Callback::new(move |index: usize| set_last_keep_open_action.set(Some(index)));
 
+    let (marker_open_raw, set_marker_open_raw) = signal(false);
+    let marker_open: Signal<bool> = Signal::derive(move || marker_open_raw.get());
+    let on_marker_open_change = Callback::new(move |next: bool| set_marker_open_raw.set(next));
+
+    let (last_marker_action, set_last_marker_action) = signal(None::<usize>);
+    let on_marker_action =
+        Callback::new(move |index: usize| set_last_marker_action.set(Some(index)));
+
     let code = r#"<ContextMenu
-  id_base=\"docs-context-menu\".to_string()
+  id_base="docs-context-menu".to_string()
   items=items
   on_action=on_action
 >
@@ -156,7 +169,7 @@ pub(super) fn context_menu() -> AnyView {
 </ContextMenu>"#;
 
     let states_code = r#"<ContextMenu
-  id_base=\"docs-context-menu-persistent\".to_string()
+  id_base="docs-context-menu-persistent".to_string()
   items=items
   on_action=on_action
   close_on_action=false
@@ -166,12 +179,46 @@ pub(super) fn context_menu() -> AnyView {
   "Persistent + disabled item"
 </ContextMenu>"#;
 
+    let marker_code = r#"let (open_raw, set_open_raw) = signal(false);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+
+<ContextMenu
+  id_base="docs-context-menu-markers".to_string()
+  items=items
+  on_action=on_action
+  open=open
+  default_open=true
+  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
+  close_on_action=false
+  disabled_indices=vec![2]
+  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]
+  aria_label="Workspace context actions".to_string()
+  class_name="docs-context-menu-custom".to_string()
+  motion=ui_components::ContextMenuMotion {
+    popover: ui_components::PopoverMotion {
+      initial_scale: 0.94,
+      offset_y_px: 10.0,
+      ..ui_components::PopoverMotion::default()
+    },
+  }
+>
+  "Inspect state + source markers"
+</ContextMenu>"#;
+
+    let marker_motion = ui_components::ContextMenuMotion {
+        popover: ui_components::PopoverMotion {
+            initial_scale: 0.94,
+            offset_y_px: 10.0,
+            ..ui_components::PopoverMotion::default()
+        },
+    };
+
     view! {
         <ComponentPage
             title="ContextMenu"
             slug="context-menu"
             group="Collections"
-            description="Shadcn-compatible context trigger menu with right-click + keyboard open semantics, Spectrum state attrs, and HeroUI-level popover spring motion reuse."
+            description="Shadcn-compatible context trigger menu with right-click + keyboard open semantics, Spectrum state/source attrs, and HeroUI-level popover spring motion reuse."
         >
             <Playground title="Right Click + Keyboard Open" code=code>
                 <div class="docs-stack docs-stack--tight">
@@ -227,6 +274,55 @@ pub(super) fn context_menu() -> AnyView {
                         }}
                     </span>
                     <span class="ui-muted">"close_on_action: false (selection keeps menu open)"</span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(true)>
+                            "Open"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(false)>
+                            "Close"
+                        </button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-aria-label-source / data-disabled-indices-source / data-close-on-action-source / data-open-source / data-motion-source in DevTools."
+                    </div>
+                    <ContextMenu
+                        id_base="docs-context-menu-markers".to_string()
+                        items=marker_items
+                        on_action=on_marker_action
+                        open=marker_open
+                        default_open=true
+                        on_open_change=on_marker_open_change
+                        close_on_action=false
+                        disabled_indices=vec![2]
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                        aria_label="Workspace context actions".to_string()
+                        class_name="docs-context-menu-custom".to_string()
+                        motion=marker_motion
+                    >
+                        "Right click or press Shift+F10 to inspect markers"
+                    </ContextMenu>
+                    <span class="ui-muted">
+                        "open: "
+                        {move || if marker_open_raw.get() { "true" } else { "false" }}
+                    </span>
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || {
+                            last_marker_action
+                                .get()
+                                .map(|value| value.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>

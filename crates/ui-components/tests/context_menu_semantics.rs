@@ -8,6 +8,42 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn context_menu_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/context_menu/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "ContextMenu internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn context_menu_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/context_menu/mod.rs");
+
+    for needle in [
+        "pub enum ContextMenuSlot",
+        "pub struct ContextMenuPartStateInput",
+        "pub struct ContextMenuPartState",
+        "pub enum MenuOpenFocusStrategy",
+        "pub struct ContextMenuIds",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_ARIA_LABEL",
+        "DEFAULT_CLOSE_ON_ACTION",
+        "DEFAULT_DISABLED",
+        "DEFAULT_PLACEMENT",
+        "pub use crate::dropdown_menu::DropdownMenuMotion as ContextMenuMotion;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "context_menu::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
 fn context_menu_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/context_menu/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -17,47 +53,73 @@ fn context_menu_is_exported_from_module_and_crate_root() {
         "context_menu module should export `ContextMenu`."
     );
     assert!(
-        module_source.contains("ContextMenuMotion"),
-        "context_menu module should expose a motion alias."
-    );
-    assert!(
         crate_source.contains("pub use context_menu::{ContextMenu, ContextMenuMotion};"),
         "crate root should re-export context_menu contracts."
     );
 }
 
 #[test]
-fn context_menu_uses_logic_state_model() {
-    let view_source = load_source("src/context_menu/view.rs");
-    let logic_source = load_source("src/context_menu/logic.rs");
+fn context_menu_logic_exposes_state_helpers() {
+    let source = load_source("src/context_menu/logic.rs");
 
     for needle in [
-        "pub struct ContextMenuStateInput",
-        "pub struct ContextMenuState",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_id_base(",
+        "pub fn state_attr(is_open: bool, trigger_disabled: bool)",
+        "pub fn item_attr(item_count: usize)",
+        "pub fn disabled_attr(trigger_disabled: bool)",
+        "pub fn action_attr(close_on_action: bool)",
+        "pub fn open_mode_attr(is_controlled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(id_base: String)",
         "pub fn normalize_disabled_indices(",
-        "pub fn resolve_trigger_aria_label(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "pub fn focus_strategy_for_open_key(",
+        "pub fn resolve_trigger_disabled(disabled: bool, item_count: usize)",
+        "pub fn resolve_trigger_aria_label(value: Option<String>)",
+        "pub fn resolve_state(input: ContextMenuPartStateInput) -> ContextMenuPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: ContextMenuPartState)",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ContextMenu logic should include `{needle}` for centralized state derivation."
+            source.contains(needle),
+            "ContextMenu logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn context_menu_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/context_menu/view.rs");
 
     for needle in [
-        "let id_base = logic::normalize_id_base(id_base);",
-        "let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);",
-        "let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);",
-        "let state = logic::resolve_state(logic::ContextMenuStateInput {",
-        "let class = logic::compose_class_name(class_name, state);",
+        "logic::normalize_id_base(id_base)",
+        "logic::normalize_disabled_indices(disabled_indices, item_count.get_value())",
+        "logic::resolve_trigger_aria_label(aria_label)",
+        "logic::resolve_state(ContextMenuPartStateInput {",
+        "slot: ContextMenuSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-items=move || root_state.get().item_attr",
+        "data-action-mode=move || root_state.get().action_attr",
+        "data-open-mode=move || root_state.get().open_mode_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-aria-label-source=move || root_state.get().aria_label_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-disabled-source=move || root_state.get().disabled_source_attr",
+        "data-disabled-indices-source=move || root_state.get().disabled_indices_source_attr",
+        "data-item-kinds-source=move || root_state.get().item_kinds_source_attr",
+        "data-close-on-action-source=move || root_state.get().close_on_action_source_attr",
+        "data-placement-source=move || root_state.get().placement_source_attr",
+        "data-open-source=move || root_state.get().open_source_attr",
+        "data-default-open-source=move || root_state.get().default_open_source_attr",
+        "data-open-change-source=move || root_state.get().open_change_source_attr",
+        "data-motion-source=move || root_state.get().motion_source_attr",
+        "data-custom-id=move || root_state.get().has_custom_id_base.then_some(\"true\")",
+        "data-custom-aria-label=move || root_state.get().has_custom_aria_label.then_some(\"true\")",
+        "data-custom-class=move || root_state.get().has_custom_class_name.then_some(\"true\")",
+        "data-custom-open=move || root_state.get().has_custom_open.then_some(\"true\")",
+        "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
-            view_source.contains(needle),
-            "ContextMenu view should derive wrapper state through logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "ContextMenu view should include `{needle}` for stable state/source marker contracts."
         );
     }
 }
@@ -70,11 +132,13 @@ fn context_menu_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
-        "motion: ContextMenuMotion",
+        "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
+        "let has_custom_open = open.is_some()",
+        "let has_custom_default_open = default_open.is_some()",
     ] {
         assert!(
             source.contains(needle),
-            "ContextMenu should accept `{needle}` for controlled/uncontrolled open state."
+            "ContextMenu should support `{needle}` for controllable open state."
         );
     }
 }
@@ -86,47 +150,16 @@ fn context_menu_trigger_wires_context_and_keyboard_open_contract() {
     for needle in [
         "on:contextmenu=on_context_menu",
         "on:keydown=on_key_down",
-        "if let Some(strategy) = logic::focus_strategy_for_open_key(&key, ev.shift_key())",
+        "crate::context_menu::focus_strategy_for_open_key(&key, ev.shift_key())",
         "aria-haspopup=\"menu\"",
         "aria-expanded=move || if open.get() { \"true\" } else { \"false\" }",
         "aria-controls=aria_controls",
         "aria_labelledby=trigger_id.get_value()",
+        "data-slot=trigger_slot.as_attr()",
     ] {
         assert!(
             source.contains(needle),
             "ContextMenu should wire `{needle}` to match context-trigger + keyboard-open semantics."
-        );
-    }
-}
-
-#[test]
-fn context_menu_emits_spectrum_root_state_data_attributes() {
-    let source = load_source("src/context_menu/view.rs");
-
-    for needle in [
-        "data-slot=\"context-menu\"",
-        "data-slot=\"context-menu-trigger\"",
-        "data-state=move ||",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-closed=move || (!open.get()).then_some(\"true\")",
-        "data-disabled=state.is_trigger_disabled.then_some(\"true\")",
-        "data-enabled=state.is_enabled.then_some(\"true\")",
-        "data-empty=state.is_empty.then_some(\"true\")",
-        "data-has-items=state.has_items.then_some(\"true\")",
-        "data-placement=state.placement_attr",
-        "data-controlled=state.is_controlled.then_some(\"true\")",
-        "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
-        "data-close-on-action=state.close_on_action.then_some(\"true\")",
-        "data-keep-open-on-action=state.keep_open_on_action.then_some(\"true\")",
-        "data-custom-label=state.has_custom_aria_label.then_some(\"true\")",
-        "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
-        "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
-        "data-motion-source=if motion == ContextMenuMotion::default()",
-        "data-custom-motion=(motion != ContextMenuMotion::default()).then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(needle),
-            "ContextMenu should set `{needle}` so it can be styled/tested with Spectrum-compatible selectors."
         );
     }
 }
@@ -138,7 +171,7 @@ fn context_menu_renders_menu_inside_popover_with_presence() {
     for needle in [
         "use_presence(open)",
         "<Popover",
-        "placement=state.placement",
+        "placement=placement",
         "motion=motion.popover",
         "<Menu",
         "on_exit_complete=presence.finish_exit",
@@ -151,21 +184,30 @@ fn context_menu_renders_menu_inside_popover_with_presence() {
 }
 
 #[test]
-fn context_menu_styles_include_disabled_and_persistent_markers() {
+fn context_menu_styles_include_state_and_source_markers() {
     let source = load_source("src/context_menu/styles.rs");
 
     for needle in [
         ".ui-context-menu {",
         ".ui-context-menu__trigger {",
+        ".ui-context-menu--open",
+        ".ui-context-menu[data-state=\"open\"]",
         ".ui-context-menu--persistent",
-        ".ui-context-menu--disabled",
-        ".ui-context-menu--empty",
+        ".ui-context-menu[data-action-mode=\"keep-open\"]",
+        ".ui-context-menu[data-open-mode=\"controlled\"]",
+        ".ui-context-menu[data-id-source=\"custom\"]",
+        ".ui-context-menu[data-aria-label-source=\"custom\"]",
+        ".ui-context-menu[data-class-source=\"custom\"]",
+        ".ui-context-menu[data-disabled-indices-source=\"custom\"]",
+        ".ui-context-menu[data-item-kinds-source=\"custom\"]",
+        ".ui-context-menu[data-open-source=\"custom\"]",
+        ".ui-context-menu[data-open-change-source=\"custom\"]",
         ".ui-context-menu[data-motion-source=\"custom\"]",
         ".ui-context-menu[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
-            "ContextMenu styles should include `{needle}` for stable visual state contracts."
+            "ContextMenu styles should include `{needle}` as stable state/source contracts."
         );
     }
 }
@@ -183,6 +225,30 @@ fn context_menu_uses_dropdown_menu_motion_alias_contract() {
         assert!(
             mod_source.contains(needle) || dropdown_motion_source.contains(needle),
             "ContextMenu motion alias contract should include `{needle}` for HeroUI-style spring customization."
+        );
+    }
+}
+
+#[test]
+fn context_menu_docs_page_contains_state_source_playground() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn context_menu() -> AnyView",
+        "title=\"ContextMenu\"",
+        "slug=\"context-menu\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-aria-label-source",
+        "data-disabled-indices-source",
+        "data-close-on-action-source",
+        "data-open-source",
+        "data-motion-source",
+        "<ContextMenu",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "ContextMenu docs page should contain `{needle}`."
         );
     }
 }

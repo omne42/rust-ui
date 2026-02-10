@@ -1,69 +1,52 @@
 use std::collections::BTreeSet;
 
+use crate::context_menu::{
+    ContextMenuIds, ContextMenuPartState, ContextMenuPartStateInput, ContextMenuSlot,
+};
 use ui_headless::PopoverPlacement;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum MenuOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
-}
+pub const DEFAULT_ID_BASE: &str = "context-menu";
+pub const DEFAULT_ARIA_LABEL: &str = "Open context menu";
+pub const DEFAULT_DISABLED: bool = false;
+pub const DEFAULT_CLOSE_ON_ACTION: bool = true;
+pub const DEFAULT_PLACEMENT: PopoverPlacement = PopoverPlacement::BottomStart;
 
-impl MenuOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
-        }
+pub fn state_attr(is_open: bool, trigger_disabled: bool) -> &'static str {
+    if is_open {
+        "open"
+    } else if trigger_disabled {
+        "disabled"
+    } else {
+        "closed"
     }
 }
 
-pub fn focus_strategy_for_open_key(key: &str, shift_key: bool) -> Option<MenuOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
-        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
-        "ContextMenu" => Some(MenuOpenFocusStrategy::First),
-        "F10" if shift_key => Some(MenuOpenFocusStrategy::First),
-        _ => None,
+pub fn item_attr(item_count: usize) -> &'static str {
+    if item_count == 0 {
+        "empty"
+    } else {
+        "populated"
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct ContextMenuIds {
-    pub trigger_id: String,
-    pub menu_id: String,
+pub fn disabled_attr(trigger_disabled: bool) -> &'static str {
+    if trigger_disabled { "true" } else { "false" }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ContextMenuStateInput {
-    pub item_count: usize,
-    pub trigger_disabled: bool,
-    pub close_on_action: bool,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-    pub has_disabled_items: bool,
-    pub has_item_kinds: bool,
-    pub is_controlled: bool,
-    pub placement: PopoverPlacement,
+pub fn action_attr(close_on_action: bool) -> &'static str {
+    if close_on_action {
+        "close"
+    } else {
+        "keep-open"
+    }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ContextMenuState {
-    pub item_count: usize,
-    pub is_empty: bool,
-    pub has_items: bool,
-    pub is_trigger_disabled: bool,
-    pub is_enabled: bool,
-    pub close_on_action: bool,
-    pub keep_open_on_action: bool,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-    pub has_disabled_items: bool,
-    pub has_item_kinds: bool,
-    pub is_controlled: bool,
-    pub is_uncontrolled: bool,
-    pub placement: PopoverPlacement,
-    pub placement_attr: &'static str,
+pub fn open_mode_attr(is_controlled: bool) -> &'static str {
+    if is_controlled {
+        "controlled"
+    } else {
+        "uncontrolled"
+    }
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -74,7 +57,7 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| "context-menu".to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
 }
 
 pub fn resolve_ids(id_base: &str) -> ContextMenuIds {
@@ -103,54 +86,120 @@ pub fn resolve_trigger_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    ("Open context menu".to_string(), false)
+    (DEFAULT_ARIA_LABEL.to_string(), false)
 }
 
-pub fn resolve_state(input: ContextMenuStateInput) -> ContextMenuState {
-    ContextMenuState {
-        item_count: input.item_count,
-        is_empty: input.item_count == 0,
-        has_items: input.item_count > 0,
-        is_trigger_disabled: input.trigger_disabled,
-        is_enabled: !input.trigger_disabled,
-        close_on_action: input.close_on_action,
-        keep_open_on_action: !input.close_on_action,
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_class_name: input.has_custom_class_name,
-        has_disabled_items: input.has_disabled_items,
-        has_item_kinds: input.has_item_kinds,
-        is_controlled: input.is_controlled,
-        is_uncontrolled: !input.is_controlled,
+fn source_attr(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+pub fn resolve_state(input: ContextMenuPartStateInput) -> ContextMenuPartState {
+    let is_empty = input.item_count == 0;
+    let has_items = input.item_count > 0;
+    let is_enabled = !input.trigger_disabled;
+    let keep_open_on_action = !input.close_on_action;
+    let is_uncontrolled = !input.is_controlled;
+
+    ContextMenuPartState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: state_attr(input.is_open, input.trigger_disabled),
+        item_attr: item_attr(input.item_count),
+        disabled_attr: disabled_attr(input.trigger_disabled),
+        action_attr: action_attr(input.close_on_action),
+        open_mode_attr: open_mode_attr(input.is_controlled),
         placement: input.placement,
         placement_attr: input.placement.as_str(),
+        open_attr: input.is_open.then_some("true"),
+        closed_attr: (!input.is_open).then_some("true"),
+        is_open: input.is_open,
+        item_count: input.item_count,
+        is_empty,
+        has_items,
+        is_trigger_disabled: input.trigger_disabled,
+        is_enabled,
+        close_on_action: input.close_on_action,
+        keep_open_on_action,
+        is_controlled: input.is_controlled,
+        is_uncontrolled,
+        has_custom_id_base: input.has_custom_id_base,
+        has_custom_aria_label: input.has_custom_aria_label,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_disabled: input.has_custom_disabled,
+        has_custom_disabled_indices: input.has_custom_disabled_indices,
+        has_custom_item_kinds: input.has_custom_item_kinds,
+        has_custom_close_on_action: input.has_custom_close_on_action,
+        has_custom_placement: input.has_custom_placement,
+        has_custom_open: input.has_custom_open,
+        has_custom_default_open: input.has_custom_default_open,
+        has_custom_on_open_change: input.has_custom_on_open_change,
+        has_custom_motion: input.has_custom_motion,
+        id_source_attr: source_attr(input.has_custom_id_base),
+        aria_label_source_attr: source_attr(input.has_custom_aria_label),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        disabled_source_attr: source_attr(input.has_custom_disabled),
+        disabled_indices_source_attr: source_attr(input.has_custom_disabled_indices),
+        item_kinds_source_attr: source_attr(input.has_custom_item_kinds),
+        close_on_action_source_attr: source_attr(input.has_custom_close_on_action),
+        placement_source_attr: source_attr(input.has_custom_placement),
+        open_source_attr: source_attr(input.has_custom_open),
+        default_open_source_attr: source_attr(input.has_custom_default_open),
+        open_change_source_attr: source_attr(input.has_custom_on_open_change),
+        motion_source_attr: source_attr(input.has_custom_motion),
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: ContextMenuState) -> String {
-    let mut classes = vec![
-        "ui-context-menu".to_string(),
-        format!("ui-context-menu--placement-{}", state.placement_attr),
-    ];
+pub fn compose_class_name(base_class_name: Option<String>, state: ContextMenuPartState) -> String {
+    let mut classes = vec![state.base_class.to_string()];
 
-    if state.is_trigger_disabled {
-        classes.push("ui-context-menu--disabled".to_string());
-    }
-    if state.has_items {
-        classes.push("ui-context-menu--has-items".to_string());
-    }
-    if state.is_empty {
-        classes.push("ui-context-menu--empty".to_string());
-    }
-    if state.keep_open_on_action {
-        classes.push("ui-context-menu--persistent".to_string());
-    }
-    if state.is_controlled {
-        classes.push("ui-context-menu--controlled".to_string());
-    }
+    if matches!(state.slot, ContextMenuSlot::Root) {
+        classes.push(format!(
+            "ui-context-menu--placement-{}",
+            state.placement_attr
+        ));
 
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
+        if state.is_open {
+            classes.push("ui-context-menu--open".to_string());
+        } else {
+            classes.push("ui-context-menu--closed".to_string());
+        }
+
+        if state.is_trigger_disabled {
+            classes.push("ui-context-menu--disabled".to_string());
+        } else {
+            classes.push("ui-context-menu--enabled".to_string());
+        }
+
+        if state.has_items {
+            classes.push("ui-context-menu--has-items".to_string());
+        } else {
+            classes.push("ui-context-menu--empty".to_string());
+        }
+
+        if state.keep_open_on_action {
+            classes.push("ui-context-menu--persistent".to_string());
+        } else {
+            classes.push("ui-context-menu--close-on-action".to_string());
+        }
+
+        if state.is_controlled {
+            classes.push("ui-context-menu--controlled".to_string());
+        } else {
+            classes.push("ui-context-menu--uncontrolled".to_string());
+        }
+
+        if state.has_custom_motion {
+            classes.push("ui-context-menu--custom-motion".to_string());
+        }
+
+        if state.has_custom_class_name {
+            classes.push("ui-context-menu--custom-class".to_string());
+            if let Some(base_class_name) = normalize_optional_text(base_class_name) {
+                classes.push(base_class_name);
+            }
+        }
+    } else if let Some(base_class_name) = normalize_optional_text(base_class_name) {
         classes.push(base_class_name);
     }
 
@@ -160,6 +209,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ContextMenuSta
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::context_menu::{ContextMenuPartStateInput, ContextMenuSlot, MenuOpenFocusStrategy};
 
     #[test]
     fn menu_id_derives_from_base() {
@@ -174,7 +224,7 @@ mod tests {
             normalize_id_base("  demo-context-menu  ".to_string()),
             "demo-context-menu"
         );
-        assert_eq!(normalize_id_base("   ".to_string()), "context-menu");
+        assert_eq!(normalize_id_base("   ".to_string()), DEFAULT_ID_BASE);
     }
 
     #[test]
@@ -187,7 +237,7 @@ mod tests {
     fn aria_label_defaults_and_trims() {
         assert_eq!(
             resolve_trigger_aria_label(None),
-            ("Open context menu".to_string(), false)
+            (DEFAULT_ARIA_LABEL.to_string(), false)
         );
         assert_eq!(
             resolve_trigger_aria_label(Some("  Context actions  ".to_string())),
@@ -198,18 +248,21 @@ mod tests {
     #[test]
     fn focus_strategy_for_open_key_maps_context_shortcuts() {
         assert_eq!(
-            focus_strategy_for_open_key("ContextMenu", false),
+            crate::context_menu::focus_strategy_for_open_key("ContextMenu", false),
             Some(MenuOpenFocusStrategy::First)
         );
         assert_eq!(
-            focus_strategy_for_open_key("F10", true),
+            crate::context_menu::focus_strategy_for_open_key("F10", true),
             Some(MenuOpenFocusStrategy::First)
         );
         assert_eq!(
-            focus_strategy_for_open_key("ArrowUp", false),
+            crate::context_menu::focus_strategy_for_open_key("ArrowUp", false),
             Some(MenuOpenFocusStrategy::Last)
         );
-        assert_eq!(focus_strategy_for_open_key("F10", false), None);
+        assert_eq!(
+            crate::context_menu::focus_strategy_for_open_key("F10", false),
+            None
+        );
     }
 
     #[test]
@@ -227,59 +280,87 @@ mod tests {
     }
 
     #[test]
-    fn resolve_state_tracks_trigger_items_and_strategy_flags() {
-        let state = resolve_state(ContextMenuStateInput {
+    fn resolve_state_tracks_source_and_open_contracts() {
+        let state = resolve_state(ContextMenuPartStateInput {
+            slot: ContextMenuSlot::Root,
+            is_open: true,
             item_count: 3,
             trigger_disabled: false,
             close_on_action: false,
+            placement: PopoverPlacement::TopEnd,
+            is_controlled: true,
+            has_custom_id_base: true,
             has_custom_aria_label: true,
             has_custom_class_name: true,
-            has_disabled_items: true,
-            has_item_kinds: true,
-            is_controlled: true,
-            placement: PopoverPlacement::TopEnd,
+            has_custom_disabled: true,
+            has_custom_disabled_indices: true,
+            has_custom_item_kinds: true,
+            has_custom_close_on_action: true,
+            has_custom_placement: true,
+            has_custom_open: true,
+            has_custom_default_open: true,
+            has_custom_on_open_change: true,
+            has_custom_motion: true,
         });
 
-        assert_eq!(state.item_count, 3);
-        assert!(state.has_items);
-        assert!(!state.is_empty);
-        assert!(!state.is_trigger_disabled);
-        assert!(state.is_enabled);
-        assert!(!state.close_on_action);
-        assert!(state.keep_open_on_action);
-        assert!(state.has_custom_aria_label);
-        assert!(state.has_custom_class_name);
-        assert!(state.has_disabled_items);
-        assert!(state.has_item_kinds);
-        assert!(state.is_controlled);
-        assert!(!state.is_uncontrolled);
+        assert_eq!(state.slot_attr, "context-menu");
+        assert_eq!(state.state_attr, "open");
+        assert_eq!(state.item_attr, "populated");
+        assert_eq!(state.disabled_attr, "false");
+        assert_eq!(state.action_attr, "keep-open");
+        assert_eq!(state.open_mode_attr, "controlled");
         assert_eq!(state.placement_attr, "top-end");
+        assert_eq!(state.id_source_attr, "custom");
+        assert_eq!(state.aria_label_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
+        assert_eq!(state.disabled_source_attr, "custom");
+        assert_eq!(state.disabled_indices_source_attr, "custom");
+        assert_eq!(state.item_kinds_source_attr, "custom");
+        assert_eq!(state.close_on_action_source_attr, "custom");
+        assert_eq!(state.placement_source_attr, "custom");
+        assert_eq!(state.open_source_attr, "custom");
+        assert_eq!(state.default_open_source_attr, "custom");
+        assert_eq!(state.open_change_source_attr, "custom");
+        assert_eq!(state.motion_source_attr, "custom");
     }
 
     #[test]
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
-            resolve_state(ContextMenuStateInput {
+            resolve_state(ContextMenuPartStateInput {
+                slot: ContextMenuSlot::Root,
+                is_open: false,
                 item_count: 0,
                 trigger_disabled: true,
                 close_on_action: false,
+                placement: PopoverPlacement::BottomStart,
+                is_controlled: true,
+                has_custom_id_base: false,
                 has_custom_aria_label: false,
                 has_custom_class_name: true,
-                has_disabled_items: false,
-                has_item_kinds: false,
-                is_controlled: true,
-                placement: PopoverPlacement::BottomStart,
+                has_custom_disabled: false,
+                has_custom_disabled_indices: false,
+                has_custom_item_kinds: false,
+                has_custom_close_on_action: true,
+                has_custom_placement: false,
+                has_custom_open: true,
+                has_custom_default_open: false,
+                has_custom_on_open_change: false,
+                has_custom_motion: true,
             }),
         );
 
         for token in [
             "ui-context-menu",
             "ui-context-menu--placement-bottom-start",
+            "ui-context-menu--closed",
             "ui-context-menu--disabled",
             "ui-context-menu--empty",
             "ui-context-menu--persistent",
             "ui-context-menu--controlled",
+            "ui-context-menu--custom-motion",
+            "ui-context-menu--custom-class",
             "custom",
         ] {
             assert!(
