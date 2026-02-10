@@ -35,6 +35,8 @@ fn toggle_view_contains_press_and_state_contracts() {
         "data-slot=\"toggle-label\"",
         "aria-pressed=",
         "data-state=move || if pressed.get()",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
         "motion::attach_motion",
     ] {
         assert!(
@@ -51,6 +53,8 @@ fn toggle_css_contains_expected_state_selectors() {
     for needle in [
         ".ui-toggle {",
         ".ui-toggle[data-selected=\"true\"]",
+        ".ui-toggle[data-motion-source=\"custom\"]",
+        ".ui-toggle[data-custom-motion=\"true\"]",
         ".ui-toggle[data-unselected=\"true\"]",
     ] {
         assert!(

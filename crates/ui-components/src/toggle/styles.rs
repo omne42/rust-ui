@@ -7,6 +7,11 @@ pub const CSS: &str = r#"
   --ui-toggle-selected: 1;
 }
 
+.ui-toggle[data-motion-source="custom"],
+.ui-toggle[data-custom-motion="true"] {
+  --ui-toggle-custom-motion: 1;
+}
+
 .ui-toggle[data-unselected="true"] {
   --ui-toggle-selected: 0;
 }
