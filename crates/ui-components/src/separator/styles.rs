@@ -8,6 +8,11 @@ pub const CSS: &str = r#"
   will-change: transform, opacity;
 }
 
+.ui-separator[data-motion-source="custom"],
+.ui-separator[data-custom-motion="true"] {
+  --ui-separator-custom-motion: 1;
+}
+
 .ui-separator--horizontal,
 .ui-separator[data-orientation="horizontal"] {
   width: 100%;

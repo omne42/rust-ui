@@ -61,6 +61,8 @@ fn separator_emits_spectrum_style_state_data_attributes() {
         "data-decorative=state.is_decorative.then_some(\"true\")",
         "data-semantic=state.is_semantic.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
         "role=role",
         "aria-orientation=aria_orientation",
     ] {
@@ -76,6 +78,8 @@ fn separator_styles_include_state_marker_contracts() {
     let source = load_source("src/separator/styles.rs");
 
     for selector in [
+        ".ui-separator[data-motion-source=\"custom\"]",
+        ".ui-separator[data-custom-motion=\"true\"]",
         ".ui-separator--horizontal",
         ".ui-separator[data-orientation=\"vertical\"]",
         ".ui-separator--element-hr",

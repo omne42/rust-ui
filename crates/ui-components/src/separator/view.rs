@@ -28,6 +28,12 @@ pub fn Separator(
         .then_some(state.aria_orientation)
         .flatten();
     let aria_hidden = state.is_decorative.then_some("true");
+    let motion_source = if motion == SeparatorMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != SeparatorMotion::default()).then_some("true");
 
     if matches!(state.element_type, SeparatorElementType::Hr) {
         let node_ref: NodeRef<html::Hr> = NodeRef::new();
@@ -44,6 +50,8 @@ pub fn Separator(
                 data-decorative=state.is_decorative.then_some("true")
                 data-semantic=state.is_semantic.then_some("true")
                 data-custom-class=state.has_custom_class_name.then_some("true")
+                data-motion-source=motion_source
+                data-custom-motion=custom_motion
                 role=role
                 aria-orientation=aria_orientation
                 aria-hidden=aria_hidden
@@ -65,6 +73,8 @@ pub fn Separator(
                 data-decorative=state.is_decorative.then_some("true")
                 data-semantic=state.is_semantic.then_some("true")
                 data-custom-class=state.has_custom_class_name.then_some("true")
+                data-motion-source=motion_source
+                data-custom-motion=custom_motion
                 role=role
                 aria-orientation=aria_orientation
                 aria-hidden=aria_hidden
