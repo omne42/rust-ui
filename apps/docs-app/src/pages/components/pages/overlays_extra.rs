@@ -3,7 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     BottomSheet, Button, ButtonVariant, OnPress, Sonner, SonnerPosition, ToastOptions,
-    ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, Underlay, provide_toast_store,
+    ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion, Underlay,
+    provide_toast_store,
 };
 
 pub(super) fn bottom_sheet() -> AnyView {
@@ -177,6 +178,12 @@ pub(super) fn tray() -> AnyView {
   open=open
   id_base="tray-fixed".to_string()
   title="Fixed tray".to_string()
+  motion=TrayMotion {
+    sheet: ui_components::SheetMotion {
+      initial_offset_px: 46.0,
+      ..ui_components::SheetMotion::default()
+    }
+  }
   is_fixed_height=true
   show_close_button=false
   class_name="docs-tray-custom".to_string()
@@ -233,6 +240,12 @@ pub(super) fn tray() -> AnyView {
                         open=open_custom
                         id_base="docs-tray-fixed".to_string()
                         title="Fixed tray".to_string()
+                        motion=TrayMotion {
+                            sheet: ui_components::SheetMotion {
+                                initial_offset_px: 46.0,
+                                ..ui_components::SheetMotion::default()
+                            },
+                        }
                         is_fixed_height=true
                         show_close_button=false
                         class_name="docs-tray-custom".to_string()

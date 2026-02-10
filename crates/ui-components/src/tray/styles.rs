@@ -9,6 +9,11 @@ pub const CSS: &str = r#"
   min-block-size: 0;
 }
 
+.ui-tray[data-motion-source="custom"],
+.ui-tray[data-custom-motion="true"] {
+  --ui-tray-custom-motion: 1;
+}
+
 .ui-tray--fixed-height,
 .ui-tray[data-size="fixed"],
 .ui-tray[data-fixed-height="true"] {

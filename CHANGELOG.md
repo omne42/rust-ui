@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Tray` with explicit root state/motion markers (`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `TrayMotion` contract tests for HeroUI-level sheet-motion passthrough tuning.
+- `apps/docs-app`: extends `Tray` docs with a custom-motion playground showing `TrayMotion { sheet: SheetMotion { initial_offset_px, .. } }` tuning.
 - `ui-components`: upgrades `AlertDialog` with explicit root state/variant/motion markers (`data-state`/`data-open`/`data-closed` + `data-variant` + `data-motion-source`/`data-custom-motion`) and `AlertDialogMotion` contract tests for HeroUI-level overlay-motion tuning.
 - `apps/docs-app`: extends `AlertDialog` docs with a custom-motion playground showing `AlertDialogMotion { overlay: OverlayMotion { initial_scale, initial_y_px, .. } }` tuning.
 - `ui-components`: upgrades `Dialog` with explicit root state/motion markers (`data-state`/`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `DialogMotion` contract tests for HeroUI-level overlay-motion tuning.

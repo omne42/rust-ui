@@ -71,6 +71,8 @@ pub fn Tray(
                             class=move || class.get_value()
                             data-slot="tray"
                             data-state=state.state_attr
+                            data-open=move || open.get().then_some("true")
+                            data-closed=move || (!open.get()).then_some("true")
                             data-description=state.description_attr
                             data-footer=state.footer_attr
                             data-close-button=state.close_button_attr
@@ -80,6 +82,12 @@ pub fn Tray(
                             data-close-visible=state.show_close_button.then_some("true")
                             data-fixed-height=state.is_fixed_height.then_some("true")
                             data-custom-class=state.has_custom_class_name.then_some("true")
+                            data-motion-source=if motion == TrayMotion::default() {
+                                "default"
+                            } else {
+                                "custom"
+                            }
+                            data-custom-motion=(motion != TrayMotion::default()).then_some("true")
                         >
                             <Show when=move || state.show_close_button>
                                 <span class="ui-tray__close" data-slot="tray-close">
@@ -149,6 +157,8 @@ pub fn Tray(
                             class=move || class.get_value()
                             data-slot="tray"
                             data-state=state.state_attr
+                            data-open=move || open.get().then_some("true")
+                            data-closed=move || (!open.get()).then_some("true")
                             data-description=state.description_attr
                             data-footer=state.footer_attr
                             data-close-button=state.close_button_attr
@@ -158,6 +168,12 @@ pub fn Tray(
                             data-close-visible=state.show_close_button.then_some("true")
                             data-fixed-height=state.is_fixed_height.then_some("true")
                             data-custom-class=state.has_custom_class_name.then_some("true")
+                            data-motion-source=if motion == TrayMotion::default() {
+                                "default"
+                            } else {
+                                "custom"
+                            }
+                            data-custom-motion=(motion != TrayMotion::default()).then_some("true")
                         >
                             <Show when=move || state.show_close_button>
                                 <span class="ui-tray__close" data-slot="tray-close">

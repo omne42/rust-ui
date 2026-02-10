@@ -106,12 +106,16 @@ fn tray_emits_spectrum_style_state_data_attributes() {
     for attr in [
         "data-slot=\"tray\"",
         "data-state=state.state_attr",
+        "data-open=move || open.get().then_some(\"true\")",
+        "data-closed=move || (!open.get()).then_some(\"true\")",
         "data-description=state.description_attr",
         "data-footer=state.footer_attr",
         "data-close-button=state.close_button_attr",
         "data-size=state.size_attr",
         "data-fixed-height=state.is_fixed_height.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=if motion == TrayMotion::default()",
+        "data-custom-motion=(motion != TrayMotion::default()).then_some(\"true\")",
         "data-slot=\"tray-header\"",
         "data-slot=\"tray-body\"",
         "data-slot=\"tray-footer\"",
@@ -128,6 +132,8 @@ fn tray_styles_include_state_marker_contracts() {
     let source = load_source("src/tray/styles.rs");
 
     for selector in [
+        ".ui-tray[data-motion-source=\"custom\"]",
+        ".ui-tray[data-custom-motion=\"true\"]",
         ".ui-tray--fixed-height",
         ".ui-tray[data-size=\"auto\"]",
         ".ui-tray--with-description",
@@ -157,6 +163,23 @@ fn tray_close_button_contracts_are_preserved() {
         assert!(
             source.contains(needle),
             "Tray should preserve close button contracts (`{needle}`)."
+        );
+    }
+}
+
+#[test]
+fn tray_motion_contract_exposes_default_and_custom_sheet_tests() {
+    let source = load_source("src/tray/motion.rs");
+
+    for needle in [
+        "pub struct TrayMotion",
+        "pub sheet: crate::sheet::SheetMotion",
+        "fn default_motion_uses_default_sheet_motion_contract()",
+        "fn supports_custom_sheet_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tray motion module should include `{needle}` for HeroUI-level contract coverage."
         );
     }
 }
