@@ -134,6 +134,12 @@ pub fn ActionMenu(
             data-custom-label=state.has_custom_aria_label.then_some("true")
             data-has-disabled-items=state.has_disabled_items.then_some("true")
             data-has-item-kinds=state.has_item_kinds.then_some("true")
+            data-motion-source=if motion == ActionMenuMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ActionMenuMotion::default()).then_some("true")
             on:keydown=on_key_down
         >
             <ActionButton

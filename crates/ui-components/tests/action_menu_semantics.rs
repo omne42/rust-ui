@@ -61,6 +61,7 @@ fn action_menu_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "motion: ActionMenuMotion",
     ] {
         assert!(
             source.contains(needle),
@@ -90,6 +91,8 @@ fn action_menu_emits_spectrum_root_slot_and_state_data_attributes() {
         "data-custom-label=state.has_custom_aria_label.then_some(\"true\")",
         "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
         "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
+        "data-motion-source=if motion == ActionMenuMotion::default()",
+        "data-custom-motion=(motion != ActionMenuMotion::default()).then_some(\"true\")",
         "on:keydown=on_key_down",
     ] {
         assert!(
@@ -128,6 +131,7 @@ fn action_menu_renders_menu_inside_popover_with_presence() {
         "<Menu",
         "aria_labelledby=trigger_id.get_value()",
         "on_exit_complete=presence.finish_exit",
+        "motion=motion.popover",
     ] {
         assert!(
             source.contains(needle),
@@ -168,10 +172,33 @@ fn action_menu_uses_logic_for_disabled_trigger_and_open_keys() {
 fn action_menu_styles_include_disabled_and_persistent_markers() {
     let source = load_source("src/action_menu/styles.rs");
 
-    for needle in [".ui-action-menu--persistent", ".ui-action-menu--disabled"] {
+    for needle in [
+        ".ui-action-menu--persistent",
+        ".ui-action-menu--disabled",
+        ".ui-action-menu[data-motion-source=\"custom\"]",
+        ".ui-action-menu[data-custom-motion=\"true\"]",
+    ] {
         assert!(
             source.contains(needle),
             "ActionMenu styles should include `{needle}` for stable visual state contracts."
+        );
+    }
+}
+
+#[test]
+fn action_menu_exposes_motion_contract_and_internal_module() {
+    let mod_source = load_source("src/action_menu/mod.rs");
+    let motion_source = load_source("src/action_menu/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::ActionMenuMotion;",
+        "pub struct ActionMenuMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "ActionMenu motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }
