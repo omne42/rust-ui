@@ -475,8 +475,8 @@ pub(super) fn help_text() -> AnyView {
 }
 pub(super) fn textarea() -> AnyView {
     let (value_basic, set_value_basic) = signal(String::new());
-    let (value_invalid, set_value_invalid) = signal("Pending review".to_string());
-    let invalid_signal: Signal<bool> = Signal::derive(|| true);
+    let (value_marker, set_value_marker) = signal("Pending review".to_string());
+    let (marker_invalid, set_marker_invalid) = signal(false);
 
     let basic_code = r#"let (value, set_value) = signal(String::new());
 <Textarea id="about".to_string()
@@ -486,15 +486,20 @@ pub(super) fn textarea() -> AnyView {
   placeholder="Write something…".to_string()
 />"#;
 
-    let invalid_code = r#"let invalid: Signal<bool> = Signal::derive(|| true);
+    let markers_code = r#"let (value, set_value) = signal("Pending review".to_string());
+let (invalid, set_invalid) = signal(false);
 <Textarea
   id="summary".to_string()
   label="Summary".to_string()
   value=value
   set_value=set_value
-  invalid=invalid
+  required=true
+  invalid=Signal::derive(move || invalid.get())
+  description="Inspect source/state marker contracts".to_string()
   error="Summary must include at least 20 characters.".to_string()
+  placeholder="Write a summary".to_string()
   rows=5
+  class_name="docs-textarea-state".to_string()
 />"#;
 
     view! {
@@ -502,7 +507,7 @@ pub(super) fn textarea() -> AnyView {
             title="Textarea"
             slug="textarea"
             group="Forms"
-            description="Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics and stable state markers."
+            description="Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics and stable state/source markers."
         >
             <Playground title="Basic Textarea" code=basic_code>
                 <Textarea
@@ -514,18 +519,33 @@ pub(super) fn textarea() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Invalid + Error" code=invalid_code>
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
+                code=markers_code
+            >
                 <div class="docs-stack docs-stack--tight">
                     <Textarea
-                        id="docs-textarea-invalid".to_string()
+                        id="docs-textarea-marker".to_string()
                         label="Summary".to_string()
-                        value=value_invalid
-                        set_value=set_value_invalid
-                        invalid=invalid_signal
+                        value=value_marker
+                        set_value=set_value_marker
+                        required=true
+                        invalid=Signal::derive(move || marker_invalid.get())
+                        description="Inspect source/state marker contracts".to_string()
                         error="Summary must include at least 20 characters.".to_string()
+                        placeholder="Write a summary".to_string()
                         rows=5
+                        class_name="docs-textarea-state".to_string()
                     />
-                    <span class="ui-muted">"value: " {move || value_invalid.get()}</span>
+                    <ui_components::Button
+                        variant=ui_components::ButtonVariant::Secondary
+                        on_press=Callback::new(move |_| {
+                            set_marker_invalid.update(|value| *value = !*value)
+                        })
+                    >
+                        {move || if marker_invalid.get() { "Clear marker invalid" } else { "Mark marker invalid" }}
+                    </ui_components::Button>
                 </div>
             </Playground>
         </ComponentPage>

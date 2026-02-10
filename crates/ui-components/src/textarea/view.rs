@@ -1,3 +1,7 @@
+use crate::textarea::{
+    TextareaStateInput,
+    logic::{self},
+};
 use leptos::{html, prelude::*};
 use ui_headless::{FocusRingOptions, TextFieldOptions, use_focus_ring, use_text_field};
 
@@ -23,6 +27,23 @@ pub fn Textarea(
         is_disabled: disabled,
     });
 
+    let (label, has_custom_label) = logic::resolve_label(label);
+
+    let description = logic::normalize_optional_text(description);
+    let has_custom_description = description.is_some();
+
+    let error = logic::normalize_optional_text(error);
+    let has_custom_error = error.is_some();
+
+    let placeholder = logic::normalize_optional_text(placeholder);
+    let has_custom_placeholder = placeholder.is_some();
+
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+
+    let rows = rows.filter(|rows| *rows > 0);
+    let has_custom_rows = rows.is_some();
+
     let aria = use_text_field(TextFieldOptions {
         id: id.clone(),
         has_description: description.is_some(),
@@ -32,19 +53,41 @@ pub fn Textarea(
         is_required: required,
     });
 
-    let base_class = "ui-textarea".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let state = Signal::derive(move || {
+        logic::resolve_state(TextareaStateInput {
+            disabled,
+            read_only,
+            required: required.get(),
+            invalid: invalid.get(),
+            has_value: !value.get().is_empty(),
+            has_custom_label,
+            has_custom_description,
+            has_custom_error,
+            has_custom_placeholder,
+            has_custom_rows,
+            has_custom_class_name,
+        })
+    });
+
+    let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));
 
     view! {
         <div
-            class=class
+            class=move || class.get()
             class:ui-textarea--focus-visible=move || focus_ring.is_focus_visible.get()
             class:ui-textarea--invalid=move || invalid.get()
             class:ui-textarea--disabled=disabled
             data-slot="textarea"
+            data-state=move || state.get().state_attr
+            data-value=move || state.get().value_attr
+            data-requirement=move || state.get().requirement_attr
+            data-label-source=move || state.get().label_source_attr
+            data-description-source=move || state.get().description_source_attr
+            data-error-source=move || state.get().error_source_attr
+            data-placeholder-source=move || state.get().placeholder_source_attr
+            data-rows-source=move || state.get().rows_source_attr
+            data-class-source=move || state.get().class_source_attr
+            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-focused=move || focus_ring.is_focused.get().then_some("true")
             data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
             data-invalid=move || invalid.get().then_some("true")
