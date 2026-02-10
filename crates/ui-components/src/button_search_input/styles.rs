@@ -40,6 +40,11 @@ pub const CSS: &str = r#"
   border-radius: inherit;
 }
 
+.ui-search-input-button[data-motion-source="custom"],
+.ui-search-input-button[data-custom-motion="true"] {
+  --ui-search-input-button-custom-motion: 1;
+}
+
 .ui-search-input-button--focus-visible {
   outline: 3px solid var(--ui-focus-ring);
   outline-offset: 2px;

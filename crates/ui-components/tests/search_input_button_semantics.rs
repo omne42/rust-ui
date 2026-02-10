@@ -81,6 +81,8 @@ fn search_input_button_emits_spectrum_style_data_attributes() {
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-hovered",
         "data-pressed",
+        "data-motion-source=if motion == SearchInputButtonMotion::default()",
+        "data-custom-motion=(motion != SearchInputButtonMotion::default()).then_some(\"true\")",
         "data-slot=\"search-input-button-icon\"",
         "data-slot=\"search-input-button-shortcut\"",
         "data-slot=\"search-input-button-key\"",
@@ -135,6 +137,8 @@ fn search_input_button_styles_include_state_marker_contracts() {
         ".ui-search-input-button--with-shortcut .ui-search-input-button__shortcut",
         ".ui-search-input-button[data-shortcut=\"visible\"] .ui-search-input-button__shortcut",
         ".ui-search-input-button--custom-class",
+        ".ui-search-input-button[data-motion-source=\"custom\"]",
+        ".ui-search-input-button[data-custom-motion=\"true\"]",
     ] {
         assert!(
             styles.contains(selector),
@@ -167,4 +171,20 @@ fn search_input_button_has_spring_driven_scale_css_variable() {
         motion.contains("if is_disabled {\n        return;\n    }"),
         "SearchInputButton motion should short-circuit when disabled to avoid unnecessary work and keep disabled visuals stable."
     );
+}
+
+#[test]
+fn search_input_button_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/button_search_input/motion.rs");
+
+    for needle in [
+        "pub struct SearchInputButtonMotion",
+        "fn default_motion_matches_search_input_button_spring_contract()",
+        "fn supports_custom_search_input_button_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "SearchInputButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
+        );
+    }
 }

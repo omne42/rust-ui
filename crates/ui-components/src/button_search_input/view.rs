@@ -100,6 +100,12 @@ pub fn SearchInputButton(
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
+            data-motion-source=if motion == SearchInputButtonMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != SearchInputButtonMotion::default()).then_some("true")
             aria-label=move || aria_label.get_value()
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
