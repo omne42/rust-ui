@@ -25,6 +25,12 @@ pub fn Sonner(
 
     let root_class_name = logic::compose_root_class_name(class_name, &state);
     let viewport_class_name = logic::compose_viewport_class_name(state.position);
+    let motion_source = if motion == ToastMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ToastMotion::default()).then_some("true");
     let store = store
         .or_else(crate::toast::use_toast_store)
         .unwrap_or_else(|| {
@@ -42,6 +48,8 @@ pub fn Sonner(
             data-max-toasts=state.max_toasts.to_string()
             data-aria-source=state.aria_source_attr
             data-class-source=state.class_source_attr
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             role="region"
             aria-label=aria_label
         >

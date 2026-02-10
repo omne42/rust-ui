@@ -11,6 +11,11 @@ pub const CSS: &str = r#"
   left: auto;
 }
 
+.ui-sonner[data-motion-source="custom"],
+.ui-sonner[data-custom-motion="true"] {
+  --ui-sonner-custom-motion: 1;
+}
+
 .ui-sonner__viewport--top-left.ui-toast-viewport {
   top: var(--ui-sonner-offset);
   left: var(--ui-sonner-offset);
