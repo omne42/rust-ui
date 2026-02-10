@@ -1,6 +1,6 @@
 use crate::{
-    ButtonSize, ButtonVariant, IconButton, OnPress, Sheet, SheetPlacement, TrayMotion,
-    tray::{TrayStateInput, logic},
+    ButtonSize, ButtonVariant, IconButton, OnPress, Sheet, SheetPlacement,
+    tray::{TrayMotion, TrayPartStateInput, TraySlot, logic},
 };
 use leptos::children::ViewFn;
 use leptos::prelude::*;
@@ -15,18 +15,22 @@ pub fn Tray(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] footer: Option<ViewFn>,
     #[prop(optional)] motion: TrayMotion,
-    #[prop(optional, default = true)] show_close_button: bool,
+    #[prop(optional, default = logic::DEFAULT_SHOW_CLOSE_BUTTON)] show_close_button: bool,
     #[prop(optional, default = "Close tray")] close_label: &'static str,
-    #[prop(optional)] is_fixed_height: bool,
-    #[prop(optional, default = true)] is_dismissable: bool,
-    #[prop(optional)] is_keyboard_dismiss_disabled: bool,
+    #[prop(optional, default = logic::DEFAULT_FIXED_HEIGHT)] is_fixed_height: bool,
+    #[prop(optional, default = logic::DEFAULT_DISMISSABLE)] is_dismissable: bool,
+    #[prop(optional, default = logic::DEFAULT_KEYBOARD_DISMISS_DISABLED)]
+    is_keyboard_dismiss_disabled: bool,
     /// Called after the close animation finishes (useful for presence/unmount).
     #[prop(optional)]
     on_exit_complete: Option<Callback<()>>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let has_custom_id_base = !id_base.trim().is_empty();
+    let has_custom_title = !title.trim().is_empty();
+
     let id_base = logic::normalize_id_base(id_base);
-    let title = logic::normalize_required_text(title, "Tray");
+    let title = logic::normalize_required_text(title, logic::DEFAULT_TITLE);
     let description = logic::normalize_optional_text(description);
     let class_name = logic::normalize_optional_text(class_name);
 
@@ -35,14 +39,137 @@ pub fn Tray(
     let footer = StoredValue::new(footer);
     let children = StoredValue::new(children);
 
-    let state = logic::resolve_state(TrayStateInput {
-        has_description: description.get_value().is_some(),
-        has_footer: footer.get_value().is_some(),
+    let has_custom_description = description.get_value().is_some();
+    let has_footer = footer.get_value().is_some();
+    let has_custom_class_name = class_name.is_some();
+    let has_custom_motion = motion != TrayMotion::default();
+    let has_on_exit_complete = on_exit_complete.is_some();
+
+    let root_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Root,
+        has_description: has_custom_description,
+        has_footer,
         show_close_button,
         is_fixed_height,
-        has_custom_class_name: class_name.is_some(),
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name,
+        has_custom_motion,
+        has_on_exit_complete,
     });
-    let class = StoredValue::new(logic::compose_class_name(class_name, state));
+    let root_class = logic::compose_class_name(class_name, root_state);
+    let root_class = StoredValue::new(root_class);
+
+    let header_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Header,
+        has_description: has_custom_description,
+        has_footer,
+        show_close_button,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let header_class = logic::compose_class_name(None, header_state);
+    let header_class = StoredValue::new(header_class);
+
+    let title_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Title,
+        has_description: has_custom_description,
+        has_footer,
+        show_close_button,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let title_class = logic::compose_class_name(None, title_state);
+    let title_class = StoredValue::new(title_class);
+
+    let description_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Description,
+        has_description: has_custom_description,
+        has_footer,
+        show_close_button,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let description_class = logic::compose_class_name(None, description_state);
+    let description_class = StoredValue::new(description_class);
+
+    let body_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Body,
+        has_description: has_custom_description,
+        has_footer,
+        show_close_button,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let body_class = logic::compose_class_name(None, body_state);
+    let body_class = StoredValue::new(body_class);
+
+    let footer_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Footer,
+        has_description: has_custom_description,
+        has_footer,
+        show_close_button,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let footer_class = logic::compose_class_name(None, footer_state);
+    let footer_class = StoredValue::new(footer_class);
+
+    let close_state = logic::resolve_state(TrayPartStateInput {
+        slot: TraySlot::Close,
+        has_description: has_custom_description,
+        has_footer,
+        show_close_button,
+        is_fixed_height,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_id_base,
+        has_custom_title,
+        has_custom_description,
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete,
+    });
+    let close_class = logic::compose_class_name(None, close_state);
+    let close_class = StoredValue::new(close_class);
 
     let title_id = format!("{id_base}-title");
     let description_id = format!("{id_base}-description");
@@ -51,7 +178,7 @@ pub fn Tray(
 
     let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
 
-    if state.show_description {
+    if root_state.show_description {
         view! {
             <Sheet
                 open=open
@@ -68,29 +195,45 @@ pub fn Tray(
                     let children = children.get_value();
                     view! {
                         <div
-                            class=move || class.get_value()
-                            data-slot="tray"
-                            data-state=state.state_attr
+                            class=move || root_class.with_value(|class_name| class_name.clone())
+                            data-slot=root_state.slot_attr
+                            data-state=root_state.state_attr
                             data-open=move || open.get().then_some("true")
                             data-closed=move || (!open.get()).then_some("true")
-                            data-description=state.description_attr
-                            data-footer=state.footer_attr
-                            data-close-button=state.close_button_attr
-                            data-size=state.size_attr
-                            data-with-description=state.show_description.then_some("true")
-                            data-with-footer=state.show_footer.then_some("true")
-                            data-close-visible=state.show_close_button.then_some("true")
-                            data-fixed-height=state.is_fixed_height.then_some("true")
-                            data-custom-class=state.has_custom_class_name.then_some("true")
-                            data-motion-source=if motion == TrayMotion::default() {
-                                "default"
-                            } else {
-                                "custom"
-                            }
-                            data-custom-motion=(motion != TrayMotion::default()).then_some("true")
+                            data-description=root_state.description_attr
+                            data-footer=root_state.footer_attr
+                            data-close-button=root_state.close_button_attr
+                            data-size=root_state.size_attr
+                            data-dismiss=root_state.dismiss_attr
+                            data-keyboard-dismiss=root_state.keyboard_dismiss_attr
+                            data-with-description=root_state.show_description.then_some("true")
+                            data-with-footer=root_state.show_footer.then_some("true")
+                            data-close-visible=root_state.show_close_button.then_some("true")
+                            data-fixed-height=root_state.is_fixed_height.then_some("true")
+                            data-custom-class=root_state.has_custom_class_name.then_some("true")
+                            data-custom-motion=root_state.has_custom_motion.then_some("true")
+                            data-custom-exit=root_state.has_on_exit_complete.then_some("true")
+                            data-description-source=root_state.description_source_attr
+                            data-footer-source=root_state.footer_source_attr
+                            data-close-source=root_state.close_source_attr
+                            data-size-source=root_state.size_source_attr
+                            data-dismiss-source=root_state.dismiss_source_attr
+                            data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr
+                            data-id-source=root_state.id_source_attr
+                            data-title-source=root_state.title_source_attr
+                            data-class-source=root_state.class_source_attr
+                            data-motion-source=root_state.motion_source_attr
+                            data-exit-source=root_state.exit_source_attr
                         >
-                            <Show when=move || state.show_close_button>
-                                <span class="ui-tray__close" data-slot="tray-close">
+                            <Show when=move || root_state.show_close_button>
+                                <span
+                                    class=move || {
+                                        close_class.with_value(|class_name| class_name.clone())
+                                    }
+                                    data-slot=close_state.slot_attr
+                                    data-state=close_state.state_attr
+                                    data-close-source=close_state.close_source_attr
+                                >
                                     <IconButton
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
@@ -110,25 +253,53 @@ pub fn Tray(
                                 </span>
                             </Show>
 
-                            <div class="ui-tray__header" data-slot="tray-header">
-                                <h2 class="ui-tray__title" id=move || title_id_attr.get() data-slot="tray-title">
+                            <div
+                                class=move || header_class.with_value(|class_name| class_name.clone())
+                                data-slot=header_state.slot_attr
+                                data-state=header_state.state_attr
+                            >
+                                <h2
+                                    class=move || title_class.with_value(|class_name| class_name.clone())
+                                    id=move || title_id_attr.get()
+                                    data-slot=title_state.slot_attr
+                                    data-state=title_state.state_attr
+                                    data-title-source=title_state.title_source_attr
+                                >
                                     {move || title.get_value()}
                                 </h2>
                                 <p
-                                    class="ui-tray__description"
+                                    class=move || {
+                                        description_class
+                                            .with_value(|class_name| class_name.clone())
+                                    }
                                     id=move || description_id_attr.get()
-                                    data-slot="tray-description"
+                                    data-slot=description_state.slot_attr
+                                    data-state=description_state.state_attr
+                                    data-description-source=description_state.description_source_attr
                                 >
-                                    {move || description.get_value().unwrap_or_default()}
+                                    {move || {
+                                        description.get_value().unwrap_or_default()
+                                    }}
                                 </p>
                             </div>
 
-                            <div class="ui-tray__body" data-slot="tray-body">
+                            <div
+                                class=move || body_class.with_value(|class_name| class_name.clone())
+                                data-slot=body_state.slot_attr
+                                data-state=body_state.state_attr
+                            >
                                 {children()}
                             </div>
 
-                            <Show when=move || state.show_footer>
-                                <div class="ui-tray__footer" data-slot="tray-footer">
+                            <Show when=move || root_state.show_footer>
+                                <div
+                                    class=move || {
+                                        footer_class.with_value(|class_name| class_name.clone())
+                                    }
+                                    data-slot=footer_state.slot_attr
+                                    data-state=footer_state.state_attr
+                                    data-footer-source=footer_state.footer_source_attr
+                                >
                                     {move || footer.get_value().map(|slot| slot.run())}
                                 </div>
                             </Show>
@@ -154,29 +325,45 @@ pub fn Tray(
                     let children = children.get_value();
                     view! {
                         <div
-                            class=move || class.get_value()
-                            data-slot="tray"
-                            data-state=state.state_attr
+                            class=move || root_class.with_value(|class_name| class_name.clone())
+                            data-slot=root_state.slot_attr
+                            data-state=root_state.state_attr
                             data-open=move || open.get().then_some("true")
                             data-closed=move || (!open.get()).then_some("true")
-                            data-description=state.description_attr
-                            data-footer=state.footer_attr
-                            data-close-button=state.close_button_attr
-                            data-size=state.size_attr
-                            data-with-description=state.show_description.then_some("true")
-                            data-with-footer=state.show_footer.then_some("true")
-                            data-close-visible=state.show_close_button.then_some("true")
-                            data-fixed-height=state.is_fixed_height.then_some("true")
-                            data-custom-class=state.has_custom_class_name.then_some("true")
-                            data-motion-source=if motion == TrayMotion::default() {
-                                "default"
-                            } else {
-                                "custom"
-                            }
-                            data-custom-motion=(motion != TrayMotion::default()).then_some("true")
+                            data-description=root_state.description_attr
+                            data-footer=root_state.footer_attr
+                            data-close-button=root_state.close_button_attr
+                            data-size=root_state.size_attr
+                            data-dismiss=root_state.dismiss_attr
+                            data-keyboard-dismiss=root_state.keyboard_dismiss_attr
+                            data-with-description=root_state.show_description.then_some("true")
+                            data-with-footer=root_state.show_footer.then_some("true")
+                            data-close-visible=root_state.show_close_button.then_some("true")
+                            data-fixed-height=root_state.is_fixed_height.then_some("true")
+                            data-custom-class=root_state.has_custom_class_name.then_some("true")
+                            data-custom-motion=root_state.has_custom_motion.then_some("true")
+                            data-custom-exit=root_state.has_on_exit_complete.then_some("true")
+                            data-description-source=root_state.description_source_attr
+                            data-footer-source=root_state.footer_source_attr
+                            data-close-source=root_state.close_source_attr
+                            data-size-source=root_state.size_source_attr
+                            data-dismiss-source=root_state.dismiss_source_attr
+                            data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr
+                            data-id-source=root_state.id_source_attr
+                            data-title-source=root_state.title_source_attr
+                            data-class-source=root_state.class_source_attr
+                            data-motion-source=root_state.motion_source_attr
+                            data-exit-source=root_state.exit_source_attr
                         >
-                            <Show when=move || state.show_close_button>
-                                <span class="ui-tray__close" data-slot="tray-close">
+                            <Show when=move || root_state.show_close_button>
+                                <span
+                                    class=move || {
+                                        close_class.with_value(|class_name| class_name.clone())
+                                    }
+                                    data-slot=close_state.slot_attr
+                                    data-state=close_state.state_attr
+                                    data-close-source=close_state.close_source_attr
+                                >
                                     <IconButton
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
@@ -196,18 +383,39 @@ pub fn Tray(
                                 </span>
                             </Show>
 
-                            <div class="ui-tray__header" data-slot="tray-header">
-                                <h2 class="ui-tray__title" id=move || title_id_attr.get() data-slot="tray-title">
+                            <div
+                                class=move || header_class.with_value(|class_name| class_name.clone())
+                                data-slot=header_state.slot_attr
+                                data-state=header_state.state_attr
+                            >
+                                <h2
+                                    class=move || title_class.with_value(|class_name| class_name.clone())
+                                    id=move || title_id_attr.get()
+                                    data-slot=title_state.slot_attr
+                                    data-state=title_state.state_attr
+                                    data-title-source=title_state.title_source_attr
+                                >
                                     {move || title.get_value()}
                                 </h2>
                             </div>
 
-                            <div class="ui-tray__body" data-slot="tray-body">
+                            <div
+                                class=move || body_class.with_value(|class_name| class_name.clone())
+                                data-slot=body_state.slot_attr
+                                data-state=body_state.state_attr
+                            >
                                 {children()}
                             </div>
 
-                            <Show when=move || state.show_footer>
-                                <div class="ui-tray__footer" data-slot="tray-footer">
+                            <Show when=move || root_state.show_footer>
+                                <div
+                                    class=move || {
+                                        footer_class.with_value(|class_name| class_name.clone())
+                                    }
+                                    data-slot=footer_state.slot_attr
+                                    data-state=footer_state.state_attr
+                                    data-footer-source=footer_state.footer_source_attr
+                                >
                                     {move || footer.get_value().map(|slot| slot.run())}
                                 </div>
                             </Show>

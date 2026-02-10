@@ -20,41 +20,58 @@ fn tray_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
-fn tray_uses_logic_state_model() {
-    let mod_source = load_source("src/tray/mod.rs");
-    let view_source = load_source("src/tray/view.rs");
-    let logic_source = load_source("src/tray/logic.rs");
+fn tray_is_exported_and_exposes_state_contracts() {
+    let module_source = load_source("src/tray/mod.rs");
+    let crate_source = load_source("src/lib.rs");
 
-    for needle in ["pub struct TrayStateInput", "pub struct TrayState"] {
+    for needle in [
+        "pub use motion::TrayMotion;",
+        "pub use view::Tray;",
+        "pub enum TraySlot",
+        "pub struct TrayPartStateInput",
+        "pub struct TrayPartState",
+    ] {
         assert!(
-            mod_source.contains(needle),
-            "Tray module should include `{needle}` state contracts."
+            module_source.contains(needle),
+            "tray module should include `{needle}` state contracts."
         );
     }
 
-    for needle in [
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_required_text(",
-        "pub fn normalize_id_base(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-    ] {
-        assert!(
-            logic_source.contains(needle),
-            "Tray logic should include `{needle}` for centralized state derivation."
-        );
-    }
+    assert!(
+        crate_source.contains("pub use tray::{Tray, TrayMotion};")
+            || (crate_source.contains("pub use tray::Tray;")
+                && crate_source.contains("pub use tray::TrayMotion;")),
+        "crate root should re-export `Tray` and `TrayMotion` contracts."
+    );
+}
+
+#[test]
+fn tray_logic_exposes_state_helpers() {
+    let source = load_source("src/tray/logic.rs");
 
     for needle in [
-        "logic::normalize_id_base(id_base)",
-        "logic::normalize_required_text(title, \"Tray\")",
-        "logic::normalize_optional_text(description)",
-        "logic::resolve_state(TrayStateInput {",
-        "logic::compose_class_name(class_name, state)",
+        "pub const DEFAULT_ID_BASE: &str = \"ui-tray\";",
+        "pub const DEFAULT_TITLE: &str = \"Tray\";",
+        "pub const DEFAULT_SHOW_CLOSE_BUTTON: bool = true;",
+        "pub const DEFAULT_FIXED_HEIGHT: bool = false;",
+        "pub const DEFAULT_DISMISSABLE: bool = true;",
+        "pub const DEFAULT_KEYBOARD_DISMISS_DISABLED: bool = false;",
+        "pub fn state_attr(has_description: bool)",
+        "pub fn description_attr(has_description: bool)",
+        "pub fn footer_attr(has_footer: bool)",
+        "pub fn close_button_attr(show_close_button: bool)",
+        "pub fn size_attr(is_fixed_height: bool)",
+        "pub fn dismiss_attr(is_dismissable: bool)",
+        "pub fn keyboard_dismiss_attr(is_keyboard_dismiss_disabled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_required_text(value: String, fallback: &'static str)",
+        "pub fn normalize_id_base(value: String)",
+        "pub fn resolve_state(input: TrayPartStateInput)",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: TrayPartState)",
     ] {
         assert!(
-            view_source.contains(needle),
-            "Tray view should derive state via logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "Tray logic should include `{needle}` for centralized state/source contracts."
         );
     }
 }
@@ -79,18 +96,62 @@ fn tray_composes_sheet_with_bottom_placement_and_motion_contract() {
 }
 
 #[test]
+fn tray_view_uses_logic_state_contracts() {
+    let source = load_source("src/tray/view.rs");
+
+    for needle in [
+        "logic::normalize_id_base(id_base)",
+        "logic::normalize_required_text(title, logic::DEFAULT_TITLE)",
+        "logic::normalize_optional_text(description)",
+        "logic::normalize_optional_text(class_name)",
+        "logic::resolve_state(TrayPartStateInput {",
+        "logic::compose_class_name(class_name, root_state)",
+        "data-slot=root_state.slot_attr",
+        "data-state=root_state.state_attr",
+        "data-description=root_state.description_attr",
+        "data-footer=root_state.footer_attr",
+        "data-close-button=root_state.close_button_attr",
+        "data-size=root_state.size_attr",
+        "data-dismiss=root_state.dismiss_attr",
+        "data-keyboard-dismiss=root_state.keyboard_dismiss_attr",
+        "data-description-source=root_state.description_source_attr",
+        "data-footer-source=root_state.footer_source_attr",
+        "data-close-source=root_state.close_source_attr",
+        "data-size-source=root_state.size_source_attr",
+        "data-dismiss-source=root_state.dismiss_source_attr",
+        "data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr",
+        "data-id-source=root_state.id_source_attr",
+        "data-title-source=root_state.title_source_attr",
+        "data-class-source=root_state.class_source_attr",
+        "data-motion-source=root_state.motion_source_attr",
+        "data-exit-source=root_state.exit_source_attr",
+        "data-slot=header_state.slot_attr",
+        "data-slot=title_state.slot_attr",
+        "data-slot=body_state.slot_attr",
+        "data-slot=footer_state.slot_attr",
+        "data-slot=close_state.slot_attr",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tray view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
 fn tray_only_sets_describedby_when_description_exists() {
     let source = load_source("src/tray/view.rs");
 
     assert!(
-        source.contains("if state.show_description"),
+        source.contains("if root_state.show_description"),
         "Tray should branch on description presence so `aria-describedby` is only set when needed."
     );
 
     for needle in [
         "let description_id = format!(\"{id_base}-description\")",
         "aria_describedby=description_id.clone()",
-        "id=move || description_id_attr.get()",
+        "data-slot=description_state.slot_attr",
+        "data-description-source=description_state.description_source_attr",
     ] {
         assert!(
             source.contains(needle),
@@ -100,40 +161,23 @@ fn tray_only_sets_describedby_when_description_exists() {
 }
 
 #[test]
-fn tray_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/tray/view.rs");
-
-    for attr in [
-        "data-slot=\"tray\"",
-        "data-state=state.state_attr",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-closed=move || (!open.get()).then_some(\"true\")",
-        "data-description=state.description_attr",
-        "data-footer=state.footer_attr",
-        "data-close-button=state.close_button_attr",
-        "data-size=state.size_attr",
-        "data-fixed-height=state.is_fixed_height.then_some(\"true\")",
-        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
-        "data-motion-source=if motion == TrayMotion::default()",
-        "data-custom-motion=(motion != TrayMotion::default()).then_some(\"true\")",
-        "data-slot=\"tray-header\"",
-        "data-slot=\"tray-body\"",
-        "data-slot=\"tray-footer\"",
-    ] {
-        assert!(
-            source.contains(attr),
-            "Tray should expose `{attr}` for Spectrum-style state inspection and styling."
-        );
-    }
-}
-
-#[test]
-fn tray_styles_include_state_marker_contracts() {
+fn tray_styles_include_state_and_source_markers() {
     let source = load_source("src/tray/styles.rs");
 
     for selector in [
         ".ui-tray[data-motion-source=\"custom\"]",
         ".ui-tray[data-custom-motion=\"true\"]",
+        ".ui-tray[data-description-source=\"custom\"]",
+        ".ui-tray[data-footer-source=\"custom\"]",
+        ".ui-tray[data-close-source=\"custom\"]",
+        ".ui-tray[data-size-source=\"custom\"]",
+        ".ui-tray[data-dismiss-source=\"custom\"]",
+        ".ui-tray[data-keyboard-dismiss-source=\"custom\"]",
+        ".ui-tray[data-id-source=\"custom\"]",
+        ".ui-tray[data-title-source=\"custom\"]",
+        ".ui-tray[data-class-source=\"custom\"]",
+        ".ui-tray[data-exit-source=\"custom\"]",
+        ".ui-tray[data-custom-exit=\"true\"]",
         ".ui-tray--fixed-height",
         ".ui-tray[data-size=\"auto\"]",
         ".ui-tray--with-description",
@@ -141,28 +185,14 @@ fn tray_styles_include_state_marker_contracts() {
         ".ui-tray--close-shown .ui-tray__header",
         ".ui-tray[data-close-button=\"shown\"] .ui-tray__header",
         ".ui-tray[data-footer=\"present\"] .ui-tray__footer",
-        ".ui-tray--custom-class",
+        ".ui-tray__header[data-slot=\"tray-header\"]",
+        ".ui-tray__title[data-slot=\"tray-title\"]",
+        ".ui-tray__body[data-slot=\"tray-body\"]",
+        ".ui-tray__footer[data-slot=\"tray-footer\"]",
     ] {
         assert!(
             source.contains(selector),
-            "Tray styles should include `{selector}` as stable state-marker contracts."
-        );
-    }
-}
-
-#[test]
-fn tray_close_button_contracts_are_preserved() {
-    let source = load_source("src/tray/view.rs");
-
-    for needle in [
-        "data-slot=\"tray-close\"",
-        "<IconButton",
-        "aria_label=close_label",
-        "on_press=on_close",
-    ] {
-        assert!(
-            source.contains(needle),
-            "Tray should preserve close button contracts (`{needle}`)."
+            "Tray styles should include `{selector}` as stable state/source contracts."
         );
     }
 }
@@ -180,6 +210,35 @@ fn tray_motion_contract_exposes_default_and_custom_sheet_tests() {
         assert!(
             source.contains(needle),
             "Tray motion module should include `{needle}` for HeroUI-level contract coverage."
+        );
+    }
+}
+
+#[test]
+fn tray_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::tray::styles::CSS);"),
+        "ui-components css aggregator should include tray styles."
+    );
+}
+
+#[test]
+fn tray_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "pub(super) fn tray() -> AnyView",
+        "title=\"Tray\"",
+        "slug=\"tray\"",
+        "State + Source Markers",
+        "data-size-source",
+        "<Tray",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tray docs page should contain `{needle}`."
         );
     }
 }

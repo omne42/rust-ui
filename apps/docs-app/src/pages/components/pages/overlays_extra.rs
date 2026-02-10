@@ -225,6 +225,13 @@ pub(super) fn tray() -> AnyView {
     let open_custom_tray: OnPress = Callback::new(move |_| set_open_custom_raw.set(true));
     let on_custom_exit_complete = Callback::new(move |_| set_present_custom.set(false));
 
+    let custom_motion = TrayMotion {
+        sheet: ui_components::SheetMotion {
+            initial_offset_px: 46.0,
+            ..ui_components::SheetMotion::default()
+        },
+    };
+
     let semantic_code = r#"<Tray
   open=open
   id_base="tray".to_string()
@@ -248,6 +255,8 @@ pub(super) fn tray() -> AnyView {
     }
   }
   is_fixed_height=true
+  is_dismissable=false
+  is_keyboard_dismiss_disabled=true
   show_close_button=false
   class_name="docs-tray-custom".to_string()
   on_close=close
@@ -292,7 +301,11 @@ pub(super) fn tray() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="Fixed Height + Title Only + Custom Class" code=custom_code>
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-size-source`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-motion-source`, and `data-exit-source` contracts."
+                code=custom_code
+            >
                 <div class="docs-row">
                     <Button on_press=open_custom_tray>"Open fixed tray"</Button>
                     <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
@@ -303,13 +316,10 @@ pub(super) fn tray() -> AnyView {
                         open=open_custom
                         id_base="docs-tray-fixed".to_string()
                         title="Fixed tray".to_string()
-                        motion=TrayMotion {
-                            sheet: ui_components::SheetMotion {
-                                initial_offset_px: 46.0,
-                                ..ui_components::SheetMotion::default()
-                            },
-                        }
+                        motion=custom_motion
                         is_fixed_height=true
+                        is_dismissable=false
+                        is_keyboard_dismiss_disabled=true
                         show_close_button=false
                         class_name="docs-tray-custom".to_string()
                         on_close=close_custom
@@ -317,7 +327,9 @@ pub(super) fn tray() -> AnyView {
                     >
                         <div class="docs-stack docs-stack--tight">
                             <div>"Title-only path keeps `aria-describedby` unset."</div>
-                            <div class="ui-muted">"Custom class validates merge + state attrs."</div>
+                            <div class="ui-muted">
+                                "Inspect data-size-source / data-dismiss-source / data-motion-source in DevTools."
+                            </div>
                             <div class="docs-row docs-row--end">
                                 <Button variant=ButtonVariant::Secondary on_press=close_custom>"Dismiss"</Button>
                             </div>
