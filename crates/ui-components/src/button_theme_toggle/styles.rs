@@ -18,6 +18,11 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
+.ui-theme-toggle-button__icon[data-motion-source="custom"],
+.ui-theme-toggle-button__icon[data-custom-motion="true"] {
+  --ui-theme-toggle-custom-motion: 1;
+}
+
 .ui-theme-toggle-button svg {
   width: 18px;
   height: 18px;

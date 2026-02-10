@@ -128,6 +128,12 @@ pub fn ThemeToggleButton(
                 data-mode-count=move || state.get().mode_count.to_string()
                 data-custom-modes=move || state.get().has_custom_modes.then_some("true")
                 data-custom-aria-label=move || state.get().has_custom_aria_label.then_some("true")
+                data-motion-source=if motion == ThemeToggleMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != ThemeToggleMotion::default()).then_some("true")
                 node_ref=icon_ref
             >
                 {move || {

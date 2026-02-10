@@ -84,6 +84,8 @@ fn theme_toggle_button_emits_spectrum_style_data_attributes() {
         "data-mode-count=move || state.get().mode_count.to_string()",
         "data-custom-modes=move || state.get().has_custom_modes.then_some(\"true\")",
         "data-custom-aria-label=move || state.get().has_custom_aria_label.then_some(\"true\")",
+        "data-motion-source=if motion == ThemeToggleMotion::default()",
+        "data-custom-motion=(motion != ThemeToggleMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -132,4 +134,19 @@ fn theme_toggle_motion_uses_spring_animator() {
         source.contains("SpringAnimator"),
         "ThemeToggleMotion should animate via a spring to match the repo's motion spec."
     );
+}
+
+#[test]
+fn theme_toggle_button_styles_include_motion_marker_contracts() {
+    let source = load_source("src/button_theme_toggle/styles.rs");
+
+    for selector in [
+        ".ui-theme-toggle-button__icon[data-motion-source=\"custom\"]",
+        ".ui-theme-toggle-button__icon[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "ThemeToggleButton styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
 }
