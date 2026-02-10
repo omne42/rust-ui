@@ -32,6 +32,13 @@ pub fn Thumbnail(
     let active = Signal::derive(move || selected || focused);
     thumbnail_motion::attach_motion(node_ref, active, motion);
 
+    let motion_source = if motion == ThumbnailMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ThumbnailMotion::default()).then_some("true");
+
     view! {
         <div
             class=class
@@ -46,6 +53,8 @@ pub fn Thumbnail(
             data-state=state.data_state_attr
             data-background=state.has_background.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
         >
             <div class="ui-thumbnail__frame" data-slot="thumbnail-frame">
                 <div class="ui-thumbnail__content" data-slot="thumbnail-content">

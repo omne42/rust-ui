@@ -15,6 +15,11 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
+.ui-thumbnail[data-motion-source="custom"],
+.ui-thumbnail[data-custom-motion="true"] {
+  --ui-thumbnail-custom-motion: 1;
+}
+
 .ui-thumbnail::after {
   content: "";
   position: absolute;

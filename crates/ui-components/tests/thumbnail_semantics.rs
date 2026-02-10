@@ -45,6 +45,36 @@ fn thumbnail_attaches_motion_driver() {
 }
 
 #[test]
+fn thumbnail_emits_motion_marker_attributes() {
+    let source = load_source("src/thumbnail/view.rs");
+
+    for attr in [
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
+    ] {
+        assert!(
+            source.contains(attr),
+            "Thumbnail should expose `{attr}` for stable motion-source inspection."
+        );
+    }
+}
+
+#[test]
+fn thumbnail_styles_include_motion_marker_contracts() {
+    let source = load_source("src/thumbnail/styles.rs");
+
+    for selector in [
+        ".ui-thumbnail[data-motion-source=\"custom\"]",
+        ".ui-thumbnail[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Thumbnail styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
+}
+
+#[test]
 fn thumbnail_motion_uses_spring_animator() {
     let source = load_source("src/thumbnail/motion.rs");
 
