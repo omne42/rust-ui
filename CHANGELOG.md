@@ -30,6 +30,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: extends `TextArea` docs with a `State + Source Markers` playground to inspect `data-state`/`data-value`/`data-requirement`/`data-rows-source`/`data-class-source` contracts.
 - `ui-components`: upgrades `Textarea` to a full `logic/styles/view` slice with centralized label/rows/source-state normalization, stable Spectrum-style `data-*` state/source contracts, and preserved headless text-field semantics.
 - `apps/docs-app`: extends `Textarea` docs with a `State + Source Markers` playground to inspect `data-state`/`data-value`/`data-requirement`/`data-rows-source`/`data-class-source` contracts.
+- `ui-components`: upgrades `PickerButton` to a full `logic/styles/view` slice with centralized aria/class/handler source-state normalization, stable Spectrum-style `data-*` wrapper contracts, and hardened alias composition over `FieldButton`.
+- `apps/docs-app`: extends `PickerButton` docs with a `State + Source Markers` playground to inspect `data-state`/`data-quiet`/`data-invalid`/`data-disabled`/`data-active`/`data-has-handler`/`data-aria-source`/`data-class-source`/`data-handler-source` contracts.
 
 - `ui-components`: upgrades `Menu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `NavigationMenu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.

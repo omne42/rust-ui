@@ -7,6 +7,10 @@ pub(super) fn picker_button() -> AnyView {
     let (active, set_active) = signal(false);
     let on_press = Callback::new(move |_| set_active.update(|value| *value = !*value));
 
+    let (marker_presses, set_marker_presses) = signal(0_usize);
+    let marker_press =
+        Callback::new(move |_| set_marker_presses.update(|value| *value = value.saturating_add(1)));
+
     let basic_code = r#"<PickerButton on_press=Callback::new(move |_| { /* ... */ })>
   \"Choose item\"
 </PickerButton>"#;
@@ -14,6 +18,19 @@ pub(super) fn picker_button() -> AnyView {
     let states_code = r#"<PickerButton quiet=true>"Filter"</PickerButton>
 <PickerButton invalid=true>"Required"</PickerButton>
 <PickerButton disabled=true>"Disabled"</PickerButton>"#;
+
+    let markers_code = r#"let (active, set_active) = signal(false);
+
+<PickerButton
+  quiet=true
+  invalid=true
+  is_active=true
+  aria_label="Inspect picker trigger".to_string()
+  class_name="docs-picker-button-state".to_string()
+  on_press=Callback::new(move |_| set_active.update(|value| *value = !*value))
+>
+  "Inspect markers"
+</PickerButton>"#;
 
     view! {
         <ComponentPage
@@ -42,6 +59,26 @@ pub(super) fn picker_button() -> AnyView {
                     <PickerButton disabled=true>
                         "Disabled"
                     </PickerButton>
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect wrapper markers like `data-state`, `data-quiet`, `data-invalid`, `data-disabled`, `data-active`, `data-has-handler`, `data-aria-source`, `data-class-source`, and `data-handler-source`."
+                code=markers_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <PickerButton
+                        quiet=true
+                        invalid=true
+                        is_active=true
+                        aria_label="Inspect picker trigger".to_string()
+                        class_name="docs-picker-button-state".to_string()
+                        on_press=marker_press
+                    >
+                        "Inspect markers"
+                    </PickerButton>
+                    <span class="ui-muted">"presses: " {move || marker_presses.get().to_string()}</span>
                 </div>
             </Playground>
         </ComponentPage>

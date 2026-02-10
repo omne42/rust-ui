@@ -116,6 +116,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::error_view::styles::CSS);
     out.push_str(crate::field::styles::CSS);
     out.push_str(crate::field_button::styles::CSS);
+    out.push_str(crate::picker_button::styles::CSS);
     out.push_str(crate::field_error::styles::CSS);
     out.push_str(crate::field_group::styles::CSS);
     out.push_str(crate::field_label::styles::CSS);
