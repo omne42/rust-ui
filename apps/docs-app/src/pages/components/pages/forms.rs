@@ -250,12 +250,24 @@ pub(super) fn text_field() -> AnyView {
 }
 
 pub(super) fn text_area() -> AnyView {
-    let (value, set_value) = signal(String::new());
-    let code = r#"let (value, set_value) = signal(String::new());
-<TextArea id="about".to_string()
-  label="About".to_string()
+    let (value, set_value) = signal("Shipping notes".to_string());
+    let (invalid, set_invalid) = signal(false);
+
+    let markers_code = r#"let (value, set_value) = signal("Shipping notes".to_string());
+let (invalid, set_invalid) = signal(false);
+
+<TextArea
+  id="docs-text-area-markers".to_string()
+  label="Release notes".to_string()
   value=value
   set_value=set_value
+  required=true
+  invalid=Signal::derive(move || invalid.get())
+  description="Inspect source/state marker contracts".to_string()
+  error="Release notes are required".to_string()
+  placeholder="Write release notes…".to_string()
+  rows=6
+  class_name="docs-text-area-state".to_string()
 />"#;
 
     view! {
@@ -263,16 +275,34 @@ pub(super) fn text_area() -> AnyView {
             title="TextArea"
             slug="text-area"
             group="Forms"
-            description="Multiline text field with Spectrum-style semantics."
+            description="Multiline text field with Spectrum-style semantics and explicit state/source marker contracts."
         >
-            <Playground title="Multiline" code=code>
-                <TextArea
-                    id="docs-text-area".to_string()
-                    label="About".to_string()
-                    value=value
-                    set_value=set_value
-                    placeholder="Write something…".to_string()
-                />
+            <Playground
+                title="State + Source Markers"
+                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
+                code=markers_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <TextArea
+                        id="docs-text-area-markers".to_string()
+                        label="Release notes".to_string()
+                        value=value
+                        set_value=set_value
+                        required=true
+                        invalid=Signal::derive(move || invalid.get())
+                        description="Inspect source/state marker contracts".to_string()
+                        error="Release notes are required".to_string()
+                        placeholder="Write release notes…".to_string()
+                        rows=6
+                        class_name="docs-text-area-state".to_string()
+                    />
+                    <ui_components::Button
+                        variant=ui_components::ButtonVariant::Secondary
+                        on_press=Callback::new(move |_| set_invalid.update(|value| *value = !*value))
+                    >
+                        {move || if invalid.get() { "Clear marker invalid" } else { "Mark marker invalid" }}
+                    </ui_components::Button>
+                </div>
             </Playground>
         </ComponentPage>
     }

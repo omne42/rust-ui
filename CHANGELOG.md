@@ -26,6 +26,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: extends `Search` docs with a `State + Source Markers` playground to inspect `data-state`/`data-value`/`data-requirement`/`data-submit-handler-source`/`data-clear-handler-source`/`data-motion-source` contracts.
 - `ui-components`: upgrades `Textfield` to a full `logic/styles/view` slice with centralized label/input-type/source-state normalization, stable Spectrum-style `data-*` state/source contracts, and hardened wrapper composition over `TextField`.
 - `apps/docs-app`: extends `Textfield` docs with a `State + Source Markers` playground to inspect `data-state`/`data-value`/`data-requirement`/`data-type-source`/`data-class-source` contracts.
+- `ui-components`: upgrades `TextArea` to a full `logic/styles/view` slice with centralized label/rows/source-state normalization, stable Spectrum-style `data-*` state/source contracts, and preserved headless text-field semantics.
+- `apps/docs-app`: extends `TextArea` docs with a `State + Source Markers` playground to inspect `data-state`/`data-value`/`data-requirement`/`data-rows-source`/`data-class-source` contracts.
 
 - `ui-components`: upgrades `Menu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.
 - `ui-components`: upgrades `NavigationMenu` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level active-highlight spring tuning.

@@ -5,6 +5,51 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-text-area[data-state="disabled"] {
+  opacity: 0.72;
+}
+
+.ui-text-area[data-state="invalid"] {
+  --ui-text-area-invalid: 1;
+}
+
+.ui-text-area[data-state="readonly"] {
+  --ui-text-area-readonly: 1;
+}
+
+.ui-text-area[data-value="filled"] {
+  --ui-text-area-has-value: 1;
+}
+
+.ui-text-area[data-requirement="required"] {
+  --ui-text-area-required: 1;
+}
+
+.ui-text-area[data-label-source="custom"] {
+  --ui-text-area-label-source: custom;
+}
+
+.ui-text-area[data-description-source="custom"] {
+  --ui-text-area-description-source: custom;
+}
+
+.ui-text-area[data-error-source="custom"] {
+  --ui-text-area-error-source: custom;
+}
+
+.ui-text-area[data-placeholder-source="custom"] {
+  --ui-text-area-placeholder-source: custom;
+}
+
+.ui-text-area[data-rows-source="custom"] {
+  --ui-text-area-rows-source: custom;
+}
+
+.ui-text-area--custom-class,
+.ui-text-area[data-custom-class="true"] {
+  border-radius: inherit;
+}
+
 .ui-text-area__label {
   font-size: 14px;
   line-height: 1.2;

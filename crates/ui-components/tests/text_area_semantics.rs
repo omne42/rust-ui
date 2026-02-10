@@ -8,61 +8,131 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn text_area_uses_headless_text_field_and_focus_ring() {
-    let source = load_source("src/text_area/view.rs");
+fn text_area_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/text_area/mod.rs");
 
-    for needle in ["use_focus_ring", "use_text_field"] {
+    for needle in ["pub mod logic", "pub mod view"] {
         assert!(
-            source.contains(needle),
-            "TextArea should use headless `{needle}` hooks."
+            !source.contains(needle),
+            "TextArea internals should stay private; found `{needle}`.",
         );
     }
 }
 
 #[test]
-fn text_area_supports_read_only() {
-    let source = load_source("src/text_area/view.rs");
+fn text_area_is_exported_from_module_and_crate_root() {
+    let module_source = load_source("src/text_area/mod.rs");
+    let crate_source = load_source("src/lib.rs");
 
     assert!(
-        source.contains("read_only: bool"),
-        "TextArea should accept a `read_only` prop to match Spectrum-style text area contracts."
+        module_source.contains("pub use view::TextArea;"),
+        "text_area module should export `TextArea`.",
     );
-
     assert!(
-        source.contains("readonly=read_only"),
-        "TextArea should forward `read_only` to the underlying <textarea readonly> attribute."
+        crate_source.contains("pub use text_area::TextArea;"),
+        "crate root should re-export `TextArea`.",
     );
 }
 
 #[test]
-fn text_area_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/text_area/view.rs");
+fn text_area_logic_exposes_state_helpers() {
+    let source = load_source("src/text_area/logic.rs");
 
-    for attr in [
-        "data-focused",
-        "data-focus-visible",
-        "data-invalid",
-        "data-disabled",
-        "data-read-only",
-        "data-required",
+    for needle in [
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_label(value: String)",
+        "pub fn resolve_state(input: TextAreaStateInput)",
+        "pub fn compose_class_name(class_name: Option<String>, state: TextAreaState)",
+        "DEFAULT_LABEL",
     ] {
         assert!(
-            source.contains(attr),
-            "TextArea should set `{attr}` to support Spectrum-style styling and state inspection."
+            source.contains(needle),
+            "TextArea logic should include `{needle}` for centralized source/state contracts.",
         );
     }
 }
 
 #[test]
-fn text_area_styles_respect_prefers_reduced_motion() {
+fn text_area_view_uses_logic_state_and_a11y_contracts() {
+    let source = load_source("src/text_area/view.rs");
+
+    for needle in [
+        "use_focus_ring",
+        "use_text_field",
+        "logic::resolve_label(label)",
+        "logic::resolve_state(TextAreaStateInput {",
+        "logic::compose_class_name(class_name.clone(), state.get())",
+        "data-slot=\"text-area\"",
+        "data-state=move || state.get().state_attr",
+        "data-value=move || state.get().value_attr",
+        "data-requirement=move || state.get().requirement_attr",
+        "data-label-source=move || state.get().label_source_attr",
+        "data-description-source=move || state.get().description_source_attr",
+        "data-error-source=move || state.get().error_source_attr",
+        "data-placeholder-source=move || state.get().placeholder_source_attr",
+        "data-rows-source=move || state.get().rows_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
+        "aria-describedby=move || aria.input.aria_describedby.get()",
+        "aria-invalid=move || aria.input.aria_invalid.get()",
+        "aria-required=move || aria.input.aria_required.get()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TextArea view should include `{needle}` for stable marker + a11y contracts.",
+        );
+    }
+}
+
+#[test]
+fn text_area_styles_include_state_source_and_reduced_motion_markers() {
     let source = load_source("src/text_area/styles.rs");
 
+    for selector in [
+        ".ui-text-area[data-state=\"disabled\"]",
+        ".ui-text-area[data-state=\"invalid\"]",
+        ".ui-text-area[data-state=\"readonly\"]",
+        ".ui-text-area[data-value=\"filled\"]",
+        ".ui-text-area[data-requirement=\"required\"]",
+        ".ui-text-area[data-label-source=\"custom\"]",
+        ".ui-text-area[data-description-source=\"custom\"]",
+        ".ui-text-area[data-error-source=\"custom\"]",
+        ".ui-text-area[data-placeholder-source=\"custom\"]",
+        ".ui-text-area[data-rows-source=\"custom\"]",
+        ".ui-text-area--custom-class",
+        "prefers-reduced-motion: reduce",
+        "transition: none;",
+    ] {
+        assert!(
+            source.contains(selector),
+            "TextArea styles should include `{selector}` as stable selectors.",
+        );
+    }
+}
+
+#[test]
+fn text_area_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
     assert!(
-        source.contains("prefers-reduced-motion: reduce"),
-        "TextArea styles should respect prefers-reduced-motion to avoid forced transitions."
+        source.contains("out.push_str(crate::text_area::styles::CSS);"),
+        "ui-components css aggregator should include text_area styles.",
     );
-    assert!(
-        source.contains("transition: none;"),
-        "TextArea styles should disable transitions under prefers-reduced-motion."
-    );
+}
+
+#[test]
+fn text_area_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn text_area() -> AnyView",
+        "title=\"TextArea\"",
+        "slug=\"text-area\"",
+        "State + Source Markers",
+        "data-rows-source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs page should contain `{needle}` for text-area.",
+        );
+    }
 }
