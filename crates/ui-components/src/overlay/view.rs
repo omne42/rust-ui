@@ -1,4 +1,4 @@
-use crate::overlay::{OverlayMotion, motion};
+use crate::overlay::{OverlayMotion, OverlayPartStateInput, OverlaySlot, logic, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use ui_headless::{
     FocusTrapOptions, ModalOptions, OnPress, use_focus_trap, use_modal,
@@ -12,14 +12,67 @@ pub fn Overlay(
     children: ChildrenFn,
     #[prop(optional)] aria_labelledby: Option<String>,
     #[prop(optional)] aria_describedby: Option<String>,
-    #[prop(optional, default = "dialog")] role: &'static str,
-    #[prop(optional, default = true)] is_dismissable: bool,
-    #[prop(optional)] is_keyboard_dismiss_disabled: bool,
+    #[prop(optional, default = logic::DEFAULT_ROLE)] role: &'static str,
+    #[prop(optional, default = logic::DEFAULT_DISMISSABLE)] is_dismissable: bool,
+    #[prop(optional, default = logic::DEFAULT_KEYBOARD_DISMISS_DISABLED)]
+    is_keyboard_dismiss_disabled: bool,
     #[prop(optional)] motion: OverlayMotion,
+    #[prop(optional, into)] class_name: Option<String>,
     /// Called after the close animation finishes (useful for presence/unmount).
     #[prop(optional)]
     on_exit_complete: Option<Callback<()>>,
 ) -> impl IntoView {
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_motion = motion != OverlayMotion::default();
+    let has_custom_role = role != logic::DEFAULT_ROLE;
+    let aria_labelledby = logic::normalize_optional_text(aria_labelledby);
+    let aria_describedby = logic::normalize_optional_text(aria_describedby);
+
+    let root_state = logic::resolve_state(OverlayPartStateInput {
+        slot: OverlaySlot::Root,
+        open: open.get_untracked(),
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_role,
+        has_custom_aria_labelledby: aria_labelledby.is_some(),
+        has_custom_aria_describedby: aria_describedby.is_some(),
+        has_custom_class_name: class_name.is_some(),
+        has_custom_motion,
+        has_on_exit_complete: on_exit_complete.is_some(),
+    });
+    let root_class = logic::compose_class_name(class_name, root_state);
+    let root_class = StoredValue::new(root_class);
+
+    let backdrop_state = logic::resolve_state(OverlayPartStateInput {
+        slot: OverlaySlot::Backdrop,
+        open: false,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_role,
+        has_custom_aria_labelledby: aria_labelledby.is_some(),
+        has_custom_aria_describedby: aria_describedby.is_some(),
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete: on_exit_complete.is_some(),
+    });
+    let backdrop_class = logic::compose_class_name(None, backdrop_state);
+    let backdrop_class = StoredValue::new(backdrop_class);
+
+    let panel_state = logic::resolve_state(OverlayPartStateInput {
+        slot: OverlaySlot::Panel,
+        open: false,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_role,
+        has_custom_aria_labelledby: aria_labelledby.is_some(),
+        has_custom_aria_describedby: aria_describedby.is_some(),
+        has_custom_class_name: false,
+        has_custom_motion,
+        has_on_exit_complete: on_exit_complete.is_some(),
+    });
+    let panel_class = logic::compose_class_name(None, panel_state);
+    let panel_class = StoredValue::new(panel_class);
+
     let registration = use_overlay_stack_registration();
     use_modal(ModalOptions::enabled());
 
@@ -50,12 +103,13 @@ pub fn Overlay(
             #[cfg(not(target_arch = "wasm32"))]
             let default_prevented = false;
 
-            if key == "Escape"
-                && is_topmost.get()
-                && !is_composing
-                && !default_prevented
-                && !is_keyboard_dismiss_disabled
-            {
+            if logic::should_close_on_escape(
+                &key,
+                is_topmost.get(),
+                is_composing,
+                default_prevented,
+                is_keyboard_dismiss_disabled,
+            ) {
                 ev.stop_propagation();
                 ev.prevent_default();
                 on_close.run(());
@@ -66,25 +120,35 @@ pub fn Overlay(
     view! {
         <Portal>
             <div
-                class="ui-overlay"
-                data-slot="overlay"
-                data-state=move || if open.get() { "open" } else { "closed" }
+                class=move || root_class.with_value(|class_name| class_name.clone())
+                data-slot=root_state.slot_attr
+                data-state=move || logic::state_attr_for_open(open.get())
                 data-open=move || open.get().then_some("true")
                 data-closed=move || (!open.get()).then_some("true")
+                data-dismiss=root_state.dismiss_attr
+                data-keyboard-dismiss=root_state.keyboard_dismiss_attr
                 data-dismissable=is_dismissable.then_some("true")
                 data-keyboard-dismiss-disabled=is_keyboard_dismiss_disabled.then_some("true")
-                data-motion-source=if motion == OverlayMotion::default() {
-                    "default"
-                } else {
-                    "custom"
-                }
-                data-custom-motion=(motion != OverlayMotion::default()).then_some("true")
+                data-motion-source=root_state.motion_source_attr
+                data-role-source=root_state.role_source_attr
+                data-aria-labelledby-source=root_state.aria_labelledby_source_attr
+                data-aria-describedby-source=root_state.aria_describedby_source_attr
+                data-class-source=root_state.class_source_attr
+                data-dismiss-source=root_state.dismiss_source_attr
+                data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr
+                data-exit-source=root_state.exit_source_attr
+                data-custom-motion=root_state.has_custom_motion.then_some("true")
+                data-custom-role=root_state.has_custom_role.then_some("true")
+                data-custom-class=root_state.has_custom_class_name.then_some("true")
+                data-custom-exit=root_state.has_on_exit_complete.then_some("true")
                 data-ui-overlay-portal=""
                 node_ref=root_ref
                 on:keydown=on_key_down
             >
                 <div
-                    class="ui-overlay__backdrop"
+                    class=move || backdrop_class.with_value(|class_name| class_name.clone())
+                    data-slot=backdrop_state.slot_attr
+                    data-state=backdrop_state.state_attr
                     on:click=move |_| {
                         if is_dismissable {
                             on_close.run(());
@@ -92,7 +156,12 @@ pub fn Overlay(
                     }
                 ></div>
                 <div
-                    class="ui-overlay__panel"
+                    class=move || panel_class.with_value(|class_name| class_name.clone())
+                    data-slot=panel_state.slot_attr
+                    data-state=panel_state.state_attr
+                    data-dismiss=panel_state.dismiss_attr
+                    data-keyboard-dismiss=panel_state.keyboard_dismiss_attr
+                    data-role=role
                     role=role
                     aria-modal="true"
                     aria-labelledby=move || aria_labelledby.get()

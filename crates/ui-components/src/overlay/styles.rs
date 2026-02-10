@@ -15,8 +15,42 @@ pub const CSS: &str = r#"
 }
 
 .ui-overlay[data-motion-source="custom"],
-.ui-overlay[data-custom-motion="true"] {
+.ui-overlay[data-custom-motion="true"],
+.ui-overlay--custom-motion {
   --ui-overlay-custom-motion: 1;
+}
+
+.ui-overlay[data-class-source="custom"],
+.ui-overlay--custom-class {
+  --ui-overlay-class-source: custom;
+}
+
+.ui-overlay[data-role-source="custom"] {
+  --ui-overlay-role-source: custom;
+}
+
+.ui-overlay[data-aria-labelledby-source="custom"] {
+  --ui-overlay-aria-labelledby-source: custom;
+}
+
+.ui-overlay[data-aria-describedby-source="custom"] {
+  --ui-overlay-aria-describedby-source: custom;
+}
+
+.ui-overlay[data-dismiss-source="custom"],
+.ui-overlay--custom-dismiss {
+  --ui-overlay-dismiss-source: custom;
+}
+
+.ui-overlay[data-keyboard-dismiss-source="custom"],
+.ui-overlay--custom-keyboard-dismiss {
+  --ui-overlay-keyboard-dismiss-source: custom;
+}
+
+.ui-overlay[data-exit-source="custom"],
+.ui-overlay[data-custom-exit="true"],
+.ui-overlay--custom-exit {
+  --ui-overlay-exit-source: custom;
 }
 
 .ui-overlay[data-state="open"],
@@ -37,11 +71,14 @@ pub const CSS: &str = r#"
   outline: 1px dashed color-mix(in oklab, var(--ui-border) 72%, transparent);
 }
 
-
 .ui-overlay__backdrop {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, calc(0.35 * var(--ui-overlay-backdrop-opacity)));
+}
+
+.ui-overlay__backdrop[data-state="backdrop"] {
+  --ui-overlay-backdrop: 1;
 }
 
 .ui-overlay__panel {
@@ -54,11 +91,15 @@ pub const CSS: &str = r#"
   padding: var(--ui-space-lg);
   min-width: 280px;
   max-width: 640px;
-  box-shadow: var(--ui-shadow-md);
 
+  box-shadow: var(--ui-shadow-md);
   opacity: var(--ui-overlay-panel-opacity);
   transform: translateY(var(--ui-overlay-panel-y)) scale(var(--ui-overlay-panel-scale));
   transform-origin: center;
   will-change: transform, opacity;
+}
+
+.ui-overlay__panel[data-state="panel"] {
+  --ui-overlay-panel: 1;
 }
 "#;

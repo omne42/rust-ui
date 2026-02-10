@@ -3,9 +3,9 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
-    Drawer, DrawerMotion, DrawerPlacement, Modal, OnPress, Overlay, Popover, PopoverMotion, Sheet,
-    SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
-    ToastViewport, provide_toast_store,
+    Drawer, DrawerMotion, DrawerPlacement, Modal, OnPress, Overlay, OverlayMotion, Popover,
+    PopoverMotion, Sheet, SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions,
+    ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
 };
 
 #[path = "overlays_dialog.rs"]
@@ -32,19 +32,25 @@ pub(super) fn overlay() -> AnyView {
     let open_overlay: OnPress = Callback::new(move |_| set_open_raw.set(true));
     let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
-    let (locked_open_raw, set_locked_open_raw) = signal(false);
-    let locked_open: Signal<bool> = Signal::derive(move || locked_open_raw.get());
+    let (marker_open_raw, set_marker_open_raw) = signal(false);
+    let marker_open: Signal<bool> = Signal::derive(move || marker_open_raw.get());
 
-    let (locked_present, set_locked_present) = signal(locked_open.get_untracked());
+    let (marker_present, set_marker_present) = signal(marker_open.get_untracked());
     Effect::new(move |_| {
-        if locked_open.get() {
-            set_locked_present.set(true);
+        if marker_open.get() {
+            set_marker_present.set(true);
         }
     });
 
-    let close_locked: OnPress = Callback::new(move |_| set_locked_open_raw.set(false));
-    let open_locked: OnPress = Callback::new(move |_| set_locked_open_raw.set(true));
-    let on_locked_exit_complete = Callback::new(move |_| set_locked_present.set(false));
+    let close_marker: OnPress = Callback::new(move |_| set_marker_open_raw.set(false));
+    let open_marker: OnPress = Callback::new(move |_| set_marker_open_raw.set(true));
+    let on_marker_exit_complete = Callback::new(move |_| set_marker_present.set(false));
+
+    let marker_motion = OverlayMotion {
+        initial_scale: 0.94,
+        initial_y_px: 14.0,
+        ..OverlayMotion::default()
+    };
 
     let code = r#"let (open, set_open) = signal(false);
 let open_signal: Signal<bool> = Signal::derive(move || open.get());
@@ -54,11 +60,17 @@ let (present, set_present) = signal(open_signal.get_untracked());
   <Overlay open=open_signal on_close=close on_exit_complete=on_exit_complete>...</Overlay>
 </Show>"#;
 
-    let locked_code = r#"<Overlay
+    let marker_code = r#"<Overlay
   open=open_signal
   on_close=close
+  role="alertdialog"
   is_dismissable=false
   is_keyboard_dismiss_disabled=true
+  motion=custom_motion
+  class_name="docs-overlay-state".to_string()
+  aria_labelledby="overlay-marker-title".to_string()
+  aria_describedby="overlay-marker-desc".to_string()
+  on_exit_complete=on_exit_complete
 >
   ...
 </Overlay>"#;
@@ -91,32 +103,39 @@ let (present, set_present) = signal(open_signal.get_untracked());
                 </Show>
             </Playground>
 
-            <Playground title="Non-dismissable overlay" code=locked_code>
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-role-source`, `data-motion-source`, and `data-exit-source` contracts."
+                code=marker_code
+            >
                 <div class="docs-row">
-                    <Button on_press=open_locked>"Open locked overlay"</Button>
+                    <Button on_press=open_marker>"Open marker overlay"</Button>
                     <span class="ui-muted">
-                        "open: " {move || locked_open_raw.get().to_string()}
+                        "open: " {move || marker_open_raw.get().to_string()}
                     </span>
                 </div>
 
-                <Show when=move || locked_present.get()>
+                <Show when=move || marker_present.get()>
                     <Overlay
-                        open=locked_open
-                        on_close=close_locked
+                        open=marker_open
+                        on_close=close_marker
+                        role="alertdialog"
                         is_dismissable=false
                         is_keyboard_dismiss_disabled=true
-                        on_exit_complete=on_locked_exit_complete
+                        motion=marker_motion
+                        class_name="docs-overlay-state".to_string()
+                        aria_labelledby="overlay-marker-title".to_string()
+                        aria_describedby="overlay-marker-desc".to_string()
+                        on_exit_complete=on_marker_exit_complete
                     >
                         <div class="docs-stack">
-                            <div>"Backdrop clicks and Escape are disabled."</div>
-                            <div class="ui-muted">
-                                "Use an explicit action to close."
+                            <div id="overlay-marker-title">"Marker overlay"</div>
+                            <div id="overlay-marker-desc" class="ui-muted">
+                                "Inspect data-dismiss-source / data-keyboard-dismiss-source / data-role-source in DevTools."
                             </div>
-                            <div class="docs-row">
-                                <Button variant=ButtonVariant::Secondary on_press=close_locked>
-                                    "Close"
-                                </Button>
-                            </div>
+                            <Button variant=ButtonVariant::Secondary on_press=close_marker>
+                                "Close"
+                            </Button>
                         </div>
                     </Overlay>
                 </Show>

@@ -8,79 +8,162 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn overlay_escape_respects_default_prevented_and_composition() {
-    let source = load_source("src/overlay/view.rs");
+fn overlay_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/overlay/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Overlay internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn overlay_is_exported_from_module_and_crate_root() {
+    let module_source = load_source("src/overlay/mod.rs");
+    let crate_source = load_source("src/lib.rs");
 
     assert!(
-        source.contains("default_prevented"),
-        "Overlay should not close on Escape when a child already called preventDefault (Spectrum parity for Escape-to-clear flows)."
+        module_source.contains("pub use view::Overlay;"),
+        "overlay module should export `Overlay`."
     );
     assert!(
-        source.contains("is_composing"),
-        "Overlay should ignore Escape while IME composition is active (matches React Spectrum's `useOverlay`)."
+        module_source.contains("pub struct OverlayPartStateInput"),
+        "overlay module should expose `OverlayPartStateInput` contract."
     );
     assert!(
-        source.contains("stop_propagation()"),
-        "Overlay should stop Escape propagation when closing to avoid cascading dismiss handlers."
+        crate_source.contains("pub use overlay::Overlay;")
+            && crate_source.contains("pub use overlay::OverlayMotion;"),
+        "crate root should re-export `Overlay` and `OverlayMotion` contracts."
     );
 }
 
 #[test]
-fn overlay_supports_dismissable_and_keyboard_dismiss_flags() {
+fn overlay_logic_exposes_state_helpers() {
+    let source = load_source("src/overlay/logic.rs");
+
+    for needle in [
+        "pub const DEFAULT_ROLE: &str = \"dialog\";",
+        "pub const DEFAULT_DISMISSABLE: bool = true;",
+        "pub const DEFAULT_KEYBOARD_DISMISS_DISABLED: bool = false;",
+        "pub fn state_attr_for_open(is_open: bool)",
+        "pub fn dismiss_attr(is_dismissable: bool)",
+        "pub fn keyboard_dismiss_attr(is_keyboard_dismiss_disabled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn resolve_state(input: OverlayPartStateInput)",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: OverlayPartState)",
+        "pub fn should_close_on_escape(",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Overlay logic should include `{needle}` for centralized source/state contracts."
+        );
+    }
+}
+
+#[test]
+fn overlay_escape_respects_default_prevented_composition_and_keyboard_flag() {
     let source = load_source("src/overlay/view.rs");
 
     for needle in [
-        "is_dismissable",
+        "default_prevented",
+        "is_composing",
+        "logic::should_close_on_escape(",
         "is_keyboard_dismiss_disabled",
-        "if is_dismissable",
-        "!is_keyboard_dismiss_disabled",
+        "stop_propagation()",
     ] {
         assert!(
             source.contains(needle),
-            "Overlay should support Spectrum-style dismiss control flags (`{needle}`)."
+            "Overlay should include `{needle}` for stable Escape-dismiss behavior."
         );
     }
 }
 
 #[test]
-fn overlay_emits_root_state_and_motion_data_attributes() {
+fn overlay_view_uses_logic_state_contracts() {
     let source = load_source("src/overlay/view.rs");
 
     for needle in [
-        "data-slot=\"overlay\"",
-        "data-state=move || if open.get() { \"open\" } else { \"closed\" }",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-closed=move || (!open.get()).then_some(\"true\")",
-        "data-dismissable=is_dismissable.then_some(\"true\")",
-        "data-keyboard-dismiss-disabled=is_keyboard_dismiss_disabled.then_some(\"true\")",
-        "data-motion-source=if motion == OverlayMotion::default()",
-        "data-custom-motion=(motion != OverlayMotion::default()).then_some(\"true\")",
-        "data-ui-overlay-portal=\"\"",
+        "logic::normalize_optional_text(class_name)",
+        "logic::normalize_optional_text(aria_labelledby)",
+        "logic::normalize_optional_text(aria_describedby)",
+        "logic::resolve_state(OverlayPartStateInput {",
+        "logic::compose_class_name(class_name, root_state)",
+        "data-slot=root_state.slot_attr",
+        "data-state=move || logic::state_attr_for_open(open.get())",
+        "data-dismiss=root_state.dismiss_attr",
+        "data-keyboard-dismiss=root_state.keyboard_dismiss_attr",
+        "data-motion-source=root_state.motion_source_attr",
+        "data-role-source=root_state.role_source_attr",
+        "data-aria-labelledby-source=root_state.aria_labelledby_source_attr",
+        "data-aria-describedby-source=root_state.aria_describedby_source_attr",
+        "data-class-source=root_state.class_source_attr",
+        "data-dismiss-source=root_state.dismiss_source_attr",
+        "data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr",
+        "data-exit-source=root_state.exit_source_attr",
+        "data-custom-class=root_state.has_custom_class_name.then_some(\"true\")",
+        "data-slot=backdrop_state.slot_attr",
+        "data-slot=panel_state.slot_attr",
+        "data-role=role",
     ] {
         assert!(
             source.contains(needle),
-            "Overlay should expose `{needle}` for Spectrum-style root state and motion contract selectors."
+            "Overlay view should include `{needle}` for stable marker contracts."
         );
     }
 }
 
 #[test]
-fn overlay_styles_include_motion_and_dismiss_markers() {
+fn overlay_styles_include_state_and_source_markers() {
     let source = load_source("src/overlay/styles.rs");
 
     for selector in [
         ".ui-overlay[data-motion-source=\"custom\"]",
         ".ui-overlay[data-custom-motion=\"true\"]",
-        ".ui-overlay[data-state=\"open\"]",
-        ".ui-overlay[data-open=\"true\"]",
-        ".ui-overlay[data-state=\"closed\"]",
-        ".ui-overlay[data-closed=\"true\"]",
+        ".ui-overlay[data-role-source=\"custom\"]",
+        ".ui-overlay[data-aria-labelledby-source=\"custom\"]",
+        ".ui-overlay[data-aria-describedby-source=\"custom\"]",
+        ".ui-overlay[data-dismiss-source=\"custom\"]",
+        ".ui-overlay[data-keyboard-dismiss-source=\"custom\"]",
+        ".ui-overlay[data-exit-source=\"custom\"]",
         ".ui-overlay[data-dismissable=\"true\"] .ui-overlay__backdrop",
         ".ui-overlay[data-keyboard-dismiss-disabled=\"true\"] .ui-overlay__panel",
+        ".ui-overlay__backdrop[data-state=\"backdrop\"]",
+        ".ui-overlay__panel[data-state=\"panel\"]",
     ] {
         assert!(
             source.contains(selector),
-            "Overlay styles should include `{selector}` as stable state-marker contracts."
+            "Overlay styles should include `{selector}` as stable state/source contracts."
+        );
+    }
+}
+
+#[test]
+fn overlay_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::overlay::styles::CSS);"),
+        "ui-components css aggregator should include overlay styles."
+    );
+}
+
+#[test]
+fn overlay_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn overlay() -> AnyView",
+        "title=\"Overlay\"",
+        "slug=\"overlay\"",
+        "State + Source Markers",
+        "data-dismiss-source",
+        "<Overlay",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlay docs page should contain `{needle}`."
         );
     }
 }
