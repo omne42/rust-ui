@@ -57,6 +57,12 @@ pub fn AlertBanner(
             data-fill=fill.class_name().trim_start_matches("ui-alert-banner--fill-")
             role=tone.role()
             aria-live=tone.aria_live()
+            data-motion-source=if motion == AlertBannerMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != AlertBannerMotion::default()).then_some("true")
         >
             <Show when=move || state.show_icon>
                 <span class="ui-alert-banner__icon" data-slot="alert-banner-icon">

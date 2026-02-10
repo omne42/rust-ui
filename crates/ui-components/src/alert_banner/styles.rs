@@ -18,6 +18,11 @@ pub const CSS: &str = r#"
   will-change: transform, opacity;
 }
 
+.ui-alert-banner[data-motion-source="custom"],
+.ui-alert-banner[data-custom-motion="true"] {
+  --ui-alert-banner-custom-motion: 1;
+}
+
 .ui-alert-banner__icon {
   display: inline-flex;
   align-items: center;

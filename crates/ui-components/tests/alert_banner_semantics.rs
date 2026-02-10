@@ -46,6 +46,22 @@ fn alert_banner_attaches_motion_driver() {
 }
 
 #[test]
+fn alert_banner_exposes_motion_source_markers() {
+    let source = load_source("src/alert_banner/view.rs");
+
+    for needle in [
+        "data-slot=\"alert-banner\"",
+        "data-motion-source=if motion == AlertBannerMotion::default()",
+        "data-custom-motion=(motion != AlertBannerMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AlertBanner should expose `{needle}` for Spectrum/HeroUI motion inspection."
+        );
+    }
+}
+
+#[test]
 fn alert_banner_motion_uses_spring_animator() {
     let source = load_source("src/alert_banner/motion.rs");
 
@@ -63,10 +79,28 @@ fn alert_banner_styles_use_only_css_variables_for_motion() {
         "--ui-alert-banner-opacity",
         "--ui-alert-banner-translate-y",
         "--ui-alert-banner-scale",
+        ".ui-alert-banner[data-motion-source=\"custom\"]",
+        ".ui-alert-banner[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(name),
             "AlertBanner styles should define `{name}` so motion updates only touch CSS variables."
+        );
+    }
+}
+
+#[test]
+fn alert_banner_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/alert_banner/motion.rs");
+
+    for needle in [
+        "pub struct AlertBannerMotion",
+        "fn default_motion_matches_alert_banner_spring_contract()",
+        "fn supports_custom_spring_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AlertBanner motion module should include `{needle}` for HeroUI-level motion contract coverage."
         );
     }
 }

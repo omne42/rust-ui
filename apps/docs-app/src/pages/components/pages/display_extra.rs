@@ -2,8 +2,8 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    AlertBanner, AlertBannerFill, AlertBannerTone, Chart, ChartKind, ChartPoint, ColorSwatch,
-    ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
+    AlertBanner, AlertBannerFill, AlertBannerMotion, AlertBannerTone, Chart, ChartKind, ChartPoint,
+    ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
     ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
     ErrorViewTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue,
     LabeledValueOrientation, LabeledValueTone, PressableFeedback, PressableFeedbackEffect,
@@ -39,6 +39,18 @@ pub(super) fn alert_banner() -> AnyView {
   class_name="docs-alert-banner-custom".to_string()
 >
   "Follow status page for live updates."
+</AlertBanner>"#;
+
+    let motion_code = r#"<AlertBanner
+  tone=AlertBannerTone::Info
+  fill=AlertBannerFill::Border
+  title="Motion tuned".to_string()
+  description="Custom spring contract for alert reveal.".to_string()
+  motion=AlertBannerMotion {
+    spring: Default::default(),
+  }
+>
+  "Inspect data-motion-source/data-custom-motion markers."
 </AlertBanner>"#;
 
     view! {
@@ -79,6 +91,20 @@ pub(super) fn alert_banner() -> AnyView {
                     class_name="docs-alert-banner-custom".to_string()
                 >
                     "Follow status page for live updates."
+                </AlertBanner>
+            </Playground>
+
+            <Playground title="Custom motion contract" code=motion_code>
+                <AlertBanner
+                    tone=AlertBannerTone::Info
+                    fill=AlertBannerFill::Border
+                    title="Motion tuned".to_string()
+                    description="Custom spring contract for alert reveal.".to_string()
+                    motion=AlertBannerMotion {
+                        spring: Default::default(),
+                    }
+                >
+                    "Inspect data-motion-source/data-custom-motion markers."
                 </AlertBanner>
             </Playground>
         </ComponentPage>
