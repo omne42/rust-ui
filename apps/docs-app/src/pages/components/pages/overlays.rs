@@ -5,7 +5,7 @@ use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
     Drawer, DrawerMotion, DrawerPlacement, Modal, OnPress, Overlay, Popover, PopoverMotion, Sheet,
     SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
-    ToastViewport, Tooltip, provide_toast_store,
+    ToastViewport, provide_toast_store,
 };
 
 #[path = "overlays_dialog.rs"]
@@ -13,6 +13,9 @@ mod overlays_dialog;
 
 #[path = "overlays_hover_card.rs"]
 mod overlays_hover_card;
+
+#[path = "overlays_tooltip.rs"]
+mod overlays_tooltip;
 
 pub(super) fn overlay() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
@@ -726,30 +729,7 @@ pub(super) fn drawer() -> AnyView {
     .into_any()
 }
 pub(super) fn tooltip() -> AnyView {
-    let code = r#"<Tooltip content=move || view!{ "Tooltip" }>
-  <Button>"Hover"</Button>
-</Tooltip>"#;
-
-    view! {
-        <ComponentPage
-            title="Tooltip"
-            slug="tooltip"
-            group="Overlays"
-            description="Tooltip with delay/warmup/cooldown and anchor positioning."
-        >
-            <Playground title="Hover / focus" code=code>
-                <div class="docs-row">
-                    <Tooltip content=move || view! { "This is a tooltip" }>
-                        <Button variant=ButtonVariant::Secondary>"Hover me"</Button>
-                    </Tooltip>
-                    <Tooltip content=move || view! { "Disabled" } disabled=true>
-                        <Button variant=ButtonVariant::Secondary disabled=true>"Disabled"</Button>
-                    </Tooltip>
-                </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
+    overlays_tooltip::tooltip()
 }
 
 pub(super) fn hover_card() -> AnyView {

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Tooltip` to a full `logic/styles/view` slice with centralized trigger/press/delay/id source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level spring motion behavior.
+- `apps/docs-app`: extends `Tooltip` docs with a `State + Source Markers` playground to inspect `data-state`/`data-delay-source`/`data-trigger-source`/`data-press-source`/`data-id-source` contracts.
+
 - `ui-components`: upgrades `HoverCard` to a full `logic/styles/view` slice with centralized id/delay/motion/source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level spring motion behavior.
 - `apps/docs-app`: extends `HoverCard` docs with a `State + Source Markers` playground to inspect root/trigger/panel `data-state`/`data-motion-source`/`data-delay-source`/`data-id-source` contracts.
 

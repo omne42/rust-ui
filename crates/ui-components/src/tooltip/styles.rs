@@ -6,20 +6,54 @@ pub const CSS: &str = r#"
   -webkit-tap-highlight-color: transparent;
 }
 
-.ui-tooltip[data-motion-source="custom"],
-.ui-tooltip[data-custom-motion="true"] {
-  --ui-tooltip-custom-motion: 1;
+.ui-tooltip[data-state="open"],
+.ui-tooltip[data-open="true"],
+.ui-tooltip[data-state="closed"],
+.ui-tooltip[data-closed="true"] {
+  cursor: default;
 }
 
 .ui-tooltip[data-disabled="true"] {
   opacity: 0.72;
 }
 
-.ui-tooltip[data-state="open"],
-.ui-tooltip[data-open="true"],
-.ui-tooltip[data-state="closed"],
-.ui-tooltip[data-closed="true"] {
-  cursor: default;
+.ui-tooltip[data-trigger="focus"] {
+  --ui-tooltip-trigger: focus;
+}
+
+.ui-tooltip[data-press-behavior="persist"] {
+  --ui-tooltip-press-behavior: persist;
+}
+
+.ui-tooltip[data-class-source="custom"],
+.ui-tooltip--custom-class {
+  --ui-tooltip-class-source: custom;
+}
+
+.ui-tooltip[data-motion-source="custom"],
+.ui-tooltip[data-custom-motion="true"],
+.ui-tooltip--custom-motion {
+  --ui-tooltip-custom-motion: 1;
+}
+
+.ui-tooltip[data-delay-source="custom"],
+.ui-tooltip--custom-delay {
+  --ui-tooltip-delay-source: custom;
+}
+
+.ui-tooltip[data-trigger-source="custom"],
+.ui-tooltip--custom-trigger {
+  --ui-tooltip-trigger-source: custom;
+}
+
+.ui-tooltip[data-press-source="custom"],
+.ui-tooltip--custom-press {
+  --ui-tooltip-press-source: custom;
+}
+
+.ui-tooltip[data-id-source="custom"],
+.ui-tooltip--custom-id {
+  --ui-tooltip-id-source: custom;
 }
 
 .ui-tooltip__panel {
@@ -48,6 +82,10 @@ pub const CSS: &str = r#"
   font-size: 12px;
   line-height: 1.2;
   max-width: 280px;
+}
+
+.ui-tooltip__panel[data-state="panel"] {
+  --ui-tooltip-panel: 1;
 }
 
 .ui-tooltip__panel[data-placement="bottom"] {
