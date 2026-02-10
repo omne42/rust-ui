@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-accordion[data-motion-source="custom"],
+.ui-accordion[data-custom-motion="true"] {
+  --ui-accordion-custom-motion: 1;
+}
+
 .ui-accordion__item {
   border-radius: var(--ui-radius-md);
   border: 1px solid var(--ui-border);

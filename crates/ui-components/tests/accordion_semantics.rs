@@ -78,6 +78,8 @@ fn accordion_emits_spectrum_style_data_attributes() {
         "data-multiple-open=move || state.get().has_multiple_open.then_some(\"true\")",
         "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
         "data-selection-mode=match selection_mode",
+        "data-motion-source=if motion == AccordionMotion::default()",
+        "data-custom-motion=(motion != AccordionMotion::default()).then_some(\"true\")",
         "data-slot=\"accordion-item\"",
         "data-slot=\"accordion-trigger\"",
         "data-slot=\"accordion-label\"",
@@ -155,6 +157,16 @@ fn accordion_styles_define_motion_css_vars() {
         assert!(
             source.contains(var),
             "Accordion styles should define `{var}` so motion can update without re-rendering."
+        );
+    }
+
+    for selector in [
+        ".ui-accordion[data-motion-source=\"custom\"]",
+        ".ui-accordion[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Accordion styles should include `{selector}` as stable custom-motion selectors."
         );
     }
 }

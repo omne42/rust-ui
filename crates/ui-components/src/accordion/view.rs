@@ -281,6 +281,12 @@ pub fn Accordion(
                 AccordionSelectionMode::Single => "single",
                 AccordionSelectionMode::Multiple => "multiple",
             }
+            data-motion-source=if motion == AccordionMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != AccordionMotion::default()).then_some("true")
         >
             {items}
         </div>
