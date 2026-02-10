@@ -67,9 +67,28 @@ pub fn Sheet(
 
     view! {
         <Portal>
-            <div class=move || class.get_value() data-ui-overlay-portal="" node_ref=root_ref on:keydown=on_key_down>
+            <div
+                class=move || class.get_value()
+                data-ui-overlay-portal=""
+                data-slot="sheet"
+                data-state=move || if open.get() { "open" } else { "closed" }
+                data-open=move || open.get().then_some("true")
+                data-closed=move || (!open.get()).then_some("true")
+                data-placement=placement.data_attr()
+                data-dismissable=is_dismissable.then_some("true")
+                data-keyboard-dismiss-disabled=is_keyboard_dismiss_disabled.then_some("true")
+                data-motion-source=if motion == SheetMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != SheetMotion::default()).then_some("true")
+                node_ref=root_ref
+                on:keydown=on_key_down
+            >
                 <div
                     class="ui-sheet__backdrop"
+                    data-slot="sheet-backdrop"
                     on:click=move |_| {
                         if is_dismissable {
                             on_close.run(());
@@ -78,6 +97,7 @@ pub fn Sheet(
                 ></div>
                 <div
                     class="ui-sheet__panel"
+                    data-slot="sheet-panel"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby=move || aria_labelledby.get()

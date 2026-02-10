@@ -15,7 +15,7 @@ impl Default for SheetMotion {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 fn placement_offset(placement: SheetPlacement, base: f64) -> (f64, f64) {
     match placement {
         SheetPlacement::Bottom => (0.0, base.abs()),
@@ -178,4 +178,46 @@ pub fn attach_motion(
             finish_exit.run(());
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_uses_slide_spring_contract() {
+        let motion = SheetMotion::default();
+
+        assert_eq!(motion.spring, ui_motion::presets::spring_slide());
+        assert_eq!(motion.initial_offset_px, 32.0);
+    }
+
+    #[test]
+    fn placement_offset_maps_to_sheet_direction_contract() {
+        assert_eq!(placement_offset(SheetPlacement::Bottom, 12.0), (0.0, 12.0));
+        assert_eq!(placement_offset(SheetPlacement::Bottom, -4.0), (0.0, 4.0));
+        assert_eq!(placement_offset(SheetPlacement::Left, 12.0), (-12.0, 0.0));
+        assert_eq!(placement_offset(SheetPlacement::Left, -4.0), (-4.0, 0.0));
+        assert_eq!(placement_offset(SheetPlacement::Right, 12.0), (12.0, 0.0));
+        assert_eq!(placement_offset(SheetPlacement::Right, -4.0), (4.0, 0.0));
+    }
+
+    #[test]
+    fn supports_custom_motion_contract() {
+        let motion = SheetMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 260.0,
+                damping: 24.0,
+                mass: 1.0,
+                precision: 0.002,
+            },
+            initial_offset_px: 48.0,
+        };
+
+        assert_eq!(motion.spring.stiffness, 260.0);
+        assert_eq!(motion.spring.damping, 24.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.002);
+        assert_eq!(motion.initial_offset_px, 48.0);
+    }
 }

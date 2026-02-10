@@ -5,6 +5,26 @@ pub const CSS: &str = r#"
   z-index: 1000;
 }
 
+.ui-sheet[data-motion-source="custom"],
+.ui-sheet[data-custom-motion="true"] {
+  --ui-sheet-custom-motion: 1;
+}
+
+.ui-sheet[data-state="open"],
+.ui-sheet[data-open="true"],
+.ui-sheet[data-state="closed"],
+.ui-sheet[data-closed="true"] {
+  pointer-events: auto;
+}
+
+.ui-sheet[data-dismissable="true"] .ui-sheet__backdrop {
+  cursor: pointer;
+}
+
+.ui-sheet[data-keyboard-dismiss-disabled="true"] .ui-sheet__panel {
+  outline: 1px dashed color-mix(in oklab, var(--ui-border) 72%, transparent);
+}
+
 .ui-sheet__backdrop {
   position: absolute;
   inset: 0;

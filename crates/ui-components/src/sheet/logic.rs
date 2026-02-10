@@ -14,4 +14,12 @@ impl SheetPlacement {
             SheetPlacement::Right => "ui-sheet--placement-right",
         }
     }
+
+    pub fn data_attr(self) -> &'static str {
+        match self {
+            SheetPlacement::Bottom => "bottom",
+            SheetPlacement::Left => "left",
+            SheetPlacement::Right => "right",
+        }
+    }
 }
