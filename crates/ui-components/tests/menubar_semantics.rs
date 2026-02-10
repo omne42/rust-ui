@@ -121,6 +121,8 @@ fn menubar_emits_spectrum_root_state_data_attributes() {
         "data-controlled=move || state.get().is_controlled.then_some(\"true\")",
         "data-uncontrolled=move || state.get().is_uncontrolled.then_some(\"true\")",
         "data-placement=move || state.get().placement_attr",
+        "data-motion-source=if motion == MenubarMotion::default()",
+        "data-custom-motion=(motion != MenubarMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -158,10 +160,29 @@ fn menubar_styles_include_open_disabled_and_empty_markers() {
         ".ui-menubar--open",
         ".ui-menubar--empty",
         ".ui-menubar__menu[data-disabled=\"true\"]",
+        ".ui-menubar[data-motion-source=\"custom\"]",
+        ".ui-menubar[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
             "Menubar styles should include `{needle}` for stable visual state contracts."
+        );
+    }
+}
+
+#[test]
+fn menubar_uses_dropdown_menu_motion_alias_contract() {
+    let mod_source = load_source("src/menubar/mod.rs");
+    let dropdown_motion_source = load_source("src/dropdown_menu/motion.rs");
+
+    for needle in [
+        "pub use crate::dropdown_menu::DropdownMenuMotion as MenubarMotion;",
+        "pub struct DropdownMenuMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || dropdown_motion_source.contains(needle),
+            "Menubar motion alias contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

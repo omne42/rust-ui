@@ -11,6 +11,11 @@ pub const CSS: &str = r#"
   box-shadow: var(--ui-shadow-xs);
 }
 
+.ui-menubar[data-motion-source="custom"],
+.ui-menubar[data-custom-motion="true"] {
+  --ui-menubar-custom-motion: 1;
+}
+
 .ui-menubar__menu {
   position: relative;
   display: inline-flex;

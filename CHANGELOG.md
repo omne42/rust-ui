@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Menubar` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and motion alias contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `ContextMenu` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and motion alias contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `ContextualHelp` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and `ContextualHelpMotion` contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `DropdownMenu` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and `DropdownMenuMotion` contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.

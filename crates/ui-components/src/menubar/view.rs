@@ -261,6 +261,12 @@ pub fn Menubar(
             data-controlled=move || state.get().is_controlled.then_some("true")
             data-uncontrolled=move || state.get().is_uncontrolled.then_some("true")
             data-placement=move || state.get().placement_attr
+            data-motion-source=if motion == MenubarMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != MenubarMotion::default()).then_some("true")
         >
             <For each=move || menu_indices.get_value() key=|index| *index children=render_menu />
         </div>
