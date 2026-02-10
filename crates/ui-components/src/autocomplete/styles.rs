@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-autocomplete[data-motion-source="custom"],
+.ui-autocomplete[data-custom-motion="true"] {
+  --ui-autocomplete-custom-motion: 1;
+}
+
 .ui-autocomplete--empty .ui-autocomplete__input {
   opacity: 0.72;
 }

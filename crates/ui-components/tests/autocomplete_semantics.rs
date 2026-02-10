@@ -179,6 +179,8 @@ fn autocomplete_emits_spectrum_style_state_data_attributes() {
         "data-has-disabled-options=state.has_disabled_options.then_some(\"true\")",
         "data-controlled=state.is_controlled.then_some(\"true\")",
         "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
+        "data-motion-source=if motion == AutocompleteMotion::default()",
+        "data-custom-motion=(motion != AutocompleteMotion::default()).then_some(\"true\")",
         "data-typed=move || has_typed.get().then_some(\"true\")",
         "data-count=state.item_count.to_string()",
         "data-filtered-count=move || filtered_count.get().to_string()",
@@ -216,10 +218,33 @@ fn autocomplete_styles_include_controlled_and_disabled_option_markers() {
         ".ui-autocomplete--controlled",
         ".ui-autocomplete--has-disabled-options",
         ".ui-autocomplete--empty",
+        ".ui-autocomplete[data-motion-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
             "Autocomplete styles should include `{needle}` for stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
+    let mod_source = load_source("src/autocomplete/mod.rs");
+    let motion_source = load_source("src/autocomplete/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::AutocompleteMotion;",
+        "pub struct AutocompleteMotion",
+        "pub popover: PopoverMotion",
+        "pub highlight: ActiveHighlightMotion",
+        "fn default_motion_uses_default_popover_and_highlight_motion()",
+        "fn supports_custom_popover_and_highlight_motion_contracts()",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "Autocomplete motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

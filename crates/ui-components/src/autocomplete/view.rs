@@ -349,6 +349,12 @@ pub fn Autocomplete(
             data-has-disabled-options=state.has_disabled_options.then_some("true")
             data-controlled=state.is_controlled.then_some("true")
             data-uncontrolled=state.is_uncontrolled.then_some("true")
+            data-motion-source=if motion == AutocompleteMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != AutocompleteMotion::default()).then_some("true")
             data-typed=move || has_typed.get().then_some("true")
             data-count=state.item_count.to_string()
             data-filtered-count=move || filtered_count.get().to_string()

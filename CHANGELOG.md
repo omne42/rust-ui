@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Autocomplete` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) plus `AutocompleteMotion` contract tests (`PopoverMotion` + `ActiveHighlightMotion`) for HeroUI-level spring customization.
 - `ui-components`: upgrades `Overlay` with explicit root state/dismiss/motion markers (`data-state`/`data-open`/`data-closed` + `data-dismissable`/`data-keyboard-dismiss-disabled` + `data-motion-source`/`data-custom-motion`) and `OverlayMotion` spring contract tests for HeroUI-level tuning.
 - `ui-components`: upgrades `Popover` with explicit root state/motion markers (`data-state`/`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `PopoverMotion` spring/placement contract tests for HeroUI-level motion tuning.
 - `apps/docs-app`: extends `Popover` docs with a dedicated custom-motion playground showing `PopoverMotion` tuning (`initial_scale`/`offset_y_px`) without regressing presence-based unmount flow.
