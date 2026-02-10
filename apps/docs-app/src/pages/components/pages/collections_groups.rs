@@ -134,8 +134,27 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
   <div>"Hidden"</div>
 </Collapsible>"#;
 
+    let markers_code = r#"<Collapsible
+  id_base="collapsible-markers".to_string()
+  title="Advanced settings".to_string()
+  aria_label="Advanced settings panel".to_string()
+  default_open=true
+  class_name="docs-collapsible-state".to_string()
+  motion=CollapsibleMotion {
+    panel_offset_y_px: 8.0,
+    ..CollapsibleMotion::default()
+  }
+>
+  <div>"Inspect root/trigger/panel marker contracts."</div>
+</Collapsible>"#;
+
     let custom_motion = CollapsibleMotion {
         panel_offset_y_px: 6.0,
+        ..CollapsibleMotion::default()
+    };
+
+    let marker_motion = CollapsibleMotion {
+        panel_offset_y_px: 8.0,
         ..CollapsibleMotion::default()
     };
 
@@ -144,7 +163,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
             title="Collapsible"
             slug="collapsible"
             group="Collections"
-            description="Shadcn-compatible collapsible primitive built on Disclosure semantics with HeroUI-level spring panel motion and stable state contracts."
+            description="Shadcn-compatible collapsible primitive built on Disclosure semantics with HeroUI-level spring panel motion and stable state/source contracts."
         >
             <Playground title="Controlled Collapsible" code=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -177,6 +196,26 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
                     </Collapsible>
                     <span class="ui-muted">"disabled: true"</span>
                 </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, `data-motion-source`, and `data-custom-motion` across collapsible root/trigger/panel contracts."
+                code=markers_code
+            >
+                <Collapsible
+                    id_base="docs-collapsible-markers".to_string()
+                    title="Advanced settings".to_string()
+                    aria_label="Advanced settings panel".to_string()
+                    default_open=true
+                    class_name="docs-collapsible-state".to_string()
+                    motion=marker_motion
+                >
+                    <div class="docs-stack docs-stack--tight">
+                        <div>"Inspect root/trigger/panel marker contracts."</div>
+                        <div class="ui-muted">"Open mode, label source, class source, and motion source are explicit."</div>
+                    </div>
+                </Collapsible>
             </Playground>
         </ComponentPage>
     }

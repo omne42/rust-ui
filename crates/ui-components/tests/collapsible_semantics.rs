@@ -8,56 +8,129 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn collapsible_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/collapsible/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Collapsible internals should stay private; found `{needle}`.",
+        );
+    }
+}
+
+#[test]
 fn collapsible_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/collapsible/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
         module_source.contains("pub use view::Collapsible;"),
-        "collapsible module should export `Collapsible`."
+        "collapsible module should export `Collapsible`.",
     );
     assert!(
         module_source.contains("CollapsibleMotion"),
-        "collapsible module should expose a motion contract alias."
+        "collapsible module should expose a motion contract alias.",
     );
     assert!(
         crate_source.contains("pub use collapsible::{Collapsible, CollapsibleMotion};"),
-        "crate root should re-export `Collapsible` and `CollapsibleMotion`."
+        "crate root should re-export `Collapsible` and `CollapsibleMotion`.",
     );
 }
 
 #[test]
-fn collapsible_view_has_disclosure_style_semantics() {
-    let source = load_source("src/collapsible/view.rs");
+fn collapsible_logic_exposes_state_helpers() {
+    let source = load_source("src/collapsible/logic.rs");
 
     for needle in [
-        "DisclosureIds::new",
-        "motion::attach_panel_motion",
-        "data-slot=\"collapsible\"",
-        "data-slot=\"collapsible-trigger\"",
-        "data-slot=\"collapsible-panel\"",
-        "ui-collapsible",
+        "pub fn normalize_optional_text(",
+        "pub fn normalize_id_base(",
+        "pub fn resolve_title(",
+        "pub fn resolve_aria_label(",
+        "pub fn resolve_state(input: CollapsibleStateInput)",
+        "pub fn compose_class_name(class_name: Option<String>, state: CollapsibleState)",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_TITLE",
     ] {
         assert!(
             source.contains(needle),
-            "Collapsible view should include `{needle}` for disclosure-style behavior and contracts."
+            "Collapsible logic should include `{needle}` for centralized normalization/state contracts.",
         );
     }
 }
 
 #[test]
-fn collapsible_css_contains_state_markers() {
+fn collapsible_view_uses_logic_state_and_motion_contracts() {
+    let source = load_source("src/collapsible/view.rs");
+
+    for needle in [
+        "logic::normalize_id_base(id_base)",
+        "logic::resolve_title(title)",
+        "logic::resolve_aria_label(&title, aria_label)",
+        "logic::resolve_state(CollapsibleStateInput {",
+        "logic::compose_class_name(normalized_class_name.get_value(), state.get())",
+        "data-slot=\"collapsible\"",
+        "data-state=move || state.get().state_attr",
+        "data-open-mode=move || state.get().open_mode_attr",
+        "data-label-source=move || state.get().label_source_attr",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Collapsible view should include `{needle}` for stable state/source/motion contracts.",
+        );
+    }
+}
+
+#[test]
+fn collapsible_css_contains_state_mode_and_motion_markers() {
     let css = load_source("src/collapsible/styles.rs");
 
     for needle in [
         ".ui-collapsible {",
-        ".ui-collapsible[data-open=\"true\"]",
-        ".ui-collapsible[data-closed=\"true\"]",
-        ".ui-collapsible .ui-disclosure__panel",
+        ".ui-collapsible--state-open",
+        ".ui-collapsible[data-state=\"disabled\"]",
+        ".ui-collapsible[data-open-mode=\"controlled\"]",
+        ".ui-collapsible[data-motion-source=\"custom\"]",
+        ".ui-collapsible[data-custom-motion=\"true\"]",
+        ".ui-collapsible--custom-class",
+        "@media (forced-colors: active)",
+        "@media (prefers-reduced-motion: reduce)",
     ] {
         assert!(
             css.contains(needle),
-            "Collapsible CSS should include `{needle}` selector."
+            "Collapsible CSS should include `{needle}` selector.",
+        );
+    }
+}
+
+#[test]
+fn collapsible_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::collapsible::styles::CSS);"),
+        "ui-components css aggregator should include collapsible styles.",
+    );
+}
+
+#[test]
+fn collapsible_docs_page_contains_state_source_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "pub(super) fn collapsible() -> AnyView",
+        "title=\"Collapsible\"",
+        "slug=\"collapsible\"",
+        "State + Source Markers",
+        "data-open-mode",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_groups docs page should contain `{needle}` for Collapsible.",
         );
     }
 }

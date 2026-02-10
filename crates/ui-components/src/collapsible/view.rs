@@ -1,4 +1,7 @@
-use crate::collapsible::CollapsibleMotion;
+use crate::collapsible::{
+    CollapsibleMotion, CollapsibleStateInput,
+    logic::{self},
+};
 use crate::disclosure::{DisclosureIds, motion};
 use crate::overlay_open;
 use leptos::{html, prelude::*};
@@ -19,13 +22,19 @@ pub fn Collapsible(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let id_base = logic::normalize_id_base(id_base);
+    let title = logic::resolve_title(title);
+    let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(&title, aria_label);
+    let normalized_class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = normalized_class_name.is_some();
+    let normalized_class_name = StoredValue::new(normalized_class_name);
+
+    let is_controlled = open.is_some();
+    let has_custom_motion = motion != CollapsibleMotion::default();
+
     let ids = DisclosureIds::new(&id_base);
     let trigger_id = ids.trigger_id.clone();
     let panel_id = ids.panel_id.clone();
-
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| title.clone());
 
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
@@ -57,19 +66,37 @@ pub fn Collapsible(
     let panel_hidden = RwSignal::new(!open.get_untracked());
     motion::attach_panel_motion(panel_ref, panel_surface_ref, open, panel_hidden, motion);
 
-    let base_class = "ui-collapsible".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
+    let title = StoredValue::new(title);
+
+    let state = Memo::new(move |_| {
+        logic::resolve_state(CollapsibleStateInput {
+            is_open: open.get(),
+            is_disabled: disabled,
+            is_controlled,
+            has_custom_aria_label,
+            has_custom_class_name,
+            has_custom_motion,
+        })
+    });
+
+    let class = Memo::new(move |_| {
+        logic::compose_class_name(normalized_class_name.get_value(), state.get())
+    });
 
     view! {
         <div
-            class=class
+            class=move || class.get()
             data-slot="collapsible"
-            data-open=move || open.get().then_some("true")
-            data-closed=move || (!open.get()).then_some("true")
-            data-disabled=disabled.then_some("true")
+            data-state=move || state.get().state_attr
+            data-open=move || state.get().is_open.then_some("true")
+            data-closed=move || state.get().is_closed.then_some("true")
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-open-mode=move || state.get().open_mode_attr
+            data-label-source=move || state.get().label_source_attr
+            data-class-source=move || state.get().class_source_attr
+            data-motion-source=move || state.get().motion_source_attr
+            data-custom-motion=move || state.get().has_custom_motion.then_some("true")
+            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
         >
             <button
                 type="button"
@@ -77,6 +104,11 @@ pub fn Collapsible(
                 class:ui-disclosure__trigger--focus-visible=move || focus_ring.is_focus_visible.get()
                 id=trigger_id.clone()
                 data-slot="collapsible-trigger"
+                data-state=move || state.get().state_attr
+                data-open-mode=move || state.get().open_mode_attr
+                data-label-source=move || state.get().label_source_attr
+                data-motion-source=move || state.get().motion_source_attr
+                data-custom-motion=move || state.get().has_custom_motion.then_some("true")
                 aria-label=aria_label
                 aria-expanded=move || if open.get() { "true" } else { "false" }
                 aria-controls=panel_id.clone()
@@ -114,7 +146,7 @@ pub fn Collapsible(
                 }
             >
                 <span class="ui-disclosure__label ui-collapsible__label" data-slot="collapsible-label">
-                    {title.clone()}
+                    {title.get_value()}
                 </span>
                 <span
                     node_ref=indicator_ref
@@ -135,6 +167,10 @@ pub fn Collapsible(
                 hidden=move || panel_hidden.get()
                 data-open=move || if open.get() { Some("true") } else { None }
                 data-closed=move || (!open.get()).then_some("true")
+                data-state=move || state.get().state_attr
+                data-open-mode=move || state.get().open_mode_attr
+                data-motion-source=move || state.get().motion_source_attr
+                data-custom-motion=move || state.get().has_custom_motion.then_some("true")
                 data-slot="collapsible-panel"
             >
                 <div
