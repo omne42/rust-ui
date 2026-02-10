@@ -42,8 +42,24 @@ pub const CSS: &str = r#"
   visibility: hidden;
 }
 
+.ui-underlay[data-transparent-source="custom"],
+.ui-underlay[data-custom-transparent="true"] {
+  --ui-underlay-custom-transparent: 1;
+}
+
+.ui-underlay[data-disabled-source="custom"],
+.ui-underlay[data-custom-disabled="true"] {
+  --ui-underlay-custom-disabled: 1;
+}
+
+.ui-underlay[data-close-source="custom"],
+.ui-underlay[data-custom-close="true"] {
+  --ui-underlay-custom-close: 1;
+}
+
 .ui-underlay--custom-class,
-.ui-underlay[data-custom-class="true"] {
+.ui-underlay[data-custom-class="true"],
+.ui-underlay[data-class-source="custom"] {
   isolation: isolate;
 }
 "#;

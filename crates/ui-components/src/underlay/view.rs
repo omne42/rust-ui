@@ -1,7 +1,6 @@
-use crate::{OnPress, underlay::UnderlayStateInput};
+use crate::underlay::{UnderlayPartStateInput, UnderlaySlot};
+use crate::{OnPress, underlay::logic};
 use leptos::prelude::*;
-
-use crate::underlay::logic;
 
 #[component]
 pub fn Underlay(
@@ -19,12 +18,19 @@ pub fn Underlay(
     let on_close = StoredValue::new(on_close);
     let has_on_close = on_close.get_value().is_some();
 
+    let has_custom_transparent = transparent != logic::DEFAULT_TRANSPARENT;
+    let has_custom_disabled = disabled != logic::DEFAULT_DISABLED;
+
     let state = Memo::new(move |_| {
-        logic::resolve_state(UnderlayStateInput {
+        logic::resolve_state(UnderlayPartStateInput {
+            slot: UnderlaySlot::Root,
             open: open.get(),
             transparent,
             disabled,
             has_on_close,
+            has_custom_transparent,
+            has_custom_disabled,
+            has_custom_close_handler: has_on_close,
             has_custom_class_name,
         })
     });
@@ -50,16 +56,22 @@ pub fn Underlay(
             aria-hidden="true"
             tabindex=-1
             on:click=on_click
-            data-slot="underlay"
-            data-state=move || state.get().data_state_attr
-            data-open=move || state.get().is_open.then_some("true")
-            data-transparent=move || state.get().is_transparent.then_some("true")
-            data-disabled=move || state.get().is_disabled.then_some("true")
-            data-interactive=move || state.get().is_interactive.then_some("true")
+            data-slot=move || state.get().slot_attr
+            data-state=move || state.get().state_attr
+            data-open=move || state.get().open_attr
+            data-transparent=move || state.get().transparent_attr
+            data-disabled=move || state.get().disabled_attr
+            data-interactive=move || state.get().interactive_attr
             data-tone=move || state.get().tone_attr
             data-close-mode=move || state.get().close_mode_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
+            data-transparent-source=move || state.get().transparent_source_attr
+            data-disabled-source=move || state.get().disabled_source_attr
+            data-close-source=move || state.get().close_source_attr
             data-class-source=move || state.get().class_source_attr
+            data-custom-transparent=move || state.get().has_custom_transparent.then_some("true")
+            data-custom-disabled=move || state.get().has_custom_disabled.then_some("true")
+            data-custom-close=move || state.get().has_custom_close_handler.then_some("true")
+            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
         ></div>
     }
 }

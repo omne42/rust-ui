@@ -14,6 +14,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: upgrades `Toaster` to a full `logic/styles/view` slice with centralized slot/queue/position/portal/max-toasts/aria/class/motion/store source-state normalization, stable Spectrum-style root `data-*` contracts, and preserved HeroUI-level spring toast motion handoff through `Sonner`.
 - `apps/docs-app`: extends `Toaster` docs with a `State + Source Markers` playground to inspect `data-state`/`data-queue`/`data-position-source`/`data-portal-source`/`data-max-toasts-source`/`data-store-source`/`data-motion-source` contracts.
 
+- `ui-components`: upgrades `Underlay` to a full `logic/styles/view` slice with centralized slot/open/transparent/disabled/close/class source-state normalization, stable Spectrum-style root `data-*` contracts, and preserved close-interaction semantics.
+- `apps/docs-app`: extends `Underlay` docs with a `State + Source Markers` playground to inspect `data-state`/`data-tone`/`data-close-mode`/`data-transparent-source`/`data-disabled-source`/`data-close-source`/`data-class-source` contracts.
+
 - `ui-components`: upgrades `Tray` to a full `logic/styles/view` slice with centralized description/footer/close/size/dismiss/keyboard/id/title/class/motion/exit source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level spring motion behavior via `SheetMotion`.
 - `apps/docs-app`: extends `Tray` docs with a `State + Source Markers` playground to inspect `data-state`/`data-size-source`/`data-dismiss-source`/`data-keyboard-dismiss-source`/`data-motion-source`/`data-exit-source` contracts.
 

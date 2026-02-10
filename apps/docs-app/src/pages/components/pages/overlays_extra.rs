@@ -631,6 +631,12 @@ pub(super) fn underlay() -> AnyView {
     let open_transparent_underlay: OnPress =
         Callback::new(move |_| set_open_transparent_raw.set(true));
 
+    let (open_source_raw, set_open_source_raw) = signal(false);
+    let open_source: Signal<bool> = Signal::derive(move || open_source_raw.get());
+
+    let close_source: OnPress = Callback::new(move |_| set_open_source_raw.set(false));
+    let open_source_underlay: OnPress = Callback::new(move |_| set_open_source_raw.set(true));
+
     let code = r#"let (open, set_open) = signal(false);
 let open_signal: Signal<bool> = Signal::derive(move || open.get());
 
@@ -653,12 +659,26 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   disabled=true
 />"#;
 
+    let source_code = r#"<Underlay
+  id_base="docs-underlay-source".to_string()
+  open=open_signal
+  transparent=true
+  class_name="docs-underlay-source".to_string()
+  on_close=close
+/>
+<Underlay
+  id_base="docs-underlay-source-disabled".to_string()
+  open=Signal::derive(|| true)
+  disabled=true
+  class_name="docs-underlay-disabled-source".to_string()
+/>"#;
+
     view! {
         <ComponentPage
             title="Underlay"
             slug="underlay"
             group="Overlays"
-            description="Spectrum-compatible full-viewport underlay primitive with centralized open/transparent/disabled state derivation, close-interaction contracts, and stable slot/data-state markers."
+            description="Spectrum-compatible full-viewport underlay primitive with centralized open/transparent/disabled/close source-state derivation and stable slot/data-state markers."
         >
             <Playground title="Scrim + Click To Close" code=code>
                 <div class="docs-row">
@@ -705,6 +725,39 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                     disabled=true
                     class_name="docs-underlay-disabled".to_string()
                 />
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-tone`, `data-close-mode`, `data-transparent-source`, `data-disabled-source`, `data-close-source`, and `data-class-source` contracts."
+                code=source_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=open_source_underlay>"Open source underlay"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=close_source>
+                            "Close"
+                        </Button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-transparent-source / data-disabled-source / data-close-source / data-class-source in DevTools."
+                    </div>
+
+                    <Underlay
+                        id_base="docs-underlay-source".to_string()
+                        open=open_source
+                        transparent=true
+                        class_name="docs-underlay-source".to_string()
+                        on_close=close_source
+                    />
+
+                    <Underlay
+                        id_base="docs-underlay-source-disabled".to_string()
+                        open=Signal::derive(|| true)
+                        disabled=true
+                        class_name="docs-underlay-disabled-source".to_string()
+                    />
+                </div>
             </Playground>
         </ComponentPage>
     }
