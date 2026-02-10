@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Sheet` to a full `logic/styles/view` slice with centralized placement/dismiss/keyboard/aria/motion/exit source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level spring motion behavior.
+- `apps/docs-app`: extends `Sheet` docs with a `State + Source Markers` playground to inspect `data-state`/`data-placement-source`/`data-dismiss-source`/`data-keyboard-dismiss-source`/`data-motion-source`/`data-exit-source` contracts.
+
 - `ui-components`: upgrades `Modal` to a full `logic/styles/view` slice with centralized id/title/description/class/motion/exit source-state normalization, stable Spectrum-style wrapper `data-*` contracts, and preserved HeroUI-level overlay spring motion behavior.
 - `apps/docs-app`: extends `Modal` docs with a `State + Source Markers` playground to inspect `data-state`/`data-id-source`/`data-title-source`/`data-description-source`/`data-motion-source`/`data-exit-source` contracts.
 

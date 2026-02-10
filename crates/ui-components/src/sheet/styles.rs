@@ -6,8 +6,38 @@ pub const CSS: &str = r#"
 }
 
 .ui-sheet[data-motion-source="custom"],
-.ui-sheet[data-custom-motion="true"] {
+.ui-sheet[data-custom-motion="true"],
+.ui-sheet--custom-motion {
   --ui-sheet-custom-motion: 1;
+}
+
+.ui-sheet[data-placement-source="custom"],
+.ui-sheet--custom-placement {
+  --ui-sheet-placement-source: custom;
+}
+
+.ui-sheet[data-dismiss-source="custom"],
+.ui-sheet--custom-dismiss {
+  --ui-sheet-dismiss-source: custom;
+}
+
+.ui-sheet[data-keyboard-dismiss-source="custom"],
+.ui-sheet--custom-keyboard-dismiss {
+  --ui-sheet-keyboard-dismiss-source: custom;
+}
+
+.ui-sheet[data-aria-labelledby-source="custom"] {
+  --ui-sheet-aria-labelledby-source: custom;
+}
+
+.ui-sheet[data-aria-describedby-source="custom"] {
+  --ui-sheet-aria-describedby-source: custom;
+}
+
+.ui-sheet[data-exit-source="custom"],
+.ui-sheet[data-custom-exit="true"],
+.ui-sheet--custom-exit {
+  --ui-sheet-exit-source: custom;
 }
 
 .ui-sheet[data-state="open"],
@@ -32,6 +62,10 @@ pub const CSS: &str = r#"
   opacity: var(--ui-sheet-backdrop-opacity, 0);
 }
 
+.ui-sheet__backdrop[data-state="backdrop"] {
+  --ui-sheet-backdrop-state: 1;
+}
+
 .ui-sheet__panel {
   position: absolute;
   background: var(--ui-bg);
@@ -41,6 +75,10 @@ pub const CSS: &str = r#"
   opacity: var(--ui-sheet-panel-opacity, 0);
   transform: translate3d(var(--ui-sheet-panel-x, 0px), var(--ui-sheet-panel-y, 0px), 0);
   will-change: transform, opacity;
+}
+
+.ui-sheet__panel[data-state="panel"] {
+  --ui-sheet-panel-state: 1;
 }
 
 .ui-sheet--placement-bottom .ui-sheet__panel {

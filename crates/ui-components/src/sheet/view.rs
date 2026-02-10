@@ -1,4 +1,4 @@
-use crate::sheet::{SheetMotion, SheetPlacement, motion};
+use crate::sheet::{SheetMotion, SheetPartStateInput, SheetPlacement, SheetSlot, logic, motion};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use ui_headless::{
     FocusTrapOptions, ModalOptions, OnPress, use_focus_trap, use_modal,
@@ -13,8 +13,9 @@ pub fn Sheet(
     #[prop(optional)] placement: SheetPlacement,
     #[prop(optional)] aria_labelledby: Option<String>,
     #[prop(optional)] aria_describedby: Option<String>,
-    #[prop(optional, default = true)] is_dismissable: bool,
-    #[prop(optional)] is_keyboard_dismiss_disabled: bool,
+    #[prop(optional, default = logic::DEFAULT_DISMISSABLE)] is_dismissable: bool,
+    #[prop(optional, default = logic::DEFAULT_KEYBOARD_DISMISS_DISABLED)]
+    is_keyboard_dismiss_disabled: bool,
     #[prop(optional)] motion: SheetMotion,
     /// Called after the close animation finishes (useful for presence/unmount).
     #[prop(optional)]
@@ -22,6 +23,52 @@ pub fn Sheet(
 ) -> impl IntoView {
     let registration = use_overlay_stack_registration();
     use_modal(ModalOptions::enabled());
+
+    let aria_labelledby = logic::normalize_optional_text(aria_labelledby);
+    let aria_describedby = logic::normalize_optional_text(aria_describedby);
+    let has_custom_motion = motion != SheetMotion::default();
+
+    let root_state = logic::resolve_state(SheetPartStateInput {
+        slot: SheetSlot::Root,
+        open: open.get_untracked(),
+        placement,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_motion,
+        has_custom_aria_labelledby: aria_labelledby.is_some(),
+        has_custom_aria_describedby: aria_describedby.is_some(),
+        has_on_exit_complete: on_exit_complete.is_some(),
+    });
+    let root_class = logic::compose_class_name(root_state);
+    let root_class = StoredValue::new(root_class);
+
+    let backdrop_state = logic::resolve_state(SheetPartStateInput {
+        slot: SheetSlot::Backdrop,
+        open: false,
+        placement,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_motion,
+        has_custom_aria_labelledby: aria_labelledby.is_some(),
+        has_custom_aria_describedby: aria_describedby.is_some(),
+        has_on_exit_complete: on_exit_complete.is_some(),
+    });
+    let backdrop_class = logic::compose_class_name(backdrop_state);
+    let backdrop_class = StoredValue::new(backdrop_class);
+
+    let panel_state = logic::resolve_state(SheetPartStateInput {
+        slot: SheetSlot::Panel,
+        open: false,
+        placement,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_motion,
+        has_custom_aria_labelledby: aria_labelledby.is_some(),
+        has_custom_aria_describedby: aria_describedby.is_some(),
+        has_on_exit_complete: on_exit_complete.is_some(),
+    });
+    let panel_class = logic::compose_class_name(panel_state);
+    let panel_class = StoredValue::new(panel_class);
 
     let aria_labelledby: Signal<Option<String>> = aria_labelledby.into();
     let aria_describedby: Signal<Option<String>> = aria_describedby.into();
@@ -50,12 +97,13 @@ pub fn Sheet(
             #[cfg(not(target_arch = "wasm32"))]
             let default_prevented = false;
 
-            if key == "Escape"
-                && is_topmost.get()
-                && !is_composing
-                && !default_prevented
-                && !is_keyboard_dismiss_disabled
-            {
+            if logic::should_close_on_escape(
+                &key,
+                is_topmost.get(),
+                is_composing,
+                default_prevented,
+                is_keyboard_dismiss_disabled,
+            ) {
                 ev.stop_propagation();
                 ev.prevent_default();
                 on_close.run(());
@@ -63,32 +111,36 @@ pub fn Sheet(
         }
     };
 
-    let class = StoredValue::new(format!("ui-sheet {}", placement.class_name()));
-
     view! {
         <Portal>
             <div
-                class=move || class.get_value()
+                class=move || root_class.with_value(|class_name| class_name.clone())
                 data-ui-overlay-portal=""
-                data-slot="sheet"
-                data-state=move || if open.get() { "open" } else { "closed" }
+                data-slot=root_state.slot_attr
+                data-state=move || logic::state_attr_for_open(open.get())
                 data-open=move || open.get().then_some("true")
                 data-closed=move || (!open.get()).then_some("true")
-                data-placement=placement.data_attr()
+                data-placement=root_state.placement_attr
+                data-dismiss=root_state.dismiss_attr
+                data-keyboard-dismiss=root_state.keyboard_dismiss_attr
                 data-dismissable=is_dismissable.then_some("true")
                 data-keyboard-dismiss-disabled=is_keyboard_dismiss_disabled.then_some("true")
-                data-motion-source=if motion == SheetMotion::default() {
-                    "default"
-                } else {
-                    "custom"
-                }
-                data-custom-motion=(motion != SheetMotion::default()).then_some("true")
+                data-motion-source=root_state.motion_source_attr
+                data-placement-source=root_state.placement_source_attr
+                data-dismiss-source=root_state.dismiss_source_attr
+                data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr
+                data-aria-labelledby-source=root_state.aria_labelledby_source_attr
+                data-aria-describedby-source=root_state.aria_describedby_source_attr
+                data-exit-source=root_state.exit_source_attr
+                data-custom-motion=root_state.has_custom_motion.then_some("true")
+                data-custom-exit=root_state.has_on_exit_complete.then_some("true")
                 node_ref=root_ref
                 on:keydown=on_key_down
             >
                 <div
-                    class="ui-sheet__backdrop"
-                    data-slot="sheet-backdrop"
+                    class=move || backdrop_class.with_value(|class_name| class_name.clone())
+                    data-slot=backdrop_state.slot_attr
+                    data-state=backdrop_state.state_attr
                     on:click=move |_| {
                         if is_dismissable {
                             on_close.run(());
@@ -96,8 +148,11 @@ pub fn Sheet(
                     }
                 ></div>
                 <div
-                    class="ui-sheet__panel"
-                    data-slot="sheet-panel"
+                    class=move || panel_class.with_value(|class_name| class_name.clone())
+                    data-slot=panel_state.slot_attr
+                    data-state=panel_state.state_attr
+                    data-dismiss=panel_state.dismiss_attr
+                    data-keyboard-dismiss=panel_state.keyboard_dismiss_attr
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby=move || aria_labelledby.get()
