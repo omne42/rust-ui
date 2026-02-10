@@ -39,6 +39,8 @@ fn button_emits_spectrum_style_data_attributes() {
         "data-pressed",
         "data-loading",
         "data-loading-placement",
+        "data-motion-source=if motion == ButtonMotion::default()",
+        "data-custom-motion=(motion != ButtonMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(attr),
@@ -112,6 +114,21 @@ fn button_spinner_respects_reduced_motion() {
         assert!(
             styles.contains(needle),
             "Button spinner should disable its CSS animation under reduced-motion via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_styles_include_motion_marker_contracts() {
+    let source = load_source("src/button/styles.rs");
+
+    for selector in [
+        ".ui-button[data-motion-source=\"custom\"]",
+        ".ui-button[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Button styles should include `{selector}` as stable custom-motion selectors."
         );
     }
 }

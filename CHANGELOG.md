@@ -15,6 +15,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: upgrades `ShareButton` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `ShareButtonMotion` contract tests for HeroUI-level spring flip tuning.
 - `ui-components`: upgrades `ThemeToggleButton` icon motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level theme-toggle micro-interaction tuning.
 - `ui-components`: upgrades `Accordion` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level spring disclosure tuning.
+- `ui-components`: upgrades `Button` root motion markers (`data-motion-source`/`data-custom-motion`) with stable custom-motion style selectors for HeroUI-level press/hover spring tuning.
 - `ui-components`: upgrades `AutoHeight` with explicit root motion source markers (`data-motion-source`/`data-custom-motion`) and `AutoHeightMotion` contract tests for HeroUI-level spring height interpolation tuning.
 - `ui-components`: upgrades `AlertBanner` with explicit root motion markers (`data-motion-source`/`data-custom-motion`), stable custom-motion style selectors, and `AlertBannerMotion` contract tests for HeroUI-level spring reveal tuning.
 - `apps/docs-app`: extends `AlertBanner` docs with a custom-motion playground showing `AlertBannerMotion` customization and motion marker inspection.

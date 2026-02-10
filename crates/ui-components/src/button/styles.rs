@@ -21,6 +21,11 @@ pub const CSS: &str = r#"
   will-change: transform;
 }
 
+.ui-button[data-motion-source="custom"],
+.ui-button[data-custom-motion="true"] {
+  --ui-button-custom-motion: 1;
+}
+
 .ui-button__spinner {
   width: 16px;
   height: 16px;

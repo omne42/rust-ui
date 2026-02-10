@@ -70,6 +70,12 @@ pub fn Button(
             data-pressed=move || if aria.is_pressed.get() { Some("true") } else { None }
             data-loading=state.is_loading.then_some("true")
             data-loading-placement=loading_placement.as_attr()
+            data-motion-source=if motion == ButtonMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ButtonMotion::default()).then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled
