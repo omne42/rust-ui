@@ -45,6 +45,8 @@ fn contextual_help_uses_logic_state_model() {
         "logic::resolve_id(id, format!(\"ui-contextual-help-{}\", next_id()))",
         "logic::resolve_state(ContextualHelpStateInput {",
         "logic::compose_class_name(class_name, state)",
+        "motion: ContextualHelpMotion",
+        "motion=motion.popover",
     ] {
         assert!(
             view_source.contains(needle),
@@ -84,6 +86,8 @@ fn contextual_help_emits_spectrum_style_state_data_attributes() {
         "data-label-source=state.label_source_attr",
         "data-id-source=state.id_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=if motion == ContextualHelpMotion::default()",
+        "data-custom-motion=(motion != ContextualHelpMotion::default()).then_some(\"true\")",
         "data-slot=\"contextual-help-panel\"",
         "data-slot=\"contextual-help-content\"",
     ] {
@@ -125,10 +129,30 @@ fn contextual_help_styles_include_state_marker_contracts() {
         ".ui-contextual-help[data-heading=\"absent\"]",
         ".ui-contextual-help[data-footer=\"present\"]",
         ".ui-contextual-help--custom-class",
+        ".ui-contextual-help[data-motion-source=\"custom\"]",
+        ".ui-contextual-help[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(selector),
             "ContextualHelp styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn contextual_help_exposes_motion_contract_and_internal_module() {
+    let mod_source = load_source("src/contextual_help/mod.rs");
+    let motion_source = load_source("src/contextual_help/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::ContextualHelpMotion;",
+        "pub struct ContextualHelpMotion",
+        "pub popover: crate::popover::PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "ContextualHelp motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

@@ -100,6 +100,12 @@ pub fn ContextualHelp(
             data-id-source=state.id_source_attr
             data-disabled=state.is_disabled.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-motion-source=if motion == ContextualHelpMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ContextualHelpMotion::default()).then_some("true")
         >
             <Button
                 node_ref=anchor_ref

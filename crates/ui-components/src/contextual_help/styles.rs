@@ -4,6 +4,11 @@ pub const CSS: &str = r#"
   align-items: center;
 }
 
+.ui-contextual-help[data-motion-source="custom"],
+.ui-contextual-help[data-custom-motion="true"] {
+  --ui-contextual-help-custom-motion: 1;
+}
+
 .ui-contextual-help--enabled,
 .ui-contextual-help[data-state="enabled"] {
   opacity: 1;
