@@ -1,15 +1,8 @@
-pub const DEFAULT_ARIA_LABEL: &str = "Notifications";
+use crate::sonner::{SonnerPartState, SonnerPartStateInput, SonnerPosition, SonnerSlot};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum SonnerPosition {
-    TopLeft,
-    TopCenter,
-    TopRight,
-    BottomLeft,
-    BottomCenter,
-    #[default]
-    BottomRight,
-}
+pub const DEFAULT_ARIA_LABEL: &str = "Notifications";
+pub const DEFAULT_PORTAL: bool = true;
+pub const DEFAULT_MAX_TOASTS: usize = 3;
 
 impl SonnerPosition {
     pub fn as_attr(self) -> &'static str {
@@ -26,28 +19,6 @@ impl SonnerPosition {
     pub fn class_suffix(self) -> &'static str {
         self.as_attr()
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SonnerStateInput {
-    pub position: SonnerPosition,
-    pub portal: bool,
-    pub max_toasts: usize,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SonnerState {
-    pub position: SonnerPosition,
-    pub position_attr: &'static str,
-    pub portal: bool,
-    pub portal_attr: &'static str,
-    pub max_toasts: usize,
-    pub has_custom_aria_label: bool,
-    pub aria_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-    pub class_source_attr: &'static str,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -69,52 +40,208 @@ pub fn normalize_max_toasts(max_toasts: usize) -> usize {
     max_toasts.max(1)
 }
 
-pub fn resolve_state(input: SonnerStateInput) -> SonnerState {
-    SonnerState {
+fn source_attr(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+pub fn state_attr(portal: bool) -> &'static str {
+    if portal { "portal" } else { "inline" }
+}
+
+pub fn queue_attr(max_toasts: usize) -> &'static str {
+    if max_toasts <= 1 {
+        "single"
+    } else if max_toasts <= 3 {
+        "bounded"
+    } else {
+        "extended"
+    }
+}
+
+pub fn resolve_state(input: SonnerPartStateInput) -> SonnerPartState {
+    let normalized_max_toasts = normalize_max_toasts(input.max_toasts);
+
+    SonnerPartState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: state_attr(input.portal),
+        queue_attr: queue_attr(normalized_max_toasts),
         position: input.position,
         position_attr: input.position.as_attr(),
         portal: input.portal,
         portal_attr: if input.portal { "true" } else { "false" },
-        max_toasts: normalize_max_toasts(input.max_toasts),
+        max_toasts: normalized_max_toasts,
+        has_custom_position: input.has_custom_position,
+        has_custom_portal: input.has_custom_portal,
+        has_custom_max_toasts: input.has_custom_max_toasts,
         has_custom_aria_label: input.has_custom_aria_label,
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
         has_custom_class_name: input.has_custom_class_name,
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
+        has_custom_motion: input.has_custom_motion,
+        position_source_attr: source_attr(input.has_custom_position),
+        portal_source_attr: source_attr(input.has_custom_portal),
+        max_toasts_source_attr: source_attr(input.has_custom_max_toasts),
+        aria_source_attr: source_attr(input.has_custom_aria_label),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        motion_source_attr: source_attr(input.has_custom_motion),
+        store_source: input.store_source,
+        store_source_attr: input.store_source.as_attr(),
     }
 }
 
-pub fn compose_root_class_name(base_class_name: Option<String>, state: &SonnerState) -> String {
+pub fn compose_class_name(base_class_name: Option<String>, state: SonnerPartState) -> String {
     let mut classes = vec![
-        "ui-sonner".to_string(),
-        format!("ui-sonner--{}", state.position.class_suffix()),
-        if state.portal {
-            "ui-sonner--portal".to_string()
-        } else {
-            "ui-sonner--inline".to_string()
-        },
+        state.base_class.to_string(),
+        format!("{}--{}", state.base_class, state.position.class_suffix()),
     ];
 
-    if state.has_custom_class_name {
-        classes.push("ui-sonner--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
+    if state.portal {
+        classes.push(format!("{}--portal", state.base_class));
+    } else {
+        classes.push(format!("{}--inline", state.base_class));
+    }
+
+    if state.slot == SonnerSlot::Root {
+        if state.has_custom_class_name {
+            classes.push("ui-sonner--custom-class".to_string());
+            if let Some(base_class_name) = base_class_name {
+                classes.push(base_class_name);
+            }
+        }
+
+        if state.has_custom_position {
+            classes.push("ui-sonner--custom-position".to_string());
+        }
+
+        if state.has_custom_portal {
+            classes.push("ui-sonner--custom-portal".to_string());
+        }
+
+        if state.has_custom_max_toasts {
+            classes.push("ui-sonner--custom-max-toasts".to_string());
+        }
+
+        if state.has_custom_motion {
+            classes.push("ui-sonner--custom-motion".to_string());
         }
     }
 
     classes.join(" ")
 }
 
-pub fn compose_viewport_class_name(position: SonnerPosition) -> String {
-    format!(
-        "ui-sonner__viewport ui-sonner__viewport--{}",
-        position.class_suffix()
-    )
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::sonner::SonnerStoreSource;
+
+    #[test]
+    fn normalize_helpers_trim_and_guard_limits() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some(" ".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some(" docs-sonner ".to_string())),
+            Some("docs-sonner".to_string())
+        );
+
+        assert_eq!(
+            normalize_aria_label(None),
+            (DEFAULT_ARIA_LABEL.to_string(), false)
+        );
+        assert_eq!(
+            normalize_aria_label(Some(" Status host ".to_string())),
+            ("Status host".to_string(), true)
+        );
+
+        assert_eq!(normalize_max_toasts(0), 1);
+        assert_eq!(normalize_max_toasts(2), 2);
+    }
+
+    #[test]
+    fn queue_and_state_markers_follow_contract() {
+        assert_eq!(state_attr(true), "portal");
+        assert_eq!(state_attr(false), "inline");
+
+        assert_eq!(queue_attr(1), "single");
+        assert_eq!(queue_attr(3), "bounded");
+        assert_eq!(queue_attr(6), "extended");
+    }
+
+    #[test]
+    fn resolve_state_tracks_state_sources_and_store_origin() {
+        let state = resolve_state(SonnerPartStateInput {
+            slot: SonnerSlot::Root,
+            position: SonnerPosition::TopCenter,
+            portal: false,
+            max_toasts: 0,
+            has_custom_position: true,
+            has_custom_portal: true,
+            has_custom_max_toasts: true,
+            has_custom_aria_label: true,
+            has_custom_class_name: true,
+            has_custom_motion: true,
+            store_source: SonnerStoreSource::Provided,
+        });
+
+        assert_eq!(state.slot_attr, "sonner");
+        assert_eq!(state.base_class, "ui-sonner");
+        assert_eq!(state.position_attr, "top-center");
+        assert_eq!(state.state_attr, "inline");
+        assert_eq!(state.portal_attr, "false");
+        assert_eq!(state.max_toasts, 1);
+        assert_eq!(state.queue_attr, "single");
+        assert_eq!(state.position_source_attr, "custom");
+        assert_eq!(state.portal_source_attr, "custom");
+        assert_eq!(state.max_toasts_source_attr, "custom");
+        assert_eq!(state.aria_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
+        assert_eq!(state.motion_source_attr, "custom");
+        assert_eq!(state.store_source_attr, "provided");
+    }
+
+    #[test]
+    fn compose_class_name_includes_custom_markers() {
+        let root_state = resolve_state(SonnerPartStateInput {
+            slot: SonnerSlot::Root,
+            position: SonnerPosition::BottomLeft,
+            portal: true,
+            max_toasts: 5,
+            has_custom_position: true,
+            has_custom_portal: false,
+            has_custom_max_toasts: true,
+            has_custom_aria_label: false,
+            has_custom_class_name: true,
+            has_custom_motion: true,
+            store_source: SonnerStoreSource::Local,
+        });
+
+        let class_name = compose_class_name(Some("docs-sonner".to_string()), root_state);
+        assert!(class_name.contains("ui-sonner"));
+        assert!(class_name.contains("ui-sonner--bottom-left"));
+        assert!(class_name.contains("ui-sonner--portal"));
+        assert!(class_name.contains("ui-sonner--custom-position"));
+        assert!(class_name.contains("ui-sonner--custom-max-toasts"));
+        assert!(class_name.contains("ui-sonner--custom-motion"));
+        assert!(class_name.contains("ui-sonner--custom-class"));
+        assert!(class_name.contains("docs-sonner"));
+
+        let viewport_state = resolve_state(SonnerPartStateInput {
+            slot: SonnerSlot::Viewport,
+            position: SonnerPosition::TopRight,
+            portal: false,
+            max_toasts: 2,
+            has_custom_position: false,
+            has_custom_portal: false,
+            has_custom_max_toasts: false,
+            has_custom_aria_label: false,
+            has_custom_class_name: false,
+            has_custom_motion: false,
+            store_source: SonnerStoreSource::Context,
+        });
+
+        let viewport_class = compose_class_name(None, viewport_state);
+        assert_eq!(
+            viewport_class,
+            "ui-sonner__viewport ui-sonner__viewport--top-right ui-sonner__viewport--inline"
+        );
+    }
 }

@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     BottomSheet, BottomSheetMotion, Button, ButtonVariant, OnPress, Sonner, SonnerPosition,
-    ToastOptions, ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion,
-    Underlay, provide_toast_store,
+    ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray,
+    TrayMotion, Underlay, provide_toast_store,
 };
 
 pub(super) fn bottom_sheet() -> AnyView {
@@ -345,6 +345,7 @@ pub(super) fn tray() -> AnyView {
 pub(super) fn sonner() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
+    let source_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
 
     let push_saved: OnPress = Callback::new(move |_| {
         portal_store.get_value().push_simple("Saved");
@@ -368,6 +369,16 @@ pub(super) fn sonner() -> AnyView {
     });
     let clear_inline: OnPress = Callback::new(move |_| inline_store.get_value().clear.run(()));
 
+    let push_source: OnPress = Callback::new(move |_| {
+        source_store.get_value().push.run(ToastOptions {
+            title: "Migration complete".to_string(),
+            description: Some("Source markers are stable.".to_string()),
+            variant: ToastVariant::Default,
+            duration_ms: Some(5500),
+        });
+    });
+    let clear_source: OnPress = Callback::new(move |_| source_store.get_value().clear.run(()));
+
     let basic_code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
 <Sonner store=store.clone() />
 store.push_simple("Saved");"#;
@@ -380,12 +391,32 @@ store.push_simple("Saved");"#;
   class_name="docs-sonner-inline".to_string()
 />"#;
 
+    let source_code = r#"<Sonner
+  store=store.clone()
+  portal=false
+  position=SonnerPosition::TopLeft
+  max_toasts=4
+  aria_label="Status updates".to_string()
+  class_name="docs-sonner-source".to_string()
+  motion=ToastMotion {
+    initial_y_px: 22.0,
+    initial_scale: 0.94,
+    ..ToastMotion::default()
+  }
+/>"#;
+
+    let custom_motion = ToastMotion {
+        initial_y_px: 22.0,
+        initial_scale: 0.94,
+        ..ToastMotion::default()
+    };
+
     view! {
         <ComponentPage
             title="Sonner"
             slug="sonner"
             group="Overlays"
-            description="Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner state data contracts."
+            description="Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts."
         >
             <Playground title="Portal Queue + Variants" code=basic_code>
                 <div class="docs-row">
@@ -413,6 +444,33 @@ store.push_simple("Saved");"#;
                         position=SonnerPosition::TopCenter
                         max_toasts=2
                         class_name="docs-sonner-inline".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
+                code=source_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <Button on_press=push_source>"Push marker toast"</Button>
+                        <Button variant=ButtonVariant::Secondary on_press=clear_source>
+                            "Clear"
+                        </Button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools."
+                    </div>
+                    <Sonner
+                        store=source_store.get_value()
+                        portal=false
+                        position=SonnerPosition::TopLeft
+                        max_toasts=4
+                        aria_label="Status updates".to_string()
+                        class_name="docs-sonner-source".to_string()
+                        motion=custom_motion
                     />
                 </div>
             </Playground>

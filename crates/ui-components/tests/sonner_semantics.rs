@@ -29,59 +29,109 @@ fn sonner_is_publicly_exported_from_module_and_crate_root() {
         "sonner::mod should re-export Sonner."
     );
     assert!(
+        sonner_mod.contains("DEFAULT_PORTAL") && sonner_mod.contains("DEFAULT_MAX_TOASTS"),
+        "sonner::mod should expose default portal/max-toasts contracts."
+    );
+    assert!(
         crate_root.contains("pub use sonner::{Sonner, SonnerPosition};"),
         "crate root should expose Sonner and SonnerPosition."
     );
 }
 
 #[test]
-fn sonner_exposes_spectrum_style_state_and_accessibility_contracts() {
-    let source = load_source("src/sonner/view.rs");
+fn sonner_module_exposes_slot_and_part_state_contracts() {
+    let source = load_source("src/sonner/mod.rs");
 
     for needle in [
-        "data-slot=\"sonner\"",
-        "data-position=state.position_attr",
-        "data-portal=state.portal_attr",
-        "data-max-toasts=state.max_toasts.to_string()",
-        "data-aria-source=state.aria_source_attr",
-        "data-class-source=state.class_source_attr",
-        "data-motion-source=motion_source",
-        "data-custom-motion=custom_motion",
-        "role=\"region\"",
-        "aria-label=aria_label",
+        "pub enum SonnerSlot",
+        "pub enum SonnerStoreSource",
+        "pub struct SonnerPartStateInput",
+        "pub struct SonnerPartState",
+        "pub fn as_attr(self) -> &'static str",
+        "pub fn base_class(self) -> &'static str",
     ] {
         assert!(
             source.contains(needle),
-            "Sonner should include `{needle}` for state/a11y contracts."
+            "Sonner module should include `{needle}` for stable slot/part-state contracts."
         );
     }
 }
 
 #[test]
-fn sonner_styles_include_motion_marker_contracts() {
-    let source = load_source("src/sonner/styles.rs");
+fn sonner_view_uses_logic_state_contracts() {
+    let source = load_source("src/sonner/view.rs");
 
-    for selector in [
-        ".ui-sonner[data-motion-source=\"custom\"]",
-        ".ui-sonner[data-custom-motion=\"true\"]",
+    for needle in [
+        "logic::normalize_optional_text(class_name)",
+        "logic::normalize_aria_label(aria_label)",
+        "logic::normalize_max_toasts(max_toasts)",
+        "logic::resolve_state(SonnerPartStateInput {",
+        "slot: SonnerSlot::Root",
+        "slot: SonnerSlot::Viewport",
+        "logic::compose_class_name(class_name.get_value(), root_state)",
+        "logic::compose_class_name(None, viewport_state)",
+        "data-slot=root_state.slot_attr",
+        "data-state=root_state.state_attr",
+        "data-queue=root_state.queue_attr",
+        "data-position=root_state.position_attr",
+        "data-portal=root_state.portal_attr",
+        "data-position-source=root_state.position_source_attr",
+        "data-portal-source=root_state.portal_source_attr",
+        "data-max-toasts-source=root_state.max_toasts_source_attr",
+        "data-aria-source=root_state.aria_source_attr",
+        "data-class-source=root_state.class_source_attr",
+        "data-motion-source=root_state.motion_source_attr",
+        "data-store-source=root_state.store_source_attr",
+        "data-custom-position=root_state.has_custom_position.then_some(\"true\")",
+        "data-custom-portal=root_state.has_custom_portal.then_some(\"true\")",
+        "data-custom-max-toasts=root_state.has_custom_max_toasts.then_some(\"true\")",
+        "data-custom-motion=root_state.has_custom_motion.then_some(\"true\")",
+        "data-custom-class=root_state.has_custom_class_name.then_some(\"true\")",
+        "data-viewport-slot=viewport_state.slot_attr",
+        "data-viewport-state=viewport_state.state_attr",
+        "data-viewport-position=viewport_state.position_attr",
+        "data-viewport-portal=viewport_state.portal_attr",
+        "data-viewport-queue=viewport_state.queue_attr",
+        "aria-label=aria_label.get_value()",
     ] {
         assert!(
-            source.contains(selector),
-            "Sonner styles should include `{selector}` as stable custom-motion selectors."
+            source.contains(needle),
+            "Sonner view should include `{needle}` for stable marker contracts."
         );
     }
 }
 
 #[test]
-fn sonner_composes_toast_viewport_and_forwards_store_position_classes() {
+fn sonner_view_tracks_store_source_resolution() {
+    let source = load_source("src/sonner/view.rs");
+
+    for needle in [
+        "if let Some(provided_store) = store",
+        "SonnerStoreSource::Provided",
+        "crate::toast::use_toast_store()",
+        "SonnerStoreSource::Context",
+        "crate::toast::provide_toast_store(ToastStoreOptions {",
+        "SonnerStoreSource::Local",
+        "max_toasts: normalized_max_toasts",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Sonner view should include `{needle}` for stable store-source derivation."
+        );
+    }
+}
+
+#[test]
+fn sonner_composes_toast_viewport_and_forwards_stateful_props() {
     let source = load_source("src/sonner/view.rs");
 
     for needle in [
         "<ToastViewport",
         "store=store",
         "class_name=viewport_class_name",
-        "max_toasts=state.max_toasts",
-        "portal=state.portal",
+        "max_toasts=viewport_state.max_toasts",
+        "portal=viewport_state.portal",
+        "motion=motion",
     ] {
         assert!(
             source.contains(needle),
@@ -91,24 +141,85 @@ fn sonner_composes_toast_viewport_and_forwards_store_position_classes() {
 }
 
 #[test]
-fn sonner_logic_models_positions_and_normalization() {
+fn sonner_logic_models_positions_queue_and_part_state() {
     let source = load_source("src/sonner/logic.rs");
 
     for needle in [
-        "pub enum SonnerPosition",
-        "TopLeft",
-        "TopCenter",
-        "TopRight",
-        "BottomLeft",
-        "BottomCenter",
-        "BottomRight",
+        "pub const DEFAULT_ARIA_LABEL: &str = \"Notifications\";",
+        "pub const DEFAULT_PORTAL: bool = true;",
+        "pub const DEFAULT_MAX_TOASTS: usize = 3;",
         "pub fn normalize_aria_label(value: Option<String>) -> (String, bool)",
         "pub fn normalize_max_toasts(max_toasts: usize) -> usize",
-        "pub fn compose_viewport_class_name(position: SonnerPosition) -> String",
+        "pub fn state_attr(portal: bool) -> &'static str",
+        "pub fn queue_attr(max_toasts: usize) -> &'static str",
+        "pub fn resolve_state(input: SonnerPartStateInput) -> SonnerPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: SonnerPartState)",
+        "pub fn as_attr(self) -> &'static str",
+        "pub fn class_suffix(self) -> &'static str",
     ] {
         assert!(
             source.contains(needle),
-            "Sonner logic should include `{needle}` for stable contracts."
+            "Sonner logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn sonner_styles_include_state_and_source_marker_contracts() {
+    let source = load_source("src/sonner/styles.rs");
+
+    for selector in [
+        ".ui-sonner[data-motion-source=\"custom\"]",
+        ".ui-sonner[data-custom-motion=\"true\"]",
+        ".ui-sonner[data-position-source=\"custom\"]",
+        ".ui-sonner[data-custom-position=\"true\"]",
+        ".ui-sonner[data-portal-source=\"custom\"]",
+        ".ui-sonner[data-custom-portal=\"true\"]",
+        ".ui-sonner[data-max-toasts-source=\"custom\"]",
+        ".ui-sonner[data-custom-max-toasts=\"true\"]",
+        ".ui-sonner[data-store-source=\"provided\"]",
+        ".ui-sonner[data-store-source=\"context\"]",
+        ".ui-sonner[data-store-source=\"local\"]",
+        ".ui-sonner[data-state=\"inline\"]",
+        ".ui-sonner[data-queue=\"single\"] .ui-sonner__viewport.ui-toast-viewport",
+        ".ui-sonner[data-queue=\"bounded\"] .ui-sonner__viewport.ui-toast-viewport",
+        ".ui-sonner__viewport--inline.ui-toast-viewport",
+        ".ui-sonner__viewport--top-center.ui-toast-viewport",
+        ".ui-sonner__viewport--bottom-right.ui-toast-viewport",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Sonner styles should include `{selector}` as stable state/source selectors."
+        );
+    }
+}
+
+#[test]
+fn sonner_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "pub(super) fn sonner() -> AnyView",
+        "title=\"Sonner\"",
+        "slug=\"sonner\"",
+        "State + Source Markers",
+        "data-position-source",
+        "data-store-source",
+        "<Sonner",
+    ] {
+        assert!(
+            source.contains(needle),
+            "sonner docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn sonner_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::sonner::styles::CSS);"),
+        "ui-components css aggregator should include sonner styles."
+    );
 }
