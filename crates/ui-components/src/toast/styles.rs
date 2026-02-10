@@ -29,6 +29,11 @@ pub const CSS: &str = r#"
   will-change: transform, opacity;
 }
 
+.ui-toast[data-motion-source="custom"],
+.ui-toast[data-custom-motion="true"] {
+  --ui-toast-custom-motion: 1;
+}
+
 .ui-toast--open,
 .ui-toast[data-state="open"] {
   --ui-toast-open: 1;

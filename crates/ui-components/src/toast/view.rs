@@ -42,6 +42,13 @@ pub fn Toast(
 
     let state_attr = Signal::derive(move || if open.get() { "open" } else { "closing" });
 
+    let motion_source = if motion == ToastMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ToastMotion::default()).then_some("true");
+
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     motion::attach_motion(root_ref, open, on_exit_complete, motion);
 
@@ -60,6 +67,8 @@ pub fn Toast(
             data-variant=variant.class_name()
             data-description=if has_description { "present" } else { "absent" }
             data-open=move || open.get().then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             data-custom-class=has_custom_class_name.then_some("true")
             node_ref=root_ref
             role="status"

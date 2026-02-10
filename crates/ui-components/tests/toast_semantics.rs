@@ -70,12 +70,29 @@ fn toast_has_state_and_description_data_contracts() {
     for needle in [
         "data-state=",
         "data-description=if has_description { \"present\" } else { \"absent\" }",
-        "data-custom-class=has_custom_class_name.then_some(\"true\")",
         "data-open=move || open.get().then_some(\"true\")",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
+        "data-custom-class=has_custom_class_name.then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
             "Toast should expose `{needle}` for styling/state contracts."
+        );
+    }
+}
+
+#[test]
+fn toast_styles_include_motion_marker_contracts() {
+    let source = load_source("src/toast/styles.rs");
+
+    for selector in [
+        ".ui-toast[data-motion-source=\"custom\"]",
+        ".ui-toast[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Toast styles should include `{selector}` as stable custom-motion selectors."
         );
     }
 }
