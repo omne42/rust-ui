@@ -62,6 +62,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::swatch::styles::CSS);
     out.push_str(crate::icon::styles::CSS);
     out.push_str(crate::iconset::styles::CSS);
+    out.push_str(crate::icons::styles::CSS);
     out.push_str(crate::tag::styles::CSS);
     out.push_str(crate::asset::styles::CSS);
     out.push_str(crate::image::styles::CSS);

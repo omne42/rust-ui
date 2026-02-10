@@ -17,6 +17,17 @@ pub(super) fn icons() -> AnyView {
   class_name="docs-icons-custom".to_string()
 />"#;
 
+    let markers_code = r#"<Icons
+  name="check".to_string()
+  set=IconsSet::Workflow
+  scale=IconsScale::Large
+  tone=IconsTone::Muted
+  glyphs=vec![IconsGlyph::new("workflow:check", "✓").with_aria_label("Workflow Check")]
+  decorative=false
+  aria_label="Explicit icon label".to_string()
+  class_name="docs-icons-state".to_string()
+/>"#;
+
     view! {
         <ComponentPage
             title="Icons"
@@ -49,9 +60,34 @@ pub(super) fn icons() -> AnyView {
                         set=IconsSet::Workflow
                         scale=IconsScale::Large
                         tone=IconsTone::Default
-                        glyphs=vec![IconsGlyph::new("workflow:deploy", "🚀").with_aria_label("Workflow Deploy")]
+                        glyphs=vec![
+                            IconsGlyph::new("workflow:deploy", "🚀")
+                                .with_aria_label("Workflow Deploy"),
+                        ]
                         decorative=false
                         class_name="docs-icons-custom".to_string()
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect wrapper markers like `data-state`, `data-set`, `data-scale`, `data-set-source`, `data-aria-source`, `data-class-source`, `data-glyph-source`, and `data-tone-source`."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <Icons
+                        name="check".to_string()
+                        set=IconsSet::Workflow
+                        scale=IconsScale::Large
+                        tone=IconsTone::Muted
+                        glyphs=vec![
+                            IconsGlyph::new("workflow:check", "✓")
+                                .with_aria_label("Workflow Check"),
+                        ]
+                        decorative=false
+                        aria_label="Explicit icon label".to_string()
+                        class_name="docs-icons-state".to_string()
                     />
                 </div>
             </Playground>

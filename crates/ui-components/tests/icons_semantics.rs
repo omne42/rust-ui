@@ -8,13 +8,15 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn icons_does_not_expose_view_module() {
+fn icons_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/icons/mod.rs");
 
-    assert!(
-        !source.contains("pub mod view"),
-        "Icons internals should stay private; found `pub mod view`."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Icons internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -23,8 +25,16 @@ fn icons_is_exported_from_module_and_crate_root() {
     let crate_source = load_source("src/lib.rs");
 
     assert!(
-        module_source.contains("pub use view::{Icons, IconsScale, IconsSet};"),
-        "icons module should export `Icons`, `IconsScale`, and `IconsSet`."
+        module_source.contains("pub use view::Icons;"),
+        "icons module should export `Icons`."
+    );
+    assert!(
+        module_source.contains("pub enum IconsSet"),
+        "icons module should expose `IconsSet` enum contract."
+    );
+    assert!(
+        module_source.contains("pub enum IconsScale"),
+        "icons module should expose `IconsScale` enum contract."
     );
     assert!(
         crate_source
@@ -34,26 +44,94 @@ fn icons_is_exported_from_module_and_crate_root() {
 }
 
 #[test]
-fn icons_wraps_icons_ui_and_icons_workflow_contracts() {
-    let source = load_source("src/icons/view.rs");
+fn icons_logic_exposes_state_helpers() {
+    let source = load_source("src/icons/logic.rs");
 
     for needle in [
-        "pub fn Icons(",
-        "enum IconsSet",
-        "enum IconsScale",
-        "<IconsUi",
-        "<IconsWorkflow",
-        "data-slot=\"icons\"",
+        "pub fn normalize_optional_text(",
+        "pub fn parse_set_from_name(name: &str)",
+        "pub fn resolve_set(name: &str, set: IconsSet)",
+        "pub fn normalize_name(name: String, set: IconsSet)",
+        "pub fn resolve_state(input: IconsStateInput)",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: IconsState)",
     ] {
         assert!(
             source.contains(needle),
-            "Icons wrapper should preserve nested icon contract marker `{needle}`."
+            "Icons logic should include `{needle}` for centralized source/state contracts."
         );
     }
 }
 
 #[test]
-fn icons_docs_page_exists() {
+fn icons_view_uses_logic_state_contracts() {
+    let source = load_source("src/icons/view.rs");
+
+    for needle in [
+        "pub fn Icons(",
+        "logic::resolve_set(&name, set)",
+        "logic::normalize_name(name, resolved_set)",
+        "logic::normalize_optional_text(aria_label)",
+        "logic::resolve_state(IconsStateInput {",
+        "logic::compose_class_name(class_name_for_wrapper, state)",
+        "<IconsUi",
+        "<IconsWorkflow",
+        "data-slot=\"icons\"",
+        "data-state=state.state_attr",
+        "data-set=state.set_attr",
+        "data-scale=state.scale_attr",
+        "data-set-source=state.set_source_attr",
+        "data-aria-source=state.aria_source_attr",
+        "data-class-source=state.class_source_attr",
+        "data-glyph-source=state.glyph_source_attr",
+        "data-tone-source=state.tone_source_attr",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Icons view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn icons_styles_include_state_and_source_markers() {
+    let source = load_source("src/icons/styles.rs");
+
+    for selector in [
+        ".ui-icons {",
+        ".ui-icons[data-state=\"disabled\"]",
+        ".ui-icons[data-state=\"decorative\"]",
+        ".ui-icons[data-set=\"ui\"]",
+        ".ui-icons[data-set=\"workflow\"]",
+        ".ui-icons[data-scale=\"medium\"]",
+        ".ui-icons[data-scale=\"large\"]",
+        ".ui-icons[data-set-source=\"name\"]",
+        ".ui-icons[data-set-source=\"prop\"]",
+        ".ui-icons[data-set-source=\"default\"]",
+        ".ui-icons[data-aria-source=\"custom\"]",
+        ".ui-icons[data-class-source=\"custom\"]",
+        ".ui-icons[data-glyph-source=\"custom\"]",
+        ".ui-icons[data-tone-source=\"custom\"]",
+        ".ui-icons--custom-class",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Icons styles should include `{selector}` as stable selectors."
+        );
+    }
+}
+
+#[test]
+fn icons_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::icons::styles::CSS);"),
+        "ui-components css aggregator should include icons styles."
+    );
+}
+
+#[test]
+fn icons_docs_page_contains_state_source_playground() {
     let source =
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons.rs");
 
@@ -61,6 +139,8 @@ fn icons_docs_page_exists() {
         "pub(super) fn icons() -> AnyView",
         "title=\"Icons\"",
         "slug=\"icons\"",
+        "State + Source Markers",
+        "data-tone-source",
         "<Icons",
     ] {
         assert!(
