@@ -11,4 +11,9 @@ pub const CSS: &str = r#"
 .ui-dropdown-menu--disabled {
   opacity: 0.72;
 }
+
+.ui-dropdown-menu[data-motion-source="custom"],
+.ui-dropdown-menu[data-custom-motion="true"] {
+  --ui-dropdown-menu-custom-motion: 1;
+}
 "#;

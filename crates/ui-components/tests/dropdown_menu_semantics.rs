@@ -60,6 +60,7 @@ fn dropdown_menu_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "motion: DropdownMenuMotion",
     ] {
         assert!(
             source.contains(needle),
@@ -106,6 +107,8 @@ fn dropdown_menu_emits_spectrum_root_state_data_attributes() {
         "data-keep-open-on-action=state.keep_open_on_action.then_some(\"true\")",
         "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
         "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
+        "data-motion-source=if motion == DropdownMenuMotion::default()",
+        "data-custom-motion=(motion != DropdownMenuMotion::default()).then_some(\"true\")",
         "on:keydown=on_key_down",
     ] {
         assert!(
@@ -125,6 +128,7 @@ fn dropdown_menu_renders_menu_inside_popover_with_presence() {
         "placement=state.placement",
         "<Menu",
         "on_exit_complete=presence.finish_exit",
+        "motion=motion.popover",
     ] {
         assert!(
             source.contains(needle),
@@ -168,10 +172,30 @@ fn dropdown_menu_styles_include_disabled_and_persistent_markers() {
     for needle in [
         ".ui-dropdown-menu--persistent",
         ".ui-dropdown-menu--disabled",
+        ".ui-dropdown-menu[data-motion-source=\"custom\"]",
+        ".ui-dropdown-menu[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
             "DropdownMenu styles should include `{needle}` for stable visual state contracts."
+        );
+    }
+}
+
+#[test]
+fn dropdown_menu_exposes_motion_contract_and_internal_module() {
+    let mod_source = load_source("src/dropdown_menu/mod.rs");
+    let motion_source = load_source("src/dropdown_menu/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::DropdownMenuMotion;",
+        "pub struct DropdownMenuMotion",
+        "pub popover: PopoverMotion",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "DropdownMenu motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

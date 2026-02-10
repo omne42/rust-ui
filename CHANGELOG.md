@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `DropdownMenu` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and `DropdownMenuMotion` contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `ActionMenu` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and `ActionMenuMotion` contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `DatePicker` with explicit `DatePickerMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style popover animation parity with HeroUI expectations.
 - `apps/docs-app`: extends `DatePicker` docs playground with motion-tuned custom spring-style popover configuration.
