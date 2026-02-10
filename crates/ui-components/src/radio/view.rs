@@ -93,6 +93,13 @@ pub fn RadioGroup(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == RadioMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != RadioMotion::default()).then_some("true");
+
     let radios = (0..item_count)
         .map({
             let aria = aria.clone();
@@ -161,6 +168,8 @@ pub fn RadioGroup(
                         data-pressed=move || press.is_pressed.get().then_some("true")
                         data-focused=move || focus_ring.is_focused.get().then_some("true")
                         data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+                        data-motion-source=motion_source
+                        data-custom-motion=custom_motion
                         on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
                         on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
                         on:pointerdown=move |_| press.handlers.on_pointer_down.run(())
@@ -209,6 +218,8 @@ pub fn RadioGroup(
             data-horizontal=move || state.get().is_horizontal.then_some("true")
             data-vertical=move || state.get().is_vertical.then_some("true")
             data-has-label=move || state.get().has_label.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
         >
             {label.get_value().map(|label| {
                 let label_id = label_id.get_value();
@@ -264,6 +275,13 @@ pub fn Radio(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    let motion_source = if motion == RadioMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != RadioMotion::default()).then_some("true");
+
     let on_click = move |_| {
         if disabled {
             return;
@@ -292,6 +310,8 @@ pub fn Radio(
             data-pressed=move || press.is_pressed.get().then_some("true")
             data-focused=move || focus_ring.is_focused.get().then_some("true")
             data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
             on:pointerdown=move |_| press.handlers.on_pointer_down.run(())

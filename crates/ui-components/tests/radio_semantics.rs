@@ -115,6 +115,8 @@ fn radio_group_exposes_state_and_orientation_data_attributes() {
         "data-active=move || (aria.active_index.get() == index).then_some(\"true\")",
         "data-checked",
         "data-focus-visible",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
     ] {
         assert!(
             source.contains(needle),
@@ -146,6 +148,21 @@ fn radio_attaches_motion_driver() {
         source.contains("motion::attach_motion"),
         "Radio should attach motion via `radio::motion::attach_motion`."
     );
+}
+
+#[test]
+fn radio_styles_include_motion_marker_contracts() {
+    let source = load_source("src/radio/styles.rs");
+
+    for selector in [
+        ".ui-radio[data-motion-source=\"custom\"]",
+        ".ui-radio[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Radio styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
 }
 
 #[test]

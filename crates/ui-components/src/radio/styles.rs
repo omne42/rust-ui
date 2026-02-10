@@ -40,6 +40,11 @@ pub const CSS: &str = r#"
   -webkit-tap-highlight-color: transparent;
 }
 
+.ui-radio[data-motion-source="custom"],
+.ui-radio[data-custom-motion="true"] {
+  --ui-radio-custom-motion: 1;
+}
+
 .ui-radio:not(:disabled) {
   cursor: pointer;
 }
