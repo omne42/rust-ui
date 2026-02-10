@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Popover` with explicit root state/motion markers (`data-state`/`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `PopoverMotion` spring/placement contract tests for HeroUI-level motion tuning.
+- `apps/docs-app`: extends `Popover` docs with a dedicated custom-motion playground showing `PopoverMotion` tuning (`initial_scale`/`offset_y_px`) without regressing presence-based unmount flow.
 - `ui-components`: upgrades `Menubar` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and motion alias contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `ContextMenu` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and motion alias contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.
 - `ui-components`: upgrades `ContextualHelp` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) and `ContextualHelpMotion` contract tests, keeping `PopoverMotion` passthrough behavior compatible with HeroUI spring tuning.

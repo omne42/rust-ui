@@ -5,6 +5,21 @@ pub const CSS: &str = r#"
   z-index: 1000;
 }
 
+.ui-popover[data-motion-source="custom"],
+.ui-popover[data-custom-motion="true"] {
+  --ui-popover-custom-motion: 1;
+}
+
+.ui-popover[data-state="open"],
+.ui-popover[data-open="true"] {
+  pointer-events: auto;
+}
+
+.ui-popover[data-state="closed"],
+.ui-popover[data-closed="true"] {
+  pointer-events: auto;
+}
+
 .ui-popover__panel {
   position: fixed;
   top: var(--ui-popover-top, 0px);

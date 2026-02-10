@@ -22,7 +22,7 @@ impl Default for PopoverMotion {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
     match placement {
         PopoverPlacement::BottomStart | PopoverPlacement::BottomEnd => base.abs(),
@@ -164,4 +164,32 @@ pub fn attach_motion(
             on_exit_complete.run(());
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_matches_heroui_style_spring_contract() {
+        let motion = PopoverMotion::default();
+
+        assert_eq!(motion.spring.stiffness, 300.0);
+        assert_eq!(motion.spring.damping, 25.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.001);
+        assert_eq!(motion.initial_scale, 0.98);
+        assert_eq!(motion.offset_y_px, 6.0);
+    }
+
+    #[test]
+    fn placement_offset_y_follows_vertical_direction_contract() {
+        assert_eq!(
+            placement_offset_y(PopoverPlacement::BottomStart, 10.0),
+            10.0
+        );
+        assert_eq!(placement_offset_y(PopoverPlacement::BottomEnd, -4.0), 4.0);
+        assert_eq!(placement_offset_y(PopoverPlacement::TopStart, 10.0), -10.0);
+        assert_eq!(placement_offset_y(PopoverPlacement::TopEnd, -4.0), -4.0);
+    }
 }

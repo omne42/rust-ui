@@ -3,8 +3,8 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     AlertDialog, AlertDialogVariant, Button, ButtonVariant, ContextualHelp, ContextualHelpVariant,
-    Dialog, Drawer, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, Sheet,
-    SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
+    Dialog, Drawer, DrawerPlacement, HoverCard, Modal, OnPress, Overlay, Popover, PopoverMotion,
+    Sheet, SheetPlacement, Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant,
     ToastViewport, Tooltip, provide_toast_store,
 };
 
@@ -135,6 +135,27 @@ pub(super) fn popover() -> AnyView {
     let toggle: OnPress = Callback::new(move |_| set_open_raw.update(|v| *v = !*v));
     let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
+    let custom_anchor_ref: NodeRef<html::Button> = NodeRef::new();
+    let (custom_open_raw, set_custom_open_raw) = signal(false);
+    let custom_open: Signal<bool> = Signal::derive(move || custom_open_raw.get());
+
+    let (custom_present, set_custom_present) = signal(custom_open.get_untracked());
+    Effect::new(move |_| {
+        if custom_open.get() {
+            set_custom_present.set(true);
+        }
+    });
+
+    let close_custom: OnPress = Callback::new(move |_| set_custom_open_raw.set(false));
+    let toggle_custom: OnPress = Callback::new(move |_| set_custom_open_raw.update(|v| *v = !*v));
+    let on_custom_exit_complete = Callback::new(move |_| set_custom_present.set(false));
+
+    let custom_motion = PopoverMotion {
+        initial_scale: 0.95,
+        offset_y_px: 12.0,
+        ..PopoverMotion::default()
+    };
+
     let code = r#"<Button node_ref=anchor_ref on_press=toggle>"Open"</Button>
 <Show when=present>
   <Popover open=open anchor_ref=anchor_ref on_close=close on_exit_complete=finish_exit>
@@ -142,12 +163,28 @@ pub(super) fn popover() -> AnyView {
   </Popover>
 </Show>"#;
 
+    let motion_code = r#"let custom_motion = PopoverMotion {
+  initial_scale: 0.95,
+  offset_y_px: 12.0,
+  ..PopoverMotion::default()
+};
+
+<Popover
+  open=open
+  anchor_ref=anchor_ref
+  on_close=close
+  motion=custom_motion
+  on_exit_complete=finish_exit
+>
+  ...
+</Popover>"#;
+
     view! {
         <ComponentPage
             title="Popover"
             slug="popover"
             group="Overlays"
-            description="Positioned portal panel anchored to a trigger. Requires presence to unmount after exit."
+            description="Positioned portal panel anchored to a trigger with Spectrum-style state markers and HeroUI-grade spring motion contract. Requires presence to unmount after exit."
         >
             <Playground title="Popover" code=code>
                 <div class="docs-row">
@@ -167,6 +204,45 @@ pub(super) fn popover() -> AnyView {
                             <div>"Popover content"</div>
                             <div class="ui-muted">"Positioned via anchor rect + CSS vars."</div>
                             <Button variant=ButtonVariant::Secondary on_press=on_close>"Close"</Button>
+                        </div>
+                    </Popover>
+                </Show>
+            </Playground>
+
+            <Playground title="Custom Motion Popover" code=motion_code>
+                <div class="docs-row">
+                    <Button
+                        node_ref=custom_anchor_ref
+                        on_press=toggle_custom
+                        aria_haspopup="dialog"
+                        aria_expanded=custom_open
+                    >
+                        {move || {
+                            if custom_open_raw.get() {
+                                "Close custom popover"
+                            } else {
+                                "Open custom popover"
+                            }
+                        }}
+                    </Button>
+                </div>
+
+                <Show when=move || custom_present.get()>
+                    <Popover
+                        open=custom_open
+                        anchor_ref=custom_anchor_ref
+                        on_close=close_custom
+                        motion=custom_motion
+                        on_exit_complete=on_custom_exit_complete
+                    >
+                        <div class="docs-stack">
+                            <div>"Custom spring-like popover motion"</div>
+                            <div class="ui-muted">
+                                "Tuned via PopoverMotion { initial_scale, offset_y_px, spring }."
+                            </div>
+                            <Button variant=ButtonVariant::Secondary on_press=close_custom>
+                                "Close"
+                            </Button>
                         </div>
                     </Popover>
                 </Show>

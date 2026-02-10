@@ -80,6 +80,17 @@ pub fn Popover(
         <Portal>
             <div
                 class="ui-popover"
+                data-slot="popover"
+                data-state=move || if open.get() { "open" } else { "closed" }
+                data-open=move || open.get().then_some("true")
+                data-closed=move || (!open.get()).then_some("true")
+                data-placement=move || position.placement.get().as_str()
+                data-motion-source=if motion == PopoverMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != PopoverMotion::default()).then_some("true")
                 data-ui-overlay-portal=""
                 on:click=move |_| on_close.run(())
             >
