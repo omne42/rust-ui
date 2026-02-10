@@ -8,6 +8,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Tooltip` with explicit root state/motion markers (`data-state`/`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `TooltipMotion` spring/placement contract tests for HeroUI-level motion tuning.
 - `ui-components`: upgrades `HoverCard` with explicit root state/motion markers (`data-state`/`data-open`/`data-closed` + `data-motion-source`/`data-custom-motion`) and `HoverCardMotion` spring/placement contract tests for HeroUI-level interaction tuning.
 - `ui-components`: upgrades `ComboBox` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) plus `ComboBoxMotion` contract tests (`PopoverMotion` + `ActiveHighlightMotion`) for HeroUI-level spring customization.
 - `ui-components`: upgrades `Autocomplete` with explicit motion source markers (`data-motion-source`/`data-custom-motion`) plus `AutocompleteMotion` contract tests (`PopoverMotion` + `ActiveHighlightMotion`) for HeroUI-level spring customization.

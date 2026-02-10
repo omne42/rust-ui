@@ -151,6 +151,17 @@ pub fn Tooltip(
         <span
             class=class
             data-slot="tooltip"
+            data-state=move || if open.get() { "open" } else { "closed" }
+            data-open=move || open.get().then_some("true")
+            data-closed=move || (!open.get()).then_some("true")
+            data-disabled=disabled.then_some("true")
+            data-enabled=(!disabled).then_some("true")
+            data-motion-source=if motion == TooltipMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != TooltipMotion::default()).then_some("true")
             node_ref=anchor_ref
             on:pointerenter=move |_| trigger.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| trigger.handlers.on_pointer_leave.run(())

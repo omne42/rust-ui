@@ -65,6 +65,26 @@ fn tooltip_emits_spectrum_style_data_slots_and_portal_marker() {
 }
 
 #[test]
+fn tooltip_emits_spectrum_style_state_and_motion_markers() {
+    let source = load_source("src/tooltip/view.rs");
+
+    for needle in [
+        "data-state=move || if open.get() { \"open\" } else { \"closed\" }",
+        "data-open=move || open.get().then_some(\"true\")",
+        "data-closed=move || (!open.get()).then_some(\"true\")",
+        "data-disabled=disabled.then_some(\"true\")",
+        "data-enabled=(!disabled).then_some(\"true\")",
+        "data-motion-source=if motion == TooltipMotion::default()",
+        "data-custom-motion=(motion != TooltipMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tooltip should expose `{needle}` for stable state/motion styling hooks."
+        );
+    }
+}
+
+#[test]
 fn tooltip_panel_has_role_and_css_variable_positioning() {
     let source = load_source("src/tooltip/view.rs");
 
@@ -118,6 +138,41 @@ fn tooltip_motion_drives_opacity_scale_and_offset_via_css_variables() {
         assert!(
             motion.contains(needle),
             "Tooltip motion should update `{needle}` to provide HeroUI-style spring behavior without rerenders."
+        );
+    }
+}
+
+#[test]
+fn tooltip_styles_include_root_state_and_motion_marker_contracts() {
+    let source = load_source("src/tooltip/styles.rs");
+
+    for needle in [
+        ".ui-tooltip[data-motion-source=\"custom\"]",
+        ".ui-tooltip[data-custom-motion=\"true\"]",
+        ".ui-tooltip[data-disabled=\"true\"]",
+        ".ui-tooltip[data-state=\"open\"]",
+        ".ui-tooltip[data-state=\"closed\"]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tooltip styles should include `{needle}` for motion/state selector contracts."
+        );
+    }
+}
+
+#[test]
+fn tooltip_motion_contract_exposes_default_and_custom_test_coverage() {
+    let source = load_source("src/tooltip/motion.rs");
+
+    for needle in [
+        "pub struct TooltipMotion",
+        "fn default_motion_uses_soft_spring_contract()",
+        "fn placement_offset_y_follows_vertical_direction_contract()",
+        "fn supports_custom_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tooltip motion contract should include `{needle}` for HeroUI-style regression coverage."
         );
     }
 }

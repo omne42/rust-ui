@@ -6,6 +6,22 @@ pub const CSS: &str = r#"
   -webkit-tap-highlight-color: transparent;
 }
 
+.ui-tooltip[data-motion-source="custom"],
+.ui-tooltip[data-custom-motion="true"] {
+  --ui-tooltip-custom-motion: 1;
+}
+
+.ui-tooltip[data-disabled="true"] {
+  opacity: 0.72;
+}
+
+.ui-tooltip[data-state="open"],
+.ui-tooltip[data-open="true"],
+.ui-tooltip[data-state="closed"],
+.ui-tooltip[data-closed="true"] {
+  cursor: default;
+}
+
 .ui-tooltip__panel {
   position: fixed;
   top: var(--ui-tooltip-top, 0px);

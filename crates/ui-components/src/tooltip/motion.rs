@@ -17,7 +17,7 @@ impl Default for TooltipMotion {
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(target_arch = "wasm32", test))]
 fn placement_offset_y(placement: TooltipPlacement, base: f64) -> f64 {
     if placement.is_bottom() {
         base.abs()
@@ -160,4 +160,47 @@ pub fn attach_motion(
             on_exit_complete.run(());
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_motion_uses_soft_spring_contract() {
+        let motion = TooltipMotion::default();
+
+        assert_eq!(motion.spring, ui_motion::presets::spring_soft());
+        assert_eq!(motion.initial_scale, 0.98);
+        assert_eq!(motion.offset_y_px, 6.0);
+    }
+
+    #[test]
+    fn placement_offset_y_follows_vertical_direction_contract() {
+        assert_eq!(placement_offset_y(TooltipPlacement::Bottom, 10.0), 10.0);
+        assert_eq!(placement_offset_y(TooltipPlacement::Bottom, -4.0), 4.0);
+        assert_eq!(placement_offset_y(TooltipPlacement::Top, 10.0), -10.0);
+        assert_eq!(placement_offset_y(TooltipPlacement::Top, -4.0), -4.0);
+    }
+
+    #[test]
+    fn supports_custom_motion_contract() {
+        let motion = TooltipMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 220.0,
+                damping: 20.0,
+                mass: 1.0,
+                precision: 0.003,
+            },
+            initial_scale: 0.94,
+            offset_y_px: 11.0,
+        };
+
+        assert_eq!(motion.spring.stiffness, 220.0);
+        assert_eq!(motion.spring.damping, 20.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.003);
+        assert_eq!(motion.initial_scale, 0.94);
+        assert_eq!(motion.offset_y_px, 11.0);
+    }
 }
