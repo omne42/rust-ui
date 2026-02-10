@@ -98,6 +98,8 @@ fn button_copy_emits_spectrum_style_data_attributes() {
         "data-empty=(!view_state.has_text).then_some(\"true\")",
         "data-label=if view_state.has_custom_label {",
         "data-copied-label=if view_state.has_custom_copied_label {",
+        "data-motion-source=if motion == ButtonCopyMotion::default()",
+        "data-custom-motion=(motion != ButtonCopyMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -118,6 +120,37 @@ fn button_copy_announces_copy_result_for_assistive_tech() {
         assert!(
             source.contains(needle),
             "ButtonCopy a11y status element should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_copy_styles_include_motion_marker_contracts() {
+    let source = load_source("src/button_copy/styles.rs");
+
+    for selector in [
+        ".ui-button-copy[data-motion-source=\"custom\"]",
+        ".ui-button-copy[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "ButtonCopy styles should include `{selector}` as stable custom-motion selectors."
+        );
+    }
+}
+
+#[test]
+fn button_copy_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/button_copy/motion.rs");
+
+    for needle in [
+        "pub struct ButtonCopyMotion",
+        "fn default_motion_matches_button_contract_defaults()",
+        "fn supports_custom_button_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ButtonCopy motion module should include `{needle}` for HeroUI-level motion contract coverage."
         );
     }
 }

@@ -64,6 +64,12 @@ pub fn ButtonCopy(
                 "default"
             }
             data-copied=move || logic.copied.get().then_some("true")
+            data-motion-source=if motion == ButtonCopyMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ButtonCopyMotion::default()).then_some("true")
         >
             <Button
                 class_name="ui-button-copy__button".to_string()

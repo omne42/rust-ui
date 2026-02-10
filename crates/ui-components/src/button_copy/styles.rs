@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-button-copy[data-motion-source="custom"],
+.ui-button-copy[data-custom-motion="true"] {
+  --ui-button-copy-custom-motion: 1;
+}
+
 .ui-button-copy__a11y-status {
   position: absolute;
   width: 1px;
