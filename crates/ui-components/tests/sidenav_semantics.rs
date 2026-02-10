@@ -8,13 +8,15 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn sidenav_does_not_expose_view_module() {
+fn sidenav_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/sidenav/mod.rs");
 
-    assert!(
-        !source.contains("pub mod view"),
-        "Sidenav internals should stay private; found `pub mod view`."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Sidenav internals should stay private; found `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -33,23 +35,102 @@ fn sidenav_is_exported_from_module_and_crate_root() {
 }
 
 #[test]
-fn sidenav_wraps_sidebar_contract() {
-    let source = load_source("src/sidenav/view.rs");
+fn sidenav_logic_exposes_state_helpers() {
+    let source = load_source("src/sidenav/logic.rs");
 
     for needle in [
-        "pub fn Sidenav(",
-        "<Sidebar",
-        "on_open_change: Option<Callback<bool>>",
+        "pub fn normalize_optional_text(",
+        "pub fn normalize_aria_label(",
+        "pub fn normalize_trigger_label(",
+        "pub fn normalize_shortcut_key(value: Option<String>, enable_shortcut: bool)",
+        "pub fn resolve_state(input: SidenavStateInput)",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: SidenavState)",
+        "DEFAULT_ARIA_LABEL",
+        "DEFAULT_TRIGGER_LABEL",
     ] {
         assert!(
             source.contains(needle),
-            "Sidenav wrapper should preserve Sidebar contract marker `{needle}`."
+            "Sidenav logic should include `{needle}` for centralized source/state contracts."
         );
     }
 }
 
 #[test]
-fn sidenav_docs_page_exists() {
+fn sidenav_view_uses_logic_state_contracts() {
+    let source = load_source("src/sidenav/view.rs");
+
+    for needle in [
+        "pub fn Sidenav(",
+        "logic::normalize_optional_text(class_name)",
+        "logic::normalize_aria_label(aria_label)",
+        "logic::normalize_trigger_label(trigger_label)",
+        "logic::normalize_shortcut_key(shortcut_key, enable_shortcut)",
+        "logic::resolve_state(SidenavStateInput {",
+        "logic::compose_class_name(class_name, state)",
+        "<Sidebar",
+        "on_open_change: Option<Callback<bool>>",
+        "data-slot=\"sidenav\"",
+        "data-state=state.state_attr",
+        "data-open-mode=state.open_mode_attr",
+        "data-initial-open=state.initial_open_attr",
+        "data-trigger-mode=state.trigger_mode_attr",
+        "data-shortcut-mode=state.shortcut_mode_attr",
+        "data-label-source=state.label_source_attr",
+        "data-trigger-source=state.trigger_source_attr",
+        "data-shortcut-source=state.shortcut_source_attr",
+        "data-class-source=state.class_source_attr",
+        "data-handler-source=state.handler_source_attr",
+        "data-controlled=state.is_controlled.then_some(\"true\")",
+        "data-uncontrolled=(!state.is_controlled).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Sidenav view should include `{needle}` for stable marker contracts."
+        );
+    }
+}
+
+#[test]
+fn sidenav_styles_include_state_and_source_markers() {
+    let source = load_source("src/sidenav/styles.rs");
+
+    for selector in [
+        ".ui-sidenav {",
+        ".ui-sidenav[data-state=\"disabled\"]",
+        ".ui-sidenav[data-open-mode=\"controlled\"]",
+        ".ui-sidenav[data-open-mode=\"uncontrolled\"]",
+        ".ui-sidenav[data-initial-open=\"open\"]",
+        ".ui-sidenav[data-initial-open=\"closed\"]",
+        ".ui-sidenav[data-trigger-mode=\"visible\"]",
+        ".ui-sidenav[data-trigger-mode=\"hidden\"]",
+        ".ui-sidenav[data-shortcut-mode=\"enabled\"]",
+        ".ui-sidenav[data-shortcut-mode=\"disabled\"]",
+        ".ui-sidenav[data-label-source=\"custom\"]",
+        ".ui-sidenav[data-trigger-source=\"custom\"]",
+        ".ui-sidenav[data-shortcut-source=\"custom\"]",
+        ".ui-sidenav[data-class-source=\"custom\"]",
+        ".ui-sidenav[data-handler-source=\"custom\"]",
+        ".ui-sidenav--custom-class",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Sidenav styles should include `{selector}` as stable selectors."
+        );
+    }
+}
+
+#[test]
+fn sidenav_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::sidenav::styles::CSS);"),
+        "ui-components css aggregator should include sidenav styles."
+    );
+}
+
+#[test]
+fn sidenav_docs_page_contains_state_source_playground() {
     let source =
         load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidenav.rs");
 
@@ -57,6 +138,8 @@ fn sidenav_docs_page_exists() {
         "pub(super) fn sidenav() -> AnyView",
         "title=\"Sidenav\"",
         "slug=\"sidenav\"",
+        "State + Source Markers",
+        "data-handler-source",
         "<Sidenav",
     ] {
         assert!(

@@ -10,6 +10,10 @@ pub(super) fn sidenav() -> AnyView {
     let (open, set_open) = signal(true);
     let on_open_change = Callback::new(move |next: bool| set_open.set(next));
 
+    let (marker_open, set_marker_open) = signal(true);
+    let marker_open_signal = Signal::derive(move || marker_open.get());
+    let marker_on_open_change = Callback::new(move |next: bool| set_marker_open.set(next));
+
     let controlled_items = vec![
         SidebarMenuItem {
             id: "dashboard".to_string(),
@@ -75,6 +79,23 @@ pub(super) fn sidenav() -> AnyView {
   {content}
 </Sidenav>"#;
 
+    let markers_code = r#"let (open, set_open) = signal(true);
+let open_signal = Signal::derive(move || open.get());
+
+<Sidenav
+  open=open_signal
+  on_open_change=Callback::new(move |next| set_open.set(next))
+  default_open=false
+  show_trigger=false
+  enable_shortcut=true
+  shortcut_key="n".to_string()
+  trigger_label="Toggle markers nav".to_string()
+  aria_label="Markers navigation".to_string()
+  class_name="docs-sidenav-state".to_string()
+>
+  {content}
+</Sidenav>"#;
+
     view! {
         <ComponentPage
             title="Sidenav"
@@ -114,6 +135,58 @@ pub(super) fn sidenav() -> AnyView {
                     </SidebarHeader>
                     <SidebarMenu items=static_items />
                 </Sidenav>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect wrapper markers like `data-state`, `data-open-mode`, `data-initial-open`, `data-trigger-mode`, `data-shortcut-mode`, `data-label-source`, `data-trigger-source`, `data-shortcut-source`, `data-class-source`, and `data-handler-source`."
+                code=markers_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Sidenav
+                        open=marker_open_signal
+                        on_open_change=marker_on_open_change
+                        default_open=false
+                        show_trigger=false
+                        enable_shortcut=true
+                        shortcut_key="n".to_string()
+                        trigger_label="Toggle markers nav".to_string()
+                        aria_label="Markers navigation".to_string()
+                        class_name="docs-sidenav-state".to_string()
+                        side=SidebarSide::Left
+                        variant=SidebarVariant::Inset
+                        collapsible=SidebarCollapsible::Offcanvas
+                    >
+                        <SidebarHeader>
+                            <div class="ui-muted">"Markers Nav"</div>
+                        </SidebarHeader>
+                        <SidebarMenu
+                            items=vec![
+                                SidebarMenuItem {
+                                    id: "markers-home".to_string(),
+                                    label: "Home".to_string(),
+                                    href: Some("/markers/home".to_string()),
+                                    badge: None,
+                                    action_label: None,
+                                    disabled: false,
+                                    sub_items: vec![],
+                                    default_sub_open: false,
+                                },
+                                SidebarMenuItem {
+                                    id: "markers-settings".to_string(),
+                                    label: "Settings".to_string(),
+                                    href: Some("/markers/settings".to_string()),
+                                    badge: Some("2".to_string()),
+                                    action_label: Some("Open Settings".to_string()),
+                                    disabled: false,
+                                    sub_items: vec![],
+                                    default_sub_open: false,
+                                },
+                            ]
+                        />
+                    </Sidenav>
+                    <span class="ui-muted">"open: " {move || marker_open.get().to_string()}</span>
+                </div>
             </Playground>
         </ComponentPage>
     }
