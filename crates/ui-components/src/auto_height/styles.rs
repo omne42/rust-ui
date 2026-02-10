@@ -22,6 +22,7 @@ pub const CSS: &str = r#"
   overflow: hidden;
 }
 
+.ui-auto-height[data-motion-source="custom"],
 .ui-auto-height--custom-motion,
 .ui-auto-height[data-custom-motion="true"] {
   --ui-auto-height-motion-kind: custom;

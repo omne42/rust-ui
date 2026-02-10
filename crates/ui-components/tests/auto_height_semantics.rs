@@ -62,6 +62,7 @@ fn auto_height_emits_spectrum_style_state_data_attributes() {
         "data-static=state.is_static.then_some(\"true\")",
         "data-overflow-hidden=state.overflow_hidden.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-motion-source=if state.has_custom_motion { \"custom\" } else { \"default\" }",
         "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
@@ -92,6 +93,7 @@ fn auto_height_styles_define_state_marker_contracts() {
         ".ui-auto-height--static",
         ".ui-auto-height[data-state=\"static\"]",
         ".ui-auto-height[data-overflow-hidden=\"true\"]",
+        ".ui-auto-height[data-motion-source=\"custom\"]",
         ".ui-auto-height--custom-motion",
         ".ui-auto-height[data-custom-motion=\"true\"]",
         ".ui-auto-height--custom-class",
@@ -117,4 +119,20 @@ fn auto_height_motion_uses_resize_observer_and_spring() {
         source.contains("SpringAnimator"),
         "AutoHeight motion should animate height changes via a spring."
     );
+}
+
+#[test]
+fn auto_height_motion_contract_exposes_default_and_custom_tests() {
+    let source = load_source("src/auto_height/motion.rs");
+
+    for needle in [
+        "pub struct AutoHeightMotion",
+        "fn default_motion_matches_auto_height_contract()",
+        "fn supports_custom_motion_contract_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AutoHeight motion module should include `{needle}` for HeroUI-level motion contract coverage."
+        );
+    }
 }

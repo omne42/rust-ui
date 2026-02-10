@@ -34,6 +34,7 @@ pub fn AutoHeight(
             data-static=state.is_static.then_some("true")
             data-overflow-hidden=state.overflow_hidden.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
+            data-motion-source=if state.has_custom_motion { "custom" } else { "default" }
             data-custom-motion=state.has_custom_motion.then_some("true")
         >
             <div
