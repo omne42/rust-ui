@@ -402,6 +402,23 @@ pub(super) fn alert_dialog() -> AnyView {
     let code = r#"<AlertDialog open=open id_base="a".to_string() title="Confirm".to_string()
   on_close=close confirm_label="Confirm".to_string() on_confirm=on_confirm />"#;
 
+    let motion_code = r#"<AlertDialog
+  open=open
+  id_base="a-motion".to_string()
+  title="Delete item?".to_string()
+  description="Custom spring-tuned alert dialog.".to_string()
+  on_close=close
+  confirm_label="Delete".to_string()
+  on_confirm=on_confirm
+  motion=AlertDialogMotion {
+    overlay: OverlayMotion {
+      initial_scale: 0.95,
+      initial_y_px: 12.0,
+      ..OverlayMotion::default()
+    }
+  }
+/>"#;
+
     view! {
         <ComponentPage
             title="AlertDialog"
@@ -427,6 +444,35 @@ pub(super) fn alert_dialog() -> AnyView {
                         confirm_label="Delete".to_string()
                         on_confirm=on_confirm
                         variant=AlertDialogVariant::Destructive
+                        on_exit_complete=on_exit_complete
+                    />
+                </Show>
+            </Playground>
+
+            <Playground title="AlertDialog custom motion" code=motion_code>
+                <div class="docs-row">
+                    <Button variant=ButtonVariant::Secondary on_press=open_alert>
+                        "Open motion-tuned"
+                    </Button>
+                </div>
+
+                <Show when=move || present.get()>
+                    <AlertDialog
+                        open=open
+                        id_base="docs-alert-motion".to_string()
+                        title="Delete item?".to_string()
+                        description="Custom spring-tuned alert dialog motion.".to_string()
+                        on_close=on_close
+                        confirm_label="Delete".to_string()
+                        on_confirm=on_confirm
+                        variant=AlertDialogVariant::Destructive
+                        motion=ui_components::AlertDialogMotion {
+                            overlay: ui_components::OverlayMotion {
+                                initial_scale: 0.95,
+                                initial_y_px: 12.0,
+                                ..ui_components::OverlayMotion::default()
+                            },
+                        }
                         on_exit_complete=on_exit_complete
                     />
                 </Show>

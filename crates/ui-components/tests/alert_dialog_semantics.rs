@@ -93,3 +93,79 @@ fn alert_dialog_type_icon_is_present_for_warning_and_error_variants() {
         );
     }
 }
+
+#[test]
+fn alert_dialog_emits_state_variant_and_motion_markers() {
+    let source = load_source("src/alert_dialog/view.rs");
+
+    for needle in [
+        "data-slot=\"alert-dialog\"",
+        "data-state=move || if open.get() { \"open\" } else { \"closed\" }",
+        "data-open=move || open.get().then_some(\"true\")",
+        "data-closed=move || (!open.get()).then_some(\"true\")",
+        "data-variant=variant.data_attr()",
+        "data-with-description=view_state.show_description.then_some(\"true\")",
+        "data-show-cancel=view_state.show_cancel.then_some(\"true\")",
+        "data-show-secondary=view_state.show_secondary.then_some(\"true\")",
+        "data-confirm-disabled=confirm_disabled.then_some(\"true\")",
+        "data-secondary-disabled=secondary_disabled.then_some(\"true\")",
+        "data-motion-source=if motion == AlertDialogMotion::default()",
+        "data-custom-motion=(motion != AlertDialogMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AlertDialog should expose `{needle}` for stable state/motion marker contracts."
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_styles_include_motion_marker_selectors() {
+    let source = load_source("src/alert_dialog/styles.rs");
+
+    for selector in [
+        ".ui-alert-dialog[data-motion-source=\"custom\"]",
+        ".ui-alert-dialog[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "AlertDialog styles should include `{selector}` as stable motion-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
+    let source = load_source("src/alert_dialog/motion.rs");
+
+    for needle in [
+        "pub struct AlertDialogMotion",
+        "pub overlay: crate::overlay::OverlayMotion",
+        "fn default_motion_uses_default_overlay_motion_contract()",
+        "fn supports_custom_overlay_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AlertDialog motion module should include `{needle}` for HeroUI-level contract coverage."
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_variant_logic_exposes_data_attr_contract() {
+    let source = load_source("src/alert_dialog/logic.rs");
+
+    for needle in [
+        "pub fn data_attr(self) -> &'static str",
+        "\"default\"",
+        "\"confirmation\"",
+        "\"destructive\"",
+        "\"warning\"",
+        "\"error\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AlertDialog variant logic should include `{needle}` for deterministic variant markers."
+        );
+    }
+}

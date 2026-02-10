@@ -153,7 +153,25 @@ pub fn AlertDialog(
 
     let content = move || {
         view! {
-            <div class=move || class.get_value() data-slot="alert-dialog">
+            <div
+                class=move || class.get_value()
+                data-slot="alert-dialog"
+                data-state=move || if open.get() { "open" } else { "closed" }
+                data-open=move || open.get().then_some("true")
+                data-closed=move || (!open.get()).then_some("true")
+                data-variant=variant.data_attr()
+                data-with-description=view_state.show_description.then_some("true")
+                data-show-cancel=view_state.show_cancel.then_some("true")
+                data-show-secondary=view_state.show_secondary.then_some("true")
+                data-confirm-disabled=confirm_disabled.then_some("true")
+                data-secondary-disabled=secondary_disabled.then_some("true")
+                data-motion-source=if motion == AlertDialogMotion::default() {
+                    "default"
+                } else {
+                    "custom"
+                }
+                data-custom-motion=(motion != AlertDialogMotion::default()).then_some("true")
+            >
                 <div class="ui-alert-dialog__header" data-slot="alert-dialog-header">
                     <Show when=move || show_type_icon>
                         <span class="ui-alert-dialog__type-icon" data-slot="alert-dialog-type-icon" aria-hidden="true">

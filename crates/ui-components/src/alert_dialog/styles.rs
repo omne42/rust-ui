@@ -6,6 +6,11 @@ pub const CSS: &str = r#"
   width: min(100%, 480px);
 }
 
+.ui-alert-dialog[data-motion-source="custom"],
+.ui-alert-dialog[data-custom-motion="true"] {
+  --ui-alert-dialog-custom-motion: 1;
+}
+
 .ui-alert-dialog__header {
   display: flex;
   align-items: flex-start;

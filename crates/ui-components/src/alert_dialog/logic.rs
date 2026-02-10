@@ -18,6 +18,16 @@ impl AlertDialogVariant {
             AlertDialogVariant::Error => "ui-alert-dialog--variant-error",
         }
     }
+
+    pub fn data_attr(self) -> &'static str {
+        match self {
+            AlertDialogVariant::Default => "default",
+            AlertDialogVariant::Confirmation => "confirmation",
+            AlertDialogVariant::Destructive => "destructive",
+            AlertDialogVariant::Warning => "warning",
+            AlertDialogVariant::Error => "error",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
