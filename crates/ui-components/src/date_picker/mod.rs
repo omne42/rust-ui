@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, DEFAULT_PLACEHOLDER, DatePickerIds, DatePickerTone};
+pub use motion::DatePickerMotion;
 pub use view::DatePicker;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

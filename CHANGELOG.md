@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `DatePicker` with explicit `DatePickerMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style popover animation parity with HeroUI expectations.
+- `apps/docs-app`: extends `DatePicker` docs playground with motion-tuned custom spring-style popover configuration.
 - `ui-components`: upgrades `ColorPicker` with explicit `ColorPickerMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style popover animation parity with HeroUI expectations.
 - `ui-components`: upgrades `MenuTrigger` with explicit `MenuTriggerMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style menu popover animation parity with HeroUI expectations.
 - `ui-components`: upgrades `Select` with explicit `SelectMotion` (`PopoverMotion` passthrough), exposing stable motion markers (`data-motion-source`/`data-custom-motion`) and configurable spring-style overlay animation parity with HeroUI expectations.

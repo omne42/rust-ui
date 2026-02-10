@@ -1,12 +1,10 @@
 use crate::date_picker::{
-    DatePickerStateInput,
+    DatePickerMotion, DatePickerStateInput,
     logic::{self, DatePickerTone},
 };
 use crate::overlay_open;
 use crate::presence::use_presence;
-use crate::{
-    Button, Calendar, CalendarFirstWeekday, CalendarTone, OnPress, Popover, PopoverMotion,
-};
+use crate::{Button, Calendar, CalendarFirstWeekday, CalendarTone, OnPress, Popover};
 use leptos::{html, prelude::*};
 use ui_headless::PopoverPlacement;
 
@@ -26,7 +24,7 @@ pub fn DatePicker(
     #[prop(optional)] first_weekday: CalendarFirstWeekday,
     #[prop(optional)] show_outside_days: bool,
     #[prop(optional)] popover_placement: PopoverPlacement,
-    #[prop(optional)] popover_motion: PopoverMotion,
+    #[prop(optional)] motion: DatePickerMotion,
     #[prop(optional, into)] placeholder: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -130,6 +128,12 @@ pub fn DatePicker(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if motion == DatePickerMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != DatePickerMotion::default()).then_some("true")
             role="group"
             aria-label=aria_label
         >
@@ -154,7 +158,7 @@ pub fn DatePicker(
                     anchor_ref=anchor_ref
                     on_close=on_close
                     placement=popover_placement
-                    motion=popover_motion
+                    motion=motion.popover
                     is_modal=false
                     on_exit_complete=presence.finish_exit
                 >

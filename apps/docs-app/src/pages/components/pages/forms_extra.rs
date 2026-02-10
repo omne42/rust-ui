@@ -3,11 +3,11 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     Calendar, CalendarFirstWeekday, CalendarTone, DateField, DateFieldTone, DatePicker,
-    DatePickerTone, DateRangePicker, DateRangePickerTone, Description, DescriptionElement,
-    DescriptionTone, ErrorMessage, ErrorMessageElement, ErrorMessageTone, Field, FieldError,
-    FieldErrorTone, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation, FieldsetTone,
-    HelpText, HelpTextTone, Label, LabelEmphasis, Slider, SliderMotion, Textarea, TimeField,
-    TimeFieldTone,
+    DatePickerMotion, DatePickerTone, DateRangePicker, DateRangePickerTone, Description,
+    DescriptionElement, DescriptionTone, ErrorMessage, ErrorMessageElement, ErrorMessageTone,
+    Field, FieldError, FieldErrorTone, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation,
+    FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis, PopoverMotion, Slider,
+    SliderMotion, Textarea, TimeField, TimeFieldTone,
 };
 
 pub(super) fn field_error() -> AnyView {
@@ -705,6 +705,9 @@ pub(super) fn date_picker() -> AnyView {
   show_outside_days=false
   placeholder="Pick ship date".to_string()
   class_name="docs-date-picker-custom".to_string()
+  motion=DatePickerMotion {
+    popover: PopoverMotion { initial_scale: 0.95, offset_y_px: 10.0, ..PopoverMotion::default() },
+  }
 />"#;
 
     view! {
@@ -737,6 +740,13 @@ pub(super) fn date_picker() -> AnyView {
                     show_outside_days=false
                     placeholder="Pick ship date".to_string()
                     class_name="docs-date-picker-custom".to_string()
+                    motion=DatePickerMotion {
+                        popover: PopoverMotion {
+                            initial_scale: 0.95,
+                            offset_y_px: 10.0,
+                            ..PopoverMotion::default()
+                        },
+                    }
                 />
             </Playground>
         </ComponentPage>

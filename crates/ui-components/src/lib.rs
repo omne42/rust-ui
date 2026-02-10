@@ -301,7 +301,7 @@ pub use context_menu::{ContextMenu, ContextMenuMotion};
 pub use contextual_help::{ContextualHelp, ContextualHelpMotion, ContextualHelpVariant};
 pub use date_field::{DateField, DateFieldIds, DateFieldTone};
 pub use date_input_group::{DateInputGroup, DateInputGroupVariant};
-pub use date_picker::{DatePicker, DatePickerIds, DatePickerTone};
+pub use date_picker::{DatePicker, DatePickerIds, DatePickerMotion, DatePickerTone};
 pub use date_range_picker::{DateRangePicker, DateRangePickerTone};
 pub use description::{Description, DescriptionElement, DescriptionTone};
 pub use dialog::{Dialog, DialogMotion, DialogSize};

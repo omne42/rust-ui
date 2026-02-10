@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   width: min(100%, 24rem);
 }
 
+.ui-date-picker[data-motion-source="custom"],
+.ui-date-picker[data-custom-motion="true"] {
+  --ui-date-picker-custom-motion: 1;
+}
+
 .ui-date-picker--tone-default,
 .ui-date-picker[data-tone="default"] {
   color: var(--ui-fg);
