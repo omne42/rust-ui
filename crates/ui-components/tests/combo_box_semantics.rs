@@ -179,6 +179,8 @@ fn combo_box_emits_spectrum_style_state_data_attributes() {
         "data-has-disabled-options=state.has_disabled_options.then_some(\"true\")",
         "data-controlled=state.is_controlled.then_some(\"true\")",
         "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
+        "data-motion-source=if motion == ComboBoxMotion::default()",
+        "data-custom-motion=(motion != ComboBoxMotion::default()).then_some(\"true\")",
         "data-typed=move || has_typed.get().then_some(\"true\")",
         "data-count=state.item_count.to_string()",
         "data-filtered-count=move || filtered_count.get().to_string()",
@@ -217,10 +219,33 @@ fn combo_box_styles_include_controlled_and_disabled_option_markers() {
         ".ui-combo-box--controlled",
         ".ui-combo-box--has-disabled-options",
         ".ui-combo-box--empty",
+        ".ui-combo-box[data-motion-source=\"custom\"]",
+        ".ui-combo-box[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
             "ComboBox styles should include `{needle}` for stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn combo_box_motion_contract_exposes_popover_and_highlight_customization() {
+    let mod_source = load_source("src/combo_box/mod.rs");
+    let motion_source = load_source("src/combo_box/motion.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub use motion::ComboBoxMotion;",
+        "pub struct ComboBoxMotion",
+        "pub popover: PopoverMotion",
+        "pub highlight: ActiveHighlightMotion",
+        "fn default_motion_uses_default_popover_and_highlight_motion()",
+        "fn supports_custom_popover_and_highlight_motion_contracts()",
+    ] {
+        assert!(
+            mod_source.contains(needle) || motion_source.contains(needle),
+            "ComboBox motion contract should include `{needle}` for HeroUI-style spring customization."
         );
     }
 }

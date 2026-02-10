@@ -372,6 +372,12 @@ pub fn ComboBox(
             data-has-disabled-options=state.has_disabled_options.then_some("true")
             data-controlled=state.is_controlled.then_some("true")
             data-uncontrolled=state.is_uncontrolled.then_some("true")
+            data-motion-source=if motion == ComboBoxMotion::default() {
+                "default"
+            } else {
+                "custom"
+            }
+            data-custom-motion=(motion != ComboBoxMotion::default()).then_some("true")
             data-typed=move || has_typed.get().then_some("true")
             data-count=state.item_count.to_string()
             data-filtered-count=move || filtered_count.get().to_string()

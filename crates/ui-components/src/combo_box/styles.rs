@@ -5,6 +5,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-combo-box[data-motion-source="custom"],
+.ui-combo-box[data-custom-motion="true"] {
+  --ui-combo-box-custom-motion: 1;
+}
+
 .ui-combo-box--empty .ui-combo-box__trigger {
   opacity: 0.72;
 }
