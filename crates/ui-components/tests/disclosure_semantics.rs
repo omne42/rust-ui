@@ -180,3 +180,22 @@ fn disclosure_motion_is_spring_driven() {
         "Disclosure motion should use SpringAnimator to match the motion spec."
     );
 }
+
+#[test]
+fn disclosure_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/disclosure/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: DisclosureMotion) -> DisclosureMotion",
+        "fn sanitize_spring(value: SpringConfig) -> SpringConfig",
+        "closed_rotation_deg:",
+        "open_rotation_deg:",
+        "panel_offset_y_px:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Disclosure motion should include `{needle}` so invalid custom values cannot leak into runtime animation state.",
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Disclosure`/`Collapsible` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/rotation/panel-offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level panel/indicator behavior.
+
 - `ui-components`: upgrades `ContextMenu` to a full `logic/styles/view` slice with centralized slot/open-mode/item/action/id/aria/class/disabled/placement/motion source-state normalization, stable Spectrum-style root+trigger `data-*` contracts, and preserved context-trigger + keyboard-open semantics with HeroUI-level popover spring motion reuse.
 - `apps/docs-app`: upgrades `ContextMenu` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-aria-label-source`/`data-disabled-indices-source`/`data-close-on-action-source`/`data-open-source`/`data-motion-source` contracts.
 

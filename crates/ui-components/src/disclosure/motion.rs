@@ -27,6 +27,55 @@ impl Default for DisclosureMotion {
     }
 }
 
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: SpringConfig) -> SpringConfig {
+    let default = DisclosureMotion::default().spring;
+
+    SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: DisclosureMotion) -> DisclosureMotion {
+    let default = DisclosureMotion::default();
+
+    DisclosureMotion {
+        spring: sanitize_spring(motion.spring),
+        closed_rotation_deg: sanitize_number(
+            motion.closed_rotation_deg,
+            default.closed_rotation_deg,
+        )
+        .clamp(-360.0, 360.0),
+        open_rotation_deg: sanitize_number(motion.open_rotation_deg, default.open_rotation_deg)
+            .clamp(-360.0, 360.0),
+        panel_offset_y_px: sanitize_number(motion.panel_offset_y_px, default.panel_offset_y_px)
+            .abs()
+            .clamp(0.0, 240.0),
+    }
+}
+
 #[cfg(any(test, target_arch = "wasm32"))]
 type SetHidden = Rc<RefCell<Box<dyn FnMut(bool)>>>;
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -264,7 +313,7 @@ pub fn attach_indicator_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
     let last_open = StoredValue::new(None::<bool>);
 
@@ -337,7 +386,7 @@ pub fn attach_panel_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::{JsCast, closure::Closure};
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let driver = StoredValue::new_local(None::<Rc<RefCell<PanelMotionDriver>>>);
     let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);
     let resize_closure = StoredValue::new_local(
@@ -710,5 +759,52 @@ mod tests {
         driver.sync_open_height();
 
         assert!(events.borrow().is_empty());
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let motion = sanitize_motion(DisclosureMotion {
+            spring: SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            closed_rotation_deg: f64::NAN,
+            open_rotation_deg: f64::INFINITY,
+            panel_offset_y_px: f64::NAN,
+        });
+
+        let default = DisclosureMotion::default();
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.closed_rotation_deg, default.closed_rotation_deg);
+        assert_eq!(motion.open_rotation_deg, default.open_rotation_deg);
+        assert_eq!(motion.panel_offset_y_px, default.panel_offset_y_px);
+    }
+
+    #[test]
+    fn sanitize_motion_clamps_rotation_and_offset_ranges() {
+        let motion = sanitize_motion(DisclosureMotion {
+            spring: SpringConfig {
+                stiffness: 320.0,
+                damping: 24.0,
+                mass: 1.2,
+                precision: 0.002,
+            },
+            closed_rotation_deg: -720.0,
+            open_rotation_deg: 1080.0,
+            panel_offset_y_px: -1000.0,
+        });
+
+        assert_eq!(motion.closed_rotation_deg, -360.0);
+        assert_eq!(motion.open_rotation_deg, 360.0);
+        assert_eq!(motion.panel_offset_y_px, 240.0);
+        assert_eq!(motion.spring.stiffness, 320.0);
+        assert_eq!(motion.spring.damping, 24.0);
+        assert_eq!(motion.spring.mass, 1.2);
+        assert_eq!(motion.spring.precision, 0.002);
     }
 }
