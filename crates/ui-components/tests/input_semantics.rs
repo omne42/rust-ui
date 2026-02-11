@@ -132,3 +132,24 @@ fn input_emits_spectrum_style_state_data_attributes() {
         );
     }
 }
+
+#[test]
+fn input_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/input/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: InputMotion) -> InputMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "hidden_scale:",
+        "hover_scale:",
+        "tap_scale:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Input motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
