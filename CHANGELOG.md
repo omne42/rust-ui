@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `apps/docs-app`: adds `dev_css_hot_reload` regression coverage to lock `index.html` + `dev-overrides.css` ordering/workflow contracts, ensuring dev-mode style edits stay hot-swappable without Rust recompilation regressions.
+
 - `ui-components`: aligns `Meter` ARIA semantics with a valid `role="meter"` contract (replacing invalid multi-role markup), updates semantics assertions, and preserves Spectrum-style state marker behavior.
 
 - `ui-components`: upgrades `Toast` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring/entry contracts before runtime attachment, and adding regression tests to prevent NaN/invalid motion values from leaking into HeroUI-level toast transitions.
