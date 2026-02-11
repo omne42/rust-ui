@@ -14,6 +14,7 @@ pub fn ButtonCopy(
     #[prop(optional)] motion: ButtonCopyMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::button_copy::motion::sanitize_motion(motion);
     let label = logic::normalize_optional_text(label);
     let copied_label = logic::normalize_optional_text(copied_label);
     let aria_label = logic::normalize_optional_text(aria_label);

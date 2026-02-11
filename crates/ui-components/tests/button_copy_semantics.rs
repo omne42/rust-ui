@@ -154,3 +154,25 @@ fn button_copy_motion_contract_exposes_default_and_custom_tests() {
         );
     }
 }
+
+#[test]
+fn button_copy_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/button_copy/motion.rs");
+    let view_source = load_source("src/button_copy/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ButtonCopyMotion) -> ButtonCopyMotion",
+        "button: crate::button::motion::sanitize_motion(motion.button)",
+        "fn sanitize_motion_delegates_to_button_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ButtonCopy motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::button_copy::motion::sanitize_motion(motion);"),
+        "ButtonCopy view should sanitize motion before forwarding to Button.",
+    );
+}
