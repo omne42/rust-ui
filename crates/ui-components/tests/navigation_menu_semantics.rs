@@ -8,6 +8,40 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn navigation_menu_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/navigation_menu/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "NavigationMenu internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn navigation_menu_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/navigation_menu/mod.rs");
+
+    for needle in [
+        "pub struct NavigationMenuItem",
+        "pub struct NavigationMenuItemResolved",
+        "pub enum NavigationMenuSlot",
+        "pub struct NavigationMenuPartStateInput",
+        "pub struct NavigationMenuPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_ARIA_LABEL",
+        "DEFAULT_ACTIVATE_ON_FOCUS",
+        "pub use crate::active_highlight::ActiveHighlightMotion as NavigationMenuMotion;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "navigation_menu::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
 fn navigation_menu_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/navigation_menu/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -15,14 +49,6 @@ fn navigation_menu_is_exported_from_module_and_crate_root() {
     assert!(
         module_source.contains("pub use view::NavigationMenu;"),
         "navigation_menu module should export `NavigationMenu`."
-    );
-    assert!(
-        module_source.contains("pub use logic::NavigationMenuItem;"),
-        "navigation_menu module should export `NavigationMenuItem`."
-    );
-    assert!(
-        module_source.contains("NavigationMenuMotion"),
-        "navigation_menu module should expose a motion alias."
     );
     assert!(
         crate_source.contains(
@@ -33,38 +59,67 @@ fn navigation_menu_is_exported_from_module_and_crate_root() {
 }
 
 #[test]
-fn navigation_menu_uses_logic_state_model() {
-    let view_source = load_source("src/navigation_menu/view.rs");
-    let logic_source = load_source("src/navigation_menu/logic.rs");
+fn navigation_menu_logic_exposes_state_helpers() {
+    let source = load_source("src/navigation_menu/logic.rs");
 
     for needle in [
-        "pub struct NavigationMenuItem",
-        "pub struct NavigationMenuItemResolved",
-        "pub struct NavigationMenuStateInput",
-        "pub struct NavigationMenuState",
+        "pub fn state_attr(item_count: usize, has_selection: bool, has_focus: bool)",
+        "pub fn item_attr(item_count: usize)",
+        "pub fn selected_attr(has_selection: bool)",
+        "pub fn focus_attr(has_focus: bool)",
+        "pub fn focus_activation_attr(activate_on_focus: bool)",
+        "pub fn selection_mode_attr(is_controlled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(id_base: String)",
+        "pub fn resolve_aria_label(value: Option<String>)",
         "pub fn resolve_items(",
         "pub fn sanitize_selected_id(",
         "pub fn sanitize_focused_index(",
-        "pub fn resolve_state(",
+        "pub fn resolve_state(input: NavigationMenuPartStateInput) -> NavigationMenuPartState",
         "pub fn compose_class_name(",
         "pub fn next_enabled_index(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "NavigationMenu logic should include `{needle}` for centralized state derivation."
+            source.contains(needle),
+            "NavigationMenu logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn navigation_menu_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/navigation_menu/view.rs");
 
     for needle in [
-        "let items = logic::resolve_items(&id_base, items);",
-        "let selected_state = overlay_open::use_controllable_state(",
-        "attach_active_highlight_motion(list_ref, highlight_ref, active_index, option_id, motion);",
-        "let state = Signal::derive(move ||",
-        "logic::resolve_state(logic::NavigationMenuStateInput {",
+        "logic::normalize_id_base(id_base)",
+        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_items(&id_base.get_value(), items)",
+        "logic::resolve_state(NavigationMenuPartStateInput {",
+        "slot: NavigationMenuSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-items=move || root_state.get().item_attr",
+        "data-selection=move || root_state.get().selected_attr",
+        "data-focus=move || root_state.get().focus_attr",
+        "data-focus-activation=move || root_state.get().focus_activation_attr",
+        "data-selection-mode=move || root_state.get().selection_mode_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-aria-label-source=move || root_state.get().aria_label_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-activate-on-focus-source=move || root_state.get().activate_on_focus_source_attr",
+        "data-selected-id-source=move || root_state.get().selected_id_source_attr",
+        "data-default-selected-id-source=move || root_state.get().default_selected_id_source_attr",
+        "data-selected-id-change-source=move || root_state.get().selected_id_change_source_attr",
+        "data-motion-source=move || root_state.get().motion_source_attr",
+        "data-custom-id=move || root_state.get().has_custom_id_base.then_some(\"true\")",
+        "data-custom-aria-label=move || root_state.get().has_custom_aria_label.then_some(\"true\")",
+        "data-custom-selected-id=move || root_state.get().has_custom_selected_id.then_some(\"true\")",
+        "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
-            view_source.contains(needle),
-            "NavigationMenu view should derive wrapper state through logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "NavigationMenu view should include `{needle}` for stable state/source marker contracts."
         );
     }
 }
@@ -77,11 +132,13 @@ fn navigation_menu_supports_controlled_and_uncontrolled_selection_state() {
         "selected_id: Option<Signal<Option<String>>>",
         "default_selected_id: Option<String>",
         "on_selected_id_change: Option<Callback<Option<String>>>",
-        "activate_on_focus: bool",
+        "let has_custom_selected_id = selected_id.is_some()",
+        "let has_custom_default_selected_id = default_selected_id.is_some()",
+        "overlay_open::use_controllable_state(",
     ] {
         assert!(
             source.contains(needle),
-            "NavigationMenu should accept `{needle}` for controlled/uncontrolled selection behavior."
+            "NavigationMenu should support `{needle}` for controlled/uncontrolled selection behavior."
         );
     }
 }
@@ -108,42 +165,18 @@ fn navigation_menu_exposes_keyboard_and_focus_contracts() {
 }
 
 #[test]
-fn navigation_menu_emits_spectrum_root_state_data_attributes() {
-    let source = load_source("src/navigation_menu/view.rs");
-
-    for needle in [
-        "data-slot=\"navigation-menu\"",
-        "data-state=move || state.get().data_state_attr",
-        "data-empty=move || state.get().is_empty.then_some(\"true\")",
-        "data-has-items=move || state.get().has_items.then_some(\"true\")",
-        "data-item-count=move || state.get().item_count.to_string()",
-        "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
-        "data-focused-index=move || state.get().focused_index.map(|index| index.to_string())",
-        "data-has-selection=move || state.get().has_selection.then_some(\"true\")",
-        "data-has-focus=move || state.get().has_focus.then_some(\"true\")",
-        "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
-        "data-motion-source=motion_source",
-        "data-custom-motion=custom_motion",
-        "data-selected-id=move || selected_id.get()",
-    ] {
-        assert!(
-            source.contains(needle),
-            "NavigationMenu should set `{needle}` so it can be styled/tested with Spectrum-compatible selectors."
-        );
-    }
-}
-
-#[test]
 fn navigation_menu_uses_active_highlight_motion_contract() {
     let source = load_source("src/navigation_menu/view.rs");
 
     for needle in [
-        "use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};",
+        "use crate::active_highlight::{",
+        "attach_active_highlight_motion",
+        "ActiveHighlightMotion",
         "let list_ref: NodeRef<html::Div> = NodeRef::new();",
         "let highlight_ref: NodeRef<html::Div> = NodeRef::new();",
         "let (active_index, set_active_index) = signal(",
         "attach_active_highlight_motion(list_ref, highlight_ref, active_index, option_id, motion);",
-        "data-slot=\"navigation-menu-highlight\"",
+        "data-slot=highlight_slot.as_attr()",
     ] {
         assert!(
             source.contains(needle),
@@ -153,21 +186,52 @@ fn navigation_menu_uses_active_highlight_motion_contract() {
 }
 
 #[test]
-fn navigation_menu_styles_include_selected_disabled_and_empty_markers() {
+fn navigation_menu_styles_include_state_and_source_markers() {
     let source = load_source("src/navigation_menu/styles.rs");
 
     for needle in [
         ".ui-navigation-menu {",
+        ".ui-navigation-menu--selected",
+        ".ui-navigation-menu[data-state=\"selected\"]",
+        ".ui-navigation-menu--manual-activation",
+        ".ui-navigation-menu[data-focus-activation=\"manual\"]",
+        ".ui-navigation-menu[data-selection-mode=\"controlled\"]",
+        ".ui-navigation-menu[data-id-source=\"custom\"]",
+        ".ui-navigation-menu[data-aria-label-source=\"custom\"]",
+        ".ui-navigation-menu[data-selected-id-source=\"custom\"]",
+        ".ui-navigation-menu[data-selected-id-change-source=\"custom\"]",
         ".ui-navigation-menu[data-motion-source=\"custom\"]",
         ".ui-navigation-menu[data-custom-motion=\"true\"]",
-        ".ui-navigation-menu__list {",
-        ".ui-navigation-menu__item[data-selected=\"true\"]",
-        ".ui-navigation-menu__item[data-disabled=\"true\"]",
-        ".ui-navigation-menu--empty",
+        ".ui-navigation-menu__item[data-state=\"selected\"]",
     ] {
         assert!(
             source.contains(needle),
-            "NavigationMenu styles should include `{needle}` for stable visual state contracts."
+            "NavigationMenu styles should include `{needle}` for stable state/source contracts."
+        );
+    }
+}
+
+#[test]
+fn navigation_menu_docs_page_contains_state_source_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn navigation_menu() -> AnyView",
+        "title=\"NavigationMenu\"",
+        "slug=\"navigation-menu\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-aria-label-source",
+        "data-activate-on-focus-source",
+        "data-selected-id-source",
+        "data-selected-id-change-source",
+        "data-motion-source",
+        "<NavigationMenu",
+    ] {
+        assert!(
+            source.contains(needle),
+            "NavigationMenu docs page should contain `{needle}`."
         );
     }
 }

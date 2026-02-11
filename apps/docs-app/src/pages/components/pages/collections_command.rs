@@ -638,6 +638,12 @@ pub(super) fn navigation_menu() -> AnyView {
         NavigationMenuItem::new("blog", "Blog", "/blog"),
     ];
 
+    let marker_items = vec![
+        NavigationMenuItem::new("workspace", "Workspace", "/workspace"),
+        NavigationMenuItem::new("projects", "Projects", "/projects"),
+        NavigationMenuItem::new("settings", "Settings", "/settings"),
+    ];
+
     let (last_selected, set_last_selected) = signal("none".to_string());
     let on_selected_id_change = Callback::new(move |next: Option<String>| {
         set_last_selected.set(next.unwrap_or_else(|| "none".to_string()))
@@ -650,25 +656,53 @@ pub(super) fn navigation_menu() -> AnyView {
         set_controlled_selected_raw.set(next);
     });
 
+    let (marker_selected_raw, set_marker_selected_raw) = signal(Some("projects".to_string()));
+    let marker_selected: Signal<Option<String>> = Signal::derive(move || marker_selected_raw.get());
+    let on_marker_selected_change = Callback::new(move |next: Option<String>| {
+        set_marker_selected_raw.set(next);
+    });
+
     let code = r#"<NavigationMenu
-  id_base=\"docs-navigation-menu\".to_string()
+  id_base="docs-navigation-menu".to_string()
   items=items
-  default_selected_id=\"components\".to_string()
+  default_selected_id="components".to_string()
   on_selected_id_change=Callback::new(move |next: Option<String>| {
-    set_last_selected.set(next.unwrap_or_else(|| \"none\".to_string()));
+    set_last_selected.set(next.unwrap_or_else(|| "none".to_string()));
   })
 />"#;
 
-    let states_code = r#"let (selected, set_selected) = signal(Some(\"docs\".to_string()));
+    let states_code = r#"let (selected, set_selected) = signal(Some("docs".to_string()));
 let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.get());
 
 <NavigationMenu
-  id_base=\"docs-navigation-menu-controlled\".to_string()
+  id_base="docs-navigation-menu-controlled".to_string()
   items=items
   selected_id=selected_signal
   on_selected_id_change=Callback::new(move |next| set_selected.set(next))
   activate_on_focus=false
 />"#;
+
+    let marker_code = r#"let (selected, set_selected) = signal(Some("projects".to_string()));
+let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.get());
+let mut custom_motion = ui_components::NavigationMenuMotion::default();
+custom_motion.spring.stiffness = 260.0;
+custom_motion.spring.damping = 24.0;
+
+<NavigationMenu
+  id_base="docs-navigation-menu-markers".to_string()
+  items=items
+  selected_id=selected_signal
+  default_selected_id="workspace".to_string()
+  on_selected_id_change=Callback::new(move |next| set_selected.set(next))
+  activate_on_focus=false
+  aria_label="Workspace navigation".to_string()
+  class_name="docs-navigation-menu-custom".to_string()
+  motion=custom_motion
+/>"#;
+
+    let mut marker_motion = ui_components::NavigationMenuMotion::default();
+    marker_motion.spring.stiffness = 260.0;
+    marker_motion.spring.damping = 24.0;
 
     view! {
         <ComponentPage
@@ -686,13 +720,13 @@ let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.ge
                         on_selected_id_change=on_selected_id_change
                     />
                     <span class="ui-muted">
-                        "selected: "
+                        "last selected: "
                         {move || last_selected.get()}
                     </span>
                 </div>
             </Playground>
 
-            <Playground title="Controlled Selection + activate_on_focus=false" code=states_code>
+            <Playground title="Controlled + Manual Activation" code=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <NavigationMenu
                         id_base="docs-navigation-menu-controlled".to_string()
@@ -700,12 +734,51 @@ let selected_signal: Signal<Option<String>> = Signal::derive(move || selected.ge
                         selected_id=controlled_selected
                         on_selected_id_change=on_controlled_selected_change
                         activate_on_focus=false
-                        aria_label="Header navigation".to_string()
                         class_name="docs-navigation-menu-custom".to_string()
                     />
                     <span class="ui-muted">
-                        "controlled selected: "
+                        "selected: "
                         {move || controlled_selected_raw.get().unwrap_or_else(|| "none".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button
+                            type="button"
+                            on:click=move |_| set_marker_selected_raw.set(Some("workspace".to_string()))
+                        >
+                            "Select Workspace"
+                        </button>
+                        <button
+                            type="button"
+                            on:click=move |_| set_marker_selected_raw.set(Some("projects".to_string()))
+                        >
+                            "Select Projects"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_selected_raw.set(None)>
+                            "Clear"
+                        </button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-aria-label-source / data-activate-on-focus-source / data-selected-id-source / data-selected-id-change-source / data-motion-source in DevTools."
+                    </div>
+                    <NavigationMenu
+                        id_base="docs-navigation-menu-markers".to_string()
+                        items=marker_items
+                        selected_id=marker_selected
+                        default_selected_id="workspace".to_string()
+                        on_selected_id_change=on_marker_selected_change
+                        activate_on_focus=false
+                        aria_label="Workspace navigation".to_string()
+                        class_name="docs-navigation-menu-custom".to_string()
+                        motion=marker_motion
+                    />
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || marker_selected_raw.get().unwrap_or_else(|| "none".to_string())}
                     </span>
                 </div>
             </Playground>

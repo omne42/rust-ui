@@ -1,61 +1,52 @@
 use std::collections::BTreeSet;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NavigationMenuItem {
-    pub id: String,
-    pub label: String,
-    pub href: String,
-    pub disabled: bool,
-}
+use crate::navigation_menu::{
+    NavigationMenuItem, NavigationMenuItemResolved, NavigationMenuPartState,
+    NavigationMenuPartStateInput, NavigationMenuSlot,
+};
 
-impl NavigationMenuItem {
-    pub fn new(id: impl Into<String>, label: impl Into<String>, href: impl Into<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            href: href.into(),
-            disabled: false,
-        }
-    }
+pub const DEFAULT_ID_BASE: &str = "navigation-menu";
+pub const DEFAULT_ARIA_LABEL: &str = "Main navigation";
+pub const DEFAULT_ACTIVATE_ON_FOCUS: bool = true;
 
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
+pub fn state_attr(item_count: usize, has_selection: bool, has_focus: bool) -> &'static str {
+    if item_count == 0 {
+        "empty"
+    } else if has_selection {
+        "selected"
+    } else if has_focus {
+        "focused"
+    } else {
+        "idle"
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct NavigationMenuItemResolved {
-    pub id: String,
-    pub dom_id: String,
-    pub label: String,
-    pub href: String,
-    pub disabled: bool,
+pub fn item_attr(item_count: usize) -> &'static str {
+    if item_count == 0 {
+        "empty"
+    } else {
+        "populated"
+    }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct NavigationMenuStateInput {
-    pub item_count: usize,
-    pub selected_index: Option<usize>,
-    pub focused_index: Option<usize>,
-    pub has_disabled_items: bool,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
+pub fn selected_attr(has_selection: bool) -> &'static str {
+    if has_selection { "present" } else { "absent" }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct NavigationMenuState {
-    pub item_count: usize,
-    pub is_empty: bool,
-    pub has_items: bool,
-    pub selected_index: Option<usize>,
-    pub focused_index: Option<usize>,
-    pub has_selection: bool,
-    pub has_focus: bool,
-    pub has_disabled_items: bool,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-    pub data_state_attr: &'static str,
+pub fn focus_attr(has_focus: bool) -> &'static str {
+    if has_focus { "present" } else { "absent" }
+}
+
+pub fn focus_activation_attr(activate_on_focus: bool) -> &'static str {
+    if activate_on_focus { "auto" } else { "manual" }
+}
+
+pub fn selection_mode_attr(is_controlled: bool) -> &'static str {
+    if is_controlled {
+        "controlled"
+    } else {
+        "uncontrolled"
+    }
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -66,7 +57,7 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| "navigation-menu".to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
 }
 
 fn sanitize_token(value: &str, fallback: &str) -> String {
@@ -102,7 +93,7 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    ("Main navigation".to_string(), false)
+    (DEFAULT_ARIA_LABEL.to_string(), false)
 }
 
 pub fn resolve_items(
@@ -215,52 +206,108 @@ pub fn resolve_initial_focus_index(
     sanitize_focused_index(selected_index, items).or_else(|| first_enabled_index(items))
 }
 
-pub fn resolve_state(input: NavigationMenuStateInput) -> NavigationMenuState {
+fn source_attr(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+pub fn resolve_state(input: NavigationMenuPartStateInput) -> NavigationMenuPartState {
     let has_items = input.item_count > 0;
+    let is_empty = !has_items;
     let has_selection = input.selected_index.is_some();
     let has_focus = input.focused_index.is_some();
 
-    let data_state_attr = if !has_items {
-        "empty"
-    } else if has_selection {
-        "selected"
-    } else if has_focus {
-        "focused"
-    } else {
-        "idle"
-    };
-
-    NavigationMenuState {
+    NavigationMenuPartState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: state_attr(input.item_count, has_selection, has_focus),
+        item_attr: item_attr(input.item_count),
+        selected_attr: selected_attr(has_selection),
+        focus_attr: focus_attr(has_focus),
+        focus_activation_attr: focus_activation_attr(input.activate_on_focus),
+        selection_mode_attr: selection_mode_attr(input.is_controlled),
+        open_attr: has_selection.then_some("true"),
+        closed_attr: (!has_selection).then_some("true"),
         item_count: input.item_count,
-        is_empty: !has_items,
-        has_items,
         selected_index: input.selected_index,
         focused_index: input.focused_index,
+        is_empty,
+        has_items,
         has_selection,
         has_focus,
         has_disabled_items: input.has_disabled_items,
+        activate_on_focus: input.activate_on_focus,
+        is_controlled: input.is_controlled,
+        is_uncontrolled: !input.is_controlled,
+        has_custom_id_base: input.has_custom_id_base,
         has_custom_aria_label: input.has_custom_aria_label,
         has_custom_class_name: input.has_custom_class_name,
-        data_state_attr,
+        has_custom_activate_on_focus: input.has_custom_activate_on_focus,
+        has_custom_selected_id: input.has_custom_selected_id,
+        has_custom_default_selected_id: input.has_custom_default_selected_id,
+        has_custom_on_selected_id_change: input.has_custom_on_selected_id_change,
+        has_custom_motion: input.has_custom_motion,
+        id_source_attr: source_attr(input.has_custom_id_base),
+        aria_label_source_attr: source_attr(input.has_custom_aria_label),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        activate_on_focus_source_attr: source_attr(input.has_custom_activate_on_focus),
+        selected_id_source_attr: source_attr(input.has_custom_selected_id),
+        default_selected_id_source_attr: source_attr(input.has_custom_default_selected_id),
+        selected_id_change_source_attr: source_attr(input.has_custom_on_selected_id_change),
+        motion_source_attr: source_attr(input.has_custom_motion),
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: NavigationMenuState) -> String {
-    let mut classes = vec!["ui-navigation-menu".to_string()];
+pub fn compose_class_name(
+    base_class_name: Option<String>,
+    state: NavigationMenuPartState,
+) -> String {
+    let mut classes = vec![state.base_class.to_string()];
 
-    if state.is_empty {
-        classes.push("ui-navigation-menu--empty".to_string());
-    }
-    if state.has_selection {
-        classes.push("ui-navigation-menu--selected".to_string());
-    }
-    if state.has_disabled_items {
-        classes.push("ui-navigation-menu--has-disabled-items".to_string());
-    }
+    if matches!(state.slot, NavigationMenuSlot::Root) {
+        if state.is_empty {
+            classes.push("ui-navigation-menu--empty".to_string());
+        } else {
+            classes.push("ui-navigation-menu--has-items".to_string());
+        }
 
-    if state.has_custom_class_name
-        && let Some(base_class_name) = base_class_name
-    {
+        if state.has_selection {
+            classes.push("ui-navigation-menu--selected".to_string());
+        } else {
+            classes.push("ui-navigation-menu--unselected".to_string());
+        }
+
+        if state.has_focus {
+            classes.push("ui-navigation-menu--focused".to_string());
+        }
+
+        if state.has_disabled_items {
+            classes.push("ui-navigation-menu--has-disabled-items".to_string());
+        }
+
+        if state.activate_on_focus {
+            classes.push("ui-navigation-menu--auto-activation".to_string());
+        } else {
+            classes.push("ui-navigation-menu--manual-activation".to_string());
+        }
+
+        if state.is_controlled {
+            classes.push("ui-navigation-menu--controlled".to_string());
+        } else {
+            classes.push("ui-navigation-menu--uncontrolled".to_string());
+        }
+
+        if state.has_custom_motion {
+            classes.push("ui-navigation-menu--custom-motion".to_string());
+        }
+
+        if state.has_custom_class_name {
+            classes.push("ui-navigation-menu--custom-class".to_string());
+            if let Some(base_class_name) = normalize_optional_text(base_class_name) {
+                classes.push(base_class_name);
+            }
+        }
+    } else if let Some(base_class_name) = normalize_optional_text(base_class_name) {
         classes.push(base_class_name);
     }
 
@@ -270,6 +317,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: NavigationMenu
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::navigation_menu::{NavigationMenuPartStateInput, NavigationMenuSlot};
 
     #[test]
     fn id_base_and_aria_label_have_stable_defaults() {
@@ -277,11 +325,11 @@ mod tests {
             normalize_id_base("  primary-nav  ".to_string()),
             "primary-nav"
         );
-        assert_eq!(normalize_id_base(" ".to_string()), "navigation-menu");
+        assert_eq!(normalize_id_base(" ".to_string()), DEFAULT_ID_BASE);
 
         assert_eq!(
             resolve_aria_label(None),
-            ("Main navigation".to_string(), false)
+            (DEFAULT_ARIA_LABEL.to_string(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("  App sections  ".to_string())),
@@ -370,23 +418,75 @@ mod tests {
     }
 
     #[test]
+    fn resolve_state_tracks_source_and_selection_contracts() {
+        let state = resolve_state(NavigationMenuPartStateInput {
+            slot: NavigationMenuSlot::Root,
+            item_count: 3,
+            selected_index: Some(1),
+            focused_index: Some(1),
+            has_disabled_items: true,
+            activate_on_focus: false,
+            is_controlled: true,
+            has_custom_id_base: true,
+            has_custom_aria_label: true,
+            has_custom_class_name: true,
+            has_custom_activate_on_focus: true,
+            has_custom_selected_id: true,
+            has_custom_default_selected_id: true,
+            has_custom_on_selected_id_change: true,
+            has_custom_motion: true,
+        });
+
+        assert_eq!(state.slot_attr, "navigation-menu");
+        assert_eq!(state.state_attr, "selected");
+        assert_eq!(state.item_attr, "populated");
+        assert_eq!(state.selected_attr, "present");
+        assert_eq!(state.focus_attr, "present");
+        assert_eq!(state.focus_activation_attr, "manual");
+        assert_eq!(state.selection_mode_attr, "controlled");
+        assert_eq!(state.id_source_attr, "custom");
+        assert_eq!(state.aria_label_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
+        assert_eq!(state.activate_on_focus_source_attr, "custom");
+        assert_eq!(state.selected_id_source_attr, "custom");
+        assert_eq!(state.default_selected_id_source_attr, "custom");
+        assert_eq!(state.selected_id_change_source_attr, "custom");
+        assert_eq!(state.motion_source_attr, "custom");
+    }
+
+    #[test]
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
-            resolve_state(NavigationMenuStateInput {
+            resolve_state(NavigationMenuPartStateInput {
+                slot: NavigationMenuSlot::Root,
                 item_count: 3,
                 selected_index: Some(1),
                 focused_index: Some(1),
                 has_disabled_items: true,
+                activate_on_focus: false,
+                is_controlled: true,
+                has_custom_id_base: false,
                 has_custom_aria_label: true,
                 has_custom_class_name: true,
+                has_custom_activate_on_focus: true,
+                has_custom_selected_id: true,
+                has_custom_default_selected_id: false,
+                has_custom_on_selected_id_change: true,
+                has_custom_motion: true,
             }),
         );
 
         for token in [
             "ui-navigation-menu",
+            "ui-navigation-menu--has-items",
             "ui-navigation-menu--selected",
+            "ui-navigation-menu--focused",
             "ui-navigation-menu--has-disabled-items",
+            "ui-navigation-menu--manual-activation",
+            "ui-navigation-menu--controlled",
+            "ui-navigation-menu--custom-motion",
+            "ui-navigation-menu--custom-class",
             "custom",
         ] {
             assert!(
