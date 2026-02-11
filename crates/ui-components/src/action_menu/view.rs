@@ -55,6 +55,7 @@ pub fn ActionMenu(
     let has_custom_open = open.is_some();
     let has_custom_default_open = default_open.is_some();
     let has_custom_on_open_change = on_open_change.is_some();
+    let motion = crate::action_menu::motion::sanitize_motion(motion);
     let has_custom_motion = motion != ActionMenuMotion::default();
 
     let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);

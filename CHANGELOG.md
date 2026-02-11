@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `ActionMenu` motion safety by introducing `sanitize_motion` wrapper guards over nested popover contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Popover`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level action-menu open/close behavior.
+
 - `ui-components`: upgrades `AlertBanner` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring parameters before runtime animation wiring, and adding regression tests to prevent NaN/invalid spring values from leaking into HeroUI-level alert-banner reveal behavior.
 
 - `ui-components`: upgrades `AlertDialog` motion safety by introducing `sanitize_motion` wrapper guards over nested overlay contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Overlay`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level alert-dialog entry/exit behavior.

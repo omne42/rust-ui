@@ -249,3 +249,25 @@ fn action_menu_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn action_menu_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/action_menu/motion.rs");
+    let view_source = load_source("src/action_menu/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ActionMenuMotion) -> ActionMenuMotion",
+        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "fn sanitize_motion_delegates_to_popover_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ActionMenu motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::action_menu::motion::sanitize_motion(motion);"),
+        "ActionMenu view should sanitize motion before forwarding to Popover.",
+    );
+}
