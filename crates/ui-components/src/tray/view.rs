@@ -38,6 +38,7 @@ pub fn Tray(
     let description = StoredValue::new(description);
     let footer = StoredValue::new(footer);
     let children = StoredValue::new(children);
+    let motion = crate::tray::motion::sanitize_motion(motion);
 
     let has_custom_description = description.get_value().is_some();
     let has_footer = footer.get_value().is_some();

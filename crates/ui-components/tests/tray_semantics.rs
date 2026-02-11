@@ -242,3 +242,28 @@ fn tray_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn tray_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/tray/motion.rs");
+    let view_source = load_source("src/tray/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: TrayMotion) -> TrayMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "initial_offset_px",
+        "sheet: crate::sheet::SheetMotion",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_offset_range()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Tray motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::tray::motion::sanitize_motion(motion);"),
+        "Tray view should sanitize motion before forwarding it to Sheet.",
+    );
+}
