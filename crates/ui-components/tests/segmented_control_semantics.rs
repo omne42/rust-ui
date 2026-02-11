@@ -148,3 +148,31 @@ fn segmented_control_motion_uses_spring_animator() {
         "SegmentedControl motion should be spring-driven to match the repo's motion spec."
     );
 }
+
+#[test]
+fn segmented_control_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/segmented_control/motion.rs");
+    let view_source = load_source("src/segmented_control/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: SegmentedControlMotion) -> SegmentedControlMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "SegmentedControl motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    for needle in [
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "let motion = crate::segmented_control::motion::sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle) || view_source.contains(needle),
+            "SegmentedControl should include `{needle}` to sanitize motion at component and runtime boundaries.",
+        );
+    }
+}

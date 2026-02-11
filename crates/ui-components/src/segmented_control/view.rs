@@ -36,6 +36,7 @@ pub fn SegmentedControl(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::segmented_control::motion::sanitize_motion(motion);
     let options: StoredValue<Arc<[String]>> = StoredValue::new(options.into());
     let item_count = options.get_value().len();
     let (item_count_signal, _set_item_count) = signal(item_count);
