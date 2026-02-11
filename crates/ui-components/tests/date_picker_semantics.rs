@@ -142,3 +142,25 @@ fn date_picker_exposes_motion_contract_and_internal_module() {
         );
     }
 }
+
+#[test]
+fn date_picker_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/date_picker/motion.rs");
+    let view_source = load_source("src/date_picker/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: DatePickerMotion) -> DatePickerMotion",
+        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "fn sanitize_motion_delegates_to_popover_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "DatePicker motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::date_picker::motion::sanitize_motion(motion);"),
+        "DatePicker view should sanitize motion before forwarding to Popover.",
+    );
+}

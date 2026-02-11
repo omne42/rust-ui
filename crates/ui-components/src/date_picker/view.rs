@@ -51,6 +51,8 @@ pub fn DatePicker(
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
 
     let class_name = logic::normalize_optional_text(class_name);
+
+    let motion = crate::date_picker::motion::sanitize_motion(motion);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
 
