@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `FlipCard` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/scale/tilt values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level flip-card interactions.
+
 - `ui-components`: upgrades `CodeBlock` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring/flash-hold contracts before runtime attachment, and adding regression tests to prevent NaN/invalid motion contracts from leaking into HeroUI-level copy feedback behavior.
 
 - `ui-components`: upgrades `ShareButton` motion safety by introducing `sanitize_motion` wrapper guards over nested flip-button contracts, sanitizing forwarded custom spring values before runtime handoff to `FlipButton`, and adding regression tests to prevent NaN/invalid motion contracts from leaking into HeroUI-level share interactions.

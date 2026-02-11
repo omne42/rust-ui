@@ -173,3 +173,26 @@ fn flip_card_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn flip_card_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/flip_card/motion.rs");
+    let view_source = load_source("src/flip_card/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: FlipCardMotion) -> FlipCardMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "FlipCard motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::flip_card::motion::sanitize_motion(motion);"),
+        "FlipCard view should sanitize motion before deriving state and attaching motion driver.",
+    );
+}

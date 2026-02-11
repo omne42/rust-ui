@@ -24,6 +24,7 @@ pub fn FlipCard(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::flip_card::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let has_custom_motion = motion != FlipCardMotion::default();
