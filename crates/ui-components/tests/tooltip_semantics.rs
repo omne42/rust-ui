@@ -211,3 +211,24 @@ fn tooltip_motion_contract_exposes_default_and_custom_test_coverage() {
         );
     }
 }
+
+#[test]
+fn tooltip_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/tooltip/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: TooltipMotion) -> TooltipMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "initial_scale:",
+        "offset_y_px:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "let _ = sanitize_motion(motion);",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_and_offset_ranges()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tooltip motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Tooltip` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/scale/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level tooltip entry/exit behavior.
+
 - `ui-components`: upgrades `Disclosure`/`Collapsible` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/rotation/panel-offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level panel/indicator behavior.
 
 - `ui-components`: upgrades `Popover`/`Overlay` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/scale/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level entry/exit behavior.
