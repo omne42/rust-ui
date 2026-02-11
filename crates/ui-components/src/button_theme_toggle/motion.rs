@@ -1,5 +1,10 @@
 use super::ThemeMode;
 
+const MAX_ROTATE_DEG: f64 = 3600.0;
+const MIN_SCALE_DOWN: f64 = 0.1;
+const MAX_SCALE_DOWN: f64 = 1.0;
+const MAX_SETTLE_DELAY_MS: u64 = 2_000;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ThemeToggleMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -16,6 +21,50 @@ impl Default for ThemeToggleMotion {
             scale_down: 0.92,
             scale_settle_delay_ms: 40,
         }
+    }
+}
+
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = ThemeToggleMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: ThemeToggleMotion) -> ThemeToggleMotion {
+    let default = ThemeToggleMotion::default();
+
+    ThemeToggleMotion {
+        spring: sanitize_spring(motion.spring),
+        rotate_deg: sanitize_number(motion.rotate_deg, default.rotate_deg)
+            .clamp(-MAX_ROTATE_DEG, MAX_ROTATE_DEG),
+        scale_down: sanitize_number(motion.scale_down, default.scale_down)
+            .clamp(MIN_SCALE_DOWN, MAX_SCALE_DOWN),
+        scale_settle_delay_ms: motion.scale_settle_delay_ms.min(MAX_SETTLE_DELAY_MS),
     }
 }
 
@@ -84,7 +133,7 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let driver = StoredValue::new_local(None::<Rc<RefCell<ThemeToggleMotionDriver>>>);
     let last_mode = StoredValue::new(None::<ThemeMode>);
     let scale_timeout = StoredValue::new_local(None::<TimeoutHandle>);
@@ -176,8 +225,9 @@ pub fn attach_motion(
 pub fn attach_motion(
     _icon_ref: leptos::prelude::NodeRef<leptos::html::Span>,
     _mode: leptos::prelude::Signal<ThemeMode>,
-    _motion: ThemeToggleMotion,
+    motion: ThemeToggleMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
@@ -227,5 +277,52 @@ mod tests {
         assert_eq!(&*events.borrow(), &[180.0, 360.0]);
 
         driver.stop();
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_and_clamps_values() {
+        let motion = sanitize_motion(ThemeToggleMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            rotate_deg: f64::NAN,
+            scale_down: f64::NAN,
+            scale_settle_delay_ms: u64::MAX,
+        });
+
+        let default = ThemeToggleMotion::default();
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.rotate_deg, default.rotate_deg);
+        assert_eq!(motion.scale_down, default.scale_down);
+        assert_eq!(motion.scale_settle_delay_ms, MAX_SETTLE_DELAY_MS);
+    }
+
+    #[test]
+    fn sanitize_motion_keeps_valid_values() {
+        let motion = sanitize_motion(ThemeToggleMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 300.0,
+                damping: 20.0,
+                mass: 1.2,
+                precision: 0.003,
+            },
+            rotate_deg: -720.0,
+            scale_down: 0.88,
+            scale_settle_delay_ms: 120,
+        });
+
+        assert_eq!(motion.spring.stiffness, 300.0);
+        assert_eq!(motion.spring.damping, 20.0);
+        assert_eq!(motion.spring.mass, 1.2);
+        assert_eq!(motion.spring.precision, 0.003);
+        assert_eq!(motion.rotate_deg, -720.0);
+        assert_eq!(motion.scale_down, 0.88);
+        assert_eq!(motion.scale_settle_delay_ms, 120);
     }
 }

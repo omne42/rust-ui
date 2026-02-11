@@ -150,3 +150,24 @@ fn theme_toggle_button_styles_include_motion_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn theme_toggle_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/button_theme_toggle/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ThemeToggleMotion) -> ThemeToggleMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "rotate_deg:",
+        "scale_down:",
+        "scale_settle_delay_ms:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_and_clamps_values()",
+        "fn sanitize_motion_keeps_valid_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ThemeToggle motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
