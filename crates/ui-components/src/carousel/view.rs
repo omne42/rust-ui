@@ -1,7 +1,10 @@
 use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
-use crate::carousel::{CarouselItem, CarouselOrientation, logic};
+use crate::carousel::{
+    CarouselItem, CarouselItemResolved, CarouselMotion, CarouselOrientation,
+    CarouselPartStateInput, CarouselSlot, logic,
+};
 use crate::overlay_open;
-use leptos::{ev, prelude::*};
+use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
 
 #[component]
@@ -18,20 +21,33 @@ pub fn Carousel(
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let id_base = logic::normalize_id_base(id_base);
+    let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
+    let id_base = StoredValue::new(id_base);
 
-    let items = logic::resolve_items(&id_base, items);
-    let items: StoredValue<Arc<[logic::CarouselItemResolved]>> = StoredValue::new(Arc::from(items));
+    let items = logic::resolve_items(&id_base.get_value(), items);
+    let items: StoredValue<Arc<[CarouselItemResolved]>> = StoredValue::new(Arc::from(items));
     let item_count = items.get_value().len();
 
     let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
+    let aria_label = StoredValue::new(aria_label);
+
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
+    let class_name = StoredValue::new(class_name);
+
+    let has_custom_orientation = orientation != logic::DEFAULT_ORIENTATION;
+    let has_custom_loop_navigation = loop_navigation != logic::DEFAULT_LOOP_NAVIGATION;
+    let has_custom_selected_index = selected_index.is_some();
+    let has_custom_default_selected_index = default_selected_index.is_some();
+    let has_custom_on_selected_index_change = on_selected_index_change.is_some();
+    let has_custom_motion = motion != CarouselMotion::default();
 
     let default_selected_index = logic::resolve_initial_selected_index(
         items.get_value().as_ref(),
         logic::sanitize_index(default_selected_index, item_count),
     );
 
+    let is_controlled = has_custom_selected_index;
     let selected_state = overlay_open::use_controllable_state(
         selected_index,
         Some(default_selected_index),
@@ -53,20 +69,32 @@ pub fn Carousel(
             .or(selected_index.get())
     });
 
-    let state = Signal::derive(move || {
-        logic::resolve_state(logic::CarouselStateInput {
+    let root_state = Memo::new(move |_| {
+        logic::resolve_state(CarouselPartStateInput {
+            slot: CarouselSlot::Root,
             item_count,
             selected_index: selected_index.get(),
             focused_index: focused_index.get(),
             has_disabled_items: items.get_value().iter().any(|item| item.disabled),
-            has_custom_aria_label,
-            has_custom_class_name,
             orientation,
             loop_navigation,
+            is_controlled,
+            has_custom_id_base,
+            has_custom_aria_label,
+            has_custom_class_name,
+            has_custom_orientation,
+            has_custom_loop_navigation,
+            has_custom_selected_index,
+            has_custom_default_selected_index,
+            has_custom_on_selected_index_change,
+            has_custom_motion,
         })
     });
+    let root_state_for_class = root_state;
 
-    let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));
+    let root_class = Memo::new(move |_| {
+        logic::compose_class_name(class_name.get_value(), root_state_for_class.get())
+    });
 
     let request_selected_index_change = Callback::new(move |next: Option<usize>| {
         let next = logic::sanitize_selected_index(next, items.get_value().as_ref());
@@ -174,10 +202,15 @@ pub fn Carousel(
 
     let indicator_indices: StoredValue<Vec<usize>> = StoredValue::new((0..item_count).collect());
 
-    let indicator_list_ref: NodeRef<leptos::html::Div> = NodeRef::new();
-    let indicator_highlight_ref: NodeRef<leptos::html::Div> = NodeRef::new();
+    let indicator_list_ref: NodeRef<html::Div> = NodeRef::new();
+    let indicator_highlight_ref: NodeRef<html::Div> = NodeRef::new();
 
-    let (active_index, set_active_index) = signal(selected_index.get_untracked().unwrap_or(0));
+    let (active_index, set_active_index) = signal(
+        selected_index
+            .get_untracked()
+            .or_else(|| logic::first_enabled_index(items.get_value().as_ref()))
+            .unwrap_or(0),
+    );
     Effect::new(move |_| {
         let next = selected_index
             .get()
@@ -212,10 +245,14 @@ pub fn Carousel(
         let item_slide_dom_id = StoredValue::new(item.slide_dom_id);
         let item_disabled = item.disabled;
 
+        let item_slot = CarouselSlot::Item;
+        let title_slot = CarouselSlot::Title;
+        let description_slot = CarouselSlot::Description;
+
         view! {
             <article
                 id=item_slide_dom_id.get_value()
-                class="ui-carousel__slide"
+                class=item_slot.base_class()
                 role="group"
                 aria-roledescription="slide"
                 aria-hidden=move || {
@@ -225,17 +262,28 @@ pub fn Carousel(
                         "true"
                     }
                 }
-                data-slot="carousel-item"
+                data-slot=item_slot.as_attr()
                 data-index=index
+                data-state=move || {
+                    if item_disabled {
+                        "disabled"
+                    } else if selected_index.get() == Some(index) {
+                        "selected"
+                    } else if focused_index.get() == Some(index) {
+                        "focused"
+                    } else {
+                        "idle"
+                    }
+                }
                 data-selected=move || (selected_index.get() == Some(index)).then_some("true")
                 data-focused=move || (focused_index.get() == Some(index)).then_some("true")
                 data-disabled=item_disabled.then_some("true")
             >
-                <h3 class="ui-carousel__title" data-slot="carousel-title">
+                <h3 class=title_slot.base_class() data-slot=title_slot.as_attr()>
                     {item_title.get_value()}
                 </h3>
                 <Show when=move || item_has_description>
-                    <p class="ui-carousel__description" data-slot="carousel-description">
+                    <p class=description_slot.base_class() data-slot=description_slot.as_attr()>
                         {item_description.get_value().unwrap_or_default()}
                     </p>
                 </Show>
@@ -265,57 +313,106 @@ pub fn Carousel(
             set_focused_index_raw.set(Some(index));
         };
 
+        let indicator_slot = CarouselSlot::Indicator;
+        let indicator_dot_slot = CarouselSlot::IndicatorDot;
+
         view! {
             <button
                 type="button"
                 id=item_dot_dom_id.get_value()
-                class="ui-carousel__indicator"
+                class=indicator_slot.base_class()
                 aria-label=move || format!("Go to {}", item_title.get_value())
                 disabled=item_disabled
-                data-slot="carousel-indicator"
+                data-slot=indicator_slot.as_attr()
                 data-index=index
+                data-state=move || {
+                    if item_disabled {
+                        "disabled"
+                    } else if selected_index.get() == Some(index) {
+                        "selected"
+                    } else if focused_index.get() == Some(index) {
+                        "focused"
+                    } else {
+                        "idle"
+                    }
+                }
                 data-selected=move || (selected_index.get() == Some(index)).then_some("true")
                 data-focused=move || (focused_index.get() == Some(index)).then_some("true")
                 data-disabled=item_disabled.then_some("true")
                 on:click=on_click
                 on:focus=on_focus
             >
-                <span class="ui-carousel__indicator-dot" data-slot="carousel-indicator-dot"></span>
+                <span class=indicator_dot_slot.base_class() data-slot=indicator_dot_slot.as_attr()></span>
             </button>
         }
     };
 
+    let viewport_slot = CarouselSlot::Viewport;
+    let controls_slot = CarouselSlot::Controls;
+    let prev_slot = CarouselSlot::PrevButton;
+    let next_slot = CarouselSlot::NextButton;
+    let indicators_slot = CarouselSlot::Indicators;
+    let highlight_slot = CarouselSlot::IndicatorHighlight;
+
     view! {
         <section
-            class=move || class.get()
+            class=move || root_class.get()
             role="region"
             tabindex="0"
-            aria-label=aria_label
-            data-slot="carousel"
-            data-state=move || state.get().data_state_attr
-            data-empty=move || state.get().is_empty.then_some("true")
-            data-has-items=move || state.get().has_items.then_some("true")
-            data-item-count=move || state.get().item_count.to_string()
-            data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
-            data-focused-index=move || state.get().focused_index.map(|index| index.to_string())
-            data-has-selection=move || state.get().has_selection.then_some("true")
-            data-has-focus=move || state.get().has_focus.then_some("true")
-            data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
-            data-custom-label=has_custom_aria_label.then_some("true")
-            data-custom-class=has_custom_class_name.then_some("true")
-            data-orientation=orientation.attr()
-            data-loop=loop_navigation.then_some("true")
+            aria-label=aria_label.get_value()
+            data-slot=move || root_state.get().slot_attr
+            data-state=move || root_state.get().state_attr
+            data-items=move || root_state.get().item_attr
+            data-selection=move || root_state.get().selected_attr
+            data-focus=move || root_state.get().focus_attr
+            data-empty=move || root_state.get().is_empty.then_some("true")
+            data-has-items=move || root_state.get().has_items.then_some("true")
+            data-item-count=move || root_state.get().item_count.to_string()
+            data-selected-index=move || root_state.get().selected_index.map(|index| index.to_string())
+            data-focused-index=move || root_state.get().focused_index.map(|index| index.to_string())
+            data-has-selection=move || root_state.get().has_selection.then_some("true")
+            data-has-focus=move || root_state.get().has_focus.then_some("true")
+            data-has-disabled-items=move || root_state.get().has_disabled_items.then_some("true")
+            data-orientation=move || root_state.get().orientation_attr
+            data-navigation-mode=move || root_state.get().navigation_attr
+            data-selection-mode=move || root_state.get().selection_mode_attr
+            data-loop=move || root_state.get().loop_attr
+            data-bounded=move || root_state.get().bounded_attr
+            data-id-source=move || root_state.get().id_source_attr
+            data-aria-label-source=move || root_state.get().aria_label_source_attr
+            data-class-source=move || root_state.get().class_source_attr
+            data-orientation-source=move || root_state.get().orientation_source_attr
+            data-loop-navigation-source=move || root_state.get().loop_navigation_source_attr
+            data-selected-index-source=move || root_state.get().selected_index_source_attr
+            data-default-selected-index-source=move || root_state.get().default_selected_index_source_attr
+            data-selected-index-change-source=move || root_state.get().selected_index_change_source_attr
+            data-motion-source=move || root_state.get().motion_source_attr
+            data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
+            data-custom-aria-label=move || root_state.get().has_custom_aria_label.then_some("true")
+            data-custom-class=move || root_state.get().has_custom_class_name.then_some("true")
+            data-custom-orientation=move || root_state.get().has_custom_orientation.then_some("true")
+            data-custom-loop-navigation=move || {
+                root_state.get().has_custom_loop_navigation.then_some("true")
+            }
+            data-custom-selected-index=move || root_state.get().has_custom_selected_index.then_some("true")
+            data-custom-default-selected-index=move || {
+                root_state.get().has_custom_default_selected_index.then_some("true")
+            }
+            data-custom-selected-index-change=move || {
+                root_state.get().has_custom_on_selected_index_change.then_some("true")
+            }
+            data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
             on:keydown=on_key_down
         >
-            <div class="ui-carousel__viewport" data-slot="carousel-viewport">
+            <div class=viewport_slot.base_class() data-slot=viewport_slot.as_attr()>
                 <For each=move || indicator_indices.get_value() key=|index| *index children=render_slide />
             </div>
 
-            <div class="ui-carousel__controls" data-slot="carousel-controls">
+            <div class=controls_slot.base_class() data-slot=controls_slot.as_attr()>
                 <button
                     type="button"
-                    class="ui-carousel__button ui-carousel__button--prev"
-                    data-slot="carousel-prev"
+                    class=prev_slot.base_class()
+                    data-slot=prev_slot.as_attr()
                     disabled=move || !can_prev.get()
                     on:click=on_prev
                 >
@@ -323,8 +420,8 @@ pub fn Carousel(
                 </button>
                 <button
                     type="button"
-                    class="ui-carousel__button ui-carousel__button--next"
-                    data-slot="carousel-next"
+                    class=next_slot.base_class()
+                    data-slot=next_slot.as_attr()
                     disabled=move || !can_next.get()
                     on:click=on_next
                 >
@@ -333,14 +430,14 @@ pub fn Carousel(
             </div>
 
             <div
-                class="ui-carousel__indicators"
+                class=indicators_slot.base_class()
                 node_ref=indicator_list_ref
-                data-slot="carousel-indicators"
+                data-slot=indicators_slot.as_attr()
             >
                 <div
-                    class="ui-active-highlight"
+                    class=highlight_slot.base_class()
                     node_ref=indicator_highlight_ref
-                    data-slot="carousel-indicator-highlight"
+                    data-slot=highlight_slot.as_attr()
                 ></div>
                 <For each=move || indicator_indices.get_value() key=|index| *index children=render_indicator />
             </div>

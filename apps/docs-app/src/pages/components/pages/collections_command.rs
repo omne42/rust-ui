@@ -805,6 +805,16 @@ pub(super) fn carousel() -> AnyView {
         CarouselItem::new("c", "Gamma").description("Loop disabled demo."),
     ];
 
+    let marker_items = vec![
+        CarouselItem::new("overview", "Overview")
+            .description("Inspect source markers directly in DevTools."),
+        CarouselItem::new("analytics", "Analytics")
+            .description("Controlled index + motion markers for regressions."),
+        CarouselItem::new("settings", "Settings")
+            .description("Custom orientation and navigation mode markers.")
+            .disabled(true),
+    ];
+
     let (last_selected, set_last_selected) = signal(None::<usize>);
     let on_selected_change = Callback::new(move |next: Option<usize>| set_last_selected.set(next));
 
@@ -815,8 +825,14 @@ pub(super) fn carousel() -> AnyView {
         set_controlled_selected_raw.set(next);
     });
 
+    let (marker_selected_raw, set_marker_selected_raw) = signal(Some(1_usize));
+    let marker_selected: Signal<Option<usize>> = Signal::derive(move || marker_selected_raw.get());
+    let on_marker_selected_change = Callback::new(move |next: Option<usize>| {
+        set_marker_selected_raw.set(next);
+    });
+
     let code = r#"<Carousel
-  id_base=\"docs-carousel\".to_string()
+  id_base="docs-carousel".to_string()
   items=items
   default_selected_index=1
   on_selected_index_change=Callback::new(move |next: Option<usize>| {
@@ -828,13 +844,36 @@ pub(super) fn carousel() -> AnyView {
 let selected_signal: Signal<Option<usize>> = Signal::derive(move || selected.get());
 
 <Carousel
-  id_base=\"docs-carousel-vertical\".to_string()
+  id_base="docs-carousel-vertical".to_string()
   items=items
   selected_index=selected_signal
   on_selected_index_change=Callback::new(move |next| set_selected.set(next))
   orientation=CarouselOrientation::Vertical
   loop_navigation=false
 />"#;
+
+    let marker_code = r#"let (selected, set_selected) = signal(Some(1_usize));
+let selected_signal: Signal<Option<usize>> = Signal::derive(move || selected.get());
+let mut custom_motion = ui_components::CarouselMotion::default();
+custom_motion.spring.stiffness = 250.0;
+custom_motion.spring.damping = 22.0;
+
+<Carousel
+  id_base="docs-carousel-markers".to_string()
+  items=items
+  selected_index=selected_signal
+  default_selected_index=0
+  on_selected_index_change=Callback::new(move |next| set_selected.set(next))
+  orientation=CarouselOrientation::Vertical
+  loop_navigation=false
+  aria_label="Workspace spotlight".to_string()
+  class_name="docs-carousel-custom".to_string()
+  motion=custom_motion
+/>"#;
+
+    let mut marker_motion = ui_components::CarouselMotion::default();
+    marker_motion.spring.stiffness = 250.0;
+    marker_motion.spring.damping = 22.0;
 
     view! {
         <ComponentPage
@@ -879,6 +918,46 @@ let selected_signal: Signal<Option<usize>> = Signal::derive(move || selected.get
                         "controlled selected: "
                         {move || {
                             controlled_selected_raw
+                                .get()
+                                .map(|index| index.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button type="button" on:click=move |_| set_marker_selected_raw.set(Some(0))>
+                            "Select Overview"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_selected_raw.set(Some(1))>
+                            "Select Analytics"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_selected_raw.set(None)>
+                            "Clear"
+                        </button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-aria-label-source / data-orientation-source / data-loop-navigation-source / data-selected-index-source / data-selected-index-change-source / data-motion-source in DevTools."
+                    </div>
+                    <Carousel
+                        id_base="docs-carousel-markers".to_string()
+                        items=marker_items
+                        selected_index=marker_selected
+                        default_selected_index=0
+                        on_selected_index_change=on_marker_selected_change
+                        orientation=CarouselOrientation::Vertical
+                        loop_navigation=false
+                        aria_label="Workspace spotlight".to_string()
+                        class_name="docs-carousel-custom".to_string()
+                        motion=marker_motion
+                    />
+                    <span class="ui-muted">
+                        "selected index: "
+                        {move || {
+                            marker_selected_raw
                                 .get()
                                 .map(|index| index.to_string())
                                 .unwrap_or_else(|| "None".to_string())

@@ -8,6 +8,42 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn carousel_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/carousel/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Carousel internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn carousel_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/carousel/mod.rs");
+
+    for needle in [
+        "pub struct CarouselItem",
+        "pub struct CarouselItemResolved",
+        "pub enum CarouselOrientation",
+        "pub enum CarouselSlot",
+        "pub struct CarouselPartStateInput",
+        "pub struct CarouselPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_ARIA_LABEL",
+        "DEFAULT_ORIENTATION",
+        "DEFAULT_LOOP_NAVIGATION",
+        "pub use crate::active_highlight::ActiveHighlightMotion as CarouselMotion;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "carousel::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
 fn carousel_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/carousel/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -15,14 +51,6 @@ fn carousel_is_exported_from_module_and_crate_root() {
     assert!(
         module_source.contains("pub use view::Carousel;"),
         "carousel module should export `Carousel`."
-    );
-    assert!(
-        module_source.contains("pub use logic::{CarouselItem, CarouselOrientation};"),
-        "carousel module should export `CarouselItem` and `CarouselOrientation`."
-    );
-    assert!(
-        module_source.contains("CarouselMotion"),
-        "carousel module should expose a motion alias."
     );
     assert!(
         crate_source.contains(
@@ -33,37 +61,66 @@ fn carousel_is_exported_from_module_and_crate_root() {
 }
 
 #[test]
-fn carousel_uses_logic_state_model() {
-    let view_source = load_source("src/carousel/view.rs");
-    let logic_source = load_source("src/carousel/logic.rs");
+fn carousel_logic_exposes_state_helpers() {
+    let source = load_source("src/carousel/logic.rs");
 
     for needle in [
-        "pub enum CarouselOrientation",
-        "pub struct CarouselItem",
-        "pub struct CarouselItemResolved",
-        "pub struct CarouselStateInput",
-        "pub struct CarouselState",
-        "pub fn resolve_items(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
+        "pub fn state_attr(item_count: usize, has_selection: bool, has_focus: bool)",
+        "pub fn item_attr(item_count: usize)",
+        "pub fn selected_attr(has_selection: bool)",
+        "pub fn focus_attr(has_focus: bool)",
+        "pub fn navigation_attr(loop_navigation: bool)",
+        "pub fn selection_mode_attr(is_controlled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(id_base: String)",
+        "pub fn resolve_aria_label(value: Option<String>)",
+        "pub fn resolve_items(id_base: &str, items: Vec<CarouselItem>)",
         "pub fn adjacent_enabled_index(",
+        "pub fn resolve_state(input: CarouselPartStateInput) -> CarouselPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: CarouselPartState)",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "Carousel logic should include `{needle}` for centralized state derivation."
+            source.contains(needle),
+            "Carousel logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn carousel_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/carousel/view.rs");
 
     for needle in [
-        "let items = logic::resolve_items(&id_base, items);",
-        "let selected_state = overlay_open::use_controllable_state(",
-        "let state = Signal::derive(move ||",
-        "logic::resolve_state(logic::CarouselStateInput {",
-        "let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));",
+        "logic::normalize_id_base(id_base)",
+        "logic::resolve_items(&id_base.get_value(), items)",
+        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_state(CarouselPartStateInput {",
+        "slot: CarouselSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-items=move || root_state.get().item_attr",
+        "data-selection=move || root_state.get().selected_attr",
+        "data-focus=move || root_state.get().focus_attr",
+        "data-orientation=move || root_state.get().orientation_attr",
+        "data-navigation-mode=move || root_state.get().navigation_attr",
+        "data-selection-mode=move || root_state.get().selection_mode_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-aria-label-source=move || root_state.get().aria_label_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-orientation-source=move || root_state.get().orientation_source_attr",
+        "data-loop-navigation-source=move || root_state.get().loop_navigation_source_attr",
+        "data-selected-index-source=move || root_state.get().selected_index_source_attr",
+        "data-default-selected-index-source=move || root_state.get().default_selected_index_source_attr",
+        "data-selected-index-change-source=move || root_state.get().selected_index_change_source_attr",
+        "data-motion-source=move || root_state.get().motion_source_attr",
+        "data-custom-id=move || root_state.get().has_custom_id_base.then_some(\"true\")",
+        "data-custom-loop-navigation=move || {",
+        "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
-            view_source.contains(needle),
-            "Carousel view should derive wrapper state through logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "Carousel view should include `{needle}` for stable state/source marker contracts."
         );
     }
 }
@@ -76,12 +133,13 @@ fn carousel_supports_controlled_and_uncontrolled_selection_state() {
         "selected_index: Option<Signal<Option<usize>>>",
         "default_selected_index: Option<usize>",
         "on_selected_index_change: Option<Callback<Option<usize>>>",
-        "orientation: CarouselOrientation",
-        "loop_navigation: bool",
+        "let has_custom_selected_index = selected_index.is_some()",
+        "let has_custom_default_selected_index = default_selected_index.is_some()",
+        "overlay_open::use_controllable_state(",
     ] {
         assert!(
             source.contains(needle),
-            "Carousel should accept `{needle}` for controlled/uncontrolled selection behavior."
+            "Carousel should support `{needle}` for controlled/uncontrolled selection behavior."
         );
     }
 }
@@ -109,41 +167,18 @@ fn carousel_exposes_keyboard_and_control_contracts() {
 }
 
 #[test]
-fn carousel_emits_spectrum_root_state_data_attributes() {
-    let source = load_source("src/carousel/view.rs");
-
-    for needle in [
-        "data-slot=\"carousel\"",
-        "data-state=move || state.get().data_state_attr",
-        "data-empty=move || state.get().is_empty.then_some(\"true\")",
-        "data-has-items=move || state.get().has_items.then_some(\"true\")",
-        "data-item-count=move || state.get().item_count.to_string()",
-        "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
-        "data-focused-index=move || state.get().focused_index.map(|index| index.to_string())",
-        "data-has-selection=move || state.get().has_selection.then_some(\"true\")",
-        "data-has-focus=move || state.get().has_focus.then_some(\"true\")",
-        "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
-        "data-orientation=orientation.attr()",
-        "data-loop=loop_navigation.then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(needle),
-            "Carousel should set `{needle}` so it can be styled/tested with Spectrum-compatible selectors."
-        );
-    }
-}
-
-#[test]
 fn carousel_uses_active_highlight_motion_for_indicators() {
     let source = load_source("src/carousel/view.rs");
 
     for needle in [
-        "use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};",
-        "let indicator_list_ref: NodeRef<leptos::html::Div> = NodeRef::new();",
-        "let indicator_highlight_ref: NodeRef<leptos::html::Div> = NodeRef::new();",
-        "let (active_index, set_active_index) = signal(selected_index.get_untracked().unwrap_or(0));",
+        "use crate::active_highlight::{",
+        "attach_active_highlight_motion",
+        "ActiveHighlightMotion",
+        "let indicator_list_ref: NodeRef<html::Div> = NodeRef::new();",
+        "let indicator_highlight_ref: NodeRef<html::Div> = NodeRef::new();",
+        "let (active_index, set_active_index) = signal(",
         "attach_active_highlight_motion(",
-        "data-slot=\"carousel-indicator-highlight\"",
+        "data-slot=highlight_slot.as_attr()",
     ] {
         assert!(
             source.contains(needle),
@@ -153,19 +188,55 @@ fn carousel_uses_active_highlight_motion_for_indicators() {
 }
 
 #[test]
-fn carousel_styles_include_orientation_selected_and_empty_markers() {
+fn carousel_styles_include_state_and_source_markers() {
     let source = load_source("src/carousel/styles.rs");
 
     for needle in [
         ".ui-carousel {",
-        ".ui-carousel__slide[data-selected=\"true\"]",
-        ".ui-carousel__indicator[data-selected=\"true\"]",
-        ".ui-carousel--vertical",
-        ".ui-carousel--empty",
+        ".ui-carousel--selected",
+        ".ui-carousel[data-state=\"selected\"]",
+        ".ui-carousel--loop",
+        ".ui-carousel[data-navigation-mode=\"loop\"]",
+        ".ui-carousel[data-selection-mode=\"controlled\"]",
+        ".ui-carousel[data-id-source=\"custom\"]",
+        ".ui-carousel[data-aria-label-source=\"custom\"]",
+        ".ui-carousel[data-orientation-source=\"custom\"]",
+        ".ui-carousel[data-loop-navigation-source=\"custom\"]",
+        ".ui-carousel[data-selected-index-source=\"custom\"]",
+        ".ui-carousel[data-selected-index-change-source=\"custom\"]",
+        ".ui-carousel[data-motion-source=\"custom\"]",
+        ".ui-carousel[data-custom-motion=\"true\"]",
+        ".ui-carousel__slide[data-state=\"selected\"]",
     ] {
         assert!(
             source.contains(needle),
-            "Carousel styles should include `{needle}` for stable visual state contracts."
+            "Carousel styles should include `{needle}` as stable state/source contracts."
+        );
+    }
+}
+
+#[test]
+fn carousel_docs_page_contains_state_source_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn carousel() -> AnyView",
+        "title=\"Carousel\"",
+        "slug=\"carousel\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-aria-label-source",
+        "data-orientation-source",
+        "data-loop-navigation-source",
+        "data-selected-index-source",
+        "data-selected-index-change-source",
+        "data-motion-source",
+        "<Carousel",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Carousel docs page should contain `{needle}`."
         );
     }
 }
