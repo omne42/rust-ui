@@ -180,3 +180,25 @@ fn share_button_motion_contract_exposes_default_and_custom_tests() {
         );
     }
 }
+
+#[test]
+fn share_button_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/button_share/motion.rs");
+    let view_source = load_source("src/button_share/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ShareButtonMotion) -> ShareButtonMotion",
+        "flip: crate::button_flip::motion::sanitize_motion(motion.flip)",
+        "fn sanitize_motion_delegates_to_flip_button_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ShareButton motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::button_share::motion::sanitize_motion(motion);"),
+        "ShareButton view should sanitize motion before forwarding to FlipButton.",
+    );
+}

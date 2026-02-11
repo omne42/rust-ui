@@ -19,6 +19,7 @@ pub fn ShareButton(
     #[prop(optional)] motion: ShareButtonMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::button_share::motion::sanitize_motion(motion);
     let label = logic::normalize_optional_text(label);
     let class_name = logic::normalize_optional_text(class_name);
 
