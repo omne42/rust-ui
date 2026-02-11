@@ -1,6 +1,10 @@
 #[cfg(target_arch = "wasm32")]
 use crate::switch::logic::{THUMB_WIDTH_PX, checked_thumb_x_px};
 
+const DEFAULT_PRESSED_WIDTH_PX: f64 = 19.0;
+const MIN_PRESSED_WIDTH_PX: f64 = 16.0;
+const MAX_PRESSED_WIDTH_PX: f64 = 64.0;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SwitchMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -20,6 +24,48 @@ impl Default for SwitchMotion {
     }
 }
 
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = SwitchMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: SwitchMotion) -> SwitchMotion {
+    SwitchMotion {
+        spring: sanitize_spring(motion.spring),
+    }
+}
+
+fn sanitize_pressed_width_px(value: f64) -> f64 {
+    sanitize_number(value, DEFAULT_PRESSED_WIDTH_PX)
+        .clamp(MIN_PRESSED_WIDTH_PX, MAX_PRESSED_WIDTH_PX)
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_thumb_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
@@ -31,7 +77,8 @@ pub fn attach_thumb_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
+    let pressed_width_px = sanitize_pressed_width_px(pressed_width_px);
     let last_state = StoredValue::new(None::<(bool, bool)>);
     let springs = StoredValue::new_local(
         None::<(
@@ -131,9 +178,11 @@ pub fn attach_thumb_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
     _is_checked: leptos::prelude::ReadSignal<bool>,
     _is_pressed: leptos::prelude::ReadSignal<bool>,
-    _pressed_width_px: f64,
-    _motion: SwitchMotion,
+    pressed_width_px: f64,
+    motion: SwitchMotion,
 ) {
+    let _ = sanitize_motion(motion);
+    let _ = sanitize_pressed_width_px(pressed_width_px);
 }
 
 #[cfg(test)]
@@ -146,5 +195,34 @@ mod tests {
         assert!(motion.spring.stiffness > 0.0);
         assert!(motion.spring.damping > 0.0);
         assert!(motion.spring.mass > 0.0);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let motion = sanitize_motion(SwitchMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+        });
+
+        let default = SwitchMotion::default();
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+    }
+
+    #[test]
+    fn sanitize_pressed_width_clamps_and_uses_fallback() {
+        assert_eq!(sanitize_pressed_width_px(24.0), 24.0);
+        assert_eq!(sanitize_pressed_width_px(4.0), MIN_PRESSED_WIDTH_PX);
+        assert_eq!(sanitize_pressed_width_px(500.0), MAX_PRESSED_WIDTH_PX);
+        assert_eq!(
+            sanitize_pressed_width_px(f64::NAN),
+            DEFAULT_PRESSED_WIDTH_PX
+        );
     }
 }

@@ -120,3 +120,23 @@ fn switch_motion_uses_spring_animator() {
         "Switch motion should be spring-driven to match the repo's motion spec."
     );
 }
+
+#[test]
+fn switch_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/switch/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: SwitchMotion) -> SwitchMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "fn sanitize_pressed_width_px(value: f64) -> f64",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "let pressed_width_px = sanitize_pressed_width_px(pressed_width_px);",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_pressed_width_clamps_and_uses_fallback()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Switch motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
