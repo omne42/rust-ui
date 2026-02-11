@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `SlidingNumber` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring contracts before runtime attachment, and adding regression tests to prevent NaN/invalid spring values from leaking into HeroUI-level numeric rolling motion.
+
 - `ui-components`: upgrades `ProgressCircle` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring contracts before runtime attachment, and adding regression tests to prevent NaN/invalid spring values from leaking into HeroUI-level circular progress motion.
 
 - `ui-components`: upgrades `Progress` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring contracts before runtime attachment, and adding regression tests to prevent NaN/invalid spring values from leaking into HeroUI-level progress indicator motion.

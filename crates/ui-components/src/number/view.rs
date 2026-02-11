@@ -10,6 +10,7 @@ use leptos::html;
 #[cfg(target_arch = "wasm32")]
 #[component]
 fn SlidingNumberRoller(digit: Signal<u8>, motion: SlidingNumberMotion) -> impl IntoView {
+    let motion = crate::number::motion::sanitize_motion(motion);
     let roller_ref: NodeRef<html::Span> = NodeRef::new();
     motion::attach_motion(roller_ref, digit, motion);
 
@@ -104,6 +105,7 @@ pub fn SlidingNumber(
     #[prop(optional, into)] thousand_separator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::number::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let class_name = StoredValue::new(class_name);
 

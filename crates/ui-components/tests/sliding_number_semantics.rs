@@ -126,3 +126,33 @@ fn sliding_number_motion_uses_spring_animator() {
         "SlidingNumber motion should animate via a spring to match the repo's motion spec."
     );
 }
+
+#[test]
+fn sliding_number_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/number/motion.rs");
+    let view_source = load_source("src/number/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: SlidingNumberMotion) -> SlidingNumberMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let motion = sanitize_motion(motion);",
+        "let motion = StoredValue::new(motion);",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "SlidingNumber motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    for needle in [
+        "let motion = crate::number::motion::sanitize_motion(motion);",
+        "motion::attach_motion(roller_ref, digit, motion);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "SlidingNumber view should include `{needle}` to sanitize motion at composition boundaries.",
+        );
+    }
+}

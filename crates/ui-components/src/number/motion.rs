@@ -13,6 +13,40 @@ impl Default for SlidingNumberMotion {
     }
 }
 
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = SlidingNumberMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: SlidingNumberMotion) -> SlidingNumberMotion {
+    SlidingNumberMotion {
+        spring: sanitize_spring(motion.spring),
+        animate: motion.animate,
+    }
+}
+
 #[cfg(any(test, target_arch = "wasm32"))]
 use std::{cell::Cell, cell::RefCell, rc::Rc};
 
@@ -124,6 +158,8 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
+    let motion = sanitize_motion(motion);
+
     if !motion.animate {
         return;
     }
@@ -183,8 +219,9 @@ pub fn attach_motion(
 pub fn attach_motion(
     _roller_ref: leptos::prelude::NodeRef<leptos::html::Span>,
     _digit: leptos::prelude::Signal<u8>,
-    _motion: SlidingNumberMotion,
+    motion: SlidingNumberMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
@@ -197,6 +234,46 @@ mod tests {
         let motion = SlidingNumberMotion::default();
         assert!(motion.animate);
         assert_eq!(motion.spring, ui_motion::presets::spring_slide());
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let default = SlidingNumberMotion::default();
+
+        let motion = sanitize_motion(SlidingNumberMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            animate: true,
+        });
+
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert!(motion.animate);
+    }
+
+    #[test]
+    fn supports_custom_spring_motion_contract() {
+        let motion = sanitize_motion(SlidingNumberMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 330.0,
+                damping: 26.0,
+                mass: 0.9,
+                precision: 0.002,
+            },
+            animate: false,
+        });
+
+        assert_eq!(motion.spring.stiffness, 330.0);
+        assert_eq!(motion.spring.damping, 26.0);
+        assert_eq!(motion.spring.mass, 0.9);
+        assert_eq!(motion.spring.precision, 0.002);
+        assert!(!motion.animate);
     }
 
     #[test]
