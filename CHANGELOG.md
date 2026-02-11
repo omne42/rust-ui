@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `PreviewCard` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/scale/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level preview-card entry/exit behavior.
+
 - `ui-components`: upgrades `Tooltip` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/scale/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level tooltip entry/exit behavior.
 
 - `ui-components`: upgrades `HoverCard` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/scale/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level hover-card entry/exit behavior.
