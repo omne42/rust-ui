@@ -27,6 +27,58 @@ impl Default for AccordionMotion {
     }
 }
 
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: SpringConfig) -> SpringConfig {
+    let default = AccordionMotion::default().spring;
+
+    SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: AccordionMotion) -> AccordionMotion {
+    let default = AccordionMotion::default();
+
+    AccordionMotion {
+        spring: sanitize_spring(motion.spring),
+        indicator_closed_rotation_deg: sanitize_number(
+            motion.indicator_closed_rotation_deg,
+            default.indicator_closed_rotation_deg,
+        )
+        .clamp(-360.0, 360.0),
+        indicator_open_rotation_deg: sanitize_number(
+            motion.indicator_open_rotation_deg,
+            default.indicator_open_rotation_deg,
+        )
+        .clamp(-360.0, 360.0),
+        panel_offset_y_px: sanitize_number(motion.panel_offset_y_px, default.panel_offset_y_px)
+            .abs()
+            .clamp(0.0, 240.0),
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_indicator_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
@@ -36,7 +88,7 @@ pub fn attach_indicator_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
     let last_open = StoredValue::new(None::<bool>);
 
@@ -92,8 +144,9 @@ pub fn attach_indicator_motion(
 pub fn attach_indicator_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
     _is_open: leptos::prelude::Signal<bool>,
-    _motion: AccordionMotion,
+    motion: AccordionMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -334,7 +387,7 @@ pub fn attach_panel_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::{JsCast, closure::Closure};
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let driver = StoredValue::new_local(None::<Rc<RefCell<PanelMotionDriver>>>);
     let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);
     let resize_closure = StoredValue::new_local(
@@ -458,9 +511,11 @@ pub fn attach_panel_motion(
     _surface_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
     is_hidden: leptos::prelude::RwSignal<bool>,
-    _motion: AccordionMotion,
+    motion: AccordionMotion,
 ) {
     use leptos::prelude::*;
+
+    let _ = sanitize_motion(motion);
 
     Effect::new(move |_| {
         is_hidden.set(!is_open.get());
@@ -706,5 +761,58 @@ mod tests {
         driver.sync_open_height();
 
         assert!(events.borrow().is_empty());
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let motion = sanitize_motion(AccordionMotion {
+            spring: SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            indicator_closed_rotation_deg: f64::NAN,
+            indicator_open_rotation_deg: f64::INFINITY,
+            panel_offset_y_px: f64::NAN,
+        });
+
+        let default = AccordionMotion::default();
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(
+            motion.indicator_closed_rotation_deg,
+            default.indicator_closed_rotation_deg
+        );
+        assert_eq!(
+            motion.indicator_open_rotation_deg,
+            default.indicator_open_rotation_deg
+        );
+        assert_eq!(motion.panel_offset_y_px, default.panel_offset_y_px);
+    }
+
+    #[test]
+    fn sanitize_motion_clamps_rotation_and_offset_ranges() {
+        let motion = sanitize_motion(AccordionMotion {
+            spring: SpringConfig {
+                stiffness: 320.0,
+                damping: 24.0,
+                mass: 1.2,
+                precision: 0.002,
+            },
+            indicator_closed_rotation_deg: -720.0,
+            indicator_open_rotation_deg: 1080.0,
+            panel_offset_y_px: -1000.0,
+        });
+
+        assert_eq!(motion.indicator_closed_rotation_deg, -360.0);
+        assert_eq!(motion.indicator_open_rotation_deg, 360.0);
+        assert_eq!(motion.panel_offset_y_px, 240.0);
+        assert_eq!(motion.spring.stiffness, 320.0);
+        assert_eq!(motion.spring.damping, 24.0);
+        assert_eq!(motion.spring.mass, 1.2);
+        assert_eq!(motion.spring.precision, 0.002);
     }
 }

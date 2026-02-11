@@ -180,3 +180,24 @@ fn accordion_motion_is_spring_driven() {
         "Accordion motion should use SpringAnimator to match the motion spec."
     );
 }
+
+#[test]
+fn accordion_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/accordion/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: AccordionMotion) -> AccordionMotion",
+        "fn sanitize_spring(value: SpringConfig) -> SpringConfig",
+        "indicator_closed_rotation_deg:",
+        "indicator_open_rotation_deg:",
+        "panel_offset_y_px:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_rotation_and_offset_ranges()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Accordion motion should include `{needle}` so invalid custom values cannot leak into runtime animation state.",
+        );
+    }
+}
