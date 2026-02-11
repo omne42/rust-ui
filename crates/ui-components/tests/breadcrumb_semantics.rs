@@ -74,10 +74,23 @@ fn breadcrumb_view_uses_logic_state_contracts() {
         "data-href-state=state.href_state_attr",
         "data-content-source=state.content_source_attr",
         "data-label-source=\"default\"",
+        "aria-current=\"page\"",
     ] {
         assert!(
             source.contains(needle),
             "Breadcrumb view should expose stable marker contract `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn breadcrumb_page_current_marker_stays_non_interactive() {
+    let source = load_source("src/breadcrumb/view.rs");
+
+    for disallowed in ["role=\"link\"", "aria-disabled=\"true\""] {
+        assert!(
+            !source.contains(disallowed),
+            "Breadcrumb current page should be non-interactive text semantics; found `{disallowed}`.",
         );
     }
 }

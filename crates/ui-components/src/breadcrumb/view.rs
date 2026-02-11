@@ -149,8 +149,6 @@ pub fn BreadcrumbPage(
     view! {
         <span
             class=class_name
-            role="link"
-            aria-disabled="true"
             aria-current="page"
             data-slot="breadcrumb-page"
             data-state=state.state_attr
