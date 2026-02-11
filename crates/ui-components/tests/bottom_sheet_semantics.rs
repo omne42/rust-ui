@@ -169,3 +169,25 @@ fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_tests() {
         );
     }
 }
+
+#[test]
+fn bottom_sheet_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/bottom_sheet/motion.rs");
+    let view_source = load_source("src/bottom_sheet/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: BottomSheetMotion) -> BottomSheetMotion",
+        "sheet: crate::sheet::motion::sanitize_motion(motion.sheet)",
+        "fn sanitize_motion_delegates_to_sheet_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "BottomSheet motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::bottom_sheet::motion::sanitize_motion(motion);"),
+        "BottomSheet view should sanitize motion before forwarding to Sheet.",
+    );
+}

@@ -37,6 +37,7 @@ pub fn BottomSheet(
     let description = StoredValue::new(description);
     let footer = StoredValue::new(footer);
     let children = StoredValue::new(children);
+    let motion = crate::bottom_sheet::motion::sanitize_motion(motion);
 
     let state = logic::resolve_state(BottomSheetStateInput {
         has_description: description.get_value().is_some(),
