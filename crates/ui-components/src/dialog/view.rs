@@ -44,6 +44,7 @@ pub fn Dialog(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 
+    let motion = crate::dialog::motion::sanitize_motion(motion);
     let has_custom_motion = motion != DialogMotion::default();
     let has_on_exit_complete = on_exit_complete.is_some();
 

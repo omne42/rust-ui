@@ -214,3 +214,25 @@ fn dialog_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn dialog_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/dialog/motion.rs");
+    let view_source = load_source("src/dialog/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: DialogMotion) -> DialogMotion",
+        "overlay: crate::overlay::motion::sanitize_motion(motion.overlay)",
+        "fn sanitize_motion_delegates_to_overlay_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Dialog motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::dialog::motion::sanitize_motion(motion);"),
+        "Dialog view should sanitize motion before forwarding to Overlay.",
+    );
+}
