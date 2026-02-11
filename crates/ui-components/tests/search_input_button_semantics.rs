@@ -188,3 +188,23 @@ fn search_input_button_motion_contract_exposes_default_and_custom_tests() {
         );
     }
 }
+
+#[test]
+fn search_input_button_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/button_search_input/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: SearchInputButtonMotion) -> SearchInputButtonMotion",
+        "fn sanitize_spring(",
+        "hover_scale:",
+        "tap_scale:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "SearchInputButton motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
