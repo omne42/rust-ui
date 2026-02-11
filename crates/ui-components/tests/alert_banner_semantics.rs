@@ -122,3 +122,21 @@ fn alert_banner_docs_page_exists_in_display_extra() {
         );
     }
 }
+
+#[test]
+fn alert_banner_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/alert_banner/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: AlertBannerMotion) -> AlertBannerMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "let _ = sanitize_motion(motion);",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "AlertBanner motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
