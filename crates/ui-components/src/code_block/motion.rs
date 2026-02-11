@@ -13,6 +13,46 @@ impl Default for CodeBlockMotion {
     }
 }
 
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = CodeBlockMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: CodeBlockMotion) -> CodeBlockMotion {
+    let default = CodeBlockMotion::default();
+
+    CodeBlockMotion {
+        spring: sanitize_spring(motion.spring),
+        flash_hold_ms: if motion.flash_hold_ms == 0 {
+            default.flash_hold_ms
+        } else {
+            motion.flash_hold_ms.min(10_000)
+        },
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 use std::{cell::RefCell, rc::Rc};
 
@@ -52,7 +92,7 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let driver = StoredValue::new_local(None::<Rc<RefCell<CopyFlashDriver>>>);
     let last_copied = StoredValue::new(false);
     let reset_timeout = StoredValue::new_local(None::<TimeoutHandle>);
@@ -132,8 +172,9 @@ pub fn attach_motion(
 pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     _copied: leptos::prelude::Signal<bool>,
-    _motion: CodeBlockMotion,
+    motion: CodeBlockMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
@@ -146,6 +187,33 @@ mod tests {
         let motion = CodeBlockMotion::default();
         assert_eq!(motion.spring, ui_motion::presets::spring_soft());
         assert!(motion.flash_hold_ms > 0);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let default = CodeBlockMotion::default();
+
+        let motion = sanitize_motion(CodeBlockMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            flash_hold_ms: 0,
+        });
+
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.flash_hold_ms, default.flash_hold_ms);
+
+        let capped = sanitize_motion(CodeBlockMotion {
+            flash_hold_ms: 99_999,
+            ..CodeBlockMotion::default()
+        });
+        assert_eq!(capped.flash_hold_ms, 10_000);
     }
 
     #[test]

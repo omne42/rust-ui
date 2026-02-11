@@ -53,6 +53,7 @@ pub fn CodeBlock(
     #[prop(optional)] motion: CodeBlockMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::code_block::motion::sanitize_motion(motion);
     let label = logic::normalize_optional_text(label);
     let language = logic::normalize_optional_text(language);
     let class_name = logic::normalize_optional_text(class_name);
