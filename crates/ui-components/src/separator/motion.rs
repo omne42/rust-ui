@@ -3,6 +3,12 @@ pub struct SeparatorMotion {
     pub animate_in: bool,
 }
 
+pub fn sanitize_motion(motion: SeparatorMotion) -> SeparatorMotion {
+    SeparatorMotion {
+        animate_in: motion.animate_in,
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_motion<E>(
     node_ref: leptos::prelude::NodeRef<E>,
@@ -14,6 +20,8 @@ pub fn attach_motion<E>(
 {
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
+
+    let motion = sanitize_motion(motion);
 
     if !motion.animate_in || ui_motion::web::prefers_reduced_motion() {
         return;
@@ -81,16 +89,17 @@ pub fn attach_motion<E>(
 pub fn attach_motion<E>(
     _node_ref: leptos::prelude::NodeRef<E>,
     _orientation: super::SeparatorOrientation,
-    _motion: SeparatorMotion,
+    motion: SeparatorMotion,
 ) where
     E: leptos::tachys::html::element::ElementType,
     E::Output: 'static,
 {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
 mod tests {
-    use super::SeparatorMotion;
+    use super::{SeparatorMotion, sanitize_motion};
 
     #[test]
     fn default_motion_disables_entry_animation() {
@@ -99,6 +108,16 @@ mod tests {
         assert!(
             !motion.animate_in,
             "SeparatorMotion defaults should avoid unexpected decorative motion."
+        );
+    }
+
+    #[test]
+    fn sanitize_motion_keeps_explicit_entry_flag() {
+        let motion = sanitize_motion(SeparatorMotion { animate_in: true });
+
+        assert!(
+            motion.animate_in,
+            "SeparatorMotion sanitize contract should preserve explicit animation requests."
         );
     }
 

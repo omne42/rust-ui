@@ -142,3 +142,25 @@ fn separator_motion_uses_spring_animator() {
         "Separator motion should animate via a spring to match the repo's motion spec."
     );
 }
+
+#[test]
+fn separator_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/separator/motion.rs");
+    let view_source = load_source("src/separator/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: SeparatorMotion) -> SeparatorMotion",
+        "fn sanitize_motion_keeps_explicit_entry_flag()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Separator motion should include `{needle}` so runtime motion contracts stay sanitized across SSR/wasm boundaries.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::separator::motion::sanitize_motion(motion);"),
+        "Separator view should sanitize motion before deriving motion source markers and attaching the driver.",
+    );
+}

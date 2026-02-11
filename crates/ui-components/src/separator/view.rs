@@ -13,6 +13,7 @@ pub fn Separator(
     #[prop(optional)] motion: SeparatorMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::separator::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let state = logic::resolve_state(SeparatorStateInput {
         orientation,
