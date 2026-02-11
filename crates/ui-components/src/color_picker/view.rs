@@ -61,6 +61,8 @@ pub fn ColorPicker(
     let trigger_aria_label = StoredValue::new(trigger_aria_label);
 
     let class_name = logic::normalize_optional_text(class_name);
+
+    let motion = crate::color_picker::motion::sanitize_motion(motion);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
 

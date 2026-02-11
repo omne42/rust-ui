@@ -123,3 +123,25 @@ fn color_picker_exposes_motion_contract_and_internal_module() {
         );
     }
 }
+
+#[test]
+fn color_picker_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/color_picker/motion.rs");
+    let view_source = load_source("src/color_picker/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ColorPickerMotion) -> ColorPickerMotion",
+        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "fn sanitize_motion_delegates_to_popover_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ColorPicker motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::color_picker::motion::sanitize_motion(motion);"),
+        "ColorPicker view should sanitize motion before forwarding to Popover.",
+    );
+}
