@@ -16,6 +16,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: aligns `Item` list semantics by adding `role="listitem"` to `Item` when used with `ItemGroup role="list"`, and adds regression coverage to lock the accessibility contract.
 
+- `ui-components`: adds dedicated `number_semantics` regression coverage for `StaticNumber`/`SlidingNumber` (`mod` exports, logic contracts, motion sanitization wiring, CSS aggregation, docs playground anchors) to prevent compatibility regressions.
+
 - `ui-components`: aligns `Meter` ARIA semantics with a valid `role="meter"` contract (replacing invalid multi-role markup), updates semantics assertions, and preserves Spectrum-style state marker behavior.
 
 - `ui-components`: upgrades `Toast` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring/entry contracts before runtime attachment, and adding regression tests to prevent NaN/invalid motion values from leaking into HeroUI-level toast transitions.
