@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `AlertDialog` motion safety by introducing `sanitize_motion` wrapper guards over nested overlay contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Overlay`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level alert-dialog entry/exit behavior.
+
 - `ui-components`: upgrades `Dialog` motion safety by introducing `sanitize_motion` wrapper guards over nested overlay contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Overlay`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level dialog entry/exit behavior.
 
 - `ui-components`: upgrades `Drawer` motion safety by introducing `sanitize_motion` wrapper guards over nested sheet contracts, sanitizing forwarded custom spring/offset values before runtime handoff to `Sheet`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level drawer entry/exit behavior.

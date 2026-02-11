@@ -93,6 +93,7 @@ pub fn AlertDialog(
     let on_cancel = StoredValue::new(on_cancel);
 
     let has_custom_auto_focus_button = auto_focus_button != logic::DEFAULT_AUTO_FOCUS_BUTTON;
+    let motion = crate::alert_dialog::motion::sanitize_motion(motion);
     let has_custom_motion = motion != AlertDialogMotion::default();
     let has_on_exit_complete = on_exit_complete.is_some();
 

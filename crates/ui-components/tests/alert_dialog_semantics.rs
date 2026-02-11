@@ -233,3 +233,25 @@ fn alert_dialog_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn alert_dialog_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/alert_dialog/motion.rs");
+    let view_source = load_source("src/alert_dialog/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: AlertDialogMotion) -> AlertDialogMotion",
+        "overlay: crate::overlay::motion::sanitize_motion(motion.overlay)",
+        "fn sanitize_motion_delegates_to_overlay_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "AlertDialog motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::alert_dialog::motion::sanitize_motion(motion);"),
+        "AlertDialog view should sanitize motion before forwarding to Overlay.",
+    );
+}
