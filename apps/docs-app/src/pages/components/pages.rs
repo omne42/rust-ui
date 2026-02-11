@@ -641,6 +641,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("Image", "image", "Display", display::image),
     component_doc!("Asset", "asset", "Display", display_extra_asset::asset),
+    component_doc!("FlipCard", "flip-card", "Display", display_extra::flip_card),
     component_doc!(
         "Thumbnail",
         "thumbnail",

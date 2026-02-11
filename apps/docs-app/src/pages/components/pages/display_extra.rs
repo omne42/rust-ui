@@ -5,11 +5,11 @@ use ui_components::{
     AlertBanner, AlertBannerFill, AlertBannerMotion, AlertBannerTone, Chart, ChartKind, ChartPoint,
     ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
     ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
-    ErrorViewTone, Icon, IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue,
-    LabeledValueOrientation, LabeledValueTone, PressableFeedback, PressableFeedbackEffect,
-    PressableFeedbackMotion, PressableFeedbackTone, RippleMotion, Skeleton, SkeletonGroup,
-    SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Text,
-    TextAlign, TextElement, TextTone, TextWeight,
+    ErrorViewTone, FlipCard, FlipCardMotion, Icon, IconSize, IconTone, Keyboard, KeyboardTone,
+    LabeledValue, LabeledValueOrientation, LabeledValueTone, PressableFeedback,
+    PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone, RippleMotion,
+    Skeleton, SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
+    SkeletonVariant, Text, TextAlign, TextElement, TextTone, TextWeight,
 };
 
 pub(super) fn alert_banner() -> AnyView {
@@ -859,6 +859,142 @@ pub(super) fn skeleton_group() -> AnyView {
                     <div class="ui-muted">
                         "When `is_skeleton_only=true` and loading is finished, the skeleton group hides itself."
                     </div>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn flip_card() -> AnyView {
+    let basic_code = r#"<FlipCard
+  front=move || view! {
+    <div class="ui-flip-card__title">"Front"</div>
+    <div class="ui-flip-card__description">"Click or press Enter/Space to flip."</div>
+  }
+  back=move || view! {
+    <div class="ui-flip-card__title">"Back"</div>
+    <div class="ui-flip-card__description">"Stable state/data markers for docs and tests."</div>
+  }
+/>"#;
+
+    let markers_code = r#"<FlipCard
+  id="docs-flip-card"
+  class_name="docs-flip-card-state".to_string()
+  flip_on_hover=true
+  motion=FlipCardMotion {
+    hover_scale: 1.03,
+    hover_tilt_deg: 4.0,
+    ..FlipCardMotion::default()
+  }
+  front=move || view! { <div>"Inspect markers (front)"</div> }
+  back=move || view! { <div>"Inspect markers (back)"</div> }
+/>"#;
+
+    let disabled_code = r#"<FlipCard
+  disabled=true
+  front=move || view! { <div>"Disabled front"</div> }
+  back=move || view! { <div>"Disabled back"</div> }
+/>"#;
+
+    view! {
+        <ComponentPage
+            title="FlipCard"
+            slug="flip-card"
+            group="Display"
+            description="3D front/back card with Spectrum-style state/source markers and HeroUI-grade spring motion for flip/hover interactions."
+        >
+            <Playground title="Click + Keyboard Flip" code=basic_code>
+                <div class="docs-row">
+                    <FlipCard
+                        front=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Front"</div>
+                                    <div class="ui-flip-card__description">
+                                        "Click or press Enter/Space to flip."
+                                    </div>
+                                </>
+                            }
+                        }
+                        back=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Back"</div>
+                                    <div class="ui-flip-card__description">
+                                        "Back face stays keyboard reachable with the same button semantics."
+                                    </div>
+                                </>
+                            }
+                        }
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-flip-mode`, `data-class-source`, `data-motion-source`, `data-id-source`, and face-level visibility markers (`data-visible`/`data-hidden`)."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <FlipCard
+                        id="docs-flip-card".to_string()
+                        class_name="docs-flip-card-state".to_string()
+                        flip_on_hover=true
+                        motion=FlipCardMotion {
+                            hover_scale: 1.03,
+                            hover_tilt_deg: 4.0,
+                            ..FlipCardMotion::default()
+                        }
+                        front=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Inspect markers (front)"</div>
+                                    <div class="ui-flip-card__description">
+                                        "Hover enters flipped mode source = custom."
+                                    </div>
+                                </>
+                            }
+                        }
+                        back=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Inspect markers (back)"</div>
+                                    <div class="ui-flip-card__description">
+                                        "Front/back visibility markers stay explicit for regression tests."
+                                    </div>
+                                </>
+                            }
+                        }
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Disabled" code=disabled_code>
+                <div class="docs-row">
+                    <FlipCard
+                        disabled=true
+                        front=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Disabled front"</div>
+                                    <div class="ui-flip-card__description">
+                                        "No click/keyboard toggle while disabled."
+                                    </div>
+                                </>
+                            }
+                        }
+                        back=move || {
+                            view! {
+                                <>
+                                    <div class="ui-flip-card__title">"Disabled back"</div>
+                                    <div class="ui-flip-card__description">
+                                        "aria-disabled and disabled markers remain consistent."
+                                    </div>
+                                </>
+                            }
+                        }
+                    />
                 </div>
             </Playground>
         </ComponentPage>

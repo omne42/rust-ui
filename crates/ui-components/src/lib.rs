@@ -94,6 +94,7 @@ pub mod field_label;
 pub mod fieldset;
 pub mod file_trigger;
 pub mod flex;
+pub mod flip_card;
 pub mod footer;
 pub mod form;
 pub mod form_field;
@@ -331,6 +332,7 @@ pub use field_label::{FieldLabel, FieldLabelTone};
 pub use fieldset::{Fieldset, FieldsetOrientation, FieldsetTone};
 pub use file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};
 pub use flex::{Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap};
+pub use flip_card::{FlipCard, FlipCardMotion};
 pub use footer::{Footer, FooterTone};
 pub use form::{Form, FormLabelAlign, FormLabelPosition, use_form_context};
 pub use form_field::{
