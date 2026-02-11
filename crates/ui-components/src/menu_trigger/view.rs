@@ -36,6 +36,8 @@ pub fn MenuTrigger(
     let class_name = logic::normalize_optional_text(class_name);
     let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
 
+    let motion = crate::menu_trigger::motion::sanitize_motion(motion);
+
     let is_controlled = open.is_some();
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
