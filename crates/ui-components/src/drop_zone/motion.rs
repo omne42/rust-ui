@@ -22,6 +22,49 @@ impl Default for DropZoneMotion {
     }
 }
 
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = DropZoneMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: DropZoneMotion) -> DropZoneMotion {
+    let default = DropZoneMotion::default();
+
+    DropZoneMotion {
+        spring: sanitize_spring(motion.spring),
+        hover_scale: sanitize_number(motion.hover_scale, default.hover_scale).clamp(0.0, 3.0),
+        drop_scale: sanitize_number(motion.drop_scale, default.drop_scale).clamp(0.0, 3.0),
+        hover_highlight: sanitize_number(motion.hover_highlight, default.hover_highlight)
+            .clamp(0.0, 1.0),
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
@@ -38,7 +81,7 @@ pub fn attach_motion(
         return;
     }
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let last_state = StoredValue::new(None::<(bool, bool, bool)>);
     let springs = StoredValue::new_local(
         None::<(
@@ -131,8 +174,9 @@ pub fn attach_motion(
     _is_drop_target: leptos::prelude::ReadSignal<bool>,
     _is_focused: leptos::prelude::ReadSignal<bool>,
     _is_disabled: bool,
-    _motion: DropZoneMotion,
+    motion: DropZoneMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
@@ -149,6 +193,31 @@ mod tests {
         assert_eq!(motion.hover_scale, 1.01);
         assert_eq!(motion.drop_scale, 1.02);
         assert_eq!(motion.hover_highlight, 0.35);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let default = DropZoneMotion::default();
+
+        let motion = sanitize_motion(DropZoneMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            hover_scale: f64::NAN,
+            drop_scale: f64::INFINITY,
+            hover_highlight: -2.0,
+        });
+
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.hover_scale, default.hover_scale);
+        assert_eq!(motion.drop_scale, default.drop_scale);
+        assert_eq!(motion.hover_highlight, 0.0);
     }
 
     #[test]

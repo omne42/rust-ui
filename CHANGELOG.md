@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `DropZone` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/scale/highlight values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level drag-hover feedback behavior.
+
 - `ui-components`: upgrades `AutoHeight` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring contracts before runtime animation wiring, and adding regression tests to prevent NaN/invalid spring values from leaking into HeroUI-level auto-height transitions.
 
 - `ui-components`: upgrades `Select` motion safety by introducing `sanitize_motion` wrapper guards over nested popover contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Popover`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level select open/close behavior.

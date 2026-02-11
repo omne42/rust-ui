@@ -35,6 +35,7 @@ pub fn DropZone(
     #[prop(optional)] on_drop_files: Option<Callback<Vec<DroppedFile>>>,
     children: Children,
 ) -> impl IntoView {
+    let motion = crate::drop_zone::motion::sanitize_motion(motion);
     let hover = use_hover(HoverOptions {
         is_disabled: disabled,
     });
