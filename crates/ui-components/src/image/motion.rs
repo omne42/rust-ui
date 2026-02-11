@@ -15,6 +15,46 @@ impl Default for ImageMotion {
     }
 }
 
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = ImageMotion::default().zoom_spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: ImageMotion) -> ImageMotion {
+    let default = ImageMotion::default();
+
+    ImageMotion {
+        zoom_spring: sanitize_spring(motion.zoom_spring),
+        zoom_scale: sanitize_number(motion.zoom_scale, default.zoom_scale).clamp(1.0, 4.0),
+    }
+}
+
 #[derive(Clone)]
 pub struct ImageMotionState {
     pub hover: ui_headless::HoverState,
@@ -39,7 +79,7 @@ pub fn attach_zoom_motion(
         return;
     }
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
 
     Effect::new(move |_| {
@@ -95,13 +135,41 @@ pub fn attach_zoom_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     _is_zoomed: bool,
     _is_hovered: leptos::prelude::ReadSignal<bool>,
-    _motion: ImageMotion,
+    motion: ImageMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let default = ImageMotion::default();
+
+        let motion = sanitize_motion(ImageMotion {
+            zoom_spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            zoom_scale: f64::NAN,
+        });
+
+        assert_eq!(motion.zoom_spring.stiffness, default.zoom_spring.stiffness);
+        assert_eq!(motion.zoom_spring.damping, default.zoom_spring.damping);
+        assert_eq!(motion.zoom_spring.mass, default.zoom_spring.mass);
+        assert_eq!(motion.zoom_spring.precision, default.zoom_spring.precision);
+        assert_eq!(motion.zoom_scale, default.zoom_scale);
+
+        let capped = sanitize_motion(ImageMotion {
+            zoom_scale: 99.0,
+            ..ImageMotion::default()
+        });
+        assert_eq!(capped.zoom_scale, 4.0);
+    }
 
     #[test]
     fn default_motion_has_reasonable_params() {

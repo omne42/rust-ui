@@ -16,6 +16,7 @@ pub fn Image(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] node_ref: NodeRef<html::Img>,
 ) -> impl IntoView {
+    let motion = crate::image::motion::sanitize_motion(motion);
     let src = src.filter(|value| !value.trim().is_empty());
     let fallback_src = fallback_src.filter(|value| !value.trim().is_empty());
 

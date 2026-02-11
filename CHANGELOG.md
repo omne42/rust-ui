@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Image` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/zoom-scale values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level image zoom feedback.
+
 - `ui-components`: upgrades `IllustratedMessage` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/offset values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level illustrated-message reveal behavior.
 
 - `ui-components`: upgrades `FlipCard` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/scale/tilt values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level flip-card interactions.

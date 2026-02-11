@@ -80,3 +80,26 @@ fn image_skeleton_respects_reduced_motion() {
         );
     }
 }
+
+#[test]
+fn image_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/image/motion.rs");
+    let view_source = load_source("src/image/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ImageMotion) -> ImageMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Image motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::image::motion::sanitize_motion(motion);"),
+        "Image view should sanitize motion before attaching zoom driver.",
+    );
+}
