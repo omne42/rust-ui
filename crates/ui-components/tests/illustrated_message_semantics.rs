@@ -69,3 +69,27 @@ fn illustrated_message_attaches_motion_driver() {
         "IllustratedMessage should attach its motion driver from `motion.rs`."
     );
 }
+
+#[test]
+fn illustrated_message_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/illustrated_message/motion.rs");
+    let view_source = load_source("src/illustrated_message/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: IllustratedMessageMotion) -> IllustratedMessageMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "IllustratedMessage motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source
+            .contains("let motion = crate::illustrated_message::motion::sanitize_motion(motion);"),
+        "IllustratedMessage view should sanitize motion before attaching motion driver.",
+    );
+}

@@ -12,6 +12,7 @@ pub fn IllustratedMessage(
     #[prop(optional)] motion: IllustratedMessageMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::illustrated_message::motion::sanitize_motion(motion);
     let has_illustration = illustration.is_some();
     let has_actions = actions.is_some();
     let state = crate::illustrated_message::logic::resolve_view_state(
