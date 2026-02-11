@@ -218,3 +218,25 @@ fn drawer_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn drawer_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/drawer/motion.rs");
+    let view_source = load_source("src/drawer/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: DrawerMotion) -> DrawerMotion",
+        "sheet: crate::sheet::motion::sanitize_motion(motion.sheet)",
+        "fn sanitize_motion_delegates_to_sheet_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Drawer motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::drawer::motion::sanitize_motion(motion);"),
+        "Drawer view should sanitize motion before forwarding to Sheet.",
+    );
+}
