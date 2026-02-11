@@ -18,6 +18,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: adds dedicated `number_semantics` regression coverage for `StaticNumber`/`SlidingNumber` (`mod` exports, logic contracts, motion sanitization wiring, CSS aggregation, docs playground anchors) to prevent compatibility regressions.
 
+- `ui-components`: adds dedicated `button_flip_semantics` regression coverage to lock `button_flip` module re-export contracts, crate-root compatibility exports, and docs playground anchors.
+
 - `ui-components`: aligns `Meter` ARIA semantics with a valid `role="meter"` contract (replacing invalid multi-role markup), updates semantics assertions, and preserves Spectrum-style state marker behavior.
 
 - `ui-components`: upgrades `Toast` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring/entry contracts before runtime attachment, and adding regression tests to prevent NaN/invalid motion values from leaking into HeroUI-level toast transitions.
