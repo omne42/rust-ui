@@ -4,8 +4,9 @@ use leptos::prelude::*;
 use ui_components::{
     Button, ButtonVariant, ContextualHelp, ContextualHelpVariant, Drawer, DrawerMotion,
     DrawerPlacement, Modal, OnPress, Overlay, OverlayMotion, Popover, PopoverMotion, PreviewCard,
-    PreviewCardMotion, Sheet, SheetMotion, SheetPlacement, Toast, ToastMotion, ToastOptions,
-    ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
+    PreviewCardMotion, PreviewLinkCard, PreviewLinkCardMotion, Sheet, SheetMotion, SheetPlacement,
+    Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport,
+    provide_toast_store,
 };
 
 #[path = "overlays_dialog.rs"]
@@ -784,6 +785,107 @@ pub(super) fn preview_card() -> AnyView {
             <Playground title="Default Fallbacks" code=fallback_code>
                 <div class="docs-row">
                     <PreviewCard
+                        trigger=move || {
+                            view! { <Button variant=ButtonVariant::Ghost>"Uses defaults"</Button> }
+                        }
+                    />
+                    <span class="ui-muted">
+                        "Falls back to default title/description/url/site-label when not provided."
+                    </span>
+                </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn preview_link_card() -> AnyView {
+    let code = r##"<PreviewLinkCard
+  title="Rust UI docs"
+  description="Preview component behavior and source markers."
+  url="https://github.com/adobe/react-spectrum"
+  image_src="https://avatars.githubusercontent.com/u/476009?v=4"
+  trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
+/>"##;
+
+    let markers_code = r##"<PreviewLinkCard
+  id="docs-preview-link-card"
+  title="Custom title"
+  description="Custom description for source markers."
+  url="https://react-spectrum.adobe.com"
+  site_label="react-spectrum.adobe.com"
+  image_src="https://react-spectrum.adobe.com/static/logo.png"
+  open_delay_ms=260
+  close_delay_ms=240
+  class_name="docs-preview-link-card-state"
+  motion=PreviewLinkCardMotion {
+    initial_scale: 0.95,
+    offset_y_px: 12.0,
+    ..PreviewLinkCardMotion::default()
+  }
+  trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Inspect markers"</Button> }
+/>"##;
+
+    let fallback_code = r##"<PreviewLinkCard
+  trigger=move || view! { <Button variant=ButtonVariant::Ghost>"Uses defaults"</Button> }
+/>"##;
+
+    view! {
+        <ComponentPage
+            title="PreviewLinkCard"
+            slug="preview-link-card"
+            group="Overlays"
+            description="Hover-triggered preview link card with overlay positioning, motion contract, and source markers."
+        >
+            <Playground title="Preview Snapshot" code=code>
+                <div class="docs-row">
+                    <PreviewLinkCard
+                        title="Rust UI docs".to_string()
+                        description="Preview component behavior and source markers.".to_string()
+                        url="https://github.com/adobe/react-spectrum".to_string()
+                        image_src="https://avatars.githubusercontent.com/u/476009?v=4".to_string()
+                        trigger=move || {
+                            view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
+                        }
+                    />
+                </div>
+            </Playground>
+
+            <Playground
+                title="State + Source Markers"
+                description="Inspect `data-state`, `data-content`, `data-delay-source`, `data-title-source`, `data-description-source`, `data-url-source`, `data-site-label-source`, and `data-motion-source` contracts on root/trigger/panel."
+                code=markers_code
+            >
+                <div class="docs-row">
+                    <PreviewLinkCard
+                        id="docs-preview-link-card".to_string()
+                        title="Custom title".to_string()
+                        description="Custom description for source markers.".to_string()
+                        url="https://react-spectrum.adobe.com".to_string()
+                        site_label="react-spectrum.adobe.com".to_string()
+                        image_src="https://react-spectrum.adobe.com/static/logo.png".to_string()
+                        open_delay_ms=260
+                        close_delay_ms=240
+                        class_name="docs-preview-link-card-state".to_string()
+                        motion=PreviewLinkCardMotion {
+                            initial_scale: 0.95,
+                            offset_y_px: 12.0,
+                            ..PreviewLinkCardMotion::default()
+                        }
+                        trigger=move || {
+                            view! {
+                                <Button variant=ButtonVariant::Secondary>
+                                    "Inspect markers"
+                                </Button>
+                            }
+                        }
+                    />
+                </div>
+            </Playground>
+
+            <Playground title="Default Fallbacks" code=fallback_code>
+                <div class="docs-row">
+                    <PreviewLinkCard
                         trigger=move || {
                             view! { <Button variant=ButtonVariant::Ghost>"Uses defaults"</Button> }
                         }

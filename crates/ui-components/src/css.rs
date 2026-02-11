@@ -145,6 +145,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::underlay::styles::CSS);
     out.push_str(crate::popover::styles::CSS);
     out.push_str(crate::preview_card::styles::CSS);
+    out.push_str(crate::preview_link_card::styles::CSS);
     out.push_str(crate::tooltip::styles::CSS);
     out.push_str(crate::contextual_help::styles::CSS);
     out.push_str(crate::coachmark::styles::CSS);

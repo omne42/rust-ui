@@ -29,6 +29,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `PreviewCard` as a new Spectrum-compatible hover/focus preview overlay component with full `logic/styles/motion/view` slice, centralized title/description/url/site-label/image/id/class/delay/motion source-state normalization, stable root/trigger/panel `data-*` contracts, and HeroUI-level spring enter/exit motion.
 - `apps/docs-app`: adds `PreviewCard` docs with `Basic Preview`, `State + Source Markers`, and `Default Fallbacks` playgrounds to inspect `data-content`/`data-delay-source`/`data-title-source`/`data-description-source`/`data-url-source`/`data-site-label-source`/`data-motion-source` contracts.
 
+- `ui-components`: adds `PreviewLinkCard` as a new Spectrum-compatible hover/focus preview-link overlay component with full `logic/styles/motion/view` slice, centralized title/description/url/site-label/image/id/class/delay/motion source-state normalization, stable root/trigger/panel `data-*` contracts, and HeroUI-level spring enter/exit motion.
+- `apps/docs-app`: adds `PreviewLinkCard` docs with `Preview Snapshot`, `State + Source Markers`, and `Default Fallbacks` playgrounds to inspect `data-content`/`data-delay-source`/`data-title-source`/`data-description-source`/`data-url-source`/`data-site-label-source`/`data-motion-source` contracts.
+
 - `ui-components`: upgrades `Sonner` to a full `logic/styles/view` slice with centralized slot/queue/position/portal/max-toasts/aria/class/motion/store source-state normalization, stable Spectrum-style root `data-*` contracts, and preserved HeroUI-level spring toast motion behavior via `ToastMotion`.
 - `apps/docs-app`: extends `Sonner` docs with a `State + Source Markers` playground to inspect `data-state`/`data-queue`/`data-position-source`/`data-portal-source`/`data-max-toasts-source`/`data-store-source`/`data-motion-source` contracts.
 

@@ -148,6 +148,7 @@ pub mod picker_button;
 pub mod popover;
 pub mod pressable_feedback;
 pub mod preview_card;
+pub mod preview_link_card;
 pub mod progress;
 pub mod progress_bar;
 pub mod progress_circle;
@@ -392,6 +393,7 @@ pub use pressable_feedback::{
     PressableFeedback, PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone,
 };
 pub use preview_card::{PreviewCard, PreviewCardMotion};
+pub use preview_link_card::{PreviewLinkCard, PreviewLinkCardMotion};
 pub use progress::{Progress, ProgressMotion, ProgressRange};
 pub use progress_bar::{ProgressBar, ProgressBarSize, ProgressBarVariant};
 pub use progress_circle::{ProgressCircle, ProgressCircleMotion};

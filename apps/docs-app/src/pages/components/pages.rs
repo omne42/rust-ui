@@ -937,6 +937,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         page: overlays::preview_card,
     },
     ComponentDoc {
+        name: "PreviewLinkCard",
+        slug: "preview-link-card",
+        group: "Overlays",
+        page: overlays::preview_link_card,
+    },
+    ComponentDoc {
         name: "Modal",
         slug: "modal",
         group: "Overlays",
