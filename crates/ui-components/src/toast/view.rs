@@ -17,6 +17,7 @@ pub fn Toast(
     #[prop(optional)] on_close: Option<OnPress>,
     #[prop(optional)] on_exit_complete: Option<Callback<()>>,
 ) -> impl IntoView {
+    let motion = crate::toast::motion::sanitize_motion(motion);
     let id = logic::normalize_optional_text(id);
     let has_custom_id = id.is_some();
     let id = StoredValue::new(id);
@@ -127,6 +128,7 @@ pub fn ToastViewport(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] store: Option<ToastStore>,
 ) -> impl IntoView {
+    let motion = crate::toast::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 

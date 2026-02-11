@@ -15,6 +15,52 @@ impl Default for ToastMotion {
     }
 }
 
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = ToastMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+pub fn sanitize_motion(motion: ToastMotion) -> ToastMotion {
+    let default = ToastMotion::default();
+    let initial_scale = sanitize_number(motion.initial_scale, default.initial_scale);
+
+    ToastMotion {
+        spring: sanitize_spring(motion.spring),
+        initial_y_px: sanitize_number(motion.initial_y_px, default.initial_y_px),
+        initial_scale: if initial_scale > 0.0 {
+            initial_scale
+        } else {
+            default.initial_scale
+        },
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
@@ -25,7 +71,7 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let last_state = StoredValue::new(None::<bool>);
     let springs = StoredValue::new_local(
         None::<(
@@ -135,9 +181,11 @@ pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     is_open: leptos::prelude::Signal<bool>,
     on_exit_complete: leptos::prelude::Callback<()>,
-    _motion: ToastMotion,
+    motion: ToastMotion,
 ) {
     use leptos::prelude::*;
+
+    let _ = sanitize_motion(motion);
 
     Effect::new(move |_| {
         if !is_open.get() {
@@ -149,6 +197,50 @@ pub fn attach_motion(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let default = ToastMotion::default();
+
+        let motion = sanitize_motion(ToastMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            initial_y_px: f64::INFINITY,
+            initial_scale: 0.0,
+        });
+
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.initial_y_px, default.initial_y_px);
+        assert_eq!(motion.initial_scale, default.initial_scale);
+    }
+
+    #[test]
+    fn supports_custom_spring_motion_contract() {
+        let motion = sanitize_motion(ToastMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 320.0,
+                damping: 24.0,
+                mass: 1.0,
+                precision: 0.002,
+            },
+            initial_y_px: 20.0,
+            initial_scale: 0.94,
+        });
+
+        assert_eq!(motion.spring.stiffness, 320.0);
+        assert_eq!(motion.spring.damping, 24.0);
+        assert_eq!(motion.spring.mass, 1.0);
+        assert_eq!(motion.spring.precision, 0.002);
+        assert_eq!(motion.initial_y_px, 20.0);
+        assert_eq!(motion.initial_scale, 0.94);
+    }
 
     #[test]
     fn default_motion_matches_slide_preset() {
