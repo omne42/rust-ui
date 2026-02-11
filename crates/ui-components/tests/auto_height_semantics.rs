@@ -136,3 +136,26 @@ fn auto_height_motion_contract_exposes_default_and_custom_tests() {
         );
     }
 }
+
+#[test]
+fn auto_height_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/auto_height/motion.rs");
+    let view_source = load_source("src/auto_height/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: AutoHeightMotion) -> AutoHeightMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "AutoHeight motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::auto_height::motion::sanitize_motion(motion);"),
+        "AutoHeight view should sanitize motion before deriving state and attaching motion driver.",
+    );
+}

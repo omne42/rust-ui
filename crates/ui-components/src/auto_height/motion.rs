@@ -13,6 +13,40 @@ impl Default for AutoHeightMotion {
     }
 }
 
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = AutoHeightMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: AutoHeightMotion) -> AutoHeightMotion {
+    AutoHeightMotion {
+        spring: sanitize_spring(motion.spring),
+        animate_height: motion.animate_height,
+    }
+}
+
 #[cfg(target_arch = "wasm32")]
 pub fn attach_motion(
     container_ref: leptos::prelude::NodeRef<leptos::html::Div>,
@@ -27,7 +61,7 @@ pub fn attach_motion(
         return;
     }
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
     let last_height_px = StoredValue::new(None::<f64>);
 
@@ -137,8 +171,9 @@ pub fn attach_motion(
 pub fn attach_motion(
     _container_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     _content_ref: leptos::prelude::NodeRef<leptos::html::Div>,
-    _motion: AutoHeightMotion,
+    motion: AutoHeightMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
@@ -151,6 +186,27 @@ mod tests {
 
         assert_eq!(motion.spring, ui_motion::presets::spring_soft());
         assert!(motion.animate_height);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let default = AutoHeightMotion::default();
+
+        let motion = sanitize_motion(AutoHeightMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            animate_height: false,
+        });
+
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert!(!motion.animate_height);
     }
 
     #[test]

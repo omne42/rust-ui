@@ -11,6 +11,7 @@ pub fn AutoHeight(
     #[prop(optional)] motion: AutoHeightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::auto_height::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let state = logic::resolve_state(AutoHeightStateInput {
         animate_height: motion.animate_height,
