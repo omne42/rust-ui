@@ -12,6 +12,7 @@ pub fn Progress(
     #[prop(optional)] motion: ProgressMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::progress::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
     let (value_label, has_custom_value_label) = logic::resolve_value_label(value_label);
