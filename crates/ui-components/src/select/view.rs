@@ -20,6 +20,7 @@ pub fn Select(
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional)] motion: SelectMotion,
 ) -> impl IntoView {
+    let motion = crate::select::motion::sanitize_motion(motion);
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
     let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);

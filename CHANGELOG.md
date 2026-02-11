@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Select` motion safety by introducing `sanitize_motion` wrapper guards over nested popover contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Popover`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level select open/close behavior.
+
 - `ui-components`: upgrades `Dropdown` motion safety by introducing `sanitize_motion` wrapper guards over nested popover contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Popover`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level dropdown open/close behavior.
 
 - `ui-components`: upgrades `ComboBox` motion safety by introducing `sanitize_motion` guards over nested popover/highlight contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to popover and active-highlight drivers, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level combo-box interaction behavior.
