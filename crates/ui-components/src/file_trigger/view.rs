@@ -16,6 +16,7 @@ pub fn FileTrigger(
 ) -> impl IntoView {
     let input_ref: NodeRef<html::Input> = NodeRef::new();
     let on_files = StoredValue::new(on_files);
+    let motion = crate::file_trigger::motion::sanitize_motion(motion);
 
     let on_press = Callback::new(move |_| {
         if !disabled {
