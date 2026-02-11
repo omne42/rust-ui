@@ -7,6 +7,46 @@ pub struct ComboBoxMotion {
     pub highlight: ActiveHighlightMotion,
 }
 
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = ActiveHighlightMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+fn sanitize_highlight(motion: ActiveHighlightMotion) -> ActiveHighlightMotion {
+    ActiveHighlightMotion {
+        spring: sanitize_spring(motion.spring),
+    }
+}
+
+pub fn sanitize_motion(motion: ComboBoxMotion) -> ComboBoxMotion {
+    ComboBoxMotion {
+        popover: crate::popover::motion::sanitize_motion(motion.popover),
+        highlight: sanitize_highlight(motion.highlight),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -43,5 +83,52 @@ mod tests {
         assert_eq!(motion.highlight.spring.damping, 22.0);
         assert_eq!(motion.highlight.spring.mass, 1.0);
         assert_eq!(motion.highlight.spring.precision, 0.002);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_nested_values() {
+        let input = ComboBoxMotion {
+            popover: PopoverMotion {
+                spring: ui_motion::spring::SpringConfig {
+                    stiffness: f64::NAN,
+                    damping: -1.0,
+                    mass: 0.0,
+                    precision: f64::INFINITY,
+                },
+                initial_scale: f64::NAN,
+                offset_y_px: -9999.0,
+            },
+            highlight: ActiveHighlightMotion {
+                spring: ui_motion::spring::SpringConfig {
+                    stiffness: f64::NAN,
+                    damping: -1.0,
+                    mass: 0.0,
+                    precision: f64::INFINITY,
+                },
+            },
+        };
+        let motion = sanitize_motion(input);
+
+        assert_eq!(
+            motion.popover,
+            crate::popover::motion::sanitize_motion(input.popover)
+        );
+        assert_eq!(motion.popover.initial_scale, 0.98);
+        assert_eq!(motion.popover.offset_y_px, 240.0);
+
+        let default_highlight = ActiveHighlightMotion::default();
+        assert_eq!(
+            motion.highlight.spring.stiffness,
+            default_highlight.spring.stiffness
+        );
+        assert_eq!(
+            motion.highlight.spring.damping,
+            default_highlight.spring.damping
+        );
+        assert_eq!(motion.highlight.spring.mass, default_highlight.spring.mass);
+        assert_eq!(
+            motion.highlight.spring.precision,
+            default_highlight.spring.precision
+        );
     }
 }
