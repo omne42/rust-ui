@@ -277,7 +277,6 @@ pub fn NavigationMenu(
                 class=item_slot.base_class()
                 node_ref=item_ref
                 href=item_href.get_value()
-                role="link"
                 tabindex=move || {
                     if item_disabled {
                         "-1"

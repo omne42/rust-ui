@@ -125,6 +125,23 @@ fn navigation_menu_view_uses_logic_contracts_and_source_markers() {
 }
 
 #[test]
+fn navigation_menu_items_use_native_anchor_semantics() {
+    let source = load_source("src/navigation_menu/view.rs");
+
+    assert!(
+        source.contains(
+            "aria-current=move || (selected_index.get() == Some(index)).then_some(\"page\")"
+        ),
+        "NavigationMenu items should expose aria-current on selected anchors."
+    );
+
+    assert!(
+        !source.contains("role=\"link\""),
+        "NavigationMenu items should rely on native anchor semantics instead of redundant role=\"link\"."
+    );
+}
+
+#[test]
 fn navigation_menu_supports_controlled_and_uncontrolled_selection_state() {
     let source = load_source("src/navigation_menu/view.rs");
 
