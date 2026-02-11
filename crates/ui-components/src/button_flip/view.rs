@@ -16,6 +16,7 @@ pub fn FlipButton(
     #[prop(into)] front: ViewFn,
     #[prop(into)] back: ViewFn,
 ) -> impl IntoView {
+    let motion = crate::button_flip::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 
