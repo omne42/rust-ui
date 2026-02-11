@@ -46,6 +46,8 @@ pub fn ContextualHelp(
     let footer = StoredValue::new(footer);
     let class_name = logic::normalize_optional_text(class_name);
 
+    let motion = crate::contextual_help::motion::sanitize_motion(motion);
+
     let (trigger_aria_label, has_custom_aria_label) =
         logic::resolve_trigger_aria_label(variant, aria_label);
     let (id, has_custom_id) = logic::resolve_id(id, format!("ui-contextual-help-{}", next_id()));

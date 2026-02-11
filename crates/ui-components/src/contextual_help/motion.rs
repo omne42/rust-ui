@@ -3,6 +3,12 @@ pub struct ContextualHelpMotion {
     pub popover: crate::popover::PopoverMotion,
 }
 
+pub fn sanitize_motion(motion: ContextualHelpMotion) -> ContextualHelpMotion {
+    ContextualHelpMotion {
+        popover: crate::popover::motion::sanitize_motion(motion.popover),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -26,5 +32,25 @@ mod tests {
 
         assert_eq!(motion.popover.initial_scale, 0.96);
         assert_eq!(motion.popover.offset_y_px, 8.0);
+    }
+
+    #[test]
+    fn sanitize_motion_delegates_to_popover_contract() {
+        let input = crate::popover::PopoverMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            initial_scale: f64::NAN,
+            offset_y_px: -9999.0,
+        };
+        let motion = sanitize_motion(ContextualHelpMotion { popover: input });
+        let expected = crate::popover::motion::sanitize_motion(input);
+
+        assert_eq!(motion.popover, expected);
+        assert_eq!(motion.popover.initial_scale, 0.98);
+        assert_eq!(motion.popover.offset_y_px, 240.0);
     }
 }

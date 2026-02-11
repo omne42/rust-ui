@@ -156,3 +156,26 @@ fn contextual_help_exposes_motion_contract_and_internal_module() {
         );
     }
 }
+
+#[test]
+fn contextual_help_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/contextual_help/motion.rs");
+    let view_source = load_source("src/contextual_help/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ContextualHelpMotion) -> ContextualHelpMotion",
+        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "fn sanitize_motion_delegates_to_popover_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ContextualHelp motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source
+            .contains("let motion = crate::contextual_help::motion::sanitize_motion(motion);"),
+        "ContextualHelp view should sanitize motion before forwarding to Popover.",
+    );
+}
