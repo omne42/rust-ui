@@ -22,6 +22,7 @@ pub fn Dropdown(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let motion = crate::dropdown::motion::sanitize_motion(motion);
     let id_base = logic::normalize_id_base(id_base);
     let id_base = StoredValue::new(id_base);
 
