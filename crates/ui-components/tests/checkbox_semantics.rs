@@ -138,3 +138,25 @@ fn checkbox_styles_include_motion_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn checkbox_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/checkbox/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: CheckboxMotion) -> CheckboxMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "fn sanitize_indicator_spring(",
+        "hover_scale:",
+        "tap_scale:",
+        "indicator_spring:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_values_and_keeps_valid_springs()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Checkbox motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
