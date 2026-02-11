@@ -16,6 +16,7 @@ pub fn Meter(
     #[prop(optional, into)] value_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::meter::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let label = logic::normalize_optional_text(label);
     let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label, label.clone());

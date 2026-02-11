@@ -130,3 +130,26 @@ fn meter_motion_uses_spring_animator() {
         "Meter motion should animate via a spring to match the repo's motion spec."
     );
 }
+
+#[test]
+fn meter_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/meter/motion.rs");
+    let view_source = load_source("src/meter/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: MeterMotion) -> MeterMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "let _ = sanitize_motion(motion);",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Meter motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::meter::motion::sanitize_motion(motion);"),
+        "Meter view should sanitize motion before attaching spring driver.",
+    );
+}
