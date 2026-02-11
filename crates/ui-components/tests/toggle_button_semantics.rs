@@ -132,3 +132,23 @@ fn toggle_button_motion_uses_spring_animator() {
         "ToggleButton motion should be spring-driven to match the repo's motion spec."
     );
 }
+
+#[test]
+fn toggle_button_motion_sanitizes_custom_contract_values() {
+    let source = load_source("src/toggle_button/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ToggleButtonMotion) -> ToggleButtonMotion",
+        "fn sanitize_spring(",
+        "hover_scale:",
+        "tap_scale:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ToggleButton motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
