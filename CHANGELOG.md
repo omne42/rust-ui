@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `InlineAlert` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring contracts before runtime attachment, and adding regression tests to prevent NaN/invalid spring values from leaking into HeroUI-level inline-alert reveal behavior.
+
 - `ui-components`: upgrades `Image` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/zoom-scale values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level image zoom feedback.
 
 - `ui-components`: upgrades `IllustratedMessage` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping custom spring/offset values before runtime attachment, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level illustrated-message reveal behavior.

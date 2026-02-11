@@ -18,6 +18,7 @@ pub fn InlineAlert(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let motion = crate::inline_alert::motion::sanitize_motion(motion);
     let state =
         logic::resolve_view_state(tone, title.as_deref(), description.as_deref(), hide_icon);
 
