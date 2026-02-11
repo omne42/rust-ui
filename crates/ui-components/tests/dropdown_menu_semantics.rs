@@ -199,3 +199,25 @@ fn dropdown_menu_exposes_motion_contract_and_internal_module() {
         );
     }
 }
+
+#[test]
+fn dropdown_menu_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/dropdown_menu/motion.rs");
+    let view_source = load_source("src/dropdown_menu/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: DropdownMenuMotion) -> DropdownMenuMotion",
+        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "fn sanitize_motion_delegates_to_popover_contract()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "DropdownMenu motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::dropdown_menu::motion::sanitize_motion(motion);"),
+        "DropdownMenu view should sanitize motion before forwarding to Popover.",
+    );
+}

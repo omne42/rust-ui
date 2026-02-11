@@ -38,6 +38,8 @@ pub fn DropdownMenu(
 
     let class_name = logic::normalize_optional_text(class_name);
 
+    let motion = crate::dropdown_menu::motion::sanitize_motion(motion);
+
     let is_controlled = open.is_some();
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
