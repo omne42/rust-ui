@@ -14,6 +14,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: updates `NavigationMenu` item markup to rely on native anchor semantics (removing redundant `role="link"`) while preserving `aria-current` state markers, and adds regression coverage for the contract.
 
+- `ui-components`: aligns `Item` list semantics by adding `role="listitem"` to `Item` when used with `ItemGroup role="list"`, and adds regression coverage to lock the accessibility contract.
+
 - `ui-components`: aligns `Meter` ARIA semantics with a valid `role="meter"` contract (replacing invalid multi-role markup), updates semantics assertions, and preserves Spectrum-style state marker behavior.
 
 - `ui-components`: upgrades `Toast` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring/entry contracts before runtime attachment, and adding regression tests to prevent NaN/invalid motion values from leaking into HeroUI-level toast transitions.

@@ -66,6 +66,21 @@ fn item_primitives_expose_slot_contracts() {
 }
 
 #[test]
+fn item_group_and_item_keep_list_semantics() {
+    let source = load_source("src/item/view.rs");
+
+    for needle in [
+        "<div class=class_name role=\"list\" data-slot=\"item-group\">",
+        "role=\"listitem\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Item primitives should preserve list semantics via `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn item_docs_page_exists() {
     let source =
         load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");

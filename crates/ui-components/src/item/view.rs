@@ -98,7 +98,7 @@ pub fn Item(
     let class_name = compose_class("ui-item", class_name);
 
     view! {
-        <div class=class_name data-slot="item" data-variant=variant.as_attr() data-size=size.as_attr()>
+        <div class=class_name role="listitem" data-slot="item" data-variant=variant.as_attr() data-size=size.as_attr()>
             {children()}
         </div>
     }
