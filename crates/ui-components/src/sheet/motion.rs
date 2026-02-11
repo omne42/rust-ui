@@ -15,6 +15,46 @@ impl Default for SheetMotion {
     }
 }
 
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = SheetMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: SheetMotion) -> SheetMotion {
+    let default = SheetMotion::default();
+
+    SheetMotion {
+        spring: sanitize_spring(motion.spring),
+        initial_offset_px: if motion.initial_offset_px.is_finite() {
+            motion.initial_offset_px.abs().clamp(0.0, 640.0)
+        } else {
+            default.initial_offset_px
+        },
+    }
+}
+
 #[cfg(any(target_arch = "wasm32", test))]
 fn placement_offset(placement: SheetPlacement, base: f64) -> (f64, f64) {
     match placement {
@@ -35,7 +75,7 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let last_state = StoredValue::new(None::<bool>);
     let springs = StoredValue::new_local(
         None::<(
@@ -62,7 +102,6 @@ pub fn attach_motion(
         let open_now = is_open.get_untracked();
         let (x_initial, y_initial) = placement_offset(placement, motion.initial_offset_px);
 
-        // Always initialize in the closed state so mounting while open animates in.
         let backdrop_initial = 0.0;
         let panel_opacity_initial = 0.0;
 
@@ -169,9 +208,11 @@ pub fn attach_motion(
     is_open: leptos::prelude::Signal<bool>,
     _placement: SheetPlacement,
     finish_exit: leptos::prelude::Callback<()>,
-    _motion: SheetMotion,
+    motion: SheetMotion,
 ) {
     use leptos::prelude::*;
+
+    let _ = sanitize_motion(motion);
 
     Effect::new(move |_| {
         if !is_open.get() {
@@ -219,5 +260,44 @@ mod tests {
         assert_eq!(motion.spring.mass, 1.0);
         assert_eq!(motion.spring.precision, 0.002);
         assert_eq!(motion.initial_offset_px, 48.0);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let motion = sanitize_motion(SheetMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            initial_offset_px: f64::NAN,
+        });
+
+        let default = SheetMotion::default();
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.initial_offset_px, default.initial_offset_px);
+    }
+
+    #[test]
+    fn sanitize_motion_clamps_offset_range() {
+        let motion = sanitize_motion(SheetMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 220.0,
+                damping: 20.0,
+                mass: 1.05,
+                precision: 0.003,
+            },
+            initial_offset_px: -9999.0,
+        });
+
+        assert_eq!(motion.initial_offset_px, 640.0);
+        assert_eq!(motion.spring.stiffness, 220.0);
+        assert_eq!(motion.spring.damping, 20.0);
+        assert_eq!(motion.spring.mass, 1.05);
+        assert_eq!(motion.spring.precision, 0.003);
     }
 }

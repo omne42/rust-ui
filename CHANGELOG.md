@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Sheet` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level sheet entry/exit behavior.
+
 - `ui-components`: upgrades `Tray` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards over nested sheet contracts, clamping invalid custom spring/offset values before runtime handoff to `Sheet`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level tray entry/exit behavior.
 
 - `ui-components`: upgrades `PreviewLinkCard` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/scale/offset values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level preview-link-card entry/exit behavior.
