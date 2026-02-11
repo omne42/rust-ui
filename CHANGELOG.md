@@ -16,6 +16,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: upgrades `Tabs` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards for indicator spring contracts, validating custom spring parameters before runtime animation wiring, and adding regression tests to prevent NaN/invalid spring values from leaking into indicator behavior.
 
+- `ui-components`: upgrades `Button` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, clamping invalid custom spring/hover/tap scale values before runtime animation wiring, and adding regression tests to prevent NaN/overflow motion contracts from leaking into button interaction behavior.
+
 - `ui-components`: upgrades `ContextMenu` to a full `logic/styles/view` slice with centralized slot/open-mode/item/action/id/aria/class/disabled/placement/motion source-state normalization, stable Spectrum-style root+trigger `data-*` contracts, and preserved context-trigger + keyboard-open semantics with HeroUI-level popover spring motion reuse.
 - `apps/docs-app`: upgrades `ContextMenu` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-aria-label-source`/`data-disabled-indices-source`/`data-close-on-action-source`/`data-open-source`/`data-motion-source` contracts.
 
