@@ -8,6 +8,45 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
+fn command_does_not_expose_logic_or_view_modules() {
+    let source = load_source("src/command/mod.rs");
+
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Command internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn command_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/command/mod.rs");
+
+    for needle in [
+        "pub struct CommandItem",
+        "pub struct CommandGroup",
+        "pub struct FilteredCommandItem",
+        "pub struct FilteredCommandGroup",
+        "pub struct CommandFilterState",
+        "pub enum CommandSlot",
+        "pub struct CommandPartStateInput",
+        "pub struct CommandPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_PLACEHOLDER",
+        "DEFAULT_EMPTY_LABEL",
+        "DEFAULT_ARIA_LABEL",
+        "DEFAULT_DISABLED",
+        "pub use crate::active_highlight::ActiveHighlightMotion as CommandMotion;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "command::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
 fn command_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/command/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -17,14 +56,73 @@ fn command_is_exported_from_module_and_crate_root() {
         "command module should export `Command`."
     );
     assert!(
-        module_source.contains("CommandMotion"),
-        "command module should expose a motion alias."
-    );
-    assert!(
         crate_source
             .contains("pub use command::{Command, CommandGroup, CommandItem, CommandMotion};"),
         "crate root should re-export command contracts."
     );
+}
+
+#[test]
+fn command_logic_exposes_state_helpers() {
+    let source = load_source("src/command/logic.rs");
+
+    for needle in [
+        "pub fn state_attr(item_count: usize, is_disabled: bool, has_query: bool)",
+        "pub fn item_attr(item_count: usize)",
+        "pub fn group_attr(group_count: usize)",
+        "pub fn query_attr(has_query: bool)",
+        "pub fn disabled_attr(is_disabled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(id_base: String)",
+        "pub fn resolve_placeholder(value: Option<String>)",
+        "pub fn resolve_empty_label(value: Option<String>)",
+        "pub fn resolve_aria_label(value: Option<String>)",
+        "pub fn filter_groups(groups: &[CommandGroup], query: &str)",
+        "pub fn resolve_state(input: CommandPartStateInput) -> CommandPartState",
+        "pub fn compose_class_name(class_name: Option<String>, state: CommandPartState)",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command logic should include `{needle}` for centralized state/source contracts."
+        );
+    }
+}
+
+#[test]
+fn command_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/command/view.rs");
+
+    for needle in [
+        "logic::normalize_id_base(id_base)",
+        "logic::resolve_placeholder(placeholder)",
+        "logic::resolve_empty_label(empty_label)",
+        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_state(CommandPartStateInput {",
+        "slot: CommandSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-items=move || root_state.get().item_attr",
+        "data-groups=move || root_state.get().group_attr",
+        "data-query=move || root_state.get().query_attr",
+        "data-disabled=move || root_state.get().disabled_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-placeholder-source=move || root_state.get().placeholder_source_attr",
+        "data-empty-label-source=move || root_state.get().empty_label_source_attr",
+        "data-aria-label-source=move || root_state.get().aria_label_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-disabled-source=move || root_state.get().disabled_source_attr",
+        "data-action-source=move || root_state.get().action_source_attr",
+        "data-motion-source=move || root_state.get().motion_source_attr",
+        "data-custom-id=move || root_state.get().has_custom_id_base.then_some(\"true\")",
+        "data-custom-placeholder=move || root_state.get().has_custom_placeholder.then_some(\"true\")",
+        "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command view should include `{needle}` for stable state/source marker contracts."
+        );
+    }
 }
 
 #[test]
@@ -34,12 +132,12 @@ fn command_view_has_keyboard_filter_and_slot_contracts() {
     for needle in [
         "use_listbox(ListBoxOptions",
         "attach_active_highlight_motion",
-        "data-slot=\"command\"",
-        "data-slot=\"command-input\"",
-        "data-slot=\"command-list\"",
-        "data-slot=\"command-item\"",
+        "data-slot=input_slot.as_attr()",
+        "data-slot=list_slot.as_attr()",
+        "data-slot=item_slot.as_attr()",
         "role=\"combobox\"",
         "aria-activedescendant=move || listbox.attrs.aria_activedescendant.get()",
+        "on:keydown=on_input_key_down",
     ] {
         assert!(
             source.contains(needle),
@@ -49,18 +147,74 @@ fn command_view_has_keyboard_filter_and_slot_contracts() {
 }
 
 #[test]
-fn command_css_contains_expected_selectors() {
+fn command_uses_active_highlight_motion_contract() {
+    let source = load_source("src/command/view.rs");
+
+    for needle in [
+        "use crate::active_highlight::{",
+        "attach_active_highlight_motion",
+        "ActiveHighlightMotion",
+        "let options_ref: NodeRef<html::Div> = NodeRef::new();",
+        "let highlight_ref: NodeRef<html::Div> = NodeRef::new();",
+        "attach_active_highlight_motion(",
+        "data-slot=highlight_slot.as_attr()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command should compose active-highlight motion via `{needle}` for HeroUI-level feedback continuity."
+        );
+    }
+}
+
+#[test]
+fn command_styles_include_state_and_source_markers() {
     let css = load_source("src/command/styles.rs");
 
     for needle in [
         ".ui-command {",
-        ".ui-command__input {",
-        ".ui-command__option[data-focused=\"true\"]",
-        ".ui-command__empty {",
+        ".ui-command--disabled",
+        ".ui-command[data-disabled=\"disabled\"]",
+        ".ui-command--querying",
+        ".ui-command[data-query=\"present\"]",
+        ".ui-command[data-id-source=\"custom\"]",
+        ".ui-command[data-placeholder-source=\"custom\"]",
+        ".ui-command[data-empty-label-source=\"custom\"]",
+        ".ui-command[data-aria-label-source=\"custom\"]",
+        ".ui-command[data-class-source=\"custom\"]",
+        ".ui-command[data-disabled-source=\"custom\"]",
+        ".ui-command[data-action-source=\"custom\"]",
+        ".ui-command[data-motion-source=\"custom\"]",
+        ".ui-command[data-custom-motion=\"true\"]",
+        ".ui-command__option[data-state=\"selected\"] .ui-command__item-label",
     ] {
         assert!(
             css.contains(needle),
-            "Command CSS should include `{needle}` selector."
+            "Command CSS should include `{needle}` as stable state/source contracts."
+        );
+    }
+}
+
+#[test]
+fn command_docs_page_contains_state_source_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn command() -> AnyView",
+        "title=\"Command\"",
+        "slug=\"command\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-placeholder-source",
+        "data-empty-label-source",
+        "data-aria-label-source",
+        "data-action-source",
+        "data-motion-source",
+        "<Command",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command docs page should contain `{needle}`."
         );
     }
 }

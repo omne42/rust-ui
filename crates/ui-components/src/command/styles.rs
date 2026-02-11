@@ -11,9 +11,78 @@ pub const CSS: &str = r#"
   overflow: hidden;
 }
 
+.ui-command--empty,
+.ui-command[data-state="empty"],
+.ui-command[data-items="empty"] {
+  --ui-command-empty: 1;
+}
+
+.ui-command--has-items,
+.ui-command[data-items="populated"] {
+  --ui-command-empty: 0;
+}
+
+.ui-command--querying,
+.ui-command[data-query="present"] {
+  --ui-command-querying: 1;
+}
+
+.ui-command--idle,
+.ui-command[data-query="absent"] {
+  --ui-command-querying: 0;
+}
+
 .ui-command--disabled,
-.ui-command[data-disabled="true"] {
+.ui-command[data-disabled="disabled"],
+.ui-command[data-is-disabled="true"] {
   opacity: 0.64;
+}
+
+.ui-command--enabled,
+.ui-command[data-disabled="enabled"],
+.ui-command[data-is-enabled="true"] {
+  opacity: 1;
+}
+
+.ui-command--custom-motion,
+.ui-command[data-motion-source="custom"],
+.ui-command[data-custom-motion="true"] {
+  --ui-command-custom-motion: 1;
+}
+
+.ui-command[data-id-source="custom"],
+.ui-command[data-custom-id="true"] {
+  --ui-command-custom-id: 1;
+}
+
+.ui-command[data-placeholder-source="custom"],
+.ui-command[data-custom-placeholder="true"] {
+  --ui-command-custom-placeholder: 1;
+}
+
+.ui-command[data-empty-label-source="custom"],
+.ui-command[data-custom-empty-label="true"] {
+  --ui-command-custom-empty-label: 1;
+}
+
+.ui-command[data-aria-label-source="custom"],
+.ui-command[data-custom-aria-label="true"] {
+  --ui-command-custom-aria-label: 1;
+}
+
+.ui-command[data-class-source="custom"],
+.ui-command[data-custom-class="true"] {
+  --ui-command-custom-class: 1;
+}
+
+.ui-command[data-disabled-source="custom"],
+.ui-command[data-custom-disabled="true"] {
+  --ui-command-custom-disabled: 1;
+}
+
+.ui-command[data-action-source="custom"],
+.ui-command[data-custom-action="true"] {
+  --ui-command-custom-action: 1;
 }
 
 .ui-command__input-wrap {
@@ -91,15 +160,18 @@ pub const CSS: &str = r#"
   -webkit-tap-highlight-color: transparent;
 }
 
-.ui-command__option[data-focused="true"] {
+.ui-command__option[data-focused="true"],
+.ui-command__option[data-state="focused"] {
   color: color-mix(in oklab, var(--ui-fg) 96%, var(--ui-accent) 4%);
 }
 
-.ui-command__option[data-selected="true"] .ui-command__item-label {
+.ui-command__option[data-selected="true"] .ui-command__item-label,
+.ui-command__option[data-state="selected"] .ui-command__item-label {
   font-weight: 600;
 }
 
-.ui-command__option[data-disabled="true"] {
+.ui-command__option[data-disabled="true"],
+.ui-command__option[data-state="disabled"] {
   opacity: 0.52;
   cursor: not-allowed;
 }

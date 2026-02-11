@@ -1,8 +1,5 @@
-use crate::active_highlight::attach_active_highlight_motion;
-use crate::command::{
-    CommandGroup, CommandMotion,
-    logic::{self, CommandStateInput},
-};
+use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
+use crate::command::{CommandGroup, CommandMotion, CommandPartStateInput, CommandSlot, logic};
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
 use ui_headless::{ListBoxOptions, use_listbox};
@@ -13,19 +10,32 @@ pub fn Command(
     #[prop(into)] groups: Arc<[CommandGroup]>,
     #[prop(optional)] on_action: Option<Callback<String>>,
     #[prop(optional)] disabled: bool,
-    #[prop(optional)] motion: CommandMotion,
+    #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] placeholder: Option<String>,
     #[prop(optional, into)] empty_label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let placeholder = logic::normalize_placeholder(placeholder);
-    let empty_label = logic::normalize_empty_label(empty_label);
-    let aria_label = logic::normalize_aria_label(aria_label);
+    let id_base = logic::normalize_id_base(id_base);
+    let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
+    let id_base = StoredValue::new(id_base);
+
+    let (placeholder, has_custom_placeholder) = logic::resolve_placeholder(placeholder);
+    let placeholder = StoredValue::new(placeholder);
+
+    let (empty_label, has_custom_empty_label) = logic::resolve_empty_label(empty_label);
+    let empty_label = StoredValue::new(empty_label);
+
+    let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
+    let aria_label = StoredValue::new(aria_label);
 
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+
+    let has_custom_disabled = disabled != logic::DEFAULT_DISABLED;
+    let has_custom_on_action = on_action.is_some();
+    let has_custom_motion = motion != CommandMotion::default();
 
     let groups = StoredValue::new(groups);
     let (query, set_query) = signal(String::new());
@@ -83,7 +93,7 @@ pub fn Command(
     let listbox = use_listbox(ListBoxOptions {
         is_disabled: disabled,
         should_loop: true,
-        id_base: format!("{id_base}-command"),
+        id_base: format!("{}-command", id_base.get_value()),
         default_index: 0,
         sync_active_index_to_selected: true,
         item_count,
@@ -126,48 +136,92 @@ pub fn Command(
         }
     };
 
-    let state = Signal::derive(move || {
+    let root_state = Memo::new(move |_| {
         filtered.with(|filtered| {
-            logic::resolve_state(CommandStateInput {
+            logic::resolve_state(CommandPartStateInput {
+                slot: CommandSlot::Root,
                 item_count: filtered.items.len(),
                 group_count: filtered.groups.len(),
                 is_disabled: disabled,
                 has_query: !query.get().trim().is_empty(),
+                has_custom_id_base,
+                has_custom_placeholder,
+                has_custom_empty_label,
+                has_custom_aria_label,
                 has_custom_class_name,
+                has_custom_disabled,
+                has_custom_on_action,
+                has_custom_motion,
             })
         })
     });
+    let root_state_for_class = root_state;
 
-    let class =
-        Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
+    let root_class = Memo::new(move |_| {
+        logic::compose_class_name(class_name.get_value(), root_state_for_class.get())
+    });
 
-    let listbox_id = format!("{id_base}-listbox");
+    let listbox_id = StoredValue::new(format!("{}-listbox", id_base.get_value()));
+
+    let input_wrap_slot = CommandSlot::InputWrap;
+    let input_slot = CommandSlot::Input;
+    let list_slot = CommandSlot::List;
+    let options_slot = CommandSlot::Options;
+    let group_slot = CommandSlot::Group;
+    let group_heading_slot = CommandSlot::GroupHeading;
+    let group_items_slot = CommandSlot::GroupItems;
+    let item_slot = CommandSlot::Item;
+    let item_label_slot = CommandSlot::ItemLabel;
+    let shortcut_slot = CommandSlot::Shortcut;
+    let empty_slot = CommandSlot::Empty;
+    let highlight_slot = CommandSlot::Highlight;
 
     view! {
         <section
-            class=move || class.get()
-            data-slot="command"
-            data-state=move || state.get().data_state_attr
-            data-disabled=move || state.get().is_disabled.then_some("true")
-            data-empty=move || state.get().is_empty.then_some("true")
-            data-has-results=move || state.get().has_items.then_some("true")
-            data-has-query=move || state.get().has_query.then_some("true")
-            data-item-count=move || state.get().item_count.to_string()
-            data-group-count=move || state.get().group_count.to_string()
+            class=move || root_class.get()
+            data-slot=move || root_state.get().slot_attr
+            data-state=move || root_state.get().state_attr
+            data-items=move || root_state.get().item_attr
+            data-groups=move || root_state.get().group_attr
+            data-query=move || root_state.get().query_attr
+            data-disabled=move || root_state.get().disabled_attr
+            data-empty=move || root_state.get().is_empty.then_some("true")
+            data-has-items=move || root_state.get().has_items.then_some("true")
+            data-item-count=move || root_state.get().item_count.to_string()
+            data-group-count=move || root_state.get().group_count.to_string()
+            data-has-query=move || root_state.get().has_query.then_some("true")
+            data-is-disabled=move || root_state.get().is_disabled.then_some("true")
+            data-is-enabled=move || root_state.get().is_enabled.then_some("true")
+            data-id-source=move || root_state.get().id_source_attr
+            data-placeholder-source=move || root_state.get().placeholder_source_attr
+            data-empty-label-source=move || root_state.get().empty_label_source_attr
+            data-aria-label-source=move || root_state.get().aria_label_source_attr
+            data-class-source=move || root_state.get().class_source_attr
+            data-disabled-source=move || root_state.get().disabled_source_attr
+            data-action-source=move || root_state.get().action_source_attr
+            data-motion-source=move || root_state.get().motion_source_attr
+            data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
+            data-custom-placeholder=move || root_state.get().has_custom_placeholder.then_some("true")
+            data-custom-empty-label=move || root_state.get().has_custom_empty_label.then_some("true")
+            data-custom-aria-label=move || root_state.get().has_custom_aria_label.then_some("true")
+            data-custom-class=move || root_state.get().has_custom_class_name.then_some("true")
+            data-custom-disabled=move || root_state.get().has_custom_disabled.then_some("true")
+            data-custom-action=move || root_state.get().has_custom_on_action.then_some("true")
+            data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
         >
-            <div class="ui-command__input-wrap" data-slot="command-input-wrap">
+            <div class=input_wrap_slot.base_class() data-slot=input_wrap_slot.as_attr()>
                 <input
                     type="text"
-                    class="ui-command__input"
-                    data-slot="command-input"
-                    placeholder=placeholder
+                    class=input_slot.base_class()
+                    data-slot=input_slot.as_attr()
+                    placeholder=placeholder.get_value()
                     value=move || query.get()
                     disabled=disabled
                     role="combobox"
                     aria-autocomplete="list"
                     aria-expanded="true"
-                    aria-label=aria_label.clone()
-                    aria-controls=listbox_id.clone()
+                    aria-label=aria_label.get_value()
+                    aria-controls=listbox_id.get_value()
                     aria-activedescendant=move || listbox.attrs.aria_activedescendant.get()
                     on:input=move |ev| set_query.set(event_target_value(&ev))
                     on:keydown=on_input_key_down
@@ -175,21 +229,21 @@ pub fn Command(
             </div>
 
             <div
-                class="ui-command__list"
-                id=listbox_id.clone()
+                class=list_slot.base_class()
+                id=listbox_id.get_value()
                 role=listbox.attrs.role
                 tabindex=listbox.attrs.tabindex
-                aria-label=aria_label
+                aria-label=aria_label.get_value()
                 aria-disabled=listbox.attrs.aria_disabled
-                data-slot="command-list"
-                data-empty=move || state.get().is_empty.then_some("true")
+                data-slot=list_slot.as_attr()
+                data-empty=move || root_state.get().is_empty.then_some("true")
             >
                 {move || {
                     filtered.with(|state| {
                         if state.items.is_empty() {
                             return view! {
-                                <div class="ui-command__empty" data-slot="command-empty">
-                                    {empty_label.clone()}
+                                <div class=empty_slot.base_class() data-slot=empty_slot.as_attr()>
+                                    {empty_label.get_value()}
                                 </div>
                             }
                             .into_any();
@@ -202,8 +256,16 @@ pub fn Command(
                         let on_option_click = listbox.handlers.on_option_click;
 
                         view! {
-                            <div class="ui-command__options" node_ref=options_ref data-slot="command-options">
-                                <div class="ui-active-highlight" node_ref=highlight_ref data-slot="command-highlight"></div>
+                            <div
+                                class=options_slot.base_class()
+                                node_ref=options_ref
+                                data-slot=options_slot.as_attr()
+                            >
+                                <div
+                                    class=highlight_slot.base_class()
+                                    node_ref=highlight_ref
+                                    data-slot=highlight_slot.as_attr()
+                                ></div>
                                 {state
                                     .groups
                                     .iter()
@@ -212,11 +274,17 @@ pub fn Command(
                                         let item_indices = group.item_indices.clone();
 
                                         view! {
-                                            <section class="ui-command__group" data-slot="command-group">
-                                                <h3 class="ui-command__group-heading" data-slot="command-group-heading">
+                                            <section class=group_slot.base_class() data-slot=group_slot.as_attr()>
+                                                <h3
+                                                    class=group_heading_slot.base_class()
+                                                    data-slot=group_heading_slot.as_attr()
+                                                >
                                                     {heading}
                                                 </h3>
-                                                <div class="ui-command__group-items" data-slot="command-group-items">
+                                                <div
+                                                    class=group_items_slot.base_class()
+                                                    data-slot=group_items_slot.as_attr()
+                                                >
                                                     {item_indices
                                                         .into_iter()
                                                         .map(|index| {
@@ -228,18 +296,32 @@ pub fn Command(
                                                                 .expect("filtered command item index should always exist");
                                                             let has_shortcut = item.shortcut.is_some();
                                                             let shortcut = StoredValue::new(item.shortcut.unwrap_or_default());
+                                                            let item_label = StoredValue::new(item.label);
+                                                            let item_disabled = item.disabled;
 
                                                             view! {
                                                                 <div
                                                                     id=id
                                                                     role="option"
-                                                                    class="ui-command__option"
-                                                                    data-slot="command-item"
+                                                                    class=item_slot.base_class()
+                                                                    data-slot=item_slot.as_attr()
+                                                                    data-index=index
+                                                                    data-state=move || {
+                                                                        if item_disabled {
+                                                                            "disabled"
+                                                                        } else if selected_index.get() == Some(index) {
+                                                                            "selected"
+                                                                        } else if active_index.get() == index {
+                                                                            "focused"
+                                                                        } else {
+                                                                            "idle"
+                                                                        }
+                                                                    }
                                                                     aria-selected=move || {
                                                                         (selected_index.get() == Some(index)).then_some("true")
                                                                     }
-                                                                    aria-disabled=item.disabled.then_some("true")
-                                                                    data-disabled=item.disabled.then_some("true")
+                                                                    aria-disabled=item_disabled.then_some("true")
+                                                                    data-disabled=item_disabled.then_some("true")
                                                                     data-focused=move || {
                                                                         (active_index.get() == index).then_some("true")
                                                                     }
@@ -252,11 +334,11 @@ pub fn Command(
                                                                         on_option_click.run(index);
                                                                     }
                                                                 >
-                                                                    <span class="ui-command__item-label" data-slot="command-item-label">
-                                                                        {item.label}
+                                                                    <span class=item_label_slot.base_class() data-slot=item_label_slot.as_attr()>
+                                                                        {item_label.get_value()}
                                                                     </span>
                                                                     <Show when=move || has_shortcut>
-                                                                        <kbd class="ui-command__shortcut" data-slot="command-shortcut">
+                                                                        <kbd class=shortcut_slot.base_class() data-slot=shortcut_slot.as_attr()>
                                                                             {shortcut.get_value()}
                                                                         </kbd>
                                                                     </Show>

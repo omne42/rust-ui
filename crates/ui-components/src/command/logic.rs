@@ -1,93 +1,54 @@
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CommandItem {
-    pub id: String,
-    pub label: String,
-    pub keywords: Vec<String>,
-    pub shortcut: Option<String>,
-    pub disabled: bool,
-}
+use crate::command::{
+    CommandFilterState, CommandGroup, CommandItem, CommandPartState, CommandPartStateInput,
+    CommandSlot, FilteredCommandGroup, FilteredCommandItem,
+};
 
-impl CommandItem {
-    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            keywords: Vec::new(),
-            shortcut: None,
-            disabled: false,
-        }
-    }
+pub const DEFAULT_ID_BASE: &str = "command";
+pub const DEFAULT_PLACEHOLDER: &str = "Type a command or search...";
+pub const DEFAULT_EMPTY_LABEL: &str = "No results found.";
+pub const DEFAULT_ARIA_LABEL: &str = "Command menu";
+pub const DEFAULT_DISABLED: bool = false;
 
-    pub fn keywords(mut self, keywords: Vec<String>) -> Self {
-        self.keywords = keywords;
-        self
-    }
+pub fn state_attr(item_count: usize, is_disabled: bool, has_query: bool) -> &'static str {
+    let is_empty = item_count == 0;
 
-    pub fn shortcut(mut self, shortcut: impl Into<String>) -> Self {
-        self.shortcut = Some(shortcut.into());
-        self
-    }
-
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
+    if is_disabled && is_empty {
+        "disabled-empty"
+    } else if is_disabled {
+        "disabled"
+    } else if is_empty && has_query {
+        "query-empty"
+    } else if is_empty {
+        "empty"
+    } else if has_query {
+        "query-results"
+    } else {
+        "default"
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct CommandGroup {
-    pub heading: String,
-    pub items: Vec<CommandItem>,
-}
-
-impl CommandGroup {
-    pub fn new(heading: impl Into<String>, items: Vec<CommandItem>) -> Self {
-        Self {
-            heading: heading.into(),
-            items,
-        }
+pub fn item_attr(item_count: usize) -> &'static str {
+    if item_count == 0 {
+        "empty"
+    } else {
+        "populated"
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct FilteredCommandItem {
-    pub id: String,
-    pub label: String,
-    pub shortcut: Option<String>,
-    pub disabled: bool,
+pub fn group_attr(group_count: usize) -> &'static str {
+    if group_count == 0 {
+        "empty"
+    } else {
+        "populated"
+    }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct FilteredCommandGroup {
-    pub heading: String,
-    pub item_indices: Vec<usize>,
+pub fn query_attr(has_query: bool) -> &'static str {
+    if has_query { "present" } else { "absent" }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Default)]
-pub struct CommandFilterState {
-    pub items: Vec<FilteredCommandItem>,
-    pub groups: Vec<FilteredCommandGroup>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CommandStateInput {
-    pub item_count: usize,
-    pub group_count: usize,
-    pub is_disabled: bool,
-    pub has_query: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct CommandState {
-    pub item_count: usize,
-    pub group_count: usize,
-    pub is_empty: bool,
-    pub has_items: bool,
-    pub is_disabled: bool,
-    pub has_query: bool,
-    pub has_custom_class_name: bool,
-    pub data_state_attr: &'static str,
+pub fn disabled_attr(is_disabled: bool) -> &'static str {
+    if is_disabled { "disabled" } else { "enabled" }
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -97,16 +58,32 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn normalize_placeholder(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| "Type a command or search...".to_string())
+pub fn normalize_id_base(id_base: String) -> String {
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
 }
 
-pub fn normalize_empty_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| "No results found.".to_string())
+pub fn resolve_placeholder(value: Option<String>) -> (String, bool) {
+    if let Some(value) = normalize_optional_text(value) {
+        return (value, true);
+    }
+
+    (DEFAULT_PLACEHOLDER.to_string(), false)
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| "Command menu".to_string())
+pub fn resolve_empty_label(value: Option<String>) -> (String, bool) {
+    if let Some(value) = normalize_optional_text(value) {
+        return (value, true);
+    }
+
+    (DEFAULT_EMPTY_LABEL.to_string(), false)
+}
+
+pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
+    if let Some(value) = normalize_optional_text(value) {
+        return (value, true);
+    }
+
+    (DEFAULT_ARIA_LABEL.to_string(), false)
 }
 
 fn normalize_query(query: &str) -> String {
@@ -163,56 +140,83 @@ pub fn filter_groups(groups: &[CommandGroup], query: &str) -> CommandFilterState
     state
 }
 
-pub fn resolve_state(input: CommandStateInput) -> CommandState {
+fn source_attr(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+pub fn resolve_state(input: CommandPartStateInput) -> CommandPartState {
     let has_items = input.item_count > 0;
     let is_empty = !has_items;
 
-    let data_state_attr = if input.is_disabled && is_empty {
-        "disabled-empty"
-    } else if input.is_disabled {
-        "disabled"
-    } else if is_empty && input.has_query {
-        "query-empty"
-    } else if is_empty {
-        "empty"
-    } else if input.has_query {
-        "query-results"
-    } else {
-        "default"
-    };
-
-    CommandState {
+    CommandPartState {
+        slot: input.slot,
+        slot_attr: input.slot.as_attr(),
+        base_class: input.slot.base_class(),
+        state_attr: state_attr(input.item_count, input.is_disabled, input.has_query),
+        item_attr: item_attr(input.item_count),
+        group_attr: group_attr(input.group_count),
+        query_attr: query_attr(input.has_query),
+        disabled_attr: disabled_attr(input.is_disabled),
         item_count: input.item_count,
         group_count: input.group_count,
         is_empty,
         has_items,
         is_disabled: input.is_disabled,
+        is_enabled: !input.is_disabled,
         has_query: input.has_query,
+        has_custom_id_base: input.has_custom_id_base,
+        has_custom_placeholder: input.has_custom_placeholder,
+        has_custom_empty_label: input.has_custom_empty_label,
+        has_custom_aria_label: input.has_custom_aria_label,
         has_custom_class_name: input.has_custom_class_name,
-        data_state_attr,
+        has_custom_disabled: input.has_custom_disabled,
+        has_custom_on_action: input.has_custom_on_action,
+        has_custom_motion: input.has_custom_motion,
+        id_source_attr: source_attr(input.has_custom_id_base),
+        placeholder_source_attr: source_attr(input.has_custom_placeholder),
+        empty_label_source_attr: source_attr(input.has_custom_empty_label),
+        aria_label_source_attr: source_attr(input.has_custom_aria_label),
+        class_source_attr: source_attr(input.has_custom_class_name),
+        disabled_source_attr: source_attr(input.has_custom_disabled),
+        action_source_attr: source_attr(input.has_custom_on_action),
+        motion_source_attr: source_attr(input.has_custom_motion),
     }
 }
 
-pub fn compose_class_name(class_name: Option<String>, state: CommandState) -> String {
-    let mut classes = vec!["ui-command".to_string()];
+pub fn compose_class_name(class_name: Option<String>, state: CommandPartState) -> String {
+    let mut classes = vec![state.base_class.to_string()];
 
-    if state.is_empty {
-        classes.push("ui-command--empty".to_string());
-    }
-
-    if state.is_disabled {
-        classes.push("ui-command--disabled".to_string());
-    }
-
-    if state.has_query {
-        classes.push("ui-command--querying".to_string());
-    }
-
-    if state.has_custom_class_name {
-        classes.push("ui-command--custom-class".to_string());
-        if let Some(class_name) = class_name {
-            classes.push(class_name);
+    if matches!(state.slot, CommandSlot::Root) {
+        if state.is_empty {
+            classes.push("ui-command--empty".to_string());
+        } else {
+            classes.push("ui-command--has-items".to_string());
         }
+
+        if state.is_disabled {
+            classes.push("ui-command--disabled".to_string());
+        } else {
+            classes.push("ui-command--enabled".to_string());
+        }
+
+        if state.has_query {
+            classes.push("ui-command--querying".to_string());
+        } else {
+            classes.push("ui-command--idle".to_string());
+        }
+
+        if state.has_custom_motion {
+            classes.push("ui-command--custom-motion".to_string());
+        }
+
+        if state.has_custom_class_name {
+            classes.push("ui-command--custom-class".to_string());
+            if let Some(class_name) = normalize_optional_text(class_name) {
+                classes.push(class_name);
+            }
+        }
+    } else if let Some(class_name) = normalize_optional_text(class_name) {
+        classes.push(class_name);
     }
 
     classes.join(" ")
@@ -221,6 +225,7 @@ pub fn compose_class_name(class_name: Option<String>, state: CommandState) -> St
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::command::{CommandPartStateInput, CommandSlot};
 
     fn sample_groups() -> Vec<CommandGroup> {
         vec![
@@ -254,30 +259,39 @@ mod tests {
         );
 
         assert_eq!(
-            normalize_placeholder(Some("  Find action  ".to_string())),
-            "Find action".to_string()
+            normalize_id_base(" docs-command ".to_string()),
+            "docs-command".to_string()
         );
         assert_eq!(
-            normalize_placeholder(Some("".to_string())),
-            "Type a command or search...".to_string()
-        );
-
-        assert_eq!(
-            normalize_empty_label(Some("  No match  ".to_string())),
-            "No match".to_string()
-        );
-        assert_eq!(
-            normalize_empty_label(Some("".to_string())),
-            "No results found.".to_string()
+            normalize_id_base(" ".to_string()),
+            DEFAULT_ID_BASE.to_string()
         );
 
         assert_eq!(
-            normalize_aria_label(Some("  Quick actions  ".to_string())),
-            "Quick actions".to_string()
+            resolve_placeholder(Some("  Find action  ".to_string())),
+            ("Find action".to_string(), true)
         );
         assert_eq!(
-            normalize_aria_label(Some("".to_string())),
-            "Command menu".to_string()
+            resolve_placeholder(Some("".to_string())),
+            (DEFAULT_PLACEHOLDER.to_string(), false)
+        );
+
+        assert_eq!(
+            resolve_empty_label(Some("  No match  ".to_string())),
+            ("No match".to_string(), true)
+        );
+        assert_eq!(
+            resolve_empty_label(Some("".to_string())),
+            (DEFAULT_EMPTY_LABEL.to_string(), false)
+        );
+
+        assert_eq!(
+            resolve_aria_label(Some("  Quick actions  ".to_string())),
+            ("Quick actions".to_string(), true)
+        );
+        assert_eq!(
+            resolve_aria_label(Some("".to_string())),
+            (DEFAULT_ARIA_LABEL.to_string(), false)
         );
     }
 
@@ -307,19 +321,30 @@ mod tests {
 
     #[test]
     fn resolve_state_and_class_contracts_are_stable() {
-        let state = resolve_state(CommandStateInput {
+        let state = resolve_state(CommandPartStateInput {
+            slot: CommandSlot::Root,
             item_count: 0,
             group_count: 0,
             is_disabled: true,
             has_query: true,
+            has_custom_id_base: true,
+            has_custom_placeholder: true,
+            has_custom_empty_label: true,
+            has_custom_aria_label: false,
             has_custom_class_name: true,
+            has_custom_disabled: true,
+            has_custom_on_action: true,
+            has_custom_motion: true,
         });
 
         assert!(state.is_empty);
         assert!(!state.has_items);
         assert!(state.is_disabled);
         assert!(state.has_query);
-        assert_eq!(state.data_state_attr, "disabled-empty");
+        assert_eq!(state.state_attr, "disabled-empty");
+        assert_eq!(state.query_attr, "present");
+        assert_eq!(state.disabled_source_attr, "custom");
+        assert_eq!(state.aria_label_source_attr, "default");
 
         let class_name = compose_class_name(Some("docs-command".to_string()), state);
 
@@ -329,6 +354,7 @@ mod tests {
             "ui-command--disabled",
             "ui-command--querying",
             "ui-command--custom-class",
+            "ui-command--custom-motion",
             "docs-command",
         ] {
             assert!(

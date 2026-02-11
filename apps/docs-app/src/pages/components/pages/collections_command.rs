@@ -54,11 +54,36 @@ pub(super) fn command() -> AnyView {
         ),
     ]);
 
+    let marker_groups: Arc<[CommandGroup]> = Arc::from(vec![
+        CommandGroup::new(
+            "Workspace",
+            vec![
+                CommandItem::new("open-recent", "Open Recent")
+                    .keywords(vec!["recent".to_string(), "workspace".to_string()])
+                    .shortcut("⌘R"),
+                CommandItem::new("new-workspace", "New Workspace")
+                    .keywords(vec!["create".to_string(), "workspace".to_string()])
+                    .shortcut("⌘⇧W"),
+            ],
+        ),
+        CommandGroup::new(
+            "Automation",
+            vec![
+                CommandItem::new("run-tests", "Run Tests")
+                    .keywords(vec!["test".to_string(), "verify".to_string()]),
+                CommandItem::new("deploy-preview", "Deploy Preview").disabled(true),
+            ],
+        ),
+    ]);
+
     let (last_action, set_last_action) = signal("none".to_string());
     let on_action = Callback::new(move |id: String| set_last_action.set(id));
 
     let (last_custom_action, set_last_custom_action) = signal("none".to_string());
     let on_custom_action = Callback::new(move |id: String| set_last_custom_action.set(id));
+
+    let (last_marker_action, set_last_marker_action) = signal("none".to_string());
+    let on_marker_action = Callback::new(move |id: String| set_last_marker_action.set(id));
 
     let code = r#"let groups: Arc<[CommandGroup]> = Arc::from(vec![
   CommandGroup::new("Suggestions", vec![
@@ -85,12 +110,31 @@ pub(super) fn command() -> AnyView {
   class_name="docs-command-custom".to_string()
 />"#;
 
+    let marker_code = r#"let mut custom_motion = ui_components::CommandMotion::default();
+custom_motion.spring.stiffness = 240.0;
+custom_motion.spring.damping = 20.0;
+
+<Command
+  id_base="docs-command-markers".to_string()
+  groups=groups
+  on_action=Callback::new(move |id: String| set_last_action.set(id))
+  placeholder="Search workspace actions...".to_string()
+  empty_label="No workspace action found.".to_string()
+  aria_label="Workspace command center".to_string()
+  class_name="docs-command-custom".to_string()
+  motion=custom_motion
+/>"#;
+
+    let mut marker_motion = ui_components::CommandMotion::default();
+    marker_motion.spring.stiffness = 240.0;
+    marker_motion.spring.damping = 20.0;
+
     view! {
         <ComponentPage
             title="Command"
             slug="command"
             group="Collections"
-            description="Shadcn-compatible command palette with grouped filtering, listbox keyboard semantics, and HeroUI-level spring active-highlight motion."
+            description="Shadcn-compatible command palette with grouped filtering, listbox keyboard semantics, Spectrum data contracts, and HeroUI-level spring active-highlight motion."
         >
             <Playground title="Grouped Search + Keyboard Action" code=code>
                 <div class="docs-stack docs-stack--tight">
@@ -119,6 +163,28 @@ pub(super) fn command() -> AnyView {
                     <span class="ui-muted">
                         "last action: "
                         {move || last_custom_action.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-placeholder-source / data-empty-label-source / data-aria-label-source / data-action-source / data-motion-source in DevTools."
+                    </div>
+                    <Command
+                        id_base="docs-command-markers".to_string()
+                        groups=marker_groups
+                        on_action=on_marker_action
+                        placeholder="Search workspace actions...".to_string()
+                        empty_label="No workspace action found.".to_string()
+                        aria_label="Workspace command center".to_string()
+                        class_name="docs-command-custom".to_string()
+                        motion=marker_motion
+                    />
+                    <span class="ui-muted">
+                        "last action: "
+                        {move || last_marker_action.get()}
                     </span>
                 </div>
             </Playground>
