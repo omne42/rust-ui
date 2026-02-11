@@ -104,7 +104,7 @@ pub fn Meter(
             data-custom-motion=state.has_custom_motion.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr
-            role="meter progressbar"
+            role="meter"
             aria-label=aria_label
             aria-labelledby=aria_labelledby
             aria-valuemin=range.min.to_string()

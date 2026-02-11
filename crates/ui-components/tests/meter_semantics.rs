@@ -82,7 +82,7 @@ fn meter_emits_spectrum_style_state_data_attributes() {
         "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-class-source=state.class_source_attr",
-        "role=\"meter progressbar\"",
+        "role=\"meter\"",
         "aria-valuetext=move || value_label_text.get()",
     ] {
         assert!(
