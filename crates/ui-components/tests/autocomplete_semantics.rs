@@ -248,3 +248,26 @@ fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
         );
     }
 }
+
+#[test]
+fn autocomplete_motion_sanitizes_custom_contract_values() {
+    let motion_source = load_source("src/autocomplete/motion.rs");
+    let view_source = load_source("src/autocomplete/view.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: AutocompleteMotion) -> AutocompleteMotion",
+        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "highlight: sanitize_highlight(motion.highlight)",
+        "fn sanitize_motion_falls_back_for_invalid_nested_values()",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "Autocomplete motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+
+    assert!(
+        view_source.contains("let motion = crate::autocomplete::motion::sanitize_motion(motion);"),
+        "Autocomplete view should sanitize motion before attaching popover and active-highlight motion.",
+    );
+}

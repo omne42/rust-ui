@@ -175,6 +175,8 @@ pub fn Autocomplete(
     let has_error = error.is_some();
 
     let class_name = logic::normalize_optional_text(class_name);
+
+    let motion = crate::autocomplete::motion::sanitize_motion(motion);
     let is_controlled = open.is_some();
 
     let state = logic::resolve_state(logic::AutocompleteStateInput {

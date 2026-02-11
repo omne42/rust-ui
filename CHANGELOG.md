@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Autocomplete` motion safety by introducing `sanitize_motion` guards over nested popover/highlight contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to popover and active-highlight drivers, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level autocomplete interaction behavior.
+
 - `ui-components`: upgrades `ColorPicker` motion safety by introducing `sanitize_motion` wrapper guards over nested popover contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Popover`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level color-picker open/close behavior.
 
 - `ui-components`: upgrades `DatePicker` motion safety by introducing `sanitize_motion` wrapper guards over nested popover contracts, sanitizing forwarded custom spring/scale/offset values before runtime handoff to `Popover`, and adding regression tests to prevent NaN/overflow motion contracts from leaking into HeroUI-level date-picker open/close behavior.
