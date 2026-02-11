@@ -180,3 +180,23 @@ fn popover_motion_contract_exposes_default_and_placement_offset_helpers() {
         );
     }
 }
+
+#[test]
+fn popover_motion_contract_sanitizes_custom_values() {
+    let source = load_source("src/popover/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: PopoverMotion) -> PopoverMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "initial_scale:",
+        "offset_y_px:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_and_offset()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Popover motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}

@@ -186,3 +186,23 @@ fn overlay_motion_contract_exposes_default_and_customization_tests() {
         );
     }
 }
+
+#[test]
+fn overlay_motion_contract_sanitizes_custom_values() {
+    let source = load_source("src/overlay/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: OverlayMotion) -> OverlayMotion",
+        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
+        "initial_scale:",
+        "initial_y_px:",
+        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_and_y_offset_ranges()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Overlay motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}

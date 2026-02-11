@@ -22,6 +22,49 @@ impl Default for PopoverMotion {
     }
 }
 
+fn sanitize_number(value: f64, fallback: f64) -> f64 {
+    if value.is_finite() { value } else { fallback }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    let default = PopoverMotion::default().spring;
+
+    ui_motion::spring::SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            default.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            default.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            default.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            default.precision
+        },
+    }
+}
+
+pub fn sanitize_motion(motion: PopoverMotion) -> PopoverMotion {
+    let default = PopoverMotion::default();
+
+    PopoverMotion {
+        spring: sanitize_spring(motion.spring),
+        initial_scale: sanitize_number(motion.initial_scale, default.initial_scale).clamp(0.0, 3.0),
+        offset_y_px: sanitize_number(motion.offset_y_px, default.offset_y_px)
+            .abs()
+            .clamp(0.0, 240.0),
+    }
+}
+
 #[cfg(any(target_arch = "wasm32", test))]
 fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64 {
     match placement {
@@ -41,7 +84,7 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    let motion = StoredValue::new(motion);
+    let motion = StoredValue::new(sanitize_motion(motion));
     let last_state = StoredValue::new(None::<bool>);
     let springs = StoredValue::new_local(
         None::<(
@@ -191,5 +234,48 @@ mod tests {
         assert_eq!(placement_offset_y(PopoverPlacement::BottomEnd, -4.0), 4.0);
         assert_eq!(placement_offset_y(PopoverPlacement::TopStart, 10.0), -10.0);
         assert_eq!(placement_offset_y(PopoverPlacement::TopEnd, -4.0), -4.0);
+    }
+
+    #[test]
+    fn sanitize_motion_falls_back_for_invalid_values() {
+        let motion = sanitize_motion(PopoverMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            initial_scale: f64::NAN,
+            offset_y_px: f64::NAN,
+        });
+
+        let default = PopoverMotion::default();
+        assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+        assert_eq!(motion.spring.damping, default.spring.damping);
+        assert_eq!(motion.spring.mass, default.spring.mass);
+        assert_eq!(motion.spring.precision, default.spring.precision);
+        assert_eq!(motion.initial_scale, default.initial_scale);
+        assert_eq!(motion.offset_y_px, default.offset_y_px);
+    }
+
+    #[test]
+    fn sanitize_motion_clamps_scale_and_offset() {
+        let motion = sanitize_motion(PopoverMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: 260.0,
+                damping: 18.0,
+                mass: 1.1,
+                precision: 0.002,
+            },
+            initial_scale: -5.0,
+            offset_y_px: -1000.0,
+        });
+
+        assert_eq!(motion.initial_scale, 0.0);
+        assert_eq!(motion.offset_y_px, 240.0);
+        assert_eq!(motion.spring.stiffness, 260.0);
+        assert_eq!(motion.spring.damping, 18.0);
+        assert_eq!(motion.spring.mass, 1.1);
+        assert_eq!(motion.spring.precision, 0.002);
     }
 }
