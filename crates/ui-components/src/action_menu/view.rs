@@ -1,5 +1,7 @@
 use crate::action_button::{ActionButton, ActionButtonSize};
-use crate::action_menu::{ActionMenuMotion, logic};
+use crate::action_menu::{
+    ActionMenuMotion, ActionMenuPartStateInput, ActionMenuSlot, MenuOpenFocusStrategy, logic,
+};
 use crate::overlay_open;
 use crate::{Menu, MenuItemKind, OnPress, Popover, presence::use_presence};
 use leptos::{ev, html, prelude::*};
@@ -25,52 +27,87 @@ pub fn ActionMenu(
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let id_base = logic::normalize_id_base(id_base);
+    let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
     let id_base = StoredValue::new(id_base);
 
     let items: StoredValue<std::sync::Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
 
     let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);
+    let has_disabled_items = !disabled_indices.is_empty();
+    let has_custom_disabled_indices = has_disabled_items;
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
 
+    let has_item_kinds = !item_kinds.is_empty();
+    let has_custom_item_kinds = has_item_kinds;
     let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(item_kinds);
 
     let class_name = logic::normalize_optional_text(class_name);
-    let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
+    let has_custom_class_name = class_name.is_some();
+    let class_name = StoredValue::new(class_name);
 
-    let is_controlled = open.is_some();
+    let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
+    let aria_label = StoredValue::new(aria_label);
+
+    let has_custom_disabled = disabled != logic::DEFAULT_DISABLED;
+    let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
+    let has_custom_placement = placement != logic::DEFAULT_PLACEMENT;
+    let has_custom_open = open.is_some();
+    let has_custom_default_open = default_open.is_some();
+    let has_custom_on_open_change = on_open_change.is_some();
+    let has_custom_motion = motion != ActionMenuMotion::default();
+
+    let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);
+
+    let is_controlled = has_custom_open;
     let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
-    let state = logic::resolve_state(logic::ActionMenuStateInput {
-        item_count,
-        trigger_disabled: logic::resolve_trigger_disabled(disabled, item_count),
-        close_on_action,
-        has_custom_aria_label,
-        has_custom_class_name: class_name.is_some(),
-        has_disabled_items: !disabled_indices.get_value().is_empty(),
-        has_item_kinds: !item_kinds.get_value().is_empty(),
-        is_controlled,
-        placement,
+    let root_state = Memo::new(move |_| {
+        logic::resolve_state(ActionMenuPartStateInput {
+            slot: ActionMenuSlot::Root,
+            is_open: open.get(),
+            item_count,
+            trigger_disabled,
+            close_on_action,
+            has_disabled_items,
+            has_item_kinds,
+            is_controlled,
+            placement,
+            has_custom_id_base,
+            has_custom_aria_label,
+            has_custom_class_name,
+            has_custom_disabled,
+            has_custom_disabled_indices,
+            has_custom_item_kinds,
+            has_custom_close_on_action,
+            has_custom_placement,
+            has_custom_open,
+            has_custom_default_open,
+            has_custom_on_open_change,
+            has_custom_motion,
+        })
+    });
+    let root_state_for_class = root_state;
+
+    let root_class = Memo::new(move |_| {
+        logic::compose_class_name(class_name.get_value(), root_state_for_class.get())
     });
 
-    let class = logic::compose_class_name(class_name, state);
-
-    let (open_focus, set_open_focus) = signal(logic::MenuOpenFocusStrategy::First);
+    let (open_focus, set_open_focus) = signal(MenuOpenFocusStrategy::First);
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
-    let item_count = StoredValue::new(state.item_count);
-    let trigger_disabled = StoredValue::new(state.is_trigger_disabled);
+    let item_count = StoredValue::new(item_count);
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if trigger_disabled.get_value() {
+        if trigger_disabled {
             return;
         }
 
         let next_open = !open.get_untracked();
         if next_open {
-            set_open_focus.set(logic::MenuOpenFocusStrategy::First);
+            set_open_focus.set(MenuOpenFocusStrategy::First);
         }
         request_open_change.run(next_open);
     });
@@ -78,7 +115,7 @@ pub fn ActionMenu(
 
     let on_action_wrapped = Callback::new(move |index: usize| {
         on_action.run(index);
-        if state.close_on_action {
+        if close_on_action {
             request_open_change.run(false);
         }
     });
@@ -89,10 +126,8 @@ pub fn ActionMenu(
     let aria_controls = crate::a11y::aria_controls_when_open(open, menu_id.get_value());
     let presence = use_presence(open);
 
-    let aria_label = StoredValue::new(aria_label);
-
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if trigger_disabled.get_value() {
+        if trigger_disabled {
             return;
         }
         if open.get_untracked() {
@@ -100,7 +135,7 @@ pub fn ActionMenu(
         }
 
         let key = ev.key();
-        if let Some(strategy) = logic::focus_strategy_for_open_key(&key) {
+        if let Some(strategy) = crate::action_menu::focus_strategy_for_open_key(&key) {
             set_open_focus.set(strategy);
             request_open_change.run(true);
             ev.prevent_default();
@@ -109,37 +144,53 @@ pub fn ActionMenu(
 
     view! {
         <div
-            class=class
-            data-slot="action-menu"
-            data-state=move || {
-                if open.get() {
-                    "open"
-                } else if state.is_trigger_disabled {
-                    "disabled"
-                } else {
-                    "closed"
-                }
+            class=move || root_class.get()
+            data-slot=move || root_state.get().slot_attr
+            data-state=move || root_state.get().state_attr
+            data-items=move || root_state.get().item_attr
+            data-action-mode=move || root_state.get().action_attr
+            data-open-mode=move || root_state.get().open_mode_attr
+            data-open=move || root_state.get().open_attr
+            data-closed=move || root_state.get().closed_attr
+            data-disabled=move || root_state.get().is_trigger_disabled.then_some("true")
+            data-enabled=move || root_state.get().is_enabled.then_some("true")
+            data-empty=move || root_state.get().is_empty.then_some("true")
+            data-has-items=move || root_state.get().has_items.then_some("true")
+            data-placement=move || root_state.get().placement_attr
+            data-controlled=move || root_state.get().is_controlled.then_some("true")
+            data-uncontrolled=move || root_state.get().is_uncontrolled.then_some("true")
+            data-close-on-action=move || root_state.get().close_on_action.then_some("true")
+            data-keep-open-on-action=move || root_state.get().keep_open_on_action.then_some("true")
+            data-has-disabled-items=move || root_state.get().has_disabled_items.then_some("true")
+            data-has-item-kinds=move || root_state.get().has_item_kinds.then_some("true")
+            data-id-source=move || root_state.get().id_source_attr
+            data-aria-label-source=move || root_state.get().aria_label_source_attr
+            data-class-source=move || root_state.get().class_source_attr
+            data-disabled-source=move || root_state.get().disabled_source_attr
+            data-disabled-indices-source=move || root_state.get().disabled_indices_source_attr
+            data-item-kinds-source=move || root_state.get().item_kinds_source_attr
+            data-close-on-action-source=move || root_state.get().close_on_action_source_attr
+            data-placement-source=move || root_state.get().placement_source_attr
+            data-open-source=move || root_state.get().open_source_attr
+            data-default-open-source=move || root_state.get().default_open_source_attr
+            data-open-change-source=move || root_state.get().open_change_source_attr
+            data-motion-source=move || root_state.get().motion_source_attr
+            data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
+            data-custom-aria-label=move || root_state.get().has_custom_aria_label.then_some("true")
+            data-custom-class=move || root_state.get().has_custom_class_name.then_some("true")
+            data-custom-disabled=move || root_state.get().has_custom_disabled.then_some("true")
+            data-custom-disabled-indices=move || {
+                root_state.get().has_custom_disabled_indices.then_some("true")
             }
-            data-open=move || open.get().then_some("true")
-            data-closed=move || (!open.get()).then_some("true")
-            data-disabled=state.is_trigger_disabled.then_some("true")
-            data-enabled=state.is_enabled.then_some("true")
-            data-empty=state.is_empty.then_some("true")
-            data-has-items=state.has_items.then_some("true")
-            data-placement=state.placement_attr
-            data-controlled=state.is_controlled.then_some("true")
-            data-uncontrolled=state.is_uncontrolled.then_some("true")
-            data-close-on-action=state.close_on_action.then_some("true")
-            data-keep-open-on-action=state.keep_open_on_action.then_some("true")
-            data-custom-label=state.has_custom_aria_label.then_some("true")
-            data-has-disabled-items=state.has_disabled_items.then_some("true")
-            data-has-item-kinds=state.has_item_kinds.then_some("true")
-            data-motion-source=if motion == ActionMenuMotion::default() {
-                "default"
-            } else {
-                "custom"
+            data-custom-item-kinds=move || root_state.get().has_custom_item_kinds.then_some("true")
+            data-custom-close-on-action=move || {
+                root_state.get().has_custom_close_on_action.then_some("true")
             }
-            data-custom-motion=(motion != ActionMenuMotion::default()).then_some("true")
+            data-custom-placement=move || root_state.get().has_custom_placement.then_some("true")
+            data-custom-open=move || root_state.get().has_custom_open.then_some("true")
+            data-custom-default-open=move || root_state.get().has_custom_default_open.then_some("true")
+            data-custom-open-change=move || root_state.get().has_custom_on_open_change.then_some("true")
+            data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
             on:keydown=on_key_down
         >
             <ActionButton
@@ -147,7 +198,7 @@ pub fn ActionMenu(
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
                 size=size
-                disabled=state.is_trigger_disabled
+                disabled=trigger_disabled
                 is_quiet=is_quiet
                 is_icon_only=true
                 aria_label=aria_label.get_value()

@@ -1264,6 +1264,11 @@ pub(super) fn action_menu() -> AnyView {
     ];
     let disabled_items = vec!["Copy".to_string(), "Move".to_string()];
     let empty_items: Vec<String> = Vec::new();
+    let marker_items = vec![
+        "Open dashboard".to_string(),
+        "Duplicate project".to_string(),
+        "Archive workspace".to_string(),
+    ];
 
     let (last, set_last) = signal(None::<usize>);
     let on_action = Callback::new(move |index: usize| set_last.set(Some(index)));
@@ -1271,6 +1276,14 @@ pub(super) fn action_menu() -> AnyView {
     let (controlled_open_raw, set_controlled_open_raw) = signal(false);
     let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());
     let on_open_change = Callback::new(move |next: bool| set_controlled_open_raw.set(next));
+
+    let (marker_open_raw, set_marker_open_raw) = signal(true);
+    let marker_open: Signal<bool> = Signal::derive(move || marker_open_raw.get());
+    let on_marker_open_change = Callback::new(move |next: bool| set_marker_open_raw.set(next));
+
+    let (last_marker_action, set_last_marker_action) = signal(None::<usize>);
+    let on_marker_action =
+        Callback::new(move |index: usize| set_last_marker_action.set(Some(index)));
 
     let code = r#"<ActionMenu
   id_base="demo".to_string()
@@ -1291,6 +1304,31 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   on_open_change=Callback::new(move |next| set_open.set(next))
 />"#;
 
+    let marker_code = r#"let (open_raw, set_open_raw) = signal(true);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+let motion = ui_components::ActionMenuMotion {
+  popover: ui_components::PopoverMotion {
+    initial_scale: 0.93,
+    offset_y_px: 8.0,
+    ..ui_components::PopoverMotion::default()
+  },
+};
+
+<ActionMenu
+  id_base="docs-action-menu-markers".to_string()
+  items=items
+  on_action=on_action
+  disabled_indices=vec![2]
+  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]
+  close_on_action=false
+  open=open
+  default_open=true
+  on_open_change=Callback::new(move |next| set_open_raw.set(next))
+  aria_label="Workspace actions".to_string()
+  class_name="docs-action-menu-custom".to_string()
+  motion=motion
+/>"#;
+
     let disabled_code = r#"<ActionMenu
   id_base="action-disabled".to_string()
   items=items
@@ -1303,12 +1341,20 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   on_action=on_action
 />"#;
 
+    let marker_motion = ui_components::ActionMenuMotion {
+        popover: ui_components::PopoverMotion {
+            initial_scale: 0.93,
+            offset_y_px: 8.0,
+            ..ui_components::PopoverMotion::default()
+        },
+    };
+
     view! {
         <ComponentPage
             title="ActionMenu"
             slug="action-menu"
             group="Actions"
-            description="ActionButton-triggered menu surface with Spectrum state attrs and HeroUI-grade popover motion (controlled/uncontrolled + close strategy)."
+            description="ActionButton-triggered menu surface with Spectrum state/source data attrs and HeroUI-grade popover spring motion (controlled/uncontrolled + close strategy)."
         >
             <Playground title="Default" code=code>
                 <div class="docs-row">
@@ -1348,6 +1394,51 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                     <span class="ui-muted">
                         "open: "
                         {move || controlled_open_raw.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State + Source Markers" code=marker_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(true)>
+                            "Open"
+                        </button>
+                        <button type="button" on:click=move |_| set_marker_open_raw.set(false)>
+                            "Close"
+                        </button>
+                    </div>
+                    <div class="ui-muted">
+                        "Inspect data-id-source / data-aria-label-source / data-disabled-indices-source / data-item-kinds-source / data-open-source / data-open-change-source / data-motion-source in DevTools."
+                    </div>
+                    <ActionMenu
+                        id_base="docs-action-menu-markers".to_string()
+                        items=marker_items
+                        on_action=on_marker_action
+                        disabled_indices=vec![2]
+                        item_kinds=vec![
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                            MenuItemKind::Action,
+                        ]
+                        close_on_action=false
+                        open=marker_open
+                        default_open=true
+                        on_open_change=on_marker_open_change
+                        aria_label="Workspace actions".to_string()
+                        class_name="docs-action-menu-custom".to_string()
+                        motion=marker_motion
+                    />
+                    <span class="ui-muted">
+                        "open: "
+                        {move || marker_open_raw.get().to_string()}
+                        " · last action: "
+                        {move || {
+                            last_marker_action
+                                .get()
+                                .map(|value| value.to_string())
+                                .unwrap_or_else(|| "None".to_string())
+                        }}
                     </span>
                 </div>
             </Playground>

@@ -23,6 +23,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: upgrades `Command` to a full `logic/styles/view` slice with centralized slot/state/query/group/item/id/placeholder/empty-label/aria/class/disabled/action/motion source-state normalization, stable Spectrum-style root/list/item `data-*` contracts, and preserved HeroUI-level active-highlight spring motion behavior.
 - `apps/docs-app`: upgrades `Command` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-placeholder-source`/`data-empty-label-source`/`data-aria-label-source`/`data-action-source`/`data-motion-source` contracts.
 
+- `ui-components`: upgrades `ActionMenu` to a full `logic/styles/view` slice with centralized slot/state/open-mode/action/id/aria/class/disabled/indices/item-kinds/placement/open-control/motion source-state normalization, stable Spectrum-style root `data-*` contracts, and preserved HeroUI-level popover spring motion behavior.
+- `apps/docs-app`: upgrades `ActionMenu` docs with a `State + Source Markers` playground to inspect `data-id-source`/`data-aria-label-source`/`data-disabled-indices-source`/`data-item-kinds-source`/`data-open-source`/`data-open-change-source`/`data-motion-source` contracts.
+
 - `ui-components`: upgrades `Sonner` to a full `logic/styles/view` slice with centralized slot/queue/position/portal/max-toasts/aria/class/motion/store source-state normalization, stable Spectrum-style root `data-*` contracts, and preserved HeroUI-level spring toast motion behavior via `ToastMotion`.
 - `apps/docs-app`: extends `Sonner` docs with a `State + Source Markers` playground to inspect `data-state`/`data-queue`/`data-position-source`/`data-portal-source`/`data-max-toasts-source`/`data-store-source`/`data-motion-source` contracts.
 

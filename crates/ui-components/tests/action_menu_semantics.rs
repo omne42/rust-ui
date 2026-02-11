@@ -8,47 +8,116 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn action_menu_does_not_expose_logic_module() {
+fn action_menu_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/action_menu/mod.rs");
 
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "ActionMenu internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_menu_module_exposes_slot_and_state_contracts() {
+    let source = load_source("src/action_menu/mod.rs");
+
+    for needle in [
+        "pub enum MenuOpenFocusStrategy",
+        "pub struct ActionMenuIds",
+        "pub enum ActionMenuSlot",
+        "pub struct ActionMenuPartStateInput",
+        "pub struct ActionMenuPartState",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_TRIGGER_ARIA_LABEL",
+        "DEFAULT_DISABLED",
+        "DEFAULT_CLOSE_ON_ACTION",
+        "DEFAULT_PLACEMENT",
+        "pub use motion::ActionMenuMotion;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action_menu::mod should include `{needle}` contracts."
+        );
+    }
+}
+
+#[test]
+fn action_menu_is_exported_from_module_and_crate_root() {
+    let module_source = load_source("src/action_menu/mod.rs");
+    let crate_source = load_source("src/lib.rs");
+
     assert!(
-        !source.contains("pub mod logic"),
-        "ActionMenu's `logic` module should stay private to avoid leaking implementation details into the public API."
+        module_source.contains("pub use view::ActionMenu;"),
+        "action_menu module should export `ActionMenu`."
+    );
+    assert!(
+        crate_source.contains("pub use action_menu::{ActionMenu, ActionMenuMotion};"),
+        "crate root should re-export action_menu contracts."
     );
 }
 
 #[test]
-fn action_menu_uses_logic_state_model() {
-    let view_source = load_source("src/action_menu/view.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
+fn action_menu_logic_exposes_state_helpers() {
+    let source = load_source("src/action_menu/logic.rs");
 
     for needle in [
-        "pub struct ActionMenuStateInput",
-        "pub struct ActionMenuState",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_id_base(",
-        "pub fn normalize_disabled_indices(",
-        "pub fn resolve_trigger_aria_label(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
+        "pub fn state_attr(is_open: bool, trigger_disabled: bool, item_count: usize)",
+        "pub fn item_attr(item_count: usize)",
+        "pub fn action_attr(close_on_action: bool)",
+        "pub fn open_mode_attr(is_controlled: bool)",
+        "pub fn normalize_optional_text(value: Option<String>)",
+        "pub fn normalize_id_base(id_base: String)",
+        "pub fn resolve_ids(id_base: &str)",
+        "pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize)",
+        "pub fn resolve_trigger_disabled(disabled: bool, item_count: usize)",
+        "pub fn resolve_trigger_aria_label(value: Option<String>)",
+        "pub fn resolve_state(input: ActionMenuPartStateInput) -> ActionMenuPartState",
+        "pub fn compose_class_name(base_class_name: Option<String>, state: ActionMenuPartState)",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ActionMenu logic should include `{needle}` for centralized state derivation."
+            source.contains(needle),
+            "ActionMenu logic should include `{needle}` for centralized state/source contracts."
         );
     }
+}
+
+#[test]
+fn action_menu_view_uses_logic_contracts_and_source_markers() {
+    let source = load_source("src/action_menu/view.rs");
 
     for needle in [
-        "let id_base = logic::normalize_id_base(id_base);",
-        "let disabled_indices =",
-        "logic::normalize_disabled_indices(disabled_indices, item_count);",
-        "let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);",
-        "let state = logic::resolve_state(logic::ActionMenuStateInput {",
-        "let class = logic::compose_class_name(class_name, state);",
+        "logic::normalize_id_base(id_base)",
+        "logic::normalize_disabled_indices(disabled_indices, item_count)",
+        "logic::resolve_trigger_aria_label(aria_label)",
+        "logic::resolve_state(ActionMenuPartStateInput {",
+        "slot: ActionMenuSlot::Root",
+        "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "data-slot=move || root_state.get().slot_attr",
+        "data-state=move || root_state.get().state_attr",
+        "data-items=move || root_state.get().item_attr",
+        "data-action-mode=move || root_state.get().action_attr",
+        "data-open-mode=move || root_state.get().open_mode_attr",
+        "data-id-source=move || root_state.get().id_source_attr",
+        "data-aria-label-source=move || root_state.get().aria_label_source_attr",
+        "data-class-source=move || root_state.get().class_source_attr",
+        "data-disabled-source=move || root_state.get().disabled_source_attr",
+        "data-disabled-indices-source=move || root_state.get().disabled_indices_source_attr",
+        "data-item-kinds-source=move || root_state.get().item_kinds_source_attr",
+        "data-close-on-action-source=move || root_state.get().close_on_action_source_attr",
+        "data-placement-source=move || root_state.get().placement_source_attr",
+        "data-open-source=move || root_state.get().open_source_attr",
+        "data-default-open-source=move || root_state.get().default_open_source_attr",
+        "data-open-change-source=move || root_state.get().open_change_source_attr",
+        "data-motion-source=move || root_state.get().motion_source_attr",
+        "data-custom-id=move || root_state.get().has_custom_id_base.then_some(\"true\")",
+        "data-custom-open=move || root_state.get().has_custom_open.then_some(\"true\")",
+        "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
-            view_source.contains(needle),
-            "ActionMenu view should derive wrapper state through logic helpers; missing `{needle}`."
+            source.contains(needle),
+            "ActionMenu view should include `{needle}` for stable state/source marker contracts."
         );
     }
 }
@@ -61,43 +130,14 @@ fn action_menu_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
-        "motion: ActionMenuMotion",
+        "let has_custom_open = open.is_some()",
+        "let has_custom_default_open = default_open.is_some()",
+        "let has_custom_on_open_change = on_open_change.is_some()",
+        "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
     ] {
         assert!(
             source.contains(needle),
-            "ActionMenu should accept `{needle}` for controlled/uncontrolled open state."
-        );
-    }
-}
-
-#[test]
-fn action_menu_emits_spectrum_root_slot_and_state_data_attributes() {
-    let source = load_source("src/action_menu/view.rs");
-
-    for needle in [
-        "data-slot=\"action-menu\"",
-        "data-state=move ||",
-        "data-open=move || open.get().then_some(\"true\")",
-        "data-closed=move || (!open.get()).then_some(\"true\")",
-        "data-disabled=state.is_trigger_disabled.then_some(\"true\")",
-        "data-enabled=state.is_enabled.then_some(\"true\")",
-        "data-empty=state.is_empty.then_some(\"true\")",
-        "data-has-items=state.has_items.then_some(\"true\")",
-        "data-placement=state.placement_attr",
-        "data-controlled=state.is_controlled.then_some(\"true\")",
-        "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
-        "data-close-on-action=state.close_on_action.then_some(\"true\")",
-        "data-keep-open-on-action=state.keep_open_on_action.then_some(\"true\")",
-        "data-custom-label=state.has_custom_aria_label.then_some(\"true\")",
-        "data-has-disabled-items=state.has_disabled_items.then_some(\"true\")",
-        "data-has-item-kinds=state.has_item_kinds.then_some(\"true\")",
-        "data-motion-source=if motion == ActionMenuMotion::default()",
-        "data-custom-motion=(motion != ActionMenuMotion::default()).then_some(\"true\")",
-        "on:keydown=on_key_down",
-    ] {
-        assert!(
-            source.contains(needle),
-            "ActionMenu should set `{needle}` so it can be styled/tested with Spectrum-compatible root state selectors."
+            "ActionMenu should support `{needle}` for controllable open behavior."
         );
     }
 }
@@ -112,11 +152,11 @@ fn action_menu_trigger_uses_action_button_with_overlay_aria_contract() {
         "aria_expanded=open",
         "aria_controls_signal=aria_controls",
         "aria_label=aria_label.get_value()",
-        "disabled=state.is_trigger_disabled",
+        "disabled=trigger_disabled",
     ] {
         assert!(
             source.contains(needle),
-            "ActionMenu should wire its trigger via `{needle}` to align with Spectrum overlay trigger semantics."
+            "ActionMenu should wire its trigger via `{needle}` for Spectrum overlay semantics."
         );
     }
 }
@@ -135,52 +175,34 @@ fn action_menu_renders_menu_inside_popover_with_presence() {
     ] {
         assert!(
             source.contains(needle),
-            "ActionMenu should compose menu/popover/presence via `{needle}` to avoid popover unmounting before exit motion completes."
+            "ActionMenu should compose menu/popover/presence via `{needle}` for motion-safe unmounting."
         );
     }
 }
 
 #[test]
-fn action_menu_uses_logic_for_disabled_trigger_and_open_keys() {
-    let logic_source = load_source("src/action_menu/logic.rs");
-    let view_source = load_source("src/action_menu/view.rs");
-
-    for needle in [
-        "resolve_trigger_disabled",
-        "focus_strategy_for_open_key",
-        "MenuOpenFocusStrategy",
-    ] {
-        assert!(
-            logic_source.contains(needle),
-            "ActionMenu logic should centralize `{needle}` semantics."
-        );
-    }
-
-    for needle in [
-        "if trigger_disabled.get_value()",
-        "if let Some(strategy) = logic::focus_strategy_for_open_key(&key)",
-        "set_open_focus.set(strategy);",
-    ] {
-        assert!(
-            view_source.contains(needle),
-            "ActionMenu view should consume `{needle}` to keep trigger behavior and keyboard-open semantics consistent."
-        );
-    }
-}
-
-#[test]
-fn action_menu_styles_include_disabled_and_persistent_markers() {
+fn action_menu_styles_include_state_and_source_markers() {
     let source = load_source("src/action_menu/styles.rs");
 
     for needle in [
+        ".ui-action-menu {",
+        ".ui-action-menu--open",
+        ".ui-action-menu[data-state=\"open\"]",
         ".ui-action-menu--persistent",
-        ".ui-action-menu--disabled",
+        ".ui-action-menu[data-action-mode=\"keep-open\"]",
+        ".ui-action-menu[data-open-mode=\"controlled\"]",
+        ".ui-action-menu[data-id-source=\"custom\"]",
+        ".ui-action-menu[data-aria-label-source=\"custom\"]",
+        ".ui-action-menu[data-disabled-indices-source=\"custom\"]",
+        ".ui-action-menu[data-item-kinds-source=\"custom\"]",
+        ".ui-action-menu[data-open-source=\"custom\"]",
+        ".ui-action-menu[data-open-change-source=\"custom\"]",
         ".ui-action-menu[data-motion-source=\"custom\"]",
         ".ui-action-menu[data-custom-motion=\"true\"]",
     ] {
         assert!(
             source.contains(needle),
-            "ActionMenu styles should include `{needle}` for stable visual state contracts."
+            "ActionMenu styles should include `{needle}` for stable state/source contracts."
         );
     }
 }
@@ -199,6 +221,31 @@ fn action_menu_exposes_motion_contract_and_internal_module() {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
             "ActionMenu motion contract should include `{needle}` for HeroUI-style spring customization."
+        );
+    }
+}
+
+#[test]
+fn action_menu_docs_page_contains_state_source_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn action_menu() -> AnyView",
+        "title=\"ActionMenu\"",
+        "slug=\"action-menu\"",
+        "State + Source Markers",
+        "data-id-source",
+        "data-aria-label-source",
+        "data-disabled-indices-source",
+        "data-item-kinds-source",
+        "data-open-source",
+        "data-open-change-source",
+        "data-motion-source",
+        "<ActionMenu",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionMenu docs page should contain `{needle}`."
         );
     }
 }
