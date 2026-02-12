@@ -127,3 +127,54 @@ fn menu_item_supports_kind_based_aria_roles_and_checked_states() {
         );
     }
 }
+
+#[test]
+fn menu_item_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn menu_item() -> AnyView",
+        "title=\"MenuItem\"",
+        "slug=\"menu-item\"",
+        "description=\"Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts.\"",
+        "<Playground title=\"Action + Checkbox\" code=code>",
+        "<Playground title=\"Radio + Submenu + Disabled\" code=states_code>",
+        "<MenuItem",
+        "kind=MenuItemKind::Action",
+        "kind=checkbox_kind",
+        "kind=radio_kind",
+        "has_submenu=true",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for menu-item coverage.",
+        );
+    }
+}
+
+#[test]
+fn menu_item_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "let (checkbox_checked, set_checkbox_checked) = signal(true);",
+        "let (radio_selected, set_radio_selected) = signal(true);",
+        "set_checkbox_checked.update(|value| *value = !*value);",
+        "set_radio_selected.update(|value| *value = !*value);",
+        "aria_label=\"Open profile\".to_string()",
+        "id=\"docs-menu-item-radio\".to_string()",
+        "class_name=\"docs-menu-item-custom\".to_string()",
+        "\"Open profile\"",
+        "\"Pin to favorites\"",
+        "\"Set as primary workspace\"",
+        "\"Disabled destructive action\"",
+        "\"checkbox checked: \"",
+        "\"radio selected: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "menu-item docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
