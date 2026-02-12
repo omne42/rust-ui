@@ -179,3 +179,53 @@ fn contextual_help_motion_sanitizes_custom_contract_values() {
         "ContextualHelp view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn contextual_help_docs_page_covers_primary_playgrounds() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn contextual_help() -> AnyView",
+        "title=\"ContextualHelp\"",
+        "slug=\"contextual-help\"",
+        "description=\"Non-modal popover help trigger with centralized variant/placement/heading/footer state attrs.\"",
+        "<Playground title=\"Help Variant + Slots\" code=semantic_code>",
+        "<Playground title=\"Info Variant + Controlled\" code=controlled_code>",
+        "<ContextualHelp",
+        "ContextualHelpVariant::Info",
+        "open=controlled_open",
+        "on_open_change=on_controlled_open_change",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "overlays docs page should include `{needle}` for contextual_help primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn contextual_help_docs_playgrounds_lock_state_matrix_contract_values() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "heading=\"Contextual help\".to_string()",
+        "footer=move || view! { \"Popover-based\" }",
+        "\"Uses Button + Popover + spring motion.\"",
+        "\"Works in Light/Dark/OLED via tokens.\"",
+        "let (controlled_open_raw, set_controlled_open_raw) = signal(false);",
+        "let controlled_open: Signal<bool> = Signal::derive(move || controlled_open_raw.get());",
+        "variant=ContextualHelpVariant::Info",
+        "open=controlled_open",
+        "on_open_change=on_controlled_open_change",
+        "aria_label=\"More info\".to_string()",
+        "class_name=\"docs-contextual-help-custom\".to_string()",
+        "\"Toggle controlled help\"",
+        "\"open: \"",
+        "\"Controlled mode keeps parent state as the source of truth.\"",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "contextual_help docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
