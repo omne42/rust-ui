@@ -104,3 +104,47 @@ fn color_area_styles_include_grid_selection_and_disabled_contracts() {
         );
     }
 }
+
+#[test]
+fn color_area_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_area() -> AnyView",
+        "title=\"ColorArea\"",
+        "slug=\"color-area\"",
+        "title=\"Controlled Grid Selection\"",
+        "title=\"Disabled + Custom Grid + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-area docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_area_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled Grid Selection\" code=basic_code>",
+        "id_base=\"docs-color-area-basic\".to_string()",
+        "label=\"Saturation / Lightness\".to_string()",
+        "value=value.into()",
+        "on_value_change=on_value_change",
+        "preview_color=\"#7c3aed\".to_string()",
+        "<Playground title=\"Disabled + Custom Grid + Custom Class\" code=states_code>",
+        "id_base=\"docs-color-area-disabled\".to_string()",
+        "default_value=(0.25, 0.85)",
+        "grid_size=15",
+        "step=0.05",
+        "disabled=true",
+        "class_name=\"docs-color-area-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-area docs playground should contain `{needle}`.",
+        );
+    }
+}
