@@ -188,6 +188,7 @@ mod tests {
             "provider" => &["ui-root"],
             "rac" => &["ui-root"],
             "layout" => &["flex", "grid"],
+            "group" => &["field-group"],
             "overlays" => &["overlay", "popover", "modal", "tray"],
             "color" => &[
                 "color-picker",

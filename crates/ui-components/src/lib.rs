@@ -102,6 +102,7 @@ pub mod form_field;
 pub mod grid;
 pub mod grid_list;
 pub mod gridlist;
+pub mod group;
 pub mod header;
 pub mod heading;
 pub mod help_text;
@@ -350,6 +351,7 @@ pub use gridlist::{
     GridList, GridListItem, GridListItemSelectionIndicator, GridListSection,
     GridListSectionHeadingTone,
 };
+pub use group::{Group, GroupDensity, GroupOrientation};
 pub use header::{Header, HeaderTone};
 pub use heading::{Heading, HeadingLevel, HeadingTone};
 pub use help_text::{HelpText, HelpTextTone};
