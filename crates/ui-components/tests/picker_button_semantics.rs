@@ -142,3 +142,49 @@ fn picker_button_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn picker_button_docs_state_matrix_playground_locks_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/actions_extra_picker_button.rs",
+    );
+
+    for needle in [
+        "title=\"State Matrix\"",
+        "<PickerButton quiet=true>",
+        "\"Filter\"",
+        "<PickerButton invalid=true>",
+        "\"Required\"",
+        "<PickerButton disabled=true>",
+        "\"Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "PickerButton docs state-matrix playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn picker_button_docs_state_source_playground_locks_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/actions_extra_picker_button.rs",
+    );
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "quiet=true",
+        "invalid=true",
+        "is_active=true",
+        "aria_label=\"Inspect picker trigger\".to_string()",
+        "class_name=\"docs-picker-button-state\".to_string()",
+        "on_press=marker_press",
+        "\"Inspect markers\"",
+        "Inspect wrapper markers like `data-state`, `data-quiet`, `data-invalid`, `data-disabled`, `data-active`, `data-has-handler`, `data-aria-source`, `data-class-source`, and `data-handler-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "PickerButton docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
