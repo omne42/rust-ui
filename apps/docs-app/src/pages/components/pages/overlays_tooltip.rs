@@ -29,6 +29,31 @@ pub(super) fn tooltip() -> AnyView {
   <Button variant=ButtonVariant::Secondary>"Inspect tooltip"</Button>
 </Tooltip>"##;
 
+    let motion_code = r##"let custom_motion = TooltipMotion {
+  initial_scale: 0.92,
+  offset_y_px: 14.0,
+  ..TooltipMotion::default()
+};
+
+<Tooltip
+  motion=custom_motion
+  content=move || view! { "Custom spring + placement offset" }
+>
+  <Button variant=ButtonVariant::Secondary>"Custom motion"</Button>
+</Tooltip>
+<Tooltip
+  motion=TooltipMotion::default()
+  content=move || view! { "Default motion" }
+>
+  <Button variant=ButtonVariant::Secondary>"Default motion"</Button>
+</Tooltip>"##;
+
+    let custom_motion = TooltipMotion {
+        initial_scale: 0.92,
+        offset_y_px: 14.0,
+        ..TooltipMotion::default()
+    };
+
     view! {
         <ComponentPage
             title="Tooltip"
@@ -75,6 +100,27 @@ pub(super) fn tooltip() -> AnyView {
                     >
                         <Button variant=ButtonVariant::Secondary>
                             "Inspect tooltip"
+                        </Button>
+                    </Tooltip>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Motion Contract" code=motion_code>
+                <div class="docs-row">
+                    <Tooltip
+                        motion=custom_motion
+                        content=move || view! { "Custom spring + placement offset" }
+                    >
+                        <Button variant=ButtonVariant::Secondary>
+                            "Custom motion"
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        motion=TooltipMotion::default()
+                        content=move || view! { "Default motion" }
+                    >
+                        <Button variant=ButtonVariant::Secondary>
+                            "Default motion"
                         </Button>
                     </Tooltip>
                 </div>

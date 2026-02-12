@@ -232,3 +232,22 @@ fn tooltip_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn tooltip_docs_page_includes_custom_motion_contract_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_tooltip.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "let custom_motion = TooltipMotion {",
+        "initial_scale: 0.92",
+        "offset_y_px: 14.0",
+        "motion=custom_motion",
+        "motion=TooltipMotion::default()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tooltip docs page should include `{needle}` for custom motion demos."
+        );
+    }
+}
