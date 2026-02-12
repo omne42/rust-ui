@@ -94,6 +94,7 @@ pub fn Toaster(
             data-custom-max-toasts=root_state.has_custom_max_toasts.then_some("true")
             data-custom-motion=root_state.has_custom_motion.then_some("true")
             data-custom-class=root_state.has_custom_class_name.then_some("true")
+            data-custom-aria=root_state.has_custom_aria_label.then_some("true")
             data-sonner-slot=sonner_state.slot_attr
             data-sonner-state=sonner_state.state_attr
             data-sonner-position=sonner_state.position_attr

@@ -5,23 +5,39 @@ pub const CSS: &str = r#"
 }
 
 .ui-toaster[data-motion-source="custom"],
-.ui-toaster[data-custom-motion="true"] {
+.ui-toaster[data-custom-motion="true"],
+.ui-toaster--custom-motion {
   --ui-toaster-custom-motion: 1;
 }
 
 .ui-toaster[data-position-source="custom"],
-.ui-toaster[data-custom-position="true"] {
+.ui-toaster[data-custom-position="true"],
+.ui-toaster--custom-position {
   --ui-toaster-custom-position: 1;
 }
 
 .ui-toaster[data-portal-source="custom"],
-.ui-toaster[data-custom-portal="true"] {
+.ui-toaster[data-custom-portal="true"],
+.ui-toaster--custom-portal {
   --ui-toaster-custom-portal: 1;
 }
 
 .ui-toaster[data-max-toasts-source="custom"],
-.ui-toaster[data-custom-max-toasts="true"] {
+.ui-toaster[data-custom-max-toasts="true"],
+.ui-toaster--custom-max-toasts {
   --ui-toaster-custom-max-toasts: 1;
+}
+
+.ui-toaster[data-aria-source="custom"],
+.ui-toaster[data-custom-aria="true"],
+.ui-toaster--custom-aria {
+  --ui-toaster-custom-aria: 1;
+}
+
+.ui-toaster[data-class-source="custom"],
+.ui-toaster[data-custom-class="true"],
+.ui-toaster--custom-class {
+  --ui-toaster-custom-class: 1;
 }
 
 .ui-toaster[data-store-source="provided"] {

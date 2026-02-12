@@ -109,6 +109,10 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ToasterPartSta
             }
         }
 
+        if state.has_custom_aria_label {
+            classes.push("ui-toaster--custom-aria".to_string());
+        }
+
         if state.has_custom_position {
             classes.push("ui-toaster--custom-position".to_string());
         }
@@ -219,7 +223,7 @@ mod tests {
             has_custom_position: true,
             has_custom_portal: false,
             has_custom_max_toasts: true,
-            has_custom_aria_label: false,
+            has_custom_aria_label: true,
             has_custom_class_name: true,
             has_custom_motion: true,
             store_source: ToasterStoreSource::Local,
@@ -233,6 +237,7 @@ mod tests {
         assert!(class_name.contains("ui-toaster--custom-max-toasts"));
         assert!(class_name.contains("ui-toaster--custom-motion"));
         assert!(class_name.contains("ui-toaster--custom-class"));
+        assert!(class_name.contains("ui-toaster--custom-aria"));
         assert!(class_name.contains("docs-toaster"));
 
         let sonner_state = resolve_state(ToasterPartStateInput {
