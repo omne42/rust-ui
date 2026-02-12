@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `DateField` docs state matrix contracts by locking controlled-value and strong-tone+custom-placeholder playground anchors in `date_field_semantics` regression coverage.
+
 - `ui-components`: hardens `ContextualHelp` docs state matrix contracts by locking help-variant+slots and info-variant+controlled playground anchors in `contextual_help_semantics` regression coverage.
 
 - `ui-components`: hardens `ContextMenu` docs state matrix contracts by locking right-click+keyboard-open, persistent+disabled+item-kinds, and state+source-marker playground anchors in `context_menu_semantics` regression coverage.

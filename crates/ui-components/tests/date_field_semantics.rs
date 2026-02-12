@@ -127,3 +127,50 @@ fn date_field_styles_include_tone_value_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn date_field_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn date_field() -> AnyView",
+        "title=\"DateField\"",
+        "slug=\"date-field\"",
+        "description=\"Segmented date entry field with centralized year/month/day normalization and Spectrum-style state/source contracts.\"",
+        "<Playground title=\"Controlled Value\" code=code>",
+        "<Playground title=\"Strong Tone + Custom Placeholder\" code=states_code>",
+        "<DateField",
+        "tone=DateFieldTone::Strong",
+        "default_value=\"2026-07-22\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for date_field primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn date_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "let (value, set_value) = signal(Some(\"2026-03-14\".to_string()));",
+        "id_base=\"docs-date-field-controlled\".to_string()",
+        "label=\"Invoice date\".to_string()",
+        "value=value",
+        "on_value_change=on_value_change",
+        "\"value: \"",
+        "id_base=\"docs-date-field-strong\".to_string()",
+        "label=\"Ship date\".to_string()",
+        "tone=DateFieldTone::Strong",
+        "default_value=\"2026-07-22\".to_string()",
+        "placeholder=\"year-month-day\".to_string()",
+        "class_name=\"docs-date-field-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "date_field docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
