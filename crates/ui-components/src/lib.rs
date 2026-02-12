@@ -127,6 +127,7 @@ pub mod legend;
 pub mod link;
 pub mod link_button;
 pub mod list;
+pub mod list_box;
 pub mod listbox;
 pub mod listbox_item;
 pub mod listbox_section;

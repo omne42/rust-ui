@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `list_box` compatibility module (re-exporting `ListBox`/`ListBoxItem`/`ListBoxSection` contracts under snake_case module naming), adds `list_box_module_semantics` regression coverage, and maps `list-box` docs-module coverage to existing listbox playgrounds in `apps/docs-app`.
+
 - `ui-components`: adds `spinbutton` compatibility module (re-exporting `NumberField` as `SpinButton`), adds `spinbutton_module_semantics` regression coverage, and maps `spinbutton` docs-module coverage to the existing `number-field` playground in `apps/docs-app`.
 
 - `ui-components`: adds `gridlist` compatibility module (re-exporting `ListBox`/`ListBoxItem`/`ListBoxSection` contracts as `GridList` aliases), adds `gridlist_module_semantics` regression coverage, and maps `gridlist` docs-module coverage to existing `listbox` playgrounds in `apps/docs-app`.
