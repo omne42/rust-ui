@@ -188,3 +188,53 @@ fn select_motion_sanitizes_custom_contract_values() {
         "Select view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn select_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn select() -> AnyView",
+        "title=\"Select\"",
+        "slug=\"select\"",
+        "description=\"Select with controlled open state, listbox semantics, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Controlled Open + Selection\" code=code>",
+        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<Select",
+        "open=controlled_open",
+        "disabled=true",
+        "placeholder=\"No options\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for select coverage.",
+        );
+    }
+}
+
+#[test]
+fn select_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "id_base=\"docs-select-controlled\".to_string()",
+        "disabled_indices=disabled_indices",
+        "set_controlled_open_raw.update(|value| *value = !*value);",
+        "\"Toggle open\"",
+        "\"open: \"",
+        "\"selected: \"",
+        "\" · has selection: \"",
+        "\" · disabled options: \"",
+        "id_base=\"docs-select-disabled\".to_string()",
+        "items=disabled_items",
+        "\"disabled selected: \"",
+        "id_base=\"docs-select-empty\".to_string()",
+        "items=empty_items",
+        "\"empty selected: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "select docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
