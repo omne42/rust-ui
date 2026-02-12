@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `TopNav` docs state matrix contracts by locking controlled/state-source playground anchors in `top_nav_semantics` regression coverage.
+
 - `ui-components`: hardens `Tooltip` docs state matrix contracts by locking state-source/custom-motion playground anchors in `tooltip_semantics` regression coverage.
 
 - `ui-components`: hardens `Toggle` docs state matrix contracts by locking outline-disabled/state-source playground anchors in `toggle_semantics` regression coverage.

@@ -171,3 +171,14 @@ fn top_nav_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn top_nav_docs_page_covers_primary_playgrounds() {
+    top_nav_docs_page_contains_state_source_playground();
+}
+
+#[test]
+fn top_nav_docs_playgrounds_lock_state_matrix_contract_values() {
+    top_nav_docs_controlled_state_playground_locks_contract_values();
+    top_nav_docs_state_source_playground_locks_contract_values();
+}
