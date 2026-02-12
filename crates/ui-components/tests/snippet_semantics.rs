@@ -100,3 +100,43 @@ fn snippet_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn snippet_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn snippet() -> AnyView",
+        "title=\"Snippet\"",
+        "slug=\"snippet\"",
+        "Playground title=\"Copyable + Copied Label\"",
+        "Playground title=\"Static + Multiline Custom\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Snippet.",
+        );
+    }
+}
+
+#[test]
+fn snippet_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Copyable + Copied Label\"",
+        "<Snippet text=\"cargo fmt --all\".to_string() label=\"Command\".to_string() copyable=true />",
+        "<Snippet text=\"RUST_LOG=debug\".to_string() copyable=true copied_label=\"Done\".to_string() />",
+        "title=\"Static + Multiline Custom\"",
+        "text=\"cargo test -p ui-components --test snippet_semantics\".to_string()",
+        "text=\"cargo fmt --all\\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings\".to_string()",
+        "label=\"CI\".to_string()",
+        "copyable=false",
+        "class_name=\"docs-snippet-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "snippet docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
