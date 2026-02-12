@@ -123,3 +123,48 @@ fn time_field_styles_include_tone_value_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn time_field_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn time_field() -> AnyView",
+        "title=\"TimeField\"",
+        "slug=\"time-field\"",
+        "description=\"Time entry field with centralized hour/minute normalization and Spectrum-style state/source data contracts.\"",
+        "<Playground title=\"Controlled + Step 15\" code=code>",
+        "<Playground title=\"Strong Tone + Custom Placeholder\" code=states_code>",
+        "<TimeField",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra time_field docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn time_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Controlled + Step 15\"",
+        "id_base=\"docs-time-field-controlled\".to_string()",
+        "value=value",
+        "on_value_change=on_value_change",
+        "minute_step=15",
+        "title=\"Strong Tone + Custom Placeholder\"",
+        "id_base=\"docs-time-field-strong\".to_string()",
+        "tone=TimeFieldTone::Strong",
+        "minute_step=5",
+        "default_value=\"18:45\".to_string()",
+        "placeholder=\"hour:minute\".to_string()",
+        "class_name=\"docs-time-field-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra time_field docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
