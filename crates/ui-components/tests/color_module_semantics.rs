@@ -77,3 +77,74 @@ fn color_compatibility_reuses_forms_and_display_color_docs_playgrounds() {
         );
     }
 }
+
+#[test]
+fn color_module_docs_page_covers_primary_playgrounds() {
+    let forms_color_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+    let display_extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn color_field() -> AnyView",
+        "pub(super) fn color_area() -> AnyView",
+        "pub(super) fn color_slider() -> AnyView",
+        "pub(super) fn color_wheel() -> AnyView",
+        "pub(super) fn color_picker() -> AnyView",
+        "pub(super) fn color_editor() -> AnyView",
+        "title=\"ColorPicker\"",
+        "slug=\"color-picker\"",
+    ] {
+        assert!(
+            forms_color_source.contains(needle),
+            "forms_color docs should contain `{needle}` for color module coverage.",
+        );
+    }
+
+    for needle in [
+        "pub(super) fn color_swatch() -> AnyView",
+        "pub(super) fn color_swatch_picker() -> AnyView",
+        "title=\"ColorSwatch\"",
+        "slug=\"color-swatch\"",
+        "title=\"ColorSwatchPicker\"",
+        "slug=\"color-swatch-picker\"",
+    ] {
+        assert!(
+            display_extra_source.contains(needle),
+            "display docs should contain `{needle}` for color module coverage.",
+        );
+    }
+}
+
+#[test]
+fn color_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let forms_color_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+    let display_extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Controlled Grid Selection\"",
+        "title=\"Disabled Alpha + Custom Track + Reduced Motion\"",
+        "title=\"Controlled Color + Controlled Open\"",
+        "title=\"Controlled Color + Controlled Format\"",
+        "title=\"Invalid + Disabled + Custom Class\"",
+    ] {
+        assert!(
+            forms_color_source.contains(needle),
+            "forms_color playground coverage should contain `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "title=\"Size + Rounding\"",
+        "title=\"Transparency + Accessible Label + Shape\"",
+        "title=\"Basic Selection\"",
+        "title=\"Transparency + Disabled + Custom Class\"",
+    ] {
+        assert!(
+            display_extra_source.contains(needle),
+            "display color playground coverage should contain `{needle}`.",
+        );
+    }
+}
