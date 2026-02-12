@@ -196,7 +196,7 @@ pub fn Dialog(
                 data-custom-id=root_state.has_custom_id_base.then_some("true")
                 data-custom-title=root_state.has_custom_title.then_some("true")
                 data-custom-description=root_state.has_custom_description.then_some("true")
-                data-custom-close=root_state.has_custom_close_label.then_some("true")
+                data-custom-close=(root_state.close_source_attr == "custom").then_some("true")
                 data-custom-class=root_state.has_custom_class_name.then_some("true")
                 data-custom-motion=root_state.has_custom_motion.then_some("true")
                 data-custom-exit=root_state.has_on_exit_complete.then_some("true")

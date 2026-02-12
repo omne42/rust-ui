@@ -148,6 +148,22 @@ pub fn compose_class_name(base_class_name: Option<String>, state: DialogPartStat
             classes.push("ui-dialog--custom-size".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-dialog--custom-id".to_string());
+        }
+
+        if state.has_custom_title {
+            classes.push("ui-dialog--custom-title".to_string());
+        }
+
+        if state.has_custom_description {
+            classes.push("ui-dialog--custom-description".to_string());
+        }
+
+        if state.close_source_attr == "custom" {
+            classes.push("ui-dialog--custom-close".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-dialog--custom-motion".to_string());
         }
@@ -236,12 +252,12 @@ mod tests {
             resolve_state(DialogPartStateInput {
                 slot: DialogSlot::Root,
                 size: DialogSize::Lg,
-                has_description: false,
+                has_description: true,
                 has_footer: true,
                 show_close_button: true,
                 has_custom_id_base: true,
                 has_custom_title: true,
-                has_custom_description: false,
+                has_custom_description: true,
                 has_custom_close_label: true,
                 has_custom_class_name: true,
                 has_custom_motion: true,
@@ -252,10 +268,14 @@ mod tests {
         for token in [
             "ui-dialog",
             "ui-dialog--size-lg",
-            "ui-dialog--title-only",
+            "ui-dialog--with-description",
             "ui-dialog--with-footer",
             "ui-dialog--close-shown",
             "ui-dialog--custom-size",
+            "ui-dialog--custom-id",
+            "ui-dialog--custom-title",
+            "ui-dialog--custom-description",
+            "ui-dialog--custom-close",
             "ui-dialog--custom-motion",
             "ui-dialog--custom-exit",
             "ui-dialog--custom-class",

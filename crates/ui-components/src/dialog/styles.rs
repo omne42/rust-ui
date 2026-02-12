@@ -53,37 +53,44 @@ pub const CSS: &str = r#"
 }
 
 .ui-dialog[data-motion-source="custom"],
-.ui-dialog[data-custom-motion="true"] {
+.ui-dialog[data-custom-motion="true"],
+.ui-dialog--custom-motion {
   --ui-dialog-custom-motion: 1;
 }
 
 .ui-dialog[data-size-source="custom"],
-.ui-dialog[data-custom-size="true"] {
+.ui-dialog[data-custom-size="true"],
+.ui-dialog--custom-size {
   --ui-dialog-custom-size: 1;
 }
 
 .ui-dialog[data-id-source="custom"],
-.ui-dialog[data-custom-id="true"] {
+.ui-dialog[data-custom-id="true"],
+.ui-dialog--custom-id {
   --ui-dialog-custom-id: 1;
 }
 
 .ui-dialog[data-title-source="custom"],
-.ui-dialog[data-custom-title="true"] {
+.ui-dialog[data-custom-title="true"],
+.ui-dialog--custom-title {
   --ui-dialog-custom-title: 1;
 }
 
 .ui-dialog[data-description-source="custom"],
-.ui-dialog[data-custom-description="true"] {
+.ui-dialog[data-custom-description="true"],
+.ui-dialog--custom-description {
   --ui-dialog-custom-description: 1;
 }
 
 .ui-dialog[data-close-source="custom"],
-.ui-dialog[data-custom-close="true"] {
+.ui-dialog[data-custom-close="true"],
+.ui-dialog--custom-close {
   --ui-dialog-custom-close: 1;
 }
 
 .ui-dialog[data-exit-source="custom"],
-.ui-dialog[data-custom-exit="true"] {
+.ui-dialog[data-custom-exit="true"],
+.ui-dialog--custom-exit {
   --ui-dialog-custom-exit: 1;
 }
 
