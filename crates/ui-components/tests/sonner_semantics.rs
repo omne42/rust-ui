@@ -223,3 +223,29 @@ fn sonner_css_is_aggregated() {
         "ui-components css aggregator should include sonner styles."
     );
 }
+
+#[test]
+fn sonner_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "portal=false",
+        "position=SonnerPosition::TopLeft",
+        "max_toasts=4",
+        "aria_label=\"Status updates\".to_string()",
+        "class_name=\"docs-sonner-source\".to_string()",
+        "motion=ToastMotion {",
+        "let custom_motion = ToastMotion {",
+        "initial_y_px: 22.0",
+        "initial_scale: 0.94",
+        "..ToastMotion::default()",
+        "motion=custom_motion",
+        "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "sonner docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
