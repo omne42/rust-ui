@@ -159,3 +159,42 @@ fn code_block_motion_sanitizes_custom_contract_values() {
         "CodeBlock view should sanitize motion before attaching copy-flash driver.",
     );
 }
+
+#[test]
+fn code_block_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn code_block() -> AnyView",
+        "title=\"CodeBlock\"",
+        "slug=\"code-block\"",
+        "Playground title=\"Header + Copy Motion\"",
+        "Playground title=\"Compact + No Copy\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for CodeBlock.",
+        );
+    }
+}
+
+#[test]
+fn code_block_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Header + Copy Motion\"",
+        "code=rust_code.to_string()",
+        "language=\"rust\".to_string()",
+        "label=\"deploy.rs\".to_string()",
+        "title=\"Compact + No Copy\"",
+        "code=\"cargo test -p ui-components --test code_block_semantics\".to_string()",
+        "copyable=false",
+        "class_name=\"docs-code-block-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "code-block docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

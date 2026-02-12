@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `CodeBlock` docs state contracts by locking header+copy-motion and compact+no-copy playground anchors in `code_block_semantics` regression coverage.
+
 - `ui-components`: hardens `Kbd` docs state contracts by locking size+keys matrix and custom-class+label-only playground anchors in `kbd_semantics` regression coverage.
 
 - `ui-components`: hardens `Link` docs state contracts by locking state-matrix and custom-rel+class playground anchors in `link_semantics` regression coverage.
