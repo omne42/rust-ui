@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Textarea` docs state/source contracts by locking basic/marker playground anchors and state/source marker values (`rows`/description/error/placeholder/class wiring) in `textarea_semantics` regression coverage.
+
 - `ui-components`: hardens `Textfield` docs state/source contracts by locking required+invalid anchors and state/source marker values (custom description/error/placeholder/type/class wiring) in `textfield_semantics` regression coverage.
 
 - `ui-components`: hardens `Toggle` docs state/motion contracts by locking outline+disabled anchors and state/source marker values (`tap_scale`/custom aria+handler wiring) in `toggle_semantics` regression coverage.

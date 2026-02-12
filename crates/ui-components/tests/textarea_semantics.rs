@@ -136,3 +136,44 @@ fn textarea_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn textarea_docs_basic_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Basic Textarea\"",
+        "id=\"docs-textarea-basic\".to_string()",
+        "label=\"About\".to_string()",
+        "placeholder=\"Write something…\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Textarea docs basic playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn textarea_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-textarea-marker\".to_string()",
+        "label=\"Summary\".to_string()",
+        "required=true",
+        "invalid=Signal::derive(move || marker_invalid.get())",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Summary must include at least 20 characters.\".to_string()",
+        "placeholder=\"Write a summary\".to_string()",
+        "rows=5",
+        "class_name=\"docs-textarea-state\".to_string()",
+        "Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Textarea docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
