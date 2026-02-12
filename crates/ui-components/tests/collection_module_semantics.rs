@@ -57,3 +57,46 @@ fn collection_compatibility_reuses_item_docs_playgrounds() {
         );
     }
 }
+
+#[test]
+fn collection_module_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+
+    for needle in [
+        "pub(super) fn item_primitives() -> AnyView",
+        "title=\"Item\"",
+        "slug=\"item\"",
+        "title=\"Media + Content + Actions\"",
+        "title=\"Header + Footer Layout\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collection module docs coverage should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn collection_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+
+    for needle in [
+        "<Playground title=\"Media + Content + Actions\" code=basic_code>",
+        "<ItemGroup>",
+        "<Item variant=ItemVariant::Outline size=ItemSize::Default>",
+        "<ItemMedia variant=ItemMediaVariant::Icon>",
+        "<ItemSeparator />",
+        "<Item variant=ItemVariant::Default size=ItemSize::Default>",
+        "<Playground title=\"Header + Footer Layout\" code=advanced_code>",
+        "<Item variant=ItemVariant::Muted size=ItemSize::Sm>",
+        "<ItemHeader>",
+        "<ItemFooter>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collection module docs playground should contain `{needle}`.",
+        );
+    }
+}

@@ -16,6 +16,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `Collapsible` docs state contracts by locking controlled, disabled+custom-motion, and state+source marker playground anchors in `collapsible_semantics` regression coverage.
 
+- `ui-components`: hardens `Collection` module docs state contracts by locking Item primitives playground anchors used by `Collection`/`CollectionSection`/`CollectionSeparator` compatibility in `collection_module_semantics` regression coverage.
+
 - `ui-components`: hardens `CheckboxGroup` docs state contracts by locking validation+required and disabled+optional playground anchors in `checkbox_group_semantics` regression coverage.
 
 - `ui-components`: hardens `CheckboxField` docs state contracts by locking controlled+description and indicator-end quiet invalid/disabled matrix playground anchors in `checkbox_field_semantics` regression coverage.
