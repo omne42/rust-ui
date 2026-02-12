@@ -6,6 +6,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-date-picker[data-motion-source="custom"],
+.ui-date-picker--custom-motion,
 .ui-date-picker[data-custom-motion="true"] {
   --ui-date-picker-custom-motion: 1;
 }
@@ -41,6 +42,7 @@ pub const CSS: &str = r#"
   font-variant-numeric: tabular-nums;
 }
 
+.ui-date-picker[data-class-source="custom"],
 .ui-date-picker--custom-class,
 .ui-date-picker[data-custom-class="true"] {
   outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);

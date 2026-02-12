@@ -53,6 +53,7 @@ pub fn DatePicker(
     let class_name = logic::normalize_optional_text(class_name);
 
     let motion = crate::date_picker::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != DatePickerMotion::default();
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
 
@@ -71,6 +72,7 @@ pub fn DatePicker(
             has_custom_placeholder,
             has_custom_aria_label,
             has_custom_class_name,
+            has_custom_motion,
         })
     });
 
@@ -130,12 +132,8 @@ pub fn DatePicker(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
-            data-motion-source=if motion == DatePickerMotion::default() {
-                "default"
-            } else {
-                "custom"
-            }
-            data-custom-motion=(motion != DatePickerMotion::default()).then_some("true")
+            data-motion-source=move || state.get().motion_source_attr
+            data-custom-motion=move || state.get().has_custom_motion.then_some("true")
             role="group"
             aria-label=aria_label
         >

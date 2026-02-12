@@ -146,6 +146,11 @@ pub fn resolve_state(input: DatePickerStateInput) -> DatePickerState {
     } else {
         "default"
     };
+    let motion_source_attr = if input.has_custom_motion {
+        "custom"
+    } else {
+        "default"
+    };
 
     let has_value = selected_day.is_some();
 
@@ -175,7 +180,9 @@ pub fn resolve_state(input: DatePickerStateInput) -> DatePickerState {
         placeholder_source_attr,
         aria_source_attr,
         class_source_attr,
+        motion_source_attr,
         has_custom_class_name: input.has_custom_class_name,
+        has_custom_motion: input.has_custom_motion,
     }
 }
 
@@ -203,6 +210,10 @@ pub fn compose_class_name(base_class_name: Option<String>, state: DatePickerStat
         if let Some(base_class_name) = base_class_name {
             classes.push(base_class_name);
         }
+    }
+
+    if state.has_custom_motion {
+        classes.push("ui-date-picker--custom-motion".to_string());
     }
 
     classes.join(" ")
@@ -269,6 +280,7 @@ mod tests {
             has_custom_placeholder: true,
             has_custom_aria_label: true,
             has_custom_class_name: false,
+            has_custom_motion: true,
         });
 
         assert_eq!(state.month, 1);
@@ -278,6 +290,8 @@ mod tests {
         assert_eq!(state.placeholder_source_attr, "custom");
         assert_eq!(state.aria_source_attr, "custom");
         assert_eq!(state.class_source_attr, "default");
+        assert_eq!(state.motion_source_attr, "custom");
+        assert!(state.has_custom_motion);
     }
 
     #[test]
@@ -294,6 +308,7 @@ mod tests {
                 has_custom_placeholder: false,
                 has_custom_aria_label: false,
                 has_custom_class_name: true,
+                has_custom_motion: true,
             }),
         );
 
@@ -304,6 +319,7 @@ mod tests {
             "ui-date-picker--disabled",
             "ui-date-picker--empty",
             "ui-date-picker--custom-class",
+            "ui-date-picker--custom-motion",
             "docs-date-picker",
         ] {
             assert!(class_name.contains(token), "class should include `{token}`");

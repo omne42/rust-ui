@@ -18,6 +18,7 @@ pub struct DatePickerStateInput {
     pub has_custom_placeholder: bool,
     pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -37,5 +38,7 @@ pub struct DatePickerState {
     pub placeholder_source_attr: &'static str,
     pub aria_source_attr: &'static str,
     pub class_source_attr: &'static str,
+    pub motion_source_attr: &'static str,
     pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
 }
