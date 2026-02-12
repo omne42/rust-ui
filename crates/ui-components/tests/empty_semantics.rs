@@ -180,3 +180,56 @@ fn empty_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn empty_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+
+    for needle in [
+        "pub(super) fn empty() -> AnyView",
+        "title=\"Empty\"",
+        "slug=\"empty\"",
+        "description=\"Shadcn-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering.\"",
+        "<Playground title=\"Header + Icon Variant\" code=basic_code>",
+        "<Playground title=\"Content Action Region\" code=content_code>",
+        "title=\"State + Source Markers\"",
+        "<Empty",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_empty docs page should include `{needle}` for empty primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn empty_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+
+    for needle in [
+        "title=\"Header + Icon Variant\"",
+        "variant=EmptyMediaVariant::Icon",
+        "\"No messages\"",
+        "\"You're all caught up.\"",
+        "title=\"Content Action Region\"",
+        "class_name=\"docs-empty-custom\".to_string()",
+        "\"No deployments\"",
+        "\"Create your first release to populate this list.\"",
+        "<a href=\"#/components/button\">\"Create deployment\"</a>",
+        "title=\"State + Source Markers\"",
+        "class_name=\"docs-empty-state\".to_string()",
+        "class_name=\"docs-empty-header\".to_string()",
+        "class_name=\"docs-empty-media\".to_string()",
+        "class_name=\"docs-empty-title\".to_string()",
+        "class_name=\"docs-empty-description\".to_string()",
+        "class_name=\"docs-empty-content\".to_string()",
+        "<a href=\"#/components/search\">\"Open search\"</a>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "empty docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

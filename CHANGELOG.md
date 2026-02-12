@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Empty` docs state matrix contracts by locking header+icon, content-action, and state+source-markers playground anchors in `empty_semantics` regression coverage.
+
 - `ui-components`: hardens `Dropzone` docs state matrix contracts by locking drop/paste, disabled, and state+source-markers playground anchors in `dropzone_semantics` regression coverage.
 
 - `ui-components`: hardens `DropZone` docs state matrix contracts by locking drop/paste and custom-motion drop/paste playground anchors in `drop_zone_semantics` regression coverage.
