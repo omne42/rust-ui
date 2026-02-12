@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `dnd` compatibility docs state matrix contracts by locking file-trigger and drop-zone playground anchors reused by `dnd_module_semantics` regression coverage.
+
 - `ui-components`: hardens `ErrorView` docs state matrix contracts by locking invalid-visibility and custom-content+motion+actions playground anchors in `error_view_semantics` regression coverage.
 
 - `ui-components`: hardens `ErrorMessage` docs state matrix contracts by locking tone-variants and truncate+disabled+element+custom-class playground anchors in `error_message_semantics` regression coverage.
