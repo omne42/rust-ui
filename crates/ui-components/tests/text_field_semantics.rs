@@ -66,3 +66,41 @@ fn text_field_styles_respect_prefers_reduced_motion() {
         "TextField styles should disable transitions under prefers-reduced-motion."
     );
 }
+
+#[test]
+fn text_field_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn text_field() -> AnyView",
+        "title=\"TextField\"",
+        "slug=\"text-field\"",
+        "description=\"A compact field wrapper built on headless text field semantics.\"",
+        "<Playground title=\"Label + placeholder\" code=code>",
+        "<TextField",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms text_field docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn text_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Label + placeholder\"",
+        "id=\"docs-text-field\".to_string()",
+        "label=\"Name\".to_string()",
+        "value=value",
+        "set_value=set_value",
+        "placeholder=\"Jane\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms text_field docs playground should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
