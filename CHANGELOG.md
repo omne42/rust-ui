@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SearchInputButton` docs state contracts by locking interactive-shortcut, placeholder-disabled matrix, and custom-class+aria playground anchors in `button_search_input_semantics` regression coverage.
+
 - `ui-components`: hardens `FlipButton` docs state contracts by locking top-flip, direction-matrix, and custom-class playground anchors in `button_flip_semantics` regression coverage.
 
 - `ui-components`: hardens `Dialog` docs state contracts by locking default-playground anchors (id/title/description/footer actions/exit callback wiring) in `dialog_semantics` regression coverage.

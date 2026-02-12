@@ -113,3 +113,50 @@ fn docs_actions_page_locks_search_input_motion_narrative() {
         );
     }
 }
+
+#[test]
+fn search_input_button_docs_interactive_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn search_input_button() -> AnyView",
+        "<Playground title=\"Interactive + shortcut\" code=code>",
+        "placeholder=\"Search docs\".to_string()",
+        "compact_placeholder=\"Search\".to_string()",
+        "meta_key_label=\"⌘\".to_string()",
+        "placeholder=\"Command menu\".to_string()",
+        "meta_key_label=\"Ctrl\".to_string()",
+        "aria_label=\"Open command menu\".to_string()",
+        "\"presses: \" {move || press_count.get().to_string()}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "search-input-button interactive playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn search_input_button_docs_state_and_custom_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Placeholder + disabled matrix\" code=states_code>",
+        "placeholder=\"Find components\".to_string()",
+        "compact_placeholder=\"Find\".to_string()",
+        "placeholder=\"Disabled search\".to_string() disabled=true",
+        "placeholder=\"Forced disabled\".to_string()",
+        "is_disabled=true",
+        "<Playground title=\"Custom Class + Aria Label\" code=custom_code>",
+        "placeholder=\"Browse components\".to_string()",
+        "compact_placeholder=\"Browse\".to_string()",
+        "aria_label=\"Open component search\".to_string()",
+        "placeholder=\"Search by keyword\".to_string()",
+        "class_name=\"docs-search-input-button-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "search-input-button state/custom playgrounds should contain `{needle}`.",
+        );
+    }
+}
