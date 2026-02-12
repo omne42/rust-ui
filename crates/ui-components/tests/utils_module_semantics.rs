@@ -48,3 +48,13 @@ fn utils_compatibility_reuses_button_docs_playground() {
         );
     }
 }
+
+#[test]
+fn utils_module_docs_page_covers_primary_playgrounds() {
+    utils_compatibility_reuses_button_docs_playground();
+}
+
+#[test]
+fn utils_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    utils_compatibility_reuses_button_docs_playground();
+}
