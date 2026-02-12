@@ -50,3 +50,61 @@ fn shared_element_transition_compatibility_reuses_view_docs_playground() {
         );
     }
 }
+
+#[test]
+fn shared_element_transition_module_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn view() -> AnyView",
+        "title=\"View\"",
+        "slug=\"view\"",
+        "description=\"General-purpose Spectrum-style container with centralized surface token state and stable data markers.\"",
+        "<Playground title=\"Surface Tokens\" code=surface_code>",
+        "<Playground title=\"Element + Fluid + Custom Class\" code=element_code>",
+        "<View",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs should include `{needle}` for shared_element_transition_module primary playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source.contains("\"shared-element-transition\" => &[\"view\"]"),
+        "components mod mapping should keep `shared-element-transition` mapped to `view` slug.",
+    );
+}
+
+#[test]
+fn shared_element_transition_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Surface Tokens\"",
+        "border=ViewBorder::Subtle",
+        "padding=ViewPadding::Md",
+        "radius=ViewRadius::Md",
+        "background=ViewBackground::Accent",
+        "border=ViewBorder::Strong",
+        "padding=ViewPadding::Lg",
+        "radius=ViewRadius::Lg",
+        "shadow=ViewShadow::Md",
+        "title=\"Element + Fluid + Custom Class\"",
+        "element=ViewElement::Section",
+        "background=ViewBackground::Subtle",
+        "padding=ViewPadding::Sm",
+        "radius=ViewRadius::Sm",
+        "fluid=true",
+        "class_name=\"docs-view-custom\".to_string()",
+        "aria_label=\"Release notes\".to_string()",
+        "element=ViewElement::Span",
+        "\"Inline view\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs playgrounds should contain `{needle}` for shared_element_transition_module contracts.",
+        );
+    }
+}
