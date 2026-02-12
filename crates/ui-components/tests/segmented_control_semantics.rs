@@ -176,3 +176,53 @@ fn segmented_control_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn segmented_control_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn segmented_control() -> AnyView",
+        "title=\"SegmentedControl\"",
+        "slug=\"segmented-control\"",
+        "description=\"Segmented control with HeroUI-level indicator motion and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Selection + Root State\" code=code>",
+        "<Playground title=\"Vertical + Disabled + Empty\" code=states_code>",
+        "<SegmentedControl",
+        "orientation=SegmentedControlOrientation::Vertical",
+        "size=SegmentedControlSize::Sm",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs page should include `{needle}` for segmented-control coverage.",
+        );
+    }
+}
+
+#[test]
+fn segmented_control_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "id_base=\"seg\".to_string()",
+        "options=options",
+        "selected_index=selected",
+        "set_selected_index=set_selected",
+        "disabled_indices=vec![2]",
+        "id_base=\"docs-segments\".to_string()",
+        "\"selected: \"",
+        "\" · has selection: \"",
+        "\" · disabled options: 1\"",
+        "id_base=\"docs-segments-vertical\".to_string()",
+        "disabled_indices=vertical_disabled_indices",
+        "id_base=\"docs-segments-empty\".to_string()",
+        "aria_label=\"No options\".to_string()",
+        "\"empty selected: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "segmented-control docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
