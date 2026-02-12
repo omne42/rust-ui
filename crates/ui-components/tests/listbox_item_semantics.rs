@@ -125,3 +125,51 @@ fn listbox_item_supports_option_accessibility_contract() {
         );
     }
 }
+
+#[test]
+fn listbox_item_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn listbox_item() -> AnyView",
+        "title=\"ListBoxItem\"",
+        "slug=\"listbox-item\"",
+        "description=\"Spectrum/HeroUI-style listbox option primitive with centralized selection/focus/divider/source normalization and stable `slot` + `data-*` state contracts.\"",
+        "<Playground title=\"Selectable Option\" code=code>",
+        "<Playground title=\"Focused + Divider + Disabled\" code=states_code>",
+        "<ListBoxItem",
+        "show_selection_indicator=true",
+        "focused=true",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for listbox-item coverage.",
+        );
+    }
+}
+
+#[test]
+fn listbox_item_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "let (selected_default, set_selected_default) = signal(true);",
+        "set_selected_default.update(|value| *value = !*value);",
+        "let (selected_states, set_selected_states) = signal(true);",
+        "set_selected_states.update(|value| *value = !*value);",
+        "id=\"docs-listbox-item-focused\".to_string()",
+        "class_name=\"docs-listbox-item-custom\".to_string()",
+        "\"San Francisco\"",
+        "\"Tokyo\"",
+        "\"Disabled option\"",
+        "\"selected: \"",
+        "\"focused item selected: \"",
+        "has_divider=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "listbox-item docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
