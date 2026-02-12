@@ -149,3 +149,54 @@ fn field_label_docs_page_exists_in_forms_extra() {
         );
     }
 }
+
+#[test]
+fn field_label_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs");
+
+    for needle in [
+        "pub(super) fn field_label() -> AnyView",
+        "title=\"FieldLabel\"",
+        "slug=\"field-label\"",
+        "description=\"Spectrum-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts.\"",
+        "<Playground title=\"Tone + Required\" code=tone_code>",
+        "<Playground title=\"Custom Indicator + Aria + Class\" code=custom_code>",
+        "<FieldLabel",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra_field_label docs page should include `{needle}` for field_label primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn field_label_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_field_label.rs");
+
+    for needle in [
+        "title=\"Tone + Required\"",
+        "text=\"Email\".to_string()",
+        "for_id=\"docs-field-label-email\".to_string()",
+        "required=true",
+        "placeholder=\"name@example.com\"",
+        "text=\"Helper\".to_string()",
+        "tone=FieldLabelTone::Muted",
+        "text=\"Critical\".to_string()",
+        "tone=FieldLabelTone::Strong",
+        "title=\"Custom Indicator + Aria + Class\"",
+        "text=\"Assignee\".to_string()",
+        "for_id=\"docs-field-label-assignee\".to_string()",
+        "required_indicator=\"(required)\".to_string()",
+        "aria_label=\"Assignee field label\".to_string()",
+        "class_name=\"docs-field-label-custom\".to_string()",
+        "placeholder=\"Owner\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_label docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
