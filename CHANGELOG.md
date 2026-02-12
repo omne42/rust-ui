@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ActionBar` HeroUI-level motion regression coverage (defaults/disabled/sanitization/reduced-motion paths), and `apps/docs-app` adds a dedicated `Custom Motion Contract` action-bar playground (`actions_extra::action_bar`).
+
 - `ui-components`: hardens `SlidingNumber` HeroUI-level motion behavior by enforcing reduced-motion sanitization in `sanitize_motion` and adds explicit spring/reduced-path regression coverage.
 
 - `ui-components`: hardens `Thumbnail` HeroUI-level motion regression coverage (`ThumbnailMotion` defaults/sanitization/reduced-motion/disabled paths) and `apps/docs-app` adds a dedicated `Custom Motion Contract` thumbnail playground (`display_extra_thumbnail`).

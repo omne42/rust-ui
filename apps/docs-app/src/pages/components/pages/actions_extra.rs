@@ -36,6 +36,33 @@ let selected_count_signal = Signal::derive(move || selected_count.get());
   motion=ActionBarMotion::disabled()
 />"#;
 
+    let motion_code = r#"let mut custom_motion = ActionBarMotion::default();
+custom_motion.spring.stiffness = 280.0;
+custom_motion.spring.damping = 24.0;
+custom_motion.spring.mass = 1.0;
+custom_motion.spring.precision = 0.002;
+custom_motion.hidden_translate_px = 44.0;
+custom_motion.hidden_opacity = 0.22;
+
+<ActionBar
+  selected_count=Signal::derive(move || selected_count.get())
+  force_visible=true
+  motion=custom_motion
+/>
+<ActionBar
+  selected_count=Signal::derive(move || selected_count.get())
+  force_visible=true
+  motion=ActionBarMotion::disabled()
+/>"#;
+
+    let mut custom_motion = ActionBarMotion::default();
+    custom_motion.spring.stiffness = 280.0;
+    custom_motion.spring.damping = 24.0;
+    custom_motion.spring.mass = 1.0;
+    custom_motion.spring.precision = 0.002;
+    custom_motion.hidden_translate_px = 44.0;
+    custom_motion.hidden_opacity = 0.22;
+
     view! {
         <ComponentPage
             title="ActionBar"
@@ -95,6 +122,27 @@ let selected_count_signal = Signal::derive(move || selected_count.get());
                     <span class="ui-muted">
                         "Top placement + custom labels + motion disabled."
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Motion Contract" code=motion_code>
+                <div class="docs-stack">
+                    <ActionBar
+                        selected_count=selected_count_signal
+                        force_visible=true
+                        motion=custom_motion
+                    >
+                        <ActionButton is_quiet=true>"Sync"</ActionButton>
+                        <ActionButton is_quiet=true>"Share"</ActionButton>
+                    </ActionBar>
+                    <ActionBar
+                        selected_count=selected_count_signal
+                        force_visible=true
+                        motion=ActionBarMotion::disabled()
+                    >
+                        <ActionButton is_quiet=true>"Sync"</ActionButton>
+                        <ActionButton is_quiet=true>"Share"</ActionButton>
+                    </ActionBar>
                 </div>
             </Playground>
         </ComponentPage>

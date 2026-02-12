@@ -118,6 +118,44 @@ fn action_bar_styles_include_position_state_and_source_contracts() {
 }
 
 #[test]
+fn action_bar_motion_contract_defaults_and_disabled_path_are_locked() {
+    let source = load_source("src/action_bar/motion.rs");
+
+    for needle in [
+        "pub struct ActionBarMotion",
+        "enabled: true",
+        "hidden_translate_px: 28.0",
+        "hidden_opacity: 0.0",
+        "pub fn disabled() -> Self",
+        "enabled: false",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionBar motion contract should include `{needle}` for HeroUI-level defaults/disabled stability."
+        );
+    }
+}
+
+#[test]
+fn action_bar_motion_sanitization_and_reduced_motion_paths_are_locked() {
+    let source = load_source("src/action_bar/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ActionBarMotion) -> ActionBarMotion",
+        ".clamp(-400.0, 400.0)",
+        ".clamp(0.0, 1.0)",
+        "!motion.enabled || ui_motion::web::prefers_reduced_motion()",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn disabled_constructor_turns_motion_off()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionBar motion implementation should include `{needle}` to avoid regressions."
+        );
+    }
+}
+
+#[test]
 fn action_bar_motion_uses_spring_driver() {
     let source = load_source("src/action_bar/motion.rs");
 
@@ -132,6 +170,25 @@ fn action_bar_motion_uses_spring_driver() {
         assert!(
             source.contains(needle),
             "ActionBar motion should include `{needle}` for spring-driven visibility animation."
+        );
+    }
+}
+
+#[test]
+fn action_bar_docs_page_includes_custom_motion_contract_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "let mut custom_motion = ActionBarMotion::default();",
+        "custom_motion.hidden_translate_px = 44.0;",
+        "custom_motion.hidden_opacity = 0.22;",
+        "motion=custom_motion",
+        "motion=ActionBarMotion::disabled()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action_bar docs page should include `{needle}` for custom motion demos."
         );
     }
 }
