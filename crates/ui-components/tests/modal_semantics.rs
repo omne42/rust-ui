@@ -178,3 +178,25 @@ fn modal_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn modal_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "let custom_motion = OverlayMotion {",
+        "initial_scale: 0.92",
+        "initial_y_px: 18.0",
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-modal-custom\".to_string()",
+        "class_name=\"docs-modal-custom\".to_string()",
+        "motion=custom_motion",
+        "on_exit_complete=on_custom_exit_complete",
+        "Inspect data-id-source / data-title-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "modal docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
