@@ -102,3 +102,44 @@ fn status_light_styles_include_variant_state_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn status_light_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn status_light() -> AnyView",
+        "title=\"StatusLight\"",
+        "slug=\"status-light\"",
+        "Playground title=\"Variants\"",
+        "Playground title=\"Live Region Role\"",
+        "Playground title=\"Custom Class + Static\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for StatusLight.",
+        );
+    }
+}
+
+#[test]
+fn status_light_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Variants\"",
+        "<StatusLight variant=StatusLightVariant::Default>\"Idle\"</StatusLight>",
+        "<StatusLight variant=StatusLightVariant::Accent>\"Deploying\"</StatusLight>",
+        "<StatusLight variant=StatusLightVariant::Danger>\"Failed\"</StatusLight>",
+        "title=\"Live Region Role\"",
+        "<StatusLight role=StatusLightRole::Status>\"Background sync complete\"</StatusLight>",
+        "title=\"Custom Class + Static\"",
+        "class_name=\"docs-status-light-custom\".to_string()",
+        "role=StatusLightRole::Status",
+    ] {
+        assert!(
+            source.contains(needle),
+            "status-light docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

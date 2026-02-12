@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `StatusLight` docs state contracts by locking variants, live-role, and custom-class+static playground anchors in `status_light_semantics` regression coverage.
+
 - `ui-components`: hardens `Badge` docs state contracts by locking variant-matrix and custom-class+outline playground anchors in `badge_semantics` regression coverage.
 
 - `ui-components`: hardens `Meter` docs state contracts by locking variant+size matrix and custom-label+motion+class playground anchors in `meter_semantics` regression coverage.
