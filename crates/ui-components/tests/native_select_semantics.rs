@@ -136,3 +136,53 @@ fn native_select_styles_include_size_invalid_disabled_and_empty_markers() {
         );
     }
 }
+
+#[test]
+fn native_select_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_native.rs");
+
+    for needle in [
+        "pub(super) fn native_select() -> AnyView",
+        "title=\"NativeSelect\"",
+        "slug=\"native-select\"",
+        "description=\"Spectrum-style native `<select>` wrapper with controllable selection, root `data-*` contracts, and stable option normalization.\"",
+        "<Playground title=\"Controlled + Placeholder\" code=code>",
+        "<Playground title=\"Required + Invalid + Disabled\" code=states_code>",
+        "<NativeSelect",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_native docs should include `{needle}` for native-select primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn native_select_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_native.rs");
+
+    for needle in [
+        "title=\"Controlled + Placeholder\"",
+        "id_base=\"docs-native-select-controlled\".to_string()",
+        "placeholder=\"Choose mode\".to_string()",
+        "name=\"mode\".to_string()",
+        "selected_index=selected_signal",
+        "on_selected_index_change=on_selected_change",
+        "title=\"Required + Invalid + Disabled\"",
+        "id_base=\"docs-native-select-required\".to_string()",
+        "default_selected_index=1",
+        "required=true",
+        "invalid=true",
+        "size=NativeSelectSize::Lg",
+        "class_name=\"docs-native-select-custom\".to_string()",
+        "id_base=\"docs-native-select-disabled\".to_string()",
+        "disabled=true",
+        "placeholder=\"Disabled select\".to_string()",
+        "size=NativeSelectSize::Sm",
+    ] {
+        assert!(
+            source.contains(needle),
+            "native-select docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
