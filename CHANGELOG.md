@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Well` docs state contracts by locking tone+density+inset and custom-label+class playground anchors in `well_semantics` regression coverage.
+
 - `ui-components`: hardens `Spacer` docs state contracts by locking axis+size and custom-class-marker playground anchors in `spacer_semantics` regression coverage.
 
 - `ui-components`: hardens `Separator` docs state contracts by locking semantic+element-type and decorative+custom-class playground anchors in `separator_semantics` regression coverage.

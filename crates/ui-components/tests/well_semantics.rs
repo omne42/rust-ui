@@ -100,3 +100,41 @@ fn well_styles_include_tone_density_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn well_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn well() -> AnyView",
+        "title=\"Well\"",
+        "slug=\"well\"",
+        "Playground title=\"Tone + Density + Inset\"",
+        "Playground title=\"Custom Label + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Well.",
+        );
+    }
+}
+
+#[test]
+fn well_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Tone + Density + Inset\"",
+        "<Well tone=WellTone::Default>",
+        "<Well tone=WellTone::Quiet density=WellDensity::Compact>",
+        "<Well tone=WellTone::Strong inset=true>",
+        "title=\"Custom Label + Class\"",
+        "aria_label=\"Selection summary\".to_string()",
+        "class_name=\"docs-well-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "well docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
