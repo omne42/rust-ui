@@ -204,3 +204,51 @@ fn action_button_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn action_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn action_button() -> AnyView",
+        "title=\"ActionButton\"",
+        "slug=\"action-button\"",
+        "description=\"Spectrum-style action trigger with state attrs and HeroUI-grade spring hover/press feedback.\"",
+        "<Playground title=\"Default + callback\" code=code>",
+        "<Playground title=\"Loading placement + icon-only\" code=states_code>",
+        "<ActionButton",
+        "is_quiet=true",
+        "is_loading=true",
+        "loading_placement=ActionButtonLoadingPlacement::Center",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for action-button coverage.",
+        );
+    }
+}
+
+#[test]
+fn action_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<ActionButton on_press=on_press>\"Action\"</ActionButton>",
+        "<ActionButton is_quiet=true on_press=on_press>\"Quiet\"</ActionButton>",
+        "\"pressed: \"",
+        "{move || press_count.get().to_string()}",
+        "size=ActionButtonSize::S",
+        "loading_placement=ActionButtonLoadingPlacement::Start",
+        "start_content=move || view! { <span>\"★\"</span> }",
+        "size=ActionButtonSize::L",
+        "loading_placement=ActionButtonLoadingPlacement::End",
+        "end_content=move || view! { <span>\"→\"</span> }",
+        "is_icon_only=true is_quiet=true aria_label=\"Settings\".to_string()",
+        "Start/end slots, loading placement, and icon-only mode all expose stable data-* attrs.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action-button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
