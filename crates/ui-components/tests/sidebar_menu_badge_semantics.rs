@@ -129,3 +129,65 @@ fn sidebar_menu_badge_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_menu_badge_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_menu_badge.rs",
+    );
+
+    for needle in [
+        "pub(super) fn sidebar_menu_badge() -> AnyView",
+        "title=\"SidebarMenuBadge\"",
+        "slug=\"sidebar-menu-badge\"",
+        "description=\"Shadcn-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable data-marker contracts.\"",
+        "<Playground title=\"Default Numeric Badge\" code=default_code>",
+        "<Playground title=\"Muted + Disabled + Custom\" code=muted_code>",
+        "<SidebarMenuBadge",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_menu_badge docs should include `{needle}` for sidebar_menu_badge primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_menu_badge_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_menu_badge.rs",
+    );
+
+    for needle in [
+        "title=\"Default Numeric Badge\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Icon",
+        "show_trigger=false",
+        "aria_label=\"Sidebar menu badge playground\".to_string()",
+        "<SidebarContent aria_label=\"Sidebar badge rows\".to_string()>",
+        "aria_label=\"Open reviews\".to_string()",
+        "\"Open reviews\"",
+        "\"7\"",
+        "aria_label=\"Deploy requests\".to_string()",
+        "\"Deploy requests\"",
+        "\"2\"",
+        "title=\"Muted + Disabled + Custom\"",
+        "side=SidebarSide::Right",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "aria_label=\"Muted badge sidebar\".to_string()",
+        "<SidebarContent aria_label=\"Muted badge rows\".to_string()>",
+        "muted=true",
+        "disabled=true",
+        "aria_label=\"Muted archived items\".to_string()",
+        "class_name=\"docs-sidebar-menu-badge-custom\".to_string()",
+        "\"Archived items\"",
+        "\"archived\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_menu_badge docs playgrounds should contain `{needle}` for sidebar_menu_badge contracts.",
+        );
+    }
+}
