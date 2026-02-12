@@ -156,3 +156,47 @@ fn sliding_number_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn sliding_number_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn sliding_number() -> AnyView",
+        "title=\"SlidingNumber\"",
+        "slug=\"sliding-number\"",
+        "Playground title=\"Animated Matrix\"",
+        "Playground title=\"Custom Separators + Motion + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for SlidingNumber.",
+        );
+    }
+}
+
+#[test]
+fn sliding_number_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "let (value, set_value) = signal(12345.67_f64);",
+        "number=number_signal",
+        "thousand_separator=\",\".to_string()",
+        "on_press=Callback::new(move |_| set_value.update(|v| *v += 250.0))",
+        "on_press=Callback::new(move |_| set_value.update(|v| *v -= 100.0))",
+        "title=\"Custom Separators + Motion + Class\"",
+        "number=Signal::derive(|| 42123.456)",
+        "decimal_separator=\",\".to_string()",
+        "decimal_places=30",
+        "thousand_separator=\" \".to_string()",
+        "number=Signal::derive(|| f64::NAN)",
+        "animate: false",
+        "class_name=\"docs-sliding-number-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "sliding-number docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
