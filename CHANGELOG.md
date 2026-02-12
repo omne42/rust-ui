@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Icon` docs state matrix contracts by locking size+tone matrix and accessible+disabled+custom-class playground anchors in `icon_semantics` regression coverage.
+
 - `ui-components`: hardens `IconButton` docs state matrix contracts by locking actions-page press/size matrix and state+source marker playground anchors in `icon_button_semantics` regression coverage.
 
 - `ui-components`: hardens `HoverCard` docs state matrix contracts by locking hover-card baseline, state+source markers, and custom-motion playground anchors in `hover_card_semantics` regression coverage.

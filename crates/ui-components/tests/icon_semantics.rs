@@ -115,3 +115,50 @@ fn icon_supports_accessibility_role_and_label_contract() {
         );
     }
 }
+
+#[test]
+fn icon_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn icon() -> AnyView",
+        "title=\"Icon\"",
+        "slug=\"icon\"",
+        "description=\"Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers.\"",
+        "<Playground title=\"Size + Tone Matrix\" code=matrix_code>",
+        "<Playground title=\"Accessible + Disabled + Custom Class\" code=states_code>",
+        "<Icon",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra icon docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn icon_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Size + Tone Matrix\"",
+        "size=IconSize::Sm",
+        "tone=IconTone::Default",
+        "size=IconSize::Md",
+        "tone=IconTone::Muted",
+        "size=IconSize::Lg",
+        "tone=IconTone::Accent",
+        "tone=IconTone::Danger",
+        "decorative=true",
+        "title=\"Accessible + Disabled + Custom Class\"",
+        "decorative=false",
+        "aria_label=\"Sync successful\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-icon-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icon docs playgrounds should contain `{needle}`."
+        );
+    }
+}
