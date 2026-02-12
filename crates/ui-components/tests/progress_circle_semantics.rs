@@ -146,3 +146,46 @@ fn progress_circle_motion_sanitizes_custom_contract_values() {
         "ProgressCircle view should sanitize motion before attaching spring driver.",
     );
 }
+
+#[test]
+fn progress_circle_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn progress_circle() -> AnyView",
+        "title=\"ProgressCircle\"",
+        "slug=\"progress-circle\"",
+        "Playground title=\"Determinate + Indeterminate\"",
+        "Playground title=\"Custom Value Label + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for ProgressCircle.",
+        );
+    }
+}
+
+#[test]
+fn progress_circle_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Determinate + Indeterminate\"",
+        "<ProgressCircle aria_label=\"Determinate\".to_string() value=progress_value min=0.0 max=100.0 />",
+        "<ProgressCircle aria_label=\"Indeterminate\".to_string() value=Signal::derive(|| None) />",
+        "on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10.0).min(100.0)))",
+        "title=\"Custom Value Label + Class\"",
+        "aria_label=\"Sync progress\".to_string()",
+        "value=Signal::derive(|| Some(64.0))",
+        "size_px=40.0",
+        "stroke_width_px=5.0",
+        "value_label=\"64 done\".to_string()",
+        "aria_label=\"   \".to_string()",
+        "class_name=\"docs-progress-circle-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress-circle docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
