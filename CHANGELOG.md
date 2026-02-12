@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `theme_light` compatibility docs contracts by locking UiRoot reuse anchors in `theme_light_module_semantics` regression coverage.
+
 - `ui-components`: hardens `theme_express` compatibility docs contracts by locking UiRoot reuse anchors in `theme_express_module_semantics` regression coverage.
 
 - `ui-components`: hardens `theme_default` compatibility docs contracts by locking UiRoot reuse anchors in `theme_default_module_semantics` regression coverage.
