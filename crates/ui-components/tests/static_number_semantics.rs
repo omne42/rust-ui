@@ -109,3 +109,45 @@ fn static_number_styles_include_sign_and_source_contracts() {
         );
     }
 }
+
+#[test]
+fn static_number_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn static_number() -> AnyView",
+        "title=\"StaticNumber\"",
+        "slug=\"static-number\"",
+        "Playground title=\"Formatting Matrix\"",
+        "Playground title=\"Custom Separators + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for StaticNumber.",
+        );
+    }
+}
+
+#[test]
+fn static_number_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Formatting Matrix\"",
+        "number=12345.67",
+        "number=-9876.5",
+        "number=1000.0 decimal_places=0",
+        "title=\"Custom Separators + Class\"",
+        "number=42.123456789",
+        "decimal_separator=\",\".to_string()",
+        "decimal_places=30",
+        "thousand_separator=\" \".to_string()",
+        "number=f64::NAN",
+        "class_name=\"docs-static-number-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "static-number docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
