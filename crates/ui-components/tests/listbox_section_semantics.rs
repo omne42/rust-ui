@@ -126,3 +126,58 @@ fn listbox_section_supports_group_accessibility_and_items_layout() {
         );
     }
 }
+
+#[test]
+fn listbox_section_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn listbox_section() -> AnyView",
+        "title=\"ListBoxSection\"",
+        "slug=\"listbox-section\"",
+        "description=\"Spectrum/HeroUI-style listbox section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts.\"",
+        "<Playground title=\"Default Section\" code=code>",
+        "<Playground title=\"Quiet + Sticky + Divider + Empty\" code=states_code>",
+        "<ListBoxSection",
+        "heading_tone=ListBoxSectionHeadingTone::Quiet",
+        "sticky_heading=true",
+        "show_divider=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for listbox-section coverage.",
+        );
+    }
+}
+
+#[test]
+fn listbox_section_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "let (selected_primary, set_selected_primary) = signal(true);",
+        "let (selected_secondary, set_selected_secondary) = signal(true);",
+        "set_selected_primary.update(|value| *value = !*value);",
+        "set_selected_secondary.update(|value| *value = !*value);",
+        "title=\"Preferred regions\".to_string()",
+        "aria_label=\"Preferred regions section\".to_string()",
+        "\"US East\"",
+        "\"EU West\"",
+        "\"AP South\"",
+        "title=\"Advanced targets\".to_string()",
+        "class_name=\"docs-listbox-section-custom\".to_string()",
+        "\"Primary target\"",
+        "\"Secondary target\"",
+        "title=\"Empty section\".to_string()",
+        "item_count=0",
+        "disabled=true",
+        "\"No options available\"",
+        "\"primary selected: \"",
+        "\" · secondary selected: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "listbox-section docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
