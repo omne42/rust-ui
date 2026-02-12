@@ -128,3 +128,47 @@ fn checkbox_group_only_renders_error_slot_when_invalid() {
         );
     }
 }
+
+#[test]
+fn checkbox_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn checkbox_group() -> AnyView",
+        "title=\"CheckboxGroup\"",
+        "slug=\"checkbox-group\"",
+        "title=\"Validation + Required\"",
+        "title=\"Disabled + Optional\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "checkbox-group docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn checkbox_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "<Playground title=\"Validation + Required\" code=code>",
+        "id=\"docs-checkbox-group\".to_string()",
+        "label=\"Fruits\".to_string()",
+        "required=required",
+        "invalid=invalid",
+        "aria_describedby=aria_describedby",
+        "id=\"docs-checkbox-group-extra\"",
+        "\"Clear selections\"",
+        "<Playground title=\"Disabled + Optional\" code=states_code>",
+        "id=\"docs-checkbox-group-disabled\".to_string()",
+        "disabled=true",
+        "id=\"docs-checkbox-group-optional\".to_string()",
+        "\"optional selected count: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "checkbox-group docs playground should contain `{needle}`.",
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `CheckboxGroup` docs state contracts by locking validation+required and disabled+optional playground anchors in `checkbox_group_semantics` regression coverage.
+
 - `ui-components`: hardens `CheckboxField` docs state contracts by locking controlled+description and indicator-end quiet invalid/disabled matrix playground anchors in `checkbox_field_semantics` regression coverage.
 
 - `ui-components`: hardens `Checkbox` docs state contracts by locking controlled+on_change and variant+disabled matrix playground anchors in `checkbox_semantics` regression coverage.
