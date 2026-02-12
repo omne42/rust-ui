@@ -208,3 +208,66 @@ fn search_input_button_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn search_input_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn search_input_button() -> AnyView",
+        "title=\"SearchInputButton\"",
+        "slug=\"search-input-button\"",
+        "description=\"HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
+        "<Playground title=\"Interactive + shortcut\" code=code>",
+        "<Playground title=\"Placeholder + disabled matrix\" code=states_code>",
+        "<Playground title=\"Custom Class + Aria Label\" code=custom_code>",
+        "<SearchInputButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs should include `{needle}` for search-input-button primary playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source.contains("\"button-search-input\" => &[\"search-input-button\"]"),
+        "components mod mapping should keep `button-search-input` mapped to `search-input-button` slug.",
+    );
+}
+
+#[test]
+fn search_input_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "title=\"Interactive + shortcut\"",
+        "placeholder=\"Search docs\".to_string()",
+        "compact_placeholder=\"Search\".to_string()",
+        "meta_key_label=\"⌘\".to_string()",
+        "key_label=\"K\".to_string()",
+        "on_press=on_press",
+        "placeholder=\"Command menu\".to_string()",
+        "compact_placeholder=\"Cmd\".to_string()",
+        "meta_key_label=\"Ctrl\".to_string()",
+        "aria_label=\"Open command menu\".to_string()",
+        "\"presses: \"",
+        "title=\"Placeholder + disabled matrix\"",
+        "placeholder=\"Find components\".to_string()",
+        "compact_placeholder=\"Find\".to_string()",
+        "placeholder=\"Disabled search\".to_string() disabled=true",
+        "placeholder=\"Forced disabled\".to_string()",
+        "is_disabled=true",
+        "title=\"Custom Class + Aria Label\"",
+        "placeholder=\"Browse components\".to_string()",
+        "compact_placeholder=\"Browse\".to_string()",
+        "aria_label=\"Open component search\".to_string()",
+        "class_name=\"docs-search-input-button-custom\".to_string()",
+        "placeholder=\"Search by keyword\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs playgrounds should contain `{needle}` for search-input-button contracts.",
+        );
+    }
+}
