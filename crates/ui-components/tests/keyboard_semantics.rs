@@ -90,3 +90,45 @@ fn keyboard_styles_include_tone_compact_and_custom_markers() {
         );
     }
 }
+
+#[test]
+fn keyboard_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn keyboard() -> AnyView",
+        "title=\"Keyboard\"",
+        "slug=\"keyboard\"",
+        "description=\"Keyboard command primitive (`<kbd>`) with centralized tone/compact/source state contracts.\"",
+        "<Playground title=\"Tone\" code=tone_code>",
+        "<Playground title=\"Compact + Custom Aria/Class\" code=compact_code>",
+        "<Keyboard",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra docs should include `{needle}` for keyboard primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn keyboard_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Tone\"",
+        "<Keyboard>\"⌘K\"</Keyboard>",
+        "tone=KeyboardTone::Muted",
+        "\"⌥⇧P\"",
+        "title=\"Compact + Custom Aria/Class\"",
+        "compact=true",
+        "aria_label=\"Open command palette\".to_string()",
+        "class_name=\"docs-keyboard-custom\".to_string()",
+        "\"Ctrl+Shift+P\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "keyboard docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
