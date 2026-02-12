@@ -89,3 +89,49 @@ fn button_group_styles_define_attached_overlap_rule() {
         "ButtonGroup styles should define overlap CSS vars for attached layout behavior."
     );
 }
+
+#[test]
+fn button_group_docs_page_covers_playground_contracts() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button_group() -> AnyView",
+        "title=\"ButtonGroup\"",
+        "slug=\"button-group\"",
+        "description=\"Groups Buttons with Spectrum-style root state attrs for orientation, attachment, and accessible labeling.\"",
+        "<Playground title=\"Attached horizontal\" code=code>",
+        "<Playground title=\"Vertical + detached\" code=states_code>",
+        "<ButtonGroup",
+        "attached=true",
+        "attached=false",
+        "orientation=ButtonGroupOrientation::Vertical",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for button-group coverage.",
+        );
+    }
+}
+
+#[test]
+fn button_group_docs_attached_and_vertical_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<ButtonGroup attached=true>",
+        "<Button variant=ButtonVariant::Secondary>\"Left\"</Button>",
+        "<Button variant=ButtonVariant::Secondary>\"Middle\"</Button>",
+        "<Button variant=ButtonVariant::Secondary>\"Right\"</Button>",
+        "\"left/middle/right clicks: \"",
+        "orientation=ButtonGroupOrientation::Horizontal",
+        "aria_label=\"Document actions\".to_string()",
+        "<Button variant=ButtonVariant::Outline disabled=true>",
+        "\"top/bottom clicks: \"",
+        "{move || format!(\"{}/{}\", top_count.get(), bottom_count.get())}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
