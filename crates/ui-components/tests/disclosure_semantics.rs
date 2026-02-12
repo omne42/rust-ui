@@ -199,3 +199,51 @@ fn disclosure_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn disclosure_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn disclosure() -> AnyView",
+        "title=\"Disclosure\"",
+        "slug=\"disclosure\"",
+        "description=\"Single disclosure panel with HeroUI-level spring motion and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Controlled\" code=code>",
+        "<Playground title=\"Disabled\" code=states_code>",
+        "<Disclosure",
+        "on_open_change=on_open_change",
+        "default_open=false",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for disclosure coverage.",
+        );
+    }
+}
+
+#[test]
+fn disclosure_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "let (open, set_open) = signal(true);",
+        "let on_open_change = Callback::new(move |next: bool| set_open.set(next));",
+        "id_base=\"docs-disclosure\".to_string()",
+        "label=\"Details\".to_string()",
+        "\"Hidden content\"",
+        "\"Uses the same open-state contract as overlays.\"",
+        "\"open: \"",
+        "id_base=\"docs-disclosure-disabled\".to_string()",
+        "label=\"Disabled details\".to_string()",
+        "\"Disabled content\"",
+        "\"Disabled disclosure keeps trigger non-interactive.\"",
+        "\"disabled: true\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "disclosure docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
