@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Popover` motion docs contracts by locking custom-motion playground values (`initial_scale`/`offset_y_px`), modal/source markers, and exit-presence wiring in `popover_semantics` regression coverage.
+
 - `ui-components`: hardens `ButtonCopy` motion/docs contracts by expanding semantics coverage for module/crate exports, CSS aggregation wiring, and docs playground stability anchors.
 
 - `ui-components`: hardens `SearchInputButton` HeroUI-level motion contracts by expanding semantics coverage for spring/scale sanitize invariants, view-level motion+interaction source markers, and docs motion narrative stability.

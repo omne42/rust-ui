@@ -200,3 +200,26 @@ fn popover_motion_contract_sanitizes_custom_values() {
         );
     }
 }
+
+#[test]
+fn popover_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "let custom_motion = PopoverMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+        "title=\"State + Source Markers\"",
+        "motion=custom_motion",
+        "is_modal=false",
+        "class_name=\"docs-popover-state\".to_string()",
+        "on_exit_complete=finish_exit",
+        "on_exit_complete=on_custom_exit_complete",
+        "Inspect `data-modal-source`/`data-placement-source` while tuning PopoverMotion.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "popover docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
