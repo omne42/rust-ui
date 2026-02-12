@@ -222,3 +222,46 @@ fn button_copy_motion_sanitizes_custom_contract_values() {
         "ButtonCopy view should sanitize motion before forwarding to Button.",
     );
 }
+
+#[test]
+fn button_copy_docs_default_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button_copy() -> AnyView",
+        "<Playground title=\"Label + variant\" code=code>",
+        "text=\"cargo add ui-components\".to_string()",
+        "label=\"Copy install command\".to_string()",
+        "copied_label=\"Copied!\".to_string()",
+        "text=\"https://github.com/openai\".to_string()",
+        "variant=ButtonVariant::Outline",
+        "label=\"Copy URL\".to_string()",
+        "copied_label=\"URL copied\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy docs default playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_copy_docs_state_matrix_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Disabled + empty matrix\" code=states_code>",
+        "text=\"https://example.com/docs\".to_string()",
+        "variant=ButtonVariant::Outline",
+        "text=\"   \".to_string()",
+        "label=\"Nothing to copy\".to_string()",
+        "text=\"token\".to_string()",
+        "disabled=true",
+        "Blank text and explicit disabled state both force non-copyable semantics.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy docs state matrix playground should contain `{needle}`.",
+        );
+    }
+}

@@ -38,6 +38,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `Number` docs state/motion contracts by locking static+sliding playground anchors plus custom separator/motion values (`decimal_places`/`thousand_separator`/`animate`) in `number_semantics` regression coverage.
 
+- `ui-components`: hardens `ButtonCopy` docs state contracts by locking label/variant and disabled-empty matrix playground anchors in `button_copy_semantics` regression coverage.
+
 - `ui-components`: hardens `Dropzone` docs state/motion contracts by locking disabled and marker-playground anchors plus explicit custom motion values (`hover_scale`/`drop_scale`) in `dropzone_semantics` regression coverage.
 
 - `ui-components`: hardens `PickerButton` docs state/source contracts by locking state-matrix and marker-playground anchors (quiet/invalid/disabled/active + aria/class/handler source wiring) in `picker_button_semantics` regression coverage.
