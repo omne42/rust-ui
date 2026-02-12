@@ -155,3 +155,46 @@ fn share_button_docs_state_and_custom_playgrounds_lock_contract_values() {
         );
     }
 }
+
+#[test]
+fn button_share_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn share_button() -> AnyView",
+        "title=\"ShareButton\"",
+        "slug=\"share-button\"",
+        "title=\"Default + callback\"",
+        "title=\"Icon placement + custom items\"",
+        "title=\"Custom Class + Direction\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "share-button docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_share_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Default + callback\" code=code>",
+        "<ShareButton on_icon_press=on_icon_press />",
+        "<Playground title=\"Icon placement + custom items\" code=states_code>",
+        "icon=ShareButtonIconPlacement::Prefix",
+        "from=FlipDirection::Left",
+        "label=\"Share now\".to_string()",
+        "icon=ShareButtonIconPlacement::None",
+        "label=\"Iconless\".to_string()",
+        "<Playground title=\"Custom Class + Direction\" code=custom_code>",
+        "class_name=\"docs-share-button-custom\".to_string()",
+        "from=FlipDirection::Right",
+    ] {
+        assert!(
+            source.contains(needle),
+            "share-button docs playground should contain `{needle}`.",
+        );
+    }
+}
