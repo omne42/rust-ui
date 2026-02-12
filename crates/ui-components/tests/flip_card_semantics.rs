@@ -245,3 +245,52 @@ fn flip_card_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn flip_card_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn flip_card() -> AnyView",
+        "title=\"FlipCard\"",
+        "slug=\"flip-card\"",
+        "description=\"3D front/back card with Spectrum-style state/source markers and HeroUI-grade spring motion for flip/hover interactions.\"",
+        "<Playground title=\"Click + Keyboard Flip\" code=basic_code>",
+        "title=\"State + Source Markers\"",
+        "<Playground title=\"Disabled\" code=disabled_code>",
+        "<FlipCard",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra flip_card docs page should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn flip_card_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Click + Keyboard Flip\"",
+        "<div class=\"ui-flip-card__title\">\"Front\"</div>",
+        "Click or press Enter/Space to flip.",
+        "<div class=\"ui-flip-card__title\">\"Back\"</div>",
+        "Back face stays keyboard reachable with the same button semantics.",
+        "title=\"State + Source Markers\"",
+        "id=\"docs-flip-card\".to_string()",
+        "class_name=\"docs-flip-card-state\".to_string()",
+        "flip_on_hover=true",
+        "hover_scale: 1.03",
+        "hover_tilt_deg: 4.0",
+        "title=\"Disabled\"",
+        "disabled=true",
+        "<div class=\"ui-flip-card__title\">\"Disabled front\"</div>",
+        "<div class=\"ui-flip-card__title\">\"Disabled back\"</div>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip_card docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
