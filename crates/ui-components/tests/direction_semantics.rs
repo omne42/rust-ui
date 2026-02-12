@@ -67,3 +67,45 @@ fn direction_docs_page_exists() {
         );
     }
 }
+
+#[test]
+fn direction_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_direction.rs");
+
+    for needle in [
+        "pub(super) fn direction_provider() -> AnyView",
+        "title=\"DirectionProvider\"",
+        "slug=\"direction-provider\"",
+        "description=\"Shadcn/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot + data-direction contracts.\"",
+        "<Playground title=\"LTR Direction\" code=ltr_code>",
+        "<Playground title=\"RTL Direction + Class\" code=rtl_code>",
+        "<DirectionProvider",
+        "DirectionMode::Ltr",
+        "DirectionMode::Rtl",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_direction docs page should include `{needle}` for direction primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn direction_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_direction.rs");
+
+    for needle in [
+        "<DirectionProvider direction=DirectionMode::Ltr>",
+        "\"Name → Value\"",
+        "direction=DirectionMode::Rtl",
+        "class_name=\"docs-direction-rtl\".to_string()",
+        "\"الاسم ← القيمة\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "direction docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
