@@ -12,15 +12,21 @@ pub const CSS: &str = r#"
   --ui-modal-custom-motion: 1;
 }
 
-.ui-modal[data-id-source="custom"] {
+.ui-modal--custom-id,
+.ui-modal[data-id-source="custom"],
+.ui-modal[data-custom-id="true"] {
   --ui-modal-id-source: custom;
 }
 
-.ui-modal[data-title-source="custom"] {
+.ui-modal--custom-title,
+.ui-modal[data-title-source="custom"],
+.ui-modal[data-custom-title="true"] {
   --ui-modal-title-source: custom;
 }
 
-.ui-modal[data-description-source="custom"] {
+.ui-modal--custom-description,
+.ui-modal[data-description-source="custom"],
+.ui-modal[data-custom-description="true"] {
   --ui-modal-description-source: custom;
 }
 

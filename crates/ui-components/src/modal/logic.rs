@@ -77,6 +77,18 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ModalPartState
             classes.push("ui-modal--title-only".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-modal--custom-id".to_string());
+        }
+
+        if state.has_custom_title {
+            classes.push("ui-modal--custom-title".to_string());
+        }
+
+        if state.has_custom_description {
+            classes.push("ui-modal--custom-description".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-modal--custom-motion".to_string());
         }
@@ -167,10 +179,10 @@ mod tests {
             Some("docs-modal".to_string()),
             resolve_state(ModalPartStateInput {
                 slot: ModalSlot::Root,
-                has_description: false,
-                has_custom_id_base: false,
-                has_custom_title: false,
-                has_custom_description: false,
+                has_description: true,
+                has_custom_id_base: true,
+                has_custom_title: true,
+                has_custom_description: true,
                 has_custom_class_name: true,
                 has_custom_motion: true,
                 has_on_exit_complete: true,
@@ -179,7 +191,10 @@ mod tests {
 
         for token in [
             "ui-modal",
-            "ui-modal--title-only",
+            "ui-modal--with-description",
+            "ui-modal--custom-id",
+            "ui-modal--custom-title",
+            "ui-modal--custom-description",
             "ui-modal--custom-motion",
             "ui-modal--custom-exit",
             "ui-modal--custom-class",

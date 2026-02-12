@@ -106,6 +106,9 @@ pub fn Modal(
                     data-state=root_state.state_attr
                     data-description=root_state.description_attr
                     data-with-description=root_state.show_description.then_some("true")
+                    data-custom-id=root_state.has_custom_id_base.then_some("true")
+                    data-custom-title=root_state.has_custom_title.then_some("true")
+                    data-custom-description=root_state.has_custom_description.then_some("true")
                     data-custom-class=root_state.has_custom_class_name.then_some("true")
                     data-custom-motion=root_state.has_custom_motion.then_some("true")
                     data-custom-exit=root_state.has_on_exit_complete.then_some("true")
@@ -162,6 +165,9 @@ pub fn Modal(
                     data-state=root_state.state_attr
                     data-description=root_state.description_attr
                     data-with-description=root_state.show_description.then_some("true")
+                    data-custom-id=root_state.has_custom_id_base.then_some("true")
+                    data-custom-title=root_state.has_custom_title.then_some("true")
+                    data-custom-description=root_state.has_custom_description.then_some("true")
                     data-custom-class=root_state.has_custom_class_name.then_some("true")
                     data-custom-motion=root_state.has_custom_motion.then_some("true")
                     data-custom-exit=root_state.has_on_exit_complete.then_some("true")
