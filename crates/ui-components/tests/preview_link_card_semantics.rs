@@ -218,3 +218,26 @@ fn preview_link_card_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn preview_link_card_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-preview-link-card\".to_string()",
+        "open_delay_ms=260",
+        "close_delay_ms=240",
+        "class_name=\"docs-preview-link-card-state\".to_string()",
+        "motion=PreviewLinkCardMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+        "..PreviewLinkCardMotion::default()",
+        "site_label=\"react-spectrum.adobe.com\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "preview-link-card docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
