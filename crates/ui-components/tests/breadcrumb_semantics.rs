@@ -191,3 +191,77 @@ fn breadcrumb_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn breadcrumb_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs");
+
+    for needle in [
+        "pub(super) fn breadcrumb() -> AnyView",
+        "title=\"Breadcrumb\"",
+        "slug=\"breadcrumb\"",
+        "title=\"Trail\"",
+        "title=\"Label-Only + Empty\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "breadcrumb docs page should contain `{needle}`.",
+        );
+    }
+
+    let primitives_source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+    );
+
+    for needle in [
+        "pub(super) fn breadcrumb_primitives() -> AnyView",
+        "title=\"BreadcrumbList\"",
+        "slug=\"breadcrumb-list\"",
+        "title=\"Link + Current Page\"",
+        "title=\"Ellipsis Overflow\"",
+        "title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            primitives_source.contains(needle),
+            "breadcrumb primitives docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn breadcrumb_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_breadcrumb.rs");
+
+    for needle in [
+        "aria_label=\"Label-only trail\".to_string()",
+        "aria_label=\"Empty trail\".to_string()",
+        "\"all labels (no links)\"",
+        "\"empty trail (0 items)\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "breadcrumb docs playground should contain `{needle}`.",
+        );
+    }
+
+    let primitives_source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+    );
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "aria_label=\"Documentation navigation\".to_string()",
+        "class_name=\"docs-breadcrumb-state\".to_string()",
+        "<BreadcrumbList class_name=\"docs-breadcrumb-list\".to_string()>",
+        "<BreadcrumbLink class_name=\"docs-breadcrumb-link\".to_string()>",
+        "<BreadcrumbPage class_name=\"docs-breadcrumb-page\".to_string()>",
+        "<span>\"→\"</span>",
+    ] {
+        assert!(
+            primitives_source.contains(needle),
+            "breadcrumb state/source playground should contain `{needle}`.",
+        );
+    }
+}

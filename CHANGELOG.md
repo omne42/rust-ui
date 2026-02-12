@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Breadcrumb` docs state contracts by locking trail+label-only/empty and primitive link+overflow+state/source-marker playground anchors in `breadcrumb_semantics` regression coverage.
+
 - `ui-components`: hardens `BottomSheet` docs state contracts by locking semantic, detached-title-only-custom-class, and custom-motion playground anchors in `bottom_sheet_semantics` regression coverage.
 
 
