@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `IconButton` docs state contracts by locking on_press+variant and size+disabled matrix playground anchors in `icon_button_semantics` regression coverage.
+
 - `ui-components`: hardens `ButtonGroup` docs state contracts by locking attached-horizontal and vertical-detached playground anchors, counters, and aria-label wiring in `button_group_semantics` regression coverage.
 
 - `ui-components`: hardens `Button` docs state contracts by locking variants+sizes playground anchors, segmented controls, and disabled/loading toggle wiring in `button_semantics` regression coverage.

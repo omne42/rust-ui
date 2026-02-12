@@ -151,3 +151,47 @@ fn icon_button_docs_page_locks_custom_motion_marker_contract_values() {
         );
     }
 }
+
+#[test]
+fn icon_button_docs_actions_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn icon_button() -> AnyView",
+        "title=\"IconButton\"",
+        "slug=\"icon-button\"",
+        "description=\"A Button wrapper that enforces accessible labeling and icon sizing while preserving motion/press semantics.\"",
+        "<Playground title=\"on_press + variants\" code=code>",
+        "<Playground title=\"Size + disabled matrix\" code=states_code>",
+        "<IconButton",
+        "aria_label=\"Close dialog\".to_string()",
+        "variant=ButtonVariant::Ghost",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for icon-button coverage.",
+        );
+    }
+}
+
+#[test]
+fn icon_button_docs_actions_page_locks_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "\"close/search presses: \"",
+        "{move || format!(\"{}/{}\", close_count.get(), search_count.get())}",
+        "aria_label=\"Search small\".to_string() size=ButtonSize::IconSm",
+        "aria_label=\"Search default\".to_string() size=ButtonSize::Icon",
+        "aria_label=\"Search large\".to_string() size=ButtonSize::IconLg",
+        "aria_label=\"Close disabled\".to_string()",
+        "aria_label=\"Search disabled\".to_string()",
+        "variant=ButtonVariant::Secondary",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icon-button docs state matrix should contain `{needle}`.",
+        );
+    }
+}
