@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Sonner` with class/data dual source markers for position/portal/max-toasts/aria/class/motion contracts, aligns sonner source selectors in styles, and hardens `sonner_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `Toaster` with class/data dual source markers for position/portal/max-toasts/aria/class/motion contracts, aligns toaster source selectors in styles, and hardens `toaster_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `Command` with class/data dual source markers for id/placeholder/empty-label/aria-label/class/disabled/action/motion contracts, aligns command source selectors in styles, and hardens `command_semantics` coverage for stable Spectrum-compatible state-source contracts.

@@ -90,6 +90,7 @@ pub fn Sonner(
             data-custom-max-toasts=root_state.has_custom_max_toasts.then_some("true")
             data-custom-motion=root_state.has_custom_motion.then_some("true")
             data-custom-class=root_state.has_custom_class_name.then_some("true")
+            data-custom-aria=root_state.has_custom_aria_label.then_some("true")
             data-viewport-slot=viewport_state.slot_attr
             data-viewport-state=viewport_state.state_attr
             data-viewport-position=viewport_state.position_attr

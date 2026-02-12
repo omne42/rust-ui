@@ -109,6 +109,10 @@ pub fn compose_class_name(base_class_name: Option<String>, state: SonnerPartStat
             }
         }
 
+        if state.has_custom_aria_label {
+            classes.push("ui-sonner--custom-aria".to_string());
+        }
+
         if state.has_custom_position {
             classes.push("ui-sonner--custom-position".to_string());
         }
@@ -208,7 +212,7 @@ mod tests {
             has_custom_position: true,
             has_custom_portal: false,
             has_custom_max_toasts: true,
-            has_custom_aria_label: false,
+            has_custom_aria_label: true,
             has_custom_class_name: true,
             has_custom_motion: true,
             store_source: SonnerStoreSource::Local,
@@ -222,6 +226,7 @@ mod tests {
         assert!(class_name.contains("ui-sonner--custom-max-toasts"));
         assert!(class_name.contains("ui-sonner--custom-motion"));
         assert!(class_name.contains("ui-sonner--custom-class"));
+        assert!(class_name.contains("ui-sonner--custom-aria"));
         assert!(class_name.contains("docs-sonner"));
 
         let viewport_state = resolve_state(SonnerPartStateInput {

@@ -6,23 +6,39 @@ pub const CSS: &str = r#"
 }
 
 .ui-sonner[data-motion-source="custom"],
-.ui-sonner[data-custom-motion="true"] {
+.ui-sonner[data-custom-motion="true"],
+.ui-sonner--custom-motion {
   --ui-sonner-custom-motion: 1;
 }
 
 .ui-sonner[data-position-source="custom"],
-.ui-sonner[data-custom-position="true"] {
+.ui-sonner[data-custom-position="true"],
+.ui-sonner--custom-position {
   --ui-sonner-custom-position: 1;
 }
 
 .ui-sonner[data-portal-source="custom"],
-.ui-sonner[data-custom-portal="true"] {
+.ui-sonner[data-custom-portal="true"],
+.ui-sonner--custom-portal {
   --ui-sonner-custom-portal: 1;
 }
 
 .ui-sonner[data-max-toasts-source="custom"],
-.ui-sonner[data-custom-max-toasts="true"] {
+.ui-sonner[data-custom-max-toasts="true"],
+.ui-sonner--custom-max-toasts {
   --ui-sonner-custom-max-toasts: 1;
+}
+
+.ui-sonner[data-aria-source="custom"],
+.ui-sonner[data-custom-aria="true"],
+.ui-sonner--custom-aria {
+  --ui-sonner-custom-aria: 1;
+}
+
+.ui-sonner[data-class-source="custom"],
+.ui-sonner[data-custom-class="true"],
+.ui-sonner--custom-class {
+  --ui-sonner-custom-class: 1;
 }
 
 .ui-sonner[data-store-source="provided"] {
