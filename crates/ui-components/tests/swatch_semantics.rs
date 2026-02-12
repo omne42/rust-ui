@@ -194,3 +194,59 @@ fn swatch_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn swatch_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+
+    for needle in [
+        "pub(super) fn swatch() -> AnyView",
+        "title=\"Swatch\"",
+        "slug=\"swatch\"",
+        "description=\"Spectrum-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and HeroUI-grade spring selection motion.\"",
+        "<Playground title=\"Size + Shape + Rounding\" code=size_code>",
+        "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code=state_code>",
+        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "<Swatch",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_swatch docs should include `{needle}` for swatch primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn swatch_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+
+    for needle in [
+        "title=\"Size + Shape + Rounding\"",
+        "size=SwatchSize::Xs",
+        "size=SwatchSize::S",
+        "size=SwatchSize::M",
+        "size=SwatchSize::L",
+        "shape=SwatchShape::Rectangle",
+        "rounding=SwatchRounding::Full",
+        "border=SwatchBorder::Light",
+        "title=\"Mixed + Nothing + Disabled + Controlled\"",
+        "selected=move || selected.get()",
+        "on_selected_change=on_selected_change",
+        "mixed_value=true",
+        "nothing=true",
+        "disabled=true",
+        "title=\"Custom Motion Contract\"",
+        "let custom_motion = SwatchMotion {",
+        "selected_scale: 1.12,",
+        "selected_ring_opacity: 0.92,",
+        "motion=custom_motion",
+        "motion=SwatchMotion::disabled()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_swatch docs playgrounds should contain `{needle}` for swatch state-matrix contracts.",
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Swatch` docs state matrix contracts by locking primary playground anchors (`Size + Shape + Rounding` / `Mixed + Nothing + Disabled + Controlled` / `Custom Motion Contract`) in `swatch_semantics` regression coverage.
+
 - `ui-components`: hardens `Surface` docs state matrix contracts by locking tone-elevation-frame and custom-aria-class playground anchors in `surface_semantics` regression coverage.
 
 - `ui-components`: hardens `style_macro_s1` compatibility docs state matrix contracts by locking UiRoot usage/state-contract playground anchors reused by `style_macro_s1_module_semantics` regression coverage.
