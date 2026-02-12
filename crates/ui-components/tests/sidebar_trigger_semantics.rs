@@ -152,3 +152,60 @@ fn sidebar_trigger_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_trigger_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_trigger.rs",
+    );
+
+    for needle in [
+        "pub(super) fn sidebar_trigger() -> AnyView",
+        r#"title="SidebarTrigger""#,
+        r#"slug="sidebar-trigger""#,
+        r#"description="Shadcn-compatible sidebar trigger primitive with controlled/uncontrolled open state, Spectrum-style data contracts, and motion-ready state transitions.""#,
+        r#"<Playground title="Default Trigger" code=default_code>"#,
+        r#"<Playground title="Controlled + Custom Label" code=controlled_code>"#,
+        "<SidebarTrigger",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_trigger docs should include `{needle}` for sidebar_trigger primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_trigger_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_trigger.rs",
+    );
+
+    for needle in [
+        r#"title="Default Trigger""#,
+        "<SidebarTrigger on_open_change=on_open_change />",
+        "open=open",
+        "on_open_change=on_open_change",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        r#"aria_label="Sidebar trigger playground".to_string()"#,
+        r#"<SidebarContent aria_label="Workspace content".to_string()>"#,
+        r#""Dashboard""#,
+        r#""Projects""#,
+        r#""Billing""#,
+        r#"title="Controlled + Custom Label""#,
+        r#"aria_label="Toggle inspector sidebar".to_string()"#,
+        r#"label="Inspector".to_string()"#,
+        r#"class_name="docs-sidebar-trigger-custom".to_string()"#,
+        r#""open: ""#,
+        r#""true""#,
+        r#""false""#,
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_trigger docs playgrounds should contain `{needle}` for sidebar_trigger contracts.",
+        );
+    }
+}
