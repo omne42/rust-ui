@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Drawer` motion docs contracts by locking custom-motion playground values (`SheetMotion.initial_offset_px`), left-placement/source markers, and exit-presence wiring in `drawer_semantics` regression coverage.
+
 - `ui-components`: hardens `Popover` motion docs contracts by locking custom-motion playground values (`initial_scale`/`offset_y_px`), modal/source markers, and exit-presence wiring in `popover_semantics` regression coverage.
 
 - `ui-components`: hardens `ButtonCopy` motion/docs contracts by expanding semantics coverage for module/crate exports, CSS aggregation wiring, and docs playground stability anchors.

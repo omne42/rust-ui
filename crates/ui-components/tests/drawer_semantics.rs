@@ -240,3 +240,27 @@ fn drawer_motion_sanitizes_custom_contract_values() {
         "Drawer view should sanitize motion before forwarding to Sheet.",
     );
 }
+
+#[test]
+fn drawer_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "let custom_motion = DrawerMotion {",
+        "sheet: SheetMotion {",
+        "initial_offset_px: 52.0",
+        "title=\"State + Source Markers\"",
+        "motion=custom_motion",
+        "placement=DrawerPlacement::Left",
+        "show_close_button=false",
+        "class_name=\"docs-drawer-custom\".to_string()",
+        "on_exit_complete=finish_exit",
+        "on_exit_complete=on_custom_exit_complete",
+        "Inspect data-placement-source / data-title-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "drawer docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
