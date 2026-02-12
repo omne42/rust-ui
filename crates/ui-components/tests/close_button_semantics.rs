@@ -116,3 +116,44 @@ fn close_button_styles_include_variant_size_and_state_markers() {
         );
     }
 }
+
+#[test]
+fn close_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn close_button() -> AnyView",
+        "title=\"CloseButton\"",
+        "slug=\"close-button\"",
+        "title=\"Default + OverBackground + Custom Label\"",
+        "title=\"Size Matrix + Disabled + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "close-button docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn close_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Default + OverBackground + Custom Label\" code=basic_code>",
+        "<CloseButton />",
+        "variant=CloseButtonVariant::OverBackground",
+        "aria_label=\"Dismiss popover\".to_string()",
+        "<Playground title=\"Size Matrix + Disabled + Custom Class\" code=state_code>",
+        "size=CloseButtonSize::Sm",
+        "size=CloseButtonSize::Lg",
+        "size=CloseButtonSize::Xl",
+        "disabled=true",
+        "class_name=\"docs-close-button-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "close-button docs playground should contain `{needle}`.",
+        );
+    }
+}
