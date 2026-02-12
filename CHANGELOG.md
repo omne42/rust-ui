@@ -12,6 +12,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `CloseButton` docs state contracts by locking default+over-background+custom-label and size-matrix+disabled+custom-class playground anchors in `close_button_semantics` regression coverage.
 
+- `ui-components`: hardens `Coachmark` docs state contracts by locking step+cta+asset, controlled+image+actions, and state+source markers playground anchors in `coachmark_semantics` regression coverage.
+
 - `ui-components`: hardens `CheckboxGroup` docs state contracts by locking validation+required and disabled+optional playground anchors in `checkbox_group_semantics` regression coverage.
 
 - `ui-components`: hardens `CheckboxField` docs state contracts by locking controlled+description and indicator-end quiet invalid/disabled matrix playground anchors in `checkbox_field_semantics` regression coverage.

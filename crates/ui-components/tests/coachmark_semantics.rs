@@ -124,3 +124,50 @@ fn coachmark_docs_page_exists() {
         );
     }
 }
+
+#[test]
+fn coachmark_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs");
+
+    for needle in [
+        "pub(super) fn coachmark() -> AnyView",
+        "title=\"Coachmark\"",
+        "slug=\"coachmark\"",
+        "title=\"Step + CTA + Asset Variant\"",
+        "title=\"Controlled + Image Asset + Actions\"",
+        "title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "coachmark docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn coachmark_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs");
+
+    for needle in [
+        "<Playground title=\"Step + CTA + Asset Variant\" code=basic_code>",
+        "default_open=true",
+        "primary_cta=\"Next\".to_string()",
+        "asset_variant=CoachmarkAssetVariant::Folder",
+        "on_primary=on_primary",
+        "<Playground title=\"Controlled + Image Asset + Actions\" code=controlled_code>",
+        "<Button variant=ButtonVariant::Secondary on_press=toggle_controlled>",
+        "open=controlled_open",
+        "asset_src=\"https://picsum.photos/420/260\".to_string()",
+        "actions=move || {",
+        "title=\"State + Source Markers\"",
+        "aria_label=\"Coachmark help\".to_string()",
+        "class_name=\"docs-coachmark-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "coachmark docs playground should contain `{needle}`.",
+        );
+    }
+}
