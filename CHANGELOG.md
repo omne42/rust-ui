@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ShareButton` docs state contracts by locking default-callback, icon-placement+items matrix, and custom-class+direction playground anchors in `button_share_semantics` regression coverage.
+
 - `ui-components`: hardens `ThemeToggleButton` docs state contracts by locking default-cycle and custom-modes+disabled playground anchors in `button_theme_toggle_semantics` regression coverage.
 
 - `ui-components`: hardens `SearchInputButton` docs state contracts by locking interactive-shortcut, placeholder-disabled matrix, and custom-class+aria playground anchors in `button_search_input_semantics` regression coverage.

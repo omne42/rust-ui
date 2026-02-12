@@ -109,3 +109,49 @@ fn docs_actions_page_locks_share_button_motion_contract_narrative() {
         );
     }
 }
+
+#[test]
+fn share_button_docs_default_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn share_button() -> AnyView",
+        "<Playground title=\"Default + callback\" code=code>",
+        "let on_icon_press = Callback::new(move |platform: SharePlatform| set_last.set(Some(platform)));",
+        "<ShareButton on_icon_press=on_icon_press />",
+        "\"last: \"",
+        "unwrap_or_else(|| \"None\".to_string())",
+    ] {
+        assert!(
+            source.contains(needle),
+            "share-button docs default playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn share_button_docs_state_and_custom_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Icon placement + custom items\" code=states_code>",
+        "icon=ShareButtonIconPlacement::Prefix",
+        "from=FlipDirection::Left",
+        "label=\"Share now\".to_string()",
+        "items=custom_items_for_matrix.clone()",
+        "icon=ShareButtonIconPlacement::None",
+        "label=\"Iconless\".to_string()",
+        "Blank custom item labels fall back to platform defaults; missing handlers stay safe.",
+        "<Playground title=\"Custom Class + Direction\" code=custom_code>",
+        "class_name=\"docs-share-button-custom\".to_string()",
+        "from=FlipDirection::Right",
+        "label=\"Share docs\".to_string()",
+        "label=\"Share defaults\".to_string()",
+        "icon=ShareButtonIconPlacement::Suffix",
+    ] {
+        assert!(
+            source.contains(needle),
+            "share-button docs state/custom playgrounds should contain `{needle}`.",
+        );
+    }
+}
