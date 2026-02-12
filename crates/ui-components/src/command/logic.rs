@@ -205,6 +205,30 @@ pub fn compose_class_name(class_name: Option<String>, state: CommandPartState) -
             classes.push("ui-command--idle".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-command--custom-id".to_string());
+        }
+
+        if state.has_custom_placeholder {
+            classes.push("ui-command--custom-placeholder".to_string());
+        }
+
+        if state.has_custom_empty_label {
+            classes.push("ui-command--custom-empty-label".to_string());
+        }
+
+        if state.has_custom_aria_label {
+            classes.push("ui-command--custom-aria-label".to_string());
+        }
+
+        if state.has_custom_disabled {
+            classes.push("ui-command--custom-disabled".to_string());
+        }
+
+        if state.has_custom_on_action {
+            classes.push("ui-command--custom-action".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-command--custom-motion".to_string());
         }
@@ -330,7 +354,7 @@ mod tests {
             has_custom_id_base: true,
             has_custom_placeholder: true,
             has_custom_empty_label: true,
-            has_custom_aria_label: false,
+            has_custom_aria_label: true,
             has_custom_class_name: true,
             has_custom_disabled: true,
             has_custom_on_action: true,
@@ -344,7 +368,7 @@ mod tests {
         assert_eq!(state.state_attr, "disabled-empty");
         assert_eq!(state.query_attr, "present");
         assert_eq!(state.disabled_source_attr, "custom");
-        assert_eq!(state.aria_label_source_attr, "default");
+        assert_eq!(state.aria_label_source_attr, "custom");
 
         let class_name = compose_class_name(Some("docs-command".to_string()), state);
 
@@ -353,7 +377,13 @@ mod tests {
             "ui-command--empty",
             "ui-command--disabled",
             "ui-command--querying",
+            "ui-command--custom-id",
+            "ui-command--custom-placeholder",
+            "ui-command--custom-empty-label",
+            "ui-command--custom-aria-label",
             "ui-command--custom-class",
+            "ui-command--custom-disabled",
+            "ui-command--custom-action",
             "ui-command--custom-motion",
             "docs-command",
         ] {

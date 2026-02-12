@@ -51,37 +51,44 @@ pub const CSS: &str = r#"
 }
 
 .ui-command[data-id-source="custom"],
-.ui-command[data-custom-id="true"] {
+.ui-command[data-custom-id="true"],
+.ui-command--custom-id {
   --ui-command-custom-id: 1;
 }
 
 .ui-command[data-placeholder-source="custom"],
-.ui-command[data-custom-placeholder="true"] {
+.ui-command[data-custom-placeholder="true"],
+.ui-command--custom-placeholder {
   --ui-command-custom-placeholder: 1;
 }
 
 .ui-command[data-empty-label-source="custom"],
-.ui-command[data-custom-empty-label="true"] {
+.ui-command[data-custom-empty-label="true"],
+.ui-command--custom-empty-label {
   --ui-command-custom-empty-label: 1;
 }
 
 .ui-command[data-aria-label-source="custom"],
-.ui-command[data-custom-aria-label="true"] {
+.ui-command[data-custom-aria-label="true"],
+.ui-command--custom-aria-label {
   --ui-command-custom-aria-label: 1;
 }
 
 .ui-command[data-class-source="custom"],
-.ui-command[data-custom-class="true"] {
+.ui-command[data-custom-class="true"],
+.ui-command--custom-class {
   --ui-command-custom-class: 1;
 }
 
 .ui-command[data-disabled-source="custom"],
-.ui-command[data-custom-disabled="true"] {
+.ui-command[data-custom-disabled="true"],
+.ui-command--custom-disabled {
   --ui-command-custom-disabled: 1;
 }
 
 .ui-command[data-action-source="custom"],
-.ui-command[data-custom-action="true"] {
+.ui-command[data-custom-action="true"],
+.ui-command--custom-action {
   --ui-command-custom-action: 1;
 }
 
