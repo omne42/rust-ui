@@ -145,3 +145,46 @@ fn toggle_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn toggle_docs_outline_disabled_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Outline + Ghost + Disabled\"",
+        "variant=ToggleVariant::Outline",
+        "size=ToggleSize::Sm",
+        "\"Italic\"",
+        "variant=ToggleVariant::Ghost",
+        "disabled=true",
+        "\"Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Toggle docs outline/disabled playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn toggle_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "variant=ToggleVariant::Outline",
+        "size=ToggleSize::Sm",
+        "motion=ToggleMotion {",
+        "tap_scale: 0.92",
+        "..ToggleMotion::default()",
+        "class_name=\"docs-toggle-state\".to_string()",
+        "aria_label=\"Toggle formatting\".to_string()",
+        "on_pressed_change=on_pressed_change",
+        "Inspect `data-state`, `data-interaction`, `data-variant-source`, `data-motion-source`, `data-aria-source`, and `data-handler-source` contracts.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Toggle docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
