@@ -107,3 +107,46 @@ fn color_thumb_styles_include_focus_drag_disabled_and_custom_contracts() {
         );
     }
 }
+
+#[test]
+fn color_thumb_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_thumb() -> AnyView",
+        "title=\"ColorThumb\"",
+        "slug=\"color-thumb\"",
+        "title=\"Focused + Dragging + Position\"",
+        "title=\"Disabled + Custom Class + Loupe Off\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-thumb docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_thumb_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Focused + Dragging + Position\" code=basic_code>",
+        "id_base=\"docs-color-thumb-idle\".to_string()",
+        "id_base=\"docs-color-thumb-focused\".to_string()",
+        "focused=true",
+        "id_base=\"docs-color-thumb-dragging\".to_string()",
+        "dragging=true",
+        "<Playground title=\"Disabled + Custom Class + Loupe Off\" code=states_code>",
+        "id_base=\"docs-color-thumb-disabled\".to_string()",
+        "disabled=true",
+        "id_base=\"docs-color-thumb-custom\".to_string()",
+        "show_loupe=false",
+        "class_name=\"docs-color-thumb-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-thumb docs playground should contain `{needle}`.",
+        );
+    }
+}
