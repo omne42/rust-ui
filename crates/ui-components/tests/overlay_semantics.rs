@@ -206,3 +206,47 @@ fn overlay_motion_contract_sanitizes_custom_values() {
         );
     }
 }
+
+#[test]
+fn overlay_docs_default_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "<Playground title=\"Overlay presence\" code=code>",
+        "<Button on_press=open_overlay>\"Open overlay\"</Button>",
+        "<Overlay open=open on_close=on_close on_exit_complete=on_exit_complete>",
+        "Esc or click backdrop closes. Tab is trapped.",
+        "<Button variant=ButtonVariant::Secondary on_press=on_close>\"Close\"</Button>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlay docs default playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn overlay_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "<Playground",
+        "title=\"State + Source Markers\"",
+        "<Button on_press=open_marker>\"Open marker overlay\"</Button>",
+        "role=\"alertdialog\"",
+        "is_dismissable=false",
+        "is_keyboard_dismiss_disabled=true",
+        "motion=marker_motion",
+        "class_name=\"docs-overlay-state\".to_string()",
+        "aria_labelledby=\"overlay-marker-title\".to_string()",
+        "aria_describedby=\"overlay-marker-desc\".to_string()",
+        "on_exit_complete=on_marker_exit_complete",
+        "initial_scale: 0.94,",
+        "initial_y_px: 14.0,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlay docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
