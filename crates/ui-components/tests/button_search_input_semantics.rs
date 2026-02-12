@@ -54,3 +54,62 @@ fn docs_actions_page_covers_search_input_button_playgrounds() {
         );
     }
 }
+
+#[test]
+fn button_search_input_motion_contract_defaults_and_sanitize_paths_are_locked() {
+    let source = load_source("src/button_search_input/motion.rs");
+
+    for needle in [
+        "pub struct SearchInputButtonMotion",
+        "stiffness: 260.0",
+        "damping: 16.0",
+        "mass: 1.0",
+        "hover_scale: 1.0",
+        "tap_scale: 0.98",
+        "pub fn sanitize_motion(motion: SearchInputButtonMotion) -> SearchInputButtonMotion",
+        ".clamp(0.5, 2.0)",
+        ".clamp(0.5, 1.5)",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn sanitize_motion_clamps_scale_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "search input button motion should include `{needle}` for HeroUI-level spring contract stability."
+        );
+    }
+}
+
+#[test]
+fn button_search_input_view_wires_motion_and_source_markers() {
+    let source = load_source("src/button_search_input/view.rs");
+
+    for needle in [
+        "motion::attach_motion(",
+        "data-motion-source=if motion == SearchInputButtonMotion::default()",
+        "data-custom-motion=(motion != SearchInputButtonMotion::default()).then_some(\"true\")",
+        "data-hovered=move || if hover.is_hovered.get() { Some(\"true\") } else { None }",
+        "data-pressed=move || if aria.is_pressed.get() { Some(\"true\") } else { None }",
+    ] {
+        assert!(
+            source.contains(needle),
+            "search input button view should include `{needle}` for stable motion/source marker contracts."
+        );
+    }
+}
+
+#[test]
+fn docs_actions_page_locks_search_input_motion_narrative() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "description=\"HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
+        "title=\"Interactive + shortcut\"",
+        "title=\"Custom Class + Aria Label\"",
+        "meta_key_label=\"⌘\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for search-input-button motion/docs stability."
+        );
+    }
+}
