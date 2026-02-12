@@ -138,3 +138,54 @@ fn picker_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn picker_docs_controlled_open_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_picker.rs");
+
+    for needle in [
+        "title=\"Controlled Open + Disabled Option\"",
+        "id_base=\"docs-picker-controlled\".to_string()",
+        "selected_index=selected_controlled",
+        "set_selected_index=set_selected_controlled",
+        "open=open",
+        "on_open_change=on_open_change",
+        "disabled_indices=vec![3]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Picker docs controlled-open playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn picker_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_picker.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-picker-markers\".to_string()",
+        "selected_index=marker_selected",
+        "set_selected_index=set_marker_selected",
+        "open=marker_open",
+        "default_open=true",
+        "on_open_change=marker_on_open_change",
+        "disabled_indices=vec![1]",
+        "motion=SelectMotion {",
+        "popover: PopoverMotion {",
+        "initial_scale: 1.0",
+        "offset_y_px: 0.0",
+        "..PopoverMotion::default()",
+        "placeholder=\"Pick region\".to_string()",
+        "class_name=\"docs-picker-state\".to_string()",
+        "Inspect wrapper markers like `data-state`, `data-selection`, `data-disabled-options`, `data-open-mode`, `data-initial-open`, `data-placeholder-source`, `data-handler-source`, `data-placement-source`, and `data-motion-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Picker docs state/source playground should contain `{needle}`.",
+        );
+    }
+}

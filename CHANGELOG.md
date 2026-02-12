@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Picker` docs state/motion contracts by locking controlled-open anchors and state/source marker popover motion values (`initial_scale`/`offset_y_px`) in `picker_semantics` regression coverage.
+
 - `ui-components`: hardens `Search` docs state/motion contracts by locking required+invalid anchors and state/source marker motion values (`hidden_scale`/`hover_scale`/`tap_scale`) in `search_semantics` regression coverage.
 
 - `ui-components`: hardens `TextArea` docs state/source contracts by locking marker playground anchors and state/source values (`rows`/description/error/placeholder/class wiring) in `text_area_semantics` regression coverage.
