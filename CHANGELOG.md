@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Asset` docs state contracts by locking file+folder variants, custom-image+focused state, and state+source-marker playground anchors in `asset_semantics` regression coverage.
+
+
 - `ui-components`: hardens `AspectRatio` docs state contracts by locking ratio-presets and bordered+fill+custom-aria-class playground anchors in `aspect_ratio_semantics` regression coverage.
 
 

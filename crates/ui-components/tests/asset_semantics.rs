@@ -124,3 +124,52 @@ fn asset_docs_page_exists() {
         );
     }
 }
+
+#[test]
+fn asset_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_asset.rs");
+
+    for needle in [
+        "pub(super) fn asset() -> AnyView",
+        "title=\"Asset\"",
+        "slug=\"asset\"",
+        "title=\"File + Folder Variants\"",
+        "title=\"Custom Image + Focused State\"",
+        "title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display-extra-asset docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn asset_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_asset.rs");
+
+    for needle in [
+        "title=\"File + Folder Variants\"",
+        "variant=AssetVariant::File",
+        "variant=AssetVariant::Folder",
+        "size=AssetSize::Size600",
+        "label=\"Build Report\".to_string()",
+        "label=\"Design Assets\".to_string()",
+        "title=\"Custom Image + Focused State\"",
+        "size=AssetSize::Size700",
+        "selected=true",
+        "focused=true",
+        "title=\"State + Source Markers\"",
+        "variant=AssetVariant::Custom",
+        "size=AssetSize::Size800",
+        "label=\"Hero Artwork\".to_string()",
+        "class_name=\"docs-asset-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "asset docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
