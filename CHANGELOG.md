@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `overlays` compatibility module docs state matrix contracts by locking overlay/popover/modal/tray primary playground anchors and `overlays` docs slug mapping in `overlays_module_semantics` regression coverage.
+
 - `ui-components`: hardens `Overlay` docs state matrix contracts by locking presence and state-source marker playground anchors (role/dismiss/motion) in `overlay_semantics` regression coverage.
 
 - `ui-components`: hardens `overlay_arrow` compatibility docs state matrix contracts by locking icon/popover playground anchors and `overlay-arrow` slug mapping in `overlay_arrow_module_semantics` regression coverage.
