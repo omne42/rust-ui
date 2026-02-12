@@ -274,3 +274,13 @@ fn toast_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn toast_docs_page_covers_primary_playgrounds() {
+    toast_docs_page_contains_state_source_playground();
+}
+
+#[test]
+fn toast_docs_playgrounds_lock_state_matrix_contract_values() {
+    toast_docs_custom_motion_playground_locks_contract_values();
+}

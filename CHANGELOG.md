@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Toast` docs state matrix contracts by locking state-source/custom-motion playground anchors in `toast_semantics` regression coverage.
+
 - `ui-components`: hardens `Thumbnail` docs state matrix contracts by locking default/state/custom-motion playground anchors in `thumbnail_semantics` regression coverage.
 
 - `ui-components`: hardens `visually_hidden` compatibility docs contracts by locking dedicated docs playground anchors in `visually_hidden_module_semantics` regression coverage.
