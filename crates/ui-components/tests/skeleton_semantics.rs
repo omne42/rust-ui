@@ -86,3 +86,40 @@ fn skeleton_styles_include_variant_and_shimmer_markers() {
         );
     }
 }
+
+#[test]
+fn skeleton_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn skeleton() -> AnyView",
+        "title=\"Skeleton\"",
+        "slug=\"skeleton\"",
+        "Playground title=\"Shimmer\"",
+        "Playground title=\"Still\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Skeleton.",
+        );
+    }
+}
+
+#[test]
+fn skeleton_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Shimmer\"",
+        "<Skeleton variant=SkeletonVariant::Rect class_name=\"docs-skeleton-line\".to_string() />",
+        "<Skeleton variant=SkeletonVariant::Circle class_name=\"docs-skeleton-avatar\".to_string() />",
+        "title=\"Still\"",
+        "shimmer=false",
+        "class_name=\"docs-skeleton-line docs-skeleton-line--short\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "skeleton docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
