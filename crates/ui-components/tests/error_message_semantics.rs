@@ -104,3 +104,51 @@ fn error_message_styles_include_tone_state_and_markers() {
         );
     }
 }
+
+#[test]
+fn error_message_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn error_message() -> AnyView",
+        "title=\"ErrorMessage\"",
+        "slug=\"error-message\"",
+        "description=\"Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts.\"",
+        "<Playground title=\"Tone Variants\" code=tone_code>",
+        "<Playground title=\"Truncate + Disabled + Element + Custom Class\" code=state_code>",
+        "<ErrorMessage",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for error_message primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn error_message_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Tone Variants\"",
+        "text=\"Invalid email address\".to_string()",
+        "aria_label=\"Email error\".to_string()",
+        "text=\"Username contains unsupported characters.\".to_string()",
+        "tone=ErrorMessageTone::Neutral",
+        "text=\"Verification code expired, request a new one.\".to_string()",
+        "tone=ErrorMessageTone::Negative",
+        "title=\"Truncate + Disabled + Element + Custom Class\"",
+        "text=\"A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.\".to_string()",
+        "truncate=true",
+        "class_name=\"docs-error-message-custom\".to_string()",
+        "text=\"This error remains visible but marked as disabled for read-only states.\".to_string()",
+        "disabled=true",
+        "element=ErrorMessageElement::Div",
+        "aria_label=\"Disabled error message\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "error_message docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

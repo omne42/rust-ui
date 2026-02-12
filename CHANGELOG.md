@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ErrorMessage` docs state matrix contracts by locking tone-variants and truncate+disabled+element+custom-class playground anchors in `error_message_semantics` regression coverage.
+
 - `ui-components`: hardens `EmptyState` docs state matrix contracts by locking tone+alignment+actions and compact+bordered+custom-class playground anchors in `empty_state_semantics` regression coverage.
 
 - `ui-components`: hardens `Empty` docs state matrix contracts by locking header+icon, content-action, and state+source-markers playground anchors in `empty_semantics` regression coverage.
