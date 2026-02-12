@@ -104,3 +104,50 @@ fn field_error_styles_include_tone_state_and_markers() {
         );
     }
 }
+
+#[test]
+fn field_error_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn field_error() -> AnyView",
+        "title=\"FieldError\"",
+        "slug=\"field-error\"",
+        "description=\"Spectrum/HeroUI-style field error primitive with centralized visibility/tone/message normalization and stable data contracts.\"",
+        "<Playground title=\"Visible + Tone\" code=default_code>",
+        "<Playground title=\"Hidden + Disabled + Custom Class\" code=hidden_code>",
+        "<FieldError",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for field_error primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn field_error_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Visible + Tone\"",
+        "visible=true",
+        "message=\"Email is required\".to_string()",
+        "aria_label=\"Email error\".to_string()",
+        "tone=FieldErrorTone::Neutral",
+        "message=\"Password should include at least one symbol\".to_string()",
+        "tone=FieldErrorTone::Negative",
+        "show_icon=true",
+        "message=\"Two-factor code is invalid\".to_string()",
+        "title=\"Hidden + Disabled + Custom Class\"",
+        "visible=false",
+        "message=\"This text should not render when hidden\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-field-error-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_error docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
