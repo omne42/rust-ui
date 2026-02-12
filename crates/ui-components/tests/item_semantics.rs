@@ -97,3 +97,45 @@ fn item_docs_page_exists() {
         );
     }
 }
+
+#[test]
+fn item_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+
+    for needle in [
+        "pub(super) fn item_primitives() -> AnyView",
+        "title=\"Item\"",
+        "slug=\"item\"",
+        "Playground title=\"Media + Content + Actions\"",
+        "Playground title=\"Header + Footer Layout\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_item_shadcn docs page should contain `{needle}` for Item.",
+        );
+    }
+}
+
+#[test]
+fn item_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+
+    for needle in [
+        "title=\"Media + Content + Actions\"",
+        "variant=ItemVariant::Outline size=ItemSize::Default",
+        "variant=ItemMediaVariant::Icon",
+        "<ItemSeparator />",
+        "variant=ItemVariant::Default size=ItemSize::Default",
+        "variant=ItemMediaVariant::Image",
+        "title=\"Header + Footer Layout\"",
+        "variant=ItemVariant::Muted size=ItemSize::Sm",
+        "\"Status: degraded\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "item docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
