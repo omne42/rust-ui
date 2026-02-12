@@ -124,3 +124,53 @@ fn inline_style_helper_outputs_are_css_variable_assignments() {
         );
     }
 }
+
+#[test]
+fn inline_style_contract_docs_page_covers_primary_playgrounds() {
+    let styling_spec = load_source("../../docs/spec/styling.md");
+    let rules_zh = load_source("../../docs/RULES_ZH.md");
+
+    for needle in [
+        "## 规范（必须遵守）",
+        "- **组件禁止 inline CSS**：",
+        "ui-components` 中禁止写“普通属性”的 inline style",
+        "- **运行时数值只允许用 CSS variables（custom properties）**：",
+        "- 快速排查违规：在仓库中搜索 `style=` 与 `style:`",
+    ] {
+        assert!(
+            styling_spec.contains(needle),
+            "styling spec should include `{needle}` for inline style contract documentation.",
+        );
+    }
+
+    for needle in [
+        "- **禁止 inline CSS（组件层）**：",
+        "ui-components` 中禁止在 `view!` 里写 `style=\"...\"` / `style=...`",
+        "禁止使用 `style:<prop>=...` 绑定普通 CSS 属性",
+        "只允许设置 **CSS variables（custom properties，`--*`）**",
+    ] {
+        assert!(
+            rules_zh.contains(needle),
+            "RULES_ZH should include `{needle}` for inline style contract coverage.",
+        );
+    }
+}
+
+#[test]
+fn inline_style_contract_docs_playgrounds_lock_state_matrix_contract_values() {
+    let styling_spec = load_source("../../docs/spec/styling.md");
+    let rules_zh = load_source("../../docs/RULES_ZH.md");
+
+    for needle in [
+        "允许传递运行时数值时使用 custom properties（`--*`）",
+        "推荐：`style:--x=...`",
+        "允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值",
+        "禁止使用 `style:<prop>=...` 绑定普通 CSS 属性",
+        "样式切换通过 `class`/`data-*` + `styles.rs` 完成",
+    ] {
+        assert!(
+            styling_spec.contains(needle) || rules_zh.contains(needle),
+            "inline style docs contracts should contain `{needle}`.",
+        );
+    }
+}
