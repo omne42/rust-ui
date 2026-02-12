@@ -189,3 +189,67 @@ fn picker_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn picker_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_picker.rs");
+
+    for needle in [
+        "pub(super) fn picker() -> AnyView",
+        "title=\"Picker\"",
+        "slug=\"picker\"",
+        "description=\"Spectrum-compatible Picker alias for upstream naming parity, preserving Select accessibility/state contracts and HeroUI-level trigger/listbox interaction behavior.\"",
+        "<Playground title=\"Basic Selection\" code=basic_code>",
+        "<Playground title=\"Controlled Open + Disabled Option\" code=controlled_code>",
+        "title=\"State + Source Markers\"",
+        "code=markers_code",
+        "<Picker",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_extra_picker docs should include `{needle}` for picker primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn picker_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_picker.rs");
+
+    for needle in [
+        "title=\"Basic Selection\"",
+        "id_base=\"docs-picker-basic\".to_string()",
+        "selected_index=selected",
+        "set_selected_index=set_selected",
+        "placeholder=\"Choose region\".to_string()",
+        "title=\"Controlled Open + Disabled Option\"",
+        "id_base=\"docs-picker-controlled\".to_string()",
+        "selected_index=selected_controlled",
+        "set_selected_index=set_selected_controlled",
+        "open=open",
+        "on_open_change=on_open_change",
+        "disabled_indices=vec![3]",
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-picker-markers\".to_string()",
+        "selected_index=marker_selected",
+        "set_selected_index=set_marker_selected",
+        "open=marker_open",
+        "default_open=true",
+        "on_open_change=marker_on_open_change",
+        "disabled_indices=vec![1]",
+        "motion=SelectMotion {",
+        "popover: PopoverMotion {",
+        "initial_scale: 1.0",
+        "offset_y_px: 0.0",
+        "..PopoverMotion::default()",
+        "placeholder=\"Pick region\".to_string()",
+        "class_name=\"docs-picker-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_extra_picker docs playgrounds should contain `{needle}` for picker contracts.",
+        );
+    }
+}
