@@ -46,3 +46,44 @@ fn spinbutton_compatibility_reuses_number_field_docs_playground() {
         );
     }
 }
+
+#[test]
+fn spinbutton_module_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn number_field() -> AnyView",
+        "title=\"NumberField\"",
+        "slug=\"number-field\"",
+        "description=\"Numeric input with steppers and keyboard control.\"",
+        "<Playground title=\"Stepper\" code=code>",
+        "<NumberField",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms number_field docs should include `{needle}` for spinbutton_module primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn spinbutton_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Stepper\"",
+        "id=\"docs-number-field\".to_string()",
+        "label=\"Quantity\".to_string()",
+        "value=value",
+        "set_value=set_value",
+        "min=0",
+        "max=100",
+        "\"value: \"",
+        "{move || value.get().to_string()}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms number_field playground should contain `{needle}` for spinbutton_module contracts.",
+        );
+    }
+}
