@@ -264,3 +264,52 @@ fn drawer_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn drawer_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn drawer() -> AnyView",
+        "title=\"Drawer\"",
+        "slug=\"drawer\"",
+        "description=\"Sheet composition with centralized placement/description/footer/close state attrs and stable drawer slots.\"",
+        "<Playground title=\"Right Drawer + Slots\" code=semantic_code>",
+        "title=\"State + Source Markers\"",
+        "<Drawer",
+        "placement=DrawerPlacement::Right",
+        "placement=DrawerPlacement::Left",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs page should include `{needle}` for drawer primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn drawer_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "id_base=\"docs-drawer-right\".to_string()",
+        "title=\"Drawer title\".to_string()",
+        "description=\"Drawer composes Sheet and keeps labeled/description semantics aligned.\".to_string()",
+        "placement=DrawerPlacement::Right",
+        "on_exit_complete=on_semantic_exit_complete",
+        "id_base=\"docs-drawer-left\".to_string()",
+        "title=\"Left drawer\".to_string()",
+        "placement=DrawerPlacement::Left",
+        "show_close_button=false",
+        "class_name=\"docs-drawer-custom\".to_string()",
+        "motion=custom_motion",
+        "let custom_motion = DrawerMotion {",
+        "initial_offset_px: 52.0",
+        "on_exit_complete=on_custom_exit_complete",
+    ] {
+        assert!(
+            source.contains(needle),
+            "drawer docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

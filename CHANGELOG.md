@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Drawer` docs state matrix contracts by locking right-drawer+slots and state+source-markers playground anchors in `drawer_semantics` regression coverage.
+
 - `ui-components`: hardens `Fieldset` docs state matrix contracts by locking legend+description and horizontal+invalid+actions playground anchors in `fieldset_semantics` regression coverage.
 
 - `ui-components`: hardens `DirectionProvider` docs state matrix contracts by locking ltr-direction and rtl+class playground anchors in `direction_semantics` regression coverage.
