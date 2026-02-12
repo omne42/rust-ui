@@ -290,3 +290,52 @@ fn carousel_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn carousel_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn carousel() -> AnyView",
+        "title=\"Carousel\"",
+        "slug=\"carousel\"",
+        "title=\"Default + Indicator Motion\"",
+        "title=\"Controlled + Vertical + No Loop\"",
+        "title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "carousel docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn carousel_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "<Playground title=\"Default + Indicator Motion\" code=code>",
+        "id_base=\"docs-carousel-default\".to_string()",
+        "default_selected_index=1",
+        "<Playground title=\"Controlled + Vertical + No Loop\" code=states_code>",
+        "id_base=\"docs-carousel-vertical\".to_string()",
+        "orientation=CarouselOrientation::Vertical",
+        "loop_navigation=false",
+        "aria_label=\"Feature carousel\".to_string()",
+        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "id_base=\"docs-carousel-markers\".to_string()",
+        "default_selected_index=0",
+        "aria_label=\"Workspace spotlight\".to_string()",
+        "class_name=\"docs-carousel-custom\".to_string()",
+        "marker_motion.spring.stiffness = 250.0",
+        "marker_motion.spring.damping = 22.0",
+    ] {
+        assert!(
+            source.contains(needle),
+            "carousel docs playground should contain `{needle}`.",
+        );
+    }
+}
