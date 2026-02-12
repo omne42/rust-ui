@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Command` docs state matrix contracts by locking grouped-search, custom-placeholder+empty-label, and state+source-marker playground anchors in `command_semantics` regression coverage.
+
 - `ui-components`: hardens `Combobox` docs state matrix contracts by locking basic-selection, invalid+disabled-option, and marker-source playground anchors in `combobox_semantics` regression coverage.
 
 - `ui-components`: hardens `ClearButton` docs state contracts by locking default+over-background and inset+focus-mode+disabled playground anchors in `clear_button_semantics` regression coverage.

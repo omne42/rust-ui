@@ -262,3 +262,63 @@ fn command_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn command_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn command() -> AnyView",
+        "title=\"Command\"",
+        "slug=\"command\"",
+        "description=\"Shadcn-compatible command palette with grouped filtering, listbox keyboard semantics, Spectrum data contracts, and HeroUI-level spring active-highlight motion.\"",
+        "<Playground title=\"Grouped Search + Keyboard Action\" code=code>",
+        "<Playground title=\"Custom Placeholder + Empty Label + Disabled Items\" code=states_code>",
+        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "data-id-source",
+        "data-placeholder-source",
+        "data-empty-label-source",
+        "data-aria-label-source",
+        "data-action-source",
+        "data-motion-source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_command docs page should include `{needle}` for primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn command_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "id_base=\"docs-command-default\".to_string()",
+        "groups=groups.clone()",
+        "on_action=on_action",
+        "id_base=\"docs-command-custom\".to_string()",
+        "groups=custom_groups",
+        "on_action=on_custom_action",
+        "placeholder=\"Search pages, actions, and settings...\".to_string()",
+        "empty_label=\"No command matches your search.\".to_string()",
+        "class_name=\"docs-command-custom\".to_string()",
+        "id_base=\"docs-command-markers\".to_string()",
+        "groups=marker_groups",
+        "on_action=on_marker_action",
+        "placeholder=\"Search workspace actions...\".to_string()",
+        "empty_label=\"No workspace action found.\".to_string()",
+        "aria_label=\"Workspace command center\".to_string()",
+        "marker_motion.spring.stiffness = 240.0",
+        "marker_motion.spring.damping = 20.0",
+        "motion=marker_motion",
+        "\"last action: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "command docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
