@@ -153,3 +153,52 @@ fn meter_motion_sanitizes_custom_contract_values() {
         "Meter view should sanitize motion before attaching spring driver.",
     );
 }
+
+#[test]
+fn meter_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn meter() -> AnyView",
+        "title=\"Meter\"",
+        "slug=\"meter\"",
+        "Playground title=\"Variant + Size Matrix\"",
+        "Playground title=\"Custom Label + Motion + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Meter.",
+        );
+    }
+}
+
+#[test]
+fn meter_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Variant + Size Matrix\"",
+        "id=\"docs-meter-default\".to_string()",
+        "id=\"docs-meter-danger\".to_string()",
+        "variant=MeterVariant::Danger",
+        "size=MeterSize::Lg",
+        "id=\"docs-meter-compact\".to_string()",
+        "show_value_label=false",
+        "on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 10).min(100)))",
+        "title=\"Custom Label + Motion + Class\"",
+        "id=\"docs-meter-custom\".to_string()",
+        "aria_label=\"Background sync\".to_string()",
+        "value_label=\"64 complete\".to_string()",
+        "motion=ui_components::MeterMotion::fast()",
+        "id=\"docs-meter-fallback\".to_string()",
+        "label=\"   \".to_string()",
+        "id=\"docs-meter-indeterminate\".to_string()",
+        "value=Signal::derive(|| None)",
+        "class_name=\"docs-meter-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "meter docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
