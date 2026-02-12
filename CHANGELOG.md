@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FlipButton` docs state matrix contracts by locking top-flip, direction-matrix, and custom-class playground anchors in `flip_button_semantics` regression coverage.
+
 - `ui-components`: hardens `FileTrigger` docs state matrix contracts by locking pick-files and custom-motion pick-files playground anchors in `file_trigger_semantics` regression coverage.
 
 - `ui-components`: hardens `Field` docs state matrix contracts by locking required+description and horizontal+invalid+custom-class playground anchors in `field_semantics` regression coverage.

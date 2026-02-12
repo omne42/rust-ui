@@ -185,3 +185,50 @@ fn flip_button_motion_sanitizes_custom_contract_values() {
         "FlipButton view should sanitize motion before attaching spring driver.",
     );
 }
+
+#[test]
+fn flip_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn flip_button() -> AnyView",
+        "title=\"FlipButton\"",
+        "slug=\"flip-button\"",
+        "description=\"HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
+        "<Playground title=\"Top flip\" code=code>",
+        "<Playground title=\"Direction matrix\" code=states_code>",
+        "<Playground title=\"Custom Class\" code=custom_code>",
+        "<FlipButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for flip_button primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn flip_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "title=\"Top flip\"",
+        "from=FlipDirection::Top",
+        "variant=ButtonVariant::Secondary",
+        "variant=ButtonVariant::Accent",
+        "title=\"Direction matrix\"",
+        "from=FlipDirection::Bottom",
+        "from=FlipDirection::Left",
+        "from=FlipDirection::Right",
+        "title=\"Custom Class\"",
+        "class_name=\"docs-flip-button-custom\".to_string()",
+        "variant=ButtonVariant::Outline",
+        "\"Inspect\"",
+        "\"Inspecting\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip_button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
