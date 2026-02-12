@@ -44,3 +44,47 @@ fn ui_components_does_not_reexport_form_motion() {
         "`ui-components` should not re-export a placeholder `FormMotion` type."
     );
 }
+
+#[test]
+fn form_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn form() -> AnyView",
+        "title=\"Form\"",
+        "slug=\"form\"",
+        "description=\"A context provider for form-wide disabled/required/label layout.\"",
+        "<Playground title=\"Label layout context\" code=code>",
+        "<Form",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs page should include `{needle}` for form primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn form_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Label layout context\"",
+        "required=true",
+        "label_position=FormLabelPosition::Left",
+        "label_align=FormLabelAlign::End",
+        "id=\"docs-form-name\".to_string()",
+        "label=\"Name\".to_string()",
+        "placeholder=\"Jane\".to_string()",
+        "id=\"docs-form-email\".to_string()",
+        "label=\"Email\".to_string()",
+        "placeholder=\"jane@example.com\".to_string()",
+        "size=InputSize::Md",
+        "variant=InputVariant::Bordered",
+    ] {
+        assert!(
+            source.contains(needle),
+            "form docs playground should contain `{needle}`."
+        );
+    }
+}
