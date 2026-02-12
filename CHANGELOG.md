@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `hidden_date_input` compatibility docs state matrix contracts by locking date-input-group playground anchors and docs slug mapping contract in `hidden_date_input_module_semantics` regression coverage.
+
 - `ui-components`: hardens `HelpText` docs state matrix contracts by locking description/neutral and invalid+error-icon playground anchors in `help_text_semantics` regression coverage.
 
 - `ui-components`: hardens `group` compatibility docs state matrix contracts by locking field-group playground anchors and docs slug mapping contract in `group_module_semantics` regression coverage.
