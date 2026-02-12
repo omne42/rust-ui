@@ -98,3 +98,58 @@ fn surface_styles_include_state_markers() {
         );
     }
 }
+
+#[test]
+fn surface_docs_page_covers_primary_playgrounds() {
+    let layout_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+    let docs =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_surface.rs");
+
+    assert!(
+        layout_extra.contains("pub(super) fn surface() -> AnyView"),
+        "layout_extra should expose surface route entry.",
+    );
+
+    for needle in [
+        "pub(super) fn surface() -> AnyView",
+        "title=\"Surface\"",
+        "slug=\"surface\"",
+        "description=\"Spectrum/HeroUI-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers.\"",
+        "<Playground title=\"Tone + Elevation + Frame\" code=tone_code>",
+        "<Playground title=\"Custom Aria + Class\" code=custom_code>",
+        "<Surface",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "layout_extra_surface docs should include `{needle}` for surface primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn surface_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_surface.rs");
+
+    for needle in [
+        "title=\"Tone + Elevation + Frame\"",
+        "tone=SurfaceTone::Default",
+        "elevation=SurfaceElevation::Raised",
+        "tone=SurfaceTone::Subtle",
+        "elevation=SurfaceElevation::Flat",
+        "bordered=true",
+        "tone=SurfaceTone::Strong",
+        "elevation=SurfaceElevation::Floating",
+        "padded=false",
+        "title=\"Custom Aria + Class\"",
+        "aria_label=\"Deployment summary\".to_string()",
+        "class_name=\"docs-surface-custom\".to_string()",
+        "Verifies custom aria source + custom class merge contracts.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_surface docs playgrounds should contain `{needle}` for surface contracts.",
+        );
+    }
+}
