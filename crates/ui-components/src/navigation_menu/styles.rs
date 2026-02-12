@@ -52,11 +52,13 @@ pub const CSS: &str = r#"
   --ui-navigation-menu-custom-motion: 1;
 }
 
+.ui-navigation-menu--custom-id,
 .ui-navigation-menu[data-id-source="custom"],
 .ui-navigation-menu[data-custom-id="true"] {
   --ui-navigation-menu-custom-id: 1;
 }
 
+.ui-navigation-menu--custom-aria-label,
 .ui-navigation-menu[data-aria-label-source="custom"],
 .ui-navigation-menu[data-custom-aria-label="true"] {
   --ui-navigation-menu-custom-aria-label: 1;
@@ -67,21 +69,25 @@ pub const CSS: &str = r#"
   --ui-navigation-menu-custom-class: 1;
 }
 
+.ui-navigation-menu--custom-activate-on-focus,
 .ui-navigation-menu[data-activate-on-focus-source="custom"],
 .ui-navigation-menu[data-custom-activate-on-focus="true"] {
   --ui-navigation-menu-custom-activate-on-focus: 1;
 }
 
+.ui-navigation-menu--custom-selected-id,
 .ui-navigation-menu[data-selected-id-source="custom"],
 .ui-navigation-menu[data-custom-selected-id="true"] {
   --ui-navigation-menu-custom-selected-id: 1;
 }
 
+.ui-navigation-menu--custom-default-selected-id,
 .ui-navigation-menu[data-default-selected-id-source="custom"],
 .ui-navigation-menu[data-custom-default-selected-id="true"] {
   --ui-navigation-menu-custom-default-selected-id: 1;
 }
 
+.ui-navigation-menu--custom-selected-id-change,
 .ui-navigation-menu[data-selected-id-change-source="custom"],
 .ui-navigation-menu[data-custom-selected-id-change="true"] {
   --ui-navigation-menu-custom-selected-id-change: 1;

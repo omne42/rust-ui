@@ -301,6 +301,30 @@ pub fn compose_class_name(
             classes.push("ui-navigation-menu--custom-motion".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-navigation-menu--custom-id".to_string());
+        }
+
+        if state.has_custom_aria_label {
+            classes.push("ui-navigation-menu--custom-aria-label".to_string());
+        }
+
+        if state.has_custom_activate_on_focus {
+            classes.push("ui-navigation-menu--custom-activate-on-focus".to_string());
+        }
+
+        if state.has_custom_selected_id {
+            classes.push("ui-navigation-menu--custom-selected-id".to_string());
+        }
+
+        if state.has_custom_default_selected_id {
+            classes.push("ui-navigation-menu--custom-default-selected-id".to_string());
+        }
+
+        if state.has_custom_on_selected_id_change {
+            classes.push("ui-navigation-menu--custom-selected-id-change".to_string());
+        }
+
         if state.has_custom_class_name {
             classes.push("ui-navigation-menu--custom-class".to_string());
             if let Some(base_class_name) = normalize_optional_text(base_class_name) {
@@ -486,6 +510,10 @@ mod tests {
             "ui-navigation-menu--manual-activation",
             "ui-navigation-menu--controlled",
             "ui-navigation-menu--custom-motion",
+            "ui-navigation-menu--custom-aria-label",
+            "ui-navigation-menu--custom-activate-on-focus",
+            "ui-navigation-menu--custom-selected-id",
+            "ui-navigation-menu--custom-selected-id-change",
             "ui-navigation-menu--custom-class",
             "custom",
         ] {
