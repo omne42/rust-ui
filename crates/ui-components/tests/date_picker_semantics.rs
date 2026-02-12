@@ -164,3 +164,58 @@ fn date_picker_motion_sanitizes_custom_contract_values() {
         "DatePicker view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn date_picker_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn date_picker() -> AnyView",
+        "title=\"DatePicker\"",
+        "slug=\"date-picker\"",
+        "description=\"Date picker trigger + popover calendar with centralized open/value/source state contracts and HeroUI-grade popover motion handoff.\"",
+        "<Playground title=\"Default + Outside Days\" code=code>",
+        "<Playground title=\"Monday First + Strong Tone\" code=states_code>",
+        "<DatePicker",
+        "tone=DatePickerTone::Strong",
+        "first_weekday=CalendarFirstWeekday::Monday",
+        "show_outside_days=false",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for date_picker primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn date_picker_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "id_base=\"docs-date-picker-release\".to_string()",
+        "year=2026",
+        "month=3",
+        "default_selected_day=12",
+        "tone=DatePickerTone::Default",
+        "first_weekday=CalendarFirstWeekday::Sunday",
+        "show_outside_days=true",
+        "id_base=\"docs-date-picker-ship\".to_string()",
+        "month=4",
+        "default_selected_day=21",
+        "tone=DatePickerTone::Strong",
+        "first_weekday=CalendarFirstWeekday::Monday",
+        "show_outside_days=false",
+        "placeholder=\"Pick ship date\".to_string()",
+        "class_name=\"docs-date-picker-custom\".to_string()",
+        "motion=DatePickerMotion {",
+        "popover: PopoverMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 10.0",
+    ] {
+        assert!(
+            source.contains(needle),
+            "date_picker docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
