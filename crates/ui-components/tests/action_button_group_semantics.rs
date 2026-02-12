@@ -118,3 +118,52 @@ fn action_button_group_styles_include_density_and_disabled_markers() {
         );
     }
 }
+
+#[test]
+fn action_button_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn action_button_group() -> AnyView",
+        "title=\"ActionButtonGroup\"",
+        "slug=\"action-button-group\"",
+        "description=\"Toolbar-style action clusters with Spectrum state attrs for orientation, density, quiet/filled, and enablement.\"",
+        "<Playground title=\"Default + compact\" code=code>",
+        "<Playground title=\"Vertical + justified + disabled\" code=states_code>",
+        "<ActionButtonGroup",
+        "density=ActionButtonGroupDensity::Compact",
+        "orientation=ActionButtonGroupOrientation::Vertical",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for action-button-group coverage.",
+        );
+    }
+}
+
+#[test]
+fn action_button_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "size=ActionButtonSize::S",
+        "orientation=ActionButtonGroupOrientation::Horizontal",
+        "is_quiet=true",
+        "<ActionButton on_press=on_press>\"One\"</ActionButton>",
+        "<ActionButton on_press=on_press>\"Two\"</ActionButton>",
+        "<ActionButton on_press=on_press>\"Three\"</ActionButton>",
+        "\"pressed: \"",
+        "size=ActionButtonSize::M",
+        "is_justified=true",
+        "aria_label=\"Vertical actions\".to_string()",
+        "<ActionButton>\"Middle\"</ActionButton>",
+        "aria_label=\"Disabled actions\".to_string()",
+        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for Spectrum-level styling contracts.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action-button-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

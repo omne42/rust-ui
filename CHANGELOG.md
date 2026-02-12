@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ActionButtonGroup` docs state contracts by locking default-compact and vertical+justified+disabled playground anchors in `action_button_group_semantics` regression coverage.
+
 - `ui-components`: hardens `ActionButton` docs state contracts by locking default-callback and loading-placement+icon-only matrix playground anchors in `action_button_semantics` regression coverage.
 
 - `ui-components`: hardens `ToggleButtonGroup` docs state contracts by locking attached-horizontal and vertical-detached playground anchors, counts, and alignment-label wiring in `toggle_button_group_semantics` regression coverage.
