@@ -116,3 +116,46 @@ fn clear_button_styles_include_variant_and_state_markers() {
         );
     }
 }
+
+#[test]
+fn clear_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn clear_button() -> AnyView",
+        "title=\"ClearButton\"",
+        "slug=\"clear-button\"",
+        "title=\"Default + OverBackground\"",
+        "title=\"Inset + Focus Mode + Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "clear-button docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn clear_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Default + OverBackground\" code=basic_code>",
+        "aria_label=\"Clear query\".to_string()",
+        "variant=ui_components::ClearButtonVariant::OverBackground",
+        "aria_label=\"Dismiss overlay\".to_string()",
+        "<Playground title=\"Inset + Focus Mode + Disabled\" code=state_code>",
+        "inset=true",
+        "prevent_focus=true",
+        "aria_label=\"Clear token\".to_string()",
+        "class_name=\"docs-clear-button-custom\".to_string()",
+        "disabled=true",
+        "exclude_from_tab_order=true",
+        "aria_label=\"Disabled clear\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "clear-button docs playground should contain `{needle}`.",
+        );
+    }
+}
