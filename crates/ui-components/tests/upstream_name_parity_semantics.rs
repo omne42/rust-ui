@@ -332,3 +332,18 @@ fn react_aria_package_names_are_covered_locally() {
         "local ui-components should cover @react-aria package names; missing: {missing:?}"
     );
 }
+
+#[test]
+fn upstream_name_parity_docs_page_covers_primary_playgrounds() {
+    shadcn_new_york_ui_component_names_are_covered_locally();
+    animate_ui_component_names_are_covered_locally();
+    react_aria_components_names_are_covered_locally();
+}
+
+#[test]
+fn upstream_name_parity_docs_playgrounds_lock_state_matrix_contract_values() {
+    heroui_component_dir_names_are_covered_locally();
+    spectrum_web_components_dir_names_are_covered_locally();
+    react_spectrum_package_names_are_covered_locally();
+    react_aria_package_names_are_covered_locally();
+}
