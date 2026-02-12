@@ -54,3 +54,41 @@ fn number_field_emits_spectrum_style_state_data_attributes() {
         );
     }
 }
+
+#[test]
+fn number_field_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn number_field() -> AnyView",
+        "title=\"NumberField\"",
+        "slug=\"number-field\"",
+        "description=\"Numeric input with steppers and keyboard control.\"",
+        "<Playground title=\"Stepper\" code=code>",
+        "<NumberField",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs should include `{needle}` for number-field primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn number_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Stepper\"",
+        "id=\"docs-number-field\".to_string()",
+        "label=\"Quantity\".to_string()",
+        "min=0",
+        "max=100",
+        "value: ",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number-field docs playground should contain `{needle}`.",
+        );
+    }
+}
