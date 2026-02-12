@@ -63,3 +63,110 @@ fn list_box_compatibility_reuses_listbox_docs_playgrounds() {
         );
     }
 }
+
+#[test]
+fn list_box_module_docs_page_covers_primary_playgrounds() {
+    let listbox_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+    let item_section_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn list_box() -> AnyView",
+        "title=\"ListBox\"",
+        "slug=\"listbox\"",
+        "description=\"Listbox with active highlight spring motion, typeahead, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Selection + Typeahead\" code=code>",
+        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<ListBox",
+    ] {
+        assert!(
+            listbox_source.contains(needle),
+            "collections docs should include `{needle}` for list-box module primary listbox playground coverage.",
+        );
+    }
+
+    for needle in [
+        "pub(super) fn listbox_item() -> AnyView",
+        "title=\"ListBoxItem\"",
+        "slug=\"listbox-item\"",
+        "<Playground title=\"Selectable Option\" code=code>",
+        "<Playground title=\"Focused + Divider + Disabled\" code=states_code>",
+        "<ListBoxItem",
+        "pub(super) fn listbox_section() -> AnyView",
+        "title=\"ListBoxSection\"",
+        "slug=\"listbox-section\"",
+        "<Playground title=\"Default Section\" code=code>",
+        "<Playground title=\"Quiet + Sticky + Divider + Empty\" code=states_code>",
+        "<ListBoxSection",
+    ] {
+        assert!(
+            item_section_source.contains(needle),
+            "collections_extra docs should include `{needle}` for list-box module primary item/section playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source
+            .contains("\"list-box\" => &[\"listbox\", \"listbox-item\", \"listbox-section\"]"),
+        "components mod mapping should keep `list-box` mapped to listbox/listbox-item/listbox-section slugs.",
+    );
+}
+
+#[test]
+fn list_box_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let listbox_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+    let item_section_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "title=\"Selection + Typeahead\"",
+        "id_base=\"docs-listbox\".to_string()",
+        "aria_label=\"Fruit\".to_string()",
+        "disabled_indices=vec![3]",
+        "title=\"Disabled + Empty\"",
+        "id_base=\"docs-listbox-disabled\".to_string()",
+        "aria_label=\"Disabled city list\".to_string()",
+        "disabled=true",
+        "id_base=\"docs-listbox-empty\".to_string()",
+        "aria_label=\"Empty city list\".to_string()",
+    ] {
+        assert!(
+            listbox_source.contains(needle),
+            "collections docs playgrounds should contain `{needle}` for list-box module listbox contracts.",
+        );
+    }
+
+    for needle in [
+        "title=\"Selectable Option\"",
+        "index=0",
+        "show_selection_indicator=true",
+        "\"San Francisco\"",
+        "title=\"Focused + Divider + Disabled\"",
+        "id=\"docs-listbox-item-focused\".to_string()",
+        "focused=true",
+        "has_divider=true",
+        "class_name=\"docs-listbox-item-custom\".to_string()",
+        "\"Disabled option\"",
+        "title=\"Default Section\"",
+        "title=\"Preferred regions\".to_string()",
+        "item_count=3",
+        "aria_label=\"Preferred regions section\".to_string()",
+        "title=\"Quiet + Sticky + Divider + Empty\"",
+        "heading_tone=ListBoxSectionHeadingTone::Quiet",
+        "sticky_heading=true",
+        "show_divider=true",
+        "class_name=\"docs-listbox-section-custom\".to_string()",
+        "title=\"Empty section\".to_string()",
+        "item_count=0",
+        "disabled=true",
+        "\"No options available\"",
+    ] {
+        assert!(
+            item_section_source.contains(needle),
+            "collections_extra docs playgrounds should contain `{needle}` for list-box module item/section contracts.",
+        );
+    }
+}

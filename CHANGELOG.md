@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `list_box` compatibility module docs state matrix contracts by locking listbox/listbox-item/listbox-section primary playground anchors and `list-box` docs slug mapping in `list_box_module_semantics` regression coverage.
+
 - `ui-components`: hardens `Legend` docs state matrix contracts by locking `Fieldset` legend+description and horizontal+invalid+actions playground anchors in `legend_semantics` regression coverage.
 
 - `ui-components`: hardens `layout` compatibility module docs state matrix contracts by locking Flex+Grid primary playground anchors and `layout`→`["flex", "grid"]` docs mapping in `layout_module_semantics` regression coverage.
