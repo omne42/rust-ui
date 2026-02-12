@@ -98,3 +98,44 @@ fn spinner_styles_include_size_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn spinner_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn spinner() -> AnyView",
+        "title=\"Spinner\"",
+        "slug=\"spinner\"",
+        "Playground title=\"Size Matrix\"",
+        "Playground title=\"Custom Label + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Spinner.",
+        );
+    }
+}
+
+#[test]
+fn spinner_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Size Matrix\"",
+        "<Spinner size=SpinnerSize::Sm />",
+        "<Spinner size=SpinnerSize::Md />",
+        "<Spinner size=SpinnerSize::Lg />",
+        "title=\"Custom Label + Class\"",
+        "<Spinner aria_label=\"Fetching notifications\".to_string() />",
+        "aria_label=\"   \".to_string()",
+        "aria_label=\"Syncing inbox\".to_string()",
+        "class_name=\"docs-spinner-custom\".to_string()",
+        "size=SpinnerSize::Lg",
+    ] {
+        assert!(
+            source.contains(needle),
+            "spinner docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
