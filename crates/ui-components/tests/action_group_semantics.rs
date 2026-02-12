@@ -115,3 +115,47 @@ fn action_group_styles_include_tone_mode_selection_and_markers() {
         );
     }
 }
+
+#[test]
+fn action_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn action_group() -> AnyView",
+        "title=\"ActionGroup\"",
+        "slug=\"action-group\"",
+        "Playground title=\"Single Selection + Action Callback\"",
+        "Playground title=\"Multiple + Strong Tone\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions-extra docs page should contain `{needle}` for ActionGroup.",
+        );
+    }
+}
+
+#[test]
+fn action_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Single Selection + Action Callback\"",
+        "id_base=\"docs-action-group-single\".to_string()",
+        "selected_ids=selected_ids",
+        "on_selected_change=on_selected_change",
+        "on_action=on_action",
+        "selected: ",
+        "last action:",
+        "title=\"Multiple + Strong Tone\"",
+        "id_base=\"docs-action-group-multiple\".to_string()",
+        "selection_mode=ActionGroupSelectionMode::Multiple",
+        "default_selected_ids=BTreeSet::from([",
+        "tone=ActionGroupTone::Strong",
+        "class_name=\"docs-action-group-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
