@@ -131,3 +131,52 @@ fn drop_zone_motion_sanitizes_custom_contract_values() {
         "DropZone view should sanitize motion before forwarding to runtime attachment and data markers.",
     );
 }
+
+#[test]
+fn drop_zone_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
+
+    for needle in [
+        "pub(super) fn drop_zone() -> AnyView",
+        "title=\"DropZone\"",
+        "slug=\"drop-zone\"",
+        "description=\"Drag-and-drop + paste file ingestion with focus handling.\"",
+        "<Playground title=\"Drop / paste\" code=code>",
+        "<Playground title=\"Drop / paste with custom motion\" code=motion_code>",
+        "<DropZone",
+        "label=\"Upload\".to_string()",
+        "label=\"Upload (custom motion)\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "files docs page should include `{needle}` for drop_zone primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn drop_zone_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
+
+    for needle in [
+        "let (files, set_files) = signal(Vec::<DroppedFile>::new());",
+        "let on_drop_files = Callback::new(move |next: Vec<DroppedFile>| set_files.set(next));",
+        "title=\"Drop / paste\"",
+        "label=\"Upload\".to_string()",
+        "on_drop_files=on_drop_files",
+        "\"No files received.\"",
+        "title=\"Drop / paste with custom motion\"",
+        "label=\"Upload (custom motion)\".to_string()",
+        "motion=DropZoneMotion {",
+        "hover_scale: 1.015",
+        "drop_scale: 1.03",
+        "hover_highlight: 0.42",
+        "..DropZoneMotion::default()",
+        "\"Custom spring scale + highlight tuning.\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "drop_zone docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
