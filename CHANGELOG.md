@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ListBox` docs state contracts by locking selection+typeahead and disabled+empty playground anchors in `listbox_semantics` regression coverage.
+
 - `ui-components`: hardens `Menu` docs state contracts by locking kinds+selection and disabled+empty playground anchors in `menu_semantics` regression coverage.
 
 - `ui-components`: hardens `Tabs` docs state contracts by locking automatic+controlled and manual+disabled playground anchors in `tabs_semantics` regression coverage.

@@ -128,3 +128,58 @@ fn listbox_attaches_focus_ring_and_active_highlight_motion() {
         );
     }
 }
+
+#[test]
+fn listbox_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn list_box() -> AnyView",
+        "title=\"ListBox\"",
+        "slug=\"listbox\"",
+        "description=\"Listbox with active highlight spring motion, typeahead, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Selection + Typeahead\" code=code>",
+        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<ListBox",
+        "aria_label=\"Fruit\".to_string()",
+        "disabled=true",
+        "id_base=\"docs-listbox-empty\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for listbox coverage.",
+        );
+    }
+}
+
+#[test]
+fn listbox_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "let items: Arc<[String]> = vec![",
+        "\"Apple\".to_string()",
+        "\"Banana\".to_string()",
+        "\"Cherry\".to_string()",
+        "\"Durian\".to_string()",
+        "let disabled_items: Arc<[String]> = vec![",
+        "\"London\".to_string()",
+        "\"Paris\".to_string()",
+        "\"Tokyo\".to_string()",
+        "let empty_items: Arc<[String]> = Vec::<String>::new().into();",
+        "id_base=\"docs-listbox\".to_string()",
+        "disabled_indices=vec![3]",
+        "\"selected: \"",
+        "id_base=\"docs-listbox-disabled\".to_string()",
+        "aria_label=\"Disabled city list\".to_string()",
+        "\"disabled selected: \"",
+        "id_base=\"docs-listbox-empty\".to_string()",
+        "aria_label=\"Empty city list\".to_string()",
+        "\"empty selected: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "listbox docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
