@@ -131,3 +131,59 @@ fn sidebar_footer_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_footer_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_footer.rs",
+    );
+
+    for needle in [
+        "pub(super) fn sidebar_footer() -> AnyView",
+        "title=\"SidebarFooter\"",
+        "slug=\"sidebar-footer\"",
+        "description=\"Shadcn-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and Spectrum-style data markers.\"",
+        "<Playground title=\"Default Footer Region\" code=default_code>",
+        "<Playground title=\"Disabled + Custom Class\" code=disabled_code>",
+        "<SidebarFooter",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_footer docs should include `{needle}` for sidebar_footer primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_footer_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_footer.rs",
+    );
+
+    for needle in [
+        "title=\"Default Footer Region\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        "aria_label=\"Sidebar footer playground\".to_string()",
+        "<SidebarFooter bordered=true aria_label=\"Workspace footer\".to_string()>",
+        "\"Free plan\"",
+        "\"2 seats remaining\"",
+        "title=\"Disabled + Custom Class\"",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        "aria_label=\"Disabled footer sidebar\".to_string()",
+        "disabled=true",
+        "bordered=true",
+        "aria_label=\"Disabled usage footer\".to_string()",
+        "class_name=\"docs-sidebar-footer-custom\".to_string()",
+        "\"Read-only quota\"",
+        "\"Upgrade required\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_footer docs playgrounds should contain `{needle}` for sidebar_footer contracts.",
+        );
+    }
+}
