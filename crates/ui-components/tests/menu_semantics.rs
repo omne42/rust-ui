@@ -144,3 +144,57 @@ fn menu_styles_include_motion_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn menu_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn menu() -> AnyView",
+        "title=\"Menu\"",
+        "slug=\"menu\"",
+        "description=\"ARIA menu with action / checkbox / radio roles, active-highlight motion, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Kinds + Selection\" code=code>",
+        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<Menu",
+        "item_kinds=vec![",
+        "MenuItemKind::Checkbox",
+        "MenuItemKind::Radio",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for menu coverage.",
+        );
+    }
+}
+
+#[test]
+fn menu_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "let (last, set_last) = signal(None::<usize>);",
+        "let (share_checked, set_share_checked) = signal(true);",
+        "let (sort_ascending, set_sort_ascending) = signal(true);",
+        "set_last.set(Some(index));",
+        "1 => set_share_checked.update(|value| *value = !*value)",
+        "2 => set_sort_ascending.update(|value| *value = !*value)",
+        "id_base=\"docs-menu\".to_string()",
+        "aria_label=\"File actions\".to_string()",
+        "id_base=\"docs-menu-disabled\".to_string()",
+        "aria_label=\"Disabled menu\".to_string()",
+        "id_base=\"docs-menu-empty\".to_string()",
+        "aria_label=\"Empty menu\".to_string()",
+        "\"last action: \"",
+        "\"share checked: \"",
+        "\" · sort ascending: \"",
+        "\"disabled menu (no action)\"",
+        "\"empty menu (0 items)\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "menu docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
