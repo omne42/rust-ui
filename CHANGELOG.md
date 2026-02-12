@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Tags` docs state matrix contracts by locking removable/disabled/state-source playground anchors in `tags_semantics` regression coverage.
+
 - `ui-components`: hardens `Switch` docs state matrix contracts by locking `Controlled + on_change` and `State matrix` playground anchors in `switch_semantics` regression coverage.
 
 - `ui-components`: hardens `SwitchGroup` docs state matrix contracts by locking `Required + Description` and `Horizontal + Invalid + Disabled + Custom Class` playground anchors in `switch_group_semantics` regression coverage.
