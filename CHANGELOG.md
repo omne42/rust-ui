@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FieldGroup` docs state matrix contracts by locking vertical+label+description and horizontal+compact+invalid+disabled playground anchors in `field_group_semantics` regression coverage.
+
 - `ui-components`: hardens `FieldError` docs state matrix contracts by locking visible+tone and hidden+disabled+custom-class playground anchors in `field_error_semantics` regression coverage.
 
 - `ui-components`: hardens `FieldButton` docs state matrix contracts by locking default+quiet and invalid+active+disabled playground anchors in `field_button_semantics` regression coverage.

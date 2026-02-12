@@ -121,3 +121,51 @@ fn field_group_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn field_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+
+    for needle in [
+        "pub(super) fn field_group() -> AnyView",
+        "title=\"FieldGroup\"",
+        "slug=\"field-group\"",
+        "description=\"Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers.\"",
+        "<Playground title=\"Vertical + Label + Description\" code=base_code>",
+        "<Playground title=\"Horizontal + Compact + Invalid + Disabled\" code=states_code>",
+        "<FieldGroup",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_groups docs page should include `{needle}` for field_group primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn field_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+
+    for needle in [
+        "title=\"Vertical + Label + Description\"",
+        "id_base=\"docs-field-group-account\".to_string()",
+        "label=\"Account details\".to_string()",
+        "description=\"Group related fields to keep form scanning predictable.\".to_string()",
+        "placeholder=\"Ada Lovelace\"",
+        "placeholder=\"ada@example.com\"",
+        "title=\"Horizontal + Compact + Invalid + Disabled\"",
+        "id_base=\"docs-field-group-billing\".to_string()",
+        "orientation=FieldGroupOrientation::Horizontal",
+        "density=FieldGroupDensity::Compact",
+        "invalid=true",
+        "disabled=true",
+        "class_name=\"docs-field-group-custom\".to_string()",
+        "aria_label=\"Billing field cluster\".to_string()",
+        "error_message=\"VAT ID is required\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
