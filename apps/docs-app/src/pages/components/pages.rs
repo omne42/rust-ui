@@ -36,6 +36,7 @@ mod forms_extra;
 mod forms_extra_field_label;
 mod forms_extra_search;
 mod forms_extra_textfield;
+mod forms_extra_visually_hidden;
 mod forms_groups;
 mod forms_groups_extra;
 mod forms_native;
@@ -163,6 +164,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("Input", "input", "Forms", forms::input),
     component_doc!("Label", "label", "Forms", forms_extra::label),
     component_doc!("FieldLabel", "field-label", "Forms", fxl::field_label),
+    component_doc!(
+        "VisuallyHidden",
+        "visually-hidden",
+        "Forms",
+        forms_extra_visually_hidden::visually_hidden
+    ),
     ComponentDoc {
         name: "Legend",
         slug: "legend",

@@ -240,6 +240,7 @@ pub mod underlay;
 pub mod utils;
 pub mod view;
 pub mod virtualizer;
+pub mod visually_hidden;
 pub mod well;
 
 pub use accordion::{Accordion, AccordionMotion, AccordionSelectionMode};
@@ -509,6 +510,7 @@ pub use view::{
     View, ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow,
 };
 pub use virtualizer::{Virtualizer, VirtualizerOrientation};
+pub use visually_hidden::VisuallyHidden;
 pub use well::{Well, WellDensity, WellTone};
 
 #[doc(hidden)]
