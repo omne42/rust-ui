@@ -143,3 +143,56 @@ fn icons_workflow_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn icons_workflow_docs_default_and_custom_playgrounds_lock_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_icons_workflow.rs",
+    );
+
+    for needle in [
+        "<Playground title=\"Built-in Workflow Glyphs\" code=defaults_code>",
+        "icon=\"success\".to_string()",
+        "icon=\"warning\".to_string()",
+        "size=IconsWorkflowSize::Md",
+        "tone=IconsWorkflowTone::Accent",
+        "tone=IconsWorkflowTone::Danger",
+        "decorative=false",
+        "<Playground title=\"Custom Workflow Extension\" code=custom_code>",
+        "icon=\"workflow:deploy\".to_string()",
+        "IconsetGlyph::new(\"workflow:deploy\", \"🚀\")",
+        ".with_aria_label(\"Workflow Deploy\")",
+        "size=IconsWorkflowSize::Lg",
+        "tone=IconsWorkflowTone::Default",
+        "class_name=\"docs-icons-workflow-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons_workflow docs default/custom playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn icons_workflow_docs_state_source_playground_locks_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_icons_workflow.rs",
+    );
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "icon=\"success\".to_string()",
+        "IconsetGlyph::new(\"workflow:success\", \"✓\")",
+        ".with_aria_label(\"Workflow Success\")",
+        "size=IconsWorkflowSize::Lg",
+        "tone=IconsWorkflowTone::Muted",
+        "decorative=false",
+        "aria_label=\"Explicit workflow success icon\".to_string()",
+        "class_name=\"docs-icons-workflow-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons_workflow docs marker playground should contain `{needle}`.",
+        );
+    }
+}
