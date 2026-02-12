@@ -127,3 +127,47 @@ fn top_nav_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn top_nav_docs_controlled_state_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_top_nav.rs");
+
+    for needle in [
+        "title=\"Controlled + Label + Disabled Item\"",
+        "id_base=\"docs-top-nav-controlled\".to_string()",
+        "selected_id=controlled_selected",
+        "on_selected_id_change=on_controlled_selected_change",
+        "activate_on_focus=false",
+        "label=\"Main application sections\".to_string()",
+        "class_name=\"docs-top-nav-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TopNav docs controlled-state playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn top_nav_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_top_nav.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-top-nav-markers\".to_string()",
+        "default_selected_id=\"docs\".to_string()",
+        "label=\"Primary sections\".to_string()",
+        "class_name=\"docs-top-nav-state\".to_string()",
+        "let mut marker_motion = TopNavMotion::default();",
+        "marker_motion.spring.stiffness = 320.0",
+        "marker_motion.spring.damping = 24.0",
+        "motion=marker_motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TopNav docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
