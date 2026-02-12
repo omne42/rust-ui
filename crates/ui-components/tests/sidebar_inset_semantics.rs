@@ -131,3 +131,59 @@ fn sidebar_inset_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_inset_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_inset.rs");
+
+    for needle in [
+        "pub(super) fn sidebar_inset() -> AnyView",
+        "title=\"SidebarInset\"",
+        "slug=\"sidebar-inset\"",
+        "description=\"Shadcn-compatible sidebar inset primitive with side/padding/surface contracts and Spectrum-style root data markers.\"",
+        "<Playground title=\"Default Inset Region\" code=default_code>",
+        "<Playground title=\"Compact + Plain + Disabled\" code=compact_code>",
+        "<SidebarInset",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_inset docs should include `{needle}` for sidebar_inset primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_inset_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_inset.rs");
+
+    for needle in [
+        "title=\"Default Inset Region\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        "show_trigger=false",
+        "aria_label=\"Sidebar inset playground\".to_string()",
+        "<SidebarInset aria_label=\"Workspace inset region\".to_string()>",
+        "\"Overview\"",
+        "\"Recent activity\"",
+        "\"Pinned links\"",
+        "title=\"Compact + Plain + Disabled\"",
+        "side=SidebarSide::Right",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "aria_label=\"Inspector sidebar inset\".to_string()",
+        "padded=false",
+        "recessed=false",
+        "disabled=true",
+        "aria_label=\"Inspector inset panel\".to_string()",
+        "class_name=\"docs-sidebar-inset-custom\".to_string()",
+        "\"Read-only\"",
+        "\"3 warnings\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_inset docs playgrounds should contain `{needle}` for sidebar_inset contracts.",
+        );
+    }
+}
