@@ -40,6 +40,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `ColorThumb` docs state contracts by locking focused+dragging+position and disabled+custom-class+loupe-off playground anchors in `color_thumb_semantics` regression coverage.
 
+- `ui-components`: hardens `ColorWheel` docs state contracts by locking controlled-hue-wheel and disabled+reduced-motion+custom-class playground anchors in `color_wheel_semantics` regression coverage.
+
 - `ui-components`: hardens `CheckboxGroup` docs state contracts by locking validation+required and disabled+optional playground anchors in `checkbox_group_semantics` regression coverage.
 
 - `ui-components`: hardens `CheckboxField` docs state contracts by locking controlled+description and indicator-end quiet invalid/disabled matrix playground anchors in `checkbox_field_semantics` regression coverage.

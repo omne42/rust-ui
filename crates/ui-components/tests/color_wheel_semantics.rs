@@ -99,3 +99,47 @@ fn color_wheel_styles_include_ring_orbit_and_state_contracts() {
         );
     }
 }
+
+#[test]
+fn color_wheel_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_wheel() -> AnyView",
+        "title=\"ColorWheel\"",
+        "slug=\"color-wheel\"",
+        "title=\"Controlled Hue Wheel\"",
+        "title=\"Disabled + Reduced Motion + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-wheel docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_wheel_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled Hue Wheel\" code=basic_code>",
+        "id_base=\"docs-color-wheel-hue\".to_string()",
+        "value=value.into()",
+        "on_value_change=on_value_change",
+        "<Playground title=\"Disabled + Reduced Motion + Custom Class\" code=states_code>",
+        "id_base=\"docs-color-wheel-disabled\".to_string()",
+        "value=disabled_value.into()",
+        "on_value_change=on_disabled_change",
+        "disabled=true",
+        "id_base=\"docs-color-wheel-custom\".to_string()",
+        "default_value=282.0",
+        "motion=reduced_motion",
+        "class_name=\"docs-color-wheel-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-wheel docs playground should contain `{needle}`.",
+        );
+    }
+}
