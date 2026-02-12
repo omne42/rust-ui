@@ -160,3 +160,45 @@ fn search_input_button_docs_state_and_custom_playgrounds_lock_contract_values() 
         );
     }
 }
+
+#[test]
+fn button_search_input_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn search_input_button() -> AnyView",
+        "title=\"SearchInputButton\"",
+        "slug=\"search-input-button\"",
+        "title=\"Interactive + shortcut\"",
+        "title=\"Placeholder + disabled matrix\"",
+        "title=\"Custom Class + Aria Label\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "search-input-button docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_search_input_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Interactive + shortcut\" code=code>",
+        "placeholder=\"Search docs\".to_string()",
+        "compact_placeholder=\"Search\".to_string()",
+        "meta_key_label=\"⌘\".to_string()",
+        "<Playground title=\"Placeholder + disabled matrix\" code=states_code>",
+        "placeholder=\"Disabled search\".to_string() disabled=true",
+        "placeholder=\"Forced disabled\".to_string()",
+        "is_disabled=true",
+        "<Playground title=\"Custom Class + Aria Label\" code=custom_code>",
+        "class_name=\"docs-search-input-button-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "search-input-button docs playground should contain `{needle}`.",
+        );
+    }
+}
