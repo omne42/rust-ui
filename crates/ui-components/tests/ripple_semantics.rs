@@ -127,3 +127,45 @@ fn ripple_motion_sanitizes_and_supports_origin_triggering() {
         );
     }
 }
+
+#[test]
+fn ripple_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn motion_ripple() -> AnyView",
+        "title=\"MotionRipple\"",
+        "slug=\"motion-ripple\"",
+        "Playground title=\"Animation Matrix\"",
+        "Playground title=\"Custom Boundary + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for MotionRipple.",
+        );
+    }
+}
+
+#[test]
+fn ripple_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "let matrix_code = r#\"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />",
+        "duration_ms: 880",
+        "let custom_code = r#\"<MotionRipple",
+        "bounded=false",
+        "duration_ms: 620",
+        "duration_ms: 520",
+        "ui_components::ripple::motion::trigger_ripple_at(",
+        "18.0,",
+        "48.0,",
+        "class_name=\"docs-ripple-custom\".to_string()",
+        "\"Unbounded + Origin\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "motion-ripple docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

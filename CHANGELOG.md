@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `MotionRipple` docs state contracts by locking animation-matrix and custom-boundary+class playground anchors (including unbounded origin trigger inputs) in `ripple_semantics` regression coverage.
+
 - `ui-components`: hardens `IllustratedMessage` docs state contracts by locking empty-state playground anchors (`title`/`description`/`illustration`/`actions`) in `illustrated_message_semantics` regression coverage.
 
 - `ui-components`: hardens `Image` docs state contracts by locking image playground anchors (`src`/`alt`/`radius`/`shadow`/`is_zoomed`) in `image_semantics` regression coverage.
