@@ -160,3 +160,62 @@ fn number_docs_page_contains_static_and_sliding_playgrounds() {
         );
     }
 }
+
+#[test]
+fn number_docs_static_number_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn static_number() -> AnyView",
+        "<Playground title=\"Formatting Matrix\" code=matrix_code>",
+        "number=12345.67",
+        "number=-9876.5",
+        "number=1000.0",
+        "decimal_places=2",
+        "decimal_places=1",
+        "decimal_places=0",
+        "thousand_separator=\",\".to_string()",
+        "<Playground title=\"Custom Separators + Class\" code=custom_code>",
+        "number=42.123456789",
+        "decimal_separator=\",\".to_string()",
+        "decimal_places=30",
+        "thousand_separator=\" \".to_string()",
+        "number=f64::NAN",
+        "class_name=\"docs-static-number-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number static docs playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn number_docs_sliding_number_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn sliding_number() -> AnyView",
+        "<Playground title=\"Animated Matrix\" code=matrix_code>",
+        "number=number_signal",
+        "decimal_places=2",
+        "thousand_separator=\",\".to_string()",
+        "decimal_places=0",
+        "set_value.update(|v| *v += 250.0)",
+        "set_value.update(|v| *v -= 100.0)",
+        "<Playground title=\"Custom Separators + Motion + Class\" code=custom_code>",
+        "number=Signal::derive(|| 42123.456)",
+        "decimal_separator=\",\".to_string()",
+        "decimal_places=30",
+        "thousand_separator=\" \".to_string()",
+        "motion=ui_components::SlidingNumberMotion {",
+        "animate: false,",
+        "number=Signal::derive(|| f64::NAN)",
+        "class_name=\"docs-sliding-number-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number sliding docs playground should contain `{needle}`.",
+        );
+    }
+}
