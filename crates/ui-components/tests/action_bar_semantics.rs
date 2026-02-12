@@ -244,3 +244,49 @@ fn action_bar_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn action_bar_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn action_bar() -> AnyView",
+        "title=\"ActionBar\"",
+        "slug=\"action-bar\"",
+        "Playground title=\"Selection + clear action\"",
+        "Playground title=\"Top placement + custom text + reduced motion\"",
+        "Playground title=\"Custom Motion Contract\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions-extra docs page should contain `{needle}` for ActionBar.",
+        );
+    }
+}
+
+#[test]
+fn action_bar_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Selection + clear action\"",
+        "selected_count=selected_count_signal",
+        "on_clear_selection=clear_selection",
+        "aria_label=\"Bulk actions\".to_string()",
+        "class_name=\"docs-action-bar\".to_string()",
+        "title=\"Top placement + custom text + reduced motion\"",
+        "position=ActionBarPosition::Top",
+        "force_visible=true",
+        "selection_text=\"Rows selected\".to_string()",
+        "clear_label=\"Clear all\".to_string()",
+        "motion=ActionBarMotion::disabled()",
+        "title=\"Custom Motion Contract\"",
+        "custom_motion.hidden_translate_px = 44.0;",
+        "custom_motion.hidden_opacity = 0.22;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action-bar docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
