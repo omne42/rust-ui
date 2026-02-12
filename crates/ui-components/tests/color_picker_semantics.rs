@@ -145,3 +145,49 @@ fn color_picker_motion_sanitizes_custom_contract_values() {
         "ColorPicker view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn color_picker_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_picker() -> AnyView",
+        "title=\"ColorPicker\"",
+        "slug=\"color-picker\"",
+        "title=\"Controlled Color + Controlled Open\"",
+        "title=\"Disabled + Default Open + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-picker docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_picker_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled Color + Controlled Open\" code=basic_code>",
+        "id_base=\"docs-color-picker-basic\".to_string()",
+        "selected_color=selected_color_signal",
+        "on_selected_change=on_selected_change",
+        "open=open_signal",
+        "on_open_change=on_open_change",
+        "<ColorSwatchPicker",
+        "<Playground title=\"Disabled + Default Open + Custom Class\" code=states_code>",
+        "id_base=\"docs-color-picker-disabled\".to_string()",
+        "default_selected_color=\"#0ea5e9\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-color-picker-custom\".to_string()",
+        "id_base=\"docs-color-picker-open\".to_string()",
+        "default_selected_color=\"#8b5cf6\".to_string()",
+        "default_open=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-picker docs playground should contain `{needle}`.",
+        );
+    }
+}
