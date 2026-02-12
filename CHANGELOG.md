@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Calendar` docs state contracts by locking default+outside-days and monday-first+strong-tone playground anchors in `calendar_semantics` regression coverage.
+
 - `ui-components`: hardens `ThemeToggleButton` docs state contracts by locking default-cycle and custom-modes+disabled playground anchors in `button_theme_toggle_semantics` regression coverage.
 
 - `ui-components`: hardens `ShareButton` docs state contracts by locking default-callback, icon-placement matrix, and custom-class+direction playground anchors in `button_share_semantics` regression coverage.

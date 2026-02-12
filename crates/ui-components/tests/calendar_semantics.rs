@@ -123,3 +123,48 @@ fn calendar_styles_include_tone_weekday_and_selection_markers() {
         );
     }
 }
+
+#[test]
+fn calendar_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn calendar() -> AnyView",
+        "title=\"Calendar\"",
+        "slug=\"calendar\"",
+        "title=\"Default + Outside Days\"",
+        "title=\"Monday First + Strong Tone\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "calendar docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn calendar_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Default + Outside Days\" code=code>",
+        "year=2026",
+        "month=1",
+        "selected_day=Some(6)",
+        "tone=CalendarTone::Default",
+        "first_weekday=CalendarFirstWeekday::Sunday",
+        "show_outside_days=true",
+        "<Playground title=\"Monday First + Strong Tone\" code=states_code>",
+        "month=2",
+        "selected_day=Some(14)",
+        "tone=CalendarTone::Strong",
+        "first_weekday=CalendarFirstWeekday::Monday",
+        "show_outside_days=false",
+        "class_name=\"docs-calendar-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "calendar docs playground should contain `{needle}`.",
+        );
+    }
+}
