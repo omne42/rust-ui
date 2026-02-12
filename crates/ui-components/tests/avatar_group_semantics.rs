@@ -127,3 +127,46 @@ fn avatar_group_styles_include_state_source_and_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn avatar_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn avatar_group() -> AnyView",
+        "title=\"AvatarGroup\"",
+        "slug=\"avatar-group\"",
+        "Playground title=\"Overflow Stack\"",
+        "Playground title=\"Sizes Without Overflow\"",
+        "Playground title=\"Custom Aria + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for AvatarGroup.",
+        );
+    }
+}
+
+#[test]
+fn avatar_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Overflow Stack\"",
+        "<AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />",
+        "max=2",
+        "aria_label=\"Core collaborators\".to_string()",
+        "title=\"Sizes Without Overflow\"",
+        "<AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Sm />",
+        "<AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Lg />",
+        "title=\"Custom Aria + Class\"",
+        "items=empty_items.clone()",
+        "aria_label=\"No collaborators\".to_string()",
+        "class_name=\"docs-avatar-group-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "avatar-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
