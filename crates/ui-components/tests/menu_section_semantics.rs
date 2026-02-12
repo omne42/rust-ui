@@ -126,3 +126,58 @@ fn menu_section_supports_group_accessibility_and_items_layout() {
         );
     }
 }
+
+#[test]
+fn menu_section_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn menu_section() -> AnyView",
+        "title=\"MenuSection\"",
+        "slug=\"menu-section\"",
+        "description=\"Spectrum/HeroUI-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts.\"",
+        "<Playground title=\"Default Section\" code=code>",
+        "<Playground title=\"Quiet + Sticky + Divider + Empty\" code=states_code>",
+        "<MenuSection",
+        "heading_tone=MenuSectionHeadingTone::Quiet",
+        "sticky_heading=true",
+        "show_divider=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for menu-section coverage.",
+        );
+    }
+}
+
+#[test]
+fn menu_section_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "let (pinned_checked, set_pinned_checked) = signal(true);",
+        "let (primary_checked, set_primary_checked) = signal(true);",
+        "set_pinned_checked.update(|value| *value = !*value)",
+        "set_primary_checked.update(|value| *value = !*value)",
+        "title=\"Workspace actions\".to_string()",
+        "aria_label=\"Workspace actions section\".to_string()",
+        "\"Open workspace\"",
+        "\"Rename workspace\"",
+        "\"Archive workspace\"",
+        "title=\"Advanced routing\".to_string()",
+        "class_name=\"docs-menu-section-custom\".to_string()",
+        "\"Set as primary route\"",
+        "\"Pin fallback route\"",
+        "title=\"Empty state\".to_string()",
+        "item_count=0",
+        "disabled=true",
+        "\"No actions available\"",
+        "\"primary selected: \"",
+        "\" · pinned: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "menu-section docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
