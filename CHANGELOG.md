@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Drawer` with class/data dual source markers for id/title/description/footer/close contracts, aligns drawer source selectors in styles, and hardens `drawer_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `Sheet` with class/data dual source markers for `aria-labelledby`/`aria-describedby` contracts, aligns sheet source selectors in styles, and hardens `sheet_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `Popover` with class/data dual source markers for modal source contracts, aligns popover modal selectors in styles, and hardens `popover_semantics` coverage for stable Spectrum-compatible state-source contracts.

@@ -19,23 +19,33 @@ pub const CSS: &str = r#"
   --ui-drawer-placement-source: custom;
 }
 
-.ui-drawer[data-description-source="custom"] {
+.ui-drawer--custom-description,
+.ui-drawer[data-description-source="custom"],
+.ui-drawer[data-custom-description="true"] {
   --ui-drawer-description-source: custom;
 }
 
-.ui-drawer[data-footer-source="custom"] {
+.ui-drawer--custom-footer,
+.ui-drawer[data-footer-source="custom"],
+.ui-drawer[data-custom-footer="true"] {
   --ui-drawer-footer-source: custom;
 }
 
-.ui-drawer[data-close-source="custom"] {
+.ui-drawer--custom-close,
+.ui-drawer[data-close-source="custom"],
+.ui-drawer[data-custom-close="true"] {
   --ui-drawer-close-source: custom;
 }
 
-.ui-drawer[data-id-source="custom"] {
+.ui-drawer--custom-id,
+.ui-drawer[data-id-source="custom"],
+.ui-drawer[data-custom-id="true"] {
   --ui-drawer-id-source: custom;
 }
 
-.ui-drawer[data-title-source="custom"] {
+.ui-drawer--custom-title,
+.ui-drawer[data-title-source="custom"],
+.ui-drawer[data-custom-title="true"] {
   --ui-drawer-title-source: custom;
 }
 

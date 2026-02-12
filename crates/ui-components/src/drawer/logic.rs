@@ -134,6 +134,26 @@ pub fn compose_class_name(base_class_name: Option<String>, state: DrawerPartStat
             classes.push("ui-drawer--custom-placement".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-drawer--custom-id".to_string());
+        }
+
+        if state.has_custom_title {
+            classes.push("ui-drawer--custom-title".to_string());
+        }
+
+        if state.has_custom_description {
+            classes.push("ui-drawer--custom-description".to_string());
+        }
+
+        if state.footer_source_attr == "custom" {
+            classes.push("ui-drawer--custom-footer".to_string());
+        }
+
+        if state.close_source_attr == "custom" {
+            classes.push("ui-drawer--custom-close".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-drawer--custom-motion".to_string());
         }
@@ -241,12 +261,12 @@ mod tests {
             resolve_state(DrawerPartStateInput {
                 slot: DrawerSlot::Root,
                 placement: DrawerPlacement::Left,
-                has_description: false,
+                has_description: true,
                 has_footer: true,
                 show_close_button: false,
-                has_custom_id_base: false,
-                has_custom_title: false,
-                has_custom_description: false,
+                has_custom_id_base: true,
+                has_custom_title: true,
+                has_custom_description: true,
                 has_custom_class_name: true,
                 has_custom_motion: true,
                 has_on_exit_complete: true,
@@ -256,10 +276,15 @@ mod tests {
         for token in [
             "ui-drawer",
             "ui-drawer--placement-left",
-            "ui-drawer--title-only",
+            "ui-drawer--with-description",
             "ui-drawer--with-footer",
             "ui-drawer--close-hidden",
             "ui-drawer--custom-placement",
+            "ui-drawer--custom-id",
+            "ui-drawer--custom-title",
+            "ui-drawer--custom-description",
+            "ui-drawer--custom-footer",
+            "ui-drawer--custom-close",
             "ui-drawer--custom-motion",
             "ui-drawer--custom-exit",
             "ui-drawer--custom-class",
