@@ -117,3 +117,48 @@ fn scroll_area_docs_page_exists_in_layout_extra() {
         );
     }
 }
+
+#[test]
+fn scroll_area_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn scroll_area() -> AnyView",
+        "title=\"ScrollArea\"",
+        "slug=\"scroll-area\"",
+        "description=\"Shadcn-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts.\"",
+        "<Playground title=\"Vertical + Max Height\" code=default_code>",
+        "<Playground title=\"Horizontal + Both + Disabled\" code=state_code>",
+        "<ScrollArea",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs should include `{needle}` for scroll-area primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn scroll_area_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Vertical + Max Height\"",
+        "<ScrollArea max_height_px=180>",
+        "Release note",
+        "title=\"Horizontal + Both + Disabled\"",
+        "orientation=ScrollAreaOrientation::Horizontal",
+        "max_height_px=120",
+        "class_name=\"docs-scroll-area-custom\".to_string()",
+        "Tag",
+        "orientation=ScrollAreaOrientation::Both",
+        "disabled=true",
+        "aria_label=\"Disabled logs\".to_string()",
+        "Cell",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs playgrounds should contain `{needle}` for scroll-area contracts.",
+        );
+    }
+}
