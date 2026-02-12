@@ -23,12 +23,15 @@ fn select_uses_logic_state_model() {
     let logic_source = load_source("src/select/logic.rs");
 
     for needle in [
+        "pub struct SelectStateInput",
         "pub struct SelectState",
-        "pub fn resolve_state(",
-        "pub item_count: usize",
-        "pub has_selection: bool",
-        "pub has_disabled_options: bool",
-        "pub disabled_option_count: usize",
+        "pub fn normalize_id_base(",
+        "pub fn resolve_placeholder(",
+        "pub fn resolve_disabled_option_count(",
+        "pub fn resolve_state(input: SelectStateInput)",
+        "pub fn compose_class_name(",
+        "pub class_source_attr: &'static str",
+        "pub motion_source_attr: &'static str",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -37,13 +40,14 @@ fn select_uses_logic_state_model() {
     }
 
     for needle in [
-        "let state = Memo::new(move |_|",
-        "logic::resolve_state(",
-        "selected_index.get()",
+        "let state = Signal::derive(move ||",
+        "logic::resolve_state(logic::SelectStateInput {",
+        "selected_index: selected_index.get()",
+        "let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));",
     ] {
         assert!(
             view_source.contains(needle),
-            "Select view should derive root state via logic::resolve_state; missing `{needle}`."
+            "Select view should derive root state via logic helpers; missing `{needle}`."
         );
     }
 }
@@ -57,6 +61,7 @@ fn select_supports_controlled_and_uncontrolled_open_state() {
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
         "motion: SelectMotion",
+        "class_name: Option<String>",
     ] {
         assert!(
             source.contains(needle),
@@ -116,13 +121,34 @@ fn select_exposes_root_state_and_slot_data_attributes() {
         "data-selected-index=move || state.get().selected_index.map(|index| index.to_string())",
         "data-has-disabled-options=move || state.get().has_disabled_options.then_some(\"true\")",
         "data-disabled-option-count=move || state.get().disabled_option_count.to_string()",
-        "data-motion-source=if motion == SelectMotion::default()",
-        "data-custom-motion=(motion != SelectMotion::default()).then_some(\"true\")",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
         "data-slot=\"select-panel\"",
     ] {
         assert!(
             source.contains(needle),
             "Select should expose `{needle}` for Spectrum-style state styling and regression tests."
+        );
+    }
+}
+
+#[test]
+fn select_styles_include_source_marker_selectors() {
+    let source = load_source("src/select/styles.rs");
+
+    for needle in [
+        ".ui-select[data-class-source=\"custom\"]",
+        ".ui-select[data-custom-class=\"true\"]",
+        ".ui-select--custom-class",
+        ".ui-select[data-motion-source=\"custom\"]",
+        ".ui-select[data-custom-motion=\"true\"]",
+        ".ui-select--custom-motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Select styles should include `{needle}` for stable source-marker contracts."
         );
     }
 }

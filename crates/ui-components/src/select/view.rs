@@ -19,8 +19,14 @@ pub fn Select(
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional)] motion: SelectMotion,
+    #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let motion = crate::select::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != SelectMotion::default();
+
+    let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
     let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);
@@ -28,6 +34,8 @@ pub fn Select(
     let disabled_set: HashSet<usize> = disabled_indices.iter().copied().collect();
     let disabled_set: StoredValue<Arc<HashSet<usize>>> = StoredValue::new(Arc::new(disabled_set));
     let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
+    let disabled_option_count =
+        logic::resolve_disabled_option_count(disabled_set.get_value().as_ref(), item_count);
 
     let (open_focus, set_open_focus) = signal(logic::SelectOpenFocusStrategy::Selected);
     let (typeahead, set_typeahead) = signal(String::new());
@@ -40,16 +48,18 @@ pub fn Select(
 
     let presence = use_presence(open);
 
-    let state = Memo::new(move |_| {
-        let disabled_set = disabled_set.get_value();
-        logic::resolve_state(
+    let state = Signal::derive(move || {
+        logic::resolve_state(logic::SelectStateInput {
             disabled,
             item_count,
-            selected_index.get(),
-            disabled_set.as_ref(),
-            open.get(),
-        )
+            selected_index: selected_index.get(),
+            disabled_option_count,
+            is_open: open.get(),
+            has_custom_class_name,
+            has_custom_motion,
+        })
     });
+    let class = Signal::derive(move || logic::compose_class_name(class_name.clone(), state.get()));
 
     let anchor_ref: NodeRef<html::Button> = NodeRef::new();
 
@@ -66,7 +76,7 @@ pub fn Select(
     });
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
-    let placeholder = placeholder.unwrap_or_else(|| "Select…".to_string());
+    let placeholder = logic::resolve_placeholder(placeholder);
     let trigger_label = Memo::new({
         let placeholder = placeholder.clone();
         move |_| {
@@ -78,6 +88,7 @@ pub fn Select(
         }
     });
 
+    let id_base = logic::normalize_id_base(id_base);
     let id_base = StoredValue::new(id_base);
     let ids = logic::resolve_ids(&id_base.get_value());
     let trigger_id = StoredValue::new(ids.trigger_id);
@@ -203,7 +214,7 @@ pub fn Select(
 
     view! {
         <div
-            class="ui-select"
+            class=move || class.get()
             on:keydown=on_key_down
             on:keyup=on_key_up
             data-slot="select"
@@ -219,12 +230,10 @@ pub fn Select(
             data-selected-index=move || state.get().selected_index.map(|index| index.to_string())
             data-has-disabled-options=move || state.get().has_disabled_options.then_some("true")
             data-disabled-option-count=move || state.get().disabled_option_count.to_string()
-            data-motion-source=if motion == SelectMotion::default() {
-                "default"
-            } else {
-                "custom"
-            }
-            data-custom-motion=(motion != SelectMotion::default()).then_some("true")
+            data-class-source=move || state.get().class_source_attr
+            data-motion-source=move || state.get().motion_source_attr
+            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
+            data-custom-motion=move || state.get().has_custom_motion.then_some("true")
         >
             <Button
                 id=trigger_id.get_value()

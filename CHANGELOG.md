@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Select` with class/data dual source markers for class/motion contracts, aligns select source selectors in styles, and hardens `select_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `Autocomplete` with class/data dual source markers for label/description/error/placeholder/id/class/motion contracts, aligns autocomplete source selectors in styles, and hardens `autocomplete_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `ComboBox` with class/data dual source markers for label/description/error/placeholder/id/class/motion contracts, aligns combo-box source selectors in styles, and hardens `combo_box_semantics` coverage for stable Spectrum-compatible state-source contracts.
