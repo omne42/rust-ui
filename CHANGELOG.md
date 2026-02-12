@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Toggle` docs state matrix contracts by locking outline-disabled/state-source playground anchors in `toggle_semantics` regression coverage.
+
 - `ui-components`: hardens `Toaster` docs state matrix contracts by locking state-source/custom-motion playground anchors in `toaster_semantics` regression coverage.
 
 - `ui-components`: hardens `Toast` docs state matrix contracts by locking state-source/custom-motion playground anchors in `toast_semantics` regression coverage.
