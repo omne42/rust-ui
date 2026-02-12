@@ -255,3 +255,23 @@ fn alert_dialog_motion_sanitizes_custom_contract_values() {
         "AlertDialog view should sanitize motion before forwarding to Overlay.",
     );
 }
+
+#[test]
+fn alert_dialog_docs_page_locks_custom_motion_marker_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "motion=ui_components::AlertDialogMotion {",
+        "overlay: ui_components::OverlayMotion {",
+        "initial_scale: 0.95",
+        "initial_y_px: 12.0",
+        "auto_focus_button=ui_components::AlertDialogAutoFocusButton::Secondary",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert dialog docs page should include `{needle}` for motion/source marker regression stability."
+        );
+    }
+}

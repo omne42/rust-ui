@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `AlertDialog` motion docs contracts by locking custom overlay-motion marker values (`initial_scale`/`initial_y_px` + autofocus source) in `alert_dialog_semantics` regression coverage.
+
 - `docs-app`/`ui-components`: adds a dedicated `Custom Motion Contract` hover-card playground (`overlays_hover_card::hover_card`) and extends `hover_card_semantics` to lock these motion-demo contracts against regression.
 
 - `docs-app`/`ui-components`: adds a dedicated `Custom Motion Contract` tooltip playground (`overlays_tooltip::tooltip`) and extends `tooltip_semantics` to lock these motion-demo contracts against regression.
