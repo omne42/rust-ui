@@ -26,7 +26,17 @@ impl ButtonVariant {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ButtonSize {
+    Xs,
+    S,
     #[default]
+    M,
+    L,
+    Xl,
+    IconXs,
+    IconS,
+    IconM,
+    IconL,
+    IconXl,
     Default,
     Sm,
     Lg,
@@ -38,12 +48,22 @@ pub enum ButtonSize {
 impl ButtonSize {
     pub fn class_name(self) -> &'static str {
         match self {
-            ButtonSize::Default => "ui-button--size-default",
-            ButtonSize::Sm => "ui-button--size-sm",
-            ButtonSize::Lg => "ui-button--size-lg",
-            ButtonSize::Icon => "ui-button--size-icon",
-            ButtonSize::IconSm => "ui-button--size-icon-sm",
-            ButtonSize::IconLg => "ui-button--size-icon-lg",
+            ButtonSize::Xs => "ui-button--size-xs",
+            ButtonSize::S => "ui-button--size-s",
+            ButtonSize::M => "ui-button--size-m",
+            ButtonSize::L => "ui-button--size-l",
+            ButtonSize::Xl => "ui-button--size-xl",
+            ButtonSize::IconXs => "ui-button--size-icon-xs",
+            ButtonSize::IconS => "ui-button--size-icon-s",
+            ButtonSize::IconM => "ui-button--size-icon-m",
+            ButtonSize::IconL => "ui-button--size-icon-l",
+            ButtonSize::IconXl => "ui-button--size-icon-xl",
+            ButtonSize::Default => "ui-button--size-m",
+            ButtonSize::Sm => "ui-button--size-s",
+            ButtonSize::Lg => "ui-button--size-l",
+            ButtonSize::Icon => "ui-button--size-icon-m",
+            ButtonSize::IconSm => "ui-button--size-icon-s",
+            ButtonSize::IconLg => "ui-button--size-icon-l",
         }
     }
 }
@@ -114,12 +134,23 @@ mod tests {
 
     #[test]
     fn size_class_names_are_stable() {
-        assert_eq!(ButtonSize::Default.class_name(), "ui-button--size-default");
-        assert_eq!(ButtonSize::Sm.class_name(), "ui-button--size-sm");
-        assert_eq!(ButtonSize::Lg.class_name(), "ui-button--size-lg");
-        assert_eq!(ButtonSize::Icon.class_name(), "ui-button--size-icon");
-        assert_eq!(ButtonSize::IconSm.class_name(), "ui-button--size-icon-sm");
-        assert_eq!(ButtonSize::IconLg.class_name(), "ui-button--size-icon-lg");
+        assert_eq!(ButtonSize::Xs.class_name(), "ui-button--size-xs");
+        assert_eq!(ButtonSize::S.class_name(), "ui-button--size-s");
+        assert_eq!(ButtonSize::M.class_name(), "ui-button--size-m");
+        assert_eq!(ButtonSize::L.class_name(), "ui-button--size-l");
+        assert_eq!(ButtonSize::Xl.class_name(), "ui-button--size-xl");
+        assert_eq!(ButtonSize::IconXs.class_name(), "ui-button--size-icon-xs");
+        assert_eq!(ButtonSize::IconS.class_name(), "ui-button--size-icon-s");
+        assert_eq!(ButtonSize::IconM.class_name(), "ui-button--size-icon-m");
+        assert_eq!(ButtonSize::IconL.class_name(), "ui-button--size-icon-l");
+        assert_eq!(ButtonSize::IconXl.class_name(), "ui-button--size-icon-xl");
+
+        assert_eq!(ButtonSize::Default.class_name(), "ui-button--size-m");
+        assert_eq!(ButtonSize::Sm.class_name(), "ui-button--size-s");
+        assert_eq!(ButtonSize::Lg.class_name(), "ui-button--size-l");
+        assert_eq!(ButtonSize::Icon.class_name(), "ui-button--size-icon-m");
+        assert_eq!(ButtonSize::IconSm.class_name(), "ui-button--size-icon-s");
+        assert_eq!(ButtonSize::IconLg.class_name(), "ui-button--size-icon-l");
     }
 
     #[test]

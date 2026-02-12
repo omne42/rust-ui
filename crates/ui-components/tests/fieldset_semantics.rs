@@ -154,7 +154,7 @@ fn fieldset_docs_playgrounds_lock_state_matrix_contract_values() {
         "error_message=\"Pick at least one channel\".to_string()",
         "class_name=\"docs-fieldset-custom\".to_string()",
         "variant=ui_components::ButtonVariant::Secondary",
-        "size=ui_components::ButtonSize::Sm",
+        "size=ui_components::ButtonSize::S",
         "\"Manage channels\"",
     ] {
         assert!(

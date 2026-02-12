@@ -157,9 +157,17 @@ pub fn resolve_items(items: &[ShareButtonItem]) -> ResolvedShareItems {
 
 pub fn resolve_icon_button_size(size: ButtonSize) -> ButtonSize {
     match size {
-        ButtonSize::Sm | ButtonSize::IconSm => ButtonSize::IconSm,
-        ButtonSize::Lg | ButtonSize::IconLg => ButtonSize::IconLg,
-        _ => ButtonSize::Icon,
+        ButtonSize::Xs | ButtonSize::IconXs => ButtonSize::IconXs,
+        ButtonSize::Sm | ButtonSize::S | ButtonSize::IconSm | ButtonSize::IconS => {
+            ButtonSize::IconS
+        }
+        ButtonSize::Lg | ButtonSize::L | ButtonSize::IconLg | ButtonSize::IconL => {
+            ButtonSize::IconL
+        }
+        ButtonSize::Xl | ButtonSize::IconXl => ButtonSize::IconXl,
+        ButtonSize::Default | ButtonSize::M | ButtonSize::Icon | ButtonSize::IconM => {
+            ButtonSize::IconM
+        }
     }
 }
 
@@ -276,12 +284,17 @@ mod tests {
 
     #[test]
     fn icon_size_maps_from_text_button_sizes() {
-        assert_eq!(resolve_icon_button_size(ButtonSize::Sm), ButtonSize::IconSm);
+        assert_eq!(resolve_icon_button_size(ButtonSize::Xs), ButtonSize::IconXs);
+        assert_eq!(resolve_icon_button_size(ButtonSize::Sm), ButtonSize::IconS);
+        assert_eq!(resolve_icon_button_size(ButtonSize::S), ButtonSize::IconS);
         assert_eq!(
             resolve_icon_button_size(ButtonSize::Default),
-            ButtonSize::Icon
+            ButtonSize::IconM
         );
-        assert_eq!(resolve_icon_button_size(ButtonSize::Lg), ButtonSize::IconLg);
+        assert_eq!(resolve_icon_button_size(ButtonSize::M), ButtonSize::IconM);
+        assert_eq!(resolve_icon_button_size(ButtonSize::Lg), ButtonSize::IconL);
+        assert_eq!(resolve_icon_button_size(ButtonSize::L), ButtonSize::IconL);
+        assert_eq!(resolve_icon_button_size(ButtonSize::Xl), ButtonSize::IconXl);
     }
 
     #[test]

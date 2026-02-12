@@ -22,7 +22,14 @@ pub fn normalize_aria_label(aria_label: String) -> (String, bool) {
 pub fn resolve_state(input: IconButtonStateInput) -> IconButtonState {
     let uses_icon_size = matches!(
         input.size,
-        ButtonSize::Icon | ButtonSize::IconSm | ButtonSize::IconLg
+        ButtonSize::Icon
+            | ButtonSize::IconSm
+            | ButtonSize::IconLg
+            | ButtonSize::IconXs
+            | ButtonSize::IconS
+            | ButtonSize::IconM
+            | ButtonSize::IconL
+            | ButtonSize::IconXl
     );
 
     IconButtonState {

@@ -182,9 +182,20 @@ fn button_docs_variants_and_controls_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<Button variant=ButtonVariant::Default>\"Primary\"</Button>",
-        "<Button variant=ButtonVariant::Outline>\"Outline\"</Button>",
-        "<Button variant=ButtonVariant::Ghost>\"Ghost\"</Button>",
+        "code_signal=code",
+        "let size_options = vec![",
+        "\"XS\".to_string()",
+        "\"S\".to_string()",
+        "\"M\".to_string()",
+        "\"L\".to_string()",
+        "\"XL\".to_string()",
+        "0 => ButtonSize::Xs",
+        "1 => ButtonSize::S",
+        "2 => ButtonSize::M",
+        "3 => ButtonSize::L",
+        "_ => ButtonSize::Xl",
+        "let size = ButtonSize::{size:?};",
+        "use ui_components::{{Button, ButtonSize, ButtonVariant}};",
         "id_base=\"docs-button-variant\".to_string()",
         "id_base=\"docs-button-size\".to_string()",
         "aria_label=\"Button variant\".to_string()",
@@ -224,9 +235,10 @@ fn button_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Variants & sizes\"",
-        "<Button variant=ButtonVariant::Default>\"Primary\"</Button>",
-        "<Button variant=ButtonVariant::Outline>\"Outline\"</Button>",
-        "<Button variant=ButtonVariant::Ghost>\"Ghost\"</Button>",
+        "code_signal=code",
+        "let size = ButtonSize::{size:?};",
+        "let disabled = {disabled};",
+        "let is_loading = {loading};",
         "id_base=\"docs-button-variant\".to_string()",
         "id_base=\"docs-button-size\".to_string()",
         "aria_label=\"Button variant\".to_string()",

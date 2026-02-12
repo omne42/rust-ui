@@ -80,37 +80,60 @@ pub const CSS: &str = r#"
   outline-offset: 2px;
 }
 
-.ui-button--size-default {
-  height: 36px;
-  padding: 8px 16px;
+.ui-button--size-xs {
+  height: 28px;
+  padding: 0 10px;
+  gap: 4px;
 }
 
-.ui-button--size-sm {
+.ui-button--size-s {
   height: 32px;
   padding: 0 12px;
   gap: 6px;
 }
 
-.ui-button--size-lg {
+.ui-button--size-m {
+  height: 36px;
+  padding: 8px 16px;
+}
+
+.ui-button--size-l {
   height: 40px;
   padding: 0 24px;
 }
 
-.ui-button--size-icon {
-  width: 36px;
-  height: 36px;
+.ui-button--size-xl {
+  height: 44px;
+  padding: 0 28px;
+}
+
+.ui-button--size-icon-xs {
+  width: 28px;
+  height: 28px;
   padding: 0;
 }
 
-.ui-button--size-icon-sm {
+.ui-button--size-icon-s {
   width: 32px;
   height: 32px;
   padding: 0;
 }
 
-.ui-button--size-icon-lg {
+.ui-button--size-icon-m {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.ui-button--size-icon-l {
   width: 40px;
   height: 40px;
+  padding: 0;
+}
+
+.ui-button--size-icon-xl {
+  width: 44px;
+  height: 44px;
   padding: 0;
 }
 

@@ -29,23 +29,34 @@ pub(super) fn button() -> AnyView {
     });
 
     let size_options = vec![
-        "Small".to_string(),
-        "Medium".to_string(),
-        "Large".to_string(),
+        "XS".to_string(),
+        "S".to_string(),
+        "M".to_string(),
+        "L".to_string(),
+        "XL".to_string(),
     ];
-    let (size_index, set_size_index) = signal(Some(1_usize));
-    let size = Signal::derive(move || match size_index.get().unwrap_or(1) {
-        0 => ButtonSize::Sm,
-        2 => ButtonSize::Lg,
-        _ => ButtonSize::Default,
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ButtonSize::Xs,
+        1 => ButtonSize::S,
+        2 => ButtonSize::M,
+        3 => ButtonSize::L,
+        _ => ButtonSize::Xl,
     });
 
     let (disabled, set_disabled) = signal(false);
     let (loading, set_loading) = signal(false);
 
-    let code = r#"<Button variant=ButtonVariant::Default>"Primary"</Button>
-<Button variant=ButtonVariant::Outline>"Outline"</Button>
-<Button variant=ButtonVariant::Ghost>"Ghost"</Button>"#;
+    let code = Signal::derive(move || {
+        let variant = variant.get();
+        let size = size.get();
+        let disabled = disabled.get();
+        let loading = loading.get();
+
+        format!(
+            "use leptos::prelude::*;\nuse ui_components::{{Button, ButtonSize, ButtonVariant}};\n\nlet variant = ButtonVariant::{variant:?};\nlet size = ButtonSize::{size:?};\nlet disabled = {disabled};\nlet is_loading = {loading};\n\nview! {{\n    <Button\n        variant=variant\n        size=size\n        disabled=disabled\n        is_loading=is_loading\n    >\n        \"Button\"\n    </Button>\n}}"
+        )
+    });
 
     view! {
         <ComponentPage
@@ -56,7 +67,7 @@ pub(super) fn button() -> AnyView {
         >
             <Playground
                 title="Variants & sizes"
-                code=code
+                code_signal=code
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Variant"</div>
@@ -419,13 +430,19 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
   <svg ... />
 </IconButton>"#;
 
-    let states_code = r#"<IconButton aria_label="Search".to_string() size=ButtonSize::IconSm>
+    let states_code = r#"<IconButton aria_label="Search xs".to_string() size=ButtonSize::IconXs>
   <svg ... />
 </IconButton>
-<IconButton aria_label="Search".to_string() size=ButtonSize::Icon>
+<IconButton aria_label="Search s".to_string() size=ButtonSize::IconS>
   <svg ... />
 </IconButton>
-<IconButton aria_label="Search".to_string() size=ButtonSize::IconLg disabled=true>
+<IconButton aria_label="Search m".to_string() size=ButtonSize::IconM>
+  <svg ... />
+</IconButton>
+<IconButton aria_label="Search l".to_string() size=ButtonSize::IconL>
+  <svg ... />
+</IconButton>
+<IconButton aria_label="Search xl".to_string() size=ButtonSize::IconXl disabled=true>
   <svg ... />
 </IconButton>"#;
 
@@ -486,7 +503,7 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
             <Playground title="Size + disabled matrix" code=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
-                        <IconButton aria_label="Search small".to_string() size=ButtonSize::IconSm>
+                        <IconButton aria_label="Search xs".to_string() size=ButtonSize::IconXs>
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                 <circle
                                     cx="9"
@@ -503,7 +520,7 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
                                 />
                             </svg>
                         </IconButton>
-                        <IconButton aria_label="Search default".to_string() size=ButtonSize::Icon>
+                        <IconButton aria_label="Search s".to_string() size=ButtonSize::IconS>
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                 <circle
                                     cx="9"
@@ -520,7 +537,41 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
                                 />
                             </svg>
                         </IconButton>
-                        <IconButton aria_label="Search large".to_string() size=ButtonSize::IconLg>
+                        <IconButton aria_label="Search m".to_string() size=ButtonSize::IconM>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                        <IconButton aria_label="Search l".to_string() size=ButtonSize::IconL>
+                            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                                <circle
+                                    cx="9"
+                                    cy="9"
+                                    r="6"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                />
+                                <path
+                                    d="M13.5 13.5l3 3"
+                                    stroke="currentColor"
+                                    stroke_width="1.5"
+                                    stroke_linecap="round"
+                                />
+                            </svg>
+                        </IconButton>
+                        <IconButton aria_label="Search xl".to_string() size=ButtonSize::IconXl>
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                                 <circle
                                     cx="9"
@@ -592,18 +643,27 @@ pub(super) fn link_button() -> AnyView {
   "Open docs"
 </LinkButton>"#;
 
-    let states_code = r#"<LinkButton href="https://example.com/small".to_string() size=ButtonSize::Sm>
-  "Small"
+    let states_code = r#"<LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
+  "XS"
 </LinkButton>
-<LinkButton href="https://example.com/default".to_string() size=ButtonSize::Default>
-  "Default"
+<LinkButton href="https://example.com/s".to_string() size=ButtonSize::S>
+  "S"
+</LinkButton>
+<LinkButton href="https://example.com/m".to_string() size=ButtonSize::M>
+  "M"
 </LinkButton>
 <LinkButton
-  href="https://example.com/large".to_string()
-  size=ButtonSize::Lg
+  href="https://example.com/l".to_string()
+  size=ButtonSize::L
   variant=ButtonVariant::Secondary
 >
-  "Large secondary"
+  "L secondary"
+</LinkButton>
+<LinkButton
+  href="https://example.com/xl".to_string()
+  size=ButtonSize::Xl
+>
+  "XL"
 </LinkButton>
 <LinkButton href="https://example.com/disabled".to_string() disabled=true>
   "Disabled"
@@ -643,21 +703,30 @@ pub(super) fn link_button() -> AnyView {
             <Playground title="Variant + size + disabled matrix" code=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
-                        <LinkButton href="https://example.com/small".to_string() size=ButtonSize::Sm>
-                            "Small"
+                        <LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
+                            "XS"
+                        </LinkButton>
+                        <LinkButton href="https://example.com/s".to_string() size=ButtonSize::S>
+                            "S"
                         </LinkButton>
                         <LinkButton
-                            href="https://example.com/default".to_string()
-                            size=ButtonSize::Default
+                            href="https://example.com/m".to_string()
+                            size=ButtonSize::M
                         >
-                            "Default"
+                            "M"
                         </LinkButton>
                         <LinkButton
-                            href="https://example.com/large".to_string()
-                            size=ButtonSize::Lg
+                            href="https://example.com/l".to_string()
+                            size=ButtonSize::L
                             variant=ButtonVariant::Secondary
                         >
-                            "Large secondary"
+                            "L secondary"
+                        </LinkButton>
+                        <LinkButton
+                            href="https://example.com/xl".to_string()
+                            size=ButtonSize::Xl
+                        >
+                            "XL"
                         </LinkButton>
                     </div>
                     <div class="docs-row">
