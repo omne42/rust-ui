@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `radio_group` compatibility module docs state matrix contracts by locking RadioGroup selection/horizontal-disabled-empty playground anchors in `radio_group_module_semantics` regression coverage.
+
 - `ui-components`: hardens `rac` compatibility module docs state matrix contracts by locking UiRoot usage/state playground anchors and `rac`→`ui-root` mapping in `rac_module_semantics` regression coverage.
 
 - `ui-components`: hardens `provider` compatibility module docs state matrix contracts by locking UiRoot usage/state playground anchors and `provider`→`ui-root` mapping in `provider_module_semantics` regression coverage.
