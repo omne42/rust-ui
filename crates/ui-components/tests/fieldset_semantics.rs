@@ -112,3 +112,54 @@ fn fieldset_styles_include_state_markers() {
         );
     }
 }
+
+#[test]
+fn fieldset_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn fieldset() -> AnyView",
+        "title=\"Fieldset\"",
+        "slug=\"fieldset\"",
+        "description=\"Spectrum/HeroUI-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts.\"",
+        "<Playground title=\"Legend + Description\" code=default_code>",
+        "<Playground title=\"Horizontal + Invalid + Actions\" code=invalid_code>",
+        "<Fieldset",
+        "orientation=FieldsetOrientation::Horizontal",
+        "tone=FieldsetTone::Muted",
+        "invalid=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for fieldset primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn fieldset_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "legend=\"Notification channels\".to_string()",
+        "description=\"Pick every channel you want to receive release updates from.\".to_string()",
+        "required=true",
+        "aria_label=\"Notification channel group\".to_string()",
+        "<span>\"Email\"</span>",
+        "<span>\"SMS\"</span>",
+        "<span>\"Push\"</span>",
+        "orientation=FieldsetOrientation::Horizontal",
+        "tone=FieldsetTone::Muted",
+        "invalid=true",
+        "error_message=\"Pick at least one channel\".to_string()",
+        "class_name=\"docs-fieldset-custom\".to_string()",
+        "variant=ui_components::ButtonVariant::Secondary",
+        "size=ui_components::ButtonSize::Sm",
+        "\"Manage channels\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "fieldset docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
