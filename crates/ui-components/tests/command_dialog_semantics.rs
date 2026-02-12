@@ -262,3 +262,65 @@ fn command_dialog_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn command_dialog_docs_page_covers_primary_playgrounds() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn command_dialog() -> AnyView",
+        "title=\"CommandDialog\"",
+        "slug=\"command-dialog\"",
+        "description=\"Shadcn-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits Spectrum data contracts, and reuses HeroUI-level overlay/active-highlight spring motion.\"",
+        "<Playground title=\"Controlled Open + Action Close\" code=code>",
+        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "data-id-source",
+        "data-title-source",
+        "data-description-source",
+        "data-placeholder-source",
+        "data-action-source",
+        "data-overlay-motion-source",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "collections_command docs page should include `{needle}` for command_dialog primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn command_dialog_docs_playgrounds_lock_state_matrix_contract_values() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "id_base=\"docs-command-dialog-controlled\".to_string()",
+        "title=\"Quick Actions\".to_string()",
+        "description=\"Press ⌘K-style filtering and Enter to run actions.\".to_string()",
+        "groups=groups.clone()",
+        "open=open",
+        "on_open_change=on_open_change",
+        "on_action=on_action",
+        "\"open: \"",
+        "\"last action: \"",
+        "id_base=\"docs-command-dialog-marker\".to_string()",
+        "title=\"Workspace Commands\".to_string()",
+        "description=\"close_on_action=false keeps the dialog open after choosing an action.\".to_string()",
+        "groups=marker_groups",
+        "default_open=true",
+        "close_on_action=false",
+        "placeholder=\"Search pages, actions, and settings...\".to_string()",
+        "empty_label=\"No command matches your search.\".to_string()",
+        "aria_label=\"Workspace command dialog\".to_string()",
+        "class_name=\"docs-command-dialog-custom\".to_string()",
+        "let marker_overlay_motion = ui_components::OverlayMotion {",
+        "initial_scale: 0.95",
+        "initial_y_px: 10.0",
+        "overlay_motion=marker_overlay_motion",
+        "\"close_on_action: false (dialog stays open)\"",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "command_dialog docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
