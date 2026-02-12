@@ -153,3 +153,64 @@ fn sidebar_rail_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_rail_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_rail.rs");
+
+    for needle in [
+        "pub(super) fn sidebar_rail() -> AnyView",
+        r#"title="SidebarRail""#,
+        r#"slug="sidebar-rail""#,
+        r#"description="Shadcn-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and Spectrum-style data markers.""#,
+        r#"<Playground title="Default Rail" code=default_code>"#,
+        r#"<Playground title="Controlled Right Rail" code=controlled_code>"#,
+        "<SidebarRail",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_rail docs should include `{needle}` for sidebar_rail primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_rail_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_rail.rs");
+
+    for needle in [
+        r#"title="Default Rail""#,
+        "<SidebarRail on_open_change=on_open_change />",
+        "open=open",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        r#"aria_label="Sidebar rail playground".to_string()"#,
+        r#"<SidebarContent aria_label="Workspace content".to_string()>"#,
+        r#""Dashboard""#,
+        r#""Projects""#,
+        r#""Billing""#,
+        r#"title="Controlled Right Rail""#,
+        "open=right_open",
+        "on_open_change=on_right_open_change",
+        "side=SidebarSide::Right",
+        r#"aria_label="Toggle right rail".to_string()"#,
+        r#"label="toggle inspector".to_string()"#,
+        r#"class_name="docs-sidebar-rail-custom".to_string()"#,
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        r#"aria_label="Right inspector sidebar".to_string()"#,
+        r#"<SidebarContent aria_label="Inspector content".to_string()>"#,
+        r#""Tokens""#,
+        r#""Layers""#,
+        r#""Motion""#,
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_rail docs playgrounds should contain `{needle}` for sidebar_rail contracts.",
+        );
+    }
+}
