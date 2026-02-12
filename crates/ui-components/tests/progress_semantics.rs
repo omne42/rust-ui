@@ -135,3 +135,45 @@ fn progress_motion_sanitizes_custom_contract_values() {
         "Progress view should sanitize motion before attaching spring driver.",
     );
 }
+
+#[test]
+fn progress_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn progress() -> AnyView",
+        "title=\"Progress\"",
+        "slug=\"progress\"",
+        "Playground title=\"Determinate + Indeterminate\"",
+        "Playground title=\"Custom Label + Motion + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Progress.",
+        );
+    }
+}
+
+#[test]
+fn progress_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Determinate + Indeterminate\"",
+        "<Progress aria_label=\"Determinate\".to_string() value=progress_value />",
+        "<Progress aria_label=\"Indeterminate\".to_string() value=Signal::derive(|| None) />",
+        "on_press=Callback::new(move |_| set_value.update(|v| *v = (*v + 12.0).min(100.0)))",
+        "title=\"Custom Label + Motion + Class\"",
+        "aria_label=\"Syncing tasks\".to_string()",
+        "value=Signal::derive(|| Some(64.0))",
+        "value_label=\"64 complete\".to_string()",
+        "motion=ui_components::ProgressMotion::fast()",
+        "aria_label=\"   \".to_string()",
+        "class_name=\"docs-progress-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
