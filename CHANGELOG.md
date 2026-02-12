@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `example_theme` compatibility module (mirroring `-aria/example-theme` with light-theme defaults), adds `example_theme_module_semantics` regression coverage, and maps `example-theme` docs-module coverage to the existing `ui-root` playground in `apps/docs-app`.
+
 - `ui-components`: adds `visually_hidden` compatibility module (introducing a `VisuallyHidden` utility with focusable reveal semantics), adds `visually_hidden_module_semantics` regression coverage, and adds a dedicated `visually-hidden` docs playground in `apps/docs-app`.
 
 - `ui-components`: adds `virtualizer` compatibility module (re-exporting `ScrollArea` contracts), adds `virtualizer_module_semantics` regression coverage, and maps `virtualizer` docs-module coverage to the existing `scroll-area` playground in `apps/docs-app`.

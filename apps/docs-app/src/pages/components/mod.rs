@@ -216,6 +216,7 @@ mod tests {
             "theme-default" => &["ui-root"],
             "theme-express" => &["ui-root"],
             "theme-light" => &["ui-root"],
+            "example-theme" => &["ui-root"],
             "utils" => &["button"],
             "spinbutton" => &["number-field"],
             "s2" => &["ui-root"],

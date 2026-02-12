@@ -88,6 +88,7 @@ pub mod empty;
 pub mod empty_state;
 pub mod error_message;
 pub mod error_view;
+pub mod example_theme;
 pub mod field;
 pub mod field_button;
 pub mod field_error;
