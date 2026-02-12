@@ -236,3 +236,54 @@ fn menu_trigger_motion_sanitizes_custom_contract_values() {
         "MenuTrigger view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn menu_trigger_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn menu_trigger() -> AnyView",
+        "title=\"MenuTrigger\"",
+        "slug=\"menu-trigger\"",
+        "description=\"Button-triggered menu surface with Spectrum state attrs and controlled/uncontrolled close-strategy semantics.\"",
+        "<Playground title=\"Default\" code=code>",
+        "<Playground title=\"Controlled + persistent open\" code=controlled_code>",
+        "<Playground title=\"Disabled + Empty\" code=disabled_code>",
+        "<MenuTrigger",
+        "close_on_action=false",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for menu-trigger coverage.",
+        );
+    }
+}
+
+#[test]
+fn menu_trigger_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "id_base=\"docs-menu-trigger\".to_string()",
+        "items=default_items",
+        "item_kinds=vec![",
+        "\"Open menu\"",
+        "\"last: \"",
+        "id_base=\"docs-menu-trigger-controlled\".to_string()",
+        "items=controlled_items",
+        "disabled_indices=vec![1]",
+        "open=controlled_open",
+        "on_open_change=on_open_change",
+        "\"open: \"",
+        "id_base=\"docs-menu-trigger-disabled\".to_string()",
+        "items=disabled_items",
+        "id_base=\"docs-menu-trigger-empty\".to_string()",
+        "items=empty_items",
+    ] {
+        assert!(
+            source.contains(needle),
+            "menu-trigger docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
