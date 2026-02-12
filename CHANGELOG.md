@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Tree` docs state contracts by locking default+expanded-root and strong+compact playground anchors in `tree_semantics` regression coverage.
+
 - `ui-components`: hardens `DisclosureGroup` docs state contracts by locking multiple+controlled and single+disabled+custom-class playground anchors in `disclosure_group_semantics` regression coverage.
 
 - `ui-components`: hardens `Dropdown` docs state contracts by locking default and controlled+persistent+motion playground anchors in `dropdown_semantics` regression coverage.

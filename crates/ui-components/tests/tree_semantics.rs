@@ -126,3 +126,52 @@ fn tree_styles_include_tone_density_depth_and_state_markers() {
         );
     }
 }
+
+#[test]
+fn tree_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn tree() -> AnyView",
+        "title=\"Tree\"",
+        "slug=\"tree\"",
+        "description=\"Hierarchical tree with controllable expand/selection state and Spectrum-style density/tone/state marker contracts.\"",
+        "<Playground title=\"Default + Expanded Root\" code=code>",
+        "<Playground title=\"Strong + Compact\" code=states_code>",
+        "<Tree",
+        "tone=TreeTone::Strong",
+        "density=TreeDensity::Compact",
+        "class_name=\"docs-tree-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for tree coverage.",
+        );
+    }
+}
+
+#[test]
+fn tree_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "TreeNode::new(\"root-app\", \"Applications\")",
+        "TreeNode::new(\"app-web\", \"Web Console\")",
+        "TreeNode::new(\"app-mobile\", \"Mobile App\")",
+        "TreeNode::new(\"app-admin\", \"Admin Portal\").disabled(true)",
+        "TreeNode::new(\"root-services\", \"Services\")",
+        "TreeNode::new(\"svc-api\", \"API Gateway\")",
+        "TreeNode::new(\"svc-worker\", \"Worker Pool\")",
+        "id_base=\"docs-tree-default\".to_string()",
+        "default_expanded_ids=BTreeSet::from([\"root-app\".to_string()])",
+        "default_selected_id=\"app-web\".to_string()",
+        "id_base=\"docs-tree-strong\".to_string()",
+        "default_expanded_ids=BTreeSet::from([\"root-services\".to_string()])",
+        "default_selected_id=\"svc-api\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tree docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
