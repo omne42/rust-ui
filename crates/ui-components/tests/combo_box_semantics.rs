@@ -84,7 +84,11 @@ fn combo_box_normalizes_label_placeholder_and_id_base() {
         );
     }
 
-    for needle in ["\"Options\".to_string()", "\"combo-box\".to_string()"] {
+    for needle in [
+        "pub const DEFAULT_LABEL: &str = \"Options\"",
+        "pub const DEFAULT_ID_BASE: &str = \"combo-box\"",
+        "pub const DEFAULT_PLACEHOLDER: &str = \"Select…\"",
+    ] {
         assert!(
             logic_source.contains(needle),
             "ComboBox logic should provide fallback semantics via `{needle}`."
@@ -179,8 +183,20 @@ fn combo_box_emits_spectrum_style_state_data_attributes() {
         "data-has-disabled-options=state.has_disabled_options.then_some(\"true\")",
         "data-controlled=state.is_controlled.then_some(\"true\")",
         "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
-        "data-motion-source=if motion == ComboBoxMotion::default()",
-        "data-custom-motion=(motion != ComboBoxMotion::default()).then_some(\"true\")",
+        "data-label-source=state.label_source_attr",
+        "data-description-source=state.description_source_attr",
+        "data-error-source=state.error_source_attr",
+        "data-placeholder-source=state.placeholder_source_attr",
+        "data-id-source=state.id_source_attr",
+        "data-class-source=state.class_source_attr",
+        "data-motion-source=state.motion_source_attr",
+        "data-custom-label=state.has_custom_label.then_some(\"true\")",
+        "data-custom-description=state.has_custom_description.then_some(\"true\")",
+        "data-custom-error=state.has_custom_error.then_some(\"true\")",
+        "data-custom-placeholder=state.has_custom_placeholder.then_some(\"true\")",
+        "data-custom-id=state.has_custom_id_base.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
         "data-typed=move || has_typed.get().then_some(\"true\")",
         "data-count=state.item_count.to_string()",
         "data-filtered-count=move || filtered_count.get().to_string()",
@@ -217,10 +233,32 @@ fn combo_box_styles_include_controlled_and_disabled_option_markers() {
 
     for needle in [
         ".ui-combo-box--controlled",
+        ".ui-combo-box[data-controlled=\"true\"]",
         ".ui-combo-box--has-disabled-options",
+        ".ui-combo-box[data-has-disabled-options=\"true\"]",
         ".ui-combo-box--empty",
+        ".ui-combo-box[data-empty=\"true\"]",
+        ".ui-combo-box[data-label-source=\"custom\"]",
+        ".ui-combo-box[data-custom-label=\"true\"]",
+        ".ui-combo-box--custom-label",
+        ".ui-combo-box[data-description-source=\"custom\"]",
+        ".ui-combo-box[data-custom-description=\"true\"]",
+        ".ui-combo-box--custom-description",
+        ".ui-combo-box[data-error-source=\"custom\"]",
+        ".ui-combo-box[data-custom-error=\"true\"]",
+        ".ui-combo-box--custom-error",
+        ".ui-combo-box[data-placeholder-source=\"custom\"]",
+        ".ui-combo-box[data-custom-placeholder=\"true\"]",
+        ".ui-combo-box--custom-placeholder",
+        ".ui-combo-box[data-id-source=\"custom\"]",
+        ".ui-combo-box[data-custom-id=\"true\"]",
+        ".ui-combo-box--custom-id",
+        ".ui-combo-box[data-class-source=\"custom\"]",
+        ".ui-combo-box[data-custom-class=\"true\"]",
+        ".ui-combo-box--custom-class",
         ".ui-combo-box[data-motion-source=\"custom\"]",
         ".ui-combo-box[data-custom-motion=\"true\"]",
+        ".ui-combo-box--custom-motion",
     ] {
         assert!(
             source.contains(needle),

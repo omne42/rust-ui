@@ -5,20 +5,60 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-combo-box[data-label-source="custom"],
+.ui-combo-box[data-custom-label="true"],
+.ui-combo-box--custom-label {
+  --ui-combo-box-label-source: custom;
+}
+
+.ui-combo-box[data-description-source="custom"],
+.ui-combo-box[data-custom-description="true"],
+.ui-combo-box--custom-description {
+  --ui-combo-box-description-source: custom;
+}
+
+.ui-combo-box[data-error-source="custom"],
+.ui-combo-box[data-custom-error="true"],
+.ui-combo-box--custom-error {
+  --ui-combo-box-error-source: custom;
+}
+
+.ui-combo-box[data-placeholder-source="custom"],
+.ui-combo-box[data-custom-placeholder="true"],
+.ui-combo-box--custom-placeholder {
+  --ui-combo-box-placeholder-source: custom;
+}
+
+.ui-combo-box[data-id-source="custom"],
+.ui-combo-box[data-custom-id="true"],
+.ui-combo-box--custom-id {
+  --ui-combo-box-id-source: custom;
+}
+
+.ui-combo-box[data-class-source="custom"],
+.ui-combo-box[data-custom-class="true"],
+.ui-combo-box--custom-class {
+  --ui-combo-box-class-source: custom;
+}
+
 .ui-combo-box[data-motion-source="custom"],
-.ui-combo-box[data-custom-motion="true"] {
+.ui-combo-box[data-custom-motion="true"],
+.ui-combo-box--custom-motion {
   --ui-combo-box-custom-motion: 1;
 }
 
-.ui-combo-box--empty .ui-combo-box__trigger {
+.ui-combo-box--empty .ui-combo-box__trigger,
+.ui-combo-box[data-empty="true"] .ui-combo-box__trigger {
   opacity: 0.72;
 }
 
-.ui-combo-box--controlled .ui-combo-box__trigger {
+.ui-combo-box--controlled .ui-combo-box__trigger,
+.ui-combo-box[data-controlled="true"] .ui-combo-box__trigger {
   box-shadow: inset 0 0 0 1px var(--ui-border);
 }
 
-.ui-combo-box--has-disabled-options .ui-combo-box__listbox {
+.ui-combo-box--has-disabled-options .ui-combo-box__listbox,
+.ui-combo-box[data-has-disabled-options="true"] .ui-combo-box__listbox {
   --ui-combo-box-has-disabled-options: 1;
 }
 
