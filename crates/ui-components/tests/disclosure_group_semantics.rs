@@ -129,3 +129,60 @@ fn disclosure_group_styles_include_state_markers() {
         );
     }
 }
+
+#[test]
+fn disclosure_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn disclosure_group() -> AnyView",
+        "title=\"DisclosureGroup\"",
+        "slug=\"disclosure-group\"",
+        "description=\"Spectrum/HeroUI-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals.\"",
+        "<Playground title=\"Multiple + Controlled\" code=code>",
+        "<Playground title=\"Single + Disabled Item + Custom Class\" code=states_code>",
+        "<DisclosureGroup",
+        "selection_mode=DisclosureGroupSelectionMode::Multiple",
+        "selection_mode=DisclosureGroupSelectionMode::Single",
+        "disabled_indices=vec![2]",
+        "class_name=\"docs-disclosure-group-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for disclosure-group coverage.",
+        );
+    }
+}
+
+#[test]
+fn disclosure_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "let labels = vec![",
+        "\"Account security\".to_string()",
+        "\"Billing preferences\".to_string()",
+        "\"Incident escalation\".to_string()",
+        "let single_labels = vec![",
+        "\"Region routing\".to_string()",
+        "\"Failover strategy\".to_string()",
+        "\"Legacy endpoints\".to_string()",
+        "let (expanded_multi, set_expanded_multi) = signal(BTreeSet::from([0_usize]));",
+        "let (expanded_single, set_expanded_single) = signal(BTreeSet::from([1_usize]));",
+        "id_base=\"docs-disclosure-group-multiple\".to_string()",
+        "aria_label=\"Operational disclosure sections\".to_string()",
+        "\"MFA, session policies, and login anomaly rules.\"",
+        "id_base=\"docs-disclosure-group-single\".to_string()",
+        "\"Traffic enters through geo routing with weighted failover.\"",
+        "\"Single-expanded mode keeps one active policy focused at a time.\"",
+        "\"Disabled section stays non-interactive for decommissioning.\"",
+        "\"expanded: \"",
+        "format!(\"{:?}\", expanded_multi.get())",
+        "format!(\"{:?}\", expanded_single.get())",
+    ] {
+        assert!(
+            source.contains(needle),
+            "disclosure-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
