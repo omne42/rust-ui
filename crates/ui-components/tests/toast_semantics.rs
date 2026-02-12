@@ -252,3 +252,25 @@ fn toast_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn toast_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "let danger_motion = ToastMotion {",
+        "initial_y_px: 18.0",
+        "initial_scale: 0.96",
+        "title=\"State + Source Markers\"",
+        "id=\"docs-toast-danger\".to_string()",
+        "class_name=\"docs-toast-custom\".to_string()",
+        "motion=danger_motion",
+        "variant=ToastVariant::Danger",
+        "Inspect data-id-source / data-description-source / data-close-source / data-exit-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "toast docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
