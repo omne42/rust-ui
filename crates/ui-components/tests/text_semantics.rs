@@ -112,3 +112,46 @@ fn text_styles_include_tone_align_weight_and_markers() {
         );
     }
 }
+
+#[test]
+fn text_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn text() -> AnyView",
+        "title=\"Text\"",
+        "slug=\"text\"",
+        "description=\"Typography primitive with centralized tone/alignment/weight/source state contracts and Spectrum-style data markers.\"",
+        "<Playground title=\"Tone + Weight Matrix\" code=tone_code>",
+        "<Playground title=\"Alignment + Truncate + Element\" code=states_code>",
+        "<Text",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra text docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn text_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Tone + Weight Matrix\"",
+        "tone=TextTone::Subtle",
+        "tone=TextTone::Strong",
+        "weight=TextWeight::Bold",
+        "title=\"Alignment + Truncate + Element\"",
+        "align=TextAlign::Center",
+        "weight=TextWeight::Semibold",
+        "element=TextElement::Div",
+        "truncate=true",
+        "class_name=\"docs-text-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra text docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}

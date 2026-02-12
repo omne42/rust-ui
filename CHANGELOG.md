@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Text` docs state matrix contracts by locking tone-weight and alignment-truncate playground anchors in `text_semantics` regression coverage.
+
 - `ui-components`: hardens `text_field` docs state matrix contracts by locking label-placeholder playground anchors in `text_field_semantics` regression coverage.
 
 - `ui-components`: hardens `Underlay` docs state matrix contracts by locking state-source playground anchors in `underlay_semantics` regression coverage.
