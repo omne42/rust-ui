@@ -152,3 +152,51 @@ fn toggle_button_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn toggle_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn toggle_button() -> AnyView",
+        "title=\"ToggleButton\"",
+        "slug=\"toggle-button\"",
+        "description=\"Pressable toggle state with HeroUI-level spring motion and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Controlled + on_change\" code=code>",
+        "<Playground title=\"Variant + Disabled matrix\" code=states_code>",
+        "<ToggleButton",
+        "on_change=on_toggle_change",
+        "variant=ToggleButtonVariant::Accent",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for toggle-button coverage.",
+        );
+    }
+}
+
+#[test]
+fn toggle_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "let on_change = Callback::new(move |next: bool| {",
+        "<ToggleButton selected=selected set_selected=set_selected on_change=Some(on_change)>",
+        "\"selected: \"",
+        "\"last on_change: \" {move || last_change.get()}",
+        "selected=notifications",
+        "set_selected=set_notifications",
+        "size=ToggleButtonSize::Lg",
+        "\"notifications: \"",
+        "selected=disabled_selected",
+        "selected=disabled_unselected",
+        "\"Disabled on\"",
+        "\"Disabled off\"",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "toggle-button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
