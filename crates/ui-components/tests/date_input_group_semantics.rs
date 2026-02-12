@@ -125,3 +125,57 @@ fn date_input_group_supports_group_accessibility_and_children_layout() {
         );
     }
 }
+
+#[test]
+fn date_input_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+
+    for needle in [
+        "pub(super) fn date_input_group() -> AnyView",
+        "title=\"DateInputGroup\"",
+        "slug=\"date-input-group\"",
+        "description=\"Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers.\"",
+        "<Playground title=\"DateField + Prefix/Suffix\" code=code>",
+        "<Playground title=\"Secondary + Full Width + Invalid\" code=states_code>",
+        "<DateInputGroup",
+        "variant=DateInputGroupVariant::Secondary",
+        "full_width=true",
+        "invalid=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_groups docs page should include `{needle}` for date_input_group primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn date_input_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+
+    for needle in [
+        "let (invoice_date, set_invoice_date) = signal(Some(\"2026-03-14\".to_string()));",
+        "id_base=\"docs-date-input-group-invoice\".to_string()",
+        "aria_label=\"Invoice date controls\".to_string()",
+        "segmented=true",
+        "prefix=move || view! { <span>\"📅\"</span> }",
+        "suffix=move || view! { <span>\"UTC+0\"</span> }",
+        "\"invoice date: \"",
+        "let (ship_window, set_ship_window) = signal(Some(\"18:30\".to_string()));",
+        "id_base=\"docs-date-input-group-time\".to_string()",
+        "variant=DateInputGroupVariant::Secondary",
+        "full_width=true",
+        "invalid=true",
+        "aria_label=\"Ship window controls\".to_string()",
+        "class_name=\"docs-date-input-group-custom\".to_string()",
+        "prefix=move || view! { <span>\"🕒\"</span> }",
+        "suffix=move || view! { <span>\"5m\"</span> }",
+        "minute_step=5",
+        "\"ship window: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "date_input_group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
