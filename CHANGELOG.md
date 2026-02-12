@@ -30,6 +30,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: adds dedicated `upstream_name_parity_semantics` regression coverage to lock same-name component parity for `examples/_upstream/shadcn-ui` (`new-york-v4/ui`) and `examples/_upstream/animate-ui`.
 
+- `ui-components`: adds `toolbar` compatibility module (re-exporting `ActionBar`/`ActionBarMotion` as `Toolbar`/`ToolbarMotion`) and `toolbar_module_semantics` regression coverage; `apps/docs-app` module-coverage mapping now maps `toolbar` to the existing `action-bar` docs page.
+
 - `ui-components`: aligns `Meter` ARIA semantics with a valid `role="meter"` contract (replacing invalid multi-role markup), updates semantics assertions, and preserves Spectrum-style state marker behavior.
 
 - `ui-components`: upgrades `Toast` motion safety by introducing `sanitize_motion`/`sanitize_spring` guards, validating custom spring/entry contracts before runtime attachment, and adding regression tests to prevent NaN/invalid motion values from leaking into HeroUI-level toast transitions.

@@ -211,6 +211,7 @@ mod tests {
             "style-macro-s1" => &["ui-root"],
             "test-utils" => &["ui-root"],
             "toast" => &["toast-viewport"],
+            "toolbar" => &["action-bar"],
             "active-highlight" => &[],
             _ => &[],
         }

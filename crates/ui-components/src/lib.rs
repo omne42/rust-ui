@@ -220,6 +220,7 @@ pub mod toggle;
 pub mod toggle_button;
 pub mod toggle_button_group;
 pub mod toggle_group;
+pub mod toolbar;
 pub mod tooltip;
 pub mod top_nav;
 pub mod tray;
@@ -469,6 +470,7 @@ pub use toggle_button_group::{ToggleButtonGroup, ToggleButtonGroupOrientation};
 pub use toggle_group::{
     ToggleGroup, ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode,
 };
+pub use toolbar::{Toolbar, ToolbarMotion};
 pub use tooltip::Tooltip;
 pub use tooltip::TooltipMotion;
 pub use top_nav::{TopNav, TopNavItem, TopNavMotion};
