@@ -83,6 +83,12 @@ pub fn Search(
             data-motion-source=move || state.get().motion_source_attr
             data-submit-handler-source=move || state.get().submit_handler_source_attr
             data-clear-handler-source=move || state.get().clear_handler_source_attr
+            data-custom-label=move || state.get().has_custom_label.then_some("true")
+            data-custom-description=move || state.get().has_custom_description.then_some("true")
+            data-custom-error=move || state.get().has_custom_error.then_some("true")
+            data-custom-placeholder=move || state.get().has_custom_placeholder.then_some("true")
+            data-custom-submit-handler=move || state.get().has_custom_submit_handler.then_some("true")
+            data-custom-clear-handler=move || state.get().has_custom_clear_handler.then_some("true")
             data-custom-motion=move || state.get().has_custom_motion.then_some("true")
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
         >

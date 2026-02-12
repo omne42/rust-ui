@@ -74,8 +74,14 @@ pub fn resolve_state(input: SearchStateInput) -> SearchState {
         } else {
             "default"
         },
+        has_custom_label: input.has_custom_label,
+        has_custom_description: input.has_custom_description,
+        has_custom_error: input.has_custom_error,
+        has_custom_placeholder: input.has_custom_placeholder,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
+        has_custom_submit_handler: input.has_custom_submit_handler,
+        has_custom_clear_handler: input.has_custom_clear_handler,
     }
 }
 
@@ -86,6 +92,30 @@ pub fn compose_class_name(class_name: Option<String>, state: SearchState) -> Str
         format!("ui-search--value-{}", state.value_attr),
         format!("ui-search--requirement-{}", state.requirement_attr),
     ];
+
+    if state.has_custom_label {
+        classes.push("ui-search--custom-label".to_string());
+    }
+
+    if state.has_custom_description {
+        classes.push("ui-search--custom-description".to_string());
+    }
+
+    if state.has_custom_error {
+        classes.push("ui-search--custom-error".to_string());
+    }
+
+    if state.has_custom_placeholder {
+        classes.push("ui-search--custom-placeholder".to_string());
+    }
+
+    if state.has_custom_submit_handler {
+        classes.push("ui-search--custom-submit-handler".to_string());
+    }
+
+    if state.has_custom_clear_handler {
+        classes.push("ui-search--custom-clear-handler".to_string());
+    }
 
     if state.has_custom_motion {
         classes.push("ui-search--custom-motion".to_string());
@@ -155,13 +185,13 @@ mod tests {
             required: false,
             invalid: false,
             has_value: false,
-            has_custom_label: false,
-            has_custom_description: false,
+            has_custom_label: true,
+            has_custom_description: true,
             has_custom_error: false,
-            has_custom_placeholder: false,
+            has_custom_placeholder: true,
             has_custom_class_name: true,
             has_custom_motion: true,
-            has_custom_submit_handler: false,
+            has_custom_submit_handler: true,
             has_custom_clear_handler: false,
         });
 
@@ -172,6 +202,10 @@ mod tests {
             "ui-search--state-disabled",
             "ui-search--value-empty",
             "ui-search--requirement-optional",
+            "ui-search--custom-label",
+            "ui-search--custom-description",
+            "ui-search--custom-placeholder",
+            "ui-search--custom-submit-handler",
             "ui-search--custom-motion",
             "ui-search--custom-class",
             "docs-search",

@@ -36,6 +36,12 @@ pub struct SearchState {
     pub motion_source_attr: &'static str,
     pub submit_handler_source_attr: &'static str,
     pub clear_handler_source_attr: &'static str,
+    pub has_custom_label: bool,
+    pub has_custom_description: bool,
+    pub has_custom_error: bool,
+    pub has_custom_placeholder: bool,
     pub has_custom_class_name: bool,
     pub has_custom_motion: bool,
+    pub has_custom_submit_handler: bool,
+    pub has_custom_clear_handler: bool,
 }
