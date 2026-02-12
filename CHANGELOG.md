@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SidebarContent` docs state matrix contracts by locking default-scrollable and compact-static-custom playground anchors in `sidebar_content_semantics` regression coverage.
+
 - `ui-components`: hardens `Sheet` docs state matrix contracts by locking bottom-sheet and state-source marker playground anchors in `sheet_semantics` regression coverage.
 
 - `ui-components`: hardens `shared_element_transition` compatibility docs state matrix contracts by locking `View` surface-token and element-fluid-custom-class playground anchors plus `shared-element-transition` slug mapping in `shared_element_transition_module_semantics` regression coverage.

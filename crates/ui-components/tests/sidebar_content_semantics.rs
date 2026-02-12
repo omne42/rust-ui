@@ -136,3 +136,62 @@ fn sidebar_content_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_content_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_content.rs",
+    );
+
+    for needle in [
+        "pub(super) fn sidebar_content() -> AnyView",
+        "title=\"SidebarContent\"",
+        "slug=\"sidebar-content\"",
+        "description=\"Shadcn-compatible sidebar content region primitive with centralized padding/scroll/state contracts and Spectrum-style data markers.\"",
+        "<Playground title=\"Default Scrollable Content\" code=default_code>",
+        "<Playground title=\"Compact + Static + Custom\" code=compact_code>",
+        "<SidebarContent",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_content docs should include `{needle}` for sidebar_content primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_content_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_content.rs",
+    );
+
+    for needle in [
+        "title=\"Default Scrollable Content\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        "aria_label=\"Sidebar content playground\".to_string()",
+        "<SidebarContent aria_label=\"Workspace content\".to_string()>",
+        "\"Dashboard\"",
+        "\"Projects\"",
+        "\"Billing\"",
+        "\"Members\"",
+        "title=\"Compact + Static + Custom\"",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        "aria_label=\"Compact sidebar content\".to_string()",
+        "padded=false",
+        "scrollable=false",
+        "aria_label=\"Compact static content\".to_string()",
+        "class_name=\"docs-sidebar-content-custom\".to_string()",
+        "\"Activity\"",
+        "\"Usage\"",
+        "\"Limits\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_content docs playgrounds should contain `{needle}` for sidebar_content contracts.",
+        );
+    }
+}
