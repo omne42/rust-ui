@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `IconsUi` docs state matrix contracts by locking built-in ui glyphs, custom registry extension, and state+source marker playground anchors in `icons_ui_semantics` regression coverage.
+
 - `ui-components`: hardens `Icons` docs state matrix contracts by locking set/scale/default+custom glyph and state+source marker playground anchors in `icons_semantics` regression coverage.
 
 - `ui-components`: hardens `Icon` docs state matrix contracts by locking size+tone matrix and accessible+disabled+custom-class playground anchors in `icon_semantics` regression coverage.

@@ -191,3 +191,59 @@ fn icons_ui_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn icons_ui_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons_ui.rs");
+
+    for needle in [
+        "pub(super) fn icons_ui() -> AnyView",
+        "title=\"IconsUi\"",
+        "slug=\"icons-ui\"",
+        "description=\"Spectrum-compatible icons-ui wrapper with built-in UI icon registry defaults, namespace normalization, and Iconset accessibility/source-state contracts.\"",
+        "<Playground title=\"Built-in UI Glyphs\" code=defaults_code>",
+        "<Playground title=\"Custom Registry Extension\" code=custom_code>",
+        "title=\"State + Source Markers\"",
+        "<IconsUi",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_icons_ui docs should include `{needle}` for icons_ui primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn icons_ui_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons_ui.rs");
+
+    for needle in [
+        "title=\"Built-in UI Glyphs\"",
+        "icon=\"check\".to_string()",
+        "icon=\"close\".to_string()",
+        "size=IconsUiSize::Md",
+        "tone=IconsUiTone::Accent",
+        "tone=IconsUiTone::Danger",
+        "title=\"Custom Registry Extension\"",
+        "icon=\"ui:save\".to_string()",
+        "IconsetGlyph::new(\"ui:save\", \"💾\")",
+        ".with_aria_label(\"UI Save\")",
+        "size=IconsUiSize::Lg",
+        "tone=IconsUiTone::Default",
+        "class_name=\"docs-icons-ui-custom\".to_string()",
+        "title=\"State + Source Markers\"",
+        "icon=\"help\".to_string()",
+        "IconsetGlyph::new(\"ui:help\", \"?\")",
+        ".with_aria_label(\"UI Help\")",
+        "tone=IconsUiTone::Muted",
+        "aria_label=\"Explicit UI help icon\".to_string()",
+        "class_name=\"docs-icons-ui-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons_ui docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
