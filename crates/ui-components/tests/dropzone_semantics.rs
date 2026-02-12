@@ -127,3 +127,47 @@ fn dropzone_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn dropzone_docs_disabled_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/files_extra_dropzone.rs");
+
+    for needle in [
+        "title=\"Disabled\"",
+        "label=\"Disabled\".to_string()",
+        "disabled=true",
+        "\"Dropzone disabled\"",
+        "\"No pointer or drop interactions\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dropzone docs disabled playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn dropzone_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/files_extra_dropzone.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "label=\"Asset upload\".to_string()",
+        "aria_label=\"Asset upload area\".to_string()",
+        "class_name=\"docs-dropzone-state\".to_string()",
+        "let mut marker_motion = DropZoneMotion::default();",
+        "marker_motion.hover_scale = 1.02",
+        "marker_motion.drop_scale = 1.01",
+        "motion=marker_motion",
+        "on_drop_files=marker_on_drop_files",
+        "\"Inspect root source/state markers\"",
+        "Inspect root markers like `data-state`, `data-label-source`, `data-aria-source`, `data-drop-handler-source`, `data-class-source`, and `data-motion-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dropzone docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
