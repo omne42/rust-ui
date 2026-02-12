@@ -105,3 +105,45 @@ fn color_loupe_styles_include_open_disabled_position_and_custom_contracts() {
         );
     }
 }
+
+#[test]
+fn color_loupe_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_loupe() -> AnyView",
+        "title=\"ColorLoupe\"",
+        "slug=\"color-loupe\"",
+        "title=\"Open + Position Buckets\"",
+        "title=\"Disabled + Custom Label + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-loupe docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_loupe_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Open + Position Buckets\" code=basic_code>",
+        "id_base=\"docs-color-loupe-start\".to_string()",
+        "id_base=\"docs-color-loupe-center\".to_string()",
+        "id_base=\"docs-color-loupe-end\".to_string()",
+        "open=true",
+        "<Playground title=\"Disabled + Custom Label + Custom Class\" code=states_code>",
+        "id_base=\"docs-color-loupe-disabled\".to_string()",
+        "disabled=true",
+        "id_base=\"docs-color-loupe-custom\".to_string()",
+        "aria_label=\"Accent loupe\".to_string()",
+        "class_name=\"docs-color-loupe-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-loupe docs playground should contain `{needle}`.",
+        );
+    }
+}
