@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FormField` docs state matrix contracts by locking switch-indicator and checkbox+quiet+invalid/disabled playground anchors in `form_field_semantics` regression coverage.
+
 - `ui-components`: hardens `FlipCard` docs state matrix contracts by locking click+keyboard, state+source-markers, and disabled playground anchors in `flip_card_semantics` regression coverage.
 
 - `ui-components`: hardens `FlipButton` docs state matrix contracts by locking top-flip, direction-matrix, and custom-class playground anchors in `flip_button_semantics` regression coverage.

@@ -133,3 +133,54 @@ fn form_field_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn form_field_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");
+
+    for needle in [
+        "pub(super) fn form_field() -> AnyView",
+        "title=\"FormField\"",
+        "slug=\"form-field\"",
+        "description=\"Spectrum/HeroUI-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers.\"",
+        "<Playground title=\"Switch Indicator + Description\" code=code>",
+        "<Playground title=\"Checkbox Indicator + Quiet + Invalid/Disabled\" code=states_code>",
+        "<FormField",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_groups_extra form_field docs page should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn form_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");
+
+    for needle in [
+        "title=\"Switch Indicator + Description\"",
+        "id_base=\"docs-form-field-marketing\".to_string()",
+        "label=\"Subscribe to product updates\".to_string()",
+        "description=\"Receive release notes and occasional best-practice tips.\".to_string()",
+        "indicator_placement=FormFieldIndicatorPlacement::Start",
+        "title=\"Checkbox Indicator + Quiet + Invalid/Disabled\"",
+        "id_base=\"docs-form-field-tos\".to_string()",
+        "indicator_variant=FormFieldIndicatorVariant::Checkbox",
+        "indicator_placement=FormFieldIndicatorPlacement::End",
+        "tone=FormFieldTone::Quiet",
+        "invalid=true",
+        "error_message=\"Please accept terms to continue.\".to_string()",
+        "class_name=\"docs-form-field-custom\".to_string()",
+        "id_base=\"docs-form-field-read-only\".to_string()",
+        "disabled=true",
+        "aria_label=\"Maintenance alerts (read only)\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "form_field docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
