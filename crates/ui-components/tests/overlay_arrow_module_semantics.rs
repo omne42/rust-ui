@@ -59,3 +59,90 @@ fn overlay_arrow_compatibility_reuses_icon_and_popover_docs_playgrounds() {
         );
     }
 }
+
+#[test]
+fn overlay_arrow_module_docs_page_covers_primary_playgrounds() {
+    let icon_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    let popover_source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn icon() -> AnyView",
+        "title=\"Icon\"",
+        "slug=\"icon\"",
+        "description=\"Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers.\"",
+        "<Playground title=\"Size + Tone Matrix\" code=matrix_code>",
+        "<Playground title=\"Accessible + Disabled + Custom Class\" code=states_code>",
+        "<Icon",
+    ] {
+        assert!(
+            icon_source.contains(needle),
+            "display_extra docs should include `{needle}` for overlay-arrow icon primary playground coverage.",
+        );
+    }
+
+    for needle in [
+        "pub(super) fn popover() -> AnyView",
+        "title=\"Popover\"",
+        "slug=\"popover\"",
+        "<Playground title=\"Popover\" code=code>",
+        "title=\"State + Source Markers\"",
+        "code=motion_code",
+        "<Popover",
+    ] {
+        assert!(
+            popover_source.contains(needle),
+            "overlays docs should include `{needle}` for overlay-arrow popover primary playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source.contains("\"overlay-arrow\" => &[\"icon\", \"popover\"]"),
+        "components mod mapping should keep `overlay-arrow` mapped to `icon` and `popover` slugs.",
+    );
+}
+
+#[test]
+fn overlay_arrow_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let icon_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    let popover_source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Size + Tone Matrix\"",
+        "size=IconSize::Sm",
+        "tone=IconTone::Default",
+        "size=IconSize::Lg",
+        "tone=IconTone::Danger",
+        "title=\"Accessible + Disabled + Custom Class\"",
+        "decorative=false",
+        "aria_label=\"Sync successful\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-icon-custom\".to_string()",
+    ] {
+        assert!(
+            icon_source.contains(needle),
+            "overlay-arrow icon docs playgrounds should contain `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "title=\"Popover\"",
+        "anchor_ref=anchor_ref",
+        "on_exit_complete=on_exit_complete",
+        "title=\"State + Source Markers\"",
+        "let custom_motion = PopoverMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+        "motion=custom_motion",
+        "is_modal=false",
+        "class_name=\"docs-popover-state\".to_string()",
+        "on_exit_complete=on_custom_exit_complete",
+    ] {
+        assert!(
+            popover_source.contains(needle),
+            "overlay-arrow popover docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
