@@ -110,3 +110,46 @@ fn logic_button_styles_include_variant_and_state_markers() {
         );
     }
 }
+
+#[test]
+fn logic_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn logic_button() -> AnyView",
+        "title=\"LogicButton\"",
+        "slug=\"logic-button\"",
+        "description=\"Spectrum-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts.\"",
+        "<Playground title=\"AND + OR variants\" code=basic_code>",
+        "<Playground title=\"Custom class + Disabled\" code=state_code>",
+        "<LogicButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra docs should include `{needle}` for logic-button primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn logic_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"AND + OR variants\"",
+        "variant=LogicButtonVariant::And",
+        "\"AND\"",
+        "variant=LogicButtonVariant::Or",
+        "\"OR\"",
+        "title=\"Custom class + Disabled\"",
+        "class_name=\"docs-logic-button-custom\".to_string()",
+        "\"Custom\"",
+        "disabled=true",
+        "\"Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "logic-button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
