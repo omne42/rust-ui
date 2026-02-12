@@ -126,3 +126,52 @@ fn table_styles_include_variant_density_layout_and_markers() {
         );
     }
 }
+
+#[test]
+fn table_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn table() -> AnyView",
+        "title=\"Table\"",
+        "slug=\"table\"",
+        "description=\"Data table primitive with centralized row/column normalization and Spectrum-style state markers for density/layout/variant contracts.\"",
+        "<Playground title=\"Default + Striped\" code=code>",
+        "<Playground title=\"Compact + Fixed + Empty\" code=states_code>",
+        "<Table",
+        "striped=true",
+        "variant=TableVariant::Outline",
+        "density=TableDensity::Compact",
+        "layout=TableLayout::Fixed",
+        "sticky_header=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for table coverage.",
+        );
+    }
+}
+
+#[test]
+fn table_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "TableColumn::new(\"service\", \"Service\")",
+        "TableColumn::new(\"region\", \"Region\")",
+        "TableColumn::new(\"uptime\", \"Uptime\").with_align(TableCellAlign::End)",
+        "TableRow::new(",
+        "\"API Gateway\".to_string()",
+        "\"Scheduler\".to_string()",
+        "\"Worker\".to_string()",
+        "caption=\"Service health\".to_string()",
+        "let empty_rows: Vec<TableRow> = Vec::new();",
+        "empty_label=\"No active incidents\".to_string()",
+        "class_name=\"docs-table-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "table docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
