@@ -43,7 +43,7 @@ fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring:
 pub fn sanitize_motion(motion: SlidingNumberMotion) -> SlidingNumberMotion {
     SlidingNumberMotion {
         spring: sanitize_spring(motion.spring),
-        animate: motion.animate,
+        animate: motion.animate && !ui_motion::web::prefers_reduced_motion(),
     }
 }
 
@@ -254,7 +254,7 @@ mod tests {
         assert_eq!(motion.spring.damping, default.spring.damping);
         assert_eq!(motion.spring.mass, default.spring.mass);
         assert_eq!(motion.spring.precision, default.spring.precision);
-        assert!(motion.animate);
+        assert_eq!(motion.animate, !ui_motion::web::prefers_reduced_motion());
     }
 
     #[test]

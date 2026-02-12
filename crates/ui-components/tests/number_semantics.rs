@@ -94,6 +94,25 @@ fn number_view_wires_motion_sanitization_and_state_markers() {
 }
 
 #[test]
+fn number_motion_contract_defaults_and_reduced_motion_paths_are_locked() {
+    let source = load_source("src/number/motion.rs");
+
+    for needle in [
+        "pub struct SlidingNumberMotion",
+        "ui_motion::presets::spring_slide()",
+        "animate: true",
+        "motion.animate && !ui_motion::web::prefers_reduced_motion()",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn supports_custom_spring_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Number motion contract should include `{needle}` for HeroUI-level spring/reduced-motion stability.",
+        );
+    }
+}
+
+#[test]
 fn number_styles_and_css_aggregation_include_stable_selectors() {
     let styles_source = load_source("src/number/styles.rs");
     let css_source = load_source("src/css.rs");
