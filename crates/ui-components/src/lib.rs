@@ -100,6 +100,7 @@ pub mod footer;
 pub mod form;
 pub mod form_field;
 pub mod grid;
+pub mod grid_list;
 pub mod gridlist;
 pub mod header;
 pub mod heading;
