@@ -109,3 +109,52 @@ fn grid_styles_include_layout_state_markers() {
         );
     }
 }
+
+#[test]
+fn grid_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn grid() -> AnyView",
+        "title=\"Grid\"",
+        "slug=\"grid\"",
+        "description=\"Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts.\"",
+        "<Playground title=\"Columns + Gap\" code=columns_code>",
+        "<Playground title=\"AutoFit + Dense + Equal Rows\" code=adaptive_code>",
+        "<Grid",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra grid docs page should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn grid_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Columns + Gap\"",
+        "columns=GridColumns::Three",
+        "gap=GridGap::Md",
+        "aria_label=\"Overview cards grid\".to_string()",
+        "title=\"AutoFit + Dense + Equal Rows\"",
+        "columns=GridColumns::AutoFit",
+        "rows=GridRows::Equal",
+        "gap=GridGap::Lg",
+        "justify=GridJustify::Stretch",
+        "align=GridAlign::Stretch",
+        "dense=true",
+        "class_name=\"docs-grid-adaptive\".to_string()",
+        "\"Revenue\"",
+        "\"Users\"",
+        "\"Latency\"",
+        "\"Errors\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "grid docs playgrounds should contain `{needle}`."
+        );
+    }
+}
