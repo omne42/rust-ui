@@ -109,3 +109,46 @@ fn inline_alert_motion_sanitizes_custom_contract_values() {
         "InlineAlert view should sanitize motion before attaching spring driver.",
     );
 }
+
+#[test]
+fn inline_alert_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn inline_alert() -> AnyView",
+        "title=\"InlineAlert\"",
+        "slug=\"inline-alert\"",
+        "description=\"Compact alert with tone/fill variants and optional icon.\"",
+        "<Playground title=\"Inline alerts\" code=code>",
+        "<InlineAlert",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs should include `{needle}` for inline_alert primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn inline_alert_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Inline alerts\"",
+        "tone=InlineAlertTone::Info",
+        "fill=InlineAlertFill::Subtle",
+        "title=\"Info\".to_string()",
+        "description=\"Subtle fill\".to_string()",
+        "tone=InlineAlertTone::Negative",
+        "fill=InlineAlertFill::Border",
+        "title=\"Error\".to_string()",
+        "description=\"Border fill\".to_string()",
+        "\"This is an inline alert.\"",
+        "\"Something went wrong.\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "inline_alert docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
