@@ -151,3 +151,47 @@ fn infield_button_docs_page_exists_in_actions_extra() {
         );
     }
 }
+
+#[test]
+fn infield_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn infield_button() -> AnyView",
+        "title=\"InfieldButton\"",
+        "slug=\"infield-button\"",
+        "description=\"Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior.\"",
+        "<Playground title=\"Default + Quiet\" code=default_code>",
+        "<Playground title=\"Invalid + Active + Disabled\" code=state_code>",
+        "<InfieldButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra docs should include `{needle}` for infield_button primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn infield_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Default + Quiet\"",
+        "aria_label=\"Open in-field options\".to_string()",
+        "aria_label=\"Open calendar\".to_string()",
+        "quiet=true",
+        "title=\"Invalid + Active + Disabled\"",
+        "invalid=true",
+        "is_active=true",
+        "aria_label=\"Invalid in-field trigger\".to_string()",
+        "class_name=\"docs-infield-button-custom\".to_string()",
+        "disabled=true",
+        "aria_label=\"Disabled in-field trigger\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "infield_button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
