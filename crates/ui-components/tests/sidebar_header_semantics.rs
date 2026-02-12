@@ -117,3 +117,54 @@ fn sidebar_header_docs_page_exists_in_layout_extra() {
         );
     }
 }
+
+#[test]
+fn sidebar_header_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn sidebar_header() -> AnyView",
+        "title=\"SidebarHeader\"",
+        "slug=\"sidebar-header\"",
+        "description=\"Shadcn-compatible sidebar header region primitive with centralized disabled/source-state contracts and Spectrum-style data markers.\"",
+        "<Playground title=\"Default Header Region\" code=basic_code>",
+        "<Playground title=\"Disabled + Custom Class\" code=disabled_code>",
+        "<SidebarHeader",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs should include `{needle}` for sidebar_header primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_header_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Default Header Region\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        "aria_label=\"Sidebar header playground\".to_string()",
+        "<SidebarHeader aria_label=\"Workspace header\".to_string()>",
+        "\"Workspace\"",
+        "\"5 active projects\"",
+        "title=\"Disabled + Custom Class\"",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        "aria_label=\"Disabled header sidebar\".to_string()",
+        "disabled=true",
+        "aria_label=\"Disabled inspector header\".to_string()",
+        "class_name=\"docs-sidebar-header-custom\".to_string()",
+        "\"Inspector\"",
+        "\"Read-only mode\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs playgrounds should contain `{needle}` for sidebar_header contracts.",
+        );
+    }
+}
