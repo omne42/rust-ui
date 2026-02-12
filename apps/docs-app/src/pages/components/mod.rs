@@ -206,6 +206,7 @@ mod tests {
             "list-box" => &["listbox", "listbox-item", "listbox-section"],
             "gridlist" => &["listbox", "listbox-item", "listbox-section"],
             "grid-list" => &["listbox", "listbox-item", "listbox-section"],
+            "hidden-date-input" => &["date-input-group"],
             "dnd" => &["drop-zone", "file-trigger"],
             "drag-and-drop" => &["drop-zone", "file-trigger"],
             "theme-dark" => &["ui-root"],
