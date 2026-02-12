@@ -92,3 +92,42 @@ fn content_styles_include_tone_padding_and_custom_markers() {
         );
     }
 }
+
+#[test]
+fn content_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn content() -> AnyView",
+        "title=\"Content\"",
+        "slug=\"content\"",
+        "Playground title=\"Semantic Section + Tone\"",
+        "Playground title=\"Padded + Custom Aria/Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Content.",
+        );
+    }
+}
+
+#[test]
+fn content_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Semantic Section + Tone\"",
+        "<Content>",
+        "<Content tone=ContentTone::Muted>",
+        "title=\"Padded + Custom Aria/Class\"",
+        "padded=true",
+        "aria_label=\"Dialog content\".to_string()",
+        "class_name=\"docs-content-custom\".to_string()",
+        "Verifies padding marker + custom class source contract.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "content docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
