@@ -201,3 +201,57 @@ fn accordion_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn accordion_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn accordion() -> AnyView",
+        "title=\"Accordion\"",
+        "slug=\"accordion\"",
+        "description=\"Multi-panel disclosure with roving tabindex, HeroUI-level spring motion, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Multiple + Controlled\" code=code>",
+        "<Playground title=\"Single + Disabled\" code=states_code>",
+        "<Accordion",
+        "selection_mode=AccordionSelectionMode::Multiple",
+        "selection_mode=AccordionSelectionMode::Single",
+        "disabled_indices=vec![2]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for accordion coverage.",
+        );
+    }
+}
+
+#[test]
+fn accordion_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "let (open_multi, set_open_multi) = signal(BTreeSet::from([0_usize]));",
+        "let on_multi_change = Callback::new(move |next: BTreeSet<usize>| set_open_multi.set(next));",
+        "id_base=\"docs-accordion\".to_string()",
+        "labels=multi_labels",
+        "\"Panel 1 content\"",
+        "\"Panel 2 content\"",
+        "\"Panel 3 content\"",
+        "\"open indices: \"",
+        "format!(\"{open:?}\")",
+        "let (open_single, set_open_single) = signal(BTreeSet::from([1_usize]));",
+        "let on_single_change = Callback::new(move |next: BTreeSet<usize>| set_open_single.set(next));",
+        "id_base=\"docs-accordion-single\".to_string()",
+        "labels=single_labels",
+        "\"Overview content\"",
+        "\"Details content\"",
+        "\"History content\"",
+        "\"single open: \"",
+        "\"disabled index: 2\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "accordion docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
