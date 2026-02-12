@@ -118,3 +118,52 @@ fn link_button_emits_spectrum_style_data_attributes() {
         );
     }
 }
+
+#[test]
+fn link_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn link_button() -> AnyView",
+        "title=\"LinkButton\"",
+        "slug=\"link-button\"",
+        "description=\"Button styling on anchors with Spectrum-style disabled semantics and secure rel handling for external targets.\"",
+        "<Playground title=\"External target + rel hardening\" code=code>",
+        "<Playground title=\"Variant + size + disabled matrix\" code=states_code>",
+        "<LinkButton",
+        "href=\"https://example.com/docs\".to_string()",
+        "target=\"_blank\"",
+        "rel=\"sponsored\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for link-button coverage.",
+        );
+    }
+}
+
+#[test]
+fn link_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "aria_label=\"Open docs in a new tab\".to_string()",
+        "<LinkButton href=\"https://example.com/changelog\".to_string()>",
+        "<LinkButton href=\"   \".to_string() variant=ButtonVariant::Ghost>",
+        "_blank links auto-append noopener+noreferrer; blank href is normalized as non-navigable.",
+        "href=\"https://example.com/small\".to_string() size=ButtonSize::Sm",
+        "href=\"https://example.com/default\".to_string()",
+        "size=ButtonSize::Default",
+        "href=\"https://example.com/large\".to_string()",
+        "size=ButtonSize::Lg",
+        "variant=ButtonVariant::Secondary",
+        "href=\"https://example.com/disabled\".to_string() disabled=true",
+        "href=\"https://example.com/disabled-ghost\".to_string()",
+        "\"Disabled ghost\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "link-button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
