@@ -208,3 +208,23 @@ fn hover_card_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn hover_card_docs_page_includes_custom_motion_contract_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_hover_card.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "let custom_motion = HoverCardMotion {",
+        "initial_scale: 0.93",
+        "offset_y_px: 18.0",
+        "motion=custom_motion",
+        "motion=HoverCardMotion::default()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "hover card docs page should include `{needle}` for custom motion demos."
+        );
+    }
+}

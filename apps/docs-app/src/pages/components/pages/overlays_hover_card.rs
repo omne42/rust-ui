@@ -28,6 +28,31 @@ pub(super) fn hover_card() -> AnyView {
   <Button variant=ButtonVariant::Secondary>"Inspect markers"</Button>
 </HoverCard>"##;
 
+    let motion_code = r##"let custom_motion = HoverCardMotion {
+  initial_scale: 0.93,
+  offset_y_px: 18.0,
+  ..HoverCardMotion::default()
+};
+
+<HoverCard
+  motion=custom_motion
+  content=move || view! { "Custom spring + offset motion" }
+>
+  <Button variant=ButtonVariant::Secondary>"Custom motion"</Button>
+</HoverCard>
+<HoverCard
+  motion=HoverCardMotion::default()
+  content=move || view! { "Default motion" }
+>
+  <Button variant=ButtonVariant::Secondary>"Default motion"</Button>
+</HoverCard>"##;
+
+    let custom_motion = HoverCardMotion {
+        initial_scale: 0.93,
+        offset_y_px: 18.0,
+        ..HoverCardMotion::default()
+    };
+
     view! {
         <ComponentPage
             title="HoverCard"
@@ -77,6 +102,27 @@ pub(super) fn hover_card() -> AnyView {
                     >
                         <Button variant=ButtonVariant::Secondary>
                             "Inspect markers"
+                        </Button>
+                    </HoverCard>
+                </div>
+            </Playground>
+
+            <Playground title="Custom Motion Contract" code=motion_code>
+                <div class="docs-row">
+                    <HoverCard
+                        motion=custom_motion
+                        content=move || view! { "Custom spring + offset motion" }
+                    >
+                        <Button variant=ButtonVariant::Secondary>
+                            "Custom motion"
+                        </Button>
+                    </HoverCard>
+                    <HoverCard
+                        motion=HoverCardMotion::default()
+                        content=move || view! { "Default motion" }
+                    >
+                        <Button variant=ButtonVariant::Secondary>
+                            "Default motion"
                         </Button>
                     </HoverCard>
                 </div>
