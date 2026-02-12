@@ -202,3 +202,62 @@ fn share_button_motion_sanitizes_custom_contract_values() {
         "ShareButton view should sanitize motion before forwarding to FlipButton.",
     );
 }
+
+#[test]
+fn share_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn share_button() -> AnyView",
+        "title=\"ShareButton\"",
+        "slug=\"share-button\"",
+        "description=\"Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion.\"",
+        "<Playground title=\"Default + callback\" code=code>",
+        "<Playground title=\"Icon placement + custom items\" code=states_code>",
+        "<Playground title=\"Custom Class + Direction\" code=custom_code>",
+        "<ShareButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs should include `{needle}` for share-button primary playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source.contains("\"button-share\" => &[\"share-button\"]"),
+        "components mod mapping should keep `button-share` mapped to `share-button` slug.",
+    );
+}
+
+#[test]
+fn share_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "title=\"Default + callback\"",
+        "let (last, set_last) = signal(None::<SharePlatform>);",
+        "let on_icon_press = Callback::new(move |platform: SharePlatform| set_last.set(Some(platform)));",
+        "<ShareButton on_icon_press=on_icon_press />",
+        "title=\"Icon placement + custom items\"",
+        "icon=ShareButtonIconPlacement::Prefix",
+        "from=FlipDirection::Left",
+        "label=\"Share now\".to_string()",
+        "items=custom_items_for_matrix.clone()",
+        "icon=ShareButtonIconPlacement::None",
+        "label=\"Iconless\".to_string()",
+        "Blank custom item labels fall back to platform defaults; missing handlers stay safe.",
+        "title=\"Custom Class + Direction\"",
+        "class_name=\"docs-share-button-custom\".to_string()",
+        "from=FlipDirection::Right",
+        "label=\"Share docs\".to_string()",
+        "items=custom_items_for_custom.clone()",
+        "label=\"Share defaults\".to_string()",
+        "icon=ShareButtonIconPlacement::Suffix",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs playgrounds should contain `{needle}` for share-button contracts.",
+        );
+    }
+}
