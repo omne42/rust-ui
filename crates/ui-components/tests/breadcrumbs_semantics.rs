@@ -81,3 +81,50 @@ fn breadcrumbs_wires_nav_and_current_page_semantics() {
         );
     }
 }
+
+#[test]
+fn breadcrumbs_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn breadcrumbs() -> AnyView",
+        "title=\"Breadcrumbs\"",
+        "slug=\"breadcrumbs\"",
+        "description=\"Breadcrumb nav with current-page semantics and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Trail\" code=code>",
+        "<Playground title=\"Label-Only + Empty\" code=states_code>",
+        "<Breadcrumbs items=items />",
+        "aria_label=\"Label-only trail\".to_string()",
+        "aria_label=\"Empty trail\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for breadcrumbs coverage.",
+        );
+    }
+}
+
+#[test]
+fn breadcrumbs_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "label: \"Home\".to_string()",
+        "href: Some(\"#/docs/welcome\".to_string())",
+        "label: \"Components\".to_string()",
+        "href: Some(\"#/components\".to_string())",
+        "label: \"Breadcrumbs\".to_string()",
+        "href: None",
+        "label: \"Library\".to_string()",
+        "label: \"UI\".to_string()",
+        "label: \"Current\".to_string()",
+        "let empty_items = Vec::<BreadcrumbItem>::new();",
+        "\"all labels (no links)\"",
+        "\"empty trail (0 items)\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "breadcrumbs docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
