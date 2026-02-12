@@ -114,3 +114,47 @@ fn labeled_value_styles_include_orientation_tone_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn labeled_value_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn labeled_value() -> AnyView",
+        "title=\"LabeledValue\"",
+        "slug=\"labeled-value\"",
+        "description=\"Label-value pair primitive with centralized orientation/tone/source state contracts and Spectrum-style data markers.\"",
+        "<Playground title=\"Orientation + Tone\" code=orientation_code>",
+        "<Playground title=\"Description + Custom Aria/Class\" code=custom_code>",
+        "<LabeledValue",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra docs should include `{needle}` for labeled_value primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn labeled_value_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Orientation + Tone\"",
+        "label=\"Project\".to_string()",
+        "value=\"Omne\".to_string()",
+        "orientation=LabeledValueOrientation::Inline",
+        "tone=LabeledValueTone::Subtle",
+        "title=\"Description + Custom Aria/Class\"",
+        "label=\"Build\".to_string()",
+        "description=\"Updated 2 minutes ago\".to_string()",
+        "aria_label=\"Build status\".to_string()",
+        "class_name=\"docs-labeled-value-custom\".to_string()",
+        "tone=LabeledValueTone::Strong",
+    ] {
+        assert!(
+            source.contains(needle),
+            "labeled_value docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
