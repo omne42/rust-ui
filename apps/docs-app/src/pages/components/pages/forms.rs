@@ -5,7 +5,7 @@ use ui_components::{
     Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Form, FormLabelAlign,
     FormLabelPosition, Input, InputGroup, InputOtp, InputSize, InputVariant, NumberField, Radio,
     RadioGroup, RadioGroupOrientation, SearchField, SegmentedControl, SegmentedControlOrientation,
-    SegmentedControlSize, Switch, TextArea, TextField,
+    SegmentedControlSize, Switch, TextArea,
 };
 
 pub(super) fn input_group() -> AnyView {
@@ -212,37 +212,6 @@ pub(super) fn input() -> AnyView {
                         <span class="ui-muted">"value: " {move || value.get()}</span>
                     </div>
                 </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
-}
-
-pub(super) fn text_field() -> AnyView {
-    let (value, set_value) = signal(String::new());
-    let code = r#"let (value, set_value) = signal(String::new());
-<TextField id="name".to_string()
-  label="Name".to_string()
-  value=value
-  set_value=set_value
-  placeholder="Jane".to_string()
-/>"#;
-
-    view! {
-        <ComponentPage
-            title="TextField"
-            slug="text-field"
-            group="Forms"
-            description="A compact field wrapper built on headless text field semantics."
-        >
-            <Playground title="Label + placeholder" code=code>
-                <TextField
-                    id="docs-text-field".to_string()
-                    label="Name".to_string()
-                    value=value
-                    set_value=set_value
-                    placeholder="Jane".to_string()
-                />
             </Playground>
         </ComponentPage>
     }

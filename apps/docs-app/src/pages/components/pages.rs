@@ -40,6 +40,7 @@ mod forms_extra_visually_hidden;
 mod forms_groups;
 mod forms_groups_extra;
 mod forms_native;
+mod forms_text_field;
 mod layout;
 mod layout_extra;
 mod layout_extra_direction;
@@ -211,7 +212,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Forms",
         forms_groups::date_input_group
     ),
-    component_doc!("TextField", "text-field", "Forms", forms::text_field),
+    component_doc!(
+        "TextField",
+        "text-field",
+        "Forms",
+        forms_text_field::text_field
+    ),
     component_doc!("Textfield", "textfield", "Forms", fxt::textfield),
     component_doc!("TextArea", "text-area", "Forms", forms::text_area),
     component_doc!("Textarea", "textarea", "Forms", forms_extra::textarea),

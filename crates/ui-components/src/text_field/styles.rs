@@ -72,4 +72,52 @@ pub const CSS: &str = r#"
   background: var(--ui-bg-muted);
   cursor: not-allowed;
 }
+.ui-text-field[data-state="disabled"] .ui-text-field__input {
+  opacity: 0.6;
+  background: var(--ui-bg-muted);
+  cursor: not-allowed;
+}
+
+.ui-text-field[data-state="invalid"] .ui-text-field__input {
+  border-color: var(--ui-danger);
+}
+
+.ui-text-field[data-state="readonly"] .ui-text-field__input {
+  background: var(--ui-bg-muted);
+}
+
+.ui-text-field[data-value="filled"] {
+  --ui-text-field-has-value: 1;
+}
+
+.ui-text-field[data-requirement="required"] {
+  --ui-text-field-required: 1;
+}
+
+.ui-text-field[data-label-source="custom"] {
+  --ui-text-field-label-source: custom;
+}
+
+.ui-text-field[data-description-source="custom"] {
+  --ui-text-field-description-source: custom;
+}
+
+.ui-text-field[data-error-source="custom"] {
+  --ui-text-field-error-source: custom;
+}
+
+.ui-text-field[data-placeholder-source="custom"] {
+  --ui-text-field-placeholder-source: custom;
+}
+
+.ui-text-field[data-type-source="custom"] {
+  --ui-text-field-type-source: custom;
+}
+
+.ui-text-field[data-class-source="custom"],
+.ui-text-field[data-custom-class="true"],
+.ui-text-field--custom-class {
+  border-radius: inherit;
+}
+
 "#;
