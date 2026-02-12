@@ -146,3 +146,65 @@ fn search_field_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn search_field_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_search.rs");
+
+    for needle in [
+        "pub(super) fn search() -> AnyView",
+        "title=\"Search\"",
+        "slug=\"search\"",
+        "description=\"Spectrum-compatible Search alias for upstream naming parity, preserving SearchField accessibility/state contracts and HeroUI-level clear-button spring motion.\"",
+        "<Playground title=\"Submit + Clear\" code=basic_code>",
+        "<Playground title=\"Required + Invalid\" code=validation_code>",
+        "title=\"State + Source Markers\"",
+        "code=markers_code",
+        "<Search",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra_search docs should include `{needle}` for search-field primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn search_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_search.rs");
+
+    for needle in [
+        "title=\"Submit + Clear\"",
+        "id=\"docs-search-basic\".to_string()",
+        "label=\"Search docs\".to_string()",
+        "placeholder=\"Try: overlay\".to_string()",
+        "on_submit=on_submit",
+        "on_clear=on_clear",
+        "Press Enter to submit; Escape to clear.",
+        "title=\"Required + Invalid\"",
+        "id=\"docs-search-required\".to_string()",
+        "label=\"Required query\".to_string()",
+        "required=true",
+        "invalid=required_invalid",
+        "error=\"Query is required\".to_string()",
+        "title=\"State + Source Markers\"",
+        "id=\"docs-search-markers\".to_string()",
+        "required=true",
+        "invalid=Signal::derive(move || marker_invalid.get())",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Query is required\".to_string()",
+        "placeholder=\"Try: spring\".to_string()",
+        "class_name=\"docs-search-state\".to_string()",
+        "motion=marker_motion",
+        "hidden_scale: 0.78",
+        "hover_scale: 1.08",
+        "tap_scale: 0.92",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra_search docs playgrounds should contain `{needle}` for search-field contracts.",
+        );
+    }
+}

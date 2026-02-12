@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SearchField` docs state matrix contracts by locking submit-clear, required-invalid, and state-source marker playground anchors in `search_field_semantics` regression coverage.
+
 - `ui-components`: hardens `ScrollArea` docs state matrix contracts by locking vertical-max-height and horizontal/both-disabled playground anchors in `scroll_area_semantics` regression coverage.
 
 - `ui-components`: hardens `s2` compatibility module docs state matrix contracts by locking UiRoot usage/state playground anchors and `s2`→`ui-root` mapping in `s2_module_semantics` regression coverage.
