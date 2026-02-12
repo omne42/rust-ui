@@ -154,3 +154,43 @@ fn button_flip_docs_direction_matrix_and_custom_playgrounds_lock_contract_values
         );
     }
 }
+
+#[test]
+fn button_flip_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn flip_button() -> AnyView",
+        "title=\"FlipButton\"",
+        "slug=\"flip-button\"",
+        "Top flip",
+        "Direction matrix",
+        "Custom Class",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip-button docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_flip_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Top flip\" code=code>",
+        "from=FlipDirection::Top",
+        "<Playground title=\"Direction matrix\" code=states_code>",
+        "from=FlipDirection::Bottom",
+        "from=FlipDirection::Left",
+        "from=FlipDirection::Right",
+        "<Playground title=\"Custom Class\" code=custom_code>",
+        "class_name=\"docs-flip-button-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip-button docs playground should contain `{needle}`.",
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FlipButton` docs state contracts by locking top-flip, direction-matrix, and custom-class playground anchors in `button_flip_semantics` regression coverage.
+
 - `ui-components`: hardens `ButtonCopy` docs state contracts by locking label+variant and disabled+empty matrix playground anchors in `button_copy_semantics` regression coverage.
 
 - `ui-components`: hardens `Breadcrumb` docs state contracts by locking trail+label-only/empty and primitive link+overflow+state/source-marker playground anchors in `breadcrumb_semantics` regression coverage.
