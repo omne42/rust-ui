@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `provider` compatibility module docs state matrix contracts by locking UiRoot usage/state playground anchors and `provider`→`ui-root` mapping in `provider_module_semantics` regression coverage.
+
 - `ui-components`: hardens `PreviewLinkCard` docs state matrix contracts by locking snapshot, state-source marker, and default-fallback playground anchors in `preview_link_card_semantics` regression coverage.
 
 - `ui-components`: hardens `PreviewCard` docs state matrix contracts by locking basic, state-source marker, and default-fallback playground anchors in `preview_card_semantics` regression coverage.
