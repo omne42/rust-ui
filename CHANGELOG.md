@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Kbd` docs state contracts by locking size+keys matrix and custom-class+label-only playground anchors in `kbd_semantics` regression coverage.
+
 - `ui-components`: hardens `Link` docs state contracts by locking state-matrix and custom-rel+class playground anchors in `link_semantics` regression coverage.
 
 - `ui-components`: hardens `SlidingNumber` docs state contracts by locking animated-matrix and custom-separators+motion+class playground anchors in `sliding_number_semantics` regression coverage.

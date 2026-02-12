@@ -89,3 +89,43 @@ fn kbd_styles_include_size_and_state_markers() {
         );
     }
 }
+
+#[test]
+fn kbd_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn kbd() -> AnyView",
+        "title=\"Kbd\"",
+        "slug=\"kbd\"",
+        "Playground title=\"Size + Keys Matrix\"",
+        "Playground title=\"Custom Class + Label Only\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Kbd.",
+        );
+    }
+}
+
+#[test]
+fn kbd_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Size + Keys Matrix\"",
+        "<Kbd size=KbdSize::Md keys=\"Ctrl\".to_string()>\"K\"</Kbd>",
+        "<Kbd size=KbdSize::Sm keys=\"⌘\".to_string()>\"P\"</Kbd>",
+        "<Kbd size=KbdSize::Md keys=\"Alt\".to_string()>\"Enter\"</Kbd>",
+        "title=\"Custom Class + Label Only\"",
+        "<Kbd size=KbdSize::Md class_name=\"docs-kbd-custom\".to_string()>\"Esc\"</Kbd>",
+        "keys=\"Shift\".to_string()",
+        "class_name=\"docs-kbd-custom\".to_string()",
+        "\"Tab\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "kbd docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
