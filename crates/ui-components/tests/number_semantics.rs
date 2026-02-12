@@ -219,3 +219,58 @@ fn number_docs_sliding_number_playgrounds_lock_contract_values() {
         );
     }
 }
+
+#[test]
+fn number_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn static_number() -> AnyView",
+        "title=\"StaticNumber\"",
+        "slug=\"static-number\"",
+        "<Playground title=\"Formatting Matrix\" code=matrix_code>",
+        "<Playground title=\"Custom Separators + Class\" code=custom_code>",
+        "pub(super) fn sliding_number() -> AnyView",
+        "title=\"SlidingNumber\"",
+        "slug=\"sliding-number\"",
+        "<Playground title=\"Animated Matrix\" code=matrix_code>",
+        "<Playground title=\"Custom Separators + Motion + Class\" code=custom_code>",
+        "<StaticNumber",
+        "<SlidingNumber",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs should include `{needle}` for number primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn number_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Formatting Matrix\"",
+        "number=12345.67",
+        "number=-9876.5",
+        "decimal_places=2",
+        "thousand_separator=\",\".to_string()",
+        "title=\"Custom Separators + Class\"",
+        "decimal_separator=\",\".to_string()",
+        "thousand_separator=\" \".to_string()",
+        "class_name=\"docs-static-number-custom\".to_string()",
+        "title=\"Animated Matrix\"",
+        "number=number_signal",
+        "set_value.update(|v| *v += 250.0)",
+        "set_value.update(|v| *v -= 100.0)",
+        "title=\"Custom Separators + Motion + Class\"",
+        "motion=ui_components::SlidingNumberMotion {",
+        "animate: false,",
+        "class_name=\"docs-sliding-number-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

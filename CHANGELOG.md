@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `number` docs state matrix contracts by locking static/sliding number playground anchors, separator contracts, and motion marker values in `number_semantics` regression coverage.
+
 - `ui-components`: hardens `NumberField` docs state matrix contracts by locking stepper playground id/label/min-max/value anchors in `number_field_semantics` regression coverage.
 
 - `ui-components`: hardens `NavigationMenu` docs state matrix contracts by locking roving-focus default, controlled-manual activation, and state-source marker playground anchors in `navigation_menu_semantics` regression coverage.
