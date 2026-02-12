@@ -202,3 +202,59 @@ fn icons_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn icons_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons.rs");
+
+    for needle in [
+        "pub(super) fn icons() -> AnyView",
+        "title=\"Icons\"",
+        "slug=\"icons\"",
+        "description=\"Spectrum-compatible `icons` package wrapper that maps medium/large scale and ui/workflow set selection onto IconsUi/IconsWorkflow with stable source-state contracts.\"",
+        "<Playground title=\"Medium + Large Set Selection\" code=default_code>",
+        "<Playground title=\"Custom Workflow Glyph Extension\" code=custom_code>",
+        "title=\"State + Source Markers\"",
+        "<Icons",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_icons docs should include `{needle}` for icons primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn icons_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons.rs");
+
+    for needle in [
+        "title=\"Medium + Large Set Selection\"",
+        "name=\"check\".to_string()",
+        "set=IconsSet::Ui",
+        "scale=IconsScale::Medium",
+        "tone=IconsTone::Accent",
+        "name=\"workflow:warning\".to_string()",
+        "scale=IconsScale::Large",
+        "tone=IconsTone::Danger",
+        "title=\"Custom Workflow Glyph Extension\"",
+        "name=\"workflow:deploy\".to_string()",
+        "set=IconsSet::Workflow",
+        "IconsGlyph::new(\"workflow:deploy\", \"🚀\")",
+        ".with_aria_label(\"Workflow Deploy\")",
+        "class_name=\"docs-icons-custom\".to_string()",
+        "title=\"State + Source Markers\"",
+        "name=\"check\".to_string()",
+        "set=IconsSet::Workflow",
+        "tone=IconsTone::Muted",
+        "aria_label=\"Explicit icon label\".to_string()",
+        "class_name=\"docs-icons-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
