@@ -108,3 +108,46 @@ fn label_styles_include_emphasis_required_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn label_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn label() -> AnyView",
+        "title=\"Label\"",
+        "slug=\"label\"",
+        "description=\"Form label primitive with centralized required/emphasis/source state contracts.\"",
+        "<Playground title=\"Emphasis + Required\" code=emphasis_code>",
+        "<Playground title=\"Custom Indicator + Class\" code=custom_code>",
+        "<Label",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs should include `{needle}` for label primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn label_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Emphasis + Required\"",
+        "text=\"Name\".to_string()",
+        "required=true",
+        "emphasis=LabelEmphasis::Subtle",
+        "text=\"Critical\".to_string()",
+        "emphasis=LabelEmphasis::Strong",
+        "title=\"Custom Indicator + Class\"",
+        "text=\"Assignee\".to_string()",
+        "required_indicator=\"(required)\".to_string()",
+        "class_name=\"docs-label-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "label docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

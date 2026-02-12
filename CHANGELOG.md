@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Label` docs state matrix contracts by locking emphasis+required and custom-indicator+class playground anchors in `label_semantics` regression coverage.
+
 - `ui-components`: hardens `Keyboard` docs state matrix contracts by locking tone and compact+custom-aria/class playground anchors in `keyboard_semantics` regression coverage.
 
 - `ui-components`: hardens `Input` docs state matrix contracts by locking clearable+validation playground anchors in `input_semantics` regression coverage.
