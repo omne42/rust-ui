@@ -299,3 +299,68 @@ fn context_menu_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn context_menu_docs_page_covers_primary_playgrounds() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "pub(super) fn context_menu() -> AnyView",
+        "title=\"ContextMenu\"",
+        "slug=\"context-menu\"",
+        "description=\"Shadcn-compatible context trigger menu with right-click + keyboard open semantics, Spectrum state/source attrs, and HeroUI-level popover spring motion reuse.\"",
+        "<Playground title=\"Right Click + Keyboard Open\" code=code>",
+        "<Playground title=\"Persistent + Disabled + ItemKinds\" code=states_code>",
+        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "data-id-source",
+        "data-aria-label-source",
+        "data-disabled-indices-source",
+        "data-close-on-action-source",
+        "data-open-source",
+        "data-motion-source",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "collections_command docs page should include `{needle}` for context_menu primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn context_menu_docs_playgrounds_lock_state_matrix_contract_values() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "id_base=\"docs-context-menu-default\".to_string()",
+        "items=default_items",
+        "on_action=on_default_action",
+        "\"Right click or press Shift+F10\"",
+        "id_base=\"docs-context-menu-persistent\".to_string()",
+        "items=keep_open_items",
+        "on_action=on_keep_open_action",
+        "close_on_action=false",
+        "disabled_indices=vec![1]",
+        "aria_label=\"File actions\".to_string()",
+        "class_name=\"docs-context-menu-custom\".to_string()",
+        "\"close_on_action: false (selection keeps menu open)\"",
+        "id_base=\"docs-context-menu-markers\".to_string()",
+        "items=marker_items",
+        "on_action=on_marker_action",
+        "open=marker_open",
+        "default_open=true",
+        "on_open_change=on_marker_open_change",
+        "disabled_indices=vec![2]",
+        "aria_label=\"Workspace context actions\".to_string()",
+        "let marker_motion = ui_components::ContextMenuMotion {",
+        "initial_scale: 0.94",
+        "offset_y_px: 10.0",
+        "motion=marker_motion",
+        "\"open: \"",
+        "\"last action: \"",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "context_menu docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
