@@ -169,3 +169,56 @@ fn thumbnail_docs_page_includes_custom_motion_playground() {
         );
     }
 }
+
+#[test]
+fn thumbnail_docs_default_and_state_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_thumbnail.rs");
+
+    for needle in [
+        "<Playground title=\"Sizes\" code=size_code>",
+        "size=ThumbnailSize::Size100",
+        "size=ThumbnailSize::Size500",
+        "size=ThumbnailSize::Size900",
+        "alt=\"Landscape\"",
+        "alt=\"Portrait\"",
+        "alt=\"Panorama\"",
+        "<Playground title=\"Cover + Background + Layer + Selected\" code=state_code>",
+        "size=ThumbnailSize::Size600",
+        "background=\"#0f172a\".to_string()",
+        "cover=true",
+        "layer=true",
+        "selected=true",
+        "focused=true",
+        "class_name=\"docs-thumbnail-custom\".to_string()",
+        "alt=\"Cover sample\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "thumbnail docs default/state playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn thumbnail_docs_custom_motion_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_thumbnail.rs");
+
+    for needle in [
+        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "let custom_motion = ThumbnailMotion {",
+        "active_scale: 1.08,",
+        "active_ring_opacity: 0.9,",
+        "..ThumbnailMotion::default()",
+        "motion=custom_motion",
+        "motion=ThumbnailMotion::disabled()",
+        "alt=\"Hero motion contract\"",
+        "alt=\"Reduced motion contract\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "thumbnail docs custom-motion playground should contain `{needle}`.",
+        );
+    }
+}
