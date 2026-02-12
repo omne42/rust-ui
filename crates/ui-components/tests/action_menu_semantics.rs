@@ -271,3 +271,28 @@ fn action_menu_motion_sanitizes_custom_contract_values() {
         "ActionMenu view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn action_menu_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "let marker_motion = ui_components::ActionMenuMotion {",
+        "popover: ui_components::PopoverMotion {",
+        "initial_scale: 0.93",
+        "offset_y_px: 8.0",
+        "title=\"State + Source Markers\"",
+        "close_on_action=false",
+        "open=marker_open",
+        "default_open=true",
+        "on_open_change=on_marker_open_change",
+        "aria_label=\"Workspace actions\".to_string()",
+        "class_name=\"docs-action-menu-custom\".to_string()",
+        "motion=marker_motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action-menu docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
