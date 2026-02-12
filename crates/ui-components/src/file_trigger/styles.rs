@@ -5,7 +5,13 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-sm);
 }
 
+.ui-file-trigger--disabled,
+.ui-file-trigger[data-disabled="true"] {
+  opacity: 0.7;
+}
+
 .ui-file-trigger[data-motion-source="custom"],
+.ui-file-trigger--custom-motion,
 .ui-file-trigger[data-custom-motion="true"] {
   --ui-file-trigger-custom-motion: 1;
 }

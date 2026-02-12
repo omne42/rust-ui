@@ -18,6 +18,37 @@ fn file_trigger_does_not_expose_logic_module() {
 }
 
 #[test]
+fn file_trigger_uses_logic_state_model() {
+    let logic_source = load_source("src/file_trigger/logic.rs");
+    let view_source = load_source("src/file_trigger/view.rs");
+
+    for needle in [
+        "pub struct FileTriggerStateInput",
+        "pub struct FileTriggerState",
+        "pub fn resolve_state(input: FileTriggerStateInput)",
+        "pub fn compose_class_name(state: FileTriggerState)",
+        "pub motion_source_attr: &'static str",
+        "pub has_custom_motion: bool",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "FileTrigger logic should include `{needle}` for centralized state derivation.",
+        );
+    }
+
+    for needle in [
+        "let state = Signal::derive(move ||",
+        "super::logic::resolve_state(super::logic::FileTriggerStateInput {",
+        "let class = Signal::derive(move || super::logic::compose_class_name(state.get()));",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "FileTrigger view should derive wrapper state through logic helpers; missing `{needle}`.",
+        );
+    }
+}
+
+#[test]
 fn file_trigger_clears_input_value_before_click() {
     let source = load_source("src/file_trigger/view.rs");
 
@@ -43,8 +74,11 @@ fn file_trigger_emits_motion_source_markers() {
 
     for needle in [
         "data-slot=\"file-trigger\"",
-        "data-motion-source=if motion == FileTriggerMotion::default()",
-        "data-custom-motion=(motion != FileTriggerMotion::default()).then_some(\"true\")",
+        "data-state=move || state.get().state_attr",
+        "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-enabled=move || state.get().is_enabled.then_some(\"true\")",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -88,7 +122,10 @@ fn file_trigger_styles_include_motion_marker_contracts() {
     let source = load_source("src/file_trigger/styles.rs");
 
     for selector in [
+        ".ui-file-trigger--disabled",
+        ".ui-file-trigger[data-disabled=\"true\"]",
         ".ui-file-trigger[data-motion-source=\"custom\"]",
+        ".ui-file-trigger--custom-motion",
         ".ui-file-trigger[data-custom-motion=\"true\"]",
         ".ui-file-trigger__input",
     ] {

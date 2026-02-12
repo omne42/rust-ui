@@ -17,6 +17,15 @@ pub fn FileTrigger(
     let input_ref: NodeRef<html::Input> = NodeRef::new();
     let on_files = StoredValue::new(on_files);
     let motion = crate::file_trigger::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != FileTriggerMotion::default();
+
+    let state = Signal::derive(move || {
+        super::logic::resolve_state(super::logic::FileTriggerStateInput {
+            disabled,
+            has_custom_motion,
+        })
+    });
+    let class = Signal::derive(move || super::logic::compose_class_name(state.get()));
 
     let on_press = Callback::new(move |_| {
         if !disabled {
@@ -81,15 +90,14 @@ pub fn FileTrigger(
 
     view! {
         <span
-                class="ui-file-trigger"
-                data-slot="file-trigger"
-                data-motion-source=if motion == FileTriggerMotion::default() {
-                    "default"
-                } else {
-                    "custom"
-                }
-                data-custom-motion=(motion != FileTriggerMotion::default()).then_some("true")
-            >
+            class=move || class.get()
+            data-slot="file-trigger"
+            data-state=move || state.get().state_attr
+            data-disabled=move || state.get().is_disabled.then_some("true")
+            data-enabled=move || state.get().is_enabled.then_some("true")
+            data-motion-source=move || state.get().motion_source_attr
+            data-custom-motion=move || state.get().has_custom_motion.then_some("true")
+        >
             <input
                 class="ui-file-trigger__input"
                 data-slot="file-trigger-input"
