@@ -92,3 +92,44 @@ fn footer_styles_include_tone_border_and_custom_markers() {
         );
     }
 }
+
+#[test]
+fn footer_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn footer() -> AnyView",
+        "title=\"Footer\"",
+        "slug=\"footer\"",
+        "Playground title=\"Semantic Footer + Tone\"",
+        "Playground title=\"Bordered + Custom Aria/Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Footer.",
+        );
+    }
+}
+
+#[test]
+fn footer_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Semantic Footer + Tone\"",
+        "<Footer>",
+        "<Footer tone=FooterTone::Muted>",
+        "title=\"Bordered + Custom Aria/Class\"",
+        "<Header bordered=true>",
+        "<Content padded=true>",
+        "tone=FooterTone::Muted",
+        "bordered=true",
+        "aria_label=\"Settings footer\".to_string()",
+        "class_name=\"docs-footer-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "footer docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
