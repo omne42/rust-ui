@@ -69,7 +69,11 @@ fn dropzone_view_uses_logic_state_and_motion_contracts() {
         "data-class-source=state.class_source_attr",
         "data-motion-source=state.motion_source_attr",
         "data-drop-handler-source=state.drop_handler_source_attr",
+        "data-custom-label=state.has_custom_label.then_some(\"true\")",
+        "data-custom-aria=state.has_custom_aria.then_some(\"true\")",
+        "data-custom-drop-handler=state.has_custom_drop_handler.then_some(\"true\")",
         "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -86,10 +90,19 @@ fn dropzone_styles_include_state_and_source_markers() {
         ".ui-dropzone {",
         ".ui-dropzone[data-state=\"disabled\"]",
         ".ui-dropzone[data-label-source=\"custom\"]",
+        ".ui-dropzone[data-custom-label=\"true\"]",
+        ".ui-dropzone--custom-label",
         ".ui-dropzone[data-aria-source=\"custom\"]",
+        ".ui-dropzone[data-custom-aria=\"true\"]",
+        ".ui-dropzone--custom-aria",
         ".ui-dropzone[data-drop-handler-source=\"custom\"]",
+        ".ui-dropzone[data-custom-drop-handler=\"true\"]",
+        ".ui-dropzone--custom-drop-handler",
         ".ui-dropzone[data-motion-source=\"custom\"]",
         ".ui-dropzone[data-custom-motion=\"true\"]",
+        ".ui-dropzone--custom-motion",
+        ".ui-dropzone[data-class-source=\"custom\"]",
+        ".ui-dropzone[data-custom-class=\"true\"]",
         ".ui-dropzone--custom-class",
     ] {
         assert!(

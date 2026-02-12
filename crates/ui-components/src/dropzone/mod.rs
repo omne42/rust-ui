@@ -24,6 +24,9 @@ pub struct DropzoneState {
     pub class_source_attr: &'static str,
     pub motion_source_attr: &'static str,
     pub drop_handler_source_attr: &'static str,
+    pub has_custom_label: bool,
+    pub has_custom_aria: bool,
+    pub has_custom_drop_handler: bool,
     pub has_custom_class_name: bool,
     pub has_custom_motion: bool,
 }

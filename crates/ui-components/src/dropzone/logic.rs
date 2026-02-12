@@ -55,6 +55,9 @@ pub fn resolve_state(input: DropzoneStateInput) -> DropzoneState {
         } else {
             "default"
         },
+        has_custom_label: input.has_custom_label,
+        has_custom_aria: input.aria_source_attr == "custom",
+        has_custom_drop_handler: input.has_custom_drop_handler,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
     }
@@ -65,6 +68,18 @@ pub fn compose_class_name(class_name: Option<String>, state: DropzoneState) -> S
         "ui-dropzone".to_string(),
         format!("ui-dropzone--state-{}", state.state_attr),
     ];
+
+    if state.has_custom_label {
+        classes.push("ui-dropzone--custom-label".to_string());
+    }
+
+    if state.has_custom_aria {
+        classes.push("ui-dropzone--custom-aria".to_string());
+    }
+
+    if state.has_custom_drop_handler {
+        classes.push("ui-dropzone--custom-drop-handler".to_string());
+    }
 
     if state.has_custom_motion {
         classes.push("ui-dropzone--custom-motion".to_string());
@@ -120,14 +135,17 @@ mod tests {
         assert_eq!(state.class_source_attr, "custom");
         assert_eq!(state.motion_source_attr, "custom");
         assert_eq!(state.drop_handler_source_attr, "default");
+        assert!(state.has_custom_label);
+        assert!(state.has_custom_aria);
+        assert!(!state.has_custom_drop_handler);
     }
 
     #[test]
     fn compose_class_name_includes_state_and_custom_markers() {
         let state = resolve_state(DropzoneStateInput {
             disabled: true,
-            has_custom_label: false,
-            aria_source_attr: "default",
+            has_custom_label: true,
+            aria_source_attr: "custom",
             has_custom_class_name: true,
             has_custom_motion: true,
             has_custom_drop_handler: true,
@@ -138,6 +156,9 @@ mod tests {
         for token in [
             "ui-dropzone",
             "ui-dropzone--state-disabled",
+            "ui-dropzone--custom-label",
+            "ui-dropzone--custom-aria",
+            "ui-dropzone--custom-drop-handler",
             "ui-dropzone--custom-motion",
             "ui-dropzone--custom-class",
             "docs-dropzone",

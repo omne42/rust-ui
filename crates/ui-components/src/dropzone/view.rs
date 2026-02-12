@@ -43,6 +43,9 @@ pub fn Dropzone(
             data-class-source=state.class_source_attr
             data-motion-source=state.motion_source_attr
             data-drop-handler-source=state.drop_handler_source_attr
+            data-custom-label=state.has_custom_label.then_some("true")
+            data-custom-aria=state.has_custom_aria.then_some("true")
+            data-custom-drop-handler=state.has_custom_drop_handler.then_some("true")
             data-custom-motion=state.has_custom_motion.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
         >
