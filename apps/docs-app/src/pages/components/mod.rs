@@ -203,6 +203,7 @@ mod tests {
             "list-box" => &["listbox", "listbox-item", "listbox-section"],
             "gridlist" => &["listbox", "listbox-item", "listbox-section"],
             "dnd" => &["drop-zone", "file-trigger"],
+            "drag-and-drop" => &["drop-zone", "file-trigger"],
             "theme-dark" => &["ui-root"],
             "theme-default" => &["ui-root"],
             "theme-express" => &["ui-root"],

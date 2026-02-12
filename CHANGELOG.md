@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `drag_and_drop` compatibility module (re-exporting `DropZone`/`FileTrigger` contracts and aliasing `DragAndDrop` motion contracts), adds `drag_and_drop_module_semantics` regression coverage, and maps `drag-and-drop` docs-module coverage to existing files playgrounds in `apps/docs-app`.
+
 - `ui-components`: adds `list_box` compatibility module (re-exporting `ListBox`/`ListBoxItem`/`ListBoxSection` contracts under snake_case module naming), adds `list_box_module_semantics` regression coverage, and maps `list-box` docs-module coverage to existing listbox playgrounds in `apps/docs-app`.
 
 - `ui-components`: adds `spinbutton` compatibility module (re-exporting `NumberField` as `SpinButton`), adds `spinbutton_module_semantics` regression coverage, and maps `spinbutton` docs-module coverage to the existing `number-field` playground in `apps/docs-app`.
