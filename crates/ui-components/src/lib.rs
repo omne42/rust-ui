@@ -177,6 +177,7 @@ pub mod segmented_control;
 pub mod select;
 pub mod selection_indicator;
 pub mod separator;
+pub mod shared_element_transition;
 pub mod sheet;
 pub mod sidebar;
 pub mod sidebar_content;
@@ -435,6 +436,9 @@ pub use segmented_control::{
 pub use select::{Select, SelectMotion};
 pub use selection_indicator::SelectionIndicator;
 pub use separator::{Separator, SeparatorElementType, SeparatorMotion, SeparatorOrientation};
+pub use shared_element_transition::{
+    SharedElementTransition, SharedElementTransitionElement, SharedElementTransitionRadius,
+};
 pub use sheet::{Sheet, SheetMotion, SheetPlacement};
 pub use sidebar::{Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant};
 pub use sidebar_content::SidebarContent;

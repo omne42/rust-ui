@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `shared_element_transition` compatibility module (re-exporting `View` contracts under SharedElementTransition naming), adds `shared_element_transition_module_semantics` regression coverage, and maps `shared-element-transition` docs-module coverage to the existing `view` playground in `apps/docs-app`.
+
 - `ui-components`: adds `overlay_arrow` compatibility module (re-exporting icon contracts with popover placement aliasing), adds `overlay_arrow_module_semantics` regression coverage, and maps `overlay-arrow` docs-module coverage to existing `icon` and `popover` playgrounds in `apps/docs-app`.
 
 - `ui-components`: adds `hidden_date_input` compatibility module (re-exporting `DateInputGroup` contracts), adds `hidden_date_input_module_semantics` regression coverage, and maps `hidden-date-input` docs-module coverage to the existing `date-input-group` playground in `apps/docs-app`.
