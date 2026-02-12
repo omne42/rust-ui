@@ -60,6 +60,7 @@ pub const CSS: &str = r#"
   --ui-menubar-custom-motion: 1;
 }
 
+.ui-menubar--custom-id,
 .ui-menubar[data-id-source="custom"],
 .ui-menubar[data-custom-id="true"] {
   --ui-menubar-custom-id: 1;
@@ -70,26 +71,31 @@ pub const CSS: &str = r#"
   --ui-menubar-custom-class: 1;
 }
 
+.ui-menubar--custom-close-on-action,
 .ui-menubar[data-close-on-action-source="custom"],
 .ui-menubar[data-custom-close-on-action="true"] {
   --ui-menubar-custom-close-on-action: 1;
 }
 
+.ui-menubar--custom-placement,
 .ui-menubar[data-placement-source="custom"],
 .ui-menubar[data-custom-placement="true"] {
   --ui-menubar-custom-placement: 1;
 }
 
+.ui-menubar--custom-open-index,
 .ui-menubar[data-open-index-source="custom"],
 .ui-menubar[data-custom-open-index="true"] {
   --ui-menubar-custom-open-index: 1;
 }
 
+.ui-menubar--custom-default-open-index,
 .ui-menubar[data-default-open-index-source="custom"],
 .ui-menubar[data-custom-default-open-index="true"] {
   --ui-menubar-custom-default-open-index: 1;
 }
 
+.ui-menubar--custom-open-index-change,
 .ui-menubar[data-open-index-change-source="custom"],
 .ui-menubar[data-custom-open-index-change="true"] {
   --ui-menubar-custom-open-index-change: 1;

@@ -275,6 +275,30 @@ pub fn compose_class_name(base_class_name: Option<String>, state: MenubarPartSta
             classes.push("ui-menubar--custom-motion".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-menubar--custom-id".to_string());
+        }
+
+        if state.has_custom_close_on_action {
+            classes.push("ui-menubar--custom-close-on-action".to_string());
+        }
+
+        if state.has_custom_placement {
+            classes.push("ui-menubar--custom-placement".to_string());
+        }
+
+        if state.has_custom_open_index {
+            classes.push("ui-menubar--custom-open-index".to_string());
+        }
+
+        if state.has_custom_default_open_index {
+            classes.push("ui-menubar--custom-default-open-index".to_string());
+        }
+
+        if state.has_custom_on_open_index_change {
+            classes.push("ui-menubar--custom-open-index-change".to_string());
+        }
+
         if state.has_custom_class_name {
             classes.push("ui-menubar--custom-class".to_string());
             if let Some(base_class_name) = normalize_optional_text(base_class_name) {
@@ -448,10 +472,10 @@ mod tests {
                 has_custom_id_base: true,
                 has_custom_class_name: true,
                 has_custom_close_on_action: true,
-                has_custom_placement: false,
+                has_custom_placement: true,
                 has_custom_open_index: true,
-                has_custom_default_open_index: false,
-                has_custom_on_open_index_change: false,
+                has_custom_default_open_index: true,
+                has_custom_on_open_index_change: true,
                 has_custom_motion: true,
             }),
         );
@@ -465,6 +489,12 @@ mod tests {
             "ui-menubar--persistent",
             "ui-menubar--controlled",
             "ui-menubar--custom-motion",
+            "ui-menubar--custom-id",
+            "ui-menubar--custom-close-on-action",
+            "ui-menubar--custom-placement",
+            "ui-menubar--custom-open-index",
+            "ui-menubar--custom-default-open-index",
+            "ui-menubar--custom-open-index-change",
             "ui-menubar--custom-class",
             "custom",
         ] {
