@@ -207,6 +207,7 @@ mod tests {
             "theme-express" => &["ui-root"],
             "theme-light" => &["ui-root"],
             "utils" => &["button"],
+            "spinbutton" => &["number-field"],
             "s2" => &["ui-root"],
             "story-utils" => &["ui-root"],
             "style-macro-s1" => &["ui-root"],
