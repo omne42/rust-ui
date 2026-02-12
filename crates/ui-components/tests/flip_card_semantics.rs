@@ -196,3 +196,52 @@ fn flip_card_motion_sanitizes_custom_contract_values() {
         "FlipCard view should sanitize motion before deriving state and attaching motion driver.",
     );
 }
+
+#[test]
+fn flip_card_docs_default_and_disabled_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Click + Keyboard Flip\" code=basic_code>",
+        "<div class=\"ui-flip-card__title\">\"Front\"</div>",
+        "Click or press Enter/Space to flip.",
+        "<div class=\"ui-flip-card__title\">\"Back\"</div>",
+        "Back face stays keyboard reachable with the same button semantics.",
+        "<Playground title=\"Disabled\" code=disabled_code>",
+        "disabled=true",
+        "<div class=\"ui-flip-card__title\">\"Disabled front\"</div>",
+        "No click/keyboard toggle while disabled.",
+        "<div class=\"ui-flip-card__title\">\"Disabled back\"</div>",
+        "aria-disabled and disabled markers remain consistent.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "FlipCard docs default/disabled playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn flip_card_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-flip-card\".to_string()",
+        "class_name=\"docs-flip-card-state\".to_string()",
+        "flip_on_hover=true",
+        "motion=FlipCardMotion {",
+        "hover_scale: 1.03,",
+        "hover_tilt_deg: 4.0,",
+        "..FlipCardMotion::default()",
+        "<div class=\"ui-flip-card__title\">\"Inspect markers (front)\"</div>",
+        "Hover enters flipped mode source = custom.",
+        "<div class=\"ui-flip-card__title\">\"Inspect markers (back)\"</div>",
+        "Front/back visibility markers stay explicit for regression tests.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "FlipCard docs marker playground should contain `{needle}`.",
+        );
+    }
+}
