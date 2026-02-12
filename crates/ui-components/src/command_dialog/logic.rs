@@ -138,6 +138,50 @@ pub fn compose_class_name(
             classes.push("ui-command-dialog--uncontrolled".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-command-dialog--custom-id".to_string());
+        }
+
+        if state.has_custom_title {
+            classes.push("ui-command-dialog--custom-title".to_string());
+        }
+
+        if state.has_custom_description {
+            classes.push("ui-command-dialog--custom-description".to_string());
+        }
+
+        if state.has_custom_placeholder {
+            classes.push("ui-command-dialog--custom-placeholder".to_string());
+        }
+
+        if state.has_custom_empty_label {
+            classes.push("ui-command-dialog--custom-empty-label".to_string());
+        }
+
+        if state.has_custom_aria_label {
+            classes.push("ui-command-dialog--custom-aria-label".to_string());
+        }
+
+        if state.has_custom_on_action {
+            classes.push("ui-command-dialog--custom-action".to_string());
+        }
+
+        if state.has_custom_on_open_change {
+            classes.push("ui-command-dialog--custom-open-change".to_string());
+        }
+
+        if state.has_custom_default_open {
+            classes.push("ui-command-dialog--custom-default-open".to_string());
+        }
+
+        if state.has_custom_close_on_action {
+            classes.push("ui-command-dialog--custom-close-on-action".to_string());
+        }
+
+        if state.has_custom_disabled {
+            classes.push("ui-command-dialog--custom-disabled".to_string());
+        }
+
         if state.has_custom_command_motion {
             classes.push("ui-command-dialog--custom-command-motion".to_string());
         }
@@ -229,34 +273,46 @@ mod tests {
             resolve_state(CommandDialogPartStateInput {
                 slot: CommandDialogSlot::Root,
                 is_open: false,
-                has_description: false,
+                has_description: true,
                 close_on_action: true,
                 disabled: false,
                 is_controlled: false,
                 has_custom_id_base: true,
                 has_custom_title: true,
-                has_custom_description: false,
+                has_custom_description: true,
                 has_custom_placeholder: true,
                 has_custom_empty_label: true,
                 has_custom_aria_label: true,
                 has_custom_class_name: true,
                 has_custom_on_action: true,
-                has_custom_on_open_change: false,
+                has_custom_on_open_change: true,
                 has_custom_default_open: true,
-                has_custom_close_on_action: false,
-                has_custom_disabled: false,
+                has_custom_close_on_action: true,
+                has_custom_disabled: true,
                 has_custom_command_motion: true,
-                has_custom_overlay_motion: false,
+                has_custom_overlay_motion: true,
             }),
         );
 
         for token in [
             "ui-command-dialog",
             "ui-command-dialog--closed",
-            "ui-command-dialog--title-only",
+            "ui-command-dialog--with-description",
             "ui-command-dialog--close-on-action",
             "ui-command-dialog--uncontrolled",
+            "ui-command-dialog--custom-id",
+            "ui-command-dialog--custom-title",
+            "ui-command-dialog--custom-description",
+            "ui-command-dialog--custom-placeholder",
+            "ui-command-dialog--custom-empty-label",
+            "ui-command-dialog--custom-aria-label",
+            "ui-command-dialog--custom-action",
+            "ui-command-dialog--custom-open-change",
+            "ui-command-dialog--custom-default-open",
+            "ui-command-dialog--custom-close-on-action",
+            "ui-command-dialog--custom-disabled",
             "ui-command-dialog--custom-command-motion",
+            "ui-command-dialog--custom-overlay-motion",
             "ui-command-dialog--custom-class",
             "docs-command-dialog",
         ] {

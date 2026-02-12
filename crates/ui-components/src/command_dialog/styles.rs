@@ -57,62 +57,74 @@ pub const CSS: &str = r#"
 }
 
 .ui-command-dialog[data-id-source="custom"],
-.ui-command-dialog[data-custom-id="true"] {
+.ui-command-dialog[data-custom-id="true"],
+.ui-command-dialog--custom-id {
   --ui-command-dialog-custom-id: 1;
 }
 
 .ui-command-dialog[data-title-source="custom"],
-.ui-command-dialog[data-custom-title="true"] {
+.ui-command-dialog[data-custom-title="true"],
+.ui-command-dialog--custom-title {
   --ui-command-dialog-custom-title: 1;
 }
 
 .ui-command-dialog[data-description-source="custom"],
-.ui-command-dialog[data-custom-description="true"] {
+.ui-command-dialog[data-custom-description="true"],
+.ui-command-dialog--custom-description {
   --ui-command-dialog-custom-description: 1;
 }
 
 .ui-command-dialog[data-placeholder-source="custom"],
-.ui-command-dialog[data-custom-placeholder="true"] {
+.ui-command-dialog[data-custom-placeholder="true"],
+.ui-command-dialog--custom-placeholder {
   --ui-command-dialog-custom-placeholder: 1;
 }
 
 .ui-command-dialog[data-empty-label-source="custom"],
-.ui-command-dialog[data-custom-empty-label="true"] {
+.ui-command-dialog[data-custom-empty-label="true"],
+.ui-command-dialog--custom-empty-label {
   --ui-command-dialog-custom-empty-label: 1;
 }
 
 .ui-command-dialog[data-aria-label-source="custom"],
-.ui-command-dialog[data-custom-aria-label="true"] {
+.ui-command-dialog[data-custom-aria-label="true"],
+.ui-command-dialog--custom-aria-label {
   --ui-command-dialog-custom-aria-label: 1;
 }
 
 .ui-command-dialog[data-class-source="custom"],
-.ui-command-dialog[data-custom-class="true"] {
+.ui-command-dialog[data-custom-class="true"],
+.ui-command-dialog--custom-class {
   --ui-command-dialog-custom-class: 1;
 }
 
 .ui-command-dialog[data-action-source="custom"],
-.ui-command-dialog[data-custom-action="true"] {
+.ui-command-dialog[data-custom-action="true"],
+.ui-command-dialog--custom-action {
   --ui-command-dialog-custom-action: 1;
 }
 
 .ui-command-dialog[data-open-change-source="custom"],
-.ui-command-dialog[data-custom-open-change="true"] {
+.ui-command-dialog[data-custom-open-change="true"],
+.ui-command-dialog--custom-open-change {
   --ui-command-dialog-custom-open-change: 1;
 }
 
 .ui-command-dialog[data-default-open-source="custom"],
-.ui-command-dialog[data-custom-default-open="true"] {
+.ui-command-dialog[data-custom-default-open="true"],
+.ui-command-dialog--custom-default-open {
   --ui-command-dialog-custom-default-open: 1;
 }
 
 .ui-command-dialog[data-close-on-action-source="custom"],
-.ui-command-dialog[data-custom-close-on-action="true"] {
+.ui-command-dialog[data-custom-close-on-action="true"],
+.ui-command-dialog--custom-close-on-action {
   --ui-command-dialog-custom-close-on-action: 1;
 }
 
 .ui-command-dialog[data-disabled-source="custom"],
-.ui-command-dialog[data-custom-disabled="true"] {
+.ui-command-dialog[data-custom-disabled="true"],
+.ui-command-dialog--custom-disabled {
   --ui-command-dialog-custom-disabled: 1;
 }
 
