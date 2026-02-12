@@ -152,3 +152,65 @@ fn sidebar_group_docs_page_exists_in_layout_extra() {
         );
     }
 }
+
+#[test]
+fn sidebar_group_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_group.rs");
+
+    for needle in [
+        "pub(super) fn sidebar_group() -> AnyView",
+        "title=\"SidebarGroup\"",
+        "slug=\"sidebar-group\"",
+        "description=\"Shadcn-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, Spectrum-style data contracts, and motion-ready collapse behavior.\"",
+        "<Playground title=\"Label + Group Action\" code=base_code>",
+        "<Playground title=\"Controlled + Collapsible Group\" code=controlled_code>",
+        "<SidebarGroup",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_group docs should include `{needle}` for sidebar_group primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_group.rs");
+
+    for needle in [
+        "title=\"Label + Group Action\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        "aria_label=\"Sidebar group playground\".to_string()",
+        "label=\"Help\".to_string()",
+        "action_label=\"Add\".to_string()",
+        "on_action=on_group_action",
+        "collapsible=false",
+        "aria_label=\"Help group\".to_string()",
+        "id_base=\"docs-sidebar-group-basic\".to_string()",
+        "show_actions=false",
+        "aria_label=\"Help menu\".to_string()",
+        "title=\"Controlled + Collapsible Group\"",
+        "open=group_open",
+        "on_open_change=on_group_open_change",
+        "collapsible=true",
+        "show_action=false",
+        "label=\"Architecture\".to_string()",
+        "aria_label=\"Architecture group\".to_string()",
+        "class_name=\"docs-sidebar-group-custom\".to_string()",
+        "id_base=\"docs-sidebar-group-collapsible\".to_string()",
+        "allow_submenu_collapse=true",
+        "show_actions=true",
+        "show_badges=false",
+        "aria_label=\"Architecture menu\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_group docs playgrounds should contain `{needle}` for sidebar_group contracts.",
+        );
+    }
+}
