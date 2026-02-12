@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Image` docs state contracts by locking image playground anchors (`src`/`alt`/`radius`/`shadow`/`is_zoomed`) in `image_semantics` regression coverage.
+
 - `ui-components`: hardens `AvatarGroup` docs state contracts by locking overflow-stack, size-without-overflow, and custom-aria+class playground anchors in `avatar_group_semantics` regression coverage.
 
 - `ui-components`: hardens `Avatar` docs state contracts by locking image+fallback, size+label-source, and custom-class+normalized-props playground anchors in `avatar_semantics` regression coverage.

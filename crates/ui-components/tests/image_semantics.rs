@@ -103,3 +103,40 @@ fn image_motion_sanitizes_custom_contract_values() {
         "Image view should sanitize motion before attaching zoom driver.",
     );
 }
+
+#[test]
+fn image_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn image() -> AnyView",
+        "title=\"Image\"",
+        "slug=\"image\"",
+        "Playground title=\"Image\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Image.",
+        );
+    }
+}
+
+#[test]
+fn image_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "let code = r#\"<Image src=Some(src.to_string()) alt=\"Demo\".to_string() />\"#;",
+        "<Image",
+        "src=src.to_string()",
+        "alt=\"Demo image\".to_string()",
+        "radius=ImageRadius::Lg",
+        "shadow=ImageShadow::Md",
+        "is_zoomed=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "image docs playground should contain `{needle}`.",
+        );
+    }
+}
