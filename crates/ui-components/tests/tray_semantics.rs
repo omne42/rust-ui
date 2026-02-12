@@ -292,3 +292,13 @@ fn tray_motion_sanitizes_custom_contract_values() {
         "Tray view should sanitize motion before forwarding it to Sheet.",
     );
 }
+
+#[test]
+fn tray_docs_page_covers_primary_playgrounds() {
+    tray_docs_page_contains_state_source_playground();
+}
+
+#[test]
+fn tray_docs_playgrounds_lock_state_matrix_contract_values() {
+    tray_docs_custom_motion_playground_locks_contract_values();
+}
