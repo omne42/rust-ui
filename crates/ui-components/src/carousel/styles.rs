@@ -65,42 +65,50 @@ pub const CSS: &str = r#"
 }
 
 .ui-carousel[data-id-source="custom"],
-.ui-carousel[data-custom-id="true"] {
+.ui-carousel[data-custom-id="true"],
+.ui-carousel--custom-id {
   --ui-carousel-custom-id: 1;
 }
 
 .ui-carousel[data-aria-label-source="custom"],
-.ui-carousel[data-custom-aria-label="true"] {
+.ui-carousel[data-custom-aria-label="true"],
+.ui-carousel--custom-aria-label {
   --ui-carousel-custom-aria-label: 1;
 }
 
 .ui-carousel[data-class-source="custom"],
-.ui-carousel[data-custom-class="true"] {
+.ui-carousel[data-custom-class="true"],
+.ui-carousel--custom-class {
   --ui-carousel-custom-class: 1;
 }
 
 .ui-carousel[data-orientation-source="custom"],
-.ui-carousel[data-custom-orientation="true"] {
+.ui-carousel[data-custom-orientation="true"],
+.ui-carousel--custom-orientation {
   --ui-carousel-custom-orientation: 1;
 }
 
 .ui-carousel[data-loop-navigation-source="custom"],
-.ui-carousel[data-custom-loop-navigation="true"] {
+.ui-carousel[data-custom-loop-navigation="true"],
+.ui-carousel--custom-loop-navigation {
   --ui-carousel-custom-loop-navigation: 1;
 }
 
 .ui-carousel[data-selected-index-source="custom"],
-.ui-carousel[data-custom-selected-index="true"] {
+.ui-carousel[data-custom-selected-index="true"],
+.ui-carousel--custom-selected-index {
   --ui-carousel-custom-selected-index: 1;
 }
 
 .ui-carousel[data-default-selected-index-source="custom"],
-.ui-carousel[data-custom-default-selected-index="true"] {
+.ui-carousel[data-custom-default-selected-index="true"],
+.ui-carousel--custom-default-selected-index {
   --ui-carousel-custom-default-selected-index: 1;
 }
 
 .ui-carousel[data-selected-index-change-source="custom"],
-.ui-carousel[data-custom-selected-index-change="true"] {
+.ui-carousel[data-custom-selected-index-change="true"],
+.ui-carousel--custom-selected-index-change {
   --ui-carousel-custom-selected-index-change: 1;
 }
 

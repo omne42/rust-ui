@@ -305,6 +305,34 @@ pub fn compose_class_name(base_class_name: Option<String>, state: CarouselPartSt
             classes.push("ui-carousel--uncontrolled".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-carousel--custom-id".to_string());
+        }
+
+        if state.has_custom_aria_label {
+            classes.push("ui-carousel--custom-aria-label".to_string());
+        }
+
+        if state.has_custom_orientation {
+            classes.push("ui-carousel--custom-orientation".to_string());
+        }
+
+        if state.has_custom_loop_navigation {
+            classes.push("ui-carousel--custom-loop-navigation".to_string());
+        }
+
+        if state.has_custom_selected_index {
+            classes.push("ui-carousel--custom-selected-index".to_string());
+        }
+
+        if state.has_custom_default_selected_index {
+            classes.push("ui-carousel--custom-default-selected-index".to_string());
+        }
+
+        if state.has_custom_on_selected_index_change {
+            classes.push("ui-carousel--custom-selected-index-change".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-carousel--custom-motion".to_string());
         }
@@ -416,7 +444,7 @@ mod tests {
             has_custom_orientation: true,
             has_custom_loop_navigation: true,
             has_custom_selected_index: true,
-            has_custom_default_selected_index: false,
+            has_custom_default_selected_index: true,
             has_custom_on_selected_index_change: true,
             has_custom_motion: true,
         });
@@ -447,9 +475,9 @@ mod tests {
                 has_custom_class_name: true,
                 has_custom_orientation: true,
                 has_custom_loop_navigation: true,
-                has_custom_selected_index: false,
-                has_custom_default_selected_index: false,
-                has_custom_on_selected_index_change: false,
+                has_custom_selected_index: true,
+                has_custom_default_selected_index: true,
+                has_custom_on_selected_index_change: true,
                 has_custom_motion: true,
             }),
         );
@@ -460,6 +488,14 @@ mod tests {
             "ui-carousel--selected",
             "ui-carousel--has-disabled-items",
             "ui-carousel--loop",
+            "ui-carousel--custom-id",
+            "ui-carousel--custom-aria-label",
+            "ui-carousel--custom-class",
+            "ui-carousel--custom-orientation",
+            "ui-carousel--custom-loop-navigation",
+            "ui-carousel--custom-selected-index",
+            "ui-carousel--custom-default-selected-index",
+            "ui-carousel--custom-selected-index-change",
             "ui-carousel--custom-motion",
             "custom",
         ] {

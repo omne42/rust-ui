@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Carousel` with class/data dual source markers for id/aria-label/class/orientation/loop-navigation/selected-index/default-selected-index/selected-index-change/motion contracts, aligns carousel source selectors in styles, and hardens `carousel_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `ActionMenu` with class/data dual source markers for id/aria-label/class/disabled/disabled-indices/item-kinds/close-on-action/placement/open/default-open/open-change/motion contracts, aligns action-menu source selectors in styles, and hardens `action_menu_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `CommandDialog` with class/data dual source markers for id/title/description/placeholder/empty-label/aria-label/action/open-change/default-open/close-on-action/disabled/command-motion/overlay-motion contracts, aligns command-dialog source selectors in styles, and hardens `command_dialog_semantics` coverage for stable Spectrum-compatible state-source contracts.
