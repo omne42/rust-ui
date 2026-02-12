@@ -40,6 +40,7 @@ pub struct ContextualHelpStateInput {
     pub has_custom_aria_label: bool,
     pub has_custom_class_name: bool,
     pub has_custom_id: bool,
+    pub has_custom_motion: bool,
     pub is_controlled: bool,
 }
 
@@ -62,9 +63,12 @@ pub struct ContextualHelpState {
     pub footer_attr: &'static str,
     pub has_custom_aria_label: bool,
     pub label_source_attr: &'static str,
+    pub class_source_attr: &'static str,
     pub has_custom_class_name: bool,
     pub has_custom_id: bool,
     pub id_source_attr: &'static str,
+    pub motion_source_attr: &'static str,
+    pub has_custom_motion: bool,
     pub is_controlled: bool,
     pub open_mode_class: &'static str,
     pub open_mode_attr: &'static str,
@@ -152,6 +156,11 @@ pub fn resolve_state(input: ContextualHelpStateInput) -> ContextualHelpState {
         } else {
             "default"
         },
+        class_source_attr: if input.has_custom_class_name {
+            "custom"
+        } else {
+            "default"
+        },
         has_custom_class_name: input.has_custom_class_name,
         has_custom_id: input.has_custom_id,
         id_source_attr: if input.has_custom_id {
@@ -159,6 +168,12 @@ pub fn resolve_state(input: ContextualHelpStateInput) -> ContextualHelpState {
         } else {
             "auto"
         },
+        motion_source_attr: if input.has_custom_motion {
+            "custom"
+        } else {
+            "default"
+        },
+        has_custom_motion: input.has_custom_motion,
         is_controlled: input.is_controlled,
         open_mode_class: if input.is_controlled {
             "ui-contextual-help--controlled"
@@ -186,6 +201,10 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ContextualHelp
 
     if state.has_custom_class_name {
         classes.push("ui-contextual-help--custom-class".to_string());
+    }
+
+    if state.has_custom_motion {
+        classes.push("ui-contextual-help--custom-motion".to_string());
     }
 
     if state.has_custom_class_name
@@ -262,6 +281,7 @@ mod tests {
             has_custom_aria_label: true,
             has_custom_class_name: true,
             has_custom_id: false,
+            has_custom_motion: true,
             is_controlled: true,
         });
 
@@ -286,12 +306,15 @@ mod tests {
         assert_eq!(state.footer_attr, "present");
 
         assert_eq!(state.label_source_attr, "custom");
+        assert_eq!(state.class_source_attr, "custom");
         assert_eq!(state.id_source_attr, "auto");
+        assert_eq!(state.motion_source_attr, "custom");
 
         assert!(state.is_controlled);
         assert_eq!(state.open_mode_attr, "controlled");
 
         assert!(state.has_custom_class_name);
+        assert!(state.has_custom_motion);
     }
 
     #[test]
@@ -307,6 +330,7 @@ mod tests {
                 has_custom_aria_label: false,
                 has_custom_class_name: true,
                 has_custom_id: true,
+                has_custom_motion: true,
                 is_controlled: false,
             }),
         );
@@ -320,6 +344,7 @@ mod tests {
             "ui-contextual-help--no-footer",
             "ui-contextual-help--uncontrolled",
             "ui-contextual-help--custom-class",
+            "ui-contextual-help--custom-motion",
             "docs-help",
         ] {
             assert!(

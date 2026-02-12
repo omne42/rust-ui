@@ -5,6 +5,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-contextual-help[data-motion-source="custom"],
+.ui-contextual-help--custom-motion,
 .ui-contextual-help[data-custom-motion="true"] {
   --ui-contextual-help-custom-motion: 1;
 }
@@ -41,6 +42,7 @@ pub const CSS: &str = r#"
   color: var(--ui-accent);
 }
 
+.ui-contextual-help[data-class-source="custom"],
 .ui-contextual-help--custom-class,
 .ui-contextual-help[data-custom-class="true"] {
   border-radius: inherit;

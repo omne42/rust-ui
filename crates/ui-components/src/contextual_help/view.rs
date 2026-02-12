@@ -47,6 +47,7 @@ pub fn ContextualHelp(
     let class_name = logic::normalize_optional_text(class_name);
 
     let motion = crate::contextual_help::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ContextualHelpMotion::default();
 
     let (trigger_aria_label, has_custom_aria_label) =
         logic::resolve_trigger_aria_label(variant, aria_label);
@@ -61,6 +62,7 @@ pub fn ContextualHelp(
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
         has_custom_id,
+        has_custom_motion,
         is_controlled,
     });
     let class = StoredValue::new(logic::compose_class_name(class_name, state));
@@ -102,12 +104,9 @@ pub fn ContextualHelp(
             data-id-source=state.id_source_attr
             data-disabled=state.is_disabled.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
-            data-motion-source=if motion == ContextualHelpMotion::default() {
-                "default"
-            } else {
-                "custom"
-            }
-            data-custom-motion=(motion != ContextualHelpMotion::default()).then_some("true")
+            data-class-source=state.class_source_attr
+            data-motion-source=state.motion_source_attr
+            data-custom-motion=state.has_custom_motion.then_some("true")
         >
             <Button
                 node_ref=anchor_ref

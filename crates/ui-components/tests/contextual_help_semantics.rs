@@ -32,6 +32,9 @@ fn contextual_help_uses_logic_state_model() {
         "pub fn resolve_id(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "class_source_attr",
+        "motion_source_attr",
+        "has_custom_motion",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -86,8 +89,9 @@ fn contextual_help_emits_spectrum_style_state_data_attributes() {
         "data-label-source=state.label_source_attr",
         "data-id-source=state.id_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
-        "data-motion-source=if motion == ContextualHelpMotion::default()",
-        "data-custom-motion=(motion != ContextualHelpMotion::default()).then_some(\"true\")",
+        "data-class-source=state.class_source_attr",
+        "data-motion-source=state.motion_source_attr",
+        "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
         "data-slot=\"contextual-help-panel\"",
         "data-slot=\"contextual-help-content\"",
     ] {
@@ -128,8 +132,10 @@ fn contextual_help_styles_include_state_marker_contracts() {
         ".ui-contextual-help[data-state=\"disabled\"]",
         ".ui-contextual-help[data-heading=\"absent\"]",
         ".ui-contextual-help[data-footer=\"present\"]",
+        ".ui-contextual-help[data-class-source=\"custom\"]",
         ".ui-contextual-help--custom-class",
         ".ui-contextual-help[data-motion-source=\"custom\"]",
+        ".ui-contextual-help--custom-motion",
         ".ui-contextual-help[data-custom-motion=\"true\"]",
     ] {
         assert!(
