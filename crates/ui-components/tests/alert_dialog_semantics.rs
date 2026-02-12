@@ -298,3 +298,52 @@ fn alert_dialog_docs_default_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn alert_dialog_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs");
+
+    for needle in [
+        "pub(super) fn alert_dialog() -> AnyView",
+        "title=\"AlertDialog\"",
+        "slug=\"alert-dialog\"",
+        "Playground title=\"AlertDialog\"",
+        "Playground title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays-alert-dialog docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs");
+
+    for needle in [
+        "title=\"AlertDialog\"",
+        "id_base=\"docs-alert\".to_string()",
+        "title=\"Delete item?\".to_string()",
+        "description=\"Uses role=alertdialog with Overlay semantics.\".to_string()",
+        "confirm_label=\"Delete\".to_string()",
+        "variant=AlertDialogVariant::Destructive",
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-alert-marker\".to_string()",
+        "title=\"Delete workspace?\".to_string()",
+        "cancel_label=\"Dismiss\".to_string()",
+        "secondary_label=\"Save draft\".to_string()",
+        "auto_focus_button=ui_components::AlertDialogAutoFocusButton::Secondary",
+        "secondary_disabled=true",
+        "motion=ui_components::AlertDialogMotion {",
+        "initial_scale: 0.95",
+        "initial_y_px: 12.0",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert-dialog docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
