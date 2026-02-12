@@ -106,3 +106,49 @@ fn color_slider_styles_include_channel_and_custom_contracts() {
         );
     }
 }
+
+#[test]
+fn color_slider_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_slider() -> AnyView",
+        "title=\"ColorSlider\"",
+        "slug=\"color-slider\"",
+        "title=\"Controlled Hue Channel\"",
+        "title=\"Disabled Alpha + Custom Track + Reduced Motion\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-slider docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_slider_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled Hue Channel\" code=basic_code>",
+        "id_base=\"docs-color-slider-hue\".to_string()",
+        "channel=ColorSliderChannel::Hue",
+        "value=hue.into()",
+        "on_value_change=on_hue_change",
+        "<Playground title=\"Disabled Alpha + Custom Track + Reduced Motion\" code=states_code>",
+        "id_base=\"docs-color-slider-alpha\".to_string()",
+        "channel=ColorSliderChannel::Alpha",
+        "disabled=true",
+        "id_base=\"docs-color-slider-custom\".to_string()",
+        "channel=ColorSliderChannel::Blue",
+        "track_start_color=\"#0f172a\".to_string()",
+        "track_end_color=\"#38bdf8\".to_string()",
+        "motion=reduced_motion",
+        "class_name=\"docs-color-slider-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-slider docs playground should contain `{needle}`.",
+        );
+    }
+}
