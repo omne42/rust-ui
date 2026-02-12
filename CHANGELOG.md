@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ButtonGroup` docs state contracts by locking attached-horizontal and vertical-detached playground anchors in `button_group_semantics` regression coverage.
+
 - `ui-components`: hardens `FlipButton` docs state contracts by locking top-flip, direction-matrix, and custom-class playground anchors in `button_flip_semantics` regression coverage.
 
 - `ui-components`: hardens `ButtonCopy` docs state contracts by locking label+variant and disabled+empty matrix playground anchors in `button_copy_semantics` regression coverage.

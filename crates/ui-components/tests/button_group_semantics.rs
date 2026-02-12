@@ -135,3 +135,43 @@ fn button_group_docs_attached_and_vertical_playgrounds_lock_contract_values() {
         );
     }
 }
+
+#[test]
+fn button_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button_group() -> AnyView",
+        "title=\"ButtonGroup\"",
+        "slug=\"button-group\"",
+        "title=\"Attached horizontal\"",
+        "title=\"Vertical + detached\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button-group docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Attached horizontal\" code=code>",
+        "<ButtonGroup attached=true orientation=ButtonGroupOrientation::Horizontal>",
+        "\"left/middle/right clicks: \"",
+        "<Playground title=\"Vertical + detached\" code=states_code>",
+        "attached=false",
+        "orientation=ButtonGroupOrientation::Vertical",
+        "aria_label=\"Document actions\".to_string()",
+        "<Button variant=ButtonVariant::Outline disabled=true>",
+        "\"top/bottom clicks: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button-group docs playground should contain `{needle}`.",
+        );
+    }
+}
