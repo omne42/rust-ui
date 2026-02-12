@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `Dialog` docs state contracts by locking default-playground anchors (id/title/description/footer actions/exit callback wiring) in `dialog_semantics` regression coverage.
 
+- `ui-components`: hardens `AlertDialog` docs state contracts by locking default-playground anchors (trigger variant/id/title/description/confirm/exit wiring) in `alert_dialog_semantics` regression coverage.
+
 - `ui-components`: hardens `Dropzone` docs state/motion contracts by locking disabled and marker-playground anchors plus explicit custom motion values (`hover_scale`/`drop_scale`) in `dropzone_semantics` regression coverage.
 
 - `ui-components`: hardens `PickerButton` docs state/source contracts by locking state-matrix and marker-playground anchors (quiet/invalid/disabled/active + aria/class/handler source wiring) in `picker_button_semantics` regression coverage.

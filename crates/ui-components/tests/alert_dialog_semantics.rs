@@ -275,3 +275,26 @@ fn alert_dialog_docs_page_locks_custom_motion_marker_contract_values() {
         );
     }
 }
+
+#[test]
+fn alert_dialog_docs_default_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs");
+
+    for needle in [
+        "<Playground title=\"AlertDialog\" code=code>",
+        "<Button variant=ButtonVariant::Destructive on_press=open_alert>",
+        "id_base=\"docs-alert\".to_string()",
+        "title=\"Delete item?\".to_string()",
+        "description=\"Uses role=alertdialog with Overlay semantics.\".to_string()",
+        "confirm_label=\"Delete\".to_string()",
+        "on_confirm=on_confirm",
+        "variant=AlertDialogVariant::Destructive",
+        "on_exit_complete=on_exit_complete",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert dialog docs default playground should contain `{needle}`.",
+        );
+    }
+}
