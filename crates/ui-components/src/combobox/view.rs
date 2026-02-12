@@ -79,6 +79,10 @@ pub fn Combobox(
             data-placeholder-source=move || state.get().placeholder_source_attr
             data-class-source=move || state.get().class_source_attr
             data-motion-source=move || state.get().motion_source_attr
+            data-custom-label=move || state.get().has_custom_label.then_some("true")
+            data-custom-description=move || state.get().has_custom_description.then_some("true")
+            data-custom-error=move || state.get().has_custom_error.then_some("true")
+            data-custom-placeholder=move || state.get().has_custom_placeholder.then_some("true")
             data-custom-motion=move || state.get().has_custom_motion.then_some("true")
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-has-disabled-options=move || state.get().has_disabled_options.then_some("true")

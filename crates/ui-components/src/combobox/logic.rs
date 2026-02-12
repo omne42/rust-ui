@@ -75,6 +75,10 @@ pub fn resolve_state(input: ComboboxStateInput) -> ComboboxState {
         } else {
             "default"
         },
+        has_custom_label: input.has_custom_label,
+        has_custom_description: input.has_custom_description,
+        has_custom_error: input.has_custom_error,
+        has_custom_placeholder: input.has_custom_placeholder,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
         has_disabled_options,
@@ -89,6 +93,22 @@ pub fn compose_class_name(class_name: Option<String>, state: ComboboxState) -> S
         format!("ui-combobox--options-{}", state.options_attr),
         format!("ui-combobox--requirement-{}", state.requirement_attr),
     ];
+
+    if state.has_custom_label {
+        classes.push("ui-combobox--custom-label".to_string());
+    }
+
+    if state.has_custom_description {
+        classes.push("ui-combobox--custom-description".to_string());
+    }
+
+    if state.has_custom_error {
+        classes.push("ui-combobox--custom-error".to_string());
+    }
+
+    if state.has_custom_placeholder {
+        classes.push("ui-combobox--custom-placeholder".to_string());
+    }
 
     if state.has_custom_motion {
         classes.push("ui-combobox--custom-motion".to_string());
@@ -142,9 +162,14 @@ mod tests {
         assert_eq!(state.options_attr, "has-disabled");
         assert_eq!(state.requirement_attr, "required");
         assert_eq!(state.label_source_attr, "custom");
+        assert_eq!(state.description_source_attr, "custom");
         assert_eq!(state.error_source_attr, "default");
         assert_eq!(state.placeholder_source_attr, "custom");
         assert_eq!(state.motion_source_attr, "custom");
+        assert!(state.has_custom_label);
+        assert!(state.has_custom_description);
+        assert!(!state.has_custom_error);
+        assert!(state.has_custom_placeholder);
         assert!(state.has_disabled_options);
     }
 
@@ -181,10 +206,10 @@ mod tests {
             required: false,
             invalid: false,
             disabled: true,
-            has_custom_label: false,
-            has_custom_description: false,
-            has_custom_error: false,
-            has_custom_placeholder: false,
+            has_custom_label: true,
+            has_custom_description: true,
+            has_custom_error: true,
+            has_custom_placeholder: true,
             has_custom_class_name: true,
             has_custom_motion: true,
         });
@@ -197,6 +222,10 @@ mod tests {
             "ui-combobox--selection-empty",
             "ui-combobox--options-empty",
             "ui-combobox--requirement-optional",
+            "ui-combobox--custom-label",
+            "ui-combobox--custom-description",
+            "ui-combobox--custom-error",
+            "ui-combobox--custom-placeholder",
             "ui-combobox--custom-motion",
             "ui-combobox--custom-class",
             "docs-combobox",

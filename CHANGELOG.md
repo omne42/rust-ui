@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Combobox` with class/data dual source markers for label/description/error/placeholder/class/motion contracts, aligns combobox source selectors in styles, and hardens `combobox_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `Dropzone` with class/data dual source markers for label/aria/drop-handler/class/motion contracts, aligns dropzone source selectors in styles, and hardens `dropzone_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `Search` with class/data dual source markers for label/description/error/placeholder/submit-handler/clear-handler/class/motion contracts, aligns search source selectors in styles, and hardens `search_semantics` coverage for stable Spectrum-compatible state-source contracts.
