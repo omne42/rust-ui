@@ -32,6 +32,7 @@ pub fn Tooltip(
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
     let has_custom_motion = motion != TooltipMotion::default();
     let has_custom_delays = logic::has_custom_delays(delay_ms, close_delay_ms);
     let has_custom_trigger_mode = trigger != TooltipTriggerMode::default();
@@ -56,35 +57,39 @@ pub fn Tooltip(
     let open: Signal<bool> = trigger_aria.state.is_open().into();
     let presence = crate::presence::use_presence(open);
 
-    let root_state = logic::resolve_state(TooltipPartStateInput {
-        slot: TooltipSlot::Root,
-        open: open.get_untracked(),
-        disabled,
-        has_custom_class_name: class_name.is_some(),
-        has_custom_motion,
-        has_custom_delays,
-        has_custom_trigger_mode,
-        has_custom_press_behavior,
-        has_custom_id,
-        trigger_attr: logic::trigger_attr(trigger_mode),
-        press_behavior_attr: logic::press_behavior_attr(should_close_on_press),
+    let root_state = Memo::new(move |_| {
+        logic::resolve_state(TooltipPartStateInput {
+            slot: TooltipSlot::Root,
+            open: open.get(),
+            disabled,
+            has_custom_class_name,
+            has_custom_motion,
+            has_custom_delays,
+            has_custom_trigger_mode,
+            has_custom_press_behavior,
+            has_custom_id,
+            trigger_attr: logic::trigger_attr(trigger_mode),
+            press_behavior_attr: logic::press_behavior_attr(should_close_on_press),
+        })
     });
-    let root_class = logic::compose_class_name(class_name, root_state);
+    let root_class = logic::compose_class_name(class_name, root_state.get_untracked());
 
-    let panel_state = logic::resolve_state(TooltipPartStateInput {
-        slot: TooltipSlot::Panel,
-        open: false,
-        disabled,
-        has_custom_class_name: false,
-        has_custom_motion,
-        has_custom_delays,
-        has_custom_trigger_mode,
-        has_custom_press_behavior,
-        has_custom_id,
-        trigger_attr: logic::trigger_attr(trigger_mode),
-        press_behavior_attr: logic::press_behavior_attr(should_close_on_press),
+    let panel_state = Memo::new(move |_| {
+        logic::resolve_state(TooltipPartStateInput {
+            slot: TooltipSlot::Panel,
+            open: open.get(),
+            disabled,
+            has_custom_class_name: false,
+            has_custom_motion,
+            has_custom_delays,
+            has_custom_trigger_mode,
+            has_custom_press_behavior,
+            has_custom_id,
+            trigger_attr: logic::trigger_attr(trigger_mode),
+            press_behavior_attr: logic::press_behavior_attr(should_close_on_press),
+        })
     });
-    let panel_class = logic::compose_class_name(None, panel_state);
+    let panel_class = logic::compose_class_name(None, panel_state.get_untracked());
     let panel_class = StoredValue::new(panel_class);
 
     let content = StoredValue::new(content);
@@ -199,26 +204,26 @@ pub fn Tooltip(
     view! {
         <span
             class=root_class
-            data-slot=root_state.slot_attr
-            data-state=move || logic::state_attr_for_open(open.get())
-            data-open=move || open.get().then_some("true")
-            data-closed=move || (!open.get()).then_some("true")
-            data-disabled=root_state.is_disabled.then_some("true")
-            data-enabled=(!root_state.is_disabled).then_some("true")
-            data-trigger=root_state.trigger_attr
-            data-press-behavior=root_state.press_behavior_attr
-            data-class-source=root_state.class_source_attr
-            data-motion-source=root_state.motion_source_attr
-            data-delay-source=root_state.delay_source_attr
-            data-trigger-source=root_state.trigger_source_attr
-            data-press-source=root_state.press_source_attr
-            data-id-source=root_state.id_source_attr
-            data-custom-class=root_state.has_custom_class_name.then_some("true")
-            data-custom-motion=root_state.has_custom_motion.then_some("true")
-            data-custom-delay=root_state.has_custom_delays.then_some("true")
-            data-custom-trigger=root_state.has_custom_trigger_mode.then_some("true")
-            data-custom-press=root_state.has_custom_press_behavior.then_some("true")
-            data-custom-id=root_state.has_custom_id.then_some("true")
+            data-slot=move || root_state.get().slot_attr
+            data-state=move || root_state.get().state_attr
+            data-open=move || root_state.get().is_open.then_some("true")
+            data-closed=move || (!root_state.get().is_open).then_some("true")
+            data-disabled=move || root_state.get().is_disabled.then_some("true")
+            data-enabled=move || (!root_state.get().is_disabled).then_some("true")
+            data-trigger=move || root_state.get().trigger_attr
+            data-press-behavior=move || root_state.get().press_behavior_attr
+            data-class-source=move || root_state.get().class_source_attr
+            data-motion-source=move || root_state.get().motion_source_attr
+            data-delay-source=move || root_state.get().delay_source_attr
+            data-trigger-source=move || root_state.get().trigger_source_attr
+            data-press-source=move || root_state.get().press_source_attr
+            data-id-source=move || root_state.get().id_source_attr
+            data-custom-class=move || root_state.get().has_custom_class_name.then_some("true")
+            data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
+            data-custom-delay=move || root_state.get().has_custom_delays.then_some("true")
+            data-custom-trigger=move || root_state.get().has_custom_trigger_mode.then_some("true")
+            data-custom-press=move || root_state.get().has_custom_press_behavior.then_some("true")
+            data-custom-id=move || root_state.get().has_custom_id.then_some("true")
             node_ref=anchor_ref
             on:pointerenter=move |_| trigger_aria.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| trigger_aria.handlers.on_pointer_leave.run(())
@@ -238,20 +243,25 @@ pub fn Tooltip(
                         role="tooltip"
                         style=panel_vars
                         data-placement=move || position.placement.get().as_str()
-                        data-slot=panel_state.slot_attr
-                        data-state=panel_state.state_attr
-                        data-open=move || open.get().then_some("true")
-                        data-closed=move || (!open.get()).then_some("true")
-                        data-disabled=panel_state.is_disabled.then_some("true")
-                        data-enabled=(!panel_state.is_disabled).then_some("true")
-                        data-trigger=panel_state.trigger_attr
-                        data-press-behavior=panel_state.press_behavior_attr
-                        data-class-source=panel_state.class_source_attr
-                        data-motion-source=panel_state.motion_source_attr
-                        data-delay-source=panel_state.delay_source_attr
-                        data-trigger-source=panel_state.trigger_source_attr
-                        data-press-source=panel_state.press_source_attr
-                        data-id-source=panel_state.id_source_attr
+                        data-slot=move || panel_state.get().slot_attr
+                        data-state=move || panel_state.get().state_attr
+                        data-open=move || panel_state.get().is_open.then_some("true")
+                        data-closed=move || (!panel_state.get().is_open).then_some("true")
+                        data-disabled=move || panel_state.get().is_disabled.then_some("true")
+                        data-enabled=move || (!panel_state.get().is_disabled).then_some("true")
+                        data-trigger=move || panel_state.get().trigger_attr
+                        data-press-behavior=move || panel_state.get().press_behavior_attr
+                        data-class-source=move || panel_state.get().class_source_attr
+                        data-motion-source=move || panel_state.get().motion_source_attr
+                        data-delay-source=move || panel_state.get().delay_source_attr
+                        data-trigger-source=move || panel_state.get().trigger_source_attr
+                        data-press-source=move || panel_state.get().press_source_attr
+                        data-id-source=move || panel_state.get().id_source_attr
+                        data-custom-motion=move || panel_state.get().has_custom_motion.then_some("true")
+                        data-custom-delay=move || panel_state.get().has_custom_delays.then_some("true")
+                        data-custom-trigger=move || panel_state.get().has_custom_trigger_mode.then_some("true")
+                        data-custom-press=move || panel_state.get().has_custom_press_behavior.then_some("true")
+                        data-custom-id=move || panel_state.get().has_custom_id.then_some("true")
                     >
                         {move || content.with_value(|content| content.run())}
                     </div>

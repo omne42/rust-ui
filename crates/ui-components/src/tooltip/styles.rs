@@ -88,6 +88,31 @@ pub const CSS: &str = r#"
   --ui-tooltip-panel: 1;
 }
 
+.ui-tooltip__panel[data-motion-source="custom"],
+.ui-tooltip__panel[data-custom-motion="true"] {
+  --ui-tooltip-custom-motion: 1;
+}
+
+.ui-tooltip__panel[data-delay-source="custom"],
+.ui-tooltip__panel[data-custom-delay="true"] {
+  --ui-tooltip-delay-source: custom;
+}
+
+.ui-tooltip__panel[data-trigger-source="custom"],
+.ui-tooltip__panel[data-custom-trigger="true"] {
+  --ui-tooltip-trigger-source: custom;
+}
+
+.ui-tooltip__panel[data-press-source="custom"],
+.ui-tooltip__panel[data-custom-press="true"] {
+  --ui-tooltip-press-source: custom;
+}
+
+.ui-tooltip__panel[data-id-source="custom"],
+.ui-tooltip__panel[data-custom-id="true"] {
+  --ui-tooltip-id-source: custom;
+}
+
 .ui-tooltip__panel[data-placement="bottom"] {
   transform-origin: top center;
 }

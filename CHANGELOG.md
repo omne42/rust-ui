@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Tooltip` to memoized root/panel state derivation, emits panel-level `data-custom-*` motion/delay/trigger/press/id markers, and aligns tooltip styles + semantics coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `TopNav` with explicit optional-handler forwarding (no forced no-op callback), adds `data-custom-label` marker coverage, and aligns top-nav class/source selectors plus semantics tests for stable state-source contracts.
 
 - `ui-components`: upgrades `Toggle` to memoized logic-derived state attrs, standardizes `data-custom-aria-label` alongside legacy `data-custom-aria`, and strengthens `toggle_semantics` coverage for state-source contract stability.
