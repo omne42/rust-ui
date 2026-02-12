@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `theme_dark` compatibility docs contracts by locking UiRoot reuse anchors in `theme_dark_module_semantics` regression coverage.
+
 - `ui-components`: hardens `test_utils` compatibility docs contracts by locking UiRoot reuse anchors in `test_utils_module_semantics` regression coverage.
 
 - `ui-components`: hardens `textfield` compatibility docs state matrix contracts by locking required-invalid/state-source playground anchors in `textfield_semantics` regression coverage.
