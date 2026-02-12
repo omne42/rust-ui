@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `StepList` docs state contracts by locking controlled-selection and vertical+emphasized+disabled playground anchors in `step_list_semantics` regression coverage.
+
 - `ui-components`: hardens `Table` docs state contracts by locking default+striped and compact+fixed+empty playground anchors in `table_semantics` regression coverage.
 
 - `ui-components`: hardens `Tree` docs state contracts by locking default+expanded-root and strong+compact playground anchors in `tree_semantics` regression coverage.
