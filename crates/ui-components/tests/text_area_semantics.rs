@@ -136,3 +136,27 @@ fn text_area_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn text_area_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-text-area-markers\".to_string()",
+        "label=\"Release notes\".to_string()",
+        "required=true",
+        "invalid=Signal::derive(move || invalid.get())",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Release notes are required\".to_string()",
+        "placeholder=\"Write release notes…\".to_string()",
+        "rows=6",
+        "class_name=\"docs-text-area-state\".to_string()",
+        "Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TextArea docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
