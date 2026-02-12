@@ -205,6 +205,7 @@ mod tests {
             "list" => &["listbox", "item"],
             "selection-indicator" => &["listbox-item", "menu-item"],
             "shared-element-transition" => &["view"],
+            "virtualizer" => &["scroll-area"],
             "list-box" => &["listbox", "listbox-item", "listbox-section"],
             "gridlist" => &["listbox", "listbox-item", "listbox-section"],
             "grid-list" => &["listbox", "listbox-item", "listbox-section"],
