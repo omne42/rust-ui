@@ -200,3 +200,52 @@ fn modal_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn modal_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn modal() -> AnyView",
+        "title=\"Modal\"",
+        "slug=\"modal\"",
+        "description=\"Overlay composition with centralized title/description/class state attrs and stable modal slots.\"",
+        "<Playground title=\"Label + Description\" code=semantic_code>",
+        "title=\"State + Source Markers\"",
+        "code=custom_code",
+        "<Modal",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs should include `{needle}` for modal primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn modal_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Label + Description\"",
+        "id_base=\"docs-modal-semantic\".to_string()",
+        "title=\"Confirm\".to_string()",
+        "description=\"Modal composes Overlay with stable aria-labelledby + aria-describedby wiring.\".to_string()",
+        "on_exit_complete=on_semantic_exit_complete",
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-modal-custom\".to_string()",
+        "title=\"Title only\".to_string()",
+        "class_name=\"docs-modal-custom\".to_string()",
+        "let custom_motion = OverlayMotion {",
+        "initial_scale: 0.92",
+        "initial_y_px: 18.0",
+        "motion=custom_motion",
+        "on_exit_complete=on_custom_exit_complete",
+        "Inspect data-id-source / data-title-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "modal docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
