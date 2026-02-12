@@ -200,6 +200,7 @@ mod tests {
                 "color-swatch-picker",
             ],
             "list" => &["listbox", "item"],
+            "gridlist" => &["listbox", "listbox-item", "listbox-section"],
             "dnd" => &["drop-zone", "file-trigger"],
             "theme-dark" => &["ui-root"],
             "theme-default" => &["ui-root"],

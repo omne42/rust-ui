@@ -99,6 +99,7 @@ pub mod footer;
 pub mod form;
 pub mod form_field;
 pub mod grid;
+pub mod gridlist;
 pub mod header;
 pub mod heading;
 pub mod help_text;
@@ -340,6 +341,10 @@ pub use form_field::{
     FormField, FormFieldIndicatorPlacement, FormFieldIndicatorVariant, FormFieldTone,
 };
 pub use grid::{Grid, GridAlign, GridColumns, GridGap, GridJustify, GridRows};
+pub use gridlist::{
+    GridList, GridListItem, GridListItemSelectionIndicator, GridListSection,
+    GridListSectionHeadingTone,
+};
 pub use header::{Header, HeaderTone};
 pub use heading::{Heading, HeadingLevel, HeadingTone};
 pub use help_text::{HelpText, HelpTextTone};
