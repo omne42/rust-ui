@@ -162,3 +162,54 @@ fn tabs_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn tabs_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn tabs() -> AnyView",
+        "title=\"Tabs\"",
+        "slug=\"tabs\"",
+        "description=\"Tabs with roving tabindex, HeroUI-level indicator motion, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Automatic + Controlled\" code=code>",
+        "<Playground title=\"Manual + Disabled\" code=states_code>",
+        "<Tabs",
+        "keyboard_activation=TabsKeyboardActivation::Automatic",
+        "keyboard_activation=TabsKeyboardActivation::Manual",
+        "disabled_indices=vec![2]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for tabs coverage.",
+        );
+    }
+}
+
+#[test]
+fn tabs_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "let labels = vec![\"Overview\", \"Details\", \"Settings\"]",
+        "let manual_labels = vec![\"Profile\", \"Billing\", \"Team\"]",
+        "let (selected_auto, set_selected_auto) = signal(0_usize);",
+        "let (selected_manual, set_selected_manual) = signal(1_usize);",
+        "id_base=\"docs-tabs\".to_string()",
+        "labels=labels",
+        "\"Arrow keys move + select in automatic mode.\"",
+        "\"selected: \"",
+        "id_base=\"docs-tabs-manual\".to_string()",
+        "labels=manual_labels",
+        "\"Manual mode: focus moves first, Enter/Space commits.\"",
+        "\"Current selected index reflects committed tab.\"",
+        "\"This tab is disabled and skipped by roving focus.\"",
+        "\"manual selected: \"",
+        "\"disabled tab index: 2\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tabs docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
