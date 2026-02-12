@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FlipButton` HeroUI-level motion contracts by expanding semantics coverage for default/sanitized spring invariants, view-level motion source markers, and docs motion narrative stability across direction/custom-class variants.
+
 - `ui-components`: hardens `ThemeToggleButton` HeroUI-level motion contracts by expanding semantics coverage for motion defaults/sanitization clamps, rotate+scale CSS-variable driver wiring, and docs motion narrative stability.
 
 - `ui-components`: hardens `ShareButton` HeroUI-level motion contracts by expanding semantics coverage for motion sanitization delegation (`ShareButtonMotion -> FlipButtonMotion`), view-level `data-motion-source`/`data-custom-motion` markers, and docs motion narrative stability.

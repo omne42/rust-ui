@@ -55,3 +55,60 @@ fn docs_actions_page_covers_flip_button_playgrounds() {
         );
     }
 }
+
+#[test]
+fn button_flip_motion_contract_defaults_and_sanitize_paths_are_locked() {
+    let source = load_source("src/button_flip/motion.rs");
+
+    for needle in [
+        "pub struct FlipButtonMotion",
+        "stiffness: 260.0",
+        "damping: 18.0",
+        "mass: 1.0",
+        "pub fn sanitize_motion(motion: FlipButtonMotion) -> FlipButtonMotion",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+        "fn supports_custom_flip_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip button motion should include `{needle}` for HeroUI-level spring contract stability."
+        );
+    }
+}
+
+#[test]
+fn button_flip_view_wires_motion_and_source_markers() {
+    let source = load_source("src/button_flip/view.rs");
+
+    for needle in [
+        "let motion = crate::button_flip::motion::sanitize_motion(motion);",
+        "motion::attach_motion(node_ref, is_active, from, motion)",
+        "data-motion-source=if motion == FlipButtonMotion::default()",
+        "data-custom-motion=(motion != FlipButtonMotion::default()).then_some(\"true\")",
+        "data-slot=\"flip-button-front\"",
+        "data-slot=\"flip-button-back\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip button view should include `{needle}` for stable motion/source marker contracts."
+        );
+    }
+}
+
+#[test]
+fn docs_actions_page_locks_flip_button_motion_narrative() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "description=\"HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
+        "from=FlipDirection::Bottom",
+        "from=FlipDirection::Left",
+        "from=FlipDirection::Right",
+        "class_name=\"docs-flip-button-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for flip-button motion/docs stability."
+        );
+    }
+}
