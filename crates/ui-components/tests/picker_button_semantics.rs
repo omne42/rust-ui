@@ -188,3 +188,61 @@ fn picker_button_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn picker_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/actions_extra_picker_button.rs",
+    );
+
+    for needle in [
+        "pub(super) fn picker_button() -> AnyView",
+        "title=\"PickerButton\"",
+        "slug=\"picker-button\"",
+        "description=\"Spectrum-compatible PickerButton alias for upstream naming parity, preserving FieldButton accessibility/state contracts and HeroUI-level press/focus interaction behavior.\"",
+        "<Playground title=\"Interactive\" code=basic_code>",
+        "<Playground title=\"State Matrix\" code=states_code>",
+        "title=\"State + Source Markers\"",
+        "code=markers_code",
+        "<PickerButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra_picker_button docs should include `{needle}` for picker-button primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn picker_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/actions_extra_picker_button.rs",
+    );
+
+    for needle in [
+        "title=\"Interactive\"",
+        "<PickerButton on_press=on_press>",
+        "\"Choose item\"",
+        "title=\"State Matrix\"",
+        "<PickerButton quiet=true>",
+        "\"Filter\"",
+        "<PickerButton invalid=true>",
+        "\"Required\"",
+        "<PickerButton disabled=true>",
+        "\"Disabled\"",
+        "title=\"State + Source Markers\"",
+        "quiet=true",
+        "invalid=true",
+        "is_active=true",
+        "aria_label=\"Inspect picker trigger\".to_string()",
+        "class_name=\"docs-picker-button-state\".to_string()",
+        "on_press=marker_press",
+        "\"Inspect markers\"",
+        "Inspect wrapper markers like `data-state`, `data-quiet`, `data-invalid`, `data-disabled`, `data-active`, `data-has-handler`, `data-aria-source`, `data-class-source`, and `data-handler-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra_picker_button docs playgrounds should contain `{needle}` for picker-button contracts.",
+        );
+    }
+}
