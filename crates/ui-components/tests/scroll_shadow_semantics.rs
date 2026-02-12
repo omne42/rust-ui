@@ -101,3 +101,42 @@ fn scroll_shadow_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn scroll_shadow_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn scroll_shadow() -> AnyView",
+        "title=\"ScrollShadow\"",
+        "slug=\"scroll-shadow\"",
+        "Playground title=\"Default Scrollable\"",
+        "Playground title=\"Custom Height + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for ScrollShadow.",
+        );
+    }
+}
+
+#[test]
+fn scroll_shadow_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Default Scrollable\"",
+        "<ScrollShadow max_height_px=160>",
+        "{(1..=20)",
+        "class=\"docs-scroll-shadow-item\"",
+        "title=\"Custom Height + Class\"",
+        "<ScrollShadow max_height_px=120 class_name=\"docs-scroll-shadow-custom\".to_string()>",
+        "{(1..=16)",
+        "{format!(\"Notification {idx}\")}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "scroll-shadow docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
