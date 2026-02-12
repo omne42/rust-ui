@@ -106,3 +106,48 @@ fn input_group_styles_define_attachment_and_state_contracts() {
         );
     }
 }
+
+#[test]
+fn input_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn input_group() -> AnyView",
+        "title=\"InputGroup\"",
+        "slug=\"input-group\"",
+        "description=\"Composes one or more inputs with shared prefix/suffix addons and Spectrum-style state contracts.\"",
+        "<Playground title=\"Attached Addons\" code=code>",
+        "<Playground title=\"Detached + Disabled\" code=states_code>",
+        "<InputGroup",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs should include `{needle}` for input_group primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn input_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Attached Addons\"",
+        "aria_label=\"Email input group\".to_string()",
+        "start_content=move || view! { <span>\"@\"</span> }",
+        "end_content=move || view! { <span>\".com\"</span> }",
+        "id=\"docs-input-group-email\".to_string()",
+        "title=\"Detached + Disabled\"",
+        "attached=false",
+        "aria_label=\"Search controls\".to_string()",
+        "id=\"docs-input-group-search\".to_string()",
+        "disabled=true",
+        "aria_label=\"Disabled controls\".to_string()",
+        "id=\"docs-input-group-disabled\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "input_group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

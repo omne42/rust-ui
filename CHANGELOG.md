@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `InputGroup` docs state matrix contracts by locking attached-addons and detached+disabled playground anchors in `input_group_semantics` regression coverage.
+
 - `ui-components`: hardens `inline_style_contract` docs state matrix contracts by locking styling-spec and RULES_ZH inline-style/CSS-variable contract anchors in `inline_style_contract_semantics` regression coverage.
 
 - `ui-components`: hardens `InlineAlert` docs state matrix contracts by locking inline alerts playground tone/fill/content anchors in `inline_alert_semantics` regression coverage.
