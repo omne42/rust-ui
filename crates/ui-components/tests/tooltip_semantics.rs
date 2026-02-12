@@ -295,3 +295,14 @@ fn tooltip_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn tooltip_docs_page_covers_primary_playgrounds() {
+    tooltip_docs_page_contains_state_source_playground();
+}
+
+#[test]
+fn tooltip_docs_playgrounds_lock_state_matrix_contract_values() {
+    tooltip_docs_state_source_playground_locks_contract_values();
+    tooltip_docs_custom_motion_playground_locks_contract_values();
+}
