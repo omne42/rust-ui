@@ -171,3 +171,43 @@ fn theme_toggle_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn theme_toggle_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn theme_toggle_button() -> AnyView",
+        "title=\"ThemeToggleButton\"",
+        "slug=\"theme-toggle-button\"",
+        "description=\"Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs.\"",
+        "<Playground title=\"Default cycle\" code=code>",
+        "<Playground title=\"Custom modes + disabled\" code=states_code>",
+        "<ThemeToggleButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions theme_toggle_button docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn theme_toggle_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "title=\"Default cycle\"",
+        "<ThemeToggleButton mode=mode set_mode=set_mode />",
+        "title=\"Custom modes + disabled\"",
+        "modes=custom_modes.clone()",
+        "aria_label=\"Switch UI mode\".to_string()",
+        "<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />",
+        "\"disabled toggle should remain inert\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions theme_toggle_button docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
