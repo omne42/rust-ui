@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Menubar` docs state matrix contracts by locking desktop-dispatch, controlled-persistent, and state-source marker playground anchors in `menubar_semantics` regression coverage.
+
 - `ui-components`: hardens `LogicButton` docs state matrix contracts by locking AND/OR and custom-class+disabled playground anchors in `logic_button_semantics` regression coverage.
 
 - `ui-components`: hardens `list` compatibility module docs state matrix contracts by locking listbox+item primary playground anchors and `list` docs slug mapping in `list_module_semantics` regression coverage.
