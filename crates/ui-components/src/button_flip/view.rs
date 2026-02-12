@@ -17,6 +17,8 @@ pub fn FlipButton(
     #[prop(into)] back: ViewFn,
 ) -> impl IntoView {
     let motion = crate::button_flip::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != FlipButtonMotion::default();
+
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 
@@ -30,13 +32,14 @@ pub fn FlipButton(
 
     motion::attach_motion(node_ref, is_active, from, motion);
 
-    let state = Memo::new(move |_| {
+    let state = Signal::derive(move || {
         logic::resolve_state(FlipButtonStateInput {
             direction: from,
             is_hovered: hover.is_hovered.get(),
             is_focus_within: focus_within.is_focus_within.get(),
             is_active: is_active.get(),
             has_custom_class_name,
+            has_custom_motion,
         })
     });
 
@@ -54,17 +57,14 @@ pub fn FlipButton(
             data-state=move || state.get().state_attr
             data-hover=move || state.get().hover_attr
             data-focus-within-state=move || state.get().focus_within_attr
+            data-class-source=move || state.get().class_source_attr
+            data-motion-source=move || state.get().motion_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
+            data-custom-motion=move || state.get().has_custom_motion.then_some("true")
             data-active=move || state.get().is_active.then_some("true")
             data-inactive=move || state.get().is_inactive.then_some("true")
             data-hovered=move || state.get().is_hovered.then_some("true")
             data-focus-within=move || state.get().is_focus_within.then_some("true")
-            data-motion-source=if motion == FlipButtonMotion::default() {
-                "default"
-            } else {
-                "custom"
-            }
-            data-custom-motion=(motion != FlipButtonMotion::default()).then_some("true")
             on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
             on:focusin=move |_| focus_within.handlers.on_focus_in.run(())

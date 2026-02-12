@@ -57,6 +57,27 @@ fn docs_actions_page_covers_flip_button_playgrounds() {
 }
 
 #[test]
+fn button_flip_logic_tracks_class_and_motion_source_markers() {
+    let source = load_source("src/button_flip/logic.rs");
+
+    for needle in [
+        "pub struct FlipButtonStateInput",
+        "pub struct FlipButtonState",
+        "pub has_custom_motion: bool",
+        "pub class_source_attr: &'static str",
+        "pub motion_source_attr: &'static str",
+        "class_source_attr: if input.has_custom_class_name {",
+        "motion_source_attr: if input.has_custom_motion {",
+        "ui-flip-button--custom-motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip button logic should include `{needle}` for stable source-marker derivation.",
+        );
+    }
+}
+
+#[test]
 fn button_flip_motion_contract_defaults_and_sanitize_paths_are_locked() {
     let source = load_source("src/button_flip/motion.rs");
 
@@ -82,15 +103,38 @@ fn button_flip_view_wires_motion_and_source_markers() {
 
     for needle in [
         "let motion = crate::button_flip::motion::sanitize_motion(motion);",
+        "let state = Signal::derive(move || {",
+        "has_custom_motion,",
         "motion::attach_motion(node_ref, is_active, from, motion)",
-        "data-motion-source=if motion == FlipButtonMotion::default()",
-        "data-custom-motion=(motion != FlipButtonMotion::default()).then_some(\"true\")",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
+        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
         "data-slot=\"flip-button-front\"",
         "data-slot=\"flip-button-back\"",
     ] {
         assert!(
             source.contains(needle),
             "flip button view should include `{needle}` for stable motion/source marker contracts."
+        );
+    }
+}
+
+#[test]
+fn button_flip_styles_include_source_marker_selectors() {
+    let source = load_source("src/button_flip/styles.rs");
+
+    for needle in [
+        ".ui-flip-button[data-class-source=\"custom\"]",
+        ".ui-flip-button--custom-class",
+        ".ui-flip-button[data-custom-class=\"true\"]",
+        ".ui-flip-button[data-motion-source=\"custom\"]",
+        ".ui-flip-button--custom-motion",
+        ".ui-flip-button[data-custom-motion=\"true\"]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip button styles should include `{needle}` for stable source-marker selectors."
         );
     }
 }

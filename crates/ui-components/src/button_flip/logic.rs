@@ -34,6 +34,7 @@ pub struct FlipButtonStateInput {
     pub is_focus_within: bool,
     pub is_active: bool,
     pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -51,7 +52,10 @@ pub struct FlipButtonState {
     pub is_focus_within: bool,
     pub focus_within_attr: &'static str,
     pub focus_within_class: &'static str,
+    pub class_source_attr: &'static str,
+    pub motion_source_attr: &'static str,
     pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -94,7 +98,18 @@ pub fn resolve_state(input: FlipButtonStateInput) -> FlipButtonState {
         is_focus_within: input.is_focus_within,
         focus_within_attr,
         focus_within_class,
+        class_source_attr: if input.has_custom_class_name {
+            "custom"
+        } else {
+            "default"
+        },
+        motion_source_attr: if input.has_custom_motion {
+            "custom"
+        } else {
+            "default"
+        },
         has_custom_class_name: input.has_custom_class_name,
+        has_custom_motion: input.has_custom_motion,
     }
 }
 
@@ -109,6 +124,10 @@ pub fn compose_class_name(base_class_name: Option<String>, state: FlipButtonStat
 
     if state.has_custom_class_name {
         classes.push("ui-flip-button--custom-class".to_string());
+    }
+
+    if state.has_custom_motion {
+        classes.push("ui-flip-button--custom-motion".to_string());
     }
 
     if state.has_custom_class_name
@@ -157,13 +176,14 @@ mod tests {
     }
 
     #[test]
-    fn resolve_state_tracks_interaction_and_direction_metadata() {
+    fn resolve_state_tracks_interaction_and_source_metadata() {
         let active = resolve_state(FlipButtonStateInput {
             direction: FlipDirection::Left,
             is_hovered: true,
             is_focus_within: false,
             is_active: true,
             has_custom_class_name: true,
+            has_custom_motion: true,
         });
 
         assert!(active.is_active);
@@ -179,7 +199,10 @@ mod tests {
         assert_eq!(active.hover_class, "ui-flip-button--hovered");
         assert_eq!(active.focus_within_attr, "inactive");
         assert_eq!(active.focus_within_class, "ui-flip-button--no-focus-within");
+        assert_eq!(active.class_source_attr, "custom");
+        assert_eq!(active.motion_source_attr, "custom");
         assert!(active.has_custom_class_name);
+        assert!(active.has_custom_motion);
 
         let inactive = resolve_state(FlipButtonStateInput {
             direction: FlipDirection::Bottom,
@@ -187,6 +210,7 @@ mod tests {
             is_focus_within: true,
             is_active: false,
             has_custom_class_name: false,
+            has_custom_motion: false,
         });
 
         assert!(!inactive.is_active);
@@ -197,11 +221,14 @@ mod tests {
         assert_eq!(inactive.state_attr, "inactive");
         assert_eq!(inactive.hover_attr, "resting");
         assert_eq!(inactive.focus_within_attr, "active");
+        assert_eq!(inactive.class_source_attr, "default");
+        assert_eq!(inactive.motion_source_attr, "default");
         assert!(!inactive.has_custom_class_name);
+        assert!(!inactive.has_custom_motion);
     }
 
     #[test]
-    fn compose_class_name_includes_state_markers_and_custom_class() {
+    fn compose_class_name_includes_state_markers_and_custom_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
             resolve_state(FlipButtonStateInput {
@@ -210,6 +237,7 @@ mod tests {
                 is_focus_within: true,
                 is_active: true,
                 has_custom_class_name: true,
+                has_custom_motion: true,
             }),
         );
 
@@ -220,6 +248,7 @@ mod tests {
             "ui-flip-button--hovered",
             "ui-flip-button--focus-within",
             "ui-flip-button--custom-class",
+            "ui-flip-button--custom-motion",
             "custom",
         ] {
             assert!(

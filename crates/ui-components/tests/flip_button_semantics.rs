@@ -74,12 +74,13 @@ fn flip_button_emits_spectrum_style_data_attributes() {
         "data-hover=move || state.get().hover_attr",
         "data-focus-within-state=move || state.get().focus_within_attr",
         "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=move || state.get().has_custom_motion.then_some(\"true\")",
+        "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=move || state.get().motion_source_attr",
         "data-active=move || state.get().is_active.then_some(\"true\")",
         "data-inactive=move || state.get().is_inactive.then_some(\"true\")",
         "data-hovered=move || state.get().is_hovered.then_some(\"true\")",
         "data-focus-within=move || state.get().is_focus_within.then_some(\"true\")",
-        "data-motion-source=if motion == FlipButtonMotion::default()",
-        "data-custom-motion=(motion != FlipButtonMotion::default()).then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
@@ -93,9 +94,11 @@ fn flip_button_styles_include_state_marker_contracts() {
     let source = load_source("src/button_flip/styles.rs");
 
     for selector in [
+        ".ui-flip-button[data-class-source=\"custom\"]",
         ".ui-flip-button--custom-class",
         ".ui-flip-button[data-custom-class=\"true\"]",
         ".ui-flip-button[data-motion-source=\"custom\"]",
+        ".ui-flip-button--custom-motion",
         ".ui-flip-button[data-custom-motion=\"true\"]",
         ".ui-flip-button--state-active .ui-flip-button__front",
         ".ui-flip-button[data-state=\"active\"] .ui-flip-button__back",

@@ -6,12 +6,14 @@ pub const CSS: &str = r#"
   perspective: 600px;
 }
 
+.ui-flip-button[data-class-source="custom"],
 .ui-flip-button--custom-class,
 .ui-flip-button[data-custom-class="true"] {
   border-radius: inherit;
 }
 
 .ui-flip-button[data-motion-source="custom"],
+.ui-flip-button--custom-motion,
 .ui-flip-button[data-custom-motion="true"] {
   --ui-flip-custom-motion: 1;
 }
