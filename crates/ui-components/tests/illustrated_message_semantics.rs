@@ -128,3 +128,23 @@ fn illustrated_message_docs_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn illustrated_message_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"IllustratedMessage\"",
+        "slug=\"illustrated-message\"",
+        "Playground title=\"Empty state\"",
+        "title=\"No results\".to_string()",
+        "description=\"Try changing your search.\".to_string()",
+        "illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }",
+        "actions=move || view! { <ui_components::Button>\"Clear\"</ui_components::Button> }",
+    ] {
+        assert!(
+            source.contains(needle),
+            "illustrated-message docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

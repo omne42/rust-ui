@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `IllustratedMessage` docs state matrix contracts by locking empty-state playground anchors and illustration/actions contract values in `illustrated_message_semantics` regression coverage.
+
 - `ui-components`: hardens `Iconset` docs state matrix contracts by locking registry namespace resolution, fallback+source-state, and state+source marker playground anchors in `iconset_semantics` regression coverage.
 
 - `ui-components`: hardens `IconsWorkflow` docs state matrix contracts by locking built-in workflow glyphs, custom workflow extension, and state+source marker playground anchors in `icons_workflow_semantics` regression coverage.
