@@ -196,3 +196,60 @@ fn split_view_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn split_view_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_split_view.rs");
+
+    for needle in [
+        "pub(super) fn split_view() -> AnyView",
+        "title=\"SplitView\"",
+        "slug=\"split-view\"",
+        "description=\"Spectrum-compatible SplitView alias for upstream naming parity, preserving Resizable controlled/uncontrolled split contracts and HeroUI-level drag/keyboard handle interaction behavior.\"",
+        "<Playground title=\"Horizontal + Default Split\" code=horizontal_code>",
+        "<Playground title=\"Controlled + Vertical Bounds\" code=vertical_code>",
+        "title=\"State + Source Markers\"",
+        "<SplitView",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_split_view docs should include `{needle}` for split_view primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn split_view_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_split_view.rs");
+
+    for needle in [
+        "title=\"Horizontal + Default Split\"",
+        "orientation=ResizableOrientation::Horizontal",
+        "default_split_percent=40.0",
+        "with_handle=true",
+        "title=\"Controlled + Vertical Bounds\"",
+        "orientation=ResizableOrientation::Vertical",
+        "split_percent=split",
+        "on_split_percent_change=on_split_change",
+        "min_split_percent=30.0",
+        "max_split_percent=80.0",
+        "aria_label=\"Split analytics regions\".to_string()",
+        "class_name=\"docs-split-view-custom\".to_string()",
+        "title=\"State + Source Markers\"",
+        "split_percent=marker_split",
+        "on_split_percent_change=marker_on_split_change",
+        "default_split_percent=55.0",
+        "min_split_percent=25.0",
+        "max_split_percent=75.0",
+        "aria_label=\"Markers split panel\".to_string()",
+        "class_name=\"docs-split-view-state\".to_string()",
+        "marker split:",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_split_view docs playgrounds should contain `{needle}` for split_view state-matrix contracts.",
+        );
+    }
+}

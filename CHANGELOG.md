@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SplitView` docs state matrix contracts by locking horizontal-default, controlled-vertical-bounds, and state-source-markers playground anchors in `split_view_semantics` regression coverage.
+
 - `ui-components`: hardens `spinbutton` compatibility docs state matrix contracts by locking NumberField stepper playground anchors reused by `spinbutton_module_semantics` regression coverage.
 
 - `ui-components`: hardens `Sonner` docs state matrix contracts by locking portal-queue-variants, inline-top-center-max-queue, and state-source-markers playground anchors in `sonner_semantics` regression coverage.
