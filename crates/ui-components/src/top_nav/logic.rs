@@ -63,6 +63,7 @@ pub fn resolve_state(input: TopNavStateInput) -> TopNavState {
             "default"
         },
         has_default_selected_id: input.has_default_selected_id,
+        has_custom_label: input.has_custom_label,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
     }
@@ -78,6 +79,10 @@ pub fn compose_class_name(class_name: Option<String>, state: TopNavState) -> Str
 
     if state.has_default_selected_id {
         classes.push("ui-top-nav--has-default-selection".to_string());
+    }
+
+    if state.has_custom_label {
+        classes.push("ui-top-nav--custom-label".to_string());
     }
 
     if state.has_custom_motion {
@@ -131,6 +136,7 @@ mod tests {
         assert_eq!(state.label_source_attr, "custom");
         assert_eq!(state.class_source_attr, "default");
         assert_eq!(state.motion_source_attr, "custom");
+        assert!(state.has_custom_label);
     }
 
     #[test]
@@ -139,7 +145,7 @@ mod tests {
             is_controlled: true,
             has_default_selected_id: false,
             activate_on_focus: true,
-            has_custom_label: false,
+            has_custom_label: true,
             has_custom_class_name: true,
             has_custom_motion: true,
         });
@@ -151,6 +157,7 @@ mod tests {
             "ui-top-nav--state-controlled",
             "ui-top-nav--mode-controlled",
             "ui-top-nav--focus-focus",
+            "ui-top-nav--custom-label",
             "ui-top-nav--custom-motion",
             "ui-top-nav--custom-class",
             "docs-top-nav",

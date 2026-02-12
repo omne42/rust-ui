@@ -62,6 +62,8 @@ fn top_nav_view_uses_logic_state_and_motion_contracts() {
         "logic::normalize_default_selected_id(default_selected_id)",
         "logic::resolve_state(TopNavStateInput {",
         "logic::compose_class_name(class_name, state)",
+        "match (selected_id, on_selected_id_change)",
+        "on_selected_id_change=on_selected_id_change",
         "data-slot=\"top-nav\"",
         "data-state=state.state_attr",
         "data-selection-mode=state.selection_mode_attr",
@@ -69,6 +71,7 @@ fn top_nav_view_uses_logic_state_and_motion_contracts() {
         "data-label-source=state.label_source_attr",
         "data-class-source=state.class_source_attr",
         "data-motion-source=state.motion_source_attr",
+        "data-custom-label=state.has_custom_label.then_some(\"true\")",
         "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
@@ -76,6 +79,11 @@ fn top_nav_view_uses_logic_state_and_motion_contracts() {
             "TopNav view should include `{needle}` for stable marker contracts.",
         );
     }
+
+    assert!(
+        !source.contains("unwrap_or_else(|| Callback::new(|_: Option<String>| {}))"),
+        "TopNav should preserve optional callback source semantics and avoid forcing no-op handler defaults.",
+    );
 }
 
 #[test]
@@ -88,8 +96,10 @@ fn top_nav_styles_include_motion_and_source_markers() {
         ".ui-top-nav[data-focus-activation=\"manual\"]",
         ".ui-top-nav[data-has-default-selection=\"true\"]",
         ".ui-top-nav[data-label-source=\"custom\"]",
+        ".ui-top-nav[data-custom-label=\"true\"]",
         ".ui-top-nav[data-motion-source=\"custom\"]",
         ".ui-top-nav[data-custom-motion=\"true\"]",
+        ".ui-top-nav[data-class-source=\"custom\"]",
         ".ui-top-nav--custom-class",
     ] {
         assert!(

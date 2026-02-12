@@ -29,6 +29,7 @@ pub struct TopNavState {
     pub class_source_attr: &'static str,
     pub motion_source_attr: &'static str,
     pub has_default_selected_id: bool,
+    pub has_custom_label: bool,
     pub has_custom_class_name: bool,
     pub has_custom_motion: bool,
 }

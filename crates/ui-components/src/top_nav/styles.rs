@@ -16,7 +16,9 @@ pub const CSS: &str = r#"
   --ui-top-nav-default-selection: 1;
 }
 
-.ui-top-nav[data-label-source="custom"] {
+.ui-top-nav--custom-label,
+.ui-top-nav[data-label-source="custom"],
+.ui-top-nav[data-custom-label="true"] {
   --ui-top-nav-label-source: custom;
 }
 
@@ -25,6 +27,7 @@ pub const CSS: &str = r#"
   --ui-top-nav-custom-motion: 1;
 }
 
+.ui-top-nav[data-class-source="custom"],
 .ui-top-nav--custom-class,
 .ui-top-nav[data-custom-class="true"] {
   border-radius: inherit;

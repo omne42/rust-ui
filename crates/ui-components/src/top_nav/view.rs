@@ -25,9 +25,6 @@ pub fn TopNav(
     let (default_selected_id, has_default_selected_id) =
         logic::normalize_default_selected_id(default_selected_id);
 
-    let on_selected_id_change =
-        on_selected_id_change.unwrap_or_else(|| Callback::new(|_: Option<String>| {}));
-
     let state = logic::resolve_state(TopNavStateInput {
         is_controlled: selected_id.is_some(),
         has_default_selected_id,
@@ -39,8 +36,8 @@ pub fn TopNav(
 
     let class_name = logic::compose_class_name(class_name, state);
 
-    let navigation_menu: AnyView = if let Some(selected_id) = selected_id {
-        view! {
+    let navigation_menu: AnyView = match (selected_id, on_selected_id_change) {
+        (Some(selected_id), Some(on_selected_id_change)) => view! {
             <NavigationMenu
                 id_base=id_base
                 items=items
@@ -53,9 +50,21 @@ pub fn TopNav(
                 class_name=navigation_class_name
             />
         }
-        .into_any()
-    } else {
-        view! {
+        .into_any(),
+        (Some(selected_id), None) => view! {
+            <NavigationMenu
+                id_base=id_base
+                items=items
+                selected_id=selected_id
+                default_selected_id=default_selected_id
+                activate_on_focus=activate_on_focus
+                motion=motion
+                aria_label=label
+                class_name=navigation_class_name
+            />
+        }
+        .into_any(),
+        (None, Some(on_selected_id_change)) => view! {
             <NavigationMenu
                 id_base=id_base
                 items=items
@@ -67,7 +76,19 @@ pub fn TopNav(
                 class_name=navigation_class_name
             />
         }
-        .into_any()
+        .into_any(),
+        (None, None) => view! {
+            <NavigationMenu
+                id_base=id_base
+                items=items
+                default_selected_id=default_selected_id
+                activate_on_focus=activate_on_focus
+                motion=motion
+                aria_label=label
+                class_name=navigation_class_name
+            />
+        }
+        .into_any(),
     };
 
     view! {
@@ -82,6 +103,7 @@ pub fn TopNav(
             data-label-source=state.label_source_attr
             data-class-source=state.class_source_attr
             data-motion-source=state.motion_source_attr
+            data-custom-label=state.has_custom_label.then_some("true")
             data-custom-motion=state.has_custom_motion.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
         >

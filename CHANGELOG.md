@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `TopNav` with explicit optional-handler forwarding (no forced no-op callback), adds `data-custom-label` marker coverage, and aligns top-nav class/source selectors plus semantics tests for stable state-source contracts.
+
 - `ui-components`: upgrades `Toggle` to memoized logic-derived state attrs, standardizes `data-custom-aria-label` alongside legacy `data-custom-aria`, and strengthens `toggle_semantics` coverage for state-source contract stability.
 
 - `ui-components`: upgrades `ThemeToggleButton` with shell-level `data-slot/state/source/motion` markers, aligns wrapper-aware motion selectors in `button_theme_toggle/styles.rs`, and strengthens `theme_toggle_button_semantics` regression coverage for state-source contracts.
