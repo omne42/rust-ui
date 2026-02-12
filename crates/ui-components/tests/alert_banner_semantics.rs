@@ -140,3 +140,48 @@ fn alert_banner_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn alert_banner_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn alert_banner() -> AnyView",
+        "title=\"AlertBanner\"",
+        "slug=\"alert-banner\"",
+        "Playground title=\"Tone + Fill\"",
+        "Playground title=\"Bold + Hidden Icon + Custom Class\"",
+        "Playground title=\"Custom motion contract\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display-extra docs page should contain `{needle}` for AlertBanner.",
+        );
+    }
+}
+
+#[test]
+fn alert_banner_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Tone + Fill\"",
+        "tone=AlertBannerTone::Info",
+        "fill=AlertBannerFill::Border",
+        "tone=AlertBannerTone::Negative",
+        "fill=AlertBannerFill::Subtle",
+        "title=\"Bold + Hidden Icon + Custom Class\"",
+        "tone=AlertBannerTone::Notice",
+        "fill=AlertBannerFill::Bold",
+        "hide_icon=true",
+        "class_name=\"docs-alert-banner-custom\".to_string()",
+        "title=\"Custom motion contract\"",
+        "motion=AlertBannerMotion {",
+        "Inspect data-motion-source/data-custom-motion markers.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert-banner docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `AlertBanner` docs state contracts by locking tone+fill, bold+hidden-icon+custom-class, and custom-motion-contract playground anchors in `alert_banner_semantics` regression coverage.
+
+
 - `ui-components`: hardens `Alert` docs state contracts by locking variants+live-region and custom-class+compact playground anchors in `alert_semantics` regression coverage.
 
 
