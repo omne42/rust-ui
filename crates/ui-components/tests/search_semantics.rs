@@ -136,3 +136,53 @@ fn search_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn search_docs_required_invalid_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_search.rs");
+
+    for needle in [
+        "title=\"Required + Invalid\"",
+        "id=\"docs-search-required\".to_string()",
+        "label=\"Required query\".to_string()",
+        "required=true",
+        "invalid=required_invalid",
+        "error=\"Query is required\".to_string()",
+        "placeholder=\"Type a query\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Search docs required/invalid playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn search_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_search.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-search-markers\".to_string()",
+        "label=\"Search runtime docs\".to_string()",
+        "required=true",
+        "invalid=Signal::derive(move || marker_invalid.get())",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Query is required\".to_string()",
+        "placeholder=\"Try: spring\".to_string()",
+        "class_name=\"docs-search-state\".to_string()",
+        "let mut marker_motion = SearchFieldMotion::default();",
+        "marker_motion.hidden_scale = 0.78",
+        "marker_motion.hover_scale = 1.08",
+        "marker_motion.tap_scale = 0.92",
+        "motion=marker_motion",
+        "Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, `data-submit-handler-source`, `data-clear-handler-source`, and `data-motion-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Search docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
