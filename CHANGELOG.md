@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `ActionMenu` with class/data dual source markers for id/aria-label/class/disabled/disabled-indices/item-kinds/close-on-action/placement/open/default-open/open-change/motion contracts, aligns action-menu source selectors in styles, and hardens `action_menu_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `CommandDialog` with class/data dual source markers for id/title/description/placeholder/empty-label/aria-label/action/open-change/default-open/close-on-action/disabled/command-motion/overlay-motion contracts, aligns command-dialog source selectors in styles, and hardens `command_dialog_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `AlertDialog` with class/data dual source markers for variant/id/title/description/cancel/secondary/confirm/auto-focus/motion/exit contracts, aligns alert-dialog source selectors in styles, and hardens `alert_dialog_semantics` coverage for stable Spectrum-compatible state-source contracts.

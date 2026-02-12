@@ -183,6 +183,46 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ActionMenuPart
             classes.push("ui-action-menu--uncontrolled".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-action-menu--custom-id".to_string());
+        }
+
+        if state.has_custom_aria_label {
+            classes.push("ui-action-menu--custom-aria-label".to_string());
+        }
+
+        if state.has_custom_disabled {
+            classes.push("ui-action-menu--custom-disabled".to_string());
+        }
+
+        if state.has_custom_disabled_indices {
+            classes.push("ui-action-menu--custom-disabled-indices".to_string());
+        }
+
+        if state.has_custom_item_kinds {
+            classes.push("ui-action-menu--custom-item-kinds".to_string());
+        }
+
+        if state.has_custom_close_on_action {
+            classes.push("ui-action-menu--custom-close-on-action".to_string());
+        }
+
+        if state.has_custom_placement {
+            classes.push("ui-action-menu--custom-placement".to_string());
+        }
+
+        if state.has_custom_open {
+            classes.push("ui-action-menu--custom-open".to_string());
+        }
+
+        if state.has_custom_default_open {
+            classes.push("ui-action-menu--custom-default-open".to_string());
+        }
+
+        if state.has_custom_on_open_change {
+            classes.push("ui-action-menu--custom-open-change".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-action-menu--custom-motion".to_string());
         }
@@ -300,7 +340,7 @@ mod tests {
             has_custom_id_base: true,
             has_custom_aria_label: true,
             has_custom_class_name: true,
-            has_custom_disabled: false,
+            has_custom_disabled: true,
             has_custom_disabled_indices: true,
             has_custom_item_kinds: true,
             has_custom_close_on_action: true,
@@ -319,6 +359,16 @@ mod tests {
             "ui-action-menu--has-items",
             "ui-action-menu--persistent",
             "ui-action-menu--controlled",
+            "ui-action-menu--custom-id",
+            "ui-action-menu--custom-aria-label",
+            "ui-action-menu--custom-disabled",
+            "ui-action-menu--custom-disabled-indices",
+            "ui-action-menu--custom-item-kinds",
+            "ui-action-menu--custom-close-on-action",
+            "ui-action-menu--custom-placement",
+            "ui-action-menu--custom-open",
+            "ui-action-menu--custom-default-open",
+            "ui-action-menu--custom-open-change",
             "ui-action-menu--custom-motion",
             "docs-action-menu",
         ] {
