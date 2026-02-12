@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Underlay` docs state/source contracts by locking source-marker playground anchors (`data-transparent-source`/`data-disabled-source`/`data-close-source`/`data-class-source`) in `underlay_semantics` regression coverage.
+
 - `ui-components`: hardens `BottomSheet` motion docs contracts by locking docs custom-playground `BottomSheetMotion -> SheetMotion.initial_offset_px` values, docs route anchors, and css aggregation wiring in `bottom_sheet_semantics` regression coverage.
 
 - `ui-components`: hardens `Tray` motion docs contracts by locking marker-playground `TrayMotion -> SheetMotion.initial_offset_px` values, fixed-height dismiss source markers, and custom docs state anchors in `tray_semantics` regression coverage.

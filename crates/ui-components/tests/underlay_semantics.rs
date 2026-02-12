@@ -176,3 +176,25 @@ fn underlay_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn underlay_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-underlay-source\".to_string()",
+        "transparent=true",
+        "class_name=\"docs-underlay-source\".to_string()",
+        "on_close=close_source",
+        "id_base=\"docs-underlay-source-disabled\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-underlay-disabled-source\".to_string()",
+        "Inspect data-transparent-source / data-disabled-source / data-close-source / data-class-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "underlay docs state/source playground should contain `{needle}`."
+        );
+    }
+}
