@@ -109,3 +109,49 @@ fn field_styles_include_state_markers() {
         );
     }
 }
+
+#[test]
+fn field_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn field() -> AnyView",
+        "title=\"Field\"",
+        "slug=\"field\"",
+        "description=\"Form field wrapper with centralized orientation/tone/validation/message-state modeling and stable data contracts.\"",
+        "<Playground title=\"Required + Description\" code=required_code>",
+        "<Playground title=\"Horizontal + Invalid + Custom Class\" code=invalid_code>",
+        "<Field",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra field docs page should include `{needle}` for field primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Required + Description\"",
+        "label=\"Email\".to_string()",
+        "required=true",
+        "description=\"We'll only use this for release notes.\".to_string()",
+        "aria_label=\"Email field\".to_string()",
+        "placeholder=\"name@example.com\"",
+        "title=\"Horizontal + Invalid + Custom Class\"",
+        "orientation=FieldOrientation::Horizontal",
+        "tone=FieldTone::Muted",
+        "invalid=true",
+        "error_message=\"A valid email is required\".to_string()",
+        "class_name=\"docs-field-custom\".to_string()",
+        "placeholder=\"owner@company.com\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field docs playgrounds should contain `{needle}`."
+        );
+    }
+}
