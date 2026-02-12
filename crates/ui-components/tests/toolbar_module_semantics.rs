@@ -53,3 +53,13 @@ fn toolbar_compatibility_reuses_action_bar_docs_playground() {
         );
     }
 }
+
+#[test]
+fn toolbar_module_docs_page_covers_primary_playgrounds() {
+    toolbar_compatibility_reuses_action_bar_docs_playground();
+}
+
+#[test]
+fn toolbar_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    toolbar_compatibility_reuses_action_bar_docs_playground();
+}
