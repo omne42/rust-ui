@@ -146,3 +146,60 @@ fn tag_group_styles_include_description_and_error_states() {
         );
     }
 }
+
+#[test]
+fn tag_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn tag_group() -> AnyView",
+        "title=\"TagGroup\"",
+        "slug=\"tag-group\"",
+        "description=\"Tag list with removable chips, validation semantics, and Spectrum-style root state attrs.\"",
+        "<Playground title=\"Removable + State\" code=code>",
+        "<Playground title=\"Validation + Required\" code=states_code>",
+        "<Playground title=\"Disabled + Empty\" code=disabled_empty_code>",
+        "<TagGroup",
+        "on_remove=on_remove_removable",
+        "invalid=validation_invalid",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for tag-group coverage.",
+        );
+    }
+}
+
+#[test]
+fn tag_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "Tag::new(\"tag-rust\", \"Rust\")",
+        "Tag::new(\"tag-leptos\", \"Leptos\")",
+        "Tag::disabled(\"tag-a11y\", \"Accessibility\")",
+        "on_remove=on_remove_removable",
+        "label=\"Framework tags\".to_string()",
+        "description=\"Remove any non-disabled tag\".to_string()",
+        "\"count: \"",
+        "\"has disabled tags: \"",
+        "Tag::new(\"tag-required\", \"Required\")",
+        "Tag::new(\"tag-spectrum\", \"Spectrum\")",
+        "on_remove=on_remove_validation",
+        "error=\"At least one tag is required\".to_string()",
+        "required=validation_required",
+        "\"invalid: \"",
+        "tags=disabled_tags",
+        "label=\"Disabled tags\".to_string()",
+        "tags=empty_tags",
+        "label=\"Empty tags\".to_string()",
+        "\"disabled: true\"",
+        "\"empty: true\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tag-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

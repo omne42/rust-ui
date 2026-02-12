@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `TagGroup` docs state contracts by locking removable+state, validation+required, and disabled+empty playground anchors in `tag_group_semantics` regression coverage.
+
 - `ui-components`: hardens `Pagination` docs state contracts by locking pages+on_change and disabled+empty playground anchors in `pagination_semantics` regression coverage.
 
 - `ui-components`: hardens `DropdownMenu` docs state contracts by locking default, controlled+persistent-open, and disabled+empty playground anchors in `dropdown_menu_semantics` regression coverage.
