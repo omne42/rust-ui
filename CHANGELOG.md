@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Popover` docs state matrix contracts by locking base and state-source marker playground anchors in `popover_semantics` regression coverage.
+
 - `ui-components`: hardens `Picker` docs state matrix contracts by locking basic-selection, controlled-open, and state-source marker playground anchors in `picker_semantics` regression coverage.
 
 - `ui-components`: hardens `PickerButton` docs state matrix contracts by locking interactive, state-matrix, and state-source marker playground anchors in `picker_button_semantics` regression coverage.

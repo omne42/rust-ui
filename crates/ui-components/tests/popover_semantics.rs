@@ -223,3 +223,54 @@ fn popover_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn popover_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn popover() -> AnyView",
+        "title=\"Popover\"",
+        "slug=\"popover\"",
+        "description=\"Positioned portal panel anchored to a trigger with Spectrum-style state markers and HeroUI-grade spring motion contract. Requires presence to unmount after exit.\"",
+        "<Playground title=\"Popover\" code=code>",
+        "title=\"State + Source Markers\"",
+        "code=motion_code",
+        "<Popover",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs should include `{needle}` for popover primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn popover_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Popover\"",
+        "anchor_ref=anchor_ref",
+        "on_close=on_close",
+        "on_exit_complete=on_exit_complete",
+        "Positioned via anchor rect + CSS vars.",
+        "title=\"State + Source Markers\"",
+        "node_ref=custom_anchor_ref",
+        "on_press=toggle_custom",
+        "open=custom_open",
+        "anchor_ref=custom_anchor_ref",
+        "on_close=close_custom",
+        "motion=custom_motion",
+        "is_modal=false",
+        "class_name=\"docs-popover-state\".to_string()",
+        "on_exit_complete=on_custom_exit_complete",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs playgrounds should contain `{needle}` for popover contracts.",
+        );
+    }
+}
