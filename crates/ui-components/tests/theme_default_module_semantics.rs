@@ -50,3 +50,13 @@ fn theme_default_compatibility_reuses_ui_root_docs_playground() {
         );
     }
 }
+
+#[test]
+fn theme_default_module_docs_page_covers_primary_playgrounds() {
+    theme_default_compatibility_reuses_ui_root_docs_playground();
+}
+
+#[test]
+fn theme_default_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    theme_default_compatibility_reuses_ui_root_docs_playground();
+}
