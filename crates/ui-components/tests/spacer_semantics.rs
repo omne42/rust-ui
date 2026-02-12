@@ -89,3 +89,44 @@ fn spacer_styles_include_axis_and_size_state_markers() {
         );
     }
 }
+
+#[test]
+fn spacer_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn spacer() -> AnyView",
+        "title=\"Spacer\"",
+        "slug=\"spacer\"",
+        "Playground title=\"Axis + Size\"",
+        "Playground title=\"Custom Class Marker\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Spacer.",
+        );
+    }
+}
+
+#[test]
+fn spacer_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Axis + Size\"",
+        "<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Sm />",
+        "<Spacer axis=SpacerAxis::Vertical size=SpacerSize::Lg />",
+        "<Spacer axis=SpacerAxis::Horizontal size=SpacerSize::Md />",
+        "title=\"Custom Class Marker\"",
+        "axis=SpacerAxis::Vertical",
+        "size=SpacerSize::Md",
+        "axis=SpacerAxis::Horizontal",
+        "size=SpacerSize::Lg",
+        "class_name=\"docs-spacer-guide\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "spacer docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
