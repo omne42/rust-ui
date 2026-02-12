@@ -105,3 +105,49 @@ fn help_text_styles_include_state_markers() {
         );
     }
 }
+
+#[test]
+fn help_text_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn help_text() -> AnyView",
+        "title=\"HelpText\"",
+        "slug=\"help-text\"",
+        "description=\"Spectrum-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts.\"",
+        "<Playground title=\"Description (Neutral)\" code=description_code>",
+        "<Playground title=\"Invalid + Error Icon\" code=error_code>",
+        "<HelpText",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra help_text docs page should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn help_text_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Description (Neutral)\"",
+        "description=\"Use at least 12 characters.\".to_string()",
+        "aria_label=\"Password hint\".to_string()",
+        "tone=HelpTextTone::Neutral",
+        "description=\"This value is visible to project admins only.\".to_string()",
+        "title=\"Invalid + Error Icon\"",
+        "invalid=true",
+        "show_error_icon=true",
+        "error_message=\"Password does not meet complexity requirements.\".to_string()",
+        "class_name=\"docs-help-text-custom\".to_string()",
+        "tone=HelpTextTone::Negative",
+        "error_message=\"Two-factor token expired. Request a new code.\".to_string()",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "help_text docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
