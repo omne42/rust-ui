@@ -99,3 +99,47 @@ fn aspect_ratio_styles_include_ratio_and_frame_markers() {
         );
     }
 }
+
+#[test]
+fn aspect_ratio_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn aspect_ratio() -> AnyView",
+        "title=\"AspectRatio\"",
+        "slug=\"aspect-ratio\"",
+        "Playground title=\"Ratio Presets\"",
+        "Playground title=\"Bordered + Fill + Custom Aria/Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout-extra docs page should contain `{needle}` for AspectRatio.",
+        );
+    }
+}
+
+#[test]
+fn aspect_ratio_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Ratio Presets\"",
+        "ratio=AspectRatioPreset::Square",
+        "ratio=AspectRatioPreset::Video",
+        "ratio=AspectRatioPreset::Portrait",
+        "radius=AspectRatioRadius::Sm",
+        "radius=AspectRatioRadius::Md",
+        "fill=true",
+        "title=\"Bordered + Fill + Custom Aria/Class\"",
+        "ratio=AspectRatioPreset::UltraWide",
+        "radius=AspectRatioRadius::Lg",
+        "bordered=true",
+        "aria_label=\"Release trailer preview\".to_string()",
+        "class_name=\"docs-aspect-ratio-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "aspect-ratio docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
