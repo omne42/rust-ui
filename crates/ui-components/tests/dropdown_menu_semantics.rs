@@ -221,3 +221,55 @@ fn dropdown_menu_motion_sanitizes_custom_contract_values() {
         "DropdownMenu view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn dropdown_menu_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn dropdown_menu() -> AnyView",
+        "title=\"DropdownMenu\"",
+        "slug=\"dropdown-menu\"",
+        "description=\"Button trigger that opens a Menu in a Popover with Spectrum-style root attrs, controlled/uncontrolled state, and persistent-open action handling.\"",
+        "<Playground title=\"Default\" code=code>",
+        "<Playground title=\"Controlled + Persistent Open\" code=controlled_code>",
+        "<Playground title=\"Disabled + Empty\" code=disabled_code>",
+        "<DropdownMenu",
+        "open=controlled_open",
+        "disabled=true",
+        "close_on_action=false",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for dropdown-menu coverage.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_menu_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "id_base=\"docs-dropdown\".to_string()",
+        "items=default_items",
+        "item_kinds=vec![",
+        "on_action=on_action",
+        "\"last: \"",
+        "id_base=\"docs-dropdown-controlled\".to_string()",
+        "items=controlled_items",
+        "on_open_change=on_open_change",
+        "disabled_indices=vec![1]",
+        "\"open: \"",
+        "\"close_on_action: false (select keeps popover open)\"",
+        "id_base=\"docs-dropdown-disabled\".to_string()",
+        "items=disabled_items",
+        "id_base=\"docs-dropdown-empty\".to_string()",
+        "items=empty_items",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dropdown-menu docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
