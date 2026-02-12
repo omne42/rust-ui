@@ -236,3 +236,22 @@ fn dialog_motion_sanitizes_custom_contract_values() {
         "Dialog view should sanitize motion before forwarding to Overlay.",
     );
 }
+
+#[test]
+fn dialog_docs_page_locks_custom_motion_marker_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "motion=DialogMotion {",
+        "overlay: OverlayMotion {",
+        "initial_scale: 0.94",
+        "initial_y_px: 14.0",
+        "data-motion-source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog docs page should include `{needle}` for motion/source marker regression stability."
+        );
+    }
+}
