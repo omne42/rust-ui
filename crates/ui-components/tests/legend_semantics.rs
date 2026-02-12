@@ -100,3 +100,48 @@ fn legend_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn legend_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn fieldset() -> AnyView",
+        "title=\"Fieldset\"",
+        "slug=\"fieldset\"",
+        "<Playground title=\"Legend + Description\" code=default_code>",
+        "<Playground title=\"Horizontal + Invalid + Actions\" code=invalid_code>",
+        "legend=\"Notification channels\".to_string()",
+        "<Fieldset",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs should include `{needle}` for legend primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn legend_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Legend + Description\"",
+        "legend=\"Notification channels\".to_string()",
+        "description=\"Pick every channel you want to receive release updates from.\".to_string()",
+        "required=true",
+        "aria_label=\"Notification channel group\".to_string()",
+        "title=\"Horizontal + Invalid + Actions\"",
+        "orientation=FieldsetOrientation::Horizontal",
+        "tone=FieldsetTone::Muted",
+        "invalid=true",
+        "error_message=\"Pick at least one channel\".to_string()",
+        "class_name=\"docs-fieldset-custom\".to_string()",
+        "\"Manage channels\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "legend docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
