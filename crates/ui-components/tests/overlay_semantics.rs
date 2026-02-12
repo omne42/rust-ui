@@ -145,6 +145,19 @@ fn overlay_styles_include_state_and_source_markers() {
             "Overlay styles should include `{selector}` as stable state/source contracts."
         );
     }
+
+    for needle in [
+        ".ui-overlay[data-state=\"open\"]",
+        ".ui-overlay[data-open=\"true\"]",
+        ".ui-overlay[data-state=\"closed\"]",
+        ".ui-overlay[data-closed=\"true\"]",
+        "pointer-events: none;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Overlay styles should include `{needle}` to avoid closed backdrops intercepting clicks."
+        );
+    }
 }
 
 #[test]

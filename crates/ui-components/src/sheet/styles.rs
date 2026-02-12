@@ -45,10 +45,13 @@ pub const CSS: &str = r#"
 }
 
 .ui-sheet[data-state="open"],
-.ui-sheet[data-open="true"],
+.ui-sheet[data-open="true"] {
+  pointer-events: auto;
+}
+
 .ui-sheet[data-state="closed"],
 .ui-sheet[data-closed="true"] {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .ui-sheet[data-dismissable="true"] .ui-sheet__backdrop {

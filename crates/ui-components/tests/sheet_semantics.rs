@@ -150,6 +150,19 @@ fn sheet_styles_include_state_and_source_marker_selectors() {
             "Sheet styles should include `{needle}` for deterministic marker behavior."
         );
     }
+
+    for needle in [
+        ".ui-sheet[data-state=\"open\"]",
+        ".ui-sheet[data-open=\"true\"]",
+        ".ui-sheet[data-state=\"closed\"]",
+        ".ui-sheet[data-closed=\"true\"]",
+        "pointer-events: none;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Sheet styles should include `{needle}` so closed sheets cannot intercept page clicks."
+        );
+    }
 }
 
 #[test]

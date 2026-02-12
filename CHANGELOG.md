@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: fixes `Overlay`/`Sheet` closed-state pointer-event contracts so hidden backdrops no longer block page interaction, and hardens `overlay_semantics` coverage for closed-state click-through behavior.
+
 - `ui-components`: upgrades `Select` with class/data dual source markers for class/motion contracts, aligns select source selectors in styles, and hardens `select_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `FlipButton` with class/data dual source markers for class/motion contracts, aligns button-flip source selectors in styles, and hardens `button_flip_semantics` coverage for stable Spectrum-compatible state-source contracts.

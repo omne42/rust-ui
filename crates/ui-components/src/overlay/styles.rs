@@ -66,7 +66,7 @@ pub const CSS: &str = r#"
 
 .ui-overlay[data-state="closed"],
 .ui-overlay[data-closed="true"] {
-  pointer-events: auto;
+  pointer-events: none;
 }
 
 .ui-overlay[data-dismissable="true"] .ui-overlay__backdrop {
