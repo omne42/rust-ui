@@ -250,3 +250,53 @@ fn overlay_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn overlay_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn overlay() -> AnyView",
+        "title=\"Overlay\"",
+        "slug=\"overlay\"",
+        "description=\"Portal + backdrop + focus trap + overlay stack (Esc/topmost). Supports dismiss control flags and requires presence to unmount after exit.\"",
+        "<Playground title=\"Overlay presence\" code=code>",
+        "title=\"State + Source Markers\"",
+        "code=marker_code",
+        "<Overlay",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs should include `{needle}` for overlay primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn overlay_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Overlay presence\"",
+        "<Button on_press=open_overlay>\"Open overlay\"</Button>",
+        "<Overlay open=open on_close=on_close on_exit_complete=on_exit_complete>",
+        "Esc or click backdrop closes. Tab is trapped.",
+        "title=\"State + Source Markers\"",
+        "<Button on_press=open_marker>\"Open marker overlay\"</Button>",
+        "role=\"alertdialog\"",
+        "is_dismissable=false",
+        "is_keyboard_dismiss_disabled=true",
+        "motion=marker_motion",
+        "class_name=\"docs-overlay-state\".to_string()",
+        "aria_labelledby=\"overlay-marker-title\".to_string()",
+        "aria_describedby=\"overlay-marker-desc\".to_string()",
+        "on_exit_complete=on_marker_exit_complete",
+        "initial_scale: 0.94,",
+        "initial_y_px: 14.0,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlay docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
