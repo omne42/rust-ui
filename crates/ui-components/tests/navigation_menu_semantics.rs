@@ -252,3 +252,50 @@ fn navigation_menu_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn navigation_menu_docs_controlled_state_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"Controlled + Manual Activation\"",
+        "id_base=\"docs-navigation-menu-controlled\".to_string()",
+        "selected_id=controlled_selected",
+        "on_selected_id_change=on_controlled_selected_change",
+        "activate_on_focus=false",
+        "class_name=\"docs-navigation-menu-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "NavigationMenu docs controlled-state playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn navigation_menu_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-navigation-menu-markers\".to_string()",
+        "selected_id=marker_selected",
+        "default_selected_id=\"workspace\".to_string()",
+        "on_selected_id_change=on_marker_selected_change",
+        "activate_on_focus=false",
+        "aria_label=\"Workspace navigation\".to_string()",
+        "class_name=\"docs-navigation-menu-custom\".to_string()",
+        "let mut marker_motion = ui_components::NavigationMenuMotion::default();",
+        "marker_motion.spring.stiffness = 260.0",
+        "marker_motion.spring.damping = 24.0",
+        "motion=marker_motion",
+        "Inspect data-id-source / data-aria-label-source / data-activate-on-focus-source / data-selected-id-source / data-selected-id-change-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "NavigationMenu docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
