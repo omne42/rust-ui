@@ -136,3 +136,53 @@ fn error_view_motion_contract_is_present() {
         );
     }
 }
+
+#[test]
+fn error_view_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn error_view() -> AnyView",
+        "title=\"ErrorView\"",
+        "slug=\"error-view\"",
+        "description=\"Spectrum/HeroUI-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers.\"",
+        "<Playground title=\"Invalid Visibility\" code=basic_code>",
+        "<Playground title=\"Custom Content + Motion + Actions\" code=state_code>",
+        "<ErrorView",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra docs page should include `{needle}` for error_view primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn error_view_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Invalid Visibility\"",
+        "is_invalid=true",
+        "message=\"Please enter a valid email address\".to_string()",
+        "is_invalid=false",
+        "message=\"This error stays hidden until the field becomes invalid.\".to_string()",
+        "title=\"Custom Content + Motion + Actions\"",
+        "tone=ErrorViewTone::Neutral",
+        "compact=true",
+        "bordered=true",
+        "class_name=\"docs-error-view-custom\".to_string()",
+        "motion=ErrorViewMotion {",
+        "hidden_translate_px: 12.0",
+        "hidden_opacity: 0.0",
+        "hidden_scale: 0.95",
+        "variant=ui_components::ButtonVariant::Secondary",
+        "\"Retry\"",
+        "\"Validation failed. Check highlighted fields and retry.\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "error_view docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
