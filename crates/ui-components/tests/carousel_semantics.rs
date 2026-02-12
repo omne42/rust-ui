@@ -240,3 +240,53 @@ fn carousel_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn carousel_docs_controlled_state_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"Controlled + Vertical + No Loop\"",
+        "id_base=\"docs-carousel-vertical\".to_string()",
+        "selected_index=controlled_selected",
+        "on_selected_index_change=on_controlled_selected_change",
+        "orientation=CarouselOrientation::Vertical",
+        "loop_navigation=false",
+        "aria_label=\"Feature carousel\".to_string()",
+        "class_name=\"docs-carousel-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Carousel docs controlled-state playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn carousel_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-carousel-markers\".to_string()",
+        "selected_index=marker_selected",
+        "default_selected_index=0",
+        "on_selected_index_change=on_marker_selected_change",
+        "orientation=CarouselOrientation::Vertical",
+        "loop_navigation=false",
+        "aria_label=\"Workspace spotlight\".to_string()",
+        "class_name=\"docs-carousel-custom\".to_string()",
+        "let mut marker_motion = ui_components::CarouselMotion::default();",
+        "marker_motion.spring.stiffness = 250.0",
+        "marker_motion.spring.damping = 22.0",
+        "motion=marker_motion",
+        "Inspect data-id-source / data-aria-label-source / data-orientation-source / data-loop-navigation-source / data-selected-index-source / data-selected-index-change-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Carousel docs state/source playground should contain `{needle}`.",
+        );
+    }
+}

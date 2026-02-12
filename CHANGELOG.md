@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Carousel` docs state/motion contracts by locking controlled vertical/no-loop markers and custom indicator motion values (`stiffness`/`damping`) in `carousel_semantics` regression coverage.
+
 - `ui-components`: hardens `NavigationMenu` docs state/motion contracts by locking controlled-selection/source markers and custom highlight motion values (`stiffness`/`damping`) in `navigation_menu_semantics` regression coverage.
 
 - `ui-components`: hardens `Menubar` docs state/motion contracts by locking controlled-open/source markers and custom popover motion anchors (`initial_scale`/`offset_y_px`) in `menubar_semantics` regression coverage.
