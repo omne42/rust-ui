@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `story_utils` compatibility docs state matrix contracts by locking UiRoot usage/state-contract playground anchors reused by `story_utils_module_semantics` regression coverage.
+
 - `ui-components`: hardens `SplitView` docs state matrix contracts by locking horizontal-default, controlled-vertical-bounds, and state-source-markers playground anchors in `split_view_semantics` regression coverage.
 
 - `ui-components`: hardens `spinbutton` compatibility docs state matrix contracts by locking NumberField stepper playground anchors reused by `spinbutton_module_semantics` regression coverage.
