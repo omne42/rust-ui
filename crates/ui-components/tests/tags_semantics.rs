@@ -144,3 +144,54 @@ fn tags_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn tags_docs_default_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_tags.rs");
+
+    for needle in [
+        "<Playground title=\"Removable Tags\" code=removable_code>",
+        "<Tags",
+        "tags=tags",
+        "on_remove=on_remove",
+        "label=\"Technologies\".to_string()",
+        "description=\"Remove enabled tags; disabled tags remain.\".to_string()",
+        "<Playground title=\"Disabled Tags\" code=states_code>",
+        "tags=static_tags",
+        "disabled=true",
+        "label=\"Disabled tags\".to_string()",
+        "description=\"Read-only tag collection\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tags docs default playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn tags_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_tags.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "variant=TagVariant::Surface",
+        "size=TagSize::Sm",
+        "id_base=\"docs-tags-markers\".to_string()",
+        "label=\"Marker tags\".to_string()",
+        "description=\"Inspect tags wrapper markers\".to_string()",
+        "error=\"Keep at least two tags\".to_string()",
+        "invalid=marker_invalid",
+        "required=true",
+        "aria_describedby=Signal::derive(move || Some(\"tags-hint\".to_string()))",
+        "aria_label=\"Marker tag list\".to_string()",
+        "class_name=\"docs-tags-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tags docs marker playground should contain `{needle}`.",
+        );
+    }
+}

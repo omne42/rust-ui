@@ -14,6 +14,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `Overlay` docs state/source contracts by locking default and marker playground anchors (`dismiss`/`keyboard-dismiss`/`role`/`motion` source wiring + custom `initial_scale`/`initial_y_px`) in `overlay_semantics` regression coverage.
 
+- `ui-components`: hardens `Tags` docs state/source contracts by locking removable/disabled default playground anchors plus marker-playground source wiring (`variant`/`size`/`invalid`/`aria`/`class`) in `tags_semantics` regression coverage.
+
 - `ui-components`: hardens `Dropzone` docs state/motion contracts by locking disabled and marker-playground anchors plus explicit custom motion values (`hover_scale`/`drop_scale`) in `dropzone_semantics` regression coverage.
 
 - `ui-components`: hardens `PickerButton` docs state/source contracts by locking state-matrix and marker-playground anchors (quiet/invalid/disabled/active + aria/class/handler source wiring) in `picker_button_semantics` regression coverage.
