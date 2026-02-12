@@ -234,3 +234,55 @@ fn sheet_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn sheet_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn sheet() -> AnyView",
+        "title=\"Sheet\"",
+        "slug=\"sheet\"",
+        "description=\"Sheet overlay (mobile-friendly) with placement, spring enter/exit, and dismiss control flags.\"",
+        "<Playground title=\"Bottom sheet\" code=code>",
+        "title=\"State + Source Markers\"",
+        "code=marker_code",
+        "<Sheet",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs should include `{needle}` for sheet primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sheet_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Bottom sheet\"",
+        "<Button on_press=open_sheet>\"Open sheet\"</Button>",
+        "open=open",
+        "placement=SheetPlacement::Bottom",
+        "on_close=on_close",
+        "on_exit_complete=on_exit_complete",
+        "\"Esc/backdrop closes. Focus trap enabled.\"",
+        "title=\"State + Source Markers\"",
+        "description=\"Inspect `data-state`, `data-placement-source`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-motion-source`, and `data-exit-source` contracts.\"",
+        "<Button on_press=open_marker>\"Open marker sheet\"</Button>",
+        "open=marker_open",
+        "placement=SheetPlacement::Right",
+        "is_dismissable=false",
+        "is_keyboard_dismiss_disabled=true",
+        "motion=custom_motion",
+        "on_exit_complete=on_marker_exit_complete",
+        "initial_offset_px: 56.0",
+        "Inspect data-placement-source / data-dismiss-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs playgrounds should contain `{needle}` for sheet contracts.",
+        );
+    }
+}
