@@ -196,3 +196,66 @@ fn sidenav_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn sidenav_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidenav.rs");
+
+    for needle in [
+        "pub(super) fn sidenav() -> AnyView",
+        r#"title="Sidenav""#,
+        r#"slug="sidenav""#,
+        r#"description="Spectrum-compatible Sidenav alias for upstream naming parity, preserving Sidebar controlled/uncontrolled accessibility contracts and HeroUI-level trigger/rail interaction behavior.""#,
+        r#"<Playground title="Controlled + Floating" code=controlled_code>"#,
+        r#"<Playground title="Icon Collapsible + No Shortcut" code=states_code>"#,
+        "title=\"State + Source Markers\"",
+        "<Sidenav",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidenav docs should include `{needle}` for sidenav primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidenav_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidenav.rs");
+
+    for needle in [
+        r#"title="Controlled + Floating""#,
+        "open=Signal::derive(move || open.get())",
+        "on_open_change=on_open_change",
+        "side=SidebarSide::Right",
+        "variant=SidebarVariant::Floating",
+        r#"trigger_label="Toggle nav".to_string()"#,
+        "title=\"Icon Collapsible + No Shortcut\"",
+        "default_open=false",
+        "collapsible=SidebarCollapsible::Icon",
+        "enable_shortcut=false",
+        r#"aria_label="Project navigation".to_string()"#,
+        r#"class_name="docs-sidenav-static".to_string()"#,
+        "title=\"State + Source Markers\"",
+        "open=marker_open_signal",
+        "on_open_change=marker_on_open_change",
+        "show_trigger=false",
+        "enable_shortcut=true",
+        r#"shortcut_key="n".to_string()"#,
+        r#"trigger_label="Toggle markers nav".to_string()"#,
+        r#"aria_label="Markers navigation".to_string()"#,
+        r#"class_name="docs-sidenav-state".to_string()"#,
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "\"Markers Nav\"",
+        "\"Home\"",
+        "\"Settings\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidenav docs playgrounds should contain `{needle}` for sidenav contracts.",
+        );
+    }
+}
