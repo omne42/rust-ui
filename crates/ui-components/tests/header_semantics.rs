@@ -92,3 +92,43 @@ fn header_styles_include_tone_border_and_custom_markers() {
         );
     }
 }
+
+#[test]
+fn header_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn header() -> AnyView",
+        "title=\"Header\"",
+        "slug=\"header\"",
+        "Playground title=\"Semantic Header + Tone\"",
+        "Playground title=\"Bordered + Custom Aria/Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Header.",
+        );
+    }
+}
+
+#[test]
+fn header_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Semantic Header + Tone\"",
+        "<Header>",
+        "<Header tone=HeaderTone::Strong>",
+        "title=\"Bordered + Custom Aria/Class\"",
+        "tone=HeaderTone::Strong",
+        "bordered=true",
+        "aria_label=\"Settings header\".to_string()",
+        "class_name=\"docs-header-custom\".to_string()",
+        "Header above content, matching Spectrum container semantics.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "header docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
