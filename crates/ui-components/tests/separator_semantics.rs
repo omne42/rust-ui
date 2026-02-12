@@ -164,3 +164,42 @@ fn separator_motion_sanitizes_custom_contract_values() {
         "Separator view should sanitize motion before deriving motion source markers and attaching the driver.",
     );
 }
+
+#[test]
+fn separator_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn separator() -> AnyView",
+        "title=\"Separator\"",
+        "slug=\"separator\"",
+        "Playground title=\"Semantic + Element Type\"",
+        "Playground title=\"Decorative + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Separator.",
+        );
+    }
+}
+
+#[test]
+fn separator_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Semantic + Element Type\"",
+        "<Separator />",
+        "element_type=SeparatorElementType::Hr",
+        "orientation=SeparatorOrientation::Vertical",
+        "class_name=\"docs-separator-rail\".to_string()",
+        "title=\"Decorative + Custom Class\"",
+        "<Separator decorative=true class_name=\"docs-separator-custom\".to_string() />",
+        "class_name=\"docs-separator-rail docs-separator-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "separator docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

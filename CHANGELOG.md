@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Separator` docs state contracts by locking semantic+element-type and decorative+custom-class playground anchors in `separator_semantics` regression coverage.
+
 - `ui-components`: hardens `Divider` docs state contracts by locking orientation and custom-class-marker playground anchors in `divider_semantics` regression coverage.
 
 - `ui-components`: hardens `ProgressCircle` docs state contracts by locking determinate+indeterminate and custom-value-label+class playground anchors in `progress_circle_semantics` regression coverage.
