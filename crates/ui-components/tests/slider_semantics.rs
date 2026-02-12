@@ -129,3 +129,55 @@ fn slider_motion_uses_spring_driver() {
         );
     }
 }
+
+#[test]
+fn slider_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn slider() -> AnyView",
+        "title=\"Slider\"",
+        "slug=\"slider\"",
+        "description=\"Range slider with spring-driven fill/thumb motion and Spectrum-style state data contracts.\"",
+        "<Playground title=\"Controlled + on_change\" code=code>",
+        "<Playground title=\"Disabled + Fine Step\" code=states_code>",
+        "<Slider",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra slider docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn slider_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"Controlled + on_change\"",
+        "id=\"docs-slider-volume\".to_string()",
+        "label=\"Volume\".to_string()",
+        "min=0.0",
+        "max=100.0",
+        "step=1.0",
+        "on_change=on_change",
+        "value: ",
+        " · last on_change: ",
+        "title=\"Disabled + Fine Step\"",
+        "id=\"docs-slider-disabled\".to_string()",
+        "label=\"Disabled\".to_string()",
+        "disabled=true",
+        "id=\"docs-slider-fine\".to_string()",
+        "label=\"Fine Step\".to_string()",
+        "max=1.0",
+        "step=0.05",
+        "motion=fine_motion",
+        "class_name=\"docs-slider--fine\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra slider playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
