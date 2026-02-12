@@ -101,3 +101,44 @@ fn code_keeps_code_element_slot_contract() {
         );
     }
 }
+
+#[test]
+fn code_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn code() -> AnyView",
+        "title=\"Code\"",
+        "slug=\"code\"",
+        "Playground title=\"Variant Matrix\"",
+        "Playground title=\"Custom Class + Block\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Code.",
+        );
+    }
+}
+
+#[test]
+fn code_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Variant Matrix\"",
+        "<Code variant=CodeVariant::Inline>\"cargo test -p ui-components\"</Code>",
+        "<Code variant=CodeVariant::Block>",
+        "cargo fmt --all",
+        "cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings",
+        "title=\"Custom Class + Block\"",
+        "<Code variant=CodeVariant::Inline class_name=\"docs-code-custom\".to_string()>",
+        "\"--deny warnings\"",
+        "<Code variant=CodeVariant::Block class_name=\"docs-code-custom\".to_string()>",
+        "cargo test -p ui-components --test code_semantics",
+    ] {
+        assert!(
+            source.contains(needle),
+            "code docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
