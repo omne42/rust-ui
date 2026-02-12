@@ -276,3 +276,58 @@ fn dialog_docs_default_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn dialog_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
+
+    for needle in [
+        "pub(super) fn dialog() -> AnyView",
+        "title=\"Dialog\"",
+        "slug=\"dialog\"",
+        "description=\"Dialog panel with header/body/footer structure on top of Overlay.\"",
+        "<Playground title=\"Dialog\" code=code>",
+        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "data-id-source",
+        "data-title-source",
+        "data-description-source",
+        "data-close-source",
+        "data-motion-source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays_dialog docs page should include `{needle}` for dialog primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn dialog_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
+
+    for needle in [
+        "id_base=\"docs-dialog\".to_string()",
+        "title=\"Dialog title\".to_string()",
+        "description=\"Uses Overlay + header/body/footer layout.\".to_string()",
+        "<Button variant=ButtonVariant::Secondary on_press=on_close>\"Cancel\"</Button>",
+        "<Button on_press=on_close>\"Confirm\"</Button>",
+        "on_exit_complete=on_exit_complete",
+        "id_base=\"docs-dialog-marker\".to_string()",
+        "title=\"Marker dialog\".to_string()",
+        "description=\"Custom size, class, close label, and motion for contract inspection.\"",
+        "size=DialogSize::Lg",
+        "close_label=\"Dismiss dialog\"",
+        "class_name=\"docs-dialog-custom\".to_string()",
+        "motion=DialogMotion {",
+        "overlay: OverlayMotion {",
+        "initial_scale: 0.94",
+        "initial_y_px: 14.0",
+        "\"Open marker dialog\"",
+        "\"open: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Dialog` docs state matrix contracts by locking default dialog and state+source-marker playground anchors in `dialog_semantics` regression coverage.
+
 - `ui-components`: hardens `Description` docs state matrix contracts by locking tone-variants and truncate+element+disabled playground anchors in `description_semantics` regression coverage.
 
 - `ui-components`: hardens `DateRangePicker` docs state matrix contracts by locking controlled+shared-month and strong-tone+invalid-range-hint playground anchors in `date_range_picker_semantics` regression coverage.
