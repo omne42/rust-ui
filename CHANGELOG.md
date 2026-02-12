@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `CommandDialog` docs state/motion contracts by locking controlled-open markers and custom overlay-motion anchors (`initial_scale`/`initial_y_px`) in `command_dialog_semantics` regression coverage.
+
 - `ui-components`: hardens `Carousel` docs state/motion contracts by locking controlled vertical/no-loop markers and custom indicator motion values (`stiffness`/`damping`) in `carousel_semantics` regression coverage.
 
 - `ui-components`: hardens `NavigationMenu` docs state/motion contracts by locking controlled-selection/source markers and custom highlight motion values (`stiffness`/`damping`) in `navigation_menu_semantics` regression coverage.
