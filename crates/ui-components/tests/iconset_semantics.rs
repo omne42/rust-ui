@@ -148,3 +148,55 @@ fn iconset_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn iconset_docs_default_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_iconset.rs");
+
+    for needle in [
+        "<Playground title=\"Registry Namespace Resolution\" code=registry_code>",
+        "icon=\"workflow:check\".to_string()",
+        "icon=\"workflow:alert\".to_string()",
+        "glyphs=workflow_glyphs.clone()",
+        "size=IconsetSize::Md",
+        "tone=IconsetTone::Accent",
+        "tone=IconsetTone::Danger",
+        "decorative=false",
+        "<Playground title=\"Fallback + Source State\" code=fallback_code>",
+        "icon=\"ui:unknown\".to_string()",
+        "iconset=\"ui\".to_string()",
+        "size=IconsetSize::Lg",
+        "tone=IconsetTone::Muted",
+        "class_name=\"docs-iconset-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "iconset docs default playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn iconset_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_iconset.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "icon=\"workflow:check\".to_string()",
+        "iconset=\"workflow\".to_string()",
+        "glyphs=vec![",
+        "IconsetGlyph::new(\"workflow:check\", \"✓\")",
+        ".with_aria_label(\"Registry Check\")",
+        "size=IconsetSize::Lg",
+        "tone=IconsetTone::Danger",
+        "aria_label=\"Explicit workflow check\".to_string()",
+        "class_name=\"docs-iconset-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "iconset docs marker playground should contain `{needle}`.",
+        );
+    }
+}
