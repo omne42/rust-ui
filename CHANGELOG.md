@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Tray` motion docs contracts by locking marker-playground `TrayMotion -> SheetMotion.initial_offset_px` values, fixed-height dismiss source markers, and custom docs state anchors in `tray_semantics` regression coverage.
+
 - `ui-components`: hardens `Sonner` motion docs contracts by locking marker-playground `ToastMotion` values (`initial_y_px`/`initial_scale`), top-left queue/source markers, and custom docs state anchors in `sonner_semantics` regression coverage.
 
 - `ui-components`: hardens `Toaster` motion docs contracts by locking marker-playground `ToastMotion` values (`initial_y_px`/`initial_scale`), top-left queue/source markers, and custom docs state anchors in `toaster_semantics` regression coverage.

@@ -244,6 +244,31 @@ fn tray_docs_page_contains_state_source_playground() {
 }
 
 #[test]
+fn tray_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "let custom_motion = TrayMotion {",
+        "sheet: ui_components::SheetMotion {",
+        "initial_offset_px: 46.0",
+        "id_base=\"docs-tray-fixed\".to_string()",
+        "motion=custom_motion",
+        "is_fixed_height=true",
+        "is_dismissable=false",
+        "is_keyboard_dismiss_disabled=true",
+        "show_close_button=false",
+        "class_name=\"docs-tray-custom\".to_string()",
+        "Inspect data-size-source / data-dismiss-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tray docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn tray_motion_sanitizes_custom_contract_values() {
     let motion_source = load_source("src/tray/motion.rs");
     let view_source = load_source("src/tray/view.rs");
