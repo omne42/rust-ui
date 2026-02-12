@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Textfield` docs state/source contracts by locking required+invalid anchors and state/source marker values (custom description/error/placeholder/type/class wiring) in `textfield_semantics` regression coverage.
+
 - `ui-components`: hardens `Toggle` docs state/motion contracts by locking outline+disabled anchors and state/source marker values (`tap_scale`/custom aria+handler wiring) in `toggle_semantics` regression coverage.
 
 - `ui-components`: hardens `Combobox` docs state/motion contracts by locking invalid+disabled anchors and state/source marker motion values (`offset_y_px`/`stiffness`) in `combobox_semantics` regression coverage.

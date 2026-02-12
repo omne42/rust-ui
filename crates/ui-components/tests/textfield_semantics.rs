@@ -134,3 +134,50 @@ fn textfield_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn textfield_docs_required_invalid_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_textfield.rs");
+
+    for needle in [
+        "title=\"Required + Invalid\"",
+        "id=\"docs-textfield-email\".to_string()",
+        "label=\"Email\".to_string()",
+        "input_type=\"email\"",
+        "required=true",
+        "invalid=Signal::derive(move || invalid.get())",
+        "error=\"Valid email is required\".to_string()",
+        "Mark invalid",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Textfield docs required/invalid playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn textfield_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_textfield.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-textfield-markers\".to_string()",
+        "label=\"Account email\".to_string()",
+        "required=true",
+        "invalid=Signal::derive(move || marker_invalid.get())",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Valid email is required\".to_string()",
+        "placeholder=\"name@example.com\".to_string()",
+        "input_type=\"email\"",
+        "class_name=\"docs-textfield-state\".to_string()",
+        "Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-type-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Textfield docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
