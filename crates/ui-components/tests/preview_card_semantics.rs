@@ -240,3 +240,59 @@ fn preview_card_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn preview_card_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn preview_card() -> AnyView",
+        "title=\"PreviewCard\"",
+        "slug=\"preview-card\"",
+        "description=\"Spectrum-compatible link preview popover with hover/focus trigger semantics, source-state markers, and HeroUI-level spring motion.\"",
+        "<Playground title=\"Basic Preview\" code=code>",
+        "title=\"State + Source Markers\"",
+        "code=markers_code",
+        "<Playground title=\"Default Fallbacks\" code=fallback_code>",
+        "<PreviewCard",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs should include `{needle}` for preview-card primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn preview_card_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Basic Preview\"",
+        "title=\"React Spectrum\".to_string()",
+        "description=\"Design system and component architecture documentation.\".to_string()",
+        "url=\"https://react-spectrum.adobe.com\".to_string()",
+        "image_src=\"https://react-spectrum.adobe.com/static/logo.png\".to_string()",
+        "title=\"State + Source Markers\"",
+        "id=\"docs-preview-card\".to_string()",
+        "title=\"Custom title\".to_string()",
+        "description=\"Custom description for source markers.\".to_string()",
+        "url=\"https://github.com/adobe/react-spectrum\".to_string()",
+        "site_label=\"github.com\".to_string()",
+        "open_delay_ms=260",
+        "close_delay_ms=240",
+        "class_name=\"docs-preview-card-state\".to_string()",
+        "motion=PreviewCardMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+        "\"Inspect markers\"",
+        "title=\"Default Fallbacks\"",
+        "\"Uses defaults\"",
+        "Falls back to default title/description/url/site-label when not provided.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs playgrounds should contain `{needle}` for preview-card contracts.",
+        );
+    }
+}
