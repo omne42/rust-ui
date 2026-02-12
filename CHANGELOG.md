@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FileTrigger` docs state matrix contracts by locking pick-files and custom-motion pick-files playground anchors in `file_trigger_semantics` regression coverage.
+
 - `ui-components`: hardens `Field` docs state matrix contracts by locking required+description and horizontal+invalid+custom-class playground anchors in `field_semantics` regression coverage.
 
 - `ui-components`: hardens `FieldLabel` docs state matrix contracts by locking tone+required and custom-indicator+aria+class playground anchors in `field_label_semantics` regression coverage.

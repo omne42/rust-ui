@@ -137,3 +137,47 @@ fn file_trigger_motion_sanitizes_custom_contract_values() {
         "FileTrigger view should sanitize motion before forwarding to Button.",
     );
 }
+
+#[test]
+fn file_trigger_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
+
+    for needle in [
+        "pub(super) fn file_trigger() -> AnyView",
+        "title=\"FileTrigger\"",
+        "slug=\"file-trigger\"",
+        "description=\"A Button that forwards to an invisible <input type=file>.\"",
+        "<Playground title=\"Pick files\" code=code>",
+        "<Playground title=\"Pick files with custom motion\" code=motion_code>",
+        "<FileTrigger",
+    ] {
+        assert!(
+            source.contains(needle),
+            "files docs page should include `{needle}` for file_trigger primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn file_trigger_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
+
+    for needle in [
+        "title=\"Pick files\"",
+        "<FileTrigger multiple=true on_files=on_files>",
+        "\"Pick files\"",
+        "\"No files selected.\"",
+        "title=\"Pick files with custom motion\"",
+        "motion=FileTriggerMotion {",
+        "hover_scale: 1.04",
+        "tap_scale: 0.94",
+        "on_files=on_custom_files",
+        "\"Pick files (custom motion)\"",
+        "\"No files selected (custom motion example).\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "file_trigger docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
