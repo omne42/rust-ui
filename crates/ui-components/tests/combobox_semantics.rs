@@ -180,3 +180,67 @@ fn combobox_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn combobox_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_combobox.rs");
+
+    for needle in [
+        "pub(super) fn combobox() -> AnyView",
+        "title=\"Combobox\"",
+        "slug=\"combobox\"",
+        "description=\"Spectrum-compatible combobox alias for upstream naming parity, preserving ComboBox accessibility, state contracts, and HeroUI-level panel/highlight motion.\"",
+        "<Playground title=\"Basic Selection\" code=basic_code>",
+        "<Playground title=\"Invalid + Disabled Option\" code=state_code>",
+        "title=\"State + Source Markers\"",
+        "data-state",
+        "data-selection",
+        "data-options",
+        "data-requirement",
+        "data-label-source",
+        "data-description-source",
+        "data-error-source",
+        "data-placeholder-source",
+        "data-motion-source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_extra_combobox docs page should include `{needle}` for primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn combobox_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_combobox.rs");
+
+    for needle in [
+        "id_base=\"docs-combobox-basic\".to_string()",
+        "label=\"Language\".to_string()",
+        "description=\"Pick one runtime language\".to_string()",
+        "\"selected: \"",
+        "id_base=\"docs-combobox-state\".to_string()",
+        "label=\"Stateful language\".to_string()",
+        "disabled_indices=vec![3]",
+        "invalid=Signal::derive(move || invalid.get())",
+        "error=\"Language is required\".to_string()",
+        "\"Clear invalid\"",
+        "\"Mark invalid\"",
+        "id_base=\"docs-combobox-markers\".to_string()",
+        "label=\"Technology stack\".to_string()",
+        "required=Signal::derive(|| true)",
+        "invalid=Signal::derive(move || marker_invalid.get())",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Selection is required\".to_string()",
+        "placeholder=\"Type to filter\".to_string()",
+        "class_name=\"docs-combobox-state\".to_string()",
+        "motion=marker_motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "combobox docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
