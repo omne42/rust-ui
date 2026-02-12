@@ -57,3 +57,57 @@ fn example_theme_compatibility_reuses_ui_root_docs_playground() {
         );
     }
 }
+
+#[test]
+fn example_theme_module_docs_page_covers_primary_playgrounds() {
+    let component_map_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "\"example-theme\" => &[\"ui-root\"],",
+        "\"theme-dark\" => &[\"ui-root\"],",
+    ] {
+        assert!(
+            component_map_source.contains(needle),
+            "component docs mapping should include `{needle}` for example_theme_module primary coverage.",
+        );
+    }
+
+    for needle in [
+        "pub(super) fn ui_root() -> AnyView",
+        "title=\"UiRoot\"",
+        "slug=\"ui-root\"",
+        "<Playground title=\"Usage\" code=usage_code>",
+        "<Playground title=\"State Contract\" code=contract_code>",
+        "<UiRoot",
+    ] {
+        assert!(
+            layout_source.contains(needle),
+            "layout docs page should include `{needle}` for example_theme_module ui_root coverage.",
+        );
+    }
+}
+
+#[test]
+fn example_theme_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "let usage_code = r#\"use ui_components::{UiRoot, Theme};",
+        "let theme = Signal::derive(|| Theme::dark());",
+        "<UiRoot theme=theme safe_area=true>",
+        "title=\"State Contract\"",
+        "let contract_code = r#\"<UiRoot ...>",
+        "data-theme-scheme=\"light|dark\"",
+        "data-state=\"default|safe-area\"",
+        "data-safe-area=\"true\" (optional)",
+        "\"UiRoot injects BASE_CSS + theme CSS variables + component CSS in one place.\"",
+        "\"`data-theme-scheme` mirrors `Theme::scheme` (`light`/`dark`).\"",
+        "\"`data-state` + `data-safe-area` describe safe-area mode.\"",
+    ] {
+        assert!(
+            layout_source.contains(needle),
+            "example_theme_module docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
