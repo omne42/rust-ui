@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ShareButton` HeroUI-level motion contracts by expanding semantics coverage for motion sanitization delegation (`ShareButtonMotion -> FlipButtonMotion`), view-level `data-motion-source`/`data-custom-motion` markers, and docs motion narrative stability.
+
 - `ui-components`: hardens `IconButton` motion docs contracts by locking marker-playground motion/source values (`ButtonMotion` hover/tap scale + class marker) in `icon_button_semantics` regression coverage.
 
 - `ui-components`: hardens `Dialog` motion docs contracts by locking custom overlay-motion marker values (`initial_scale`/`initial_y_px`) in `dialog_semantics` regression coverage.

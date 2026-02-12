@@ -56,3 +56,56 @@ fn docs_actions_page_covers_share_button_playgrounds() {
         );
     }
 }
+
+#[test]
+fn button_share_motion_contract_defaults_and_delegate_paths_are_locked() {
+    let source = load_source("src/button_share/motion.rs");
+
+    for needle in [
+        "pub struct ShareButtonMotion",
+        "pub flip: FlipButtonMotion",
+        "pub fn sanitize_motion(motion: ShareButtonMotion) -> ShareButtonMotion",
+        "flip: crate::button_flip::motion::sanitize_motion(motion.flip)",
+        "fn default_motion_matches_flip_button_defaults()",
+        "fn sanitize_motion_delegates_to_flip_button_contract()",
+        "fn supports_custom_flip_motion_contract()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "share button motion should include `{needle}` for delegated HeroUI-grade flip contracts."
+        );
+    }
+}
+
+#[test]
+fn button_share_view_wires_motion_sanitization_and_source_markers() {
+    let source = load_source("src/button_share/view.rs");
+
+    for needle in [
+        "let motion = crate::button_share::motion::sanitize_motion(motion);",
+        "motion=motion.flip",
+        "data-motion-source=if motion == ShareButtonMotion::default()",
+        "data-custom-motion=(motion != ShareButtonMotion::default()).then_some(\"true\")",
+    ] {
+        assert!(
+            source.contains(needle),
+            "share button view should include `{needle}` for stable motion/source marker contracts."
+        );
+    }
+}
+
+#[test]
+fn docs_actions_page_locks_share_button_motion_contract_narrative() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "description=\"Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion.\"",
+        "from=FlipDirection::Left",
+        "from=FlipDirection::Right",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for share-button motion contract stability."
+        );
+    }
+}
