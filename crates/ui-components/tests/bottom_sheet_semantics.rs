@@ -242,3 +242,51 @@ fn bottom_sheet_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn bottom_sheet_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "pub(super) fn bottom_sheet() -> AnyView",
+        "title=\"BottomSheet\"",
+        "slug=\"bottom-sheet\"",
+        "Playground title=\"Semantic Bottom Sheet\"",
+        "Playground title=\"Detached + Title Only + Custom Class\"",
+        "Playground title=\"Custom Motion Contract\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays-extra docs page should contain `{needle}` for BottomSheet.",
+        );
+    }
+}
+
+#[test]
+fn bottom_sheet_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"Semantic Bottom Sheet\"",
+        "id_base=\"docs-bottom-sheet-semantic\".to_string()",
+        "title=\"Update available\".to_string()",
+        "description=\"A newer version with security improvements is ready to install.\".to_string()",
+        "footer=move || view! {",
+        "title=\"Detached + Title Only + Custom Class\"",
+        "id_base=\"docs-bottom-sheet-detached\".to_string()",
+        "detached=true",
+        "bottom_inset_px=16.0",
+        "show_close_button=false",
+        "class_name=\"docs-bottom-sheet-custom\".to_string()",
+        "title=\"Custom Motion Contract\"",
+        "id_base=\"docs-bottom-sheet-motion\".to_string()",
+        "motion=BottomSheetMotion {",
+        "initial_offset_px: 64.0",
+        "description=\"Custom sheet motion flips data-motion-source to custom.\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "bottom-sheet docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

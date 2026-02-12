@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `BottomSheet` docs state contracts by locking semantic, detached-title-only-custom-class, and custom-motion playground anchors in `bottom_sheet_semantics` regression coverage.
+
+
 - `ui-components`: hardens `Asset` docs state contracts by locking file+folder variants, custom-image+focused state, and state+source-marker playground anchors in `asset_semantics` regression coverage.
 
 
