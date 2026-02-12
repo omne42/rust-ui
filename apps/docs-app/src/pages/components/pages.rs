@@ -94,12 +94,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("ClearButton", "clear-button", "Actions", ax::clear_button),
     component_doc!("CloseButton", "close-button", "Actions", ax::close_button),
-    ComponentDoc {
-        name: "LogicButton",
-        slug: "logic-button",
-        group: "Actions",
-        page: actions_extra::logic_button,
-    },
+    component_doc!(
+        "LogicButton",
+        "logic-button",
+        "Actions",
+        actions_extra::logic_button
+    ),
     component_doc!(
         "ActionButtonGroup",
         "action-button-group",
@@ -123,30 +123,30 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("FlipButton", "flip-button", "Actions", actions::flip_button),
     component_doc!("IconButton", "icon-button", "Actions", axib::icon_button),
     component_doc!("LinkButton", "link-button", "Actions", actions::link_button),
-    ComponentDoc {
-        name: "SearchInputButton",
-        slug: "search-input-button",
-        group: "Actions",
-        page: actions::search_input_button,
-    },
-    ComponentDoc {
-        name: "ShareButton",
-        slug: "share-button",
-        group: "Actions",
-        page: actions::share_button,
-    },
-    ComponentDoc {
-        name: "ThemeToggleButton",
-        slug: "theme-toggle-button",
-        group: "Actions",
-        page: actions::theme_toggle_button,
-    },
-    ComponentDoc {
-        name: "ToggleButton",
-        slug: "toggle-button",
-        group: "Actions",
-        page: actions::toggle_button,
-    },
+    component_doc!(
+        "SearchInputButton",
+        "search-input-button",
+        "Actions",
+        actions::search_input_button
+    ),
+    component_doc!(
+        "ShareButton",
+        "share-button",
+        "Actions",
+        actions::share_button
+    ),
+    component_doc!(
+        "ThemeToggleButton",
+        "theme-toggle-button",
+        "Actions",
+        actions::theme_toggle_button
+    ),
+    component_doc!(
+        "ToggleButton",
+        "toggle-button",
+        "Actions",
+        actions::toggle_button
+    ),
     component_doc!("Toggle", "toggle", "Actions", actions_extra::toggle),
     component_doc!(
         "ToggleButtonGroup",
@@ -170,290 +170,165 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Forms",
         forms_extra_visually_hidden::visually_hidden
     ),
-    ComponentDoc {
-        name: "Legend",
-        slug: "legend",
-        group: "Forms",
-        page: forms_groups_extra::legend,
-    },
-    ComponentDoc {
-        name: "Description",
-        slug: "description",
-        group: "Forms",
-        page: forms_extra::description,
-    },
-    ComponentDoc {
-        name: "FieldError",
-        slug: "field-error",
-        group: "Forms",
-        page: forms_extra::field_error,
-    },
-    ComponentDoc {
-        name: "ErrorMessage",
-        slug: "error-message",
-        group: "Forms",
-        page: forms_extra::error_message,
-    },
-    ComponentDoc {
-        name: "Field",
-        slug: "field",
-        group: "Forms",
-        page: forms_extra::field,
-    },
-    ComponentDoc {
-        name: "Fieldset",
-        slug: "fieldset",
-        group: "Forms",
-        page: forms_extra::fieldset,
-    },
-    ComponentDoc {
-        name: "FieldGroup",
-        slug: "field-group",
-        group: "Forms",
-        page: forms_groups::field_group,
-    },
-    ComponentDoc {
-        name: "HelpText",
-        slug: "help-text",
-        group: "Forms",
-        page: forms_extra::help_text,
-    },
-    ComponentDoc {
-        name: "InputGroup",
-        slug: "input-group",
-        group: "Forms",
-        page: forms::input_group,
-    },
-    ComponentDoc {
-        name: "NativeSelect",
-        slug: "native-select",
-        group: "Forms",
-        page: forms_native::native_select,
-    },
-    ComponentDoc {
-        name: "DateInputGroup",
-        slug: "date-input-group",
-        group: "Forms",
-        page: forms_groups::date_input_group,
-    },
-    ComponentDoc {
-        name: "TextField",
-        slug: "text-field",
-        group: "Forms",
-        page: forms::text_field,
-    },
+    component_doc!("Legend", "legend", "Forms", forms_groups_extra::legend),
+    component_doc!(
+        "Description",
+        "description",
+        "Forms",
+        forms_extra::description
+    ),
+    component_doc!(
+        "FieldError",
+        "field-error",
+        "Forms",
+        forms_extra::field_error
+    ),
+    component_doc!(
+        "ErrorMessage",
+        "error-message",
+        "Forms",
+        forms_extra::error_message
+    ),
+    component_doc!("Field", "field", "Forms", forms_extra::field),
+    component_doc!("Fieldset", "fieldset", "Forms", forms_extra::fieldset),
+    component_doc!(
+        "FieldGroup",
+        "field-group",
+        "Forms",
+        forms_groups::field_group
+    ),
+    component_doc!("HelpText", "help-text", "Forms", forms_extra::help_text),
+    component_doc!("InputGroup", "input-group", "Forms", forms::input_group),
+    component_doc!(
+        "NativeSelect",
+        "native-select",
+        "Forms",
+        forms_native::native_select
+    ),
+    component_doc!(
+        "DateInputGroup",
+        "date-input-group",
+        "Forms",
+        forms_groups::date_input_group
+    ),
+    component_doc!("TextField", "text-field", "Forms", forms::text_field),
     component_doc!("Textfield", "textfield", "Forms", fxt::textfield),
-    ComponentDoc {
-        name: "TextArea",
-        slug: "text-area",
-        group: "Forms",
-        page: forms::text_area,
-    },
-    ComponentDoc {
-        name: "Textarea",
-        slug: "textarea",
-        group: "Forms",
-        page: forms_extra::textarea,
-    },
-    ComponentDoc {
-        name: "SearchField",
-        slug: "search-field",
-        group: "Forms",
-        page: forms::search_field,
-    },
+    component_doc!("TextArea", "text-area", "Forms", forms::text_area),
+    component_doc!("Textarea", "textarea", "Forms", forms_extra::textarea),
+    component_doc!("SearchField", "search-field", "Forms", forms::search_field),
     component_doc!("Search", "search", "Forms", fxs::search),
-    ComponentDoc {
-        name: "ColorField",
-        slug: "color-field",
-        group: "Forms",
-        page: forms_color::color_field,
-    },
-    ComponentDoc {
-        name: "ColorEditor",
-        slug: "color-editor",
-        group: "Forms",
-        page: forms_color::color_editor,
-    },
-    ComponentDoc {
-        name: "ColorArea",
-        slug: "color-area",
-        group: "Forms",
-        page: forms_color::color_area,
-    },
-    ComponentDoc {
-        name: "ColorSlider",
-        slug: "color-slider",
-        group: "Forms",
-        page: forms_color::color_slider,
-    },
-    ComponentDoc {
-        name: "ColorWheel",
-        slug: "color-wheel",
-        group: "Forms",
-        page: forms_color::color_wheel,
-    },
-    ComponentDoc {
-        name: "ColorThumb",
-        slug: "color-thumb",
-        group: "Forms",
-        page: forms_color::color_thumb,
-    },
-    ComponentDoc {
-        name: "ColorHandle",
-        slug: "color-handle",
-        group: "Forms",
-        page: forms_color::color_handle,
-    },
-    ComponentDoc {
-        name: "ColorLoupe",
-        slug: "color-loupe",
-        group: "Forms",
-        page: forms_color::color_loupe,
-    },
-    ComponentDoc {
-        name: "ColorPicker",
-        slug: "color-picker",
-        group: "Forms",
-        page: forms_color::color_picker,
-    },
-    ComponentDoc {
-        name: "NumberField",
-        slug: "number-field",
-        group: "Forms",
-        page: forms::number_field,
-    },
-    ComponentDoc {
-        name: "InputOtp",
-        slug: "input-otp",
-        group: "Forms",
-        page: forms::input_otp,
-    },
-    ComponentDoc {
-        name: "Checkbox",
-        slug: "checkbox",
-        group: "Forms",
-        page: forms::checkbox,
-    },
-    ComponentDoc {
-        name: "CheckboxField",
-        slug: "checkbox-field",
-        group: "Forms",
-        page: forms_groups_extra::checkbox_field,
-    },
-    ComponentDoc {
-        name: "FormField",
-        slug: "form-field",
-        group: "Forms",
-        page: forms_groups_extra::form_field,
-    },
-    ComponentDoc {
-        name: "CheckboxGroup",
-        slug: "checkbox-group",
-        group: "Forms",
-        page: forms::checkbox_group,
-    },
-    ComponentDoc {
-        name: "Switch",
-        slug: "switch",
-        group: "Forms",
-        page: forms::switch,
-    },
-    ComponentDoc {
-        name: "SwitchGroup",
-        slug: "switch-group",
-        group: "Forms",
-        page: forms_groups::switch_group,
-    },
-    ComponentDoc {
-        name: "RadioGroup",
-        slug: "radio-group",
-        group: "Forms",
-        page: forms::radio_group,
-    },
-    ComponentDoc {
-        name: "Radio",
-        slug: "radio",
-        group: "Forms",
-        page: forms::radio,
-    },
-    ComponentDoc {
-        name: "SegmentedControl",
-        slug: "segmented-control",
-        group: "Forms",
-        page: forms::segmented_control,
-    },
-    ComponentDoc {
-        name: "Slider",
-        slug: "slider",
-        group: "Forms",
-        page: forms_extra::slider,
-    },
-    ComponentDoc {
-        name: "Calendar",
-        slug: "calendar",
-        group: "Forms",
-        page: forms_extra::calendar,
-    },
-    ComponentDoc {
-        name: "DateField",
-        slug: "date-field",
-        group: "Forms",
-        page: forms_extra::date_field,
-    },
-    ComponentDoc {
-        name: "DatePicker",
-        slug: "date-picker",
-        group: "Forms",
-        page: forms_extra::date_picker,
-    },
-    ComponentDoc {
-        name: "DateRangePicker",
-        slug: "date-range-picker",
-        group: "Forms",
-        page: forms_extra::date_range_picker,
-    },
-    ComponentDoc {
-        name: "TimeField",
-        slug: "time-field",
-        group: "Forms",
-        page: forms_extra::time_field,
-    },
-    ComponentDoc {
-        name: "Card",
-        slug: "card",
-        group: "Layout",
-        page: layout::card,
-    },
-    ComponentDoc {
-        name: "View",
-        slug: "view",
-        group: "Layout",
-        page: layout::view,
-    },
-    ComponentDoc {
-        name: "Flex",
-        slug: "flex",
-        group: "Layout",
-        page: layout::flex,
-    },
-    ComponentDoc {
-        name: "Grid",
-        slug: "grid",
-        group: "Layout",
-        page: layout_extra::grid,
-    },
-    ComponentDoc {
-        name: "AspectRatio",
-        slug: "aspect-ratio",
-        group: "Layout",
-        page: layout_extra::aspect_ratio,
-    },
-    ComponentDoc {
-        name: "Content",
-        slug: "content",
-        group: "Layout",
-        page: layout::content,
-    },
+    component_doc!(
+        "ColorField",
+        "color-field",
+        "Forms",
+        forms_color::color_field
+    ),
+    component_doc!(
+        "ColorEditor",
+        "color-editor",
+        "Forms",
+        forms_color::color_editor
+    ),
+    component_doc!("ColorArea", "color-area", "Forms", forms_color::color_area),
+    component_doc!(
+        "ColorSlider",
+        "color-slider",
+        "Forms",
+        forms_color::color_slider
+    ),
+    component_doc!(
+        "ColorWheel",
+        "color-wheel",
+        "Forms",
+        forms_color::color_wheel
+    ),
+    component_doc!(
+        "ColorThumb",
+        "color-thumb",
+        "Forms",
+        forms_color::color_thumb
+    ),
+    component_doc!(
+        "ColorHandle",
+        "color-handle",
+        "Forms",
+        forms_color::color_handle
+    ),
+    component_doc!(
+        "ColorLoupe",
+        "color-loupe",
+        "Forms",
+        forms_color::color_loupe
+    ),
+    component_doc!(
+        "ColorPicker",
+        "color-picker",
+        "Forms",
+        forms_color::color_picker
+    ),
+    component_doc!("NumberField", "number-field", "Forms", forms::number_field),
+    component_doc!("InputOtp", "input-otp", "Forms", forms::input_otp),
+    component_doc!("Checkbox", "checkbox", "Forms", forms::checkbox),
+    component_doc!(
+        "CheckboxField",
+        "checkbox-field",
+        "Forms",
+        forms_groups_extra::checkbox_field
+    ),
+    component_doc!(
+        "FormField",
+        "form-field",
+        "Forms",
+        forms_groups_extra::form_field
+    ),
+    component_doc!(
+        "CheckboxGroup",
+        "checkbox-group",
+        "Forms",
+        forms::checkbox_group
+    ),
+    component_doc!("Switch", "switch", "Forms", forms::switch),
+    component_doc!(
+        "SwitchGroup",
+        "switch-group",
+        "Forms",
+        forms_groups::switch_group
+    ),
+    component_doc!("RadioGroup", "radio-group", "Forms", forms::radio_group),
+    component_doc!("Radio", "radio", "Forms", forms::radio),
+    component_doc!(
+        "SegmentedControl",
+        "segmented-control",
+        "Forms",
+        forms::segmented_control
+    ),
+    component_doc!("Slider", "slider", "Forms", forms_extra::slider),
+    component_doc!("Calendar", "calendar", "Forms", forms_extra::calendar),
+    component_doc!("DateField", "date-field", "Forms", forms_extra::date_field),
+    component_doc!(
+        "DatePicker",
+        "date-picker",
+        "Forms",
+        forms_extra::date_picker
+    ),
+    component_doc!(
+        "DateRangePicker",
+        "date-range-picker",
+        "Forms",
+        forms_extra::date_range_picker
+    ),
+    component_doc!("TimeField", "time-field", "Forms", forms_extra::time_field),
+    component_doc!("Card", "card", "Layout", layout::card),
+    component_doc!("View", "view", "Layout", layout::view),
+    component_doc!("Flex", "flex", "Layout", layout::flex),
+    component_doc!("Grid", "grid", "Layout", layout_extra::grid),
+    component_doc!(
+        "AspectRatio",
+        "aspect-ratio",
+        "Layout",
+        layout_extra::aspect_ratio
+    ),
+    component_doc!("Content", "content", "Layout", layout::content),
     component_doc!("Header", "header", "Layout", layout::header),
     component_doc!("Footer", "footer", "Layout", layout::footer),
     component_doc!("Heading", "heading", "Layout", layout::heading),
@@ -536,109 +411,49 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Display",
         display::status_light
     ),
-    ComponentDoc {
-        name: "Chip",
-        slug: "chip",
-        group: "Display",
-        page: display::chip,
-    },
+    component_doc!("Chip", "chip", "Display", display::chip),
     component_doc!("Chart", "chart", "Display", display_extra::chart),
-    ComponentDoc {
-        name: "Skeleton",
-        slug: "skeleton",
-        group: "Display",
-        page: display::skeleton,
-    },
-    ComponentDoc {
-        name: "SkeletonGroup",
-        slug: "skeleton-group",
-        group: "Display",
-        page: display_extra::skeleton_group,
-    },
-    ComponentDoc {
-        name: "CircularProgress",
-        slug: "circular-progress",
-        group: "Display",
-        page: display::circular_progress,
-    },
-    ComponentDoc {
-        name: "Spinner",
-        slug: "spinner",
-        group: "Display",
-        page: display::spinner,
-    },
-    ComponentDoc {
-        name: "Progress",
-        slug: "progress",
-        group: "Display",
-        page: display::progress,
-    },
-    ComponentDoc {
-        name: "ProgressBar",
-        slug: "progress-bar",
-        group: "Display",
-        page: display::progress_bar,
-    },
-    ComponentDoc {
-        name: "ProgressCircle",
-        slug: "progress-circle",
-        group: "Display",
-        page: display::progress_circle,
-    },
-    ComponentDoc {
-        name: "Meter",
-        slug: "meter",
-        group: "Display",
-        page: display::meter,
-    },
-    ComponentDoc {
-        name: "Code",
-        slug: "code",
-        group: "Display",
-        page: display::code,
-    },
-    ComponentDoc {
-        name: "CodeBlock",
-        slug: "code-block",
-        group: "Display",
-        page: display::code_block,
-    },
-    ComponentDoc {
-        name: "Kbd",
-        slug: "kbd",
-        group: "Display",
-        page: display::kbd,
-    },
-    ComponentDoc {
-        name: "Keyboard",
-        slug: "keyboard",
-        group: "Display",
-        page: display_extra::keyboard,
-    },
-    ComponentDoc {
-        name: "Snippet",
-        slug: "snippet",
-        group: "Display",
-        page: display::snippet,
-    },
-    ComponentDoc {
-        name: "Link",
-        slug: "link",
-        group: "Display",
-        page: display::link,
-    },
-    ComponentDoc {
-        name: "LabeledValue",
-        slug: "labeled-value",
-        group: "Display",
-        page: display_extra::labeled_value,
-    },
-    ComponentDoc {
-        name: "Text",
-        slug: "text",
-        group: "Display",
-        page: display_extra::text,
-    },
+    component_doc!("Skeleton", "skeleton", "Display", display::skeleton),
+    component_doc!(
+        "SkeletonGroup",
+        "skeleton-group",
+        "Display",
+        display_extra::skeleton_group
+    ),
+    component_doc!(
+        "CircularProgress",
+        "circular-progress",
+        "Display",
+        display::circular_progress
+    ),
+    component_doc!("Spinner", "spinner", "Display", display::spinner),
+    component_doc!("Progress", "progress", "Display", display::progress),
+    component_doc!(
+        "ProgressBar",
+        "progress-bar",
+        "Display",
+        display::progress_bar
+    ),
+    component_doc!(
+        "ProgressCircle",
+        "progress-circle",
+        "Display",
+        display::progress_circle
+    ),
+    component_doc!("Meter", "meter", "Display", display::meter),
+    component_doc!("Code", "code", "Display", display::code),
+    component_doc!("CodeBlock", "code-block", "Display", display::code_block),
+    component_doc!("Kbd", "kbd", "Display", display::kbd),
+    component_doc!("Keyboard", "keyboard", "Display", display_extra::keyboard),
+    component_doc!("Snippet", "snippet", "Display", display::snippet),
+    component_doc!("Link", "link", "Display", display::link),
+    component_doc!(
+        "LabeledValue",
+        "labeled-value",
+        "Display",
+        display_extra::labeled_value
+    ),
+    component_doc!("Text", "text", "Display", display_extra::text),
     component_doc!("Avatar", "avatar", "Display", display::avatar),
     component_doc!(
         "AvatarGroup",
@@ -721,18 +536,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Display",
         display::sliding_number
     ),
-    ComponentDoc {
-        name: "FileTrigger",
-        slug: "file-trigger",
-        group: "Files",
-        page: files::file_trigger,
-    },
-    ComponentDoc {
-        name: "DropZone",
-        slug: "drop-zone",
-        group: "Files",
-        page: files::drop_zone,
-    },
+    component_doc!("FileTrigger", "file-trigger", "Files", files::file_trigger),
+    component_doc!("DropZone", "drop-zone", "Files", files::drop_zone),
     component_doc!("Dropzone", "dropzone", "Files", fdz::dropzone),
     collections_breadcrumb_catalog::BREADCRUMB_DOC,
     collections_breadcrumb_catalog::BREADCRUMB_LIST_DOC,
@@ -759,92 +564,77 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     collections_core_catalog::ACCORDION_DOC,
     collections_core_catalog::DISCLOSURE_DOC,
-    ComponentDoc {
-        name: "Collapsible",
-        slug: "collapsible",
-        group: "Collections",
-        page: collections_groups::collapsible,
-    },
-    ComponentDoc {
-        name: "DisclosureGroup",
-        slug: "disclosure-group",
-        group: "Collections",
-        page: collections_extra::disclosure_group,
-    },
+    component_doc!(
+        "Collapsible",
+        "collapsible",
+        "Collections",
+        collections_groups::collapsible
+    ),
+    component_doc!(
+        "DisclosureGroup",
+        "disclosure-group",
+        "Collections",
+        collections_extra::disclosure_group
+    ),
     collections_core_catalog::TABS_DOC,
-    ComponentDoc {
-        name: "ListBox",
-        slug: "listbox",
-        group: "Collections",
-        page: collections::list_box,
-    },
-    ComponentDoc {
-        name: "ListBoxItem",
-        slug: "listbox-item",
-        group: "Collections",
-        page: collections_extra::listbox_item,
-    },
-    ComponentDoc {
-        name: "ListBoxSection",
-        slug: "listbox-section",
-        group: "Collections",
-        page: collections_extra::listbox_section,
-    },
-    ComponentDoc {
-        name: "Menu",
-        slug: "menu",
-        group: "Collections",
-        page: collections::menu,
-    },
-    ComponentDoc {
-        name: "MenuItem",
-        slug: "menu-item",
-        group: "Collections",
-        page: collections_extra::menu_item,
-    },
-    ComponentDoc {
-        name: "MenuSection",
-        slug: "menu-section",
-        group: "Collections",
-        page: collections_extra::menu_section,
-    },
-    ComponentDoc {
-        name: "MenuTrigger",
-        slug: "menu-trigger",
-        group: "Collections",
-        page: collections::menu_trigger,
-    },
-    ComponentDoc {
-        name: "Carousel",
-        slug: "carousel",
-        group: "Collections",
-        page: collections_command::carousel,
-    },
-    ComponentDoc {
-        name: "Menubar",
-        slug: "menubar",
-        group: "Collections",
-        page: collections_command::menubar,
-    },
-    ComponentDoc {
-        name: "NavigationMenu",
-        slug: "navigation-menu",
-        group: "Collections",
-        page: collections_command::navigation_menu,
-    },
+    component_doc!("ListBox", "listbox", "Collections", collections::list_box),
+    component_doc!(
+        "ListBoxItem",
+        "listbox-item",
+        "Collections",
+        collections_extra::listbox_item
+    ),
+    component_doc!(
+        "ListBoxSection",
+        "listbox-section",
+        "Collections",
+        collections_extra::listbox_section
+    ),
+    component_doc!("Menu", "menu", "Collections", collections::menu),
+    component_doc!(
+        "MenuItem",
+        "menu-item",
+        "Collections",
+        collections_extra::menu_item
+    ),
+    component_doc!(
+        "MenuSection",
+        "menu-section",
+        "Collections",
+        collections_extra::menu_section
+    ),
+    component_doc!(
+        "MenuTrigger",
+        "menu-trigger",
+        "Collections",
+        collections::menu_trigger
+    ),
+    component_doc!(
+        "Carousel",
+        "carousel",
+        "Collections",
+        collections_command::carousel
+    ),
+    component_doc!(
+        "Menubar",
+        "menubar",
+        "Collections",
+        collections_command::menubar
+    ),
+    component_doc!(
+        "NavigationMenu",
+        "navigation-menu",
+        "Collections",
+        collections_command::navigation_menu
+    ),
     component_doc!("TopNav", "top-nav", "Collections", cxtn::top_nav),
-    ComponentDoc {
-        name: "Dropdown",
-        slug: "dropdown",
-        group: "Collections",
-        page: collections_extra::dropdown,
-    },
-    ComponentDoc {
-        name: "Select",
-        slug: "select",
-        group: "Collections",
-        page: collections::select,
-    },
+    component_doc!(
+        "Dropdown",
+        "dropdown",
+        "Collections",
+        collections_extra::dropdown
+    ),
+    component_doc!("Select", "select", "Collections", collections::select),
     component_doc!("Picker", "picker", "Collections", cxp::picker),
     component_doc!(
         "ComboBox",
@@ -859,139 +649,84 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Collections",
         collections::autocomplete
     ),
-    ComponentDoc {
-        name: "Command",
-        slug: "command",
-        group: "Collections",
-        page: collections_command::command,
-    },
-    ComponentDoc {
-        name: "CommandDialog",
-        slug: "command-dialog",
-        group: "Collections",
-        page: collections_command::command_dialog,
-    },
-    ComponentDoc {
-        name: "ContextMenu",
-        slug: "context-menu",
-        group: "Collections",
-        page: collections_command::context_menu,
-    },
-    ComponentDoc {
-        name: "DropdownMenu",
-        slug: "dropdown-menu",
-        group: "Collections",
-        page: collections::dropdown_menu,
-    },
-    ComponentDoc {
-        name: "Pagination",
-        slug: "pagination",
-        group: "Collections",
-        page: collections::pagination,
-    },
-    ComponentDoc {
-        name: "Tag",
-        slug: "tag",
-        group: "Collections",
-        page: collections_groups::tag,
-    },
-    ComponentDoc {
-        name: "TagGroup",
-        slug: "tag-group",
-        group: "Collections",
-        page: collections::tag_group,
-    },
+    component_doc!(
+        "Command",
+        "command",
+        "Collections",
+        collections_command::command
+    ),
+    component_doc!(
+        "CommandDialog",
+        "command-dialog",
+        "Collections",
+        collections_command::command_dialog
+    ),
+    component_doc!(
+        "ContextMenu",
+        "context-menu",
+        "Collections",
+        collections_command::context_menu
+    ),
+    component_doc!(
+        "DropdownMenu",
+        "dropdown-menu",
+        "Collections",
+        collections::dropdown_menu
+    ),
+    component_doc!(
+        "Pagination",
+        "pagination",
+        "Collections",
+        collections::pagination
+    ),
+    component_doc!("Tag", "tag", "Collections", collections_groups::tag),
+    component_doc!(
+        "TagGroup",
+        "tag-group",
+        "Collections",
+        collections::tag_group
+    ),
     component_doc!("Tags", "tags", "Collections", cxt::tags),
-    ComponentDoc {
-        name: "StepList",
-        slug: "step-list",
-        group: "Collections",
-        page: collections_extra::step_list,
-    },
-    ComponentDoc {
-        name: "Table",
-        slug: "table",
-        group: "Collections",
-        page: collections_extra::table,
-    },
-    ComponentDoc {
-        name: "Tree",
-        slug: "tree",
-        group: "Collections",
-        page: collections_extra::tree,
-    },
-    ComponentDoc {
-        name: "Overlay",
-        slug: "overlay",
-        group: "Overlays",
-        page: overlays::overlay,
-    },
-    ComponentDoc {
-        name: "Underlay",
-        slug: "underlay",
-        group: "Overlays",
-        page: overlays_extra::underlay,
-    },
-    ComponentDoc {
-        name: "Popover",
-        slug: "popover",
-        group: "Overlays",
-        page: overlays::popover,
-    },
-    ComponentDoc {
-        name: "PreviewCard",
-        slug: "preview-card",
-        group: "Overlays",
-        page: overlays::preview_card,
-    },
-    ComponentDoc {
-        name: "PreviewLinkCard",
-        slug: "preview-link-card",
-        group: "Overlays",
-        page: overlays::preview_link_card,
-    },
-    ComponentDoc {
-        name: "Modal",
-        slug: "modal",
-        group: "Overlays",
-        page: overlays::modal,
-    },
-    ComponentDoc {
-        name: "Dialog",
-        slug: "dialog",
-        group: "Overlays",
-        page: overlays::dialog,
-    },
-    ComponentDoc {
-        name: "AlertDialog",
-        slug: "alert-dialog",
-        group: "Overlays",
-        page: overlays::alert_dialog,
-    },
-    ComponentDoc {
-        name: "Sheet",
-        slug: "sheet",
-        group: "Overlays",
-        page: overlays::sheet,
-    },
-    ComponentDoc {
-        name: "BottomSheet",
-        slug: "bottom-sheet",
-        group: "Overlays",
-        page: overlays_extra::bottom_sheet,
-    },
-    ComponentDoc {
-        name: "Tray",
-        slug: "tray",
-        group: "Overlays",
-        page: overlays_extra::tray,
-    },
-    ComponentDoc {
-        name: "Drawer",
-        slug: "drawer",
-        group: "Overlays",
-        page: overlays::drawer,
-    },
+    component_doc!(
+        "StepList",
+        "step-list",
+        "Collections",
+        collections_extra::step_list
+    ),
+    component_doc!("Table", "table", "Collections", collections_extra::table),
+    component_doc!("Tree", "tree", "Collections", collections_extra::tree),
+    component_doc!("Overlay", "overlay", "Overlays", overlays::overlay),
+    component_doc!("Underlay", "underlay", "Overlays", overlays_extra::underlay),
+    component_doc!("Popover", "popover", "Overlays", overlays::popover),
+    component_doc!(
+        "PreviewCard",
+        "preview-card",
+        "Overlays",
+        overlays::preview_card
+    ),
+    component_doc!(
+        "PreviewLinkCard",
+        "preview-link-card",
+        "Overlays",
+        overlays::preview_link_card
+    ),
+    component_doc!("Modal", "modal", "Overlays", overlays::modal),
+    component_doc!("Dialog", "dialog", "Overlays", overlays::dialog),
+    component_doc!(
+        "AlertDialog",
+        "alert-dialog",
+        "Overlays",
+        overlays::alert_dialog
+    ),
+    component_doc!("Sheet", "sheet", "Overlays", overlays::sheet),
+    component_doc!(
+        "BottomSheet",
+        "bottom-sheet",
+        "Overlays",
+        overlays_extra::bottom_sheet
+    ),
+    component_doc!("Tray", "tray", "Overlays", overlays_extra::tray),
+    component_doc!("Drawer", "drawer", "Overlays", overlays::drawer),
     component_doc!("Tooltip", "tooltip", "Overlays", overlays::tooltip),
     component_doc!("HoverCard", "hover-card", "Overlays", overlays::hover_card),
     component_doc!(
