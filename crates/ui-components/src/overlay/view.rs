@@ -139,6 +139,8 @@ pub fn Overlay(
                 data-exit-source=root_state.exit_source_attr
                 data-custom-motion=root_state.has_custom_motion.then_some("true")
                 data-custom-role=root_state.has_custom_role.then_some("true")
+                data-custom-aria-labelledby=root_state.has_custom_aria_labelledby.then_some("true")
+                data-custom-aria-describedby=root_state.has_custom_aria_describedby.then_some("true")
                 data-custom-class=root_state.has_custom_class_name.then_some("true")
                 data-custom-exit=root_state.has_on_exit_complete.then_some("true")
                 data-ui-overlay-portal=""

@@ -25,15 +25,21 @@ pub const CSS: &str = r#"
   --ui-overlay-class-source: custom;
 }
 
-.ui-overlay[data-role-source="custom"] {
+.ui-overlay--custom-role,
+.ui-overlay[data-role-source="custom"],
+.ui-overlay[data-custom-role="true"] {
   --ui-overlay-role-source: custom;
 }
 
-.ui-overlay[data-aria-labelledby-source="custom"] {
+.ui-overlay--custom-aria-labelledby,
+.ui-overlay[data-aria-labelledby-source="custom"],
+.ui-overlay[data-custom-aria-labelledby="true"] {
   --ui-overlay-aria-labelledby-source: custom;
 }
 
-.ui-overlay[data-aria-describedby-source="custom"] {
+.ui-overlay--custom-aria-describedby,
+.ui-overlay[data-aria-describedby-source="custom"],
+.ui-overlay[data-custom-aria-describedby="true"] {
   --ui-overlay-aria-describedby-source: custom;
 }
 

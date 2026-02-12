@@ -105,6 +105,18 @@ pub fn compose_class_name(base_class_name: Option<String>, state: OverlayPartSta
             classes.push("ui-overlay--custom-motion".to_string());
         }
 
+        if state.has_custom_role {
+            classes.push("ui-overlay--custom-role".to_string());
+        }
+
+        if state.has_custom_aria_labelledby {
+            classes.push("ui-overlay--custom-aria-labelledby".to_string());
+        }
+
+        if state.has_custom_aria_describedby {
+            classes.push("ui-overlay--custom-aria-describedby".to_string());
+        }
+
         if state.is_dismissable != DEFAULT_DISMISSABLE {
             classes.push("ui-overlay--custom-dismiss".to_string());
         }
@@ -205,9 +217,9 @@ mod tests {
                 open: false,
                 is_dismissable: false,
                 is_keyboard_dismiss_disabled: true,
-                has_custom_role: false,
-                has_custom_aria_labelledby: false,
-                has_custom_aria_describedby: false,
+                has_custom_role: true,
+                has_custom_aria_labelledby: true,
+                has_custom_aria_describedby: true,
                 has_custom_class_name: true,
                 has_custom_motion: true,
                 has_on_exit_complete: true,
@@ -217,6 +229,9 @@ mod tests {
         for token in [
             "ui-overlay",
             "ui-overlay--custom-motion",
+            "ui-overlay--custom-role",
+            "ui-overlay--custom-aria-labelledby",
+            "ui-overlay--custom-aria-describedby",
             "ui-overlay--custom-dismiss",
             "ui-overlay--custom-keyboard-dismiss",
             "ui-overlay--custom-exit",
