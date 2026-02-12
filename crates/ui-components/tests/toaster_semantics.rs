@@ -222,3 +222,29 @@ fn toaster_css_is_aggregated() {
         "ui-components css aggregator should include toaster styles."
     );
 }
+
+#[test]
+fn toaster_docs_custom_motion_playground_locks_contract_values() {
+    let docs = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "portal=false",
+        "position=ToasterPosition::TopLeft",
+        "max_toasts=4",
+        "aria_label=\"Alert stream\".to_string()",
+        "class_name=\"docs-toaster-source\".to_string()",
+        "motion=ToastMotion {",
+        "let custom_motion = ToastMotion {",
+        "initial_y_px: 20.0",
+        "initial_scale: 0.95",
+        "..ToastMotion::default()",
+        "motion=custom_motion",
+        "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            docs.contains(needle),
+            "Toaster docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}

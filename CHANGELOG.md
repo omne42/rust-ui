@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Toaster` motion docs contracts by locking marker-playground `ToastMotion` values (`initial_y_px`/`initial_scale`), top-left queue/source markers, and custom docs state anchors in `toaster_semantics` regression coverage.
+
 - `ui-components`: hardens `Toast` motion docs contracts by locking marker-playground `ToastMotion` values (`initial_y_px`/`initial_scale`), danger variant source markers, and custom docs state anchors in `toast_semantics` regression coverage.
 
 - `ui-components`: hardens `PreviewLinkCard` motion docs contracts by locking marker-playground `PreviewLinkCardMotion` values (`initial_scale`/`offset_y_px`), delay/site-label source markers, and custom docs state anchors in `preview_link_card_semantics` regression coverage.
