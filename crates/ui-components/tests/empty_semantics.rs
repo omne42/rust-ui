@@ -134,3 +134,49 @@ fn empty_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn empty_docs_default_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+
+    for needle in [
+        "<Playground title=\"Header + Icon Variant\" code=basic_code>",
+        "<EmptyMedia variant=EmptyMediaVariant::Icon>",
+        "\"No messages\"",
+        "\"You're all caught up.\"",
+        "<Playground title=\"Content Action Region\" code=content_code>",
+        "<Empty class_name=\"docs-empty-custom\".to_string()>",
+        "\"No deployments\"",
+        "\"Create your first release to populate this list.\"",
+        "<a href=\"#/components/button\">\"Create deployment\"</a>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "empty docs default playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn empty_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "<Empty class_name=\"docs-empty-state\".to_string()>",
+        "<EmptyHeader class_name=\"docs-empty-header\".to_string()>",
+        "variant=EmptyMediaVariant::Icon",
+        "class_name=\"docs-empty-media\".to_string()",
+        "<EmptyTitle class_name=\"docs-empty-title\".to_string()>",
+        "<EmptyDescription class_name=\"docs-empty-description\".to_string()>",
+        "<EmptyContent class_name=\"docs-empty-content\".to_string()>",
+        "<a href=\"#/components/search\">\"Open search\"</a>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "empty docs marker playground should contain `{needle}`.",
+        );
+    }
+}
