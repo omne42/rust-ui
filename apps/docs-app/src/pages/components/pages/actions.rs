@@ -424,11 +424,47 @@ pub(super) fn icon_button() -> AnyView {
         set_search_count.update(|count| *count += 1);
     });
 
-    let code = r#"let (presses, set_presses) = signal(0_usize);
-let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
-<IconButton aria_label="Close dialog".to_string() variant=ButtonVariant::Ghost on_press=on_press>
-  <svg ... />
-</IconButton>"#;
+    let variant_options = vec![
+        "Ghost".to_string(),
+        "Secondary".to_string(),
+        "Outline".to_string(),
+        "Default".to_string(),
+    ];
+    let (variant_index, set_variant_index) = signal(Some(1_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(1) {
+        0 => ButtonVariant::Ghost,
+        2 => ButtonVariant::Outline,
+        3 => ButtonVariant::Default,
+        _ => ButtonVariant::Secondary,
+    });
+
+    let size_options = vec![
+        "XS".to_string(),
+        "S".to_string(),
+        "M".to_string(),
+        "L".to_string(),
+        "XL".to_string(),
+    ];
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ButtonSize::IconXs,
+        1 => ButtonSize::IconS,
+        2 => ButtonSize::IconM,
+        3 => ButtonSize::IconL,
+        _ => ButtonSize::IconXl,
+    });
+
+    let (search_disabled, set_search_disabled) = signal(false);
+
+    let code = Signal::derive(move || {
+        let variant = variant.get();
+        let size = size.get();
+        let disabled = search_disabled.get();
+
+        format!(
+            "use leptos::prelude::*;\nuse ui_components::{{ButtonSize, ButtonVariant, IconButton, OnPress}};\n\nlet on_press: OnPress = Callback::new(|_| {{\n    logging::log!(\"pressed\");\n}});\n\nlet variant = ButtonVariant::{variant:?};\nlet size = ButtonSize::{size:?};\nlet disabled = {disabled};\n\nview! {{\n    <IconButton\n        aria_label=\"Search\".to_string()\n        variant=variant\n        size=size\n        disabled=disabled\n        on_press=on_press\n    >\n        <span aria-hidden=\"true\">\"⌕\"</span>\n    </IconButton>\n}}"
+        )
+    });
 
     let states_code = r#"<IconButton aria_label="Search xs".to_string() size=ButtonSize::IconXs>
   <svg ... />
@@ -453,7 +489,37 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
             group="Actions"
             description="A Button wrapper that enforces accessible labeling and icon sizing while preserving motion/press semantics."
         >
-            <Playground title="on_press + variants" code=code>
+            <Playground
+                title="on_press + variants"
+                code_signal=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-icon-button-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="IconButton variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-icon-button-size".to_string()
+                            options=size_options.clone()
+                            selected_index=size_index
+                            set_selected_index=set_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="IconButton size".to_string()
+                        />
+
+                        <Switch checked=search_disabled set_checked=set_search_disabled>
+                            "Disable search button"
+                        </Switch>
+                    </div>
+                }
+            >
                 <div class="docs-stack">
                     <div class="docs-row">
                         <IconButton
@@ -473,7 +539,9 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
                         </IconButton>
                         <IconButton
                             aria_label="Search".to_string()
-                            variant=ButtonVariant::Secondary
+                            variant=variant.get()
+                            size=size.get()
+                            disabled=search_disabled.get()
                             on_press=on_search
                         >
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -497,6 +565,7 @@ let on_press = Callback::new(move |_| set_presses.update(|count| *count += 1));
                         "close/search presses: "
                         {move || format!("{}/{}", close_count.get(), search_count.get())}
                     </span>
+                    <span class="ui-muted">{move || format!("{:?} · {:?}", variant.get(), size.get())}</span>
                 </div>
             </Playground>
 

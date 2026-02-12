@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs-app` + `ui-components`: upgrades `IconButton` docs playgrounds with control-driven, copy-ready code output (`variant/size/disabled` selections now live-sync snippet content), aligns icon-size demos to Spectrum-style `xs/s/m/l/xl`, and hardens `icon_button_semantics` + playground coverage assertions for the new dynamic code contract.
+
 - `docs-app` + `ui-components`: upgrades Playground code panels to copy-paste-ready snippets (auto-prepending imports when missing and supporting control-driven dynamic code output), aligns Actions `Button` playground code with live control selections, and standardizes `Button` sizing contracts to Spectrum-style `xs/s/m/l/xl` (with icon-size counterparts and compatibility aliases), including updated docs/state-matrix semantics coverage for `button`, `icon-button`, `link-button`, and related size mappings.
 
 - `ui-components`: fixes `Overlay`/`Sheet` closed-state pointer-event contracts so hidden backdrops no longer block page interaction, and hardens `overlay_semantics` coverage for closed-state click-through behavior.
