@@ -91,3 +91,46 @@ fn color_handle_styles_include_focus_drag_disabled_and_custom_contracts() {
         );
     }
 }
+
+#[test]
+fn color_handle_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_handle() -> AnyView",
+        "title=\"ColorHandle\"",
+        "slug=\"color-handle\"",
+        "title=\"Focused + Dragging + Position\"",
+        "title=\"Disabled + Custom Class + Loupe Off\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-handle docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_handle_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Focused + Dragging + Position\" code=basic_code>",
+        "id_base=\"docs-color-handle-idle\".to_string()",
+        "id_base=\"docs-color-handle-focused\".to_string()",
+        "focused=true",
+        "id_base=\"docs-color-handle-dragging\".to_string()",
+        "dragging=true",
+        "<Playground title=\"Disabled + Custom Class + Loupe Off\" code=states_code>",
+        "id_base=\"docs-color-handle-disabled\".to_string()",
+        "disabled=true",
+        "id_base=\"docs-color-handle-custom\".to_string()",
+        "show_loupe=false",
+        "class_name=\"docs-color-handle-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-handle docs playground should contain `{needle}`.",
+        );
+    }
+}
