@@ -113,3 +113,57 @@ fn pagination_on_press_guards_disabled_and_duplicate_navigation() {
         );
     }
 }
+
+#[test]
+fn pagination_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn pagination() -> AnyView",
+        "title=\"Pagination\"",
+        "slug=\"pagination\"",
+        "description=\"Pagination control with sibling/boundary range logic and Spectrum-style state attrs.\"",
+        "<Playground title=\"Pages + on_change\" code=code>",
+        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<Pagination",
+        "on_change=on_change",
+        "disabled=true",
+        "total_pages=0",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for pagination coverage.",
+        );
+    }
+}
+
+#[test]
+fn pagination_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "let (page, set_page) = signal(1_usize);",
+        "let (last_change, set_last_change) = signal(None::<usize>);",
+        "let on_change = Callback::new(move |next: usize| set_last_change.set(Some(next)));",
+        "total_pages=12",
+        "siblings=1",
+        "boundaries=1",
+        "\"page: \"",
+        "\"last change: \"",
+        "let (disabled_page, set_disabled_page) = signal(1_usize);",
+        "let (empty_page, set_empty_page) = signal(1_usize);",
+        "total_pages=1",
+        "page=disabled_page",
+        "set_page=set_disabled_page",
+        "\"disabled page: \"",
+        "total_pages=0",
+        "page=empty_page",
+        "set_page=set_empty_page",
+        "\"empty page signal: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "pagination docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
