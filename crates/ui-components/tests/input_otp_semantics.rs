@@ -90,3 +90,42 @@ fn input_otp_styles_define_caret_blink_and_focus_visible_outline() {
         "InputOtp styles should respond to the focus-visible class rather than relying on `:focus-visible` per-slot."
     );
 }
+
+#[test]
+fn input_otp_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn input_otp() -> AnyView",
+        "title=\"InputOtp\"",
+        "slug=\"input-otp\"",
+        "description=\"HeroUI-style OTP input with a single hidden input and slot chrome.\"",
+        "<Playground title=\"OTP\" code=code>",
+        "<InputOtp",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs should include `{needle}` for input_otp primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn input_otp_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"OTP\"",
+        "id_base=\"docs-otp\".to_string()",
+        "label=\"One-time code\".to_string()",
+        "length=6",
+        "value=value",
+        "set_value=set_value",
+        "\"value: \" {move || value.get()}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "input_otp docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
