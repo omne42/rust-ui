@@ -111,3 +111,48 @@ fn color_swatch_styles_include_size_shape_and_alpha_markers() {
         );
     }
 }
+
+#[test]
+fn color_swatch_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn color_swatch() -> AnyView",
+        "title=\"ColorSwatch\"",
+        "slug=\"color-swatch\"",
+        "title=\"Size + Rounding\"",
+        "title=\"Transparency + Accessible Label + Shape\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-swatch docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_swatch_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Size + Rounding\" code=size_code>",
+        "size=ColorSwatchSize::Xs",
+        "size=ColorSwatchSize::Sm",
+        "size=ColorSwatchSize::Md",
+        "size=ColorSwatchSize::Lg",
+        "rounding=ColorSwatchRounding::Full",
+        "<Playground title=\"Transparency + Accessible Label + Shape\" code=state_code>",
+        "color_name=\"Brand blue\".to_string()",
+        "aria_label=\"Background color\".to_string()",
+        "shape=ColorSwatchShape::Wide",
+        "rounding=ColorSwatchRounding::Default",
+        "class_name=\"docs-color-swatch-custom\".to_string()",
+        "color_name=\"No fill\".to_string()",
+        "bordered=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-swatch docs playground should contain `{needle}`.",
+        );
+    }
+}
