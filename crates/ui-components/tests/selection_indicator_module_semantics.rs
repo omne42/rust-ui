@@ -55,3 +55,81 @@ fn selection_indicator_compatibility_reuses_listbox_item_and_menu_item_docs_play
         );
     }
 }
+
+#[test]
+fn selection_indicator_module_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn listbox_item() -> AnyView",
+        "title=\"ListBoxItem\"",
+        "slug=\"listbox-item\"",
+        "description=\"Spectrum/HeroUI-style listbox option primitive with centralized selection/focus/divider/source normalization and stable `slot` + `data-*` state contracts.\"",
+        "<Playground title=\"Selectable Option\" code=code>",
+        "<Playground title=\"Focused + Divider + Disabled\" code=states_code>",
+        "<ListBoxItem",
+        "pub(super) fn menu_item() -> AnyView",
+        "title=\"MenuItem\"",
+        "slug=\"menu-item\"",
+        "description=\"Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts.\"",
+        "<Playground title=\"Action + Checkbox\" code=code>",
+        "<Playground title=\"Radio + Submenu + Disabled\" code=states_code>",
+        "<MenuItem",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_extra docs should include `{needle}` for selection_indicator_module primary playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source.contains("\"selection-indicator\" => &[\"listbox-item\", \"menu-item\"]"),
+        "components mod mapping should keep `selection-indicator` mapped to `listbox-item` and `menu-item` slugs.",
+    );
+}
+
+#[test]
+fn selection_indicator_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "title=\"Selectable Option\"",
+        "index=0",
+        "selected=selected_default.get()",
+        "show_selection_indicator=true",
+        "on_press=toggle_default",
+        "\"San Francisco\"",
+        "title=\"Focused + Divider + Disabled\"",
+        "id=\"docs-listbox-item-focused\".to_string()",
+        "index=1",
+        "selected=selected_states.get()",
+        "focused=true",
+        "has_divider=true",
+        "class_name=\"docs-listbox-item-custom\".to_string()",
+        "on_press=toggle_states",
+        "index=2 disabled=true",
+        "\"Disabled option\"",
+        "title=\"Action + Checkbox\"",
+        "kind=MenuItemKind::Action",
+        "aria_label=\"Open profile\".to_string()",
+        "kind=checkbox_kind",
+        "on_press=toggle_checkbox",
+        "\"Pin to favorites\"",
+        "title=\"Radio + Submenu + Disabled\"",
+        "id=\"docs-menu-item-radio\".to_string()",
+        "index=2",
+        "kind=radio_kind",
+        "focused=true",
+        "has_submenu=true",
+        "on_press=toggle_radio",
+        "class_name=\"docs-menu-item-custom\".to_string()",
+        "index=3 disabled=true",
+        "\"Disabled destructive action\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_extra docs playgrounds should contain `{needle}` for selection_indicator_module contracts.",
+        );
+    }
+}
