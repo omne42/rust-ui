@@ -20,6 +20,52 @@ fn button_copy_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn button_copy_is_exported_from_module_and_crate_root() {
+    let module_source = load_source("src/button_copy/mod.rs");
+    let crate_source = load_source("src/lib.rs");
+
+    assert!(
+        module_source.contains("pub use view::ButtonCopy;")
+            && module_source.contains("pub use motion::ButtonCopyMotion;"),
+        "button_copy module should export `ButtonCopy` and `ButtonCopyMotion`."
+    );
+    assert!(
+        crate_source.contains("pub use button_copy::{ButtonCopy, ButtonCopyMotion};"),
+        "crate root should re-export `ButtonCopy` and `ButtonCopyMotion` contracts."
+    );
+}
+
+#[test]
+fn button_copy_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::button_copy::styles::CSS);"),
+        "ui-components css aggregator should include button_copy styles."
+    );
+}
+
+#[test]
+fn button_copy_docs_page_contains_playground_contracts() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button_copy() -> AnyView",
+        "title=\"ButtonCopy\"",
+        "slug=\"button-copy\"",
+        "Label + variant",
+        "Disabled + empty matrix",
+        "Copy-to-clipboard button with Spectrum-style disabled/empty semantics and live copied announcements.",
+        "<ButtonCopy",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button-copy docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn button_copy_uses_logic_state_model() {
     let view_source = load_source("src/button_copy/view.rs");
     let logic_source = load_source("src/button_copy/logic.rs");

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ButtonCopy` motion/docs contracts by expanding semantics coverage for module/crate exports, CSS aggregation wiring, and docs playground stability anchors.
+
 - `ui-components`: hardens `SearchInputButton` HeroUI-level motion contracts by expanding semantics coverage for spring/scale sanitize invariants, view-level motion+interaction source markers, and docs motion narrative stability.
 
 - `ui-components`: hardens `FlipButton` HeroUI-level motion contracts by expanding semantics coverage for default/sanitized spring invariants, view-level motion source markers, and docs motion narrative stability across direction/custom-class variants.
