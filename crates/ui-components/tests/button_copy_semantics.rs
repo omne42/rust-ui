@@ -265,3 +265,42 @@ fn button_copy_docs_state_matrix_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn button_copy_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button_copy() -> AnyView",
+        "title=\"ButtonCopy\"",
+        "slug=\"button-copy\"",
+        "Label + variant",
+        "Disabled + empty matrix",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_copy_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Label + variant\" code=code>",
+        "text=\"cargo add ui-components\".to_string()",
+        "label=\"Copy install command\".to_string()",
+        "copied_label=\"Copied!\".to_string()",
+        "<Playground title=\"Disabled + empty matrix\" code=states_code>",
+        "text=\"   \".to_string()",
+        "label=\"Nothing to copy\".to_string()",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy docs playground should contain `{needle}`.",
+        );
+    }
+}
