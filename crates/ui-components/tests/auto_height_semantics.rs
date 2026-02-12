@@ -159,3 +159,43 @@ fn auto_height_motion_sanitizes_custom_contract_values() {
         "AutoHeight view should sanitize motion before deriving state and attaching motion driver.",
     );
 }
+
+#[test]
+fn auto_height_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn auto_height() -> AnyView",
+        "title=\"AutoHeight\"",
+        "slug=\"auto-height\"",
+        "Playground title=\"Animated Height\"",
+        "Playground title=\"Static Motion + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for AutoHeight.",
+        );
+    }
+}
+
+#[test]
+fn auto_height_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Animated Height\"",
+        "set_animated_open.update(|v| *v = !*v)",
+        "<AutoHeight class_name=\"docs-auto-height\".to_string()>",
+        "\"AutoHeight content\"",
+        "title=\"Static Motion + Custom Class\"",
+        "animate_height: false",
+        "..AutoHeightMotion::default()",
+        "class_name=\"docs-auto-height docs-auto-height--static-demo\".to_string()",
+        "\"Static mode content\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "auto-height docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
