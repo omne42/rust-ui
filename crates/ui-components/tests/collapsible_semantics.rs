@@ -134,3 +134,46 @@ fn collapsible_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn collapsible_docs_disabled_custom_motion_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "title=\"Disabled + Custom Motion\"",
+        "id_base=\"docs-collapsible-disabled\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-collapsible-custom\".to_string()",
+        "let custom_motion = CollapsibleMotion {",
+        "panel_offset_y_px: 6.0",
+        "motion=custom_motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collapsible disabled/custom-motion playground should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn collapsible_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-collapsible-markers\".to_string()",
+        "aria_label=\"Advanced settings panel\".to_string()",
+        "class_name=\"docs-collapsible-state\".to_string()",
+        "let marker_motion = CollapsibleMotion {",
+        "panel_offset_y_px: 8.0",
+        "motion=marker_motion",
+        "Open mode, label source, class source, and motion source are explicit.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collapsible state/source playground should contain `{needle}`."
+        );
+    }
+}
