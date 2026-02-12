@@ -96,3 +96,42 @@ fn alert_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn alert_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn alert() -> AnyView",
+        "title=\"Alert\"",
+        "slug=\"alert\"",
+        "Playground title=\"Variants + Live Region\"",
+        "Playground title=\"Custom Class + Compact\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Alert.",
+        );
+    }
+}
+
+#[test]
+fn alert_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Variants + Live Region\"",
+        "variant=AlertVariant::Default",
+        "variant=AlertVariant::Accent",
+        "variant=AlertVariant::Danger",
+        "title=\"Custom Class + Compact\"",
+        "description=\"Custom class without title\".to_string()",
+        "class_name=\"docs-alert-custom\".to_string()",
+        "<Alert variant=AlertVariant::Default title=\"Heads up\".to_string()>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Alert` docs state contracts by locking variants+live-region and custom-class+compact playground anchors in `alert_semantics` regression coverage.
+
+
 - `ui-components`: hardens `ActionBar` docs state contracts by locking selection+clear, top-placement+custom-text+reduced-motion, and custom-motion playground anchors in `action_bar_semantics` regression coverage.
 
 
