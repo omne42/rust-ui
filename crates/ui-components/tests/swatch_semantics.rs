@@ -56,6 +56,44 @@ fn swatch_motion_uses_spring_animator() {
 }
 
 #[test]
+fn swatch_motion_contract_defaults_match_heroui_level_expectations() {
+    let source = load_source("src/swatch/motion.rs");
+
+    for needle in [
+        "stiffness: 280.0",
+        "damping: 20.0",
+        "mass: 1.0",
+        "selected_scale: 1.06",
+        "selected_ring_opacity: 1.0",
+        "pub fn disabled() -> Self",
+        "enabled: false",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Swatch motion contract should include `{needle}` for HeroUI-level defaults and disabled-path stability."
+        );
+    }
+}
+
+#[test]
+fn swatch_motion_sanitization_and_reduced_motion_paths_are_locked() {
+    let source = load_source("src/swatch/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: SwatchMotion) -> SwatchMotion",
+        ".clamp(1.0, 1.18)",
+        ".clamp(0.0, 1.0)",
+        "!motion.enabled || ui_motion::web::prefers_reduced_motion()",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Swatch motion implementation should include `{needle}` to avoid HeroUI-level motion regressions."
+        );
+    }
+}
+
+#[test]
 fn swatch_styles_use_css_variables_for_motion() {
     let source = load_source("src/swatch/styles.rs");
 
@@ -81,6 +119,24 @@ fn swatch_docs_page_exists_in_display_extra_swatch() {
         assert!(
             display_extra.contains(needle),
             "display_extra_swatch docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn swatch_docs_page_includes_custom_motion_playground() {
+    let display_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "SwatchMotion {",
+        "motion=custom_motion",
+        "motion=SwatchMotion::disabled()",
+    ] {
+        assert!(
+            display_extra.contains(needle),
+            "display_extra_swatch docs page should include `{needle}` for custom motion contract demos."
         );
     }
 }

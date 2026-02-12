@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Swatch, SwatchBorder, SwatchRounding, SwatchShape, SwatchSize};
+use ui_components::{Swatch, SwatchBorder, SwatchMotion, SwatchRounding, SwatchShape, SwatchSize};
 
 pub(super) fn swatch() -> AnyView {
     let size_code = r##"<Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
@@ -28,8 +28,33 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
 <Swatch nothing=true border=SwatchBorder::None rounding=SwatchRounding::Full />
 <Swatch color="#111827".to_string() disabled=true />"##;
 
+    let motion_code = r##"let custom_motion = SwatchMotion {
+  selected_scale: 1.12,
+  selected_ring_opacity: 0.92,
+  ..SwatchMotion::default()
+};
+
+<Swatch
+  color="#7c3aed".to_string()
+  label="Hero motion".to_string()
+  selected=Signal::derive(|| true)
+  motion=custom_motion
+/>
+<Swatch
+  color="#7c3aed".to_string()
+  label="Reduced motion".to_string()
+  selected=Signal::derive(|| true)
+  motion=SwatchMotion::disabled()
+/>"##;
+
     let (selected, set_selected) = signal(true);
     let on_selected_change = Callback::new(move |next: bool| set_selected.set(next));
+
+    let custom_motion = SwatchMotion {
+        selected_scale: 1.12,
+        selected_ring_opacity: 0.92,
+        ..SwatchMotion::default()
+    };
 
     view! {
         <ComponentPage
@@ -71,6 +96,23 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
                         rounding=SwatchRounding::Full
                     />
                     <Swatch color="#111827".to_string() disabled=true />
+                </div>
+            </Playground>
+
+            <Playground title="Custom Motion Contract" code=motion_code>
+                <div class="docs-row">
+                    <Swatch
+                        color="#7c3aed".to_string()
+                        label="Hero motion".to_string()
+                        selected=Signal::derive(|| true)
+                        motion=custom_motion
+                    />
+                    <Swatch
+                        color="#7c3aed".to_string()
+                        label="Reduced motion".to_string()
+                        selected=Signal::derive(|| true)
+                        motion=SwatchMotion::disabled()
+                    />
                 </div>
             </Playground>
         </ComponentPage>
