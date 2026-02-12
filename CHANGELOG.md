@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `CircularProgress` docs state contracts by locking size+thickness matrix and custom-label+class playground anchors in `circular_progress_semantics` regression coverage.
+
 - `ui-components`: hardens `Skeleton` docs state contracts by locking shimmer and still playground anchors in `skeleton_semantics` regression coverage.
 
 - `ui-components`: hardens `Chip` docs state contracts by locking removable, variants+sizes, custom-label+class, and disabled+static playground anchors in `chip_semantics` regression coverage.

@@ -106,3 +106,46 @@ fn circular_progress_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn circular_progress_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn circular_progress() -> AnyView",
+        "title=\"CircularProgress\"",
+        "slug=\"circular-progress\"",
+        "Playground title=\"Size + Thickness Matrix\"",
+        "Playground title=\"Custom Label + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for CircularProgress.",
+        );
+    }
+}
+
+#[test]
+fn circular_progress_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Size + Thickness Matrix\"",
+        "<CircularProgress aria_label=\"Loading\".to_string() />",
+        "<CircularProgress aria_label=\"Syncing mail\".to_string() size_px=24.0 />",
+        "<CircularProgress aria_label=\"Syncing mail\".to_string() thickness_px=3.0 />",
+        "size_px=30.0",
+        "thickness_px=4.0",
+        "title=\"Custom Label + Class\"",
+        "aria_label=\"Background refresh\".to_string()",
+        "size_px=28.0",
+        "thickness_px=3.5",
+        "aria_label=\"   \".to_string()",
+        "class_name=\"docs-circular-progress-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "circular-progress docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
