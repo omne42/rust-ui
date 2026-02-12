@@ -228,3 +228,48 @@ fn hover_card_docs_page_includes_custom_motion_contract_playground() {
         );
     }
 }
+
+#[test]
+fn hover_card_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_hover_card.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "open_delay_ms=220",
+        "close_delay_ms=260",
+        "class_name=\"docs-hover-card-state\".to_string()",
+        "id=\"docs-hover-card\".to_string()",
+        "motion=HoverCardMotion {",
+        "initial_scale: 0.96",
+        "offset_y_px: 14.0",
+        "Inspect data-delay-source and data-id-source on root/trigger/panel.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "hover card docs state/source playground should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn hover_card_docs_custom_motion_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/overlays_hover_card.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "let custom_motion = HoverCardMotion {",
+        "initial_scale: 0.93",
+        "offset_y_px: 18.0",
+        "motion=custom_motion",
+        "motion=HoverCardMotion::default()",
+        "content=move || view! { \"Custom spring + offset motion\" }",
+        "content=move || view! { \"Default motion\" }",
+    ] {
+        assert!(
+            source.contains(needle),
+            "hover card docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `HoverCard` motion docs contracts by locking state/source marker playground values (`open_delay_ms`/`close_delay_ms`/custom id/class) and custom-motion anchors (`initial_scale`/`offset_y_px`) in `hover_card_semantics` regression coverage.
+
 - `ui-components`: hardens `Tooltip` motion docs contracts by locking state/source marker playground values (`delay_ms`/`close_delay_ms`/custom id/class) and custom-motion anchors (`initial_scale`/`offset_y_px`) in `tooltip_semantics` regression coverage.
 
 - `ui-components`: hardens `Underlay` docs state/source contracts by locking source-marker playground anchors (`data-transparent-source`/`data-disabled-source`/`data-close-source`/`data-class-source`) in `underlay_semantics` regression coverage.
