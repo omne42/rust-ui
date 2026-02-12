@@ -117,3 +117,53 @@ fn empty_state_styles_include_tone_align_and_markers() {
         );
     }
 }
+
+#[test]
+fn empty_state_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn empty_state() -> AnyView",
+        "title=\"EmptyState\"",
+        "slug=\"empty-state\"",
+        "description=\"Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers.\"",
+        "<Playground title=\"Tone + Alignment + Actions\" code=tone_code>",
+        "<Playground title=\"Compact + Bordered + Custom Class\" code=state_code>",
+        "<EmptyState",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra docs page should include `{needle}` for empty_state primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn empty_state_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Tone + Alignment + Actions\"",
+        "title=\"No projects yet\".to_string()",
+        "description=\"Create your first project to unlock dashboards and team workflows.\".to_string()",
+        "tone=EmptyStateTone::Default",
+        "icon=move || view! { <span>\"📁\"</span> }",
+        "tone=EmptyStateTone::Muted",
+        "align=EmptyStateAlign::Center",
+        "title=\"Compact + Bordered + Custom Class\"",
+        "title=\"Deployments paused\".to_string()",
+        "description=\"Approvals are required before resuming this environment.\".to_string()",
+        "tone=EmptyStateTone::Accent",
+        "compact=true",
+        "bordered=true",
+        "class_name=\"docs-empty-state-custom\".to_string()",
+        "icon=move || view! { <span>\"⏸\"</span> }",
+        "variant=ui_components::ButtonVariant::Secondary",
+        "\"Review approvals\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "empty_state docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
