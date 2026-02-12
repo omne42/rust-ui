@@ -1,4 +1,10 @@
 pub const CSS: &str = r#"
+.ui-theme-toggle-button-shell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .ui-theme-toggle-button {
   display: inline-flex;
   align-items: center;
@@ -16,6 +22,11 @@ pub const CSS: &str = r#"
   transform: rotate(var(--ui-theme-toggle-rotate)) scale(var(--ui-theme-toggle-scale));
   transform-origin: center;
   will-change: transform;
+}
+
+.ui-theme-toggle-button-shell[data-motion-source="custom"],
+.ui-theme-toggle-button-shell[data-custom-motion="true"] {
+  --ui-theme-toggle-custom-motion: 1;
 }
 
 .ui-theme-toggle-button__icon[data-motion-source="custom"],

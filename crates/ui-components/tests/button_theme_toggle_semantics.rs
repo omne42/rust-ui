@@ -82,19 +82,28 @@ fn button_theme_toggle_motion_contract_defaults_and_sanitization_are_locked() {
 
 #[test]
 fn button_theme_toggle_view_wires_motion_and_source_markers() {
-    let source = load_source("src/button_theme_toggle/view.rs");
+    let view_source = load_source("src/button_theme_toggle/view.rs");
+    let styles_source = load_source("src/button_theme_toggle/styles.rs");
 
     for needle in [
         "motion::attach_motion(icon_ref, mode.into(), motion)",
-        "data-motion-source=if motion == ThemeToggleMotion::default()",
-        "data-custom-motion=(motion != ThemeToggleMotion::default()).then_some(\"true\")",
-        "--ui-theme-toggle-rotate",
-        "--ui-theme-toggle-scale",
+        "let has_custom_motion = motion != ThemeToggleMotion::default();",
+        "let motion_source_attr = if has_custom_motion {",
+        "data-slot=\"theme-toggle-button\"",
+        "data-slot=\"theme-toggle-icon\"",
+        "data-motion-source=motion_source_attr",
+        "data-custom-motion=has_custom_motion.then_some(\"true\")",
     ] {
         assert!(
-            source.contains(needle)
-                || load_source("src/button_theme_toggle/motion.rs").contains(needle),
-            "button_theme_toggle should include `{needle}` for stable motion/source contracts."
+            view_source.contains(needle),
+            "button_theme_toggle view should include `{needle}` for stable motion/source contracts."
+        );
+    }
+
+    for needle in ["--ui-theme-toggle-rotate", "--ui-theme-toggle-scale"] {
+        assert!(
+            styles_source.contains(needle),
+            "button_theme_toggle styles should include `{needle}` for css-variable motion contracts."
         );
     }
 }

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `ThemeToggleButton` with shell-level `data-slot/state/source/motion` markers, aligns wrapper-aware motion selectors in `button_theme_toggle/styles.rs`, and strengthens `theme_toggle_button_semantics` regression coverage for state-source contracts.
+
 - `ui-components`: upgrades core `TextField` with Spectrum-style `data-state/value/requirement/source` markers, adds marker selectors in `text_field/styles.rs`, and expands `forms` docs with a dedicated `State + Source Markers` playground backed by stronger `text_field_semantics` regression coverage.
 
 - `ui-components`: hardens `upstream_name_parity` coverage by locking shadcn/animate/react-aria/HeroUI/Spectrum package-name parity checks behind standard docs-state contract test entrypoints in `upstream_name_parity_semantics`.

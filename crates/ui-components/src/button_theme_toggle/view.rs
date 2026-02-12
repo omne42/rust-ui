@@ -73,6 +73,13 @@ pub fn ThemeToggleButton(
     let aria_label = logic::normalize_optional_text(aria_label);
     let has_custom_aria_label = aria_label.is_some();
 
+    let has_custom_motion = motion != ThemeToggleMotion::default();
+    let motion_source_attr = if has_custom_motion {
+        "custom"
+    } else {
+        "default"
+    };
+
     let on_press: OnPress = Callback::new(move |_| {
         if disabled {
             return;
@@ -82,8 +89,10 @@ pub fn ThemeToggleButton(
         set_mode.set(next);
     });
 
+    let aria_label = aria_label.unwrap_or_else(|| "Toggle theme".to_string());
+
     let class = logic::compose_class_name(
-        class_name,
+        class_name.clone(),
         logic::resolve_state(
             mode.get_untracked(),
             &modes.get_value(),
@@ -93,8 +102,6 @@ pub fn ThemeToggleButton(
             has_custom_class_name,
         ),
     );
-
-    let aria_label = aria_label.unwrap_or_else(|| "Toggle theme".to_string());
 
     let state = Memo::new(move |_| {
         logic::resolve_state(
@@ -111,36 +118,60 @@ pub fn ThemeToggleButton(
     motion::attach_motion(icon_ref, mode.into(), motion);
 
     view! {
-        <Button
-            aria_label=aria_label
-            class_name=class
-            variant=variant
-            size=size
-            disabled=disabled
-            on_press=on_press
-        >
-            <span
-                class="ui-theme-toggle-button__icon"
-                data-slot="theme-toggle-icon"
-                data-state=move || if state.get().is_disabled { "disabled" } else { "enabled" }
-                data-current-mode=move || state.get().current_mode_attr
-                data-next-mode=move || state.get().next_mode_attr
-                data-mode-count=move || state.get().mode_count.to_string()
-                data-custom-modes=move || state.get().has_custom_modes.then_some("true")
-                data-custom-aria-label=move || state.get().has_custom_aria_label.then_some("true")
-                data-motion-source=if motion == ThemeToggleMotion::default() {
-                    "default"
-                } else {
+        <span
+            class="ui-theme-toggle-button-shell"
+            data-slot="theme-toggle-button"
+            data-state=move || if state.get().is_disabled { "disabled" } else { "enabled" }
+            data-current-mode=move || state.get().current_mode_attr
+            data-next-mode=move || state.get().next_mode_attr
+            data-mode-count=move || state.get().mode_count.to_string()
+            data-custom-modes=move || state.get().has_custom_modes.then_some("true")
+            data-aria-source=move || {
+                if state.get().has_custom_aria_label {
                     "custom"
+                } else {
+                    "default"
                 }
-                data-custom-motion=(motion != ThemeToggleMotion::default()).then_some("true")
-                node_ref=icon_ref
+            }
+            data-custom-aria-label=move || state.get().has_custom_aria_label.then_some("true")
+            data-class-source=move || {
+                if state.get().has_custom_class_name {
+                    "custom"
+                } else {
+                    "default"
+                }
+            }
+            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
+            data-motion-source=motion_source_attr
+            data-custom-motion=has_custom_motion.then_some("true")
+        >
+            <Button
+                aria_label=aria_label
+                class_name=class
+                variant=variant
+                size=size
+                disabled=disabled
+                on_press=on_press
             >
-                {move || {
-                    let view_state = logic::resolve_view_state(mode.get(), &modes.get_value());
-                    icon_view(view_state.icon)
-                }}
-            </span>
-        </Button>
+                <span
+                    class="ui-theme-toggle-button__icon"
+                    data-slot="theme-toggle-icon"
+                    data-state=move || if state.get().is_disabled { "disabled" } else { "enabled" }
+                    data-current-mode=move || state.get().current_mode_attr
+                    data-next-mode=move || state.get().next_mode_attr
+                    data-mode-count=move || state.get().mode_count.to_string()
+                    data-custom-modes=move || state.get().has_custom_modes.then_some("true")
+                    data-custom-aria-label=move || state.get().has_custom_aria_label.then_some("true")
+                    data-motion-source=motion_source_attr
+                    data-custom-motion=has_custom_motion.then_some("true")
+                    node_ref=icon_ref
+                >
+                    {move || {
+                        let view_state = logic::resolve_view_state(mode.get(), &modes.get_value());
+                        icon_view(view_state.icon)
+                    }}
+                </span>
+            </Button>
+        </span>
     }
 }
