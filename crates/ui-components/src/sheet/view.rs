@@ -131,6 +131,8 @@ pub fn Sheet(
                 data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr
                 data-aria-labelledby-source=root_state.aria_labelledby_source_attr
                 data-aria-describedby-source=root_state.aria_describedby_source_attr
+                data-custom-aria-labelledby=root_state.has_custom_aria_labelledby.then_some("true")
+                data-custom-aria-describedby=root_state.has_custom_aria_describedby.then_some("true")
                 data-exit-source=root_state.exit_source_attr
                 data-custom-motion=root_state.has_custom_motion.then_some("true")
                 data-custom-exit=root_state.has_on_exit_complete.then_some("true")

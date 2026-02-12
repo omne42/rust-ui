@@ -26,11 +26,15 @@ pub const CSS: &str = r#"
   --ui-sheet-keyboard-dismiss-source: custom;
 }
 
-.ui-sheet[data-aria-labelledby-source="custom"] {
+.ui-sheet--custom-aria-labelledby,
+.ui-sheet[data-aria-labelledby-source="custom"],
+.ui-sheet[data-custom-aria-labelledby="true"] {
   --ui-sheet-aria-labelledby-source: custom;
 }
 
-.ui-sheet[data-aria-describedby-source="custom"] {
+.ui-sheet--custom-aria-describedby,
+.ui-sheet[data-aria-describedby-source="custom"],
+.ui-sheet[data-custom-aria-describedby="true"] {
   --ui-sheet-aria-describedby-source: custom;
 }
 

@@ -142,6 +142,14 @@ pub fn compose_class_name(state: SheetPartState) -> String {
             classes.push("ui-sheet--custom-keyboard-dismiss".to_string());
         }
 
+        if state.has_custom_aria_labelledby {
+            classes.push("ui-sheet--custom-aria-labelledby".to_string());
+        }
+
+        if state.has_custom_aria_describedby {
+            classes.push("ui-sheet--custom-aria-describedby".to_string());
+        }
+
         if state.has_on_exit_complete {
             classes.push("ui-sheet--custom-exit".to_string());
         }
@@ -226,8 +234,8 @@ mod tests {
             is_dismissable: false,
             is_keyboard_dismiss_disabled: true,
             has_custom_motion: true,
-            has_custom_aria_labelledby: false,
-            has_custom_aria_describedby: false,
+            has_custom_aria_labelledby: true,
+            has_custom_aria_describedby: true,
             has_on_exit_complete: true,
         }));
 
@@ -238,6 +246,8 @@ mod tests {
             "ui-sheet--custom-placement",
             "ui-sheet--custom-dismiss",
             "ui-sheet--custom-keyboard-dismiss",
+            "ui-sheet--custom-aria-labelledby",
+            "ui-sheet--custom-aria-describedby",
             "ui-sheet--custom-exit",
         ] {
             assert!(
