@@ -192,3 +192,55 @@ fn action_bar_docs_page_includes_custom_motion_contract_playground() {
         );
     }
 }
+
+#[test]
+fn action_bar_docs_default_and_state_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Selection + clear action\" code=code>",
+        "selected_count=selected_count_signal",
+        "on_clear_selection=clear_selection",
+        "aria_label=\"Bulk actions\".to_string()",
+        "class_name=\"docs-action-bar\".to_string()",
+        "<ActionButton>\"Delete\"</ActionButton>",
+        "<ActionButton is_quiet=true>\"Archive\"</ActionButton>",
+        "<Playground title=\"Top placement + custom text + reduced motion\" code=state_code>",
+        "position=ActionBarPosition::Top",
+        "force_visible=true",
+        "selection_text=\"Rows selected\".to_string()",
+        "clear_label=\"Clear all\".to_string()",
+        "motion=ActionBarMotion::disabled()",
+        "Top placement + custom labels + motion disabled.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionBar docs default/state playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn action_bar_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "let mut custom_motion = ActionBarMotion::default();",
+        "custom_motion.spring.stiffness = 280.0;",
+        "custom_motion.spring.damping = 24.0;",
+        "custom_motion.spring.mass = 1.0;",
+        "custom_motion.spring.precision = 0.002;",
+        "custom_motion.hidden_translate_px = 44.0;",
+        "custom_motion.hidden_opacity = 0.22;",
+        "motion=custom_motion",
+        "motion=ActionBarMotion::disabled()",
+        "<ActionButton is_quiet=true>\"Sync\"</ActionButton>",
+        "<ActionButton is_quiet=true>\"Share\"</ActionButton>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionBar docs custom-motion playground should contain `{needle}`.",
+        );
+    }
+}

@@ -22,6 +22,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `FlipCard` docs state/motion contracts by locking click+keyboard/disabled anchors plus marker-playground motion/source values (`hover_scale`/`hover_tilt_deg`, id/class/flip-mode wiring) in `flip_card_semantics` regression coverage.
 
+- `ui-components`: hardens `ActionBar` docs state/motion contracts by locking default/top-placement anchors plus custom-motion playground spring/opacity/offset values in `action_bar_semantics` regression coverage.
+
 - `ui-components`: hardens `Dropzone` docs state/motion contracts by locking disabled and marker-playground anchors plus explicit custom motion values (`hover_scale`/`drop_scale`) in `dropzone_semantics` regression coverage.
 
 - `ui-components`: hardens `PickerButton` docs state/source contracts by locking state-matrix and marker-playground anchors (quiet/invalid/disabled/active + aria/class/handler source wiring) in `picker_button_semantics` regression coverage.
