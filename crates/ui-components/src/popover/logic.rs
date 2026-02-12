@@ -69,6 +69,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: PopoverPartSta
 
         if !state.is_modal {
             classes.push("ui-popover--non-modal".to_string());
+            classes.push("ui-popover--custom-modal".to_string());
         }
 
         if state.has_on_exit_complete {
@@ -166,6 +167,7 @@ mod tests {
             "ui-popover--custom-motion",
             "ui-popover--custom-placement",
             "ui-popover--non-modal",
+            "ui-popover--custom-modal",
             "ui-popover--custom-exit",
             "ui-popover--custom-class",
             "docs-popover-state",

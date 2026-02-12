@@ -16,9 +16,11 @@ pub const CSS: &str = r#"
   --ui-popover-placement-source: custom;
 }
 
+.ui-popover--custom-modal,
 .ui-popover[data-modal-source="custom"],
 .ui-popover[data-modal="non-modal"],
 .ui-popover[data-non-modal="true"],
+.ui-popover[data-custom-modal="true"],
 .ui-popover--non-modal {
   --ui-popover-modal-source: custom;
 }

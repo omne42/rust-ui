@@ -129,6 +129,7 @@ pub fn Popover(
                 data-custom-motion=root_state.has_custom_motion.then_some("true")
                 data-custom-placement=root_state.has_custom_placement.then_some("true")
                 data-non-modal=(!root_state.is_modal).then_some("true")
+                data-custom-modal=(!root_state.is_modal).then_some("true")
                 data-custom-class=root_state.has_custom_class_name.then_some("true")
                 data-custom-exit=root_state.has_on_exit_complete.then_some("true")
                 data-ui-overlay-portal=""

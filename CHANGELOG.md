@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `Popover` with class/data dual source markers for modal source contracts, aligns popover modal selectors in styles, and hardens `popover_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `Overlay` with class/data dual source markers for role/aria-labelledby/aria-describedby contracts, aligns overlay source selectors in styles, and hardens `overlay_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `Menubar` with class/data dual source markers for id/close-on-action/placement/open-index contracts, aligns menubar source selectors in styles, and hardens `menubar_semantics` coverage for stable Spectrum-compatible state-source contracts.
