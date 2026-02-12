@@ -132,3 +132,51 @@ fn combobox_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn combobox_docs_invalid_disabled_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_combobox.rs");
+
+    for needle in [
+        "title=\"Invalid + Disabled Option\"",
+        "id_base=\"docs-combobox-state\".to_string()",
+        "label=\"Stateful language\".to_string()",
+        "disabled_indices=vec![3]",
+        "invalid=Signal::derive(move || invalid.get())",
+        "error=\"Language is required\".to_string()",
+        "Mark invalid",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Combobox docs invalid/disabled playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn combobox_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_combobox.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-combobox-markers\".to_string()",
+        "required=Signal::derive(|| true)",
+        "invalid=Signal::derive(move || marker_invalid.get())",
+        "disabled_indices=vec![3]",
+        "description=\"Inspect source/state marker contracts\".to_string()",
+        "error=\"Selection is required\".to_string()",
+        "placeholder=\"Type to filter\".to_string()",
+        "class_name=\"docs-combobox-state\".to_string()",
+        "let mut marker_motion = ComboBoxMotion::default();",
+        "marker_motion.popover.offset_y_px = 10.0",
+        "marker_motion.highlight.spring.stiffness = 260.0",
+        "motion=marker_motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Combobox docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
