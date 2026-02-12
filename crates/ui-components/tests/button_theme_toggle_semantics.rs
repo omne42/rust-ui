@@ -114,3 +114,43 @@ fn docs_actions_page_locks_theme_toggle_motion_narrative() {
         );
     }
 }
+
+#[test]
+fn theme_toggle_docs_default_cycle_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn theme_toggle_button() -> AnyView",
+        "<Playground title=\"Default cycle\" code=code>",
+        "let (mode, set_mode) = signal(ThemeMode::Light);",
+        "<ThemeToggleButton mode=mode set_mode=set_mode />",
+        "\"mode: \" {move || format!(\"{:?}\", mode.get())}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "theme-toggle docs default-cycle playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn theme_toggle_docs_custom_modes_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Custom modes + disabled\" code=states_code>",
+        "let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];",
+        "mode=custom_mode",
+        "set_mode=set_custom_mode",
+        "modes=custom_modes.clone()",
+        "aria_label=\"Switch UI mode\".to_string()",
+        "\"custom mode: \" {move || format!(\"{:?}\", custom_mode.get())}",
+        "<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />",
+        "\"disabled toggle should remain inert\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "theme-toggle docs custom-modes playground should contain `{needle}`.",
+        );
+    }
+}
