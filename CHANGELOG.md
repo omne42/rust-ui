@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Search` docs state matrix contracts by locking submit-clear, required-invalid, and state-source marker playground anchors in `search_semantics` regression coverage.
+
 - `ui-components`: hardens `SearchInputButton` docs state matrix contracts by locking interactive-shortcut, placeholder-disabled matrix, and custom-class+aria-label playground anchors plus `button-search-input` slug mapping in `search_input_button_semantics` regression coverage.
 
 - `ui-components`: hardens `SearchField` docs state matrix contracts by locking submit-clear, required-invalid, and state-source marker playground anchors in `search_field_semantics` regression coverage.
