@@ -90,3 +90,41 @@ fn divider_styles_include_orientation_state_markers() {
         );
     }
 }
+
+#[test]
+fn divider_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn divider() -> AnyView",
+        "title=\"Divider\"",
+        "slug=\"divider\"",
+        "Playground title=\"Orientation\"",
+        "Playground title=\"Custom Class Marker\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Divider.",
+        );
+    }
+}
+
+#[test]
+fn divider_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Orientation\"",
+        "<Divider />",
+        "orientation=DividerOrientation::Vertical",
+        "class_name=\"docs-divider-rail\".to_string()",
+        "title=\"Custom Class Marker\"",
+        "<Divider class_name=\"docs-divider-custom\".to_string() />",
+        "class_name=\"docs-divider-custom docs-divider-rail\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "divider docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
