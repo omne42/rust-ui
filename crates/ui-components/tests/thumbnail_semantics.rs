@@ -85,6 +85,44 @@ fn thumbnail_motion_uses_spring_animator() {
 }
 
 #[test]
+fn thumbnail_motion_contract_defaults_match_heroui_level_expectations() {
+    let source = load_source("src/thumbnail/motion.rs");
+
+    for needle in [
+        "stiffness: 260.0",
+        "damping: 19.0",
+        "mass: 1.0",
+        "active_scale: 1.03",
+        "active_ring_opacity: 1.0",
+        "pub fn disabled() -> Self",
+        "enabled: false",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Thumbnail motion contract should include `{needle}` for HeroUI-level defaults and disabled-path stability."
+        );
+    }
+}
+
+#[test]
+fn thumbnail_motion_sanitization_and_reduced_motion_paths_are_locked() {
+    let source = load_source("src/thumbnail/motion.rs");
+
+    for needle in [
+        "pub fn sanitize_motion(motion: ThumbnailMotion) -> ThumbnailMotion",
+        ".clamp(1.0, 1.2)",
+        ".clamp(0.0, 1.0)",
+        "!motion.enabled || ui_motion::web::prefers_reduced_motion()",
+        "fn sanitize_motion_falls_back_for_invalid_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Thumbnail motion implementation should include `{needle}` to avoid HeroUI-level motion regressions."
+        );
+    }
+}
+
+#[test]
 fn thumbnail_styles_use_css_variables_for_motion() {
     let source = load_source("src/thumbnail/styles.rs");
 
@@ -110,6 +148,24 @@ fn thumbnail_docs_page_exists_in_display_extra_thumbnail() {
         assert!(
             source.contains(needle),
             "display_extra_thumbnail docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn thumbnail_docs_page_includes_custom_motion_playground() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_thumbnail.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "ThumbnailMotion {",
+        "motion=custom_motion",
+        "motion=ThumbnailMotion::disabled()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_thumbnail docs page should include `{needle}` for custom motion contract demos."
         );
     }
 }

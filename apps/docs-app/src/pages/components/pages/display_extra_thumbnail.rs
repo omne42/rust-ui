@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Thumbnail, ThumbnailSize};
+use ui_components::{Thumbnail, ThumbnailMotion, ThumbnailSize};
 
 pub(super) fn thumbnail() -> AnyView {
     let size_code = r#"<Thumbnail size=ThumbnailSize::Size100>
@@ -25,6 +25,35 @@ pub(super) fn thumbnail() -> AnyView {
 >
   <img src="https://picsum.photos/500/300" alt="Cover sample" />
 </Thumbnail>"##;
+
+    let motion_code = r##"let custom_motion = ThumbnailMotion {
+  active_scale: 1.08,
+  active_ring_opacity: 0.9,
+  ..ThumbnailMotion::default()
+};
+
+<Thumbnail
+  size=ThumbnailSize::Size600
+  selected=true
+  focused=true
+  motion=custom_motion
+>
+  <img src="https://picsum.photos/480/320" alt="Hero motion contract" />
+</Thumbnail>
+<Thumbnail
+  size=ThumbnailSize::Size600
+  selected=true
+  focused=true
+  motion=ThumbnailMotion::disabled()
+>
+  <img src="https://picsum.photos/480/320" alt="Reduced motion contract" />
+</Thumbnail>"##;
+
+    let custom_motion = ThumbnailMotion {
+        active_scale: 1.08,
+        active_ring_opacity: 0.9,
+        ..ThumbnailMotion::default()
+    };
 
     view! {
         <ComponentPage
@@ -59,6 +88,27 @@ pub(super) fn thumbnail() -> AnyView {
                 >
                     <img src="https://picsum.photos/500/300" alt="Cover sample" />
                 </Thumbnail>
+            </Playground>
+
+            <Playground title="Custom Motion Contract" code=motion_code>
+                <div class="docs-row">
+                    <Thumbnail
+                        size=ThumbnailSize::Size600
+                        selected=true
+                        focused=true
+                        motion=custom_motion
+                    >
+                        <img src="https://picsum.photos/480/320" alt="Hero motion contract" />
+                    </Thumbnail>
+                    <Thumbnail
+                        size=ThumbnailSize::Size600
+                        selected=true
+                        focused=true
+                        motion=ThumbnailMotion::disabled()
+                    >
+                        <img src="https://picsum.photos/480/320" alt="Reduced motion contract" />
+                    </Thumbnail>
+                </div>
             </Playground>
         </ComponentPage>
     }

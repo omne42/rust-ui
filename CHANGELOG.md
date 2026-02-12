@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Thumbnail` HeroUI-level motion regression coverage (`ThumbnailMotion` defaults/sanitization/reduced-motion/disabled paths) and `apps/docs-app` adds a dedicated `Custom Motion Contract` thumbnail playground (`display_extra_thumbnail`).
+
 - `ui-components`: hardens `Swatch` HeroUI-level motion regression coverage (`SwatchMotion` defaults/sanitization/reduced-motion paths) and `apps/docs-app` adds a dedicated `Custom Motion Contract` swatch playground (`display_extra_swatch`).
 
 - `docs-app`: refactors `components/pages.rs` catalog entries to `component_doc!` form (reducing file size/maintenance overhead) and hardens `playground_coverage` parsing to support alias-based and delegated catalog functions without false negatives.
