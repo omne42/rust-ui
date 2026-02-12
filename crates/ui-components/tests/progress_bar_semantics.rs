@@ -107,3 +107,45 @@ fn progress_bar_styles_include_variant_size_and_phase_contracts() {
         );
     }
 }
+
+#[test]
+fn progress_bar_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn progress_bar() -> AnyView",
+        "title=\"ProgressBar\"",
+        "slug=\"progress-bar\"",
+        "Playground title=\"Variant + Size Matrix\"",
+        "Playground title=\"Custom Label + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for ProgressBar.",
+        );
+    }
+}
+
+#[test]
+fn progress_bar_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Variant + Size Matrix\"",
+        "<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />",
+        "<ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />",
+        "<ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />",
+        "<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />",
+        "title=\"Custom Label + Class\"",
+        "aria_label=\"Upload completion\".to_string()",
+        "value=64.0",
+        "max=f64::NAN",
+        "aria_label=\"   \".to_string()",
+        "class_name=\"docs-progress-bar-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "progress-bar docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
