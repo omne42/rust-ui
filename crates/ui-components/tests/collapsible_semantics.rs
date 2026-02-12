@@ -177,3 +177,51 @@ fn collapsible_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn collapsible_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "pub(super) fn collapsible() -> AnyView",
+        "title=\"Collapsible\"",
+        "slug=\"collapsible\"",
+        "title=\"Controlled Collapsible\"",
+        "title=\"Disabled + Custom Motion\"",
+        "title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collapsible docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn collapsible_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled Collapsible\" code=basic_code>",
+        "id_base=\"docs-collapsible\".to_string()",
+        "open=open.into()",
+        "on_open_change=on_open_change",
+        "<Playground title=\"Disabled + Custom Motion\" code=states_code>",
+        "id_base=\"docs-collapsible-disabled\".to_string()",
+        "disabled=true",
+        "class_name=\"docs-collapsible-custom\".to_string()",
+        "motion=custom_motion",
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-collapsible-markers\".to_string()",
+        "aria_label=\"Advanced settings panel\".to_string()",
+        "class_name=\"docs-collapsible-state\".to_string()",
+        "motion=marker_motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collapsible docs playground should contain `{needle}`.",
+        );
+    }
+}
