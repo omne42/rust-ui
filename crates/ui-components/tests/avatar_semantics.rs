@@ -140,3 +140,45 @@ fn avatar_styles_include_dual_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn avatar_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn avatar() -> AnyView",
+        "title=\"Avatar\"",
+        "slug=\"avatar\"",
+        "Playground title=\"Image + Fallback\"",
+        "Playground title=\"Sizes + Label Sources\"",
+        "Playground title=\"Custom Class + Normalized Props\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Avatar.",
+        );
+    }
+}
+
+#[test]
+fn avatar_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Image + Fallback\"",
+        "<Avatar name=\"Ada Lovelace\".to_string() src=src.to_string() size=AvatarSize::Md />",
+        "<Avatar name=\"Grace Hopper\".to_string() size=AvatarSize::Md />",
+        "title=\"Sizes + Label Sources\"",
+        "alt=\"Profile photo\".to_string()",
+        "<Avatar alt=\"Anonymous collaborator\".to_string() size=AvatarSize::Sm />",
+        "<Avatar size=AvatarSize::Lg />",
+        "title=\"Custom Class + Normalized Props\"",
+        "class_name=\"docs-avatar-custom\".to_string()",
+        "src=\"   \".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "avatar docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
