@@ -55,3 +55,62 @@ fn docs_actions_page_covers_theme_toggle_button_playgrounds() {
         );
     }
 }
+
+#[test]
+fn button_theme_toggle_motion_contract_defaults_and_sanitization_are_locked() {
+    let source = load_source("src/button_theme_toggle/motion.rs");
+
+    for needle in [
+        "pub struct ThemeToggleMotion",
+        "spring: ui_motion::presets::spring_soft()",
+        "rotate_deg: 180.0",
+        "scale_down: 0.92",
+        "scale_settle_delay_ms: 40",
+        "pub fn sanitize_motion(motion: ThemeToggleMotion) -> ThemeToggleMotion",
+        ".clamp(-MAX_ROTATE_DEG, MAX_ROTATE_DEG)",
+        ".clamp(MIN_SCALE_DOWN, MAX_SCALE_DOWN)",
+        "scale_settle_delay_ms: motion.scale_settle_delay_ms.min(MAX_SETTLE_DELAY_MS)",
+        "fn sanitize_motion_falls_back_and_clamps_values()",
+        "fn sanitize_motion_keeps_valid_values()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_theme_toggle motion should include `{needle}` for HeroUI-level spring contract stability."
+        );
+    }
+}
+
+#[test]
+fn button_theme_toggle_view_wires_motion_and_source_markers() {
+    let source = load_source("src/button_theme_toggle/view.rs");
+
+    for needle in [
+        "motion::attach_motion(icon_ref, mode.into(), motion)",
+        "data-motion-source=if motion == ThemeToggleMotion::default()",
+        "data-custom-motion=(motion != ThemeToggleMotion::default()).then_some(\"true\")",
+        "--ui-theme-toggle-rotate",
+        "--ui-theme-toggle-scale",
+    ] {
+        assert!(
+            source.contains(needle)
+                || load_source("src/button_theme_toggle/motion.rs").contains(needle),
+            "button_theme_toggle should include `{needle}` for stable motion/source contracts."
+        );
+    }
+}
+
+#[test]
+fn docs_actions_page_locks_theme_toggle_motion_narrative() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "description=\"Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs.\"",
+        "title=\"Custom modes + disabled\"",
+        "disabled toggle should remain inert",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for theme-toggle motion/docs stability."
+        );
+    }
+}
