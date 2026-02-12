@@ -124,3 +124,49 @@ fn checkbox_field_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn checkbox_field_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");
+
+    for needle in [
+        "pub(super) fn checkbox_field() -> AnyView",
+        "title=\"CheckboxField\"",
+        "slug=\"checkbox-field\"",
+        "title=\"Controlled + Description\"",
+        "title=\"Indicator End + Quiet + Invalid/Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "checkbox-field docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn checkbox_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled + Description\" code=code>",
+        "id_base=\"docs-checkbox-field-newsletter\".to_string()",
+        "label=\"Subscribe to product updates\".to_string()",
+        "description=\"Receive release notes and occasional best-practice tips.\".to_string()",
+        "<Playground title=\"Indicator End + Quiet + Invalid/Disabled\" code=states_code>",
+        "id_base=\"docs-checkbox-field-terms\".to_string()",
+        "indicator_placement=CheckboxFieldIndicatorPlacement::End",
+        "tone=CheckboxFieldTone::Quiet",
+        "invalid=true",
+        "class_name=\"docs-checkbox-field-custom\".to_string()",
+        "id_base=\"docs-checkbox-field-read-only\".to_string()",
+        "disabled=true",
+        "aria_label=\"Maintenance alerts (read only)\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "checkbox-field docs playground should contain `{needle}`.",
+        );
+    }
+}
