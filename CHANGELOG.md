@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `DateRangePicker` docs state matrix contracts by locking controlled+shared-month and strong-tone+invalid-range-hint playground anchors in `date_range_picker_semantics` regression coverage.
+
 - `ui-components`: hardens `DatePicker` docs state matrix contracts by locking default+outside-days and monday-first+strong-tone playground anchors in `date_picker_semantics` regression coverage.
 
 - `ui-components`: hardens `DateInputGroup` docs state matrix contracts by locking datefield-prefix/suffix and secondary+full-width+invalid playground anchors in `date_input_group_semantics` regression coverage.

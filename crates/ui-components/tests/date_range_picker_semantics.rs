@@ -120,3 +120,59 @@ fn date_range_picker_styles_include_tone_partial_invalid_and_source_markers() {
         );
     }
 }
+
+#[test]
+fn date_range_picker_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn date_range_picker() -> AnyView",
+        "title=\"DateRangePicker\"",
+        "slug=\"date-range-picker\"",
+        "description=\"Two DatePicker composition with centralized range validity/value-shape derivation and Spectrum-style state/source contracts.\"",
+        "<Playground title=\"Controlled + Shared Month\" code=code>",
+        "<Playground title=\"Strong Tone + Invalid Range Hint\" code=states_code>",
+        "<DateRangePicker",
+        "tone=DateRangePickerTone::Strong",
+        "default_start_day=20",
+        "default_end_day=12",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for date_range_picker primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn date_range_picker_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "let (start_day, set_start_day) = signal(Some(8_u8));",
+        "let (end_day, set_end_day) = signal(Some(19_u8));",
+        "id_base=\"docs-date-range-picker-controlled\".to_string()",
+        "start_year=2026",
+        "start_month=6",
+        "end_year=2026",
+        "end_month=6",
+        "start_day=start_day",
+        "end_day=end_day",
+        "on_start_day_change=on_start_day_change",
+        "on_end_day_change=on_end_day_change",
+        "\"start: \"",
+        "\" · end: \"",
+        "id_base=\"docs-date-range-picker-strong\".to_string()",
+        "start_month=7",
+        "end_month=7",
+        "default_start_day=20",
+        "default_end_day=12",
+        "tone=DateRangePickerTone::Strong",
+        "class_name=\"docs-date-range-picker-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "date_range_picker docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
