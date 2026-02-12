@@ -106,3 +106,44 @@ fn tag_styles_include_variant_size_and_state_markers() {
         );
     }
 }
+
+#[test]
+fn tag_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "pub(super) fn tag() -> AnyView",
+        "title=\"Tag\"",
+        "slug=\"tag\"",
+        "Playground title=\"Variant + Size Matrix\"",
+        "Playground title=\"Removable + Disabled + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections_groups docs page should contain `{needle}` for Tag.",
+        );
+    }
+}
+
+#[test]
+fn tag_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
+
+    for needle in [
+        "title=\"Variant + Size Matrix\"",
+        "variant=TagVariant::Default size=TagSize::Sm",
+        "variant=TagVariant::Surface size=TagSize::Lg",
+        "title=\"Removable + Disabled + Custom Class\"",
+        "remove_aria_label=\"Remove alpha release\".to_string()",
+        "class_name=\"docs-tag-custom\".to_string()",
+        "disabled=true removable=true",
+        "remove count:",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tag docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
