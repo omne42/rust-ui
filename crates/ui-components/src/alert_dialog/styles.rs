@@ -47,52 +47,62 @@ pub const CSS: &str = r#"
 }
 
 .ui-alert-dialog[data-motion-source="custom"],
-.ui-alert-dialog[data-custom-motion="true"] {
+.ui-alert-dialog[data-custom-motion="true"],
+.ui-alert-dialog--custom-motion {
   --ui-alert-dialog-custom-motion: 1;
 }
 
 .ui-alert-dialog[data-variant-source="custom"],
-.ui-alert-dialog[data-custom-variant="true"] {
+.ui-alert-dialog[data-custom-variant="true"],
+.ui-alert-dialog--custom-variant {
   --ui-alert-dialog-custom-variant: 1;
 }
 
 .ui-alert-dialog[data-id-source="custom"],
-.ui-alert-dialog[data-custom-id="true"] {
+.ui-alert-dialog[data-custom-id="true"],
+.ui-alert-dialog--custom-id {
   --ui-alert-dialog-custom-id: 1;
 }
 
 .ui-alert-dialog[data-title-source="custom"],
-.ui-alert-dialog[data-custom-title="true"] {
+.ui-alert-dialog[data-custom-title="true"],
+.ui-alert-dialog--custom-title {
   --ui-alert-dialog-custom-title: 1;
 }
 
 .ui-alert-dialog[data-description-source="custom"],
-.ui-alert-dialog[data-custom-description="true"] {
+.ui-alert-dialog[data-custom-description="true"],
+.ui-alert-dialog--custom-description {
   --ui-alert-dialog-custom-description: 1;
 }
 
 .ui-alert-dialog[data-cancel-source="custom"],
-.ui-alert-dialog[data-custom-cancel="true"] {
+.ui-alert-dialog[data-custom-cancel="true"],
+.ui-alert-dialog--custom-cancel {
   --ui-alert-dialog-custom-cancel: 1;
 }
 
 .ui-alert-dialog[data-secondary-source="custom"],
-.ui-alert-dialog[data-custom-secondary="true"] {
+.ui-alert-dialog[data-custom-secondary="true"],
+.ui-alert-dialog--custom-secondary {
   --ui-alert-dialog-custom-secondary: 1;
 }
 
 .ui-alert-dialog[data-confirm-source="custom"],
-.ui-alert-dialog[data-custom-confirm="true"] {
+.ui-alert-dialog[data-custom-confirm="true"],
+.ui-alert-dialog--custom-confirm {
   --ui-alert-dialog-custom-confirm: 1;
 }
 
 .ui-alert-dialog[data-auto-focus-source="custom"],
-.ui-alert-dialog[data-custom-auto-focus="true"] {
+.ui-alert-dialog[data-custom-auto-focus="true"],
+.ui-alert-dialog--custom-auto-focus {
   --ui-alert-dialog-custom-auto-focus: 1;
 }
 
 .ui-alert-dialog[data-exit-source="custom"],
-.ui-alert-dialog[data-custom-exit="true"] {
+.ui-alert-dialog[data-custom-exit="true"],
+.ui-alert-dialog--custom-exit {
   --ui-alert-dialog-custom-exit: 1;
 }
 

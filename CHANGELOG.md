@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: upgrades `AlertDialog` with class/data dual source markers for variant/id/title/description/cancel/secondary/confirm/auto-focus/motion/exit contracts, aligns alert-dialog source selectors in styles, and hardens `alert_dialog_semantics` coverage for stable Spectrum-compatible state-source contracts.
+
 - `ui-components`: upgrades `Dialog` with class/data dual source markers for id/title/description/close/size/motion/exit contracts, aligns dialog source selectors in styles, and hardens `dialog_semantics` coverage for stable Spectrum-compatible state-source contracts.
 
 - `ui-components`: upgrades `Modal` with class/data dual source markers for id/title/description contracts, aligns modal source selectors in styles, and hardens `modal_semantics` coverage for stable Spectrum-compatible state-source contracts.

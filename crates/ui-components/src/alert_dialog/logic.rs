@@ -220,6 +220,34 @@ pub fn compose_class_name(base_class_name: Option<String>, state: AlertDialogPar
             classes.push("ui-alert-dialog--custom-variant".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-alert-dialog--custom-id".to_string());
+        }
+
+        if state.has_custom_title {
+            classes.push("ui-alert-dialog--custom-title".to_string());
+        }
+
+        if state.has_custom_description {
+            classes.push("ui-alert-dialog--custom-description".to_string());
+        }
+
+        if state.cancel_source_attr == "custom" {
+            classes.push("ui-alert-dialog--custom-cancel".to_string());
+        }
+
+        if state.secondary_source_attr == "custom" {
+            classes.push("ui-alert-dialog--custom-secondary".to_string());
+        }
+
+        if state.confirm_source_attr == "custom" {
+            classes.push("ui-alert-dialog--custom-confirm".to_string());
+        }
+
+        if state.auto_focus_source_attr == "custom" {
+            classes.push("ui-alert-dialog--custom-auto-focus".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-alert-dialog--custom-motion".to_string());
         }
@@ -325,19 +353,19 @@ mod tests {
                 is_open: false,
                 variant: AlertDialogVariant::Warning,
                 auto_focus_button: AlertDialogAutoFocusButton::Cancel,
-                show_description: false,
+                show_description: true,
                 show_cancel: true,
                 show_secondary: false,
                 confirm_disabled: false,
                 secondary_disabled: false,
                 has_custom_id_base: true,
                 has_custom_title: true,
-                has_custom_description: false,
+                has_custom_description: true,
                 has_custom_confirm_label: true,
                 has_custom_cancel_label: false,
                 has_custom_secondary_label: false,
-                has_custom_on_cancel: false,
-                has_custom_on_secondary: false,
+                has_custom_on_cancel: true,
+                has_custom_on_secondary: true,
                 has_custom_auto_focus_button: true,
                 has_custom_motion: true,
                 has_on_exit_complete: true,
@@ -348,11 +376,18 @@ mod tests {
             "ui-alert-dialog",
             "ui-alert-dialog--variant-warning",
             "ui-alert-dialog--closed",
-            "ui-alert-dialog--title-only",
+            "ui-alert-dialog--with-description",
             "ui-alert-dialog--cancel-shown",
             "ui-alert-dialog--secondary-hidden",
             "ui-alert-dialog--with-type-icon",
             "ui-alert-dialog--custom-variant",
+            "ui-alert-dialog--custom-id",
+            "ui-alert-dialog--custom-title",
+            "ui-alert-dialog--custom-description",
+            "ui-alert-dialog--custom-cancel",
+            "ui-alert-dialog--custom-secondary",
+            "ui-alert-dialog--custom-confirm",
+            "ui-alert-dialog--custom-auto-focus",
             "ui-alert-dialog--custom-motion",
             "ui-alert-dialog--custom-exit",
             "docs-alert-custom",

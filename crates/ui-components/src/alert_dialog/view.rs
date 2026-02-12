@@ -264,11 +264,11 @@ pub fn AlertDialog(
                 data-custom-id=move || root_state.get().has_custom_id_base.then_some("true")
                 data-custom-title=move || root_state.get().has_custom_title.then_some("true")
                 data-custom-description=move || root_state.get().has_custom_description.then_some("true")
-                data-custom-confirm=move || root_state.get().has_custom_confirm_label.then_some("true")
-                data-custom-cancel=move || root_state.get().has_custom_cancel_label.then_some("true")
-                data-custom-secondary=move || root_state.get().has_custom_secondary_label.then_some("true")
+                data-custom-confirm=move || (root_state.get().confirm_source_attr == "custom").then_some("true")
+                data-custom-cancel=move || (root_state.get().cancel_source_attr == "custom").then_some("true")
+                data-custom-secondary=move || (root_state.get().secondary_source_attr == "custom").then_some("true")
                 data-custom-auto-focus=move || {
-                    root_state.get().has_custom_auto_focus_button.then_some("true")
+                    (root_state.get().auto_focus_source_attr == "custom").then_some("true")
                 }
                 data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
                 data-custom-exit=move || root_state.get().has_on_exit_complete.then_some("true")
