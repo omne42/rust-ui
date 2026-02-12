@@ -101,3 +101,53 @@ fn description_styles_include_tone_state_and_markers() {
         );
     }
 }
+
+#[test]
+fn description_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "pub(super) fn description() -> AnyView",
+        "title=\"Description\"",
+        "slug=\"description\"",
+        "description=\"Spectrum/HeroUI-style form description primitive with centralized tone/state/source contracts and stable slot semantics.\"",
+        "<Playground title=\"Tone Variants\" code=tone_code>",
+        "<Playground title=\"Truncate + Element + Disabled\" code=truncate_code>",
+        "<Description",
+        "DescriptionTone::Negative",
+        "DescriptionElement::Span",
+        "truncate=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_extra docs page should include `{needle}` for description primary coverage.",
+        );
+    }
+}
+
+#[test]
+fn description_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "text=\"This appears below the field as guidance.\".to_string()",
+        "tone=DescriptionTone::Default",
+        "aria_label=\"Name helper\".to_string()",
+        "text=\"Optional details are only visible to admins.\".to_string()",
+        "tone=DescriptionTone::Muted",
+        "text=\"Two-factor code expired. Request a new one.\".to_string()",
+        "tone=DescriptionTone::Negative",
+        "text=\"A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.\".to_string()",
+        "element=DescriptionElement::Span",
+        "truncate=true",
+        "class_name=\"docs-description-custom\".to_string()",
+        "text=\"Disabled helper text\".to_string()",
+        "disabled=true",
+        "class=\"docs-stack docs-description-limit\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "description docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
