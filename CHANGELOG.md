@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `collection` compatibility module (re-exporting `Item`/`ItemGroup`/`ItemSeparator` contracts under Collection naming), adds `collection_module_semantics` regression coverage, and maps `collection` docs-module coverage to the existing `item` playground in `apps/docs-app`.
+
 - `ui-components`: adds `selection_indicator` compatibility module (re-exporting listbox/menu selection-indicator contracts), adds `selection_indicator_module_semantics` regression coverage, and maps `selection-indicator` docs-module coverage to existing `listbox-item` and `menu-item` playgrounds in `apps/docs-app`.
 
 - `ui-components`: adds `group` compatibility module (re-exporting `FieldGroup` contracts as `Group` aliases), adds `group_module_semantics` regression coverage, and maps `group` docs-module coverage to the existing `field-group` playground in `apps/docs-app`.

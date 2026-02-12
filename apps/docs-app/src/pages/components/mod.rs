@@ -190,6 +190,7 @@ mod tests {
             "layout" => &["flex", "grid"],
             "group" => &["field-group"],
             "overlays" => &["overlay", "popover", "modal", "tray"],
+            "collection" => &["item"],
             "color" => &[
                 "color-picker",
                 "color-field",

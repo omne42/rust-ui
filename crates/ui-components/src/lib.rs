@@ -47,6 +47,7 @@ pub mod coachmark;
 pub mod code;
 pub mod code_block;
 pub mod collapsible;
+pub mod collection;
 pub mod color;
 pub mod color_area;
 pub mod color_editor;
@@ -290,6 +291,7 @@ pub use coachmark::{Coachmark, CoachmarkAssetVariant, CoachmarkMotion, Coachmark
 pub use code::{Code, CodeVariant};
 pub use code_block::{CodeBlock, CodeBlockMotion};
 pub use collapsible::{Collapsible, CollapsibleMotion};
+pub use collection::{Collection, CollectionSection, CollectionSeparator};
 pub use color_area::ColorArea;
 pub use color_editor::{ColorEditor, ColorEditorFormat};
 pub use color_field::ColorField;
