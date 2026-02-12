@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Heading` docs state contracts by locking heading-levels+tone and strong+truncate+custom-aria-class playground anchors in `heading_semantics` regression coverage.
+
 - `ui-components`: hardens `Footer` docs state contracts by locking semantic-footer+tone and bordered+custom-aria-class playground anchors in `footer_semantics` regression coverage.
 
 - `ui-components`: hardens `Header` docs state contracts by locking semantic-header+tone and bordered+custom-aria-class playground anchors in `header_semantics` regression coverage.

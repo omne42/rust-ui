@@ -95,3 +95,44 @@ fn heading_styles_include_level_tone_and_custom_markers() {
         );
     }
 }
+
+#[test]
+fn heading_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn heading() -> AnyView",
+        "title=\"Heading\"",
+        "slug=\"heading\"",
+        "Playground title=\"Heading Levels + Tone\"",
+        "Playground title=\"Strong + Truncate + Custom Aria/Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Heading.",
+        );
+    }
+}
+
+#[test]
+fn heading_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Heading Levels + Tone\"",
+        "<Heading level=HeadingLevel::H1>",
+        "<Heading level=HeadingLevel::H3>",
+        "<Heading level=HeadingLevel::H5 tone=HeadingTone::Muted>",
+        "title=\"Strong + Truncate + Custom Aria/Class\"",
+        "level=HeadingLevel::H4",
+        "tone=HeadingTone::Strong",
+        "truncate=true",
+        "class_name=\"docs-heading-custom\".to_string()",
+        "aria_label=\"Truncated heading\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "heading docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
