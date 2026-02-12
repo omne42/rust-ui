@@ -249,3 +249,63 @@ fn sonner_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn sonner_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "pub(super) fn sonner() -> AnyView",
+        "title=\"Sonner\"",
+        "slug=\"sonner\"",
+        "description=\"Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts.\"",
+        "<Playground title=\"Portal Queue + Variants\" code=basic_code>",
+        "<Playground title=\"Inline Top-Center + Max Queue\" code=state_code>",
+        "title=\"State + Source Markers\"",
+        "<Sonner",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays_extra sonner docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sonner_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"Portal Queue + Variants\"",
+        "variant=ButtonVariant::Secondary",
+        "on_press=push_saved",
+        "\"Push success\"",
+        "variant=ButtonVariant::Destructive",
+        "on_press=push_danger",
+        "\"Push danger\"",
+        "<Sonner store=portal_store.get_value() />",
+        "title=\"Inline Top-Center + Max Queue\"",
+        "store=inline_store.get_value()",
+        "portal=false",
+        "position=SonnerPosition::TopCenter",
+        "max_toasts=2",
+        "class_name=\"docs-sonner-inline\".to_string()",
+        "title=\"State + Source Markers\"",
+        "store=source_store.get_value()",
+        "position=SonnerPosition::TopLeft",
+        "max_toasts=4",
+        "aria_label=\"Status updates\".to_string()",
+        "class_name=\"docs-sonner-source\".to_string()",
+        "motion=custom_motion",
+        "let custom_motion = ToastMotion {",
+        "initial_y_px: 22.0",
+        "initial_scale: 0.94",
+        "..ToastMotion::default()",
+        "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays_extra sonner playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}

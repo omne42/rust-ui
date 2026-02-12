@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Sonner` docs state matrix contracts by locking portal-queue-variants, inline-top-center-max-queue, and state-source-markers playground anchors in `sonner_semantics` regression coverage.
+
 - `ui-components`: hardens `Slider` docs state matrix contracts by locking controlled-on_change and disabled-fine-step playground anchors in `slider_semantics` regression coverage.
 
 - `ui-components`: hardens `SkeletonGroup` docs state matrix contracts by locking shimmer-pulse-layout and loaded-skeleton-only playground anchors in `skeleton_group_semantics` regression coverage.
