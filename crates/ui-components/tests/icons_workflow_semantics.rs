@@ -196,3 +196,61 @@ fn icons_workflow_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn icons_workflow_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_icons_workflow.rs",
+    );
+
+    for needle in [
+        "pub(super) fn icons_workflow() -> AnyView",
+        "title=\"IconsWorkflow\"",
+        "slug=\"icons-workflow\"",
+        "description=\"Spectrum-compatible icons-workflow wrapper with workflow namespace normalization, built-in workflow glyph defaults, and Iconset accessibility/source-state contracts.\"",
+        "<Playground title=\"Built-in Workflow Glyphs\" code=defaults_code>",
+        "<Playground title=\"Custom Workflow Extension\" code=custom_code>",
+        "title=\"State + Source Markers\"",
+        "<IconsWorkflow",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_icons_workflow docs should include `{needle}` for icons_workflow primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn icons_workflow_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_icons_workflow.rs",
+    );
+
+    for needle in [
+        "title=\"Built-in Workflow Glyphs\"",
+        "icon=\"success\".to_string()",
+        "icon=\"warning\".to_string()",
+        "size=IconsWorkflowSize::Md",
+        "tone=IconsWorkflowTone::Accent",
+        "tone=IconsWorkflowTone::Danger",
+        "title=\"Custom Workflow Extension\"",
+        "icon=\"workflow:deploy\".to_string()",
+        "IconsetGlyph::new(\"workflow:deploy\", \"🚀\")",
+        ".with_aria_label(\"Workflow Deploy\")",
+        "size=IconsWorkflowSize::Lg",
+        "tone=IconsWorkflowTone::Default",
+        "class_name=\"docs-icons-workflow-custom\".to_string()",
+        "title=\"State + Source Markers\"",
+        "icon=\"success\".to_string()",
+        "IconsetGlyph::new(\"workflow:success\", \"✓\")",
+        ".with_aria_label(\"Workflow Success\")",
+        "tone=IconsWorkflowTone::Muted",
+        "aria_label=\"Explicit workflow success icon\".to_string()",
+        "class_name=\"docs-icons-workflow-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons_workflow docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
