@@ -117,3 +117,55 @@ fn skeleton_group_styles_include_variant_and_layout_contracts() {
         );
     }
 }
+
+#[test]
+fn skeleton_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn skeleton_group() -> AnyView",
+        r#"title="SkeletonGroup""#,
+        r#"slug="skeleton-group""#,
+        r#"description="Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers.""#,
+        r#"<Playground title="Shimmer + Pulse Layout" code=loading_code>"#,
+        r#"<Playground title="Loaded + Skeleton Only" code=state_code>"#,
+        "<SkeletonGroup",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra skeleton_group docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn skeleton_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        r#"title="Shimmer + Pulse Layout""#,
+        "is_loading=true",
+        "variant=SkeletonGroupVariant::Shimmer",
+        "layout=SkeletonGroupLayout::Vertical",
+        "density=SkeletonGroupDensity::Comfortable",
+        "variant=SkeletonGroupVariant::Pulse",
+        "layout=SkeletonGroupLayout::Horizontal",
+        "density=SkeletonGroupDensity::Compact",
+        r#"aria_label="Profile placeholders".to_string()"#,
+        r#"class_name="docs-skeleton-group-custom".to_string()"#,
+        "variant=SkeletonVariant::Circle",
+        "shimmer=false",
+        r#"title="Loaded + Skeleton Only""#,
+        "is_loading=false",
+        "is_skeleton_only=false",
+        "variant=SkeletonGroupVariant::None",
+        "is_skeleton_only=true",
+        "\"Loaded content rendered by parent group.\"",
+        "When `is_skeleton_only=true` and loading is finished, the skeleton group hides itself.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra skeleton_group playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}

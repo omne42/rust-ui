@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SkeletonGroup` docs state matrix contracts by locking shimmer-pulse-layout and loaded-skeleton-only playground anchors in `skeleton_group_semantics` regression coverage.
+
 - `ui-components`: hardens `Sidenav` docs state matrix contracts by locking controlled-floating, icon-collapsible-no-shortcut, and state-source-markers playground anchors in `sidenav_semantics` regression coverage.
 
 - `ui-components`: hardens `SidebarTrigger` docs state matrix contracts by locking default-trigger and controlled-custom-label playground anchors in `sidebar_trigger_semantics` regression coverage.
