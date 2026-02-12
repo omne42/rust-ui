@@ -101,3 +101,46 @@ fn color_field_styles_include_valid_invalid_disabled_and_custom_contracts() {
         );
     }
 }
+
+#[test]
+fn color_field_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "pub(super) fn color_field() -> AnyView",
+        "title=\"ColorField\"",
+        "slug=\"color-field\"",
+        "title=\"Controlled Value\"",
+        "title=\"Invalid + Disabled + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-field docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_field_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "<Playground title=\"Controlled Value\" code=basic_code>",
+        "id_base=\"docs-color-field-basic\".to_string()",
+        "label=\"Fill color\".to_string()",
+        "value=value.into()",
+        "on_value_change=on_value_change",
+        "<Playground title=\"Invalid + Disabled + Custom Class\" code=states_code>",
+        "id_base=\"docs-color-field-invalid\".to_string()",
+        "default_value=\"javascript:alert(1)\".to_string()",
+        "class_name=\"docs-color-field-custom\".to_string()",
+        "id_base=\"docs-color-field-disabled\".to_string()",
+        "default_value=\"#0ea5e9\".to_string()",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-field docs playground should contain `{needle}`.",
+        );
+    }
+}
