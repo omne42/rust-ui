@@ -152,3 +152,50 @@ fn button_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn button_docs_page_covers_button_playground_contracts() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button() -> AnyView",
+        "title=\"Button\"",
+        "slug=\"button\"",
+        "description=\"Variants + sizes with spring hover/tap motion.\"",
+        "<Playground",
+        "title=\"Variants & sizes\"",
+        "<Button",
+        "variant=variant",
+        "size=size",
+        "disabled=disabled",
+        "is_loading=is_loading",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for button playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn button_docs_variants_and_controls_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Button variant=ButtonVariant::Default>\"Primary\"</Button>",
+        "<Button variant=ButtonVariant::Outline>\"Outline\"</Button>",
+        "<Button variant=ButtonVariant::Ghost>\"Ghost\"</Button>",
+        "id_base=\"docs-button-variant\".to_string()",
+        "id_base=\"docs-button-size\".to_string()",
+        "aria_label=\"Button variant\".to_string()",
+        "aria_label=\"Button size\".to_string()",
+        "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
+        "<Switch checked=loading set_checked=set_loading>\"Loading\"</Switch>",
+        "{format!(\"{variant:?} · {size:?}\")}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button docs variants/controls playground should contain `{needle}`.",
+        );
+    }
+}
