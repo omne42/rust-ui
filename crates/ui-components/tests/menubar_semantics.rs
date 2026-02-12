@@ -242,3 +242,50 @@ fn menubar_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn menubar_docs_controlled_state_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"Controlled Open + Persistent + Disabled Menu\"",
+        "id_base=\"docs-menubar-controlled\".to_string()",
+        "close_on_action=false",
+        "open_index=controlled_open",
+        "on_open_index_change=on_open_index_change",
+        "open menu index:",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Menubar docs controlled-state playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn menubar_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-menubar-markers\".to_string()",
+        "close_on_action=false",
+        "placement=ui_components::menubar::DEFAULT_PLACEMENT.flip_vertical()",
+        "open_index=marker_open",
+        "default_open_index=1",
+        "on_open_index_change=on_marker_open_change",
+        "class_name=\"docs-menubar-custom\".to_string()",
+        "let marker_motion = ui_components::MenubarMotion {",
+        "initial_scale: 0.94",
+        "offset_y_px: 10.0",
+        "motion=marker_motion",
+        "Inspect data-id-source / data-class-source / data-close-on-action-source / data-open-index-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Menubar docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
