@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `PreviewCard` motion docs contracts by locking marker-playground `PreviewCardMotion` values (`initial_scale`/`offset_y_px`), delay/site-label source markers, and custom docs state anchors in `preview_card_semantics` regression coverage.
+
 - `ui-components`: hardens `Modal` motion docs contracts by locking custom `OverlayMotion` marker values (`initial_scale`/`initial_y_px`), custom id/class source markers, and exit-presence wiring in `modal_semantics` regression coverage.
 
 - `ui-components`: hardens `Sheet` motion docs contracts by locking marker-playground `SheetMotion.initial_offset_px`, dismiss/keyboard-dismiss source markers, and exit-presence wiring in `sheet_semantics` regression coverage.

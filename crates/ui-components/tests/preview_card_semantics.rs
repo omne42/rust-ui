@@ -217,3 +217,26 @@ fn preview_card_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn preview_card_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "id=\"docs-preview-card\".to_string()",
+        "open_delay_ms=260",
+        "close_delay_ms=240",
+        "class_name=\"docs-preview-card-state\".to_string()",
+        "motion=PreviewCardMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+        "..PreviewCardMotion::default()",
+        "site_label=\"github.com\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "preview-card docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
