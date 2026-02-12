@@ -222,3 +222,14 @@ fn thumbnail_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn thumbnail_docs_page_covers_primary_playgrounds() {
+    thumbnail_docs_page_exists_in_display_extra_thumbnail();
+}
+
+#[test]
+fn thumbnail_docs_playgrounds_lock_state_matrix_contract_values() {
+    thumbnail_docs_default_and_state_playgrounds_lock_contract_values();
+    thumbnail_docs_custom_motion_playground_locks_contract_values();
+}
