@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Resizable` docs state matrix contracts by locking horizontal-handle and controlled-vertical-bounds playground anchors in `resizable_semantics` regression coverage.
+
 - `ui-components`: hardens `Radio` docs state matrix contracts by locking RadioGroup and standalone Radio playground anchors in `radio_semantics` regression coverage.
 
 - `ui-components`: hardens `radio_group` compatibility module docs state matrix contracts by locking RadioGroup selection/horizontal-disabled-empty playground anchors in `radio_group_module_semantics` regression coverage.

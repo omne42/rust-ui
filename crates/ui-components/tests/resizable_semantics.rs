@@ -178,3 +178,55 @@ fn resizable_docs_page_exists_in_layout_extra() {
         );
     }
 }
+
+#[test]
+fn resizable_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn resizable() -> AnyView",
+        "title=\"Resizable\"",
+        "slug=\"resizable\"",
+        "description=\"Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and Spectrum-style state data contracts.\"",
+        "<Playground title=\"Horizontal + Handle Grip\" code=horizontal_code>",
+        "<Playground title=\"Controlled + Vertical Bounds\" code=vertical_code>",
+        "<Resizable",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs should include `{needle}` for resizable primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn resizable_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Horizontal + Handle Grip\"",
+        "orientation=ResizableOrientation::Horizontal",
+        "default_split_percent=36.0",
+        "with_handle=true",
+        "\"Sidebar\"",
+        "\"Content\"",
+        "title=\"Controlled + Vertical Bounds\"",
+        "orientation=ResizableOrientation::Vertical",
+        "split_percent=split",
+        "on_split_percent_change=on_split_change",
+        "min_split_percent=25.0",
+        "max_split_percent=80.0",
+        "with_handle=true",
+        "aria_label=\"Deployment regions split\".to_string()",
+        "class_name=\"docs-resizable-custom\".to_string()",
+        "\"Header\"",
+        "\"Body\"",
+        "controlled split:",
+        "format!(\"{:.1}%\", split_raw.get())",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs playgrounds should contain `{needle}` for resizable contracts.",
+        );
+    }
+}
