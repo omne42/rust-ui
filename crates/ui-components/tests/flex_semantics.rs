@@ -106,3 +106,51 @@ fn flex_styles_include_layout_state_markers() {
         );
     }
 }
+
+#[test]
+fn flex_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn flex() -> AnyView",
+        "title=\"Flex\"",
+        "slug=\"flex\"",
+        "Playground title=\"Direction + Wrap + Gap\"",
+        "Playground title=\"Inline + Distribution\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Flex.",
+        );
+    }
+}
+
+#[test]
+fn flex_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Direction + Wrap + Gap\"",
+        "direction=FlexDirection::Row",
+        "wrap=FlexWrap::Wrap",
+        "gap=FlexGap::Md",
+        "align=FlexAlign::Center",
+        "aria_label=\"Tag cloud layout\".to_string()",
+        "direction=FlexDirection::Column",
+        "gap=FlexGap::Sm",
+        "align=FlexAlign::Stretch",
+        "class_name=\"docs-flex-column\".to_string()",
+        "title=\"Inline + Distribution\"",
+        "inline=true",
+        "justify=FlexJustify::SpaceBetween",
+        "align=FlexAlign::Baseline",
+        "gap=FlexGap::Lg",
+        "class_name=\"docs-flex-inline\".to_string()",
+        "Footer tone=FooterTone::Muted bordered=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flex docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
