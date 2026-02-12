@@ -211,3 +211,26 @@ fn sheet_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn sheet_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "let custom_motion = SheetMotion {",
+        "initial_offset_px: 56.0",
+        "title=\"State + Source Markers\"",
+        "placement=SheetPlacement::Right",
+        "is_dismissable=false",
+        "is_keyboard_dismiss_disabled=true",
+        "motion=custom_motion",
+        "on_exit_complete=finish_exit",
+        "on_exit_complete=on_marker_exit_complete",
+        "Inspect data-placement-source / data-dismiss-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "sheet docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
