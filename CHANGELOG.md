@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `NavigationMenu` docs state matrix contracts by locking roving-focus default, controlled-manual activation, and state-source marker playground anchors in `navigation_menu_semantics` regression coverage.
+
 - `ui-components`: hardens `NativeSelect` docs state matrix contracts by locking controlled-placeholder and required-invalid-disabled playground anchors in `native_select_semantics` regression coverage.
 
 - `ui-components`: hardens `Modal` docs state matrix contracts by locking label+description and state-source marker playground anchors in `modal_semantics` regression coverage.
