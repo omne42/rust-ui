@@ -5,20 +5,60 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-xs);
 }
 
+.ui-autocomplete[data-label-source="custom"],
+.ui-autocomplete[data-custom-label="true"],
+.ui-autocomplete--custom-label {
+  --ui-autocomplete-label-source: custom;
+}
+
+.ui-autocomplete[data-description-source="custom"],
+.ui-autocomplete[data-custom-description="true"],
+.ui-autocomplete--custom-description {
+  --ui-autocomplete-description-source: custom;
+}
+
+.ui-autocomplete[data-error-source="custom"],
+.ui-autocomplete[data-custom-error="true"],
+.ui-autocomplete--custom-error {
+  --ui-autocomplete-error-source: custom;
+}
+
+.ui-autocomplete[data-placeholder-source="custom"],
+.ui-autocomplete[data-custom-placeholder="true"],
+.ui-autocomplete--custom-placeholder {
+  --ui-autocomplete-placeholder-source: custom;
+}
+
+.ui-autocomplete[data-id-source="custom"],
+.ui-autocomplete[data-custom-id="true"],
+.ui-autocomplete--custom-id {
+  --ui-autocomplete-id-source: custom;
+}
+
+.ui-autocomplete[data-class-source="custom"],
+.ui-autocomplete[data-custom-class="true"],
+.ui-autocomplete--custom-class {
+  --ui-autocomplete-class-source: custom;
+}
+
 .ui-autocomplete[data-motion-source="custom"],
-.ui-autocomplete[data-custom-motion="true"] {
+.ui-autocomplete[data-custom-motion="true"],
+.ui-autocomplete--custom-motion {
   --ui-autocomplete-custom-motion: 1;
 }
 
-.ui-autocomplete--empty .ui-autocomplete__input {
+.ui-autocomplete--empty .ui-autocomplete__input,
+.ui-autocomplete[data-empty="true"] .ui-autocomplete__input {
   opacity: 0.72;
 }
 
-.ui-autocomplete--controlled .ui-autocomplete__control {
+.ui-autocomplete--controlled .ui-autocomplete__control,
+.ui-autocomplete[data-controlled="true"] .ui-autocomplete__control {
   box-shadow: inset 0 0 0 1px var(--ui-border);
 }
 
-.ui-autocomplete--has-disabled-options .ui-autocomplete__listbox {
+.ui-autocomplete--has-disabled-options .ui-autocomplete__listbox,
+.ui-autocomplete[data-has-disabled-options="true"] .ui-autocomplete__listbox {
   --ui-autocomplete-has-disabled-options: 1;
 }
 

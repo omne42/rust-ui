@@ -84,14 +84,17 @@ fn autocomplete_normalizes_label_placeholder_and_id_base() {
         );
     }
 
-    for needle in ["\"Options\".to_string()", "\"autocomplete\".to_string()"] {
+    for needle in [
+        "pub const DEFAULT_LABEL: &str = \"Options\"",
+        "pub const DEFAULT_ID_BASE: &str = \"autocomplete\"",
+        "pub const DEFAULT_PLACEHOLDER: &str = \"Type…\"",
+    ] {
         assert!(
             logic_source.contains(needle),
             "Autocomplete logic should provide fallback semantics via `{needle}`."
         );
     }
 }
-
 #[test]
 fn autocomplete_escape_stops_propagation_when_open() {
     let source = load_source("src/autocomplete/view.rs");
@@ -179,8 +182,20 @@ fn autocomplete_emits_spectrum_style_state_data_attributes() {
         "data-has-disabled-options=state.has_disabled_options.then_some(\"true\")",
         "data-controlled=state.is_controlled.then_some(\"true\")",
         "data-uncontrolled=state.is_uncontrolled.then_some(\"true\")",
-        "data-motion-source=if motion == AutocompleteMotion::default()",
-        "data-custom-motion=(motion != AutocompleteMotion::default()).then_some(\"true\")",
+        "data-label-source=state.label_source_attr",
+        "data-description-source=state.description_source_attr",
+        "data-error-source=state.error_source_attr",
+        "data-placeholder-source=state.placeholder_source_attr",
+        "data-id-source=state.id_source_attr",
+        "data-class-source=state.class_source_attr",
+        "data-motion-source=state.motion_source_attr",
+        "data-custom-label=state.has_custom_label.then_some(\"true\")",
+        "data-custom-description=state.has_custom_description.then_some(\"true\")",
+        "data-custom-error=state.has_custom_error.then_some(\"true\")",
+        "data-custom-placeholder=state.has_custom_placeholder.then_some(\"true\")",
+        "data-custom-id=state.has_custom_id_base.then_some(\"true\")",
+        "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-custom-motion=state.has_custom_motion.then_some(\"true\")",
         "data-typed=move || has_typed.get().then_some(\"true\")",
         "data-count=state.item_count.to_string()",
         "data-filtered-count=move || filtered_count.get().to_string()",
@@ -192,7 +207,6 @@ fn autocomplete_emits_spectrum_style_state_data_attributes() {
         );
     }
 }
-
 #[test]
 fn autocomplete_panel_styles_use_fixed_positioning_and_transform_origin_by_placement() {
     let source = load_source("src/autocomplete/styles.rs");
@@ -216,10 +230,32 @@ fn autocomplete_styles_include_controlled_and_disabled_option_markers() {
 
     for needle in [
         ".ui-autocomplete--controlled",
+        ".ui-autocomplete[data-controlled=\"true\"]",
         ".ui-autocomplete--has-disabled-options",
+        ".ui-autocomplete[data-has-disabled-options=\"true\"]",
         ".ui-autocomplete--empty",
+        ".ui-autocomplete[data-empty=\"true\"]",
+        ".ui-autocomplete[data-label-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-label=\"true\"]",
+        ".ui-autocomplete--custom-label",
+        ".ui-autocomplete[data-description-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-description=\"true\"]",
+        ".ui-autocomplete--custom-description",
+        ".ui-autocomplete[data-error-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-error=\"true\"]",
+        ".ui-autocomplete--custom-error",
+        ".ui-autocomplete[data-placeholder-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-placeholder=\"true\"]",
+        ".ui-autocomplete--custom-placeholder",
+        ".ui-autocomplete[data-id-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-id=\"true\"]",
+        ".ui-autocomplete--custom-id",
+        ".ui-autocomplete[data-class-source=\"custom\"]",
+        ".ui-autocomplete[data-custom-class=\"true\"]",
+        ".ui-autocomplete--custom-class",
         ".ui-autocomplete[data-motion-source=\"custom\"]",
         ".ui-autocomplete[data-custom-motion=\"true\"]",
+        ".ui-autocomplete--custom-motion",
     ] {
         assert!(
             source.contains(needle),
@@ -227,7 +263,6 @@ fn autocomplete_styles_include_controlled_and_disabled_option_markers() {
         );
     }
 }
-
 #[test]
 fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
     let mod_source = load_source("src/autocomplete/mod.rs");

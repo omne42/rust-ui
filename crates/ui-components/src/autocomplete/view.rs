@@ -156,6 +156,7 @@ pub fn Autocomplete(
     #[prop(optional)] motion: AutocompleteMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let has_custom_id_base = logic::normalize_optional_text(Some(id_base.clone())).is_some();
     let id_base = logic::normalize_id_base(id_base);
     let id_base = StoredValue::new(id_base);
 
@@ -166,26 +167,35 @@ pub fn Autocomplete(
     let disabled_option_count = disabled_indices.len();
     let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_indices.into_iter().collect());
 
+    let has_custom_label = !label.trim().is_empty();
     let label = StoredValue::new(logic::normalize_label(label));
+
+    let has_custom_placeholder = logic::normalize_optional_text(placeholder.clone()).is_some();
     let placeholder = StoredValue::new(logic::resolve_placeholder(placeholder));
 
     let description = logic::normalize_optional_text(description);
     let error = logic::normalize_optional_text(error);
-    let has_description = description.is_some();
-    let has_error = error.is_some();
+    let has_custom_description = description.is_some();
+    let has_custom_error = error.is_some();
 
     let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
 
     let motion = crate::autocomplete::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != AutocompleteMotion::default();
     let is_controlled = open.is_some();
 
     let state = logic::resolve_state(logic::AutocompleteStateInput {
         item_count,
         disabled_option_count,
         is_disabled: disabled,
-        has_description,
-        has_error,
-        has_custom_class_name: class_name.is_some(),
+        has_custom_label,
+        has_custom_description,
+        has_custom_error,
+        has_custom_placeholder,
+        has_custom_id_base,
+        has_custom_class_name,
+        has_custom_motion,
         is_controlled,
     });
 
@@ -351,12 +361,20 @@ pub fn Autocomplete(
             data-has-disabled-options=state.has_disabled_options.then_some("true")
             data-controlled=state.is_controlled.then_some("true")
             data-uncontrolled=state.is_uncontrolled.then_some("true")
-            data-motion-source=if motion == AutocompleteMotion::default() {
-                "default"
-            } else {
-                "custom"
-            }
-            data-custom-motion=(motion != AutocompleteMotion::default()).then_some("true")
+            data-label-source=state.label_source_attr
+            data-description-source=state.description_source_attr
+            data-error-source=state.error_source_attr
+            data-placeholder-source=state.placeholder_source_attr
+            data-id-source=state.id_source_attr
+            data-class-source=state.class_source_attr
+            data-motion-source=state.motion_source_attr
+            data-custom-label=state.has_custom_label.then_some("true")
+            data-custom-description=state.has_custom_description.then_some("true")
+            data-custom-error=state.has_custom_error.then_some("true")
+            data-custom-placeholder=state.has_custom_placeholder.then_some("true")
+            data-custom-id=state.has_custom_id_base.then_some("true")
+            data-custom-class=state.has_custom_class_name.then_some("true")
+            data-custom-motion=state.has_custom_motion.then_some("true")
             data-typed=move || has_typed.get().then_some("true")
             data-count=state.item_count.to_string()
             data-filtered-count=move || filtered_count.get().to_string()
