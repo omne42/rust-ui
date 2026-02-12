@@ -146,3 +146,53 @@ fn split_view_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn split_view_docs_default_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_split_view.rs");
+
+    for needle in [
+        "<Playground title=\"Horizontal + Default Split\" code=horizontal_code>",
+        "orientation=ResizableOrientation::Horizontal",
+        "default_split_percent=40.0",
+        "with_handle=true",
+        "<Playground title=\"Controlled + Vertical Bounds\" code=vertical_code>",
+        "orientation=ResizableOrientation::Vertical",
+        "split_percent=split",
+        "on_split_percent_change=on_split_change",
+        "min_split_percent=30.0",
+        "max_split_percent=80.0",
+        "aria_label=\"Split analytics regions\".to_string()",
+        "class_name=\"docs-split-view-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "split_view docs default playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn split_view_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_split_view.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "split_percent=marker_split",
+        "on_split_percent_change=marker_on_split_change",
+        "default_split_percent=55.0",
+        "min_split_percent=25.0",
+        "max_split_percent=75.0",
+        "with_handle=true",
+        "aria_label=\"Markers split panel\".to_string()",
+        "class_name=\"docs-split-view-state\".to_string()",
+        "marker split:",
+    ] {
+        assert!(
+            source.contains(needle),
+            "split_view docs marker playground should contain `{needle}`.",
+        );
+    }
+}
