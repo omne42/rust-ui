@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SidebarMenu` docs state matrix contracts by locking default-menu, controlled-active-id+click-callback, keyboard+disabled+expanded, and state+source marker playground anchors in `sidebar_menu_semantics` regression coverage.
+
 - `ui-components`: hardens `SidebarMenuBadge` docs state matrix contracts by locking default-numeric and muted-disabled-custom playground anchors in `sidebar_menu_badge_semantics` regression coverage.
 
 - `ui-components`: hardens `SidebarMenuAction` docs state matrix contracts by locking default-hover-only and always-visible-disabled-custom playground anchors in `sidebar_menu_action_semantics` regression coverage.

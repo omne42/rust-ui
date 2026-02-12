@@ -157,3 +157,64 @@ fn sidebar_menu_docs_page_exists_in_layout_extra() {
         );
     }
 }
+
+#[test]
+fn sidebar_menu_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn sidebar_menu() -> AnyView",
+        "title=\"SidebarMenu\"",
+        "slug=\"sidebar-menu\"",
+        "description=\"Shadcn-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, Spectrum-style data contracts, and HeroUI-level active-highlight motion.\"",
+        "<Playground title=\"Badge + Item Action\" code=badge_code>",
+        "<Playground title=\"Controlled + Collapsible Submenu\" code=controlled_code>",
+        "<SidebarMenu",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs should include `{needle}` for sidebar_menu primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_menu_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Badge + Item Action\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "show_trigger=false",
+        "aria_label=\"Menu playground sidebar\".to_string()",
+        "id_base=\"docs-sidebar-menu-badge\".to_string()",
+        "items=badge_items",
+        "on_action=on_action",
+        "on_item_action=on_item_action",
+        "aria_label=\"Primary menu\".to_string()",
+        "\"Action: \"",
+        "\" · Item action: \"",
+        "title=\"Controlled + Collapsible Submenu\"",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        "aria_label=\"Controlled menu sidebar\".to_string()",
+        "id_base=\"docs-sidebar-menu-controlled\".to_string()",
+        "items=collapsible_items",
+        "active_id=active",
+        "on_active_id_change=on_active_change",
+        "allow_submenu_collapse=true",
+        "show_badges=false",
+        "show_actions=true",
+        "keyboard_shortcut_key=\"k\".to_string()",
+        "aria_label=\"Workspace menu\".to_string()",
+        "class_name=\"docs-sidebar-menu-custom\".to_string()",
+        "\"active: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra docs playgrounds should contain `{needle}` for sidebar_menu contracts.",
+        );
+    }
+}
