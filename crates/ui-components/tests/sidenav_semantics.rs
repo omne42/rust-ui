@@ -148,3 +148,51 @@ fn sidenav_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn sidenav_docs_controlled_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidenav.rs");
+
+    for needle in [
+        "title=\"Controlled + Floating\"",
+        "open=Signal::derive(move || open.get())",
+        "on_open_change=on_open_change",
+        "side=SidebarSide::Right",
+        "variant=SidebarVariant::Floating",
+        "trigger_label=\"Toggle nav\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Sidenav docs controlled playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn sidenav_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_sidenav.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "open=marker_open_signal",
+        "on_open_change=marker_on_open_change",
+        "default_open=false",
+        "show_trigger=false",
+        "enable_shortcut=true",
+        "shortcut_key=\"n\".to_string()",
+        "trigger_label=\"Toggle markers nav\".to_string()",
+        "aria_label=\"Markers navigation\".to_string()",
+        "class_name=\"docs-sidenav-state\".to_string()",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "Inspect wrapper markers like `data-state`, `data-open-mode`, `data-initial-open`, `data-trigger-mode`, `data-shortcut-mode`, `data-label-source`, `data-trigger-source`, `data-shortcut-source`, `data-class-source`, and `data-handler-source`.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Sidenav docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
