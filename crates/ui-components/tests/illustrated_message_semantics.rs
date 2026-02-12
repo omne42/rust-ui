@@ -93,3 +93,38 @@ fn illustrated_message_motion_sanitizes_custom_contract_values() {
         "IllustratedMessage view should sanitize motion before attaching motion driver.",
     );
 }
+
+#[test]
+fn illustrated_message_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn illustrated_message() -> AnyView",
+        "title=\"IllustratedMessage\"",
+        "slug=\"illustrated-message\"",
+        "Playground title=\"Empty state\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for IllustratedMessage.",
+        );
+    }
+}
+
+#[test]
+fn illustrated_message_docs_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "let code = r#\"<IllustratedMessage title=\"Empty\".to_string() description=\"Nothing here\".to_string() />\"#;",
+        "title=\"No results\".to_string()",
+        "description=\"Try changing your search.\".to_string()",
+        "illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }",
+        "actions=move || view! { <ui_components::Button>\"Clear\"</ui_components::Button> }",
+    ] {
+        assert!(
+            source.contains(needle),
+            "illustrated-message docs playground should contain `{needle}`.",
+        );
+    }
+}
