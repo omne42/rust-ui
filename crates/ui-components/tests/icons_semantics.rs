@@ -149,3 +149,56 @@ fn icons_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn icons_docs_default_and_custom_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons.rs");
+
+    for needle in [
+        "<Playground title=\"Medium + Large Set Selection\" code=default_code>",
+        "name=\"check\".to_string()",
+        "set=IconsSet::Ui",
+        "scale=IconsScale::Medium",
+        "tone=IconsTone::Accent",
+        "name=\"workflow:warning\".to_string()",
+        "scale=IconsScale::Large",
+        "tone=IconsTone::Danger",
+        "<Playground title=\"Custom Workflow Glyph Extension\" code=custom_code>",
+        "name=\"workflow:deploy\".to_string()",
+        "set=IconsSet::Workflow",
+        "tone=IconsTone::Default",
+        "IconsGlyph::new(\"workflow:deploy\", \"🚀\")",
+        ".with_aria_label(\"Workflow Deploy\")",
+        "class_name=\"docs-icons-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons docs default/custom playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn icons_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "name=\"check\".to_string()",
+        "set=IconsSet::Workflow",
+        "scale=IconsScale::Large",
+        "tone=IconsTone::Muted",
+        "IconsGlyph::new(\"workflow:check\", \"✓\")",
+        ".with_aria_label(\"Workflow Check\")",
+        "decorative=false",
+        "aria_label=\"Explicit icon label\".to_string()",
+        "class_name=\"docs-icons-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons docs marker playground should contain `{needle}`.",
+        );
+    }
+}
