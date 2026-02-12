@@ -201,6 +201,7 @@ mod tests {
                 "color-swatch-picker",
             ],
             "list" => &["listbox", "item"],
+            "selection-indicator" => &["listbox-item", "menu-item"],
             "list-box" => &["listbox", "listbox-item", "listbox-section"],
             "gridlist" => &["listbox", "listbox-item", "listbox-section"],
             "grid-list" => &["listbox", "listbox-item", "listbox-section"],

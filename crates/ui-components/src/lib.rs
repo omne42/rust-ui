@@ -172,6 +172,7 @@ pub mod search;
 pub mod search_field;
 pub mod segmented_control;
 pub mod select;
+pub mod selection_indicator;
 pub mod separator;
 pub mod sheet;
 pub mod sidebar;
@@ -426,6 +427,7 @@ pub use segmented_control::{
     SegmentedControl, SegmentedControlMotion, SegmentedControlOrientation, SegmentedControlSize,
 };
 pub use select::{Select, SelectMotion};
+pub use selection_indicator::SelectionIndicator;
 pub use separator::{Separator, SeparatorElementType, SeparatorMotion, SeparatorOrientation};
 pub use sheet::{Sheet, SheetMotion, SheetPlacement};
 pub use sidebar::{Sidebar, SidebarCollapsible, SidebarSide, SidebarVariant};
