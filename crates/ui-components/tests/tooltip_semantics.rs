@@ -251,3 +251,47 @@ fn tooltip_docs_page_includes_custom_motion_contract_playground() {
         );
     }
 }
+
+#[test]
+fn tooltip_docs_state_source_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_tooltip.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "delay_ms=300",
+        "close_delay_ms=200",
+        "should_close_on_press=false",
+        "class_name=\"docs-tooltip-state\".to_string()",
+        "id=\"docs-tooltip\".to_string()",
+        "motion=TooltipMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 10.0",
+        "Inspect data-delay-source/data-trigger-source/data-id-source.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tooltip docs state/source playground should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn tooltip_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_tooltip.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "let custom_motion = TooltipMotion {",
+        "initial_scale: 0.92",
+        "offset_y_px: 14.0",
+        "motion=custom_motion",
+        "motion=TooltipMotion::default()",
+        "content=move || view! { \"Custom spring + placement offset\" }",
+        "content=move || view! { \"Default motion\" }",
+    ] {
+        assert!(
+            source.contains(needle),
+            "tooltip docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
