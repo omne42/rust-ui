@@ -198,3 +198,13 @@ fn underlay_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn underlay_docs_page_covers_primary_playgrounds() {
+    underlay_docs_page_contains_state_source_playground();
+}
+
+#[test]
+fn underlay_docs_playgrounds_lock_state_matrix_contract_values() {
+    underlay_docs_state_source_playground_locks_contract_values();
+}
