@@ -296,3 +296,55 @@ fn action_menu_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn action_menu_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn action_menu() -> AnyView",
+        "title=\"ActionMenu\"",
+        "slug=\"action-menu\"",
+        "Playground title=\"Default\"",
+        "Playground title=\"Controlled + persistent open\"",
+        "Playground title=\"State + Source Markers\"",
+        "Playground title=\"Disabled + Empty\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should contain `{needle}` for ActionMenu.",
+        );
+    }
+}
+
+#[test]
+fn action_menu_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "title=\"Default\"",
+        "id_base=\"docs-action-menu\".to_string()",
+        "last action:",
+        "title=\"Controlled + persistent open\"",
+        "id_base=\"docs-action-menu-controlled\".to_string()",
+        "close_on_action=false",
+        "disabled_indices=vec![1]",
+        "open=controlled_open",
+        "on_open_change=on_open_change",
+        "title=\"State + Source Markers\"",
+        "id_base=\"docs-action-menu-markers\".to_string()",
+        "default_open=true",
+        "aria_label=\"Workspace actions\".to_string()",
+        "class_name=\"docs-action-menu-custom\".to_string()",
+        "motion=marker_motion",
+        "title=\"Disabled + Empty\"",
+        "id_base=\"docs-action-menu-disabled\".to_string()",
+        "disabled=true",
+        "id_base=\"docs-action-menu-empty\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "action-menu docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
