@@ -152,3 +152,62 @@ fn sidebar_docs_page_exists_in_layout_extra() {
         );
     }
 }
+
+#[test]
+fn sidebar_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "pub(super) fn sidebar() -> AnyView",
+        r#"title="Sidebar""#,
+        r#"slug="sidebar""#,
+        r#"description="Shadcn-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and Spectrum-style data markers.""#,
+        r#"<Playground title="Offcanvas + Slot Markers" code=basic_code>"#,
+        r#"<Playground title="Controlled + Right Inset/Icon" code=controlled_code>"#,
+        "<Sidebar",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra sidebar docs should include `{needle}` for sidebar primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        r#"title="Offcanvas + Slot Markers""#,
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        r#"aria_label="Project navigation sidebar".to_string()"#,
+        r#""Workspace""#,
+        r#""Dashboard""#,
+        r#""Analytics""#,
+        r#""Settings""#,
+        r#""Free plan · 2 seats""#,
+        r#"title="Controlled + Right Inset/Icon""#,
+        r#""Toggle right sidebar""#,
+        "open=open",
+        "on_open_change=on_open_change",
+        "side=SidebarSide::Right",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Icon",
+        "show_trigger=false",
+        r#"class_name="docs-sidebar-custom".to_string()"#,
+        r#"aria_label="Inspector sidebar".to_string()"#,
+        r#""Inspector""#,
+        r#""Layers""#,
+        r#""Tokens""#,
+        r#""Motion""#,
+        r#""Ctrl+B / Cmd+B""#,
+        r#""controlled open: ""#,
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra sidebar playgrounds should contain `{needle}` for sidebar contracts.",
+        );
+    }
+}

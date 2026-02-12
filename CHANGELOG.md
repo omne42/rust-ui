@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Sidebar` docs state matrix contracts by locking offcanvas-slot-markers and controlled-right-inset-icon playground anchors in `sidebar_semantics` regression coverage.
+
 - `ui-components`: hardens `SidebarRail` docs state matrix contracts by locking default-rail and controlled-right-rail playground anchors in `sidebar_rail_semantics` regression coverage.
 
 - `ui-components`: hardens `SidebarMenu` docs state matrix contracts by locking default-menu, controlled-active-id+click-callback, keyboard+disabled+expanded, and state+source marker playground anchors in `sidebar_menu_semantics` regression coverage.
