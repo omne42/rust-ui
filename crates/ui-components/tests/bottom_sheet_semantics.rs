@@ -191,3 +191,54 @@ fn bottom_sheet_motion_sanitizes_custom_contract_values() {
         "BottomSheet view should sanitize motion before forwarding to Sheet.",
     );
 }
+
+#[test]
+fn bottom_sheet_css_is_aggregated() {
+    let source = load_source("src/css.rs");
+
+    assert!(
+        source.contains("out.push_str(crate::bottom_sheet::styles::CSS);"),
+        "ui-components css aggregator should include bottom_sheet styles."
+    );
+}
+
+#[test]
+fn bottom_sheet_docs_page_contains_custom_motion_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "pub(super) fn bottom_sheet() -> AnyView",
+        "title=\"BottomSheet\"",
+        "slug=\"bottom-sheet\"",
+        "Custom Motion Contract",
+        "let custom_motion_code = r#\"<BottomSheet",
+        "<BottomSheet",
+    ] {
+        assert!(
+            source.contains(needle),
+            "bottom_sheet docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn bottom_sheet_docs_custom_motion_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
+
+    for needle in [
+        "title=\"Custom Motion Contract\"",
+        "let custom_motion_code = r#\"<BottomSheet",
+        "motion=BottomSheetMotion {",
+        "sheet: ui_components::SheetMotion {",
+        "initial_offset_px: 64.0",
+        "id_base=\"docs-bottom-sheet-motion\".to_string()",
+        "motion=BottomSheetMotion {",
+        "description=\"Custom sheet motion flips data-motion-source to custom.\".to_string()",
+        "Use devtools to inspect data-motion-source/custom-motion.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "bottom_sheet docs custom-motion playground should contain `{needle}`."
+        );
+    }
+}
