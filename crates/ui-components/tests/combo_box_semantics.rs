@@ -272,3 +272,55 @@ fn combo_box_motion_sanitizes_custom_contract_values() {
         "ComboBox view should sanitize motion before attaching popover and active-highlight motion.",
     );
 }
+
+#[test]
+fn combo_box_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "pub(super) fn combo_box() -> AnyView",
+        "title=\"ComboBox\"",
+        "slug=\"combo-box\"",
+        "description=\"Combobox with input + listbox + popover, Spectrum-style root attrs, and HeroUI-level panel/highlight motion.\"",
+        "<Playground title=\"Selection + Validation\" code=code>",
+        "<Playground title=\"Controlled Open State\" code=controlled_code>",
+        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<ComboBox",
+        "open=controlled_open",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections docs page should include `{needle}` for combo-box coverage.",
+        );
+    }
+}
+
+#[test]
+fn combo_box_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "id_base=\"docs-combo-box\".to_string()",
+        "label=\"Language\".to_string()",
+        "disabled_indices=vec![4]",
+        "description=\"Pick one runtime language\".to_string()",
+        "error=\"Language is required\".to_string()",
+        "on_press=Callback::new(move |_| set_invalid.update(|value| *value = !*value))",
+        "\"selected: \"",
+        "id_base=\"docs-combo-box-controlled\".to_string()",
+        "on_open_change=on_open_change",
+        "description=\"Open state is externally controlled\".to_string()",
+        "\"open: \"",
+        "id_base=\"docs-combo-box-disabled\".to_string()",
+        "id_base=\"docs-combo-box-empty\".to_string()",
+        "placeholder=\"No options\".to_string()",
+        "\"disabled selected: \"",
+        "\"empty selected: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "combo-box docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

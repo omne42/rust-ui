@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ComboBox` docs state contracts by locking selection+validation, controlled-open, and disabled+empty playground anchors in `combo_box_semantics` regression coverage.
+
 - `ui-components`: hardens `Select` docs state contracts by locking controlled-open+selection and disabled+empty playground anchors in `select_semantics` regression coverage.
 
 - `ui-components`: hardens `MenuTrigger` docs state contracts by locking default, controlled+persistent-open, and disabled+empty playground anchors in `menu_trigger_semantics` regression coverage.
