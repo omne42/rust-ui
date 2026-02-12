@@ -186,3 +186,57 @@ fn dropdown_motion_sanitizes_custom_contract_values() {
         "Dropdown view should sanitize motion before forwarding to Popover.",
     );
 }
+
+#[test]
+fn dropdown_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "pub(super) fn dropdown() -> AnyView",
+        "title=\"Dropdown\"",
+        "slug=\"dropdown\"",
+        "description=\"Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion.\"",
+        "<Playground title=\"Default\" code=code>",
+        "<Playground title=\"Controlled + Persistent + Motion\" code=states_code>",
+        "<Dropdown",
+        "open=open_signal",
+        "close_on_action=false",
+        "motion=motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "collections-extra docs page should include `{needle}` for dropdown coverage.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "id_base=\"docs-dropdown-default\".to_string()",
+        "items=items",
+        "on_action=on_action",
+        "\"Open actions\"",
+        "\"last action: \"",
+        "let (open_raw, set_open_raw) = signal(false);",
+        "let open_signal: Signal<bool> = Signal::derive(move || open_raw.get());",
+        "let on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));",
+        "id_base=\"docs-dropdown-controlled\".to_string()",
+        "items=controlled_items",
+        "disabled_indices=vec![1]",
+        "item_kinds=vec![",
+        "MenuItemKind::Action",
+        "class_name=\"docs-dropdown-custom\".to_string()",
+        "initial_scale: 0.94",
+        "offset_y_px: 12.0",
+        "\"Controlled dropdown\"",
+        "\"open: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dropdown docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
