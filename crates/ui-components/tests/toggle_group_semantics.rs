@@ -131,3 +131,47 @@ fn toggle_group_styles_define_orientation_and_attached_layout_rules() {
         );
     }
 }
+
+#[test]
+fn toggle_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn toggle_group() -> AnyView",
+        "title=\"ToggleGroup\"",
+        "slug=\"toggle-group\"",
+        "description=\"Shadcn-compatible grouped toggle primitive with controlled selection modes and Spectrum-style root state contracts.\"",
+        "<Playground title=\"Multiple + Attached\" code=code>",
+        "<Playground title=\"Single + Vertical + Disabled Item\" code=states_code>",
+        "<ToggleGroup",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra toggle_group docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn toggle_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Multiple + Attached\"",
+        "id_base=\"docs-toggle-group-formatting\".to_string()",
+        "selection_mode=ToggleGroupSelectionMode::Multiple",
+        "attached=true",
+        "title=\"Single + Vertical + Disabled Item\"",
+        "id_base=\"docs-toggle-group-alignment\".to_string()",
+        "selection_mode=ToggleGroupSelectionMode::Single",
+        "orientation=ToggleGroupOrientation::Vertical",
+        "attached=false",
+        "aria_label=\"Alignment controls\".to_string()",
+        "class_name=\"docs-toggle-group-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra toggle_group docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}

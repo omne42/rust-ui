@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `ToggleGroup` docs state matrix contracts by locking multiple-attached and single-vertical-disabled playground anchors in `toggle_group_semantics` regression coverage.
+
 - `ui-components`: hardens `TimeField` docs state matrix contracts by locking controlled-step and strong-placeholder playground anchors in `time_field_semantics` regression coverage.
 
 - `ui-components`: hardens `ThemeToggleButton` docs state matrix contracts by locking default-cycle and custom-modes-disabled playground anchors in `theme_toggle_button_semantics` regression coverage.
