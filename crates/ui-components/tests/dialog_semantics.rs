@@ -255,3 +255,24 @@ fn dialog_docs_page_locks_custom_motion_marker_contract_values() {
         );
     }
 }
+
+#[test]
+fn dialog_docs_default_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
+
+    for needle in [
+        "<Playground title=\"Dialog\" code=code>",
+        "<Button on_press=open_dialog>\"Open dialog\"</Button>",
+        "id_base=\"docs-dialog\".to_string()",
+        "title=\"Dialog title\".to_string()",
+        "description=\"Uses Overlay + header/body/footer layout.\".to_string()",
+        "<Button variant=ButtonVariant::Secondary on_press=on_close>\"Cancel\"</Button>",
+        "<Button on_press=on_close>\"Confirm\"</Button>",
+        "on_exit_complete=on_exit_complete",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog docs default playground should contain `{needle}`.",
+        );
+    }
+}
