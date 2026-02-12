@@ -195,3 +195,77 @@ fn icon_button_docs_actions_page_locks_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn icon_button_docs_page_covers_primary_playgrounds() {
+    let actions_source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+    let extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra_icon_button.rs");
+
+    for needle in [
+        "pub(super) fn icon_button() -> AnyView",
+        "title=\"IconButton\"",
+        "slug=\"icon-button\"",
+        "description=\"A Button wrapper that enforces accessible labeling and icon sizing while preserving motion/press semantics.\"",
+        "<Playground title=\"on_press + variants\" code=code>",
+        "<Playground title=\"Size + disabled matrix\" code=states_code>",
+        "<IconButton",
+    ] {
+        assert!(
+            actions_source.contains(needle),
+            "actions icon_button docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+
+    for needle in [
+        "title=\"IconButton\"",
+        "slug=\"icon-button\"",
+        "title=\"State + Source Markers\"",
+    ] {
+        assert!(
+            extra_source.contains(needle),
+            "actions_extra_icon_button docs should include `{needle}` for marker playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn icon_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let actions_source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+    let extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra_icon_button.rs");
+
+    for needle in [
+        "title=\"on_press + variants\"",
+        "aria_label=\"Close dialog\".to_string()",
+        "variant=ButtonVariant::Ghost",
+        "aria_label=\"Search\".to_string()",
+        "variant=ButtonVariant::Secondary",
+        "\"close/search presses: \"",
+        "title=\"Size + disabled matrix\"",
+        "aria_label=\"Search small\".to_string() size=ButtonSize::IconSm",
+        "aria_label=\"Search default\".to_string() size=ButtonSize::Icon",
+        "aria_label=\"Search large\".to_string() size=ButtonSize::IconLg",
+        "aria_label=\"Close disabled\".to_string()",
+        "disabled=true",
+    ] {
+        assert!(
+            actions_source.contains(needle),
+            "icon_button actions docs matrix should contain `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "aria_label=\"Inspect icon trigger\".to_string()",
+        "size=ButtonSize::Lg",
+        "motion=ButtonMotion { hover_scale: 1.0, tap_scale: 1.0, ..ButtonMotion::default() }",
+        "class_name=\"docs-icon-button-state\".to_string()",
+        "\"presses: \"",
+    ] {
+        assert!(
+            extra_source.contains(needle),
+            "icon_button extra marker docs should contain `{needle}`.",
+        );
+    }
+}
