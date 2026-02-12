@@ -118,3 +118,51 @@ fn field_button_styles_include_quiet_invalid_and_active_markers() {
         );
     }
 }
+
+#[test]
+fn field_button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub(super) fn field_button() -> AnyView",
+        "title=\"FieldButton\"",
+        "slug=\"field-button\"",
+        "description=\"Spectrum-style field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior.\"",
+        "<Playground title=\"Default + Quiet\" code=default_code>",
+        "<Playground title=\"Invalid + Active + Disabled\" code=state_code>",
+        "<FieldButton",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions_extra docs page should include `{needle}` for field_button primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn field_button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "title=\"Default + Quiet\"",
+        "aria_label=\"Open options\".to_string()",
+        "\"Options\"",
+        "quiet=true",
+        "aria_label=\"Open calendar\".to_string()",
+        "\"📅\"",
+        "title=\"Invalid + Active + Disabled\"",
+        "invalid=true",
+        "is_active=true",
+        "aria_label=\"Invalid trigger\".to_string()",
+        "class_name=\"docs-field-button-custom\".to_string()",
+        "\"Needs fix\"",
+        "disabled=true",
+        "aria_label=\"Disabled trigger\".to_string()",
+        "\"Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "field_button docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
