@@ -8,6 +8,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Button` docs state contracts by locking variants+sizes playground anchors in `button_semantics` regression coverage.
+
+
 - `ui-components`: hardens `AlertDialog` docs state contracts by locking alert-dialog and state+source-marker playground anchors in `alert_dialog_semantics` regression coverage.
 
 

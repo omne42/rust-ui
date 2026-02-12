@@ -199,3 +199,48 @@ fn button_docs_variants_and_controls_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn button_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn button() -> AnyView",
+        "title=\"Button\"",
+        "slug=\"button\"",
+        "Playground",
+        "title=\"Variants & sizes\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should contain `{needle}` for Button.",
+        );
+    }
+}
+
+#[test]
+fn button_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "title=\"Variants & sizes\"",
+        "<Button variant=ButtonVariant::Default>\"Primary\"</Button>",
+        "<Button variant=ButtonVariant::Outline>\"Outline\"</Button>",
+        "<Button variant=ButtonVariant::Ghost>\"Ghost\"</Button>",
+        "id_base=\"docs-button-variant\".to_string()",
+        "id_base=\"docs-button-size\".to_string()",
+        "aria_label=\"Button variant\".to_string()",
+        "aria_label=\"Button size\".to_string()",
+        "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
+        "<Switch checked=loading set_checked=set_loading>\"Loading\"</Switch>",
+        "variant=variant",
+        "size=size",
+        "disabled=disabled",
+        "is_loading=is_loading",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button docs playground should contain `{needle}`.",
+        );
+    }
+}
