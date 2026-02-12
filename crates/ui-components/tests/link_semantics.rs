@@ -135,3 +135,43 @@ fn link_styles_include_state_marker_contracts() {
         );
     }
 }
+
+#[test]
+fn link_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn link() -> AnyView",
+        "title=\"Link\"",
+        "slug=\"link\"",
+        "Playground title=\"State Matrix\"",
+        "Playground title=\"Custom Rel + Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Link.",
+        );
+    }
+}
+
+#[test]
+fn link_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"State Matrix\"",
+        "<Link href=\"#/docs/welcome\".to_string()>\"Internal docs link\"</Link>",
+        "<Link href=\"https://example.com\".to_string() target=\"_blank\">",
+        "<Link href=\"#/docs/welcome\".to_string() disabled=true>\"Disabled\"</Link>",
+        "<Link href=\"   \".to_string()>\"Missing href\"</Link>",
+        "title=\"Custom Rel + Class\"",
+        "rel=\"sponsored\".to_string()",
+        "aria_label=\"Open partner documentation\".to_string()",
+        "class_name=\"docs-link-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "link docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
