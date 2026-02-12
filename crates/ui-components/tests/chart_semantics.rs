@@ -170,3 +170,46 @@ fn chart_docs_page_exists_in_display_extra() {
         );
     }
 }
+
+#[test]
+fn chart_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn chart() -> AnyView",
+        "title=\"Chart\"",
+        "slug=\"chart\"",
+        "title=\"Bar + Hover/Keyboard + Action\"",
+        "title=\"Controlled Line + Active Index\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "chart docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn chart_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Bar + Hover/Keyboard + Action\" code=bar_code>",
+        "id_base=\"docs-chart-bar\".to_string()",
+        "kind=ChartKind::Bar",
+        "on_action=on_action",
+        "\"last action: \"",
+        "<Playground title=\"Controlled Line + Active Index\" code=line_code>",
+        "id_base=\"docs-chart-line\".to_string()",
+        "kind=ChartKind::Line",
+        "active_index=controlled_active",
+        "on_active_index_change=on_controlled_active_change",
+        "aria_label=\"Quarterly growth line chart\".to_string()",
+        "class_name=\"docs-chart-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "chart docs playground should contain `{needle}`.",
+        );
+    }
+}

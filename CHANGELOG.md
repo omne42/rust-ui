@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Chart` docs state contracts by locking bar-action and controlled-line active-index playground anchors in `chart_semantics` regression coverage.
+
 - `ui-components`: hardens `Carousel` docs state contracts by locking indicator-motion default, controlled-vertical no-loop, and state/source-marker playground anchors in `carousel_semantics` regression coverage.
 
 - `ui-components`: hardens `Calendar` docs state contracts by locking default+outside-days and monday-first+strong-tone playground anchors in `calendar_semantics` regression coverage.
