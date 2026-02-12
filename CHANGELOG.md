@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `gridlist` compatibility docs state matrix contracts by locking listbox/listbox-item/listbox-section playground anchors and docs slug mapping contracts in `gridlist_module_semantics` regression coverage.
+
 - `ui-components`: hardens `Grid` docs state matrix contracts by locking columns+gap and autofit+dense+equal-rows playground anchors in `grid_semantics` regression coverage.
 
 - `ui-components`: hardens `grid_list` compatibility docs state matrix contracts by locking listbox/listbox-item/listbox-section playground anchors and docs slug mapping contracts in `grid_list_module_semantics` regression coverage.
