@@ -177,3 +177,14 @@ fn textarea_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn textarea_docs_page_covers_primary_playgrounds() {
+    textarea_docs_page_contains_state_source_playground();
+}
+
+#[test]
+fn textarea_docs_playgrounds_lock_state_matrix_contract_values() {
+    textarea_docs_basic_playground_locks_contract_values();
+    textarea_docs_state_source_playground_locks_contract_values();
+}

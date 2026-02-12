@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `textarea` compatibility docs state matrix contracts by locking basic/state-source playground anchors in `textarea_semantics` regression coverage.
+
 - `ui-components`: hardens `TextArea` docs state matrix contracts by locking state/source marker playground anchors in `text_area_semantics` regression coverage.
 
 - `ui-components`: hardens `Tags` docs state matrix contracts by locking removable/disabled/state-source playground anchors in `tags_semantics` regression coverage.
