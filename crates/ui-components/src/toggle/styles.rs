@@ -64,6 +64,11 @@ pub const CSS: &str = r#"
   --ui-toggle-aria-source: custom;
 }
 
+.ui-toggle[data-custom-aria-label="true"],
+.ui-toggle[data-custom-aria="true"] {
+  --ui-toggle-custom-aria-label: 1;
+}
+
 .ui-toggle[data-handler-source="custom"] {
   --ui-toggle-handler-source: custom;
 }
