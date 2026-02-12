@@ -218,3 +218,47 @@ fn command_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn command_docs_custom_placeholder_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"Custom Placeholder + Empty Label + Disabled Items\"",
+        "id_base=\"docs-command-custom\".to_string()",
+        "placeholder=\"Search pages, actions, and settings...\".to_string()",
+        "empty_label=\"No command matches your search.\".to_string()",
+        "class_name=\"docs-command-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command docs custom-placeholder playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn command_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "let mut marker_motion = ui_components::CommandMotion::default();",
+        "marker_motion.spring.stiffness = 240.0",
+        "marker_motion.spring.damping = 20.0",
+        "id_base=\"docs-command-markers\".to_string()",
+        "placeholder=\"Search workspace actions...\".to_string()",
+        "empty_label=\"No workspace action found.\".to_string()",
+        "aria_label=\"Workspace command center\".to_string()",
+        "class_name=\"docs-command-custom\".to_string()",
+        "motion=marker_motion",
+        "Inspect data-id-source / data-placeholder-source / data-empty-label-source / data-aria-label-source / data-action-source / data-motion-source in DevTools.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command docs state/source playground should contain `{needle}`.",
+        );
+    }
+}

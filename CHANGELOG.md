@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Command` docs state/motion contracts by locking custom-placeholder labels and state/source marker motion values (`stiffness`/`damping`) in `command_semantics` regression coverage.
+
 - `ui-components`: hardens `Collapsible` motion/docs contracts by locking disabled/custom-motion (`panel_offset_y_px`) and state/source marker playground anchors in `collapsible_semantics` regression coverage.
 
 - `ui-components`: hardens `HoverCard` motion docs contracts by locking state/source marker playground values (`open_delay_ms`/`close_delay_ms`/custom id/class) and custom-motion anchors (`initial_scale`/`offset_y_px`) in `hover_card_semantics` regression coverage.
