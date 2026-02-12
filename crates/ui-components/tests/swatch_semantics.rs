@@ -140,3 +140,57 @@ fn swatch_docs_page_includes_custom_motion_playground() {
         );
     }
 }
+
+#[test]
+fn swatch_docs_default_and_state_playgrounds_lock_contract_values() {
+    let display_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+
+    for needle in [
+        "<Playground title=\"Size + Shape + Rounding\" code=size_code>",
+        "size=SwatchSize::Xs",
+        "size=SwatchSize::S",
+        "size=SwatchSize::M",
+        "size=SwatchSize::L",
+        "shape=SwatchShape::Rectangle",
+        "rounding=SwatchRounding::Full",
+        "border=SwatchBorder::Light",
+        "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code=state_code>",
+        "label=\"Brand blue\".to_string()",
+        "selected=move || selected.get()",
+        "on_selected_change=on_selected_change",
+        "mixed_value=true",
+        "nothing=true",
+        "border=SwatchBorder::None",
+        "color=\"#111827\".to_string()",
+        "disabled=true",
+    ] {
+        assert!(
+            display_extra.contains(needle),
+            "display_extra_swatch docs default/state playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn swatch_docs_custom_motion_playground_locks_contract_values() {
+    let display_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
+
+    for needle in [
+        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "let custom_motion = SwatchMotion {",
+        "selected_scale: 1.12,",
+        "selected_ring_opacity: 0.92,",
+        "..SwatchMotion::default()",
+        "motion=custom_motion",
+        "motion=SwatchMotion::disabled()",
+        "label=\"Hero motion\".to_string()",
+        "label=\"Reduced motion\".to_string()",
+    ] {
+        assert!(
+            display_extra.contains(needle),
+            "display_extra_swatch docs custom-motion playground should contain `{needle}`.",
+        );
+    }
+}
