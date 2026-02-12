@@ -87,3 +87,45 @@ fn card_styles_include_variant_and_padding_markers() {
         );
     }
 }
+
+#[test]
+fn card_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn card() -> AnyView",
+        "title=\"Card\"",
+        "slug=\"card\"",
+        "Playground title=\"Variants\"",
+        "Playground title=\"Padding States\"",
+        "Playground title=\"Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for Card.",
+        );
+    }
+}
+
+#[test]
+fn card_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Variants\"",
+        "<Card variant=CardVariant::Default>",
+        "<Card variant=CardVariant::Muted>",
+        "<Card variant=CardVariant::Outline>",
+        "title=\"Padding States\"",
+        "<Card padded=true>",
+        "<Card padded=false>",
+        "title=\"Custom Class\"",
+        "<Card class_name=\"docs-card-custom\".to_string()>",
+        "Verifies `data-custom-class` + class merge.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "card docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
