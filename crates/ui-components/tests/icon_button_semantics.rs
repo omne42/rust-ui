@@ -133,3 +133,21 @@ fn icon_button_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn icon_button_docs_page_locks_custom_motion_marker_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra_icon_button.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "motion=ButtonMotion { hover_scale: 1.0, tap_scale: 1.0, ..ButtonMotion::default() }",
+        "data-motion-source",
+        "class_name=\"docs-icon-button-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icon button docs page should include `{needle}` for motion/source marker regression stability."
+        );
+    }
+}

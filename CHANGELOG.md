@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `IconButton` motion docs contracts by locking marker-playground motion/source values (`ButtonMotion` hover/tap scale + class marker) in `icon_button_semantics` regression coverage.
+
 - `ui-components`: hardens `Dialog` motion docs contracts by locking custom overlay-motion marker values (`initial_scale`/`initial_y_px`) in `dialog_semantics` regression coverage.
 
 - `ui-components`: hardens `AlertDialog` motion docs contracts by locking custom overlay-motion marker values (`initial_scale`/`initial_y_px` + autofocus source) in `alert_dialog_semantics` regression coverage.
