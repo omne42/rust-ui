@@ -36,6 +36,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `ColorSwatch` docs state contracts by locking size+rounding and transparency+accessible-label+shape playground anchors in `color_swatch_semantics` regression coverage.
 
+- `ui-components`: hardens `ColorSwatchPicker` docs state contracts by locking basic-selection and transparency+disabled+custom-class playground anchors in `color_swatch_picker_semantics` regression coverage.
+
 - `ui-components`: hardens `CheckboxGroup` docs state contracts by locking validation+required and disabled+optional playground anchors in `checkbox_group_semantics` regression coverage.
 
 - `ui-components`: hardens `CheckboxField` docs state contracts by locking controlled+description and indicator-end quiet invalid/disabled matrix playground anchors in `checkbox_field_semantics` regression coverage.

@@ -101,3 +101,48 @@ fn color_swatch_picker_styles_include_selected_focus_and_disabled_contracts() {
         );
     }
 }
+
+#[test]
+fn color_swatch_picker_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn color_swatch_picker() -> AnyView",
+        "title=\"ColorSwatchPicker\"",
+        "slug=\"color-swatch-picker\"",
+        "title=\"Basic Selection\"",
+        "title=\"Transparency + Disabled + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-swatch-picker docs page should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_swatch_picker_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "<Playground title=\"Basic Selection\" code=basic_code>",
+        "ColorSwatchPickerItem::named(\"#A00\", \"Red\")",
+        "ColorSwatchPickerItem::named(\"#f80\", \"Orange\")",
+        "ColorSwatchPickerItem::named(\"#080\", \"Green\")",
+        "ColorSwatchPickerItem::named(\"#08f\", \"Blue\")",
+        "default_selected_color=\"#f80\".to_string()",
+        "<Playground title=\"Transparency + Disabled + Custom Class\" code=state_code>",
+        "ColorSwatchPickerItem::named(\"rgba(14, 116, 144, 0.4)\", \"Cyan 40%\").disabled(true)",
+        "ColorSwatchPickerItem::named(\"rgba(255, 0, 0, 0)\", \"Transparent\")",
+        "ColorSwatchPickerItem::new(\"#08f\")",
+        "shape=ColorSwatchShape::Wide",
+        "rounding=ColorSwatchRounding::Default",
+        "class_name=\"docs-color-swatch-picker-custom\".to_string()",
+        "aria_label=\"Fill color\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-swatch-picker docs playground should contain `{needle}`.",
+        );
+    }
+}
