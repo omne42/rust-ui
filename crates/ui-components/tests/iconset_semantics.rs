@@ -200,3 +200,59 @@ fn iconset_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn iconset_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_iconset.rs");
+
+    for needle in [
+        "pub(super) fn iconset() -> AnyView",
+        "title=\"Iconset\"",
+        "slug=\"iconset\"",
+        "description=\"Spectrum-compatible Iconset registry wrapper for namespace + icon-name resolution, composed on Icon accessibility contracts with stable source markers.\"",
+        "<Playground title=\"Registry Namespace Resolution\" code=registry_code>",
+        "<Playground title=\"Fallback + Source State\" code=fallback_code>",
+        "title=\"State + Source Markers\"",
+        "<Iconset",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra_iconset docs should include `{needle}` for iconset primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn iconset_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_iconset.rs");
+
+    for needle in [
+        "title=\"Registry Namespace Resolution\"",
+        "icon=\"workflow:check\".to_string()",
+        "icon=\"workflow:alert\".to_string()",
+        "glyphs=workflow_glyphs.clone()",
+        "size=IconsetSize::Md",
+        "tone=IconsetTone::Accent",
+        "tone=IconsetTone::Danger",
+        "title=\"Fallback + Source State\"",
+        "icon=\"ui:unknown\".to_string()",
+        "iconset=\"ui\".to_string()",
+        "size=IconsetSize::Lg",
+        "tone=IconsetTone::Muted",
+        "class_name=\"docs-iconset-custom\".to_string()",
+        "title=\"State + Source Markers\"",
+        "icon=\"workflow:check\".to_string()",
+        "iconset=\"workflow\".to_string()",
+        "IconsetGlyph::new(\"workflow:check\", \"✓\")",
+        ".with_aria_label(\"Registry Check\")",
+        "aria_label=\"Explicit workflow check\".to_string()",
+        "class_name=\"docs-iconset-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "iconset docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
