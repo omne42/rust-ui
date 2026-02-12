@@ -112,3 +112,45 @@ fn docs_actions_page_locks_flip_button_motion_narrative() {
         );
     }
 }
+
+#[test]
+fn button_flip_docs_top_playground_locks_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn flip_button() -> AnyView",
+        "<Playground title=\"Top flip\" code=code>",
+        "from=FlipDirection::Top",
+        "<Button variant=ButtonVariant::Secondary>\"Front\"</Button>",
+        "<Button variant=ButtonVariant::Accent>\"Back\"</Button>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip-button docs top playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_flip_docs_direction_matrix_and_custom_playgrounds_lock_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Direction matrix\" code=states_code>",
+        "from=FlipDirection::Bottom",
+        "<Button variant=ButtonVariant::Secondary>\"Bottom\"</Button>",
+        "from=FlipDirection::Left",
+        "<Button variant=ButtonVariant::Secondary>\"Left\"</Button>",
+        "from=FlipDirection::Right",
+        "<Button variant=ButtonVariant::Secondary>\"Right\"</Button>",
+        "<Playground title=\"Custom Class\" code=custom_code>",
+        "class_name=\"docs-flip-button-custom\".to_string()",
+        "<Button variant=ButtonVariant::Outline>\"Inspect\"</Button>",
+        "<Button variant=ButtonVariant::Accent>\"Inspecting\"</Button>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "flip-button docs matrix/custom playgrounds should contain `{needle}`.",
+        );
+    }
+}

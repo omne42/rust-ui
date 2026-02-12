@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `FlipButton` docs state contracts by locking top-flip, direction-matrix, and custom-class playground anchors in `button_flip_semantics` regression coverage.
+
 - `ui-components`: hardens `Dialog` docs state contracts by locking default-playground anchors (id/title/description/footer actions/exit callback wiring) in `dialog_semantics` regression coverage.
 
 - `ui-components`: hardens `AlertDialog` docs state contracts by locking default-playground anchors (trigger variant/id/title/description/confirm/exit wiring) in `alert_dialog_semantics` regression coverage.
