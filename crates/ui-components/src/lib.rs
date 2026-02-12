@@ -149,6 +149,7 @@ pub mod navigation_menu;
 pub mod number;
 pub mod number_field;
 pub mod overlay;
+pub mod overlay_arrow;
 pub mod overlays;
 pub mod pagination;
 pub mod picker;
@@ -404,6 +405,7 @@ pub use number::{NumberFormatOptions, SlidingNumber, SlidingNumberMotion, Static
 pub use number_field::NumberField;
 pub use overlay::Overlay;
 pub use overlay::OverlayMotion;
+pub use overlay_arrow::{OverlayArrow, OverlayArrowPlacement, OverlayArrowSize, OverlayArrowTone};
 pub use pagination::Pagination;
 pub use picker::Picker;
 pub use picker_button::PickerButton;
