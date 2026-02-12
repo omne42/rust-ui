@@ -78,57 +78,68 @@ pub const CSS: &str = r#"
 }
 
 .ui-context-menu[data-id-source="custom"],
-.ui-context-menu[data-custom-id="true"] {
+.ui-context-menu[data-custom-id="true"],
+.ui-context-menu--custom-id {
   --ui-context-menu-custom-id: 1;
 }
 
 .ui-context-menu[data-aria-label-source="custom"],
-.ui-context-menu[data-custom-aria-label="true"] {
+.ui-context-menu[data-custom-aria-label="true"],
+.ui-context-menu--custom-aria-label {
   --ui-context-menu-custom-aria-label: 1;
 }
 
 .ui-context-menu[data-class-source="custom"],
-.ui-context-menu[data-custom-class="true"] {
+.ui-context-menu[data-custom-class="true"],
+.ui-context-menu--custom-class {
   --ui-context-menu-custom-class: 1;
 }
 
 .ui-context-menu[data-disabled-source="custom"],
-.ui-context-menu[data-custom-disabled="true"] {
+.ui-context-menu[data-custom-disabled="true"],
+.ui-context-menu--custom-disabled {
   --ui-context-menu-custom-disabled: 1;
 }
 
 .ui-context-menu[data-disabled-indices-source="custom"],
-.ui-context-menu[data-custom-disabled-indices="true"] {
+.ui-context-menu[data-custom-disabled-indices="true"],
+.ui-context-menu--custom-disabled-indices {
   --ui-context-menu-custom-disabled-indices: 1;
 }
 
 .ui-context-menu[data-item-kinds-source="custom"],
-.ui-context-menu[data-custom-item-kinds="true"] {
+.ui-context-menu[data-custom-item-kinds="true"],
+.ui-context-menu--custom-item-kinds {
   --ui-context-menu-custom-item-kinds: 1;
 }
 
 .ui-context-menu[data-close-on-action-source="custom"],
-.ui-context-menu[data-custom-close-on-action="true"] {
+.ui-context-menu[data-custom-close-on-action="true"],
+.ui-context-menu--custom-close-on-action {
   --ui-context-menu-custom-close-on-action: 1;
 }
 
 .ui-context-menu[data-placement-source="custom"],
-.ui-context-menu[data-custom-placement="true"] {
+.ui-context-menu[data-custom-placement="true"],
+.ui-context-menu--custom-placement {
   --ui-context-menu-custom-placement: 1;
 }
 
 .ui-context-menu[data-open-source="custom"],
-.ui-context-menu[data-custom-open="true"] {
+.ui-context-menu[data-custom-open="true"],
+.ui-context-menu--custom-open {
   --ui-context-menu-custom-open: 1;
 }
 
 .ui-context-menu[data-default-open-source="custom"],
-.ui-context-menu[data-custom-default-open="true"] {
+.ui-context-menu[data-custom-default-open="true"],
+.ui-context-menu--custom-default-open {
   --ui-context-menu-custom-default-open: 1;
 }
 
 .ui-context-menu[data-open-change-source="custom"],
-.ui-context-menu[data-custom-open-change="true"] {
+.ui-context-menu[data-custom-open-change="true"],
+.ui-context-menu--custom-open-change {
   --ui-context-menu-custom-open-change: 1;
 }
 

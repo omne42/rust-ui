@@ -189,6 +189,46 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ContextMenuPar
             classes.push("ui-context-menu--uncontrolled".to_string());
         }
 
+        if state.has_custom_id_base {
+            classes.push("ui-context-menu--custom-id".to_string());
+        }
+
+        if state.has_custom_aria_label {
+            classes.push("ui-context-menu--custom-aria-label".to_string());
+        }
+
+        if state.has_custom_disabled {
+            classes.push("ui-context-menu--custom-disabled".to_string());
+        }
+
+        if state.has_custom_disabled_indices {
+            classes.push("ui-context-menu--custom-disabled-indices".to_string());
+        }
+
+        if state.has_custom_item_kinds {
+            classes.push("ui-context-menu--custom-item-kinds".to_string());
+        }
+
+        if state.has_custom_close_on_action {
+            classes.push("ui-context-menu--custom-close-on-action".to_string());
+        }
+
+        if state.has_custom_placement {
+            classes.push("ui-context-menu--custom-placement".to_string());
+        }
+
+        if state.has_custom_open {
+            classes.push("ui-context-menu--custom-open".to_string());
+        }
+
+        if state.has_custom_default_open {
+            classes.push("ui-context-menu--custom-default-open".to_string());
+        }
+
+        if state.has_custom_on_open_change {
+            classes.push("ui-context-menu--custom-open-change".to_string());
+        }
+
         if state.has_custom_motion {
             classes.push("ui-context-menu--custom-motion".to_string());
         }
@@ -336,17 +376,17 @@ mod tests {
                 close_on_action: false,
                 placement: PopoverPlacement::BottomStart,
                 is_controlled: true,
-                has_custom_id_base: false,
-                has_custom_aria_label: false,
+                has_custom_id_base: true,
+                has_custom_aria_label: true,
                 has_custom_class_name: true,
-                has_custom_disabled: false,
-                has_custom_disabled_indices: false,
-                has_custom_item_kinds: false,
+                has_custom_disabled: true,
+                has_custom_disabled_indices: true,
+                has_custom_item_kinds: true,
                 has_custom_close_on_action: true,
-                has_custom_placement: false,
+                has_custom_placement: true,
                 has_custom_open: true,
-                has_custom_default_open: false,
-                has_custom_on_open_change: false,
+                has_custom_default_open: true,
+                has_custom_on_open_change: true,
                 has_custom_motion: true,
             }),
         );
@@ -359,6 +399,16 @@ mod tests {
             "ui-context-menu--empty",
             "ui-context-menu--persistent",
             "ui-context-menu--controlled",
+            "ui-context-menu--custom-id",
+            "ui-context-menu--custom-aria-label",
+            "ui-context-menu--custom-disabled",
+            "ui-context-menu--custom-disabled-indices",
+            "ui-context-menu--custom-item-kinds",
+            "ui-context-menu--custom-close-on-action",
+            "ui-context-menu--custom-placement",
+            "ui-context-menu--custom-open",
+            "ui-context-menu--custom-default-open",
+            "ui-context-menu--custom-open-change",
             "ui-context-menu--custom-motion",
             "ui-context-menu--custom-class",
             "custom",
