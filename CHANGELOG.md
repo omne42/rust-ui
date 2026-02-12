@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `style_macro_s1` compatibility docs state matrix contracts by locking UiRoot usage/state-contract playground anchors reused by `style_macro_s1_module_semantics` regression coverage.
+
 - `ui-components`: hardens `story_utils` compatibility docs state matrix contracts by locking UiRoot usage/state-contract playground anchors reused by `story_utils_module_semantics` regression coverage.
 
 - `ui-components`: hardens `SplitView` docs state matrix contracts by locking horizontal-default, controlled-vertical-bounds, and state-source-markers playground anchors in `split_view_semantics` regression coverage.
