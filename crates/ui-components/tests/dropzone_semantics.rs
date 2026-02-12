@@ -171,3 +171,57 @@ fn dropzone_docs_state_source_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn dropzone_docs_page_covers_primary_playgrounds() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/files_extra_dropzone.rs");
+
+    for needle in [
+        "pub(super) fn dropzone() -> AnyView",
+        "title=\"Dropzone\"",
+        "slug=\"dropzone\"",
+        "description=\"Spectrum-compatible Dropzone alias for upstream naming parity, preserving DropZone drag/drop + paste accessibility contracts and HeroUI-level spring interaction motion.\"",
+        "<Playground title=\"Drop / paste\" code=basic_code>",
+        "<Playground title=\"Disabled\" code=disabled_code>",
+        "title=\"State + Source Markers\"",
+        "<Dropzone",
+    ] {
+        assert!(
+            source.contains(needle),
+            "files_extra_dropzone docs page should include `{needle}` for dropzone primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn dropzone_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/files_extra_dropzone.rs");
+
+    for needle in [
+        "title=\"Drop / paste\"",
+        "label=\"Upload\".to_string()",
+        "on_drop_files=on_drop_files",
+        "\"No files received.\"",
+        "title=\"Disabled\"",
+        "label=\"Disabled\".to_string()",
+        "disabled=true",
+        "\"Dropzone disabled\"",
+        "let marker_motion = DropZoneMotion {",
+        "hover_scale: 1.02",
+        "drop_scale: 1.01",
+        "..DropZoneMotion::default()",
+        "label=\"Asset upload\".to_string()",
+        "aria_label=\"Asset upload area\".to_string()",
+        "class_name=\"docs-dropzone-state\".to_string()",
+        "motion=marker_motion",
+        "on_drop_files=marker_on_drop_files",
+        "\"marker drop events: \"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dropzone docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
