@@ -131,3 +131,63 @@ fn sidebar_menu_action_docs_page_exists_in_layout_extra_modules() {
         );
     }
 }
+
+#[test]
+fn sidebar_menu_action_docs_page_covers_primary_playgrounds() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_menu_action.rs",
+    );
+
+    for needle in [
+        "pub(super) fn sidebar_menu_action() -> AnyView",
+        "title=\"SidebarMenuAction\"",
+        "slug=\"sidebar-menu-action\"",
+        "description=\"Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts.\"",
+        "<Playground title=\"Default Hover-Only Action\" code=default_code>",
+        "<Playground title=\"Always Visible + Disabled + Custom\" code=always_visible_code>",
+        "<SidebarMenuAction",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_menu_action docs should include `{needle}` for sidebar_menu_action primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn sidebar_menu_action_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/layout_extra_sidebar_menu_action.rs",
+    );
+
+    for needle in [
+        "title=\"Default Hover-Only Action\"",
+        "side=SidebarSide::Left",
+        "variant=SidebarVariant::Sidebar",
+        "collapsible=SidebarCollapsible::Icon",
+        "show_trigger=false",
+        "aria_label=\"Sidebar menu action playground\".to_string()",
+        "<SidebarContent aria_label=\"Sidebar action rows\".to_string()>",
+        "aria_label=\"Open item actions\".to_string()",
+        "on_press=on_press",
+        "\"Project Alpha\"",
+        "\"last action: \"",
+        "title=\"Always Visible + Disabled + Custom\"",
+        "side=SidebarSide::Right",
+        "variant=SidebarVariant::Inset",
+        "collapsible=SidebarCollapsible::Offcanvas",
+        "aria_label=\"Always visible action sidebar\".to_string()",
+        "<SidebarContent aria_label=\"Disabled action rows\".to_string()>",
+        "hover_only=false",
+        "disabled=true",
+        "label=\"!\".to_string()",
+        "aria_label=\"Disabled always-visible action\".to_string()",
+        "class_name=\"docs-sidebar-menu-action-custom\".to_string()",
+        "\"Locked Project\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout_extra_sidebar_menu_action docs playgrounds should contain `{needle}` for sidebar_menu_action contracts.",
+        );
+    }
+}
