@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `visually_hidden` compatibility docs contracts by locking dedicated docs playground anchors in `visually_hidden_module_semantics` regression coverage.
+
 - `ui-components`: hardens `virtualizer` compatibility docs contracts by locking scroll-area reuse anchors in `virtualizer_module_semantics` regression coverage.
 
 - `ui-components`: hardens `utils` compatibility docs contracts by locking button reuse anchors in `utils_module_semantics` regression coverage.

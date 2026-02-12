@@ -66,3 +66,13 @@ fn visually_hidden_has_dedicated_docs_playground() {
         );
     }
 }
+
+#[test]
+fn visually_hidden_module_docs_page_covers_primary_playgrounds() {
+    visually_hidden_has_dedicated_docs_playground();
+}
+
+#[test]
+fn visually_hidden_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    visually_hidden_has_dedicated_docs_playground();
+}
