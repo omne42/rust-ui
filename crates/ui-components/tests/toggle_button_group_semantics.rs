@@ -89,3 +89,53 @@ fn toggle_button_group_styles_define_attached_overlap_rule() {
         "ToggleButtonGroup styles should define overlap CSS vars for attached layout behavior."
     );
 }
+
+#[test]
+fn toggle_button_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "pub(super) fn toggle_button_group() -> AnyView",
+        "title=\"ToggleButtonGroup\"",
+        "slug=\"toggle-button-group\"",
+        "description=\"Layout wrapper with Spectrum-style root state attrs for orientation, attachment, and accessible labeling.\"",
+        "<Playground title=\"Attached horizontal\" code=code>",
+        "<Playground title=\"Vertical + detached\" code=states_code>",
+        "<ToggleButtonGroup",
+        "orientation=ToggleButtonGroupOrientation::Vertical",
+        "attached=false",
+        "aria_label=\"Alignment controls\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "actions docs page should include `{needle}` for toggle-button-group coverage.",
+        );
+    }
+}
+
+#[test]
+fn toggle_button_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<ToggleButtonGroup attached=true>",
+        "<ToggleButton selected=a set_selected=set_a>\"Bold\"</ToggleButton>",
+        "<ToggleButton selected=b set_selected=set_b>\"Italic\"</ToggleButton>",
+        "<ToggleButton selected=c set_selected=set_c>\"Underline\"</ToggleButton>",
+        "\"attached selected count: \"",
+        "\"detached selected count: \"",
+        "selected=left",
+        "set_selected=set_left",
+        "selected=center",
+        "set_selected=set_center",
+        "selected=right",
+        "set_selected=set_right",
+        "variant=ToggleButtonVariant::Secondary",
+        "{move || detached_selected_count.get().to_string()}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "toggle-button-group docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
