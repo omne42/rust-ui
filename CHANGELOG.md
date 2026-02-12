@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `layout` compatibility module docs state matrix contracts by locking Flex+Grid primary playground anchors and `layout`→`["flex", "grid"]` docs mapping in `layout_module_semantics` regression coverage.
+
 - `ui-components`: hardens `LabeledValue` docs state matrix contracts by locking orientation+tone and description+custom-aria/class playground anchors in `labeled_value_semantics` regression coverage.
 
 - `ui-components`: hardens `Label` docs state matrix contracts by locking emphasis+required and custom-indicator+class playground anchors in `label_semantics` regression coverage.

@@ -52,3 +52,95 @@ fn layout_compatibility_reuses_flex_and_grid_docs_playgrounds() {
         );
     }
 }
+
+#[test]
+fn layout_module_docs_page_covers_primary_playgrounds() {
+    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let layout_extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
+
+    for needle in [
+        "pub(super) fn flex() -> AnyView",
+        "title=\"Flex\"",
+        "slug=\"flex\"",
+        "description=\"Spectrum-style flex layout primitive with centralized direction/wrap/alignment/gap normalization and stable data-state contracts.\"",
+        "<Playground title=\"Direction + Wrap + Gap\" code=matrix_code>",
+        "<Playground title=\"Inline + Distribution\" code=inline_code>",
+        "<Flex",
+    ] {
+        assert!(
+            layout_source.contains(needle),
+            "layout docs should include `{needle}` for layout module Flex primary playground coverage.",
+        );
+    }
+
+    for needle in [
+        "pub(super) fn grid() -> AnyView",
+        "title=\"Grid\"",
+        "slug=\"grid\"",
+        "description=\"Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts.\"",
+        "<Playground title=\"Columns + Gap\" code=columns_code>",
+        "<Playground title=\"AutoFit + Dense + Equal Rows\" code=adaptive_code>",
+        "<Grid",
+    ] {
+        assert!(
+            layout_extra_source.contains(needle),
+            "layout_extra docs should include `{needle}` for layout module Grid primary playground coverage.",
+        );
+    }
+
+    assert!(
+        mod_source.contains("\"layout\" => &[\"flex\", \"grid\"]"),
+        "components mod mapping should keep `layout` mapped to `flex` and `grid` slugs.",
+    );
+}
+
+#[test]
+fn layout_module_docs_playgrounds_lock_state_matrix_contract_values() {
+    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let layout_extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
+
+    for needle in [
+        "title=\"Direction + Wrap + Gap\"",
+        "direction=FlexDirection::Row",
+        "wrap=FlexWrap::Wrap",
+        "gap=FlexGap::Md",
+        "align=FlexAlign::Center",
+        "aria_label=\"Tag cloud layout\".to_string()",
+        "direction=FlexDirection::Column",
+        "class_name=\"docs-flex-column\".to_string()",
+        "title=\"Inline + Distribution\"",
+        "inline=true",
+        "justify=FlexJustify::SpaceBetween",
+        "align=FlexAlign::Baseline",
+        "gap=FlexGap::Lg",
+        "class_name=\"docs-flex-inline\".to_string()",
+    ] {
+        assert!(
+            layout_source.contains(needle),
+            "layout docs playgrounds should contain `{needle}` for layout module Flex contracts.",
+        );
+    }
+
+    for needle in [
+        "title=\"Columns + Gap\"",
+        "columns=GridColumns::Three",
+        "gap=GridGap::Md",
+        "aria_label=\"Overview cards grid\".to_string()",
+        "title=\"AutoFit + Dense + Equal Rows\"",
+        "columns=GridColumns::AutoFit",
+        "rows=GridRows::Equal",
+        "gap=GridGap::Lg",
+        "justify=GridJustify::Stretch",
+        "align=GridAlign::Stretch",
+        "dense=true",
+        "class_name=\"docs-grid-adaptive\".to_string()",
+    ] {
+        assert!(
+            layout_extra_source.contains(needle),
+            "layout_extra docs playgrounds should contain `{needle}` for layout module Grid contracts.",
+        );
+    }
+}
