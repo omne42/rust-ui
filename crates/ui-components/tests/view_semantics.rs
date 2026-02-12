@@ -110,3 +110,45 @@ fn view_styles_include_surface_and_spacing_markers() {
         );
     }
 }
+
+#[test]
+fn view_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn view() -> AnyView",
+        "title=\"View\"",
+        "slug=\"view\"",
+        "Playground title=\"Surface Tokens\"",
+        "Playground title=\"Element + Fluid + Custom Class\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for View.",
+        );
+    }
+}
+
+#[test]
+fn view_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Surface Tokens\"",
+        "<View border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Md>",
+        "background=ViewBackground::Accent",
+        "border=ViewBorder::Strong",
+        "shadow=ViewShadow::Md",
+        "title=\"Element + Fluid + Custom Class\"",
+        "element=ViewElement::Section",
+        "fluid=true",
+        "class_name=\"docs-view-custom\".to_string()",
+        "aria_label=\"Release notes\".to_string()",
+        "element=ViewElement::Span",
+    ] {
+        assert!(
+            source.contains(needle),
+            "view docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
