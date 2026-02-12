@@ -90,3 +90,42 @@ fn badge_styles_include_variant_fill_and_custom_class_markers() {
         );
     }
 }
+
+#[test]
+fn badge_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn badge() -> AnyView",
+        "title=\"Badge\"",
+        "slug=\"badge\"",
+        "Playground title=\"Variant Matrix\"",
+        "Playground title=\"Custom Class + Outline\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display docs page should contain `{needle}` for Badge.",
+        );
+    }
+}
+
+#[test]
+fn badge_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "title=\"Variant Matrix\"",
+        "<Badge variant=BadgeVariant::Default>\"Default\"</Badge>",
+        "<Badge variant=BadgeVariant::Accent>\"Accent\"</Badge>",
+        "<Badge variant=BadgeVariant::Danger>\"Danger\"</Badge>",
+        "<Badge variant=BadgeVariant::Outline>\"Outline\"</Badge>",
+        "title=\"Custom Class + Outline\"",
+        "variant=BadgeVariant::Accent class_name=\"docs-badge-custom\".to_string()",
+        "variant=BadgeVariant::Outline class_name=\"docs-badge-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "badge docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
