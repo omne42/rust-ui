@@ -153,3 +153,45 @@ fn input_motion_sanitizes_custom_contract_values() {
         );
     }
 }
+
+#[test]
+fn input_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "pub(super) fn input() -> AnyView",
+        "title=\"Input\"",
+        "slug=\"input\"",
+        "description=\"Spectrum-style text input with label, description/error, and clear button.\"",
+        "<Playground title=\"Clearable + validation\" code=code>",
+        "<Input",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms docs should include `{needle}` for input primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn input_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Clearable + validation\"",
+        "id=\"docs-input\".to_string()",
+        "label=\"Name\".to_string()",
+        "is_clearable=true",
+        "invalid=Signal::derive(move || invalid.get())",
+        "description=\"Try toggling invalid.\".to_string()",
+        "error=\"This field is invalid.\".to_string()",
+        "size=InputSize::Md",
+        "variant=InputVariant::Bordered",
+        "on_press=Callback::new(move |_| set_invalid.update(|v| *v = !*v))",
+    ] {
+        assert!(
+            source.contains(needle),
+            "input docs playgrounds should contain `{needle}`.",
+        );
+    }
+}

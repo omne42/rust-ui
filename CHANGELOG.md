@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Input` docs state matrix contracts by locking clearable+validation playground anchors in `input_semantics` regression coverage.
+
 - `ui-components`: hardens `InputOtp` docs state matrix contracts by locking otp playground id/label/length/value anchors in `input_otp_semantics` regression coverage.
 
 - `ui-components`: hardens `InputGroup` docs state matrix contracts by locking attached-addons and detached+disabled playground anchors in `input_group_semantics` regression coverage.
