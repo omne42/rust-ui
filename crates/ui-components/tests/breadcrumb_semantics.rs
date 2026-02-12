@@ -148,3 +148,46 @@ fn breadcrumb_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn breadcrumb_docs_overflow_playground_locks_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+    );
+
+    for needle in [
+        "title=\"Ellipsis Overflow\"",
+        "<BreadcrumbEllipsis />",
+        "<BreadcrumbLink href=\"/\">\"Home\"</BreadcrumbLink>",
+        "<BreadcrumbPage>",
+        "\"Current\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Breadcrumb docs overflow playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn breadcrumb_docs_state_source_playground_locks_contract_values() {
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+    );
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "aria_label=\"Documentation navigation\".to_string()",
+        "class_name=\"docs-breadcrumb-state\".to_string()",
+        "<BreadcrumbList class_name=\"docs-breadcrumb-list\".to_string()>",
+        "<BreadcrumbLink class_name=\"docs-breadcrumb-link\".to_string()>",
+        "<BreadcrumbPage class_name=\"docs-breadcrumb-page\".to_string()>",
+        "<span>\"→\"</span>",
+        "Inspect root/link/separator markers like `data-state`, `data-aria-source`, `data-class-source`, `data-href-state`, and `data-content-source` for Spectrum-compatible breadcrumb contracts.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Breadcrumb docs state/source playground should contain `{needle}`.",
+        );
+    }
+}

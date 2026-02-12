@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `Breadcrumb` docs state/source contracts by locking ellipsis-overflow anchors and state/source marker playground values (custom aria/class/link/page/separator content) in `breadcrumb_semantics` regression coverage.
+
 - `ui-components`: hardens `Sidenav` docs state/source contracts by locking controlled-floating markers and state/source playground anchors (`shortcut_key`/`trigger_label`/`handler-source`) in `sidenav_semantics` regression coverage.
 
 - `ui-components`: hardens `TopNav` docs state/motion contracts by locking controlled-selection markers and state/source playground motion values (`stiffness`/`damping`) in `top_nav_semantics` regression coverage.
