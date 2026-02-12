@@ -129,3 +129,54 @@ fn pressable_feedback_motion_contract_is_present() {
         );
     }
 }
+
+#[test]
+fn pressable_feedback_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "pub(super) fn pressable_feedback() -> AnyView",
+        "title=\"PressableFeedback\"",
+        "slug=\"pressable-feedback\"",
+        "description=\"HeroUI-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition.\"",
+        "<Playground title=\"Scale + Highlight\" code=basic_code>",
+        "<Playground title=\"Highlight + Ripple + Custom Motion\" code=custom_code>",
+        "<PressableFeedback",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra docs should include `{needle}` for pressable-feedback primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn pressable_feedback_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Scale + Highlight\"",
+        "effect=PressableFeedbackEffect::Highlight",
+        "tone=PressableFeedbackTone::Accent",
+        "on_press=on_press_count",
+        "\"Press me\"",
+        "format!(\"Press count: {}\", press_count.get())",
+        "title=\"Highlight + Ripple + Custom Motion\"",
+        "effect=PressableFeedbackEffect::HighlightRipple",
+        "tone=PressableFeedbackTone::Neutral",
+        "bounded=false",
+        "motion=PressableFeedbackMotion {",
+        "pressed_scale: 0.94",
+        "highlight_opacity: 0.2",
+        "duration_ms: 720",
+        "class_name=\"docs-pressable-feedback-custom\".to_string()",
+        "\"Custom feedback\"",
+        "is_disabled=true",
+        "\"Disabled\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display_extra docs playgrounds should contain `{needle}` for pressable-feedback contracts.",
+        );
+    }
+}

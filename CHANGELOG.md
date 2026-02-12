@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `PressableFeedback` docs state matrix contracts by locking scale+highlight and custom-motion+ripple playground anchors in `pressable_feedback_semantics` regression coverage.
+
 - `ui-components`: hardens `Popover` docs state matrix contracts by locking base and state-source marker playground anchors in `popover_semantics` regression coverage.
 
 - `ui-components`: hardens `Picker` docs state matrix contracts by locking basic-selection, controlled-open, and state-source marker playground anchors in `picker_semantics` regression coverage.
