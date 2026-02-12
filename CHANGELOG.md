@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `SwitchGroup` docs state matrix contracts by locking `Required + Description` and `Horizontal + Invalid + Disabled + Custom Class` playground anchors in `switch_group_semantics` regression coverage.
+
 - `ui-components`: hardens `Swatch` docs state matrix contracts by locking primary playground anchors (`Size + Shape + Rounding` / `Mixed + Nothing + Disabled + Controlled` / `Custom Motion Contract`) in `swatch_semantics` regression coverage.
 
 - `ui-components`: hardens `Surface` docs state matrix contracts by locking tone-elevation-frame and custom-aria-class playground anchors in `surface_semantics` regression coverage.

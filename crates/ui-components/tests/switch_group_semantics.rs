@@ -123,3 +123,48 @@ fn switch_group_styles_include_state_markers() {
         );
     }
 }
+
+#[test]
+fn switch_group_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+
+    for needle in [
+        "pub(super) fn switch_group() -> AnyView",
+        "title=\"SwitchGroup\"",
+        "slug=\"switch-group\"",
+        "description=\"Spectrum/HeroUI-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers.\"",
+        "<Playground title=\"Required + Description\" code=base_code>",
+        "<Playground title=\"Horizontal + Invalid + Disabled + Custom Class\" code=states_code>",
+        "<SwitchGroup",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_groups switch_group docs should include `{needle}` for primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn switch_group_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_groups.rs");
+
+    for needle in [
+        "title=\"Required + Description\"",
+        "required=true",
+        "aria_label=\"Notification switches\".to_string()",
+        "title=\"Horizontal + Invalid + Disabled + Custom Class\"",
+        "orientation=SwitchGroupOrientation::Horizontal",
+        "tone=SwitchGroupTone::Muted",
+        "invalid=true",
+        "disabled=true",
+        "error_message=\"At least one critical channel must stay enabled.\".to_string()",
+        "class_name=\"docs-switch-group-custom\".to_string()",
+        "<Switch checked=critical_alerts set_checked=set_critical_alerts disabled=true>",
+        "<Switch checked=maintenance_mode set_checked=set_maintenance_mode disabled=true>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "forms_groups switch_group docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
