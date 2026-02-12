@@ -140,3 +140,54 @@ fn icons_ui_docs_page_contains_state_source_playground() {
         );
     }
 }
+
+#[test]
+fn icons_ui_docs_default_and_custom_playgrounds_lock_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons_ui.rs");
+
+    for needle in [
+        "<Playground title=\"Built-in UI Glyphs\" code=defaults_code>",
+        "icon=\"check\".to_string()",
+        "icon=\"close\".to_string()",
+        "size=IconsUiSize::Md",
+        "tone=IconsUiTone::Accent",
+        "tone=IconsUiTone::Danger",
+        "decorative=false",
+        "<Playground title=\"Custom Registry Extension\" code=custom_code>",
+        "icon=\"ui:save\".to_string()",
+        "IconsetGlyph::new(\"ui:save\", \"💾\")",
+        ".with_aria_label(\"UI Save\")",
+        "size=IconsUiSize::Lg",
+        "tone=IconsUiTone::Default",
+        "class_name=\"docs-icons-ui-custom\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons_ui docs default/custom playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn icons_ui_docs_state_source_playground_locks_contract_values() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons_ui.rs");
+
+    for needle in [
+        "title=\"State + Source Markers\"",
+        "icon=\"help\".to_string()",
+        "IconsetGlyph::new(\"ui:help\", \"?\")",
+        ".with_aria_label(\"UI Help\")",
+        "size=IconsUiSize::Lg",
+        "tone=IconsUiTone::Muted",
+        "decorative=false",
+        "aria_label=\"Explicit UI help icon\".to_string()",
+        "class_name=\"docs-icons-ui-state\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icons_ui docs marker playground should contain `{needle}`.",
+        );
+    }
+}

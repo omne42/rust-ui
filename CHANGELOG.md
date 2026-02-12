@@ -28,6 +28,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: hardens `Icons` docs state/source contracts by locking default/custom anchors plus marker-playground set/scale/glyph/aria/class/tone wiring in `icons_semantics` regression coverage.
 
+- `ui-components`: hardens `IconsUi` docs state/source contracts by locking built-in/custom anchors plus marker-playground icon-reference/glyph/aria/class/size/tone wiring in `icons_ui_semantics` regression coverage.
+
 - `ui-components`: hardens `Dropzone` docs state/motion contracts by locking disabled and marker-playground anchors plus explicit custom motion values (`hover_scale`/`drop_scale`) in `dropzone_semantics` regression coverage.
 
 - `ui-components`: hardens `PickerButton` docs state/source contracts by locking state-matrix and marker-playground anchors (quiet/invalid/disabled/active + aria/class/handler source wiring) in `picker_button_semantics` regression coverage.
