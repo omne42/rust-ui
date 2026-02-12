@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `UiRoot` docs state contracts by locking usage and root-state-contract playground anchors in `ui_root_semantics` regression coverage.
+
 - `ui-components`: hardens `AutoHeight` docs state contracts by locking animated-height and static-motion+custom-class playground anchors in `auto_height_semantics` regression coverage.
 
 - `ui-components`: hardens `ScrollShadow` docs state contracts by locking default-scrollable and custom-height+class playground anchors in `scroll_shadow_semantics` regression coverage.

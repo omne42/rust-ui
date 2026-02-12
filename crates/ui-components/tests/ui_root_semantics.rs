@@ -75,3 +75,43 @@ fn ui_root_injects_theme_and_component_css_layers() {
         );
     }
 }
+
+#[test]
+fn ui_root_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "pub(super) fn ui_root() -> AnyView",
+        "title=\"UiRoot\"",
+        "slug=\"ui-root\"",
+        "Playground title=\"Usage\"",
+        "Playground title=\"State Contract\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "layout docs page should contain `{needle}` for UiRoot.",
+        );
+    }
+}
+
+#[test]
+fn ui_root_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+
+    for needle in [
+        "title=\"Usage\"",
+        "use ui_components::{UiRoot, Theme};",
+        "<UiRoot theme=theme safe_area=true>",
+        "safe_area=true adds the safe-area inset contract",
+        "title=\"State Contract\"",
+        "data-slot=\"ui-root\"",
+        "data-theme-scheme",
+        "data-state",
+        "data-safe-area",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ui-root docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
