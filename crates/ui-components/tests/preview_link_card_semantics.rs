@@ -241,3 +241,59 @@ fn preview_link_card_docs_custom_motion_playground_locks_contract_values() {
         );
     }
 }
+
+#[test]
+fn preview_link_card_docs_page_covers_primary_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "pub(super) fn preview_link_card() -> AnyView",
+        "title=\"PreviewLinkCard\"",
+        "slug=\"preview-link-card\"",
+        "description=\"Hover-triggered preview link card with overlay positioning, motion contract, and source markers.\"",
+        "<Playground title=\"Preview Snapshot\" code=code>",
+        "title=\"State + Source Markers\"",
+        "code=markers_code",
+        "<Playground title=\"Default Fallbacks\" code=fallback_code>",
+        "<PreviewLinkCard",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs should include `{needle}` for preview-link-card primary playground coverage.",
+        );
+    }
+}
+
+#[test]
+fn preview_link_card_docs_playgrounds_lock_state_matrix_contract_values() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Preview Snapshot\"",
+        "title=\"Rust UI docs\".to_string()",
+        "description=\"Preview component behavior and source markers.\".to_string()",
+        "url=\"https://github.com/adobe/react-spectrum\".to_string()",
+        "image_src=\"https://avatars.githubusercontent.com/u/476009?v=4\".to_string()",
+        "title=\"State + Source Markers\"",
+        "id=\"docs-preview-link-card\".to_string()",
+        "title=\"Custom title\".to_string()",
+        "description=\"Custom description for source markers.\".to_string()",
+        "url=\"https://react-spectrum.adobe.com\".to_string()",
+        "site_label=\"react-spectrum.adobe.com\".to_string()",
+        "open_delay_ms=260",
+        "close_delay_ms=240",
+        "class_name=\"docs-preview-link-card-state\".to_string()",
+        "motion=PreviewLinkCardMotion {",
+        "initial_scale: 0.95",
+        "offset_y_px: 12.0",
+        "\"Inspect markers\"",
+        "title=\"Default Fallbacks\"",
+        "\"Uses defaults\"",
+        "Falls back to default title/description/url/site-label when not provided.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "overlays docs playgrounds should contain `{needle}` for preview-link-card contracts.",
+        );
+    }
+}

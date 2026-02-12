@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: hardens `PreviewLinkCard` docs state matrix contracts by locking snapshot, state-source marker, and default-fallback playground anchors in `preview_link_card_semantics` regression coverage.
+
 - `ui-components`: hardens `PreviewCard` docs state matrix contracts by locking basic, state-source marker, and default-fallback playground anchors in `preview_card_semantics` regression coverage.
 
 - `ui-components`: hardens `PressableFeedback` docs state matrix contracts by locking scale+highlight and custom-motion+ripple playground anchors in `pressable_feedback_semantics` regression coverage.
