@@ -24,7 +24,17 @@ impl ToggleButtonVariant {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ToggleButtonSize {
+    Xs,
+    S,
     #[default]
+    M,
+    L,
+    Xl,
+    IconXs,
+    IconS,
+    IconM,
+    IconL,
+    IconXl,
     Default,
     Sm,
     Lg,
@@ -36,12 +46,22 @@ pub enum ToggleButtonSize {
 impl ToggleButtonSize {
     pub fn class_name(self) -> &'static str {
         match self {
-            ToggleButtonSize::Default => "ui-toggle-button--size-default",
-            ToggleButtonSize::Sm => "ui-toggle-button--size-sm",
-            ToggleButtonSize::Lg => "ui-toggle-button--size-lg",
-            ToggleButtonSize::Icon => "ui-toggle-button--size-icon",
-            ToggleButtonSize::IconSm => "ui-toggle-button--size-icon-sm",
-            ToggleButtonSize::IconLg => "ui-toggle-button--size-icon-lg",
+            ToggleButtonSize::Xs => "ui-toggle-button--size-xs",
+            ToggleButtonSize::S => "ui-toggle-button--size-s",
+            ToggleButtonSize::M => "ui-toggle-button--size-m",
+            ToggleButtonSize::L => "ui-toggle-button--size-l",
+            ToggleButtonSize::Xl => "ui-toggle-button--size-xl",
+            ToggleButtonSize::IconXs => "ui-toggle-button--size-icon-xs",
+            ToggleButtonSize::IconS => "ui-toggle-button--size-icon-s",
+            ToggleButtonSize::IconM => "ui-toggle-button--size-icon-m",
+            ToggleButtonSize::IconL => "ui-toggle-button--size-icon-l",
+            ToggleButtonSize::IconXl => "ui-toggle-button--size-icon-xl",
+            ToggleButtonSize::Default => "ui-toggle-button--size-m",
+            ToggleButtonSize::Sm => "ui-toggle-button--size-s",
+            ToggleButtonSize::Lg => "ui-toggle-button--size-l",
+            ToggleButtonSize::Icon => "ui-toggle-button--size-icon-m",
+            ToggleButtonSize::IconSm => "ui-toggle-button--size-icon-s",
+            ToggleButtonSize::IconLg => "ui-toggle-button--size-icon-l",
         }
     }
 }
@@ -125,28 +145,60 @@ mod tests {
     #[test]
     fn size_class_names_are_stable() {
         assert_eq!(
+            ToggleButtonSize::Xs.class_name(),
+            "ui-toggle-button--size-xs"
+        );
+        assert_eq!(ToggleButtonSize::S.class_name(), "ui-toggle-button--size-s");
+        assert_eq!(ToggleButtonSize::M.class_name(), "ui-toggle-button--size-m");
+        assert_eq!(ToggleButtonSize::L.class_name(), "ui-toggle-button--size-l");
+        assert_eq!(
+            ToggleButtonSize::Xl.class_name(),
+            "ui-toggle-button--size-xl"
+        );
+        assert_eq!(
+            ToggleButtonSize::IconXs.class_name(),
+            "ui-toggle-button--size-icon-xs"
+        );
+        assert_eq!(
+            ToggleButtonSize::IconS.class_name(),
+            "ui-toggle-button--size-icon-s"
+        );
+        assert_eq!(
+            ToggleButtonSize::IconM.class_name(),
+            "ui-toggle-button--size-icon-m"
+        );
+        assert_eq!(
+            ToggleButtonSize::IconL.class_name(),
+            "ui-toggle-button--size-icon-l"
+        );
+        assert_eq!(
+            ToggleButtonSize::IconXl.class_name(),
+            "ui-toggle-button--size-icon-xl"
+        );
+
+        assert_eq!(
             ToggleButtonSize::Default.class_name(),
-            "ui-toggle-button--size-default"
+            "ui-toggle-button--size-m"
         );
         assert_eq!(
             ToggleButtonSize::Sm.class_name(),
-            "ui-toggle-button--size-sm"
+            "ui-toggle-button--size-s"
         );
         assert_eq!(
             ToggleButtonSize::Lg.class_name(),
-            "ui-toggle-button--size-lg"
+            "ui-toggle-button--size-l"
         );
         assert_eq!(
             ToggleButtonSize::Icon.class_name(),
-            "ui-toggle-button--size-icon"
+            "ui-toggle-button--size-icon-m"
         );
         assert_eq!(
             ToggleButtonSize::IconSm.class_name(),
-            "ui-toggle-button--size-icon-sm"
+            "ui-toggle-button--size-icon-s"
         );
         assert_eq!(
             ToggleButtonSize::IconLg.class_name(),
-            "ui-toggle-button--size-icon-lg"
+            "ui-toggle-button--size-icon-l"
         );
     }
 

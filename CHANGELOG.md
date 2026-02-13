@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs-app` + `ui-components`: upgrades `ToggleButton` to Spectrum-style `xs/s/m/l/xl` sizing (with compatibility aliases), refreshes toggle size marker contracts, and makes the primary ToggleButton playground control-driven with copy-ready reactive code snippets.
+
 - `docs-app` + `ui-components`: upgrades `LinkButton` docs playground to control-driven, copy-ready dynamic code output (`variant/size/disabled/target/rel` now live-sync snippet content), and hardens `link_button_semantics` assertions to lock the new interactive docs contract.
 
 - `docs-app` + `ui-components`: upgrades `IconButton` docs playgrounds with control-driven, copy-ready code output (`variant/size/disabled` selections now live-sync snippet content), aligns icon-size demos to Spectrum-style `xs/s/m/l/xl`, and hardens `icon_button_semantics` + playground coverage assertions for the new dynamic code contract.

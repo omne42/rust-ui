@@ -39,12 +39,22 @@ pub fn variant_attr(variant: ToggleVariant) -> &'static str {
 
 pub fn size_attr(size: ToggleSize) -> &'static str {
     match size {
-        ToggleSize::Default => "default",
-        ToggleSize::Sm => "sm",
-        ToggleSize::Lg => "lg",
-        ToggleSize::Icon => "icon",
-        ToggleSize::IconSm => "icon-sm",
-        ToggleSize::IconLg => "icon-lg",
+        ToggleSize::Xs => "xs",
+        ToggleSize::S => "s",
+        ToggleSize::M => "m",
+        ToggleSize::L => "l",
+        ToggleSize::Xl => "xl",
+        ToggleSize::IconXs => "icon-xs",
+        ToggleSize::IconS => "icon-s",
+        ToggleSize::IconM => "icon-m",
+        ToggleSize::IconL => "icon-l",
+        ToggleSize::IconXl => "icon-xl",
+        ToggleSize::Default => "m",
+        ToggleSize::Sm => "s",
+        ToggleSize::Lg => "l",
+        ToggleSize::Icon => "icon-m",
+        ToggleSize::IconSm => "icon-s",
+        ToggleSize::IconLg => "icon-l",
     }
 }
 
@@ -169,12 +179,23 @@ mod tests {
         assert_eq!(variant_attr(ToggleVariant::Secondary), "secondary");
         assert_eq!(variant_attr(ToggleVariant::Ghost), "ghost");
 
-        assert_eq!(size_attr(ToggleSize::Default), "default");
-        assert_eq!(size_attr(ToggleSize::Sm), "sm");
-        assert_eq!(size_attr(ToggleSize::Lg), "lg");
-        assert_eq!(size_attr(ToggleSize::Icon), "icon");
-        assert_eq!(size_attr(ToggleSize::IconSm), "icon-sm");
-        assert_eq!(size_attr(ToggleSize::IconLg), "icon-lg");
+        assert_eq!(size_attr(ToggleSize::Xs), "xs");
+        assert_eq!(size_attr(ToggleSize::S), "s");
+        assert_eq!(size_attr(ToggleSize::M), "m");
+        assert_eq!(size_attr(ToggleSize::L), "l");
+        assert_eq!(size_attr(ToggleSize::Xl), "xl");
+        assert_eq!(size_attr(ToggleSize::IconXs), "icon-xs");
+        assert_eq!(size_attr(ToggleSize::IconS), "icon-s");
+        assert_eq!(size_attr(ToggleSize::IconM), "icon-m");
+        assert_eq!(size_attr(ToggleSize::IconL), "icon-l");
+        assert_eq!(size_attr(ToggleSize::IconXl), "icon-xl");
+
+        assert_eq!(size_attr(ToggleSize::Default), "m");
+        assert_eq!(size_attr(ToggleSize::Sm), "s");
+        assert_eq!(size_attr(ToggleSize::Lg), "l");
+        assert_eq!(size_attr(ToggleSize::Icon), "icon-m");
+        assert_eq!(size_attr(ToggleSize::IconSm), "icon-s");
+        assert_eq!(size_attr(ToggleSize::IconLg), "icon-l");
     }
 
     #[test]
@@ -207,7 +228,7 @@ mod tests {
         assert_eq!(state.state_attr, "selected");
         assert_eq!(state.interaction_attr, "hovered");
         assert_eq!(state.variant_attr, "outline");
-        assert_eq!(state.size_attr, "sm");
+        assert_eq!(state.size_attr, "s");
         assert_eq!(state.variant_source_attr, "custom");
         assert_eq!(state.size_source_attr, "custom");
         assert_eq!(state.class_source_attr, "custom");
@@ -240,7 +261,7 @@ mod tests {
             "ui-toggle",
             "ui-toggle-button",
             "ui-toggle-button--variant-outline",
-            "ui-toggle-button--size-sm",
+            "ui-toggle-button--size-s",
             "ui-toggle--custom-motion",
             "ui-toggle--custom-class",
             "docs-toggle",

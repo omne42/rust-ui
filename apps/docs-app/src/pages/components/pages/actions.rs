@@ -942,23 +942,61 @@ pub(super) fn toggle_button() -> AnyView {
         });
     });
 
+    let variant_options = vec![
+        "Default".to_string(),
+        "Accent".to_string(),
+        "Outline".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Destructive".to_string(),
+    ];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ToggleButtonVariant::Accent,
+        2 => ToggleButtonVariant::Outline,
+        3 => ToggleButtonVariant::Secondary,
+        4 => ToggleButtonVariant::Ghost,
+        5 => ToggleButtonVariant::Destructive,
+        _ => ToggleButtonVariant::Default,
+    });
+
+    let size_options = vec![
+        "XS".to_string(),
+        "S".to_string(),
+        "M".to_string(),
+        "L".to_string(),
+        "XL".to_string(),
+    ];
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ToggleButtonSize::Xs,
+        1 => ToggleButtonSize::S,
+        2 => ToggleButtonSize::M,
+        3 => ToggleButtonSize::L,
+        _ => ToggleButtonSize::Xl,
+    });
+
+    let (disabled, set_disabled) = signal(false);
+
+    let code = Signal::derive(move || {
+        let variant = variant.get();
+        let size = size.get();
+        let disabled = disabled.get();
+
+        format!(
+            "use leptos::prelude::*;\nuse ui_components::{{ToggleButton, ToggleButtonSize, ToggleButtonVariant}};\n\nlet (selected, set_selected) = signal(false);\nlet variant = ToggleButtonVariant::{variant:?};\nlet size = ToggleButtonSize::{size:?};\nlet disabled = {disabled};\nlet on_change = Callback::new(move |next: bool| {{\n    logging::log!(\"toggle changed: {{next}}\");\n}});\n\nview! {{\n    <ToggleButton\n        selected=selected\n        set_selected=set_selected\n        variant=variant\n        size=size\n        disabled=disabled\n        on_change=Some(on_change)\n    >\n        \"Toggle\"\n    </ToggleButton>\n}}"
+        )
+    });
+
     let (notifications, set_notifications) = signal(true);
     let (disabled_selected, set_disabled_selected) = signal(true);
     let (disabled_unselected, set_disabled_unselected) = signal(false);
-
-    let code = r#"let (selected, set_selected) = signal(false);
-let on_change = Callback::new(move |next: bool| {
-  logging::log!("toggle changed: {next}");
-});
-<ToggleButton selected=selected set_selected=set_selected on_change=Some(on_change)>
-  "Toggle"
-</ToggleButton>"#;
 
     let states_code = r#"<ToggleButton
   selected=notifications
   set_selected=set_notifications
   variant=ToggleButtonVariant::Accent
-  size=ToggleButtonSize::Lg
+  size=ToggleButtonSize::L
 >
   "Notifications"
 </ToggleButton>
@@ -976,34 +1014,72 @@ let on_change = Callback::new(move |next: bool| {
             group="Actions"
             description="Pressable toggle state with HeroUI-level spring motion and Spectrum-style root state attrs."
         >
-            <Playground title="Controlled + on_change" code=code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <ToggleButton
-                            selected=selected
-                            set_selected=set_selected
-                            on_change=on_toggle_change
-                            variant=ToggleButtonVariant::Default
-                        >
-                            "Toggle"
-                        </ToggleButton>
-                        <span class="ui-muted">
-                            "selected: "
-                            {move || selected.get().to_string()}
-                        </span>
+            <Playground
+                title="Controlled + on_change"
+                code_signal=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButton variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-size".to_string()
+                            options=size_options.clone()
+                            selected_index=size_index
+                            set_selected_index=set_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButton size".to_string()
+                        />
+
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
                     </div>
-                    <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
-                </div>
+                }
+            >
+                {move || {
+                    let variant = variant.get();
+                    let size = size.get();
+                    let disabled = disabled.get();
+
+                    view! {
+                        <div class="docs-stack">
+                            <div class="docs-row">
+                                <ToggleButton
+                                    selected=selected
+                                    set_selected=set_selected
+                                    on_change=on_toggle_change
+                                    variant=variant
+                                    size=size
+                                    disabled=disabled
+                                >
+                                    "Toggle"
+                                </ToggleButton>
+                                <span class="ui-muted">
+                                    "selected: "
+                                    {move || selected.get().to_string()}
+                                </span>
+                            </div>
+                            <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                        </div>
+                    }
+                }}
             </Playground>
 
-            <Playground title="Variant + Disabled matrix" code=states_code>
+            <Playground title="Variant + size + disabled matrix" code=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ToggleButton
                             selected=notifications
                             set_selected=set_notifications
                             variant=ToggleButtonVariant::Accent
-                            size=ToggleButtonSize::Lg
+                            size=ToggleButtonSize::L
                         >
                             "Notifications"
                         </ToggleButton>

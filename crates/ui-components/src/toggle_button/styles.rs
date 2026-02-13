@@ -44,37 +44,66 @@ pub const CSS: &str = r#"
   outline-offset: 2px;
 }
 
-.ui-toggle-button--size-default {
-  height: 36px;
-  padding: 8px 16px;
+.ui-toggle-button--size-xs {
+  height: 28px;
+  padding: 0 10px;
+  gap: 4px;
 }
 
+.ui-toggle-button--size-s,
 .ui-toggle-button--size-sm {
   height: 32px;
   padding: 0 12px;
   gap: 6px;
 }
 
+.ui-toggle-button--size-m,
+.ui-toggle-button--size-default {
+  height: 36px;
+  padding: 8px 16px;
+}
+
+.ui-toggle-button--size-l,
 .ui-toggle-button--size-lg {
   height: 40px;
   padding: 0 24px;
 }
 
-.ui-toggle-button--size-icon {
-  width: 36px;
-  height: 36px;
+.ui-toggle-button--size-xl {
+  height: 44px;
+  padding: 0 28px;
+}
+
+.ui-toggle-button--size-icon-xs {
+  width: 28px;
+  height: 28px;
   padding: 0;
 }
 
+.ui-toggle-button--size-icon-s,
 .ui-toggle-button--size-icon-sm {
   width: 32px;
   height: 32px;
   padding: 0;
 }
 
+.ui-toggle-button--size-icon-m,
+.ui-toggle-button--size-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+}
+
+.ui-toggle-button--size-icon-l,
 .ui-toggle-button--size-icon-lg {
   width: 40px;
   height: 40px;
+  padding: 0;
+}
+
+.ui-toggle-button--size-icon-xl {
+  width: 44px;
+  height: 44px;
   padding: 0;
 }
 
