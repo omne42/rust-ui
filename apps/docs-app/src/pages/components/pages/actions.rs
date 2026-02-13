@@ -1522,15 +1522,78 @@ pub(super) fn search_input_button() -> AnyView {
         set_press_count.update(|count| *count += 1);
     });
 
-    let code = r#"let (count, set_count) = signal(0_usize);
-let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
-<SearchInputButton
-  placeholder="Search docs".to_string()
-  compact_placeholder="Search".to_string()
-  meta_key_label="⌘".to_string()
-  key_label="K".to_string()
-  on_press=on_press
-/>"#;
+    let preset_options = vec![
+        "Docs".to_string(),
+        "Command".to_string(),
+        "Components".to_string(),
+    ];
+    let (preset_index, set_preset_index) = signal(Some(0_usize));
+    let placeholder = Signal::derive(move || match preset_index.get().unwrap_or(0) {
+        1 => "Command menu".to_string(),
+        2 => "Find components".to_string(),
+        _ => "Search docs".to_string(),
+    });
+    let compact_placeholder = Signal::derive(move || match preset_index.get().unwrap_or(0) {
+        1 => "Cmd".to_string(),
+        2 => "Find".to_string(),
+        _ => "Search".to_string(),
+    });
+
+    let meta_key_options = vec!["⌘".to_string(), "Ctrl".to_string(), "Alt".to_string()];
+    let (meta_key_index, set_meta_key_index) = signal(Some(0_usize));
+    let meta_key_label = Signal::derive(move || match meta_key_index.get().unwrap_or(0) {
+        1 => "Ctrl".to_string(),
+        2 => "Alt".to_string(),
+        _ => "⌘".to_string(),
+    });
+
+    let key_label_options = vec!["K".to_string(), "F".to_string()];
+    let (key_label_index, set_key_label_index) = signal(Some(0_usize));
+    let key_label = Signal::derive(move || match key_label_index.get().unwrap_or(0) {
+        1 => "F".to_string(),
+        _ => "K".to_string(),
+    });
+
+    let (disabled, set_disabled) = signal(false);
+    let (custom_aria_label, set_custom_aria_label) = signal(false);
+
+    let code = Signal::derive(move || {
+        let placeholder = placeholder.get();
+        let compact_placeholder = compact_placeholder.get();
+        let meta_key_label = meta_key_label.get();
+        let key_label = key_label.get();
+        let disabled = disabled.get();
+        let custom_aria_label = custom_aria_label.get();
+
+        let mut snippet = vec![
+            "use leptos::prelude::*;".to_string(),
+            "use ui_components::SearchInputButton;".to_string(),
+            String::new(),
+            "let (count, set_count) = signal(0_usize);".to_string(),
+            "let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));"
+                .to_string(),
+            String::new(),
+            "view! {".to_string(),
+            "    <SearchInputButton".to_string(),
+            format!("        placeholder=\"{placeholder}\".to_string()"),
+            format!("        compact_placeholder=\"{compact_placeholder}\".to_string()"),
+            format!("        meta_key_label=\"{meta_key_label}\".to_string()"),
+            format!("        key_label=\"{key_label}\".to_string()"),
+            format!("        disabled={disabled}"),
+        ];
+
+        if custom_aria_label {
+            snippet.push("        aria_label=\"Open command menu\".to_string()".to_string());
+        }
+
+        snippet.extend([
+            "        on_press=on_press".to_string(),
+            "    />".to_string(),
+            "}".to_string(),
+        ]);
+
+        snippet.join("\n")
+    });
 
     let states_code = r#"<SearchInputButton placeholder="Find components".to_string() />
 <SearchInputButton
@@ -1554,27 +1617,90 @@ let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
             group="Actions"
             description="HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs."
         >
-            <Playground title="Interactive + shortcut" code=code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <SearchInputButton
-                            placeholder="Search docs".to_string()
-                            compact_placeholder="Search".to_string()
-                            meta_key_label="⌘".to_string()
-                            key_label="K".to_string()
-                            on_press=on_press
+            <Playground
+                title="Interactive + shortcut"
+                code_signal=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Preset"</div>
+                        <SegmentedControl
+                            id_base="docs-search-input-preset".to_string()
+                            options=preset_options.clone()
+                            selected_index=preset_index
+                            set_selected_index=set_preset_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Search input preset".to_string()
                         />
-                        <SearchInputButton
-                            placeholder="Command menu".to_string()
-                            compact_placeholder="Cmd".to_string()
-                            meta_key_label="Ctrl".to_string()
-                            key_label="K".to_string()
-                            aria_label="Open command menu".to_string()
-                            on_press=on_press
+
+                        <div class="docs-search__label">"Meta key"</div>
+                        <SegmentedControl
+                            id_base="docs-search-input-meta-key".to_string()
+                            options=meta_key_options.clone()
+                            selected_index=meta_key_index
+                            set_selected_index=set_meta_key_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Search input meta key".to_string()
                         />
+
+                        <div class="docs-search__label">"Shortcut key"</div>
+                        <SegmentedControl
+                            id_base="docs-search-input-key".to_string()
+                            options=key_label_options.clone()
+                            selected_index=key_label_index
+                            set_selected_index=set_key_label_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Search input shortcut key".to_string()
+                        />
+
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
+                            "Custom aria label"
+                        </Switch>
                     </div>
-                    <span class="ui-muted">"presses: " {move || press_count.get().to_string()}</span>
-                </div>
+                }
+            >
+                {move || {
+                    let placeholder = placeholder.get();
+                    let compact_placeholder = compact_placeholder.get();
+                    let meta_key_label = meta_key_label.get();
+                    let key_label = key_label.get();
+                    let disabled = disabled.get();
+                    let custom_aria_label = custom_aria_label.get();
+
+                    view! {
+                        <div class="docs-stack">
+                            <div class="docs-row">
+                                {if custom_aria_label {
+                                    view! {
+                                        <SearchInputButton
+                                            placeholder=placeholder.clone()
+                                            compact_placeholder=compact_placeholder.clone()
+                                            meta_key_label=meta_key_label.clone()
+                                            key_label=key_label.clone()
+                                            aria_label="Open command menu".to_string()
+                                            disabled=disabled
+                                            on_press=on_press
+                                        />
+                                    }
+                                        .into_any()
+                                } else {
+                                    view! {
+                                        <SearchInputButton
+                                            placeholder=placeholder
+                                            compact_placeholder=compact_placeholder
+                                            meta_key_label=meta_key_label
+                                            key_label=key_label
+                                            disabled=disabled
+                                            on_press=on_press
+                                        />
+                                    }
+                                        .into_any()
+                                }}
+                            </div>
+                            <span class="ui-muted">"presses: " {move || press_count.get().to_string()}</span>
+                        </div>
+                    }
+                }}
             </Playground>
 
             <Playground title="Placeholder + disabled matrix" code=states_code>
@@ -1614,7 +1740,6 @@ let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));
     }
     .into_any()
 }
-
 pub(super) fn button_copy() -> AnyView {
     let code = r#"<ButtonCopy
   text="cargo add ui-components".to_string()

@@ -105,7 +105,7 @@ fn docs_actions_page_locks_search_input_motion_narrative() {
         "description=\"HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
         "title=\"Interactive + shortcut\"",
         "title=\"Custom Class + Aria Label\"",
-        "meta_key_label=\"⌘\".to_string()",
+        "let meta_key_options = vec![\"⌘\".to_string(), \"Ctrl\".to_string(), \"Alt\".to_string()];",
     ] {
         assert!(
             source.contains(needle),
@@ -120,13 +120,18 @@ fn search_input_button_docs_interactive_playground_locks_contract_values() {
 
     for needle in [
         "pub(super) fn search_input_button() -> AnyView",
-        "<Playground title=\"Interactive + shortcut\" code=code>",
-        "placeholder=\"Search docs\".to_string()",
-        "compact_placeholder=\"Search\".to_string()",
-        "meta_key_label=\"⌘\".to_string()",
-        "placeholder=\"Command menu\".to_string()",
-        "meta_key_label=\"Ctrl\".to_string()",
+        "title=\"Interactive + shortcut\"",
+        "code_signal=code",
+        "id_base=\"docs-search-input-preset\".to_string()",
+        "id_base=\"docs-search-input-meta-key\".to_string()",
+        "id_base=\"docs-search-input-key\".to_string()",
+        "let preset_options = vec![",
+        "let placeholder = Signal::derive(move || match preset_index.get().unwrap_or(0)",
+        "let meta_key_options = vec![\"⌘\".to_string(), \"Ctrl\".to_string(), \"Alt\".to_string()];",
+        "let key_label_options = vec![\"K\".to_string(), \"F\".to_string()];",
+        "if custom_aria_label {",
         "aria_label=\"Open command menu\".to_string()",
+        "on_press=on_press",
         "\"presses: \" {move || press_count.get().to_string()}",
     ] {
         assert!(
@@ -185,10 +190,10 @@ fn button_search_input_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<Playground title=\"Interactive + shortcut\" code=code>",
-        "placeholder=\"Search docs\".to_string()",
-        "compact_placeholder=\"Search\".to_string()",
-        "meta_key_label=\"⌘\".to_string()",
+        "title=\"Interactive + shortcut\"",
+        "code_signal=code",
+        "id_base=\"docs-search-input-preset\".to_string()",
+        "id_base=\"docs-search-input-meta-key\".to_string()",
         "<Playground title=\"Placeholder + disabled matrix\" code=states_code>",
         "placeholder=\"Disabled search\".to_string() disabled=true",
         "placeholder=\"Forced disabled\".to_string()",
