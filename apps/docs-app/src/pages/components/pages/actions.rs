@@ -1117,18 +1117,89 @@ pub(super) fn toggle_button_group() -> AnyView {
     let attached_selected_count =
         Signal::derive(move || usize::from(a.get()) + usize::from(b.get()) + usize::from(c.get()));
 
+    let orientation_options = vec!["Horizontal".to_string(), "Vertical".to_string()];
+    let (orientation_index, set_orientation_index) = signal(Some(0_usize));
+    let orientation = Signal::derive(move || match orientation_index.get().unwrap_or(0) {
+        1 => ToggleButtonGroupOrientation::Vertical,
+        _ => ToggleButtonGroupOrientation::Horizontal,
+    });
+
+    let (attached, set_attached) = signal(true);
+
+    let variant_options = vec![
+        "Default".to_string(),
+        "Accent".to_string(),
+        "Outline".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Destructive".to_string(),
+    ];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ToggleButtonVariant::Accent,
+        2 => ToggleButtonVariant::Outline,
+        3 => ToggleButtonVariant::Secondary,
+        4 => ToggleButtonVariant::Ghost,
+        5 => ToggleButtonVariant::Destructive,
+        _ => ToggleButtonVariant::Default,
+    });
+
+    let size_options = vec![
+        "XS".to_string(),
+        "S".to_string(),
+        "M".to_string(),
+        "L".to_string(),
+        "XL".to_string(),
+    ];
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ToggleButtonSize::Xs,
+        1 => ToggleButtonSize::S,
+        2 => ToggleButtonSize::M,
+        3 => ToggleButtonSize::L,
+        _ => ToggleButtonSize::Xl,
+    });
+
+    let code = Signal::derive(move || {
+        let orientation = orientation.get();
+        let attached = attached.get();
+        let variant = variant.get();
+        let size = size.get();
+
+        vec![
+            "use leptos::prelude::*;".to_string(),
+            "use ui_components::{ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant};".to_string(),
+            String::new(),
+            "let (bold, set_bold) = signal(false);".to_string(),
+            "let (italic, set_italic) = signal(true);".to_string(),
+            "let (underline, set_underline) = signal(false);".to_string(),
+            String::new(),
+            format!("let orientation = ToggleButtonGroupOrientation::{orientation:?};"),
+            format!("let attached = {attached};"),
+            format!("let variant = ToggleButtonVariant::{variant:?};"),
+            format!("let size = ToggleButtonSize::{size:?};"),
+            String::new(),
+            "view! {".to_string(),
+            "    <ToggleButtonGroup".to_string(),
+            "        orientation=orientation".to_string(),
+            "        attached=attached".to_string(),
+            "        aria_label=\"Formatting controls\".to_string()".to_string(),
+            "    >".to_string(),
+            "        <ToggleButton selected=bold set_selected=set_bold variant=variant size=size>\"Bold\"</ToggleButton>".to_string(),
+            "        <ToggleButton selected=italic set_selected=set_italic variant=variant size=size>\"Italic\"</ToggleButton>".to_string(),
+            "        <ToggleButton selected=underline set_selected=set_underline variant=variant size=size>\"Underline\"</ToggleButton>".to_string(),
+            "    </ToggleButtonGroup>".to_string(),
+            "}".to_string(),
+        ]
+        .join("\n")
+    });
+
     let (left, set_left) = signal(true);
     let (center, set_center) = signal(false);
     let (right, set_right) = signal(true);
     let detached_selected_count = Signal::derive(move || {
         usize::from(left.get()) + usize::from(center.get()) + usize::from(right.get())
     });
-
-    let code = r#"<ToggleButtonGroup attached=true>
-  <ToggleButton selected=a set_selected=set_a>"Bold"</ToggleButton>
-  <ToggleButton selected=b set_selected=set_b>"Italic"</ToggleButton>
-  <ToggleButton selected=c set_selected=set_c>"Underline"</ToggleButton>
-</ToggleButtonGroup>"#;
 
     let states_code = r#"<ToggleButtonGroup
   orientation=ToggleButtonGroupOrientation::Vertical
@@ -1147,18 +1218,92 @@ pub(super) fn toggle_button_group() -> AnyView {
             group="Actions"
             description="Layout wrapper with Spectrum-style root state attrs for orientation, attachment, and accessible labeling."
         >
-            <Playground title="Attached horizontal" code=code>
-                <div class="docs-stack">
-                    <ToggleButtonGroup attached=true>
-                        <ToggleButton selected=a set_selected=set_a>"Bold"</ToggleButton>
-                        <ToggleButton selected=b set_selected=set_b>"Italic"</ToggleButton>
-                        <ToggleButton selected=c set_selected=set_c>"Underline"</ToggleButton>
-                    </ToggleButtonGroup>
-                    <span class="ui-muted">
-                        "attached selected count: "
-                        {move || attached_selected_count.get().to_string()}
-                    </span>
-                </div>
+            <Playground
+                title="Attached horizontal"
+                code_signal=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Orientation"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-group-orientation".to_string()
+                            options=orientation_options.clone()
+                            selected_index=orientation_index
+                            set_selected_index=set_orientation_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButtonGroup orientation".to_string()
+                        />
+
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-group-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButtonGroup variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-toggle-button-group-size".to_string()
+                            options=size_options.clone()
+                            selected_index=size_index
+                            set_selected_index=set_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ToggleButtonGroup size".to_string()
+                        />
+
+                        <Switch checked=attached set_checked=set_attached>
+                            "Attached layout"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let orientation = orientation.get();
+                    let attached = attached.get();
+                    let variant = variant.get();
+                    let size = size.get();
+
+                    view! {
+                        <div class="docs-stack">
+                            <ToggleButtonGroup
+                                orientation=orientation
+                                attached=attached
+                                aria_label="Formatting controls".to_string()
+                            >
+                                <ToggleButton
+                                    selected=a
+                                    set_selected=set_a
+                                    variant=variant
+                                    size=size
+                                >
+                                    "Bold"
+                                </ToggleButton>
+                                <ToggleButton
+                                    selected=b
+                                    set_selected=set_b
+                                    variant=variant
+                                    size=size
+                                >
+                                    "Italic"
+                                </ToggleButton>
+                                <ToggleButton
+                                    selected=c
+                                    set_selected=set_c
+                                    variant=variant
+                                    size=size
+                                >
+                                    "Underline"
+                                </ToggleButton>
+                            </ToggleButtonGroup>
+                            <span class="ui-muted">
+                                "attached selected count: "
+                                {move || attached_selected_count.get().to_string()}
+                            </span>
+                        </div>
+                    }
+                }}
             </Playground>
 
             <Playground title="Vertical + detached" code=states_code>
@@ -1200,7 +1345,6 @@ pub(super) fn toggle_button_group() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn theme_toggle_button() -> AnyView {
     let (mode, set_mode) = signal(ThemeMode::Light);
     let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
