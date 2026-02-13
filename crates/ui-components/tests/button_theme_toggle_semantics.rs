@@ -130,9 +130,15 @@ fn theme_toggle_docs_default_cycle_playground_locks_contract_values() {
 
     for needle in [
         "pub(super) fn theme_toggle_button() -> AnyView",
-        "<Playground title=\"Default cycle\" code=code>",
-        "let (mode, set_mode) = signal(ThemeMode::Light);",
-        "<ThemeToggleButton mode=mode set_mode=set_mode />",
+        "title=\"Default cycle\"",
+        "code_signal=code",
+        "let mode_options = vec![\"Light\".to_string(), \"Dark\".to_string(), \"OLED\".to_string()];",
+        "id_base=\"docs-theme-toggle-mode\".to_string()",
+        "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
+        "<Switch checked=two_mode_cycle set_checked=set_two_mode_cycle>",
+        "<Switch checked=custom_aria_label set_checked=set_custom_aria_label>",
+        "modes=modes",
+        "aria_label=aria_label",
         "\"mode: \" {move || format!(\"{:?}\", mode.get())}",
     ] {
         assert!(
@@ -187,9 +193,9 @@ fn button_theme_toggle_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<Playground title=\"Default cycle\" code=code>",
-        "let (mode, set_mode) = signal(ThemeMode::Light);",
-        "<ThemeToggleButton mode=mode set_mode=set_mode />",
+        "title=\"Default cycle\"",
+        "code_signal=code",
+        "let modes = if two_mode_cycle {",
         "<Playground title=\"Custom modes + disabled\" code=states_code>",
         "let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];",
         "modes=custom_modes.clone()",

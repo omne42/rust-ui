@@ -190,8 +190,15 @@ fn theme_toggle_button_docs_page_covers_primary_playgrounds() {
         "title=\"ThemeToggleButton\"",
         "slug=\"theme-toggle-button\"",
         "description=\"Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs.\"",
-        "<Playground title=\"Default cycle\" code=code>",
-        "<Playground title=\"Custom modes + disabled\" code=states_code>",
+        "<Playground",
+        "title=\"Default cycle\"",
+        "code_signal=code",
+        "id_base=\"docs-theme-toggle-mode\".to_string()",
+        "aria_label=\"ThemeToggle start mode\".to_string()",
+        "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
+        "<Switch checked=two_mode_cycle set_checked=set_two_mode_cycle>",
+        "<Switch checked=custom_aria_label set_checked=set_custom_aria_label>",
+        "title=\"Custom modes + disabled\"",
         "<ThemeToggleButton",
     ] {
         assert!(
@@ -207,7 +214,13 @@ fn theme_toggle_button_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Default cycle\"",
-        "<ThemeToggleButton mode=mode set_mode=set_mode />",
+        "code_signal=code",
+        "let mode_options = vec![",
+        "Effect::new(move |_| {",
+        "let modes = if two_mode_cycle {",
+        "if custom_aria_label {",
+        "modes=modes",
+        "aria_label=\"Switch UI mode\".to_string()",
         "title=\"Custom modes + disabled\"",
         "modes=custom_modes.clone()",
         "aria_label=\"Switch UI mode\".to_string()",

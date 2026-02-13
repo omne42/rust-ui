@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs-app` + `ui-components`: upgrades `ThemeToggleButton` default-cycle playground to control-driven, copy-ready reactive code (start mode/disabled/mode-cycle/aria label), and hardens both `theme_toggle_button_semantics` and `button_theme_toggle_semantics` docs-contract coverage.
+
 - `docs-app` + `ui-components`: upgrades `ToggleButtonGroup` docs playground to control-driven, copy-ready reactive code (orientation/attached/variant/size), and hardens `toggle_button_group_semantics` coverage for the new dynamic docs contract.
 
 - `docs-app` + `ui-components`: upgrades `ToggleButton` to Spectrum-style `xs/s/m/l/xl` sizing (with compatibility aliases), refreshes toggle size marker contracts, and makes the primary ToggleButton playground control-driven with copy-ready reactive code snippets.

@@ -1347,11 +1347,71 @@ pub(super) fn toggle_button_group() -> AnyView {
 }
 pub(super) fn theme_toggle_button() -> AnyView {
     let (mode, set_mode) = signal(ThemeMode::Light);
+
+    let mode_options = vec!["Light".to_string(), "Dark".to_string(), "OLED".to_string()];
+    let (mode_index, set_mode_index) = signal(Some(0_usize));
+    Effect::new(move |_| {
+        let mode = match mode_index.get().unwrap_or(0) {
+            1 => ThemeMode::Dark,
+            2 => ThemeMode::Oled,
+            _ => ThemeMode::Light,
+        };
+        set_mode.set(mode);
+    });
+
+    let (disabled, set_disabled) = signal(false);
+    let (two_mode_cycle, set_two_mode_cycle) = signal(false);
+    let (custom_aria_label, set_custom_aria_label) = signal(false);
+
+    let code = Signal::derive(move || {
+        let mode = match mode_index.get().unwrap_or(0) {
+            1 => ThemeMode::Dark,
+            2 => ThemeMode::Oled,
+            _ => ThemeMode::Light,
+        };
+        let disabled = disabled.get();
+        let two_mode_cycle = two_mode_cycle.get();
+        let custom_aria_label = custom_aria_label.get();
+        let modes = if two_mode_cycle {
+            "vec![ThemeMode::Dark, ThemeMode::Light]"
+        } else {
+            "vec![ThemeMode::Light, ThemeMode::Dark, ThemeMode::Oled]"
+        };
+
+        let mut snippet = vec![
+            "use leptos::prelude::*;".to_string(),
+            "use ui_components::{ThemeMode, ThemeToggleButton};".to_string(),
+            String::new(),
+            format!("let (mode, set_mode) = signal(ThemeMode::{mode:?});"),
+            format!("let disabled = {disabled};"),
+            format!("let modes = {modes};"),
+        ];
+
+        if custom_aria_label {
+            snippet.push("let aria_label = \"Switch UI mode\".to_string();".to_string());
+        }
+
+        snippet.extend([
+            String::new(),
+            "view! {".to_string(),
+            "    <ThemeToggleButton".to_string(),
+            "        mode=mode".to_string(),
+            "        set_mode=set_mode".to_string(),
+            "        modes=modes".to_string(),
+            "        disabled=disabled".to_string(),
+        ]);
+
+        if custom_aria_label {
+            snippet.push("        aria_label=aria_label".to_string());
+        }
+
+        snippet.extend(["    />".to_string(), "}".to_string()]);
+
+        snippet.join("\n")
+    });
+
     let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
     let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];
-
-    let code = r#"let (mode, set_mode) = signal(ThemeMode::Light);
-<ThemeToggleButton mode=mode set_mode=set_mode />"#;
 
     let states_code = r#"<ThemeToggleButton
   mode=custom_mode
@@ -1368,11 +1428,69 @@ pub(super) fn theme_toggle_button() -> AnyView {
             group="Actions"
             description="Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs."
         >
-            <Playground title="Default cycle" code=code>
-                <div class="docs-row">
-                    <ThemeToggleButton mode=mode set_mode=set_mode />
-                    <span class="ui-muted">"mode: " {move || format!("{:?}", mode.get())}</span>
-                </div>
+            <Playground
+                title="Default cycle"
+                code_signal=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Start mode"</div>
+                        <SegmentedControl
+                            id_base="docs-theme-toggle-mode".to_string()
+                            options=mode_options.clone()
+                            selected_index=mode_index
+                            set_selected_index=set_mode_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ThemeToggle start mode".to_string()
+                        />
+
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=two_mode_cycle set_checked=set_two_mode_cycle>
+                            "Two-mode cycle (dark/light)"
+                        </Switch>
+                        <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
+                            "Custom aria label"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let disabled = disabled.get();
+                    let two_mode_cycle = two_mode_cycle.get();
+                    let custom_aria_label = custom_aria_label.get();
+                    let modes = if two_mode_cycle {
+                        vec![ThemeMode::Dark, ThemeMode::Light]
+                    } else {
+                        vec![ThemeMode::Light, ThemeMode::Dark, ThemeMode::Oled]
+                    };
+
+                    view! {
+                        <div class="docs-row">
+                            {if custom_aria_label {
+                                view! {
+                                    <ThemeToggleButton
+                                        mode=mode
+                                        set_mode=set_mode
+                                        disabled=disabled
+                                        modes=modes.clone()
+                                        aria_label="Switch UI mode".to_string()
+                                    />
+                                }
+                                    .into_any()
+                            } else {
+                                view! {
+                                    <ThemeToggleButton
+                                        mode=mode
+                                        set_mode=set_mode
+                                        disabled=disabled
+                                        modes=modes
+                                    />
+                                }
+                                    .into_any()
+                            }}
+                            <span class="ui-muted">"mode: " {move || format!("{:?}", mode.get())}</span>
+                        </div>
+                    }
+                }}
             </Playground>
 
             <Playground title="Custom modes + disabled" code=states_code>
