@@ -1,4 +1,4 @@
-# HeroUI 参数设计风格对齐策略（草案）
+# HeroUI 参数设计风格对齐策略
 
 ## Spec Draft
 
@@ -125,3 +125,8 @@
 - HeroUI Modal Docs: https://www.heroui.com/docs/components/modal
 - HeroUI Select Docs: https://www.heroui.com/docs/components/select
 - HeroUI Introduction: https://www.heroui.com/docs/guide/introduction
+
+## 执行手册（必读）
+
+- 开发流程与 AI 门禁：`docs/spec/hyper-structure-ui-development-playbook.md`
+- 本文回答“做什么参数能力”，执行手册回答“怎么稳定地做出来并持续演进”。

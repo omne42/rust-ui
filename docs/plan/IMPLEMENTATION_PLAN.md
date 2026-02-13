@@ -54,6 +54,9 @@
   - `cargo check -p web-demo --target wasm32-unknown-unknown`
 - Gate E（SSR 编译验证）：
   - `cargo check -p ui-headless --no-default-features --features ssr`
+- Gate F（混合分发兼容验证）：
+  - 在底层 package 版本矩阵下，抽样 source 组件可编译（至少 `Button` / `Select` / `Overlay`）
+  - 若版本不兼容，CI 必须输出明确失败原因与迁移指引链接
 
 ## 1. 仓库结构（目标态）
 
@@ -97,6 +100,19 @@
 - `ui-headless`：只导出“交互/可访问性模型 + Leptos 可挂载的 handlers/attrs”，不导出具体 UI 样式与 class 名。
 - `ui-components`：只导出组件与其 props；组件对外只暴露稳定 props，不透传 headless 的内部结构体（避免锁死后续重构）。
 - `ui-theme`：只导出 tokens 与生成的 CSS（变量名先冻结为 v0，后续增量扩展）。
+
+## 2.2 分发模型（默认）
+
+采用混合分发（Hybrid Distribution）：
+
+- Package 分发：`ui-core` / `ui-headless` / `ui-theme` / `ui-motion`
+- Source 分发：`ui-components`（按需拉取组件源码，shadcn-like）
+
+约束：
+
+- source 组件必须声明并遵守底层 package 的支持版本区间。
+- 底层 package 升级必须提供迁移说明或自动迁移工具。
+- 不采用“全层源码拷贝”作为默认路径，避免用户依赖爆炸。
 
 ## 3. 上游参考（只用于对齐概念）
 

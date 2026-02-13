@@ -284,7 +284,10 @@
 - [x] per-item disabled（Menu/ListBox：跳过 focus/activation/typeahead；通过 `is_item_disabled`）
 - [x] `use_menu_item`（Action/Checkbox/Radio：role + aria-checked + handlers）
 - [x] Overlay v2（v0）：`use_modal`（scroll lock + aria-hidden；排除 overlay portal）
-- [ ] Overlay v2+：aria-hidden 进一步收敛到 topmost modal、inert/scroll lock 补全、嵌套 overlay 细节
+- [ ] Overlay v2+：aria-hidden 进一步收敛到 topmost modal、inert/scroll lock 补全、嵌套 overlay 细节、Android Back 集成（History/Tauri 双通道）
+- [ ] Overlay v2+：打开 topmost overlay 时 `pushState` 占位，避免 Back 直接触发路由回退/应用退出
+- [ ] Overlay v2+：`popstate` 与 Tauri back 事件统一走 headless 关闭通道（先关闭 topmost overlay，再决定是否放行路由回退）
+- [ ] Overlay v2+：关闭 overlay 后正确回收历史占位，避免污染正常浏览历史栈
 
 ### 12.3 ui-components（从原子到复合）
 
@@ -307,4 +310,4 @@
 ### 12.5 平台覆盖（Tauri/Android）
 
 - [ ] Tauri：窗口/标题栏/系统菜单等差异适配策略文档化
-- [ ] Android：safe-area + 输入法遮挡 + back 手势/物理键 行为规范化
+- [ ] Android：safe-area + 输入法遮挡 + back 手势/物理键 行为规范化（与 Overlay history/back 契约打通）

@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs`: adds repository-wide docs governance and markdown index (`docs/DOCS_GOVERNANCE.md`, `docs/DOCS_INDEX.md`) plus new docs entrypoints for `docs/`, `docs/plan/`, and `docs/spec/`; refreshes philosophy/planning/research guidance and migrates root `todo.md` to the dedicated playground planning flow.
+
 - `docs-app` + `ui-components`: aligns interactive docs playground contracts on `code_signal`, updates SearchInputButton/PickerButton/ToggleButton/ToggleButtonGroup/LinkButton and Item module snippet matrices, refreshes semantics assertions for current docs-source markers (including code-block/image/illustrated-message/ripple/ui-root contracts), and adapts `ButtonSpec` to the current `Button` prop/state contract.
 
 - `docs-app` + `ui-components`: upgrades `SearchInputButton` interactive playground to control-driven, copy-ready reactive code (preset/shortcut/disabled/aria), and hardens `search_input_button_semantics` + `button_search_input_semantics` docs-contract coverage for the new dynamic controls.

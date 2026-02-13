@@ -10,6 +10,14 @@ Layered UI primitives + components for Leptos:
 - `apps/web-demo`: CSR demo app (Trunk)
 - `apps/docs-app`: CSR docs site (Trunk)
 
+## Documentation
+
+- Docs entrypoint: `docs/README.md`
+- Philosophy and strategy: `docs/philosophy.md`
+- Rules (hard constraints): `docs/RULES_ZH.md`
+- Full markdown index: `docs/DOCS_INDEX.md`
+- Doc governance: `docs/DOCS_GOVERNANCE.md`
+
 ## Quick start (recommended)
 
 From the repo root (`rust-ui/`):
@@ -40,4 +48,3 @@ If a smoke check fails, it prints the Trunk log path and keeps a screenshot for 
 ```bash
 ./scripts/check.sh
 ```
-

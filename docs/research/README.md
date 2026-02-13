@@ -2,6 +2,12 @@
 
 目标：用 Rust + Leptos 复刻 React Spectrum 的 3 层架构（Stately / Aria / Spectrum），并通过 Tauri 覆盖 Web、桌面（Win/Mac）与 Android(WebView)。
 
+文档系统入口：`docs/README.md`  
+文档索引：`docs/DOCS_INDEX.md`
+
+> 说明：本目录文档属于 **Research 输入层**，用于提供背景、比较和参考材料。  
+> 它们不是最终规范来源；规范与执行以 `docs/RULES_ZH.md`、`docs/spec/*`、`docs/plan/*` 为准。
+
 实施计划：见 `docs/plan/IMPLEMENTATION_PLAN.md`；MVP 规格：`docs/spec/mvp.md`。
 
 ## 本机其它项目参考（设计/治理/文档）
