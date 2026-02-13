@@ -1,9 +1,9 @@
 mod logic;
-mod render;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, KeyboardTone};
-pub use render::Keyboard;
+pub use view::Keyboard;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct KeyboardStateInput {

@@ -22,7 +22,7 @@ fn heading_does_not_expose_logic_or_render_modules() {
 #[test]
 fn heading_uses_logic_state_model() {
     let logic_source = load_source("src/heading/logic.rs");
-    let render_source = load_source("src/heading/render.rs");
+    let render_source = load_source("src/heading/view.rs");
 
     for needle in [
         "pub enum HeadingLevel",
@@ -55,7 +55,7 @@ fn heading_uses_logic_state_model() {
 
 #[test]
 fn heading_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/heading/render.rs");
+    let source = load_source("src/heading/view.rs");
 
     for attr in [
         "data-slot=\"heading\"",

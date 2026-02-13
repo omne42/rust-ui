@@ -1,10 +1,11 @@
-pub use crate::thumbnail::ThumbnailMotion as AssetMotion;
 pub use crate::thumbnail::ThumbnailSize as AssetSize;
 
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::AssetMotion;
 pub use view::Asset;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

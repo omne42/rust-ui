@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{DEFAULT_REQUIRED_INDICATOR, DEFAULT_TEXT, LegendTone};
+pub use motion::LegendMotion;
 pub use view::Legend;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

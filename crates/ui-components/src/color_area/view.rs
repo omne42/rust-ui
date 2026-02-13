@@ -1,6 +1,7 @@
 use crate::color_area::{
-    ColorAreaStateInput,
+    ColorAreaMotion, ColorAreaStateInput,
     logic::{self},
+    motion,
 };
 use crate::{ColorSwatch, overlay_open};
 use leptos::prelude::*;
@@ -16,6 +17,7 @@ pub fn ColorArea(
     #[prop(optional, default = logic::DEFAULT_STEP)] step: f32,
     #[prop(optional, default = logic::DEFAULT_GRID_SIZE)] grid_size: usize,
     #[prop(optional, into)] preview_color: Option<String>,
+    #[prop(optional)] motion: ColorAreaMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -55,6 +57,8 @@ pub fn ColorArea(
     });
 
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ColorAreaMotion::default();
 
     let label_id = format!("{id_base}-label");
     let x_input_id = format!("{id_base}-x");
@@ -142,6 +146,8 @@ pub fn ColorArea(
             aria-label=aria_label
             aria-labelledby=label_id_for_root
             data-slot="color-area"
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-state=move || state.get().data_state_attr
             data-disabled=move || state.get().is_disabled.then_some("true")
             data-step=move || state.get().step.to_string()

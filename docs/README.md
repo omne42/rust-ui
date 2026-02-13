@@ -5,8 +5,8 @@
 ## 快速入口
 
 - 仓库总览：`README.md`
-- 硬规则（最高优先级）：`docs/RULES_ZH.md`
-- 哲学总纲：`docs/philosophy.md`
+- 硬规则（次优先级）：`docs/RULES_ZH.md`
+- 哲学总纲（最高优先级）：`docs/philosophy.md`
 - 文档治理：`docs/DOCS_GOVERNANCE.md`
 - 全量 Markdown 索引：`docs/DOCS_INDEX.md`
 
@@ -49,6 +49,7 @@
 2. `docs/起点_也即是目的.md`
 3. `docs/research/spectrum-heroui-style-interface-study.md`
 4. `docs/spec/heroui-parameter-design-strategy.md`
+5. `docs/spec/tree_shaking.md`
 
 ## 范围说明
 

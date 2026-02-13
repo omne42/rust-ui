@@ -6,6 +6,7 @@
 > - 发布默认：组件 CSS 仍由 `ui-components` 统一注入（开箱即用）。
 > - 覆盖策略：组件 CSS 注入在 `@layer ui`；应用侧样式（不分 layer，或放在更高优先级 layer）可直接覆盖，避免 `!important`/高 specificity。
 > - 开发体验：不要在开发阶段频繁改 `styles.rs`；用应用侧热更新 CSS 覆盖来迭代，收敛后再回填到 `styles.rs`。
+> - 体积策略：组件 CSS 注入应与组件 feature 同步裁剪（见 `docs/spec/tree_shaking.md`）。
 
 ## 背景与现状
 
@@ -59,6 +60,7 @@
 
 - `ui-theme`：继续由 `<UiRoot>` 注入主题变量（运行时切换主题必需）。
 - `ui-components`：组件 CSS 继续由 `<UiRoot>` 注入（crate 用户零配置可用）。
+- 当启用组件级 feature 后，`ui-components/src/css.rs` 必须按 feature 条件聚合，仅注入启用组件的 CSS。
 
 **可选：关闭组件 CSS 注入（高级用法）**
 
@@ -112,6 +114,7 @@ ui-components = { path = "...", default-features = false }
 - **组件样式必须集中**：
   - 所有样式 selector/声明必须位于组件的 `styles.rs`（`pub const CSS: &str`）。
   - `ui-components/src/css.rs` 负责聚合，最终由 `<UiRoot>` 统一注入。
+  - 聚合必须具备组件级条件拼接能力；禁止无条件拼接全量组件 CSS。
 - **状态表达优先 class/data-attrs**：
   - 离散状态（hover/pressed/selected/disabled/open 等）用 `class:` 或 `data-*`，由 `styles.rs` 控制样式。
 - **运行时数值只允许用 CSS variables（custom properties）**：
@@ -123,3 +126,8 @@ ui-components = { path = "...", default-features = false }
 - 迁移顺序建议：`Overlay/Popover`（定位/portal）→ `ListBox/Menu/Select`（高频交互状态）→ 其它组件。
 - 快速排查违规：在仓库中搜索 `style=` 与 `style:`（目标：`ui-components` 里不存在普通 inline style）。
 - 统一收敛：当 overrides 稳定后，把规则回填 `styles.rs`，删除 `dev-overrides.css` 中对应内容，避免长期分叉。
+
+补充（与 Tree Shaking 协同）：
+
+- 最小特性集（例如 `button,input`）下，聚合 CSS 不应出现 `select/modal/chart` 的选择器。
+- `inject-css` 仅控制“是否注入”，不应被用作“全量样式开关”。

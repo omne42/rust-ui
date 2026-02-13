@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, ListBoxSectionHeadingTone};
+pub use motion::ListBoxSectionMotion;
 pub use view::ListBoxSection;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

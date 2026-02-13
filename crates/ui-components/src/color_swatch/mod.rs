@@ -1,10 +1,12 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{
     ColorSwatchAlpha, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, DEFAULT_ARIA_LABEL,
 };
+pub use motion::ColorSwatchMotion;
 pub use view::ColorSwatch;
 
 pub fn sanitize_color_value(value: Option<String>) -> Option<String> {

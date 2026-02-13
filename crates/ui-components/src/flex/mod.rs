@@ -1,9 +1,11 @@
 mod logic;
-mod render;
+pub mod motion;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap};
-pub use render::Flex;
+pub use motion::FlexMotion;
+pub use view::Flex;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FlexStateInput {

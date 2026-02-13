@@ -12,6 +12,10 @@ fn group_module_reexports_field_group_contracts() {
     let source = load_source("src/group/mod.rs");
 
     for needle in [
+        "mod logic;",
+        "mod view;",
+        "pub mod styles;",
+        "pub mod motion;",
         "pub use crate::field_group::FieldGroup as Group;",
         "pub use crate::field_group::FieldGroupDensity as GroupDensity;",
         "pub use crate::field_group::FieldGroupOrientation as GroupOrientation;",
@@ -19,6 +23,46 @@ fn group_module_reexports_field_group_contracts() {
         assert!(
             source.contains(needle),
             "group module should expose `{needle}` for react-aria-components Group compatibility."
+        );
+    }
+}
+
+#[test]
+fn group_module_uses_real_forwarding_files() {
+    let logic_source = load_source("src/group/logic.rs");
+    let view_source = load_source("src/group/view.rs");
+    let styles_source = load_source("src/group/styles.rs");
+    let motion_source = load_source("src/group/motion.rs");
+
+    for needle in [
+        "pub use crate::field_group::DEFAULT_ARIA_LABEL;",
+        "pub use crate::field_group::FieldGroupState as GroupState;",
+        "pub use crate::field_group::FieldGroupStateInput as GroupStateInput;",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "group logic forwarding should contain `{needle}`.",
+        );
+    }
+
+    assert!(
+        view_source.contains("pub use crate::field_group::FieldGroup as Group;"),
+        "group view should forward to field_group::FieldGroup.",
+    );
+
+    assert!(
+        styles_source.contains("pub use crate::field_group::styles::CSS;"),
+        "group styles should forward to field_group styles.",
+    );
+
+    for needle in [
+        "pub struct GroupMotion",
+        "pub fn sanitize_motion(motion: GroupMotion) -> GroupMotion",
+        "pub fn attach_motion(",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "group motion contract should include `{needle}`.",
         );
     }
 }

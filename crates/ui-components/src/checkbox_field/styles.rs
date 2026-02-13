@@ -3,11 +3,18 @@ pub const CSS: &str = r#"
   display: grid;
   gap: var(--ui-space-2xs);
   min-width: 0;
+  --ui-checkbox-field-transition-ms: 160ms;
+  --ui-checkbox-field-indicator-scale: 1;
 }
 
 .ui-checkbox-field__checkbox {
   width: 100%;
   justify-content: flex-start;
+  transform: scale(var(--ui-checkbox-field-indicator-scale));
+  transform-origin: center;
+  transition:
+    transform var(--ui-checkbox-field-transition-ms) ease,
+    opacity var(--ui-checkbox-field-transition-ms) ease;
 }
 
 .ui-checkbox-field__checkbox .ui-checkbox__label {
@@ -61,5 +68,11 @@ pub const CSS: &str = r#"
 .ui-checkbox-field[data-custom-class="true"] {
   outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);
   outline-offset: 2px;
+}
+
+.ui-checkbox-field[data-motion-source="custom"],
+.ui-checkbox-field[data-custom-motion="true"],
+.ui-checkbox-field--custom-motion {
+  --ui-checkbox-field-motion-source: custom;
 }
 "#;

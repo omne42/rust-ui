@@ -1,7 +1,9 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::ColorAreaMotion;
 pub use view::ColorArea;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

@@ -1,5 +1,5 @@
 use crate::error_message::{
-    ErrorMessageStateInput,
+    ErrorMessageMotion, ErrorMessageStateInput,
     logic::{self, ErrorMessageElement, ErrorMessageTone},
 };
 use leptos::prelude::*;
@@ -11,9 +11,17 @@ pub fn ErrorMessage(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] truncate: bool,
     #[prop(optional)] element: ErrorMessageElement,
+    #[prop(optional)] motion: ErrorMessageMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::error_message::motion::sanitize_motion(motion);
+    let motion_source = if motion == ErrorMessageMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+
     let (text, has_custom_message) = logic::normalize_message(Some(text));
     let text = StoredValue::new(text);
 
@@ -50,6 +58,8 @@ pub fn ErrorMessage(
                 data-aria-source=move || state.get().aria_source_attr
                 data-custom-class=move || state.get().has_custom_class_name.then_some("true")
                 data-class-source=move || state.get().class_source_attr
+                data-motion-source=motion_source
+                data-custom-motion=(motion != ErrorMessageMotion::default()).then_some("true")
                 aria-label=aria_label
                 aria-disabled=move || state.get().is_disabled.then_some("true")
                 role="alert"
@@ -71,6 +81,8 @@ pub fn ErrorMessage(
                 data-aria-source=move || state.get().aria_source_attr
                 data-custom-class=move || state.get().has_custom_class_name.then_some("true")
                 data-class-source=move || state.get().class_source_attr
+                data-motion-source=motion_source
+                data-custom-motion=(motion != ErrorMessageMotion::default()).then_some("true")
                 aria-label=aria_label
                 aria-disabled=move || state.get().is_disabled.then_some("true")
                 role="alert"
@@ -92,6 +104,8 @@ pub fn ErrorMessage(
                 data-aria-source=move || state.get().aria_source_attr
                 data-custom-class=move || state.get().has_custom_class_name.then_some("true")
                 data-class-source=move || state.get().class_source_attr
+                data-motion-source=motion_source
+                data-custom-motion=(motion != ErrorMessageMotion::default()).then_some("true")
                 aria-label=aria_label
                 aria-disabled=move || state.get().is_disabled.then_some("true")
                 role="alert"

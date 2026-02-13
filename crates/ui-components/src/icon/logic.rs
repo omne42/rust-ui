@@ -73,7 +73,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
 }
 
 pub fn resolve_state(input: IconStateInput) -> IconState {
-    let has_accessible_name = input.has_custom_aria_label && !input.decorative;
+    let has_accessible_name = !input.decorative;
 
     let data_state_attr = if input.disabled {
         "disabled"
@@ -206,6 +206,20 @@ mod tests {
         assert_eq!(decorative.data_state_attr, "decorative");
         assert!(decorative.is_decorative);
         assert!(!decorative.has_accessible_name);
+
+        let non_decorative_with_default_label = resolve_state(IconStateInput {
+            size: IconSize::Md,
+            tone: IconTone::Default,
+            disabled: false,
+            decorative: false,
+            has_custom_aria_label: false,
+            has_custom_class_name: false,
+        });
+        assert!(non_decorative_with_default_label.has_accessible_name);
+        assert_eq!(
+            non_decorative_with_default_label.aria_source_attr,
+            "default"
+        );
     }
 
     #[test]

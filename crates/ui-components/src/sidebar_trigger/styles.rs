@@ -1,6 +1,9 @@
 pub const CSS: &str = r#"
 .ui-sidebar-trigger {
-  transition: transform 160ms ease, opacity 160ms ease;
+  --ui-sidebar-trigger-motion-duration: 160ms;
+  transition:
+    transform var(--ui-sidebar-trigger-motion-duration) ease,
+    opacity var(--ui-sidebar-trigger-motion-duration) ease;
 }
 
 .ui-sidebar-trigger:hover {
@@ -26,5 +29,11 @@ pub const CSS: &str = r#"
 .ui-sidebar-trigger--custom-class,
 .ui-sidebar-trigger[data-custom-class="true"] {
   border-radius: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-sidebar-trigger {
+    --ui-sidebar-trigger-motion-duration: 1ms;
+  }
 }
 "#;

@@ -1,7 +1,9 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::ComboboxMotion;
 pub use view::Combobox;
 
 pub const DEFAULT_LABEL: &str = "Combobox";

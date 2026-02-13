@@ -22,7 +22,7 @@ fn footer_does_not_expose_logic_or_render_modules() {
 #[test]
 fn footer_uses_logic_state_model() {
     let logic_source = load_source("src/footer/logic.rs");
-    let render_source = load_source("src/footer/render.rs");
+    let render_source = load_source("src/footer/view.rs");
 
     for needle in [
         "pub enum FooterTone",
@@ -54,7 +54,7 @@ fn footer_uses_logic_state_model() {
 
 #[test]
 fn footer_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/footer/render.rs");
+    let source = load_source("src/footer/view.rs");
 
     for attr in [
         "data-slot=\"footer\"",

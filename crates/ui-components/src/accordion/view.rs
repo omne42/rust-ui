@@ -21,6 +21,20 @@ fn focus_trigger(trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
 #[cfg(not(target_arch = "wasm32"))]
 fn focus_trigger(_trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, _index: usize) {}
 
+/// Accordion component with roving focus, disclosure semantics, and optional spring motion.
+///
+/// Public props:
+/// - `labels`: trigger text for each panel; caller controls localization.
+/// - `id_base`: stable prefix used for `id`/`aria-*` wiring between trigger and panel.
+/// - `open_indices`: controlled open state (`Some`) for controlled mode.
+/// - `default_open_indices`: uncontrolled initial open state.
+/// - `on_open_change`: callback emitted after user toggles open state.
+/// - `selection_mode`: single or multiple panel selection behavior.
+/// - `disabled`: disable all triggers.
+/// - `disabled_indices`: disable specific trigger indices.
+/// - `motion`: per-instance motion contract overrides.
+/// - `class_name`: optional extra class names merged onto root element.
+/// - `children`: panel contents aligned by index with `labels`.
 #[component]
 pub fn Accordion(
     labels: Vec<String>,

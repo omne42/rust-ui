@@ -17,6 +17,9 @@
 - `docs/spec/styling.md`
   - 样式体系、注入/覆盖策略与禁用项
 
+- `docs/spec/tree_shaking.md`
+  - Tree Shaking / 组件级裁剪策略与验收契约
+
 - `docs/spec/heroui-parameter-design-strategy.md`
   - 参数模型演进与组件 API 设计策略
 

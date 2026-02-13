@@ -1,9 +1,11 @@
 mod logic;
-mod render;
+mod motion;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, HeadingLevel, HeadingTone};
-pub use render::Heading;
+pub use motion::HeadingMotion;
+pub use view::Heading;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct HeadingStateInput {

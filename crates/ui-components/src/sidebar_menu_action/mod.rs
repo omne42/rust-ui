@@ -1,7 +1,9 @@
 mod logic;
+mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::SidebarMenuActionMotion;
 pub use view::SidebarMenuAction;
 
 pub const DEFAULT_ARIA_LABEL: &str = "Sidebar menu action";

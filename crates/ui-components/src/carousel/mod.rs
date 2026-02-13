@@ -1,4 +1,5 @@
 mod logic;
+mod motion;
 pub mod styles;
 mod view;
 

@@ -20,6 +20,8 @@ pub fn Carousel(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::carousel::motion::sanitize_motion(motion);
+
     let id_base = logic::normalize_id_base(id_base);
     let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
     let id_base = StoredValue::new(id_base);

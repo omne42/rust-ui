@@ -22,7 +22,7 @@ fn view_does_not_expose_logic_or_view_modules() {
 #[test]
 fn view_uses_logic_state_model() {
     let logic_source = load_source("src/view/logic.rs");
-    let view_source = load_source("src/view/render.rs");
+    let view_source = load_source("src/view/view.rs");
 
     for needle in [
         "pub enum ViewBackground",
@@ -59,7 +59,7 @@ fn view_uses_logic_state_model() {
 
 #[test]
 fn view_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/view/render.rs");
+    let source = load_source("src/view/view.rs");
 
     for attr in [
         "data-slot=\"view\"",

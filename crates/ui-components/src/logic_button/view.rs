@@ -1,6 +1,7 @@
 use crate::logic_button::{
-    LogicButtonStateInput,
+    LogicButtonMotion, LogicButtonStateInput,
     logic::{self, LogicButtonVariant},
+    motion,
 };
 use leptos::{html, prelude::*};
 use ui_headless::{
@@ -16,8 +17,12 @@ pub fn LogicButton(
     #[prop(optional, default = "button")] button_type: &'static str,
     #[prop(optional)] node_ref: NodeRef<html::Button>,
     #[prop(optional)] on_press: Option<OnPress>,
+    #[prop(optional)] motion: LogicButtonMotion,
     children: Children,
 ) -> impl IntoView {
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != LogicButtonMotion::default();
+
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
 
@@ -64,6 +69,8 @@ pub fn LogicButton(
             data-aria-source=state.aria_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             role=aria.attrs.role
             tabindex=aria.attrs.tabindex
             aria-disabled=aria.attrs.aria_disabled

@@ -1,7 +1,9 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::TextfieldMotion;
 pub use view::Textfield;
 
 pub const DEFAULT_LABEL: &str = "Text field";

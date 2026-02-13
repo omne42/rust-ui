@@ -3,6 +3,7 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use std::sync::Arc;
+use ui_components::list::List;
 use ui_components::{
     Accordion, AccordionSelectionMode, Autocomplete, BreadcrumbItem, Breadcrumbs, ComboBox,
     Disclosure, DropdownMenu, ListBox, Menu, MenuItemKind, MenuTrigger, Pagination, Select, Tabs,
@@ -528,6 +529,99 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         </span>
                     </div>
                 </div>
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn list() -> AnyView {
+    let items: Arc<[String]> = vec![
+        "Overview".to_string(),
+        "Billing".to_string(),
+        "Integrations".to_string(),
+        "Audit Logs".to_string(),
+    ]
+    .into();
+    let disabled_items: Arc<[String]> = vec![
+        "Overview".to_string(),
+        "Billing".to_string(),
+        "Integrations".to_string(),
+    ]
+    .into();
+    let (selected, set_selected) = signal(Some(0_usize));
+    let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
+
+    let code = Signal::derive(move || {
+        r#"let items: Arc<[String]> = vec![
+  "Overview".to_string(),
+  "Billing".to_string(),
+  "Integrations".to_string(),
+].into();
+let (selected, set_selected) = signal(Some(0_usize));
+
+<List
+  id_base="settings-nav".to_string()
+  items=items
+  selected_index=selected
+  set_selected_index=set_selected
+  aria_label="Settings navigation".to_string()
+  disabled_indices=vec![2]
+/>"#
+        .to_string()
+    });
+
+    let states_code = Signal::derive(move || {
+        r#"<List
+  id_base="settings-nav-disabled".to_string()
+  items=vec![
+    "Overview".to_string(),
+    "Billing".to_string(),
+    "Integrations".to_string(),
+  ].into()
+  selected_index=disabled_selected
+  set_selected_index=set_disabled_selected
+  disabled=true
+  sync_active_index_to_selected=false
+  aria_label="Disabled navigation".to_string()
+/>"#
+        .to_string()
+    });
+
+    view! {
+        <ComponentPage
+            title="List"
+            slug="list"
+            group="Collections"
+            description="List primitive built on ListBox with centralized root-state markers and optional active-index sync controls."
+        >
+            <Playground title="Selection + Disabled Item" code_signal=code>
+                <div class="docs-stack">
+                    <List
+                        id_base="docs-list".to_string()
+                        items=items
+                        selected_index=selected
+                        set_selected_index=set_selected
+                        aria_label="Settings navigation".to_string()
+                        disabled_indices=vec![2]
+                    />
+                    <span class="ui-muted">
+                        "selected: "
+                        {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Disabled Root + Unsynced Active Index" code_signal=states_code>
+                <List
+                    id_base="docs-list-disabled".to_string()
+                    items=disabled_items
+                    selected_index=disabled_selected
+                    set_selected_index=set_disabled_selected
+                    disabled=true
+                    sync_active_index_to_selected=false
+                    aria_label="Disabled navigation".to_string()
+                />
             </Playground>
         </ComponentPage>
     }

@@ -12,6 +12,12 @@ fn drag_and_drop_module_reexports_drop_zone_and_file_trigger_contracts() {
     let source = load_source("src/drag_and_drop/mod.rs");
 
     for needle in [
+        "mod logic;",
+        "pub mod motion;",
+        "pub mod styles;",
+        "mod view;",
+        "pub use logic::{DragAndDropState, DragAndDropStateInput, compose_class_name, resolve_state};",
+        "pub use motion::sanitize_motion;",
         "pub use crate::drop_zone::{DropZone as DragAndDrop, DropZoneMotion as DragAndDropMotion};",
         "pub use crate::drop_zone::{DropZone, DropZoneMotion, DroppedFile};",
         "pub use crate::file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};",
@@ -19,6 +25,40 @@ fn drag_and_drop_module_reexports_drop_zone_and_file_trigger_contracts() {
         assert!(
             source.contains(needle),
             "drag_and_drop module should expose `{needle}` for react-aria-components DragAndDrop compatibility."
+        );
+    }
+}
+
+#[test]
+fn drag_and_drop_motion_contract_delegates_to_drop_zone_sanitizer() {
+    let source = load_source("src/drag_and_drop/motion.rs");
+
+    for needle in [
+        "pub use crate::drop_zone::DropZoneMotion as DragAndDropMotion;",
+        "pub fn sanitize_motion(motion: DragAndDropMotion) -> DragAndDropMotion",
+        "crate::drop_zone::motion::sanitize_motion(motion)",
+        "pub fn source_attr(motion: DragAndDropMotion) -> &'static str",
+    ] {
+        assert!(
+            source.contains(needle),
+            "drag_and_drop motion module should include `{needle}` to provide a stable compatibility motion contract."
+        );
+    }
+}
+
+#[test]
+fn drag_and_drop_logic_contract_exposes_state_derivation_helpers() {
+    let source = load_source("src/drag_and_drop/logic.rs");
+
+    for needle in [
+        "pub struct DragAndDropStateInput",
+        "pub struct DragAndDropState",
+        "pub fn resolve_state(input: DragAndDropStateInput) -> DragAndDropState",
+        "pub fn compose_class_name(class_name: Option<String>) -> String",
+    ] {
+        assert!(
+            source.contains(needle),
+            "drag_and_drop logic module should include `{needle}` for stable compatibility-state derivation."
         );
     }
 }

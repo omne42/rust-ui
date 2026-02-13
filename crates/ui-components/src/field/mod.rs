@@ -1,9 +1,11 @@
 mod logic;
-mod render;
+pub mod motion;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, DEFAULT_ERROR_MESSAGE, FieldOrientation, FieldTone};
-pub use render::Field;
+pub use motion::FieldMotion;
+pub use view::Field;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FieldStateInput {

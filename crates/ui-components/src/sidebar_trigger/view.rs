@@ -1,7 +1,8 @@
 use crate::overlay_open;
 use crate::sidebar_trigger::{
-    SidebarTriggerStateInput,
+    SidebarTriggerMotion, SidebarTriggerStateInput,
     logic::{self},
+    motion,
 };
 use leptos::prelude::*;
 
@@ -11,6 +12,7 @@ pub fn SidebarTrigger(
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] motion: SidebarTriggerMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -21,6 +23,8 @@ pub fn SidebarTrigger(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != SidebarTriggerMotion::default();
 
     let default_open = logic::normalize_default_open(default_open);
     let is_controlled = open.is_some();
@@ -55,6 +59,8 @@ pub fn SidebarTrigger(
         <button
             class=move || class.get()
             data-slot="sidebar-trigger"
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-state=move || state.get().state_attr
             data-open=move || state.get().open.then_some("true")
             data-closed=move || state.get().closed.then_some("true")

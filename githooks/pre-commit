@@ -110,4 +110,16 @@ if [[ ! -f "$gate_script" ]]; then
   exit 1
 fi
 
+arch_check_script="$repo_root/scripts/check-architecture.sh"
+if [[ ! -f "$arch_check_script" ]]; then
+  echo "pre-commit: missing architecture check script: $arch_check_script" >&2
+  exit 1
+fi
+
+if [[ "${RUST_UI_SKIP_ARCH_CHECK:-}" != "1" ]]; then
+  bash "$arch_check_script" --staged
+else
+  echo "pre-commit: architecture check skipped (RUST_UI_SKIP_ARCH_CHECK=1)." >&2
+fi
+
 bash "$gate_script"

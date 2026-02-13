@@ -203,6 +203,70 @@ fn accordion_motion_sanitizes_custom_contract_values() {
 }
 
 #[test]
+fn accordion_motion_respects_reduced_motion_preferences() {
+    let source = load_source("src/accordion/motion.rs");
+
+    for needle in [
+        "fn prefers_reduced_motion() -> bool",
+        "(prefers-reduced-motion: reduce)",
+        "if prefers_reduced_motion()",
+        "--ui-accordion-indicator-rotation",
+        "--ui-accordion-panel-height",
+        "--ui-accordion-panel-opacity",
+        "--ui-accordion-panel-y",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Accordion motion should include `{needle}` for reduced-motion fallback behavior.",
+        );
+    }
+}
+
+#[test]
+fn accordion_public_props_are_documented_in_view() {
+    let source = load_source("src/accordion/view.rs");
+
+    for needle in [
+        "/// Public props:",
+        "/// - `labels`",
+        "/// - `id_base`",
+        "/// - `open_indices`",
+        "/// - `default_open_indices`",
+        "/// - `on_open_change`",
+        "/// - `selection_mode`",
+        "/// - `disabled`",
+        "/// - `disabled_indices`",
+        "/// - `motion`",
+        "/// - `class_name`",
+        "/// - `children`",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Accordion public API docs should include `{needle}` in view.rs rustdoc.",
+        );
+    }
+}
+
+#[test]
+fn accordion_has_component_readme() {
+    let source = load_source("src/accordion/README.md");
+
+    for needle in [
+        "# Accordion",
+        "## 架构分层",
+        "## API 概览",
+        "## 语义与可访问性",
+        "## 动效与降级",
+        "prefers-reduced-motion: reduce",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Accordion README should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
 fn accordion_docs_page_covers_primary_playgrounds() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
 

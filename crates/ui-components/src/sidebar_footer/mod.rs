@@ -1,7 +1,9 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::SidebarFooterMotion;
 pub use view::SidebarFooter;
 
 pub const DEFAULT_ARIA_LABEL: &str = "Sidebar footer";

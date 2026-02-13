@@ -1,7 +1,6 @@
+use crate::text_field::logic;
 use leptos::{html, prelude::*};
 use ui_headless::{FocusRingOptions, TextFieldOptions, use_focus_ring, use_text_field};
-
-const DEFAULT_LABEL: &str = "Text field";
 
 #[component]
 pub fn TextField(
@@ -25,32 +24,11 @@ pub fn TextField(
         is_disabled: disabled,
     });
 
-    let (label, label_source_attr) = {
-        let trimmed = label.trim();
-        if trimmed.is_empty() {
-            (DEFAULT_LABEL.to_string(), "default")
-        } else {
-            (trimmed.to_string(), "custom")
-        }
-    };
-
-    let description = description.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    });
-    let error = error.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    });
-    let placeholder = placeholder.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    });
-
-    let class_name = class_name.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    });
+    let (label, label_source_attr) = logic::resolve_label(label);
+    let description = logic::normalize_optional_text(description);
+    let error = logic::normalize_optional_text(error);
+    let placeholder = logic::normalize_optional_text(placeholder);
+    let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
 
     let base_class = "ui-text-field".to_string();
@@ -59,29 +37,11 @@ pub fn TextField(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let (input_type, type_source_attr) =
-        match input_type.map(str::trim).filter(|value| !value.is_empty()) {
-            Some("text") => ("text", "default"),
-            Some(value) => (value, "custom"),
-            None => ("text", "default"),
-        };
-
-    let description_source_attr = if description.is_some() {
-        "custom"
-    } else {
-        "default"
-    };
-    let error_source_attr = if error.is_some() { "custom" } else { "default" };
-    let placeholder_source_attr = if placeholder.is_some() {
-        "custom"
-    } else {
-        "default"
-    };
-    let class_source_attr = if has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
+    let (input_type, type_source_attr) = logic::resolve_input_type(input_type);
+    let description_source_attr = logic::source_attr_from_presence(description.is_some());
+    let error_source_attr = logic::source_attr_from_presence(error.is_some());
+    let placeholder_source_attr = logic::source_attr_from_presence(placeholder.is_some());
+    let class_source_attr = logic::source_attr_from_presence(has_custom_class_name);
 
     let aria = use_text_field(TextFieldOptions {
         id: id.clone(),

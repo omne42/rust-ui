@@ -342,7 +342,7 @@ pub use empty::{
     Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyMediaVariant, EmptyTitle,
 };
 pub use empty_state::{EmptyState, EmptyStateAlign, EmptyStateTone};
-pub use error_message::{ErrorMessage, ErrorMessageElement, ErrorMessageTone};
+pub use error_message::{ErrorMessage, ErrorMessageElement, ErrorMessageMotion, ErrorMessageTone};
 pub use error_view::{ErrorView, ErrorViewMotion, ErrorViewTone};
 pub use field::{Field, FieldOrientation, FieldTone};
 pub use field_button::FieldButton;
@@ -365,7 +365,7 @@ pub use gridlist::{
 };
 pub use group::{Group, GroupDensity, GroupOrientation};
 pub use header::{Header, HeaderTone};
-pub use heading::{Heading, HeadingLevel, HeadingTone};
+pub use heading::{Heading, HeadingLevel, HeadingMotion, HeadingTone};
 pub use help_text::{HelpText, HelpTextTone};
 pub use hidden_date_input::{HiddenDateInput, HiddenDateInputVariant};
 pub use hover_card::{HoverCard, HoverCardMotion};
@@ -390,7 +390,7 @@ pub use item::{
 };
 pub use kbd::{Kbd, KbdSize};
 pub use keyboard::{Keyboard, KeyboardTone};
-pub use label::{Label, LabelEmphasis};
+pub use label::{Label, LabelEmphasis, LabelMotion};
 pub use labeled_value::{LabeledValue, LabeledValueOrientation, LabeledValueTone};
 pub use legend::{Legend, LegendTone};
 pub use link::Link;
@@ -429,6 +429,7 @@ pub use progress_circle::{ProgressCircle, ProgressCircleMotion};
 pub use provider::Provider;
 pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
 pub use radio_group::RadioGroupItem;
+pub use resizable::ResizableMotion;
 pub use resizable::{Resizable, ResizableOrientation};
 pub use ripple::{MotionRipple, RippleMotion};
 pub use root::UiRoot;
@@ -454,6 +455,7 @@ pub use sidebar_header::SidebarHeader;
 pub use sidebar_inset::SidebarInset;
 pub use sidebar_menu::{SidebarMenu, SidebarMenuItem, SidebarMenuMotion, SidebarMenuSubItem};
 pub use sidebar_menu_action::SidebarMenuAction;
+pub use sidebar_menu_action::SidebarMenuActionMotion;
 pub use sidebar_menu_badge::SidebarMenuBadge;
 pub use sidebar_rail::SidebarRail;
 pub use sidebar_trigger::SidebarTrigger;

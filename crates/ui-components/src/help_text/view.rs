@@ -1,8 +1,9 @@
 use crate::help_text::{
-    HelpTextStateInput,
+    HelpTextMotion, HelpTextStateInput,
     logic::{self, HelpTextTone},
+    motion,
 };
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn HelpText(
@@ -13,6 +14,7 @@ pub fn HelpText(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error_message: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional)] motion: HelpTextMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
@@ -30,6 +32,8 @@ pub fn HelpText(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != HelpTextMotion::default();
 
     let state = Memo::new(move |_| {
         logic::resolve_state(HelpTextStateInput {
@@ -46,9 +50,13 @@ pub fn HelpText(
     });
 
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let is_error = Signal::derive(move || state.get().message_kind_attr == "error");
+    let root_ref: NodeRef<html::Div> = NodeRef::new();
+    motion::attach_motion(root_ref, is_error, motion);
 
     view! {
         <div
+            node_ref=root_ref
             class=move || class.get()
             data-slot="help-text"
             data-tone=move || state.get().tone_attr
@@ -63,6 +71,8 @@ pub fn HelpText(
             data-error-source=move || state.get().error_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             aria-label=aria_label
             aria-disabled=move || state.get().is_disabled.then_some("true")
             aria-invalid=move || state.get().is_invalid.then_some("true")

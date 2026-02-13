@@ -1,9 +1,11 @@
 mod logic;
-mod render;
+pub mod motion;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, GridAlign, GridColumns, GridGap, GridJustify, GridRows};
-pub use render::Grid;
+pub use motion::GridMotion;
+pub use view::Grid;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct GridStateInput {

@@ -4,6 +4,14 @@ pub const CSS: &str = r#"
 
   display: inline-flex;
   gap: var(--ui-space-xs);
+  transform: scale(var(--ui-button-group-scale, 1));
+  transform-origin: center;
+  will-change: transform;
+}
+
+.ui-button-group[data-motion-source="custom"],
+.ui-button-group[data-custom-motion="true"] {
+  --ui-button-group-custom-motion: 1;
 }
 
 .ui-button-group--horizontal {

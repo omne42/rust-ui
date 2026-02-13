@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, DEFAULT_COLOR};
+pub use motion::ColorThumbMotion;
 pub use view::ColorThumb;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

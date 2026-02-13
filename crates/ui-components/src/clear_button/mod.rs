@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{ClearButtonVariant, DEFAULT_ARIA_LABEL};
+pub use motion::ClearButtonMotion;
 pub use view::ClearButton;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

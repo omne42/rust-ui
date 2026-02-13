@@ -3,6 +3,8 @@ use std::collections::BTreeSet;
 pub const DEFAULT_LABEL: &str = "Options";
 pub const DEFAULT_ID_BASE: &str = "combo-box";
 pub const DEFAULT_PLACEHOLDER: &str = "Select…";
+pub const DEFAULT_EMPTY_MESSAGE: &str = "No options";
+pub const DEFAULT_TOGGLE_ARIA_LABEL: &str = "Toggle options";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ComboBoxStateInput {
@@ -70,6 +72,14 @@ pub fn normalize_id_base(id_base: String) -> String {
 
 pub fn resolve_placeholder(placeholder: Option<String>) -> String {
     normalize_optional_text(placeholder).unwrap_or_else(|| DEFAULT_PLACEHOLDER.to_string())
+}
+
+pub fn resolve_empty_message(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_EMPTY_MESSAGE.to_string())
+}
+
+pub fn resolve_toggle_aria_label(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TOGGLE_ARIA_LABEL.to_string())
 }
 
 pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize) -> Vec<usize> {
@@ -230,6 +240,32 @@ mod tests {
             DEFAULT_PLACEHOLDER
         );
         assert_eq!(resolve_placeholder(None), DEFAULT_PLACEHOLDER);
+    }
+
+    #[test]
+    fn resolve_empty_message_uses_fallback() {
+        assert_eq!(
+            resolve_empty_message(Some("  Nothing matched  ".to_string())),
+            "Nothing matched"
+        );
+        assert_eq!(
+            resolve_empty_message(Some("   ".to_string())),
+            DEFAULT_EMPTY_MESSAGE
+        );
+        assert_eq!(resolve_empty_message(None), DEFAULT_EMPTY_MESSAGE);
+    }
+
+    #[test]
+    fn resolve_toggle_aria_label_uses_fallback() {
+        assert_eq!(
+            resolve_toggle_aria_label(Some("  Expand options  ".to_string())),
+            "Expand options"
+        );
+        assert_eq!(
+            resolve_toggle_aria_label(Some("   ".to_string())),
+            DEFAULT_TOGGLE_ARIA_LABEL
+        );
+        assert_eq!(resolve_toggle_aria_label(None), DEFAULT_TOGGLE_ARIA_LABEL);
     }
 
     #[test]

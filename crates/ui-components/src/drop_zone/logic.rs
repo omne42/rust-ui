@@ -5,6 +5,28 @@ pub struct DroppedFile {
     pub mime: String,
 }
 
+pub const DEFAULT_ARIA_LABEL: &str = "Drop files";
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn resolve_labels(
+    label: Option<String>,
+    aria_label: Option<String>,
+) -> (Option<String>, String, bool) {
+    let label = normalize_optional_text(label);
+    let aria_label = normalize_optional_text(aria_label)
+        .or_else(|| label.clone())
+        .unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string());
+    let has_custom_aria_label = aria_label != DEFAULT_ARIA_LABEL;
+
+    (label, aria_label, has_custom_aria_label)
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub(crate) struct DragDepth {
     depth: usize,
@@ -120,5 +142,28 @@ mod tests {
 
         let state = state.reset();
         assert!(!state.is_active());
+    }
+
+    #[test]
+    fn resolve_labels_trims_and_falls_back_to_defaults() {
+        let (label, aria_label, has_custom_aria_label) = resolve_labels(
+            Some("  Upload files  ".to_string()),
+            Some("  Upload area  ".to_string()),
+        );
+        assert_eq!(label, Some("Upload files".to_string()));
+        assert_eq!(aria_label, "Upload area");
+        assert!(has_custom_aria_label);
+
+        let (label, aria_label, has_custom_aria_label) =
+            resolve_labels(Some("  Upload files  ".to_string()), Some("  ".to_string()));
+        assert_eq!(label, Some("Upload files".to_string()));
+        assert_eq!(aria_label, "Upload files");
+        assert!(has_custom_aria_label);
+
+        let (label, aria_label, has_custom_aria_label) =
+            resolve_labels(Some("  ".to_string()), Some("  ".to_string()));
+        assert_eq!(label, None);
+        assert_eq!(aria_label, DEFAULT_ARIA_LABEL);
+        assert!(!has_custom_aria_label);
     }
 }

@@ -15,6 +15,7 @@ pub fn ActionGroup(
     #[prop(optional)] disabled: bool,
     #[prop(optional, into)] selected_ids: Option<Signal<BTreeSet<String>>>,
     #[prop(optional)] default_selected_ids: Option<BTreeSet<String>>,
+    #[prop(optional)] on_selected_ids_change: Option<Callback<BTreeSet<String>>>,
     #[prop(optional)] on_selected_change: Option<Callback<BTreeSet<String>>>,
     #[prop(optional)] on_action: Option<Callback<String>>,
     #[prop(optional, into)] aria_label: Option<String>,
@@ -29,6 +30,7 @@ pub fn ActionGroup(
         selection_mode,
     );
 
+    let on_selected_change = on_selected_ids_change.or(on_selected_change);
     let selected_state = overlay_open::use_controllable_state(
         selected_ids,
         Some(default_selected_ids),

@@ -1,6 +1,7 @@
 use crate::legend::{
-    LegendStateInput,
+    LegendMotion, LegendStateInput,
     logic::{self, LegendTone},
+    motion,
 };
 use leptos::prelude::*;
 
@@ -10,6 +11,7 @@ pub fn Legend(
     #[prop(optional)] tone: LegendTone,
     #[prop(optional)] required: bool,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] motion: LegendMotion,
     #[prop(optional, into)] required_indicator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -19,6 +21,8 @@ pub fn Legend(
 
     let class_name = logic::normalize_optional_text(class_name);
     let class_name = StoredValue::new(class_name);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != LegendMotion::default();
 
     let state = Signal::derive(move || {
         logic::resolve_state(LegendStateInput {
@@ -38,6 +42,8 @@ pub fn Legend(
         <legend
             class=move || class.get()
             data-slot="legend"
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-tone=move || state.get().tone_attr
             data-state=move || if state.get().is_required { "required" } else { "optional" }
             data-required=move || state.get().is_required.then_some("true")

@@ -22,7 +22,7 @@ fn grid_does_not_expose_logic_or_render_modules() {
 #[test]
 fn grid_uses_logic_state_model() {
     let logic_source = load_source("src/grid/logic.rs");
-    let render_source = load_source("src/grid/render.rs");
+    let render_source = load_source("src/grid/view.rs");
 
     for needle in [
         "pub enum GridColumns",
@@ -58,7 +58,7 @@ fn grid_uses_logic_state_model() {
 
 #[test]
 fn grid_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/grid/render.rs");
+    let source = load_source("src/grid/view.rs");
 
     for attr in [
         "data-slot=\"grid\"",

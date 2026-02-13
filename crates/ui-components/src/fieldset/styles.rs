@@ -9,6 +9,11 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
 }
 
+.ui-fieldset[data-motion-source="custom"],
+.ui-fieldset[data-custom-motion="true"] {
+  --ui-fieldset-custom-motion: 1;
+}
+
 .ui-fieldset--orientation-vertical,
 .ui-fieldset[data-orientation="vertical"] {
   grid-template-columns: minmax(0, 1fr);
@@ -93,6 +98,11 @@ pub const CSS: &str = r#"
   margin: 0;
   font-size: 0.75rem;
   line-height: 1.35;
+  transition:
+    opacity var(--ui-fieldset-motion-duration, 170ms) ease,
+    transform var(--ui-fieldset-motion-duration, 170ms) ease;
+  transform: translateY(var(--ui-fieldset-motion-distance, 0px));
+  opacity: 1;
 }
 
 .ui-fieldset__description {

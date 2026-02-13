@@ -1,9 +1,10 @@
 use crate::date_field::{
-    DateFieldStateInput,
+    DateFieldMotion, DateFieldStateInput,
     logic::{self, DateFieldTone},
+    motion,
 };
 use crate::overlay_open;
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn DateField(
@@ -16,6 +17,7 @@ pub fn DateField(
     #[prop(optional)] default_value: Option<String>,
     #[prop(optional)] on_value_change: Option<Callback<Option<String>>>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional)] motion: DateFieldMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let default_value = logic::normalize_date_value(default_value);
@@ -35,10 +37,13 @@ pub fn DateField(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != DateFieldMotion::default();
 
     let ids = logic::resolve_ids(&id_base);
     let root_id = ids.root_id;
     let label_id = ids.label_id;
+    let aria_labelledby_id = label_id.clone();
     let year_id = ids.year_id;
     let month_id = ids.month_id;
     let day_id = ids.day_id;
@@ -59,6 +64,7 @@ pub fn DateField(
     });
 
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let has_value = Signal::derive(move || state.get().has_value);
 
     let input_placeholders = logic::resolve_input_placeholders(&placeholder.get_value());
     let year_placeholder = StoredValue::new(input_placeholders.0);
@@ -127,8 +133,12 @@ pub fn DateField(
         request_value_change.run(None);
     };
 
+    let root_ref: NodeRef<html::Div> = NodeRef::new();
+    motion::attach_motion(root_ref, has_value, motion);
+
     view! {
         <div
+            node_ref=root_ref
             id=root_id
             class=move || class.get()
             data-slot="date-field"
@@ -141,9 +151,11 @@ pub fn DateField(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             role="group"
             aria-label=aria_label
-            aria-labelledby=label_id.clone()
+            aria-labelledby=move || (!has_custom_aria_label).then(|| aria_labelledby_id.clone())
         >
             <label id=label_id.clone() class="ui-date-field__label" data-slot="date-field-label" for=year_id.clone()>
                 {label.get_value()}

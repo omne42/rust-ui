@@ -1,7 +1,9 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
+pub use motion::SidebarTriggerMotion;
 pub use view::SidebarTrigger;
 
 pub const DEFAULT_ARIA_LABEL: &str = "Toggle sidebar";

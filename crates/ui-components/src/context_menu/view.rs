@@ -24,6 +24,7 @@ pub fn ContextMenu(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let motion = crate::context_menu::motion::sanitize_motion(motion);
     let id_base = logic::normalize_id_base(id_base);
     let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
     let id_base = StoredValue::new(id_base);

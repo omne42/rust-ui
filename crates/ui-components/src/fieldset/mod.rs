@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, DEFAULT_ERROR_MESSAGE, FieldsetOrientation, FieldsetTone};
+pub use motion::FieldsetMotion;
 pub use view::Fieldset;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -1,8 +1,10 @@
 use crate::color_swatch::{
-    ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, ColorSwatchStateInput,
+    ColorSwatchMotion, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize,
+    ColorSwatchStateInput,
     logic::{self},
+    motion,
 };
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn ColorSwatch(
@@ -13,6 +15,7 @@ pub fn ColorSwatch(
     #[prop(optional)] shape: ColorSwatchShape,
     #[prop(optional, default = true)] bordered: bool,
     #[prop(optional, default = false)] decorative: bool,
+    #[prop(optional)] motion: ColorSwatchMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -23,6 +26,8 @@ pub fn ColorSwatch(
 
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ColorSwatchMotion::default();
 
     let state = logic::resolve_state(ColorSwatchStateInput {
         size,
@@ -36,9 +41,12 @@ pub fn ColorSwatch(
     });
 
     let class = logic::compose_class_name(class_name, state);
+    let root_ref: NodeRef<html::Div> = NodeRef::new();
+    motion::attach_motion(root_ref, motion);
 
     view! {
         <div
+            node_ref=root_ref
             class=class
             role=(!decorative).then_some("img")
             aria-label=(!decorative).then_some(aria_label)
@@ -56,6 +64,8 @@ pub fn ColorSwatch(
             data-aria-source=state.aria_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
         >
             <span class="ui-color-swatch__checker" data-slot="color-swatch-checker" aria-hidden="true"></span>
             <span class="ui-color-swatch__sample" data-slot="color-swatch-sample" aria-hidden="true"></span>

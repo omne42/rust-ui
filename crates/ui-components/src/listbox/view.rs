@@ -21,6 +21,9 @@ pub fn ListBox(
     #[prop(optional)] motion: ActiveHighlightMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion = crate::listbox::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ActiveHighlightMotion::default();
+
     let item_count_value = items.len();
     let (item_count, _set_item_count) = signal(item_count_value);
 
@@ -102,6 +105,8 @@ pub fn ListBox(
             aria-disabled=aria.attrs.aria_disabled
             aria-activedescendant=move || aria.attrs.aria_activedescendant.get()
             data-slot="listbox"
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-disabled=disabled.then_some("true")
             data-empty=move || state.get().is_empty.then_some("true")
             data-has-items=move || state.get().has_items.then_some("true")

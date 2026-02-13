@@ -1,9 +1,11 @@
 mod logic;
-mod render;
+pub mod motion;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, FooterTone};
-pub use render::Footer;
+pub use motion::FooterMotion;
+pub use view::Footer;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FooterStateInput {

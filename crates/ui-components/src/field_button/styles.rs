@@ -48,6 +48,11 @@ pub const CSS: &str = r#"
   outline-offset: 2px;
 }
 
+.ui-field-button[data-focus-visible="true"] {
+  outline: 2px solid color-mix(in oklab, var(--ui-accent) 45%, transparent);
+  outline-offset: 2px;
+}
+
 .ui-field-button__label {
   min-width: 0;
   white-space: nowrap;

@@ -22,6 +22,7 @@ pub fn Collapsible(
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
+    let motion = crate::collapsible::motion::sanitize_motion(motion);
     let id_base = logic::normalize_id_base(id_base);
     let title = logic::resolve_title(title);
     let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(&title, aria_label);

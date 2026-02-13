@@ -1,8 +1,9 @@
 use crate::listbox_section::{
-    ListBoxSectionStateInput,
+    ListBoxSectionMotion, ListBoxSectionStateInput,
     logic::{self, ListBoxSectionHeadingTone},
+    motion,
 };
-use leptos::{children::Children, prelude::*};
+use leptos::{children::Children, html, prelude::*};
 
 #[component]
 pub fn ListBoxSection(
@@ -13,6 +14,7 @@ pub fn ListBoxSection(
     #[prop(optional)] disabled: bool,
     #[prop(optional)] sticky_heading: bool,
     #[prop(optional)] show_divider: bool,
+    #[prop(optional)] motion: ListBoxSectionMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -23,6 +25,10 @@ pub fn ListBoxSection(
     let resolved_item_count = item_count.unwrap_or(1);
 
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ListBoxSectionMotion::default();
+    let items_ref: NodeRef<html::Div> = NodeRef::new();
+    motion::attach_motion(items_ref, motion);
 
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -64,6 +70,8 @@ pub fn ListBoxSection(
             data-title-source=move || state.get().title_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
         >
             <Show when=move || state.get().has_title>
                 <header
@@ -75,7 +83,7 @@ pub fn ListBoxSection(
                 </header>
             </Show>
 
-            <div class="ui-listbox-section__items" data-slot="listbox-section-items">
+            <div node_ref=items_ref class="ui-listbox-section__items" data-slot="listbox-section-items">
                 {children()}
             </div>
 

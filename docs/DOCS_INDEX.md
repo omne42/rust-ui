@@ -34,6 +34,7 @@
 | `docs/spec/mvp.md` | Spec | Active | MVP 范围与 DoD |
 | `docs/spec/motion.md` | Spec | Active | 动效架构约束 |
 | `docs/spec/styling.md` | Spec | Active | 样式系统规范 |
+| `docs/spec/tree_shaking.md` | Spec | Active | Tree Shaking / 组件级裁剪规范 |
 | `docs/spec/heroui-parameter-design-strategy.md` | Spec | Draft | 参数模型对齐策略 |
 | `docs/spec/hyper-structure-ui-development-playbook.md` | Spec | Draft | AI Verified/Struct-First 执行手册 |
 

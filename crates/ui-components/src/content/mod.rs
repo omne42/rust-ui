@@ -1,9 +1,9 @@
 mod logic;
-mod render;
 pub mod styles;
+mod view;
 
 pub use logic::{ContentTone, DEFAULT_ARIA_LABEL};
-pub use render::Content;
+pub use view::Content;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ContentStateInput {

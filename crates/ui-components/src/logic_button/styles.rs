@@ -11,7 +11,13 @@ pub const CSS: &str = r#"
   background: var(--ui-bg-muted);
   color: var(--ui-fg);
   cursor: pointer;
-  transition: transform 160ms ease, color 120ms ease, background-color 120ms ease, border-color 120ms ease;
+  --ui-logic-button-transition-ms: 160ms;
+  --ui-logic-button-press-scale: 0.97;
+  transition:
+    transform var(--ui-logic-button-transition-ms) ease,
+    color var(--ui-logic-button-transition-ms) ease,
+    background-color var(--ui-logic-button-transition-ms) ease,
+    border-color var(--ui-logic-button-transition-ms) ease;
 }
 
 .ui-logic-button--variant-and,
@@ -34,7 +40,7 @@ pub const CSS: &str = r#"
 
 .ui-logic-button.is-active,
 .ui-logic-button[data-pressed="true"] {
-  transform: scale(0.97);
+  transform: scale(var(--ui-logic-button-press-scale));
 }
 
 .ui-logic-button--disabled,
@@ -58,5 +64,10 @@ pub const CSS: &str = r#"
 .ui-logic-button--custom-class,
 .ui-logic-button[data-custom-class="true"] {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--ui-accent) 24%, transparent) inset;
+}
+
+.ui-logic-button[data-motion-source="custom"],
+.ui-logic-button[data-custom-motion="true"] {
+  --ui-logic-button-motion-source: custom;
 }
 "#;

@@ -22,7 +22,7 @@ fn header_does_not_expose_logic_or_render_modules() {
 #[test]
 fn header_uses_logic_state_model() {
     let logic_source = load_source("src/header/logic.rs");
-    let render_source = load_source("src/header/render.rs");
+    let render_source = load_source("src/header/view.rs");
 
     for needle in [
         "pub enum HeaderTone",
@@ -54,7 +54,7 @@ fn header_uses_logic_state_model() {
 
 #[test]
 fn header_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/header/render.rs");
+    let source = load_source("src/header/view.rs");
 
     for attr in [
         "data-slot=\"header\"",

@@ -13,6 +13,14 @@ pub const CSS: &str = r#"
   overflow: hidden;
   box-sizing: border-box;
   background: var(--ui-bg-muted);
+  opacity: var(--ui-im-opacity, 1);
+  transform: translateY(var(--ui-im-y, 0px));
+  will-change: transform, opacity;
+}
+
+.ui-color-swatch[data-motion-source="custom"],
+.ui-color-swatch[data-custom-motion="true"] {
+  --ui-color-swatch-custom-motion: 1;
 }
 
 .ui-color-swatch__checker,

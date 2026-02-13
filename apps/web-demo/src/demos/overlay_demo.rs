@@ -1,16 +1,12 @@
 use leptos::prelude::*;
 use ui_components::{Button, Modal, OnPress};
-use ui_core::overlay_trigger::{OverlayTriggerStateOptions, use_overlay_trigger_state};
 
 #[component]
 pub fn OverlayDemo() -> impl IntoView {
-    let (overlay_state, set_overlay_state) = signal(use_overlay_trigger_state(
-        OverlayTriggerStateOptions::default(),
-    ));
-    let open_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.open()));
-    let close_overlay: OnPress = Callback::new(move |_| set_overlay_state.update(|s| s.close()));
+    let (is_modal_open, set_is_modal_open) = signal(false);
+    let open_overlay: OnPress = Callback::new(move |_| set_is_modal_open.set(true));
+    let close_overlay: OnPress = Callback::new(move |_| set_is_modal_open.set(false));
 
-    let is_modal_open = Signal::derive(move || overlay_state.get().is_open());
     let (is_modal_present, set_modal_present) = signal(is_modal_open.get_untracked());
 
     Effect::new(move |_| {
@@ -25,7 +21,7 @@ pub fn OverlayDemo() -> impl IntoView {
         <>
             <Show when=move || is_modal_present.get()>
                 <Modal
-                    open=is_modal_open
+                    open=is_modal_open.into()
                     id_base="demo-modal".to_string()
                     title="Overlay v2".to_string()
                     description="Esc / click outside closes. Tab is trapped; close returns focus.".to_string()
@@ -44,7 +40,7 @@ pub fn OverlayDemo() -> impl IntoView {
                 <div class="demo-row">
                     <Button on_press=open_overlay>"Open Modal"</Button>
                     <span class="demo-kv">
-                        "open: " {move || overlay_state.get().is_open().to_string()}
+                        "open: " {move || is_modal_open.get().to_string()}
                     </span>
                 </div>
             </section>

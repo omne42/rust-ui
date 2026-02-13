@@ -1,6 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
+use ui_components::overlays::OverlaysRoot;
 use ui_components::{
     Button, ButtonVariant, ContextualHelp, ContextualHelpVariant, Drawer, DrawerMotion,
     DrawerPlacement, Modal, OnPress, Overlay, OverlayMotion, Popover, PopoverMotion, PreviewCard,
@@ -1241,6 +1242,46 @@ store.push_simple("Saved");"#
                     <Button variant=ButtonVariant::Destructive on_press=push_danger>"Push danger"</Button>
                 </div>
                 <ToastViewport />
+            </Playground>
+        </ComponentPage>
+    }
+    .into_any()
+}
+
+pub(super) fn overlays_root() -> AnyView {
+    let code = Signal::derive(move || {
+        r#"<OverlaysRoot
+  id_base="docs-overlays-root".to_string()
+  open=true
+  modal=true
+  class_name="docs-overlays-root".to_string()
+>
+  <div class="ui-card">"Overlay stack host"</div>
+</OverlaysRoot>"#
+            .to_string()
+    });
+
+    view! {
+        <ComponentPage
+            title="OverlaysRoot"
+            slug="overlays-root"
+            group="Overlays"
+            description="Shared overlay host primitive exposing stable root-state and source markers for grouped overlay stacks."
+        >
+            <Playground title="Open + Modal Root State" code_signal=code>
+                <OverlaysRoot
+                    id_base="docs-overlays-root".to_string()
+                    open=true
+                    modal=true
+                    class_name="docs-overlays-root".to_string()
+                >
+                    <div class="ui-card docs-stack docs-stack--tight">
+                        <strong>"Overlays root container"</strong>
+                        <span class="ui-muted">
+                            "Inspect data-state / data-layer / data-id-source / data-class-source in DevTools."
+                        </span>
+                    </div>
+                </OverlaysRoot>
             </Playground>
         </ComponentPage>
     }

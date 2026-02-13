@@ -1,6 +1,7 @@
 use crate::field::{
-    FieldStateInput,
+    FieldMotion, FieldStateInput,
     logic::{self, FieldOrientation, FieldTone},
+    motion,
 };
 use leptos::prelude::*;
 
@@ -14,6 +15,7 @@ pub fn Field(
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error_message: Option<String>,
+    #[prop(optional)] motion: FieldMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -36,6 +38,8 @@ pub fn Field(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != FieldMotion::default();
 
     let state = Memo::new(move |_| {
         logic::resolve_state(FieldStateInput {
@@ -59,6 +63,8 @@ pub fn Field(
         <div
             class=move || class.get()
             data-slot="field"
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-orientation=move || state.get().orientation_attr
             data-tone=move || state.get().tone_attr
             data-state=move || state.get().data_state_attr

@@ -1,9 +1,11 @@
 mod logic;
-mod render;
+pub mod motion;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, DEFAULT_ERROR_MESSAGE, HelpTextTone};
-pub use render::HelpText;
+pub use motion::HelpTextMotion;
+pub use view::HelpText;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct HelpTextStateInput {

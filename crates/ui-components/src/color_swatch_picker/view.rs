@@ -1,8 +1,9 @@
 use crate::{
     color_swatch::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize},
     color_swatch_picker::{
-        ColorSwatchPickerItem, ColorSwatchPickerStateInput,
+        ColorSwatchPickerItem, ColorSwatchPickerMotion, ColorSwatchPickerStateInput,
         logic::{self},
+        motion,
     },
     overlay_open,
 };
@@ -23,7 +24,11 @@ pub fn ColorSwatchPicker(
     #[prop(optional, into)] id_base: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: ColorSwatchPickerMotion,
 ) -> impl IntoView {
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ColorSwatchPickerMotion::default();
+
     let id_base = logic::normalize_optional_text(id_base)
         .unwrap_or_else(|| "ui-color-swatch-picker".to_string());
 
@@ -121,6 +126,8 @@ pub fn ColorSwatchPicker(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             on:keydown=on_key_down
         >
             <div class="ui-color-swatch-picker__list" data-slot="color-swatch-picker-list">

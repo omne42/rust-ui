@@ -1,5 +1,7 @@
 use crate::action_button::ActionButtonSize;
-use crate::action_button_group::{ActionButtonGroupDensity, ActionButtonGroupOrientation, logic};
+use crate::action_button_group::{
+    ActionButtonGroupDensity, ActionButtonGroupMotion, ActionButtonGroupOrientation, logic, motion,
+};
 use leptos::prelude::*;
 
 #[component]
@@ -11,6 +13,7 @@ pub fn ActionButtonGroup(
     #[prop(optional)] is_justified: bool,
     #[prop(optional)] is_quiet: bool,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] motion: ActionButtonGroupMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -37,12 +40,16 @@ pub fn ActionButtonGroup(
     });
 
     let class = logic::compose_class_name(class_name, state);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ActionButtonGroupMotion::default();
 
     view! {
         <div
             class=class
             data-slot="action-button-group"
             data-state=if state.is_disabled { "disabled" } else { "ready" }
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-orientation=state.orientation_attr
             data-density=state.density_attr
             data-horizontal=state.is_horizontal.then_some("true")

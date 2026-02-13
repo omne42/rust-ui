@@ -1,4 +1,4 @@
-use super::{AssetMotion, AssetSize, AssetVariant, logic};
+use super::{AssetMotion, AssetSize, AssetVariant, logic, motion};
 use crate::Thumbnail;
 use leptos::prelude::*;
 
@@ -13,6 +13,13 @@ pub fn Asset(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] children: Option<Children>,
 ) -> impl IntoView {
+    let motion = motion::sanitize_motion(motion);
+    let motion_source_attr = if motion == AssetMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+
     let normalized_label = logic::normalize_optional_text(label);
     let has_custom_label = normalized_label.is_some();
     let label = logic::resolve_label(normalized_label, variant);
@@ -144,6 +151,8 @@ pub fn Asset(
                 data-class-source=state.class_source_attr
                 data-content-source=state.content_source_attr
                 data-custom-class=state.has_custom_class_name.then_some("true")
+                data-motion-source=motion_source_attr
+                data-custom-motion=(motion != AssetMotion::default()).then_some("true")
             >
                 {content}
             </div>

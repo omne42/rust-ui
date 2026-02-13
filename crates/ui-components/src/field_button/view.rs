@@ -63,6 +63,7 @@ pub fn FieldButton(
             data-disabled=state.is_disabled.then_some("true")
             data-active=move || (is_active || aria.is_pressed.get()).then_some("true")
             data-hovered=move || hover.is_hovered.get().then_some("true")
+            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
             data-pressed=move || aria.is_pressed.get().then_some("true")
             data-has-handler=state.has_custom_press_handler.then_some("true")
             data-active-mode=state.active_mode_attr

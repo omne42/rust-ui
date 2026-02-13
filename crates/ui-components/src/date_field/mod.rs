@@ -1,10 +1,12 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{
     DEFAULT_ARIA_LABEL, DEFAULT_LABEL, DEFAULT_PLACEHOLDER, DateFieldIds, DateFieldTone,
 };
+pub use motion::DateFieldMotion;
 pub use view::DateField;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

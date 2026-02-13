@@ -1,7 +1,10 @@
 pub const CSS: &str = r#"
 .ui-scroll-area {
+  --ui-scroll-area-motion-duration: 160ms;
+
   position: relative;
   border-radius: inherit;
+  transition: opacity var(--ui-scroll-area-motion-duration) ease;
 }
 
 .ui-scroll-area__viewport {
@@ -70,5 +73,11 @@ pub const CSS: &str = r#"
 
 .ui-scroll-area__viewport:focus-visible {
   box-shadow: inset 0 0 0 2px var(--ui-focus-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-scroll-area {
+    --ui-scroll-area-motion-duration: 1ms;
+  }
 }
 "#;

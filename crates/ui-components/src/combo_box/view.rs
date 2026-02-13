@@ -17,6 +17,7 @@ fn ComboBoxPanel(
     items: StoredValue<Arc<[String]>>,
     disabled_indices: Arc<HashSet<usize>>,
     selected_index: ReadSignal<Option<usize>>,
+    empty_message: StoredValue<String>,
     motion: ComboBoxMotion,
     on_exit_complete: Callback<()>,
 ) -> impl IntoView {
@@ -125,7 +126,7 @@ fn ComboBoxPanel(
                         }}
                         <Show when=move || filtered_indices.get().is_empty()>
                             <div class="ui-combo-box__empty" data-slot="combo-box-empty">
-                                "No options"
+                                {move || empty_message.get_value()}
                             </div>
                         </Show>
                     </div>
@@ -150,6 +151,8 @@ pub fn ComboBox(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
     #[prop(optional, into)] placeholder: Option<String>,
+    #[prop(optional, into)] empty_message: Option<String>,
+    #[prop(optional, into)] toggle_button_aria_label: Option<String>,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
@@ -172,6 +175,9 @@ pub fn ComboBox(
 
     let has_custom_placeholder = logic::normalize_optional_text(placeholder.clone()).is_some();
     let placeholder = StoredValue::new(logic::resolve_placeholder(placeholder));
+    let empty_message = StoredValue::new(logic::resolve_empty_message(empty_message));
+    let toggle_button_aria_label =
+        StoredValue::new(logic::resolve_toggle_aria_label(toggle_button_aria_label));
 
     let description = logic::normalize_optional_text(description);
     let error = logic::normalize_optional_text(error);
@@ -447,7 +453,7 @@ pub fn ComboBox(
                     <button
                         class="ui-combo-box__trigger"
                         type="button"
-                        aria-label="Toggle options"
+                        aria-label=move || toggle_button_aria_label.get_value()
                         data-slot="combo-box-trigger"
                         disabled=state.is_disabled
                         tabindex="-1"
@@ -468,6 +474,7 @@ pub fn ComboBox(
                         items=items
                         disabled_indices=disabled_indices.clone()
                         selected_index=selected_index
+                        empty_message=empty_message
                         motion=motion
                         on_exit_complete=presence.finish_exit
                     />

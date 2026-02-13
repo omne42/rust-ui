@@ -1,10 +1,12 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{
     DEFAULT_ARIA_LABEL, DEFAULT_DESCRIPTION, DEFAULT_TITLE, EmptyStateAlign, EmptyStateTone,
 };
+pub use motion::EmptyStateMotion;
 pub use view::EmptyState;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

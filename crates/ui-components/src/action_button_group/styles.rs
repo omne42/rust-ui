@@ -1,7 +1,10 @@
 pub const CSS: &str = r#"
 .ui-action-button-group {
+  --ui-action-button-group-motion-duration: 160ms;
+
   display: inline-flex;
   gap: var(--ui-space-xs);
+  transition: opacity var(--ui-action-button-group-motion-duration) ease;
 }
 
 .ui-action-button-group--horizontal {
@@ -32,5 +35,11 @@ pub const CSS: &str = r#"
 
 .ui-action-button-group--disabled {
   opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-action-button-group {
+    --ui-action-button-group-motion-duration: 1ms;
+  }
 }
 "#;

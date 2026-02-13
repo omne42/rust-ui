@@ -1,9 +1,12 @@
 pub const CSS: &str = r#"
 .ui-color-area {
+  --ui-color-area-motion-duration: 180ms;
+
   display: inline-flex;
   flex-direction: column;
   gap: var(--ui-space-sm);
   min-inline-size: min(100%, 20rem);
+  transition: opacity var(--ui-color-area-motion-duration) ease;
 }
 
 .ui-color-area__label {
@@ -105,5 +108,11 @@ pub const CSS: &str = r#"
 .ui-color-area[data-custom-class="true"],
 .ui-color-area[data-class-source="custom"] {
   --ui-color-area-custom-class: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-color-area {
+    --ui-color-area-motion-duration: 1ms;
+  }
 }
 "#;

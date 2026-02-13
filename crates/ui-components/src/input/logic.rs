@@ -72,6 +72,19 @@ pub struct InputViewState {
     pub is_filled_within: bool,
 }
 
+pub const DEFAULT_CLEAR_ARIA_LABEL: &str = "Clear";
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn resolve_clear_aria_label(value: Option<String>) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_CLEAR_ARIA_LABEL.to_string())
+}
+
 pub fn resolve_view_state(
     label: Option<&str>,
     description: Option<&str>,
@@ -141,5 +154,18 @@ mod tests {
         assert!(!view.show_error);
         let view = resolve_view_state(None, None, Some("Bad"), false, false, false, state);
         assert!(view.show_error);
+    }
+
+    #[test]
+    fn clear_aria_label_uses_trimmed_value_or_default() {
+        assert_eq!(
+            resolve_clear_aria_label(Some("  Clear name  ".to_string())),
+            "Clear name"
+        );
+        assert_eq!(
+            resolve_clear_aria_label(Some("  ".to_string())),
+            DEFAULT_CLEAR_ARIA_LABEL
+        );
+        assert_eq!(resolve_clear_aria_label(None), DEFAULT_CLEAR_ARIA_LABEL);
     }
 }

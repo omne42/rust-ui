@@ -7,6 +7,14 @@ pub const CSS: &str = r#"
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: stretch;
+  opacity: var(--ui-im-opacity, 1);
+  transform: translateY(var(--ui-im-y, 0px));
+  will-change: transform, opacity;
+}
+
+.ui-flex[data-motion-source="custom"],
+.ui-flex[data-custom-motion="true"] {
+  --ui-flex-custom-motion: 1;
 }
 
 .ui-flex--inline,

@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, LogicButtonVariant};
+pub use motion::LogicButtonMotion;
 pub use view::LogicButton;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

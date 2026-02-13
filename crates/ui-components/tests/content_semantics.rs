@@ -22,7 +22,7 @@ fn content_does_not_expose_logic_or_render_modules() {
 #[test]
 fn content_uses_logic_state_model() {
     let logic_source = load_source("src/content/logic.rs");
-    let render_source = load_source("src/content/render.rs");
+    let render_source = load_source("src/content/view.rs");
 
     for needle in [
         "pub enum ContentTone",
@@ -54,7 +54,7 @@ fn content_uses_logic_state_model() {
 
 #[test]
 fn content_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/content/render.rs");
+    let source = load_source("src/content/view.rs");
 
     for attr in [
         "data-slot=\"content\"",

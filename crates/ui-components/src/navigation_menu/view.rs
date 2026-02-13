@@ -29,10 +29,11 @@ pub fn NavigationMenu(
     #[prop(optional, into)] default_selected_id: Option<String>,
     #[prop(optional)] on_selected_id_change: Option<Callback<Option<String>>>,
     #[prop(default = true)] activate_on_focus: bool,
-    #[prop(optional)] motion: ActiveHighlightMotion,
+    #[prop(optional)] motion: NavigationMenuMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let motion: ActiveHighlightMotion = crate::navigation_menu::motion::sanitize_motion(motion);
     let id_base = logic::normalize_id_base(id_base);
     let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
     let id_base = StoredValue::new(id_base);

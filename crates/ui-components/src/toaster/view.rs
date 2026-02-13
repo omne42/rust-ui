@@ -15,6 +15,7 @@ pub fn Toaster(
     #[prop(optional)] motion: ToastMotion,
     #[prop(optional)] store: Option<ToastStore>,
 ) -> impl IntoView {
+    let motion = crate::toaster::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);

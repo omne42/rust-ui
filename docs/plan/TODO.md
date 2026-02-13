@@ -10,6 +10,7 @@
 - [ ] `ui-core` 禁止 `web-sys` / DOM / 平台能力（保持可移植、可单测）
 - [ ] `ui-components` 不直接碰 `web-sys`（一律通过 `ui-headless` 注入行为）
 - [ ] `ui-headless` 的 DOM 交互必须 feature-gated（至少 `web`/`ssr`），且能 `wasm32-unknown-unknown` 编译
+- [ ] `ui-components` 必须支持组件级 feature 切分（最小特性集可编译），禁止全组件中央注册表
 - [ ] 对外 API “小而稳”：v0 先冻结公开 API；上层不透传下层内部结构体（避免耦合）
 - [ ] 每个 TODO 都必须有 Stop Gate（可运行命令）；没过门禁不允许继续加功能
 
@@ -22,6 +23,8 @@
 - [ ] Gate E（WASM 编译）：`cargo check -p ui-components --target wasm32-unknown-unknown`
 - [ ] Gate F（WASM 编译）：`cargo check -p web-demo --target wasm32-unknown-unknown`
 - [ ] Gate G（SSR 编译）：`cargo check -p ui-headless --no-default-features --features ssr`
+- [ ] Gate H（组件级裁剪）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features button,input,inject-css`
+- [ ] Gate I（CSS 裁剪）：`cargo test -p ui-components --test css_feature_slicing --no-default-features --features button,input,inject-css`
 - [ ] 说明：WASM Gates 需要安装 `wasm32-unknown-unknown` target（推荐 `rustup target add wasm32-unknown-unknown`）；临时可用 `SKIP_WASM=1 ./scripts/check.sh`
 
 ## 0) 冻结输入（不做这个会反复返工）
@@ -214,6 +217,18 @@
 **Stop Gate**
 - [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
 
+### 7.1.1 组件级裁剪（Tree Shaking）v0
+
+- [ ] 新增 `ui-components` 组件级 features（至少 `button`、`input`、`select`、`overlay` 样例 + `full`）
+- [ ] `lib.rs` 模块与 re-export 按 feature 条件编译
+- [ ] `css.rs` 聚合按 feature 条件拼接（只注入启用组件 CSS）
+- [ ] 反模式清理：禁止全组件中央注册表导致所有组件可达
+- [ ] 新增 `css_feature_slicing` 测试：最小特性集只包含目标组件选择器
+
+**Stop Gate**
+- [ ] Gate H
+- [ ] Gate I
+
 ### 7.2 Overlay v1（Popover/Modal 任选其一，先做一个）
 
 - [x] `t40` 实现 Overlay v1（最小闭环）：
@@ -311,3 +326,121 @@
 
 - [ ] Tauri：窗口/标题栏/系统菜单等差异适配策略文档化
 - [ ] Android：safe-area + 输入法遮挡 + back 手势/物理键 行为规范化（与 Overlay history/back 契约打通）
+
+## 13) Philosophy v1.0 全特性对齐矩阵（逐条提及，不得漏项）
+
+> 对齐基线：`docs/philosophy.md`。  
+> 执行规则：每次里程碑评审必须逐条过本节；新增能力必须先映射到本节条目再开工。
+
+### 13.1 核心哲学特性（5.1-5.15）
+
+- [ ] 5.1 分层不可破：`core -> headless -> components -> apps`，`theme/motion` 只横向服务
+- [ ] 5.2 类型优先：关键状态由 enum/struct 建模，减少字符串语义与隐式约定
+- [ ] 5.3 A11y 默认开启：键盘/焦点/ARIA 语义为默认能力，不做可选补丁
+- [ ] 5.4 语义优先样式：稳定 `data-*`/`aria-*` 标记 + 语义测试优先于视觉快照
+- [ ] 5.5 Motion 合同化：contract 在组件，执行在 `ui-motion`，遵守 reduced-motion 与 SSR/no-wasm 降级
+- [ ] 5.6 发布可用与开发效率并重：保证可发布质量的同时保持可迭代速度
+- [ ] 5.7 质量可执行：完成定义绑定门禁命令，不接受口头完成
+- [ ] 5.8 文档即产品：规格、计划、示例、docs app 与实现同步
+- [ ] 5.9 i18n/l10n 默认纳入：文案可覆盖，格式化可策略化，注入点稳定可测
+- [ ] 5.10 数据可视化兼容：可扩展到 `ui-charts`，并保留语义/A11y 降级路径
+- [ ] 5.11 混合分发：`core/headless/theme/motion` package-first，`components` source-first
+- [ ] 5.12 生态位目标：Leptos-first，同时保持 `ui-core/ui-headless` 可迁移潜力
+- [ ] 5.13 贡献者可成长：低门槛上手路径、局部任务切入、样例与清单齐备
+- [ ] 5.14 样式哲学：token-first + `styles.rs` 静态契约，应用层可用 utility 但不反向污染组件契约
+- [ ] 5.15 可裁剪交付：组件级 feature + CSS 同步裁剪，禁止破坏 DCE 的全局可达反模式
+
+### 13.2 AI 原生特性（6.1-6.12）
+
+- [ ] 6.1 战略假设落地：以 Rust 类型系统 + 编译反馈降低 AI 幻觉成本
+- [ ] 6.2 类型化落地：`logic.rs` 归一化、enum 限定、source markers、语义测试
+- [ ] 6.3 人/Agent 共用契约：统一可解析语义，不依赖脆弱 DOM 猜测
+- [ ] 6.4 编译反馈闭环：最小变更 -> 编译/门禁 -> 诊断修复 -> 循环
+- [ ] 6.5 流式基建：结构流/状态流/结果流，支持中途纠偏与断流恢复
+- [ ] 6.6 Config -> Component 双通道：运行时直出 + 编译时固化并可追溯
+- [ ] 6.7 Agent Contract 版本化：`schema_version`、兼容窗口、迁移说明
+- [ ] 6.8 诊断适配器：`cargo/rustc` 输出结构化，供 Agent 直接消费
+- [ ] 6.9 受限行为生成：Action 白名单执行器，不默认执行任意脚本
+- [ ] 6.10 能力协商：版本区间 + capability negotiation，失败可降级可诊断
+- [ ] 6.11 双层校验：预检（轻量）+ 重检（门禁）分层
+- [ ] 6.12 策略配置：Fetch 白名单与 SetState 作用域约束，默认拒绝高风险能力
+
+### 13.3 实施方法特性（7.1-7.10）
+
+- [ ] 7.1 默认交付法：先目标/非目标、先薄切片、先门禁再扩面
+- [ ] 7.2 组件模板：`logic/view/styles/motion/mod` 模板化并自动化脚手架
+- [ ] 7.3 API 演进：命名统一、受控/非受控成对、默认值单源
+- [ ] 7.4 AI 流水线：指令 -> 流式 Spec -> schema 校验 -> 预览 -> 语义检查 -> 固化 -> 门禁
+- [ ] 7.5 DX 最后一公里：样式热重载、组件热开发、状态保持、workbench
+- [ ] 7.6 生态胶水层：`serde`、`tracing`、async 解耦边界清晰
+- [ ] 7.7 全局状态扩展：组件状态与应用状态分层，桥接层显式化
+- [ ] 7.8 测试金字塔：单测/集成/E2E 分层，WASM 场景可重复回归
+- [ ] 7.9 贡献工具链：脚手架、决策树、PR 自检模板
+- [ ] 7.10 异步契约：统一 loading/error/aria-busy 语义，数据层通过适配层协作
+
+### 13.4 质量执行特性（8.1-8.5）
+
+- [ ] 8.1 “好变更”定义固化：架构/行为/A11y/测试/维护/可解释六维同达标
+- [ ] 8.2 关键改动清单固化：层级、命名、无效状态、语义、分支覆盖、文档同步、门禁通过
+- [ ] 8.3 反模式阻断：跨层污染、view 隐藏决策、API 泄漏、临时补丁破坏一致性
+- [ ] 8.4 可观测性：关键状态/事件可追踪可回放，开发开关与生产隔离
+- [ ] 8.5 性能与内存剖析：关键组件预算、profiling workbench、回归可阻断
+
+### 13.5 治理与生态特性（12.1-12.4）
+
+- [ ] 12.1 社区治理：贡献路径、提案模板、决策机制、争议收敛流程
+- [ ] 12.2 受控逃生舱口：显式命名、显式风险、显式作用域、默认关闭、可审计
+- [ ] 12.3 ADR 判例化：关键架构决策可追溯（含被否决方案）
+- [ ] 12.4 商业/社区平衡：核心开源透明，商业能力不反向锁死核心演进
+
+### 13.6 路线对比约束（10.1-10.8）
+
+- [ ] 10.1 避免“单体组件库”退化路径
+- [ ] 10.2 避免“样式先行、语义后补”的不可维护路线
+- [ ] 10.3 避免“运行时灵活优先”导致的语义漂移与晚期错误暴露
+- [ ] 10.4 不做 Spectrum API 表层 1:1 盲目克隆
+- [ ] 10.5 抑制 HeroUI 式参数爆炸，保持语义底盘稳定
+- [ ] 10.6 不走“纯聊天生成”单路径，必须结构化 + 可校验 + 可固化
+- [ ] 10.7 不走“只有刚性规则无治理通道”的路线
+- [ ] 10.8 不走“仅包分发”或“仅源码分发”极端路线，维持混合分发策略
+
+### 13.7 成功指标（13）
+
+- [ ] 门禁通过率稳定（fmt/clippy/test/ssr/wasm）
+- [ ] 语义/A11y 回归率下降
+- [ ] 组件 API 命名与状态契约一致性提高
+- [ ] 文档覆盖与 demo 覆盖持续提升
+- [ ] 新组件接入不破坏分层秩序
+- [ ] 外部贡献者首个 PR 通过率与平均合并时长改善
+- [ ] 关键组件性能预算达标率稳定
+- [ ] AI 生成链路首轮修复成功率提升
+
+### 13.8 当前务实重点（14，逐条落地）
+
+- [ ] 强化状态与来源语义契约
+- [ ] 推进代表组件参数模型统一
+- [ ] 组件优先级按 P0/P1 场景驱动
+- [ ] 渐进增强 Agent 可消费语义（Schema 化）
+- [ ] 固化混合分发默认路径（底层 package + 组件 source）
+- [ ] 建立 `UiSpec` 最小可用 schema 与白名单解释渲染链路
+- [ ] 建立流式生成阶段状态协议（生成中/已校验/可提交）
+- [ ] 建立 `UiSpec -> Rust` 最小固化通路（先覆盖 Button/Select/Overlay）
+- [ ] 落地 AI 行为沙箱最小动作集（`Validate/Fetch/Navigate/SetState`）
+- [ ] 落地沙箱策略配置（Fetch 白名单 + SetState 作用域）
+- [ ] 设计 Agent 能力协商协议与握手流程
+- [ ] 建立“预检 + 重检”校验链路原型
+- [ ] 明确 i18n/l10n 注入契约（文本/数字/日期）
+- [ ] 固化样式默认范式（token-first + `styles.rs`）并定义例外边界
+- [ ] 建立组件开发 workbench（props 矩阵 + 状态矩阵 + 热重载）
+- [ ] 提供组件脚手架与贡献者决策树
+- [ ] 建立异步 action 原语与数据层适配边界
+- [ ] 设计诊断适配器原型（`cargo` 输出 -> 结构化 JSON）
+- [ ] 定义 `tracing` 语义与核心 span/event 规范
+- [ ] 明确 async runtime 解耦边界与 adapter
+- [ ] 定义测试金字塔落地清单与 E2E 选择器规范
+- [ ] 启动性能/内存 profiling workbench 与预算基线
+- [ ] 定义 Agent Contract 版本策略与迁移流程
+- [ ] 起草贡献与治理文档（Contributing + RFC 模板）
+- [ ] 建立 ADR 模板与目录规范
+- [ ] 设计 escape hatches 白名单与风险标注规范
+- [ ] 在不破边界前提下持续扩展组件能力

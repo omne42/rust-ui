@@ -213,6 +213,16 @@ pub fn attach_clear_motion(
     let _ = sanitize_motion(motion);
 }
 
+pub fn attach_motion(
+    node_ref: leptos::prelude::NodeRef<leptos::html::Button>,
+    is_visible: leptos::prelude::Signal<bool>,
+    is_hovered: leptos::prelude::ReadSignal<bool>,
+    is_pressed: leptos::prelude::ReadSignal<bool>,
+    motion: SearchFieldMotion,
+) {
+    attach_clear_motion(node_ref, is_visible, is_hovered, is_pressed, motion);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

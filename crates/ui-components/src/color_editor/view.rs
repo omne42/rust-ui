@@ -23,6 +23,13 @@ pub fn ColorEditor(
     #[prop(optional)] default_hue: Option<f64>,
     #[prop(optional)] default_alpha: Option<f64>,
     #[prop(optional)] default_area: Option<(f32, f32)>,
+    #[prop(optional, into)] area_label: Option<String>,
+    #[prop(optional, into)] area_aria_label: Option<String>,
+    #[prop(optional, into)] hue_label: Option<String>,
+    #[prop(optional, into)] alpha_label: Option<String>,
+    #[prop(optional, into)] value_label: Option<String>,
+    #[prop(optional, into)] format_aria_label: Option<String>,
+    #[prop(optional, into)] preview_color: Option<String>,
     #[prop(optional)] motion: ColorSliderMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -49,6 +56,26 @@ pub fn ColorEditor(
     let (area, set_area) = signal(logic::sanitize_area(
         default_area.unwrap_or(logic::DEFAULT_AREA),
     ));
+    let preview_color = logic::sanitize_color(preview_color).unwrap_or_else(|| {
+        logic::compose_color_from_hsb(
+            hue.get_untracked(),
+            f64::from(area.get_untracked().0 * 100.0),
+            f64::from(area.get_untracked().1 * 100.0),
+            alpha.get_untracked(),
+            true,
+        )
+    });
+    let area_label = logic::normalize_optional_text(area_label)
+        .unwrap_or_else(|| "Saturation / Brightness".to_string());
+    let area_aria_label =
+        logic::normalize_optional_text(area_aria_label).unwrap_or_else(|| "Color area".to_string());
+    let hue_label = logic::normalize_optional_text(hue_label).unwrap_or_else(|| "Hue".to_string());
+    let alpha_label =
+        logic::normalize_optional_text(alpha_label).unwrap_or_else(|| "Alpha".to_string());
+    let value_label =
+        logic::normalize_optional_text(value_label).unwrap_or_else(|| "Value".to_string());
+    let format_aria_label = logic::normalize_optional_text(format_aria_label)
+        .unwrap_or_else(|| "Color format".to_string());
 
     let hue_signal: Signal<f64> = hue.into();
     let alpha_signal: Signal<f64> = alpha.into();
@@ -168,6 +195,12 @@ pub fn ColorEditor(
     let alpha_id = format!("{id_base}-alpha");
     let field_id = format!("{id_base}-field");
     let formats_id = format!("{id_base}-formats");
+    let channels_id = format!("{id_base}-channels");
+    let formats_id_for_active_tab = formats_id.clone();
+    let active_tab_id = Memo::new(move |_| {
+        let format_attr = format.get().as_attr();
+        format!("{formats_id_for_active_tab}-{format_attr}-tab")
+    });
 
     let request_format_change = format_state.request_change;
 
@@ -204,12 +237,12 @@ pub fn ColorEditor(
             <div class="ui-color-editor__canvas" data-slot="color-editor-canvas">
                 <ColorArea
                     id_base=area_id
-                    label="Saturation / Brightness".to_string()
+                    label=area_label.clone()
                     disabled=disabled
                     value=area_signal
                     on_value_change=on_area_change
-                    preview_color="#3b82f6".to_string()
-                    aria_label="Color area".to_string()
+                    preview_color=preview_color.clone()
+                    aria_label=area_aria_label.clone()
                     class_name="ui-color-editor__area".to_string()
                 />
 
@@ -217,7 +250,7 @@ pub fn ColorEditor(
                     <ColorSlider
                         id_base=hue_id
                         channel=ColorSliderChannel::Hue
-                        label="Hue".to_string()
+                        label=hue_label.clone()
                         value=hue_signal
                         on_value_change=on_hue_change
                         disabled=disabled
@@ -229,7 +262,7 @@ pub fn ColorEditor(
                         <ColorSlider
                             id_base=alpha_id.clone()
                             channel=ColorSliderChannel::Alpha
-                            label="Alpha".to_string()
+                            label=alpha_label.clone()
                             value=alpha_signal
                             on_value_change=on_alpha_change
                             disabled=disabled
@@ -246,21 +279,26 @@ pub fn ColorEditor(
                     class="ui-color-editor__formats"
                     data-slot="color-editor-formats"
                     role="tablist"
-                    aria-label="Color format"
+                    aria-label=format_aria_label.clone()
                 >
                     {[ColorEditorFormat::Hex, ColorEditorFormat::Rgb, ColorEditorFormat::Hsl, ColorEditorFormat::Hsb]
                         .into_iter()
                         .map(|candidate| {
                             let candidate_label = candidate.label();
                             let candidate_attr = candidate.as_attr();
+                            let tab_id = format!("{formats_id}-{candidate_attr}-tab");
+                            let controls_id = channels_id.clone();
                             let is_selected = move || format.get() == candidate;
 
                             view! {
                                 <button
                                     type="button"
+                                    id=tab_id
                                     class="ui-color-editor__format-button"
                                     role="tab"
                                     disabled=disabled
+                                    tabindex=move || if is_selected() { 0 } else { -1 }
+                                    aria-controls=controls_id
                                     aria-selected=move || if is_selected() { "true" } else { "false" }
                                     data-slot="color-editor-format-button"
                                     data-format=candidate_attr
@@ -282,14 +320,20 @@ pub fn ColorEditor(
 
                 <ColorField
                     id_base=field_id
-                    label="Value".to_string()
+                    label=value_label
                     value=selected_color_signal
                     on_value_change=on_field_change
                     disabled=disabled
                     class_name="ui-color-editor__field".to_string()
                 />
 
-                <div class="ui-color-editor__channels" data-slot="color-editor-channels">
+                <div
+                    id=channels_id
+                    class="ui-color-editor__channels"
+                    data-slot="color-editor-channels"
+                    role="tabpanel"
+                    aria-labelledby=move || active_tab_id.get()
+                >
                     {move || {
                         channel_preview
                             .get()

@@ -596,6 +596,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Collections",
         collections_extra::listbox_section
     ),
+    component_doc!("List", "list", "Collections", collections::list),
     component_doc!("Menu", "menu", "Collections", collections::menu),
     component_doc!(
         "MenuItem",
@@ -733,6 +734,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("Tray", "tray", "Overlays", overlays_extra::tray),
     component_doc!("Drawer", "drawer", "Overlays", overlays::drawer),
+    component_doc!(
+        "OverlaysRoot",
+        "overlays-root",
+        "Overlays",
+        overlays::overlays_root
+    ),
     component_doc!("Tooltip", "tooltip", "Overlays", overlays::tooltip),
     component_doc!("HoverCard", "hover-card", "Overlays", overlays::hover_card),
     component_doc!(

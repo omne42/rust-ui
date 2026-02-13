@@ -1,8 +1,10 @@
 mod logic;
+mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::ResizableOrientation;
+pub use motion::ResizableMotion;
 pub use view::Resizable;
 
 pub const DEFAULT_ARIA_LABEL: &str = "Resizable panels";

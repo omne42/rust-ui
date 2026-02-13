@@ -1,10 +1,12 @@
-use crate::button_group::{ButtonGroupOrientation, logic};
-use leptos::prelude::*;
+use crate::button_group::{ButtonGroupMotion, ButtonGroupOrientation, logic, motion};
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn ButtonGroup(
     #[prop(optional)] orientation: ButtonGroupOrientation,
     #[prop(optional)] attached: bool,
+    #[prop(optional)] motion: ButtonGroupMotion,
+    #[prop(optional)] node_ref: NodeRef<html::Div>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -25,8 +27,18 @@ pub fn ButtonGroup(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
+    motion::attach_motion(node_ref, motion);
+
+    let motion_source = if motion == ButtonGroupMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != ButtonGroupMotion::default()).then_some("true");
+
     view! {
         <div
+            node_ref=node_ref
             class=class
             data-slot="button-group"
             data-orientation=orientation.data_orientation()
@@ -36,6 +48,8 @@ pub fn ButtonGroup(
             data-detached=move || state.get().is_detached.then_some("true")
             data-has-explicit-label=move || state.get().has_explicit_label.then_some("true")
             data-has-fallback-label=move || state.get().has_fallback_label.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             role="group"
             aria-label=aria_label
         >

@@ -80,6 +80,19 @@ pub fn sanitize_motion(motion: AccordionMotion) -> AccordionMotion {
 }
 
 #[cfg(target_arch = "wasm32")]
+fn prefers_reduced_motion() -> bool {
+    let Some(window) = leptos::web_sys::window() else {
+        return false;
+    };
+
+    window
+        .match_media("(prefers-reduced-motion: reduce)")
+        .ok()
+        .flatten()
+        .is_some_and(|query| query.matches())
+}
+
+#[cfg(target_arch = "wasm32")]
 pub fn attach_indicator_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Span>,
     is_open: leptos::prelude::Signal<bool>,
@@ -89,6 +102,25 @@ pub fn attach_indicator_motion(
     use leptos::wasm_bindgen::JsCast;
 
     let motion = StoredValue::new(sanitize_motion(motion));
+    if prefers_reduced_motion() {
+        Effect::new(move |_| {
+            let Some(indicator) = node_ref.get() else {
+                return;
+            };
+            let element: leptos::web_sys::HtmlElement = indicator.unchecked_into();
+            let style = element.style();
+            let motion = motion.get_value();
+            let target = if is_open.get() {
+                motion.indicator_open_rotation_deg
+            } else {
+                motion.indicator_closed_rotation_deg
+            };
+            let _ =
+                style.set_property("--ui-accordion-indicator-rotation", &format!("{target}deg"));
+        });
+        return;
+    }
+
     let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
     let last_open = StoredValue::new(None::<bool>);
 
@@ -388,6 +420,36 @@ pub fn attach_panel_motion(
     use leptos::wasm_bindgen::{JsCast, closure::Closure};
 
     let motion = StoredValue::new(sanitize_motion(motion));
+    if prefers_reduced_motion() {
+        Effect::new(move |_| {
+            let Some(panel) = panel_ref.get() else {
+                return;
+            };
+
+            let element: leptos::web_sys::HtmlElement = panel.unchecked_into();
+            let style = element.style();
+            let motion = motion.get_value();
+            let open = is_open.get();
+
+            is_hidden.set(!open);
+            element.set_hidden(!open);
+
+            if open {
+                let _ = style.set_property("--ui-accordion-panel-height", "auto");
+                let _ = style.set_property("--ui-accordion-panel-opacity", "1");
+                let _ = style.set_property("--ui-accordion-panel-y", "0px");
+            } else {
+                let _ = style.set_property("--ui-accordion-panel-height", "0px");
+                let _ = style.set_property("--ui-accordion-panel-opacity", "0");
+                let _ = style.set_property(
+                    "--ui-accordion-panel-y",
+                    &format!("{}px", motion.panel_offset_y_px),
+                );
+            }
+        });
+        return;
+    }
+
     let driver = StoredValue::new_local(None::<Rc<RefCell<PanelMotionDriver>>>);
     let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);
     let resize_closure = StoredValue::new_local(

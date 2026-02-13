@@ -24,6 +24,13 @@ pub fn DateRangePicker(
     #[prop(optional)] on_end_day_change: Option<Callback<Option<u8>>>,
     #[prop(optional)] first_weekday: CalendarFirstWeekday,
     #[prop(optional)] show_outside_days: bool,
+    #[prop(optional, into)] start_label: Option<String>,
+    #[prop(optional, into)] end_label: Option<String>,
+    #[prop(optional, into)] start_placeholder: Option<String>,
+    #[prop(optional, into)] end_placeholder: Option<String>,
+    #[prop(optional, into)] start_aria_label: Option<String>,
+    #[prop(optional, into)] end_aria_label: Option<String>,
+    #[prop(optional, into)] invalid_range_message: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
@@ -46,6 +53,20 @@ pub fn DateRangePicker(
     let request_end_day_change = end_state.request_change;
 
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+
+    let start_label =
+        logic::normalize_optional_text(start_label).unwrap_or_else(|| "Start".to_string());
+    let end_label = logic::normalize_optional_text(end_label).unwrap_or_else(|| "End".to_string());
+    let start_placeholder = logic::normalize_optional_text(start_placeholder)
+        .unwrap_or_else(|| "Start date".to_string());
+    let end_placeholder =
+        logic::normalize_optional_text(end_placeholder).unwrap_or_else(|| "End date".to_string());
+    let start_aria_label = logic::normalize_optional_text(start_aria_label)
+        .unwrap_or_else(|| start_placeholder.clone());
+    let end_aria_label =
+        logic::normalize_optional_text(end_aria_label).unwrap_or_else(|| end_placeholder.clone());
+    let invalid_range_message = logic::normalize_optional_text(invalid_range_message)
+        .unwrap_or_else(|| "End date must be on or after start date.".to_string());
 
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -125,7 +146,7 @@ pub fn DateRangePicker(
             <div class="ui-date-range-picker__fields" data-slot="date-range-picker-fields">
                 <div class="ui-date-range-picker__field" data-slot="date-range-picker-start">
                     <div class="ui-date-range-picker__field-label" data-slot="date-range-picker-start-label">
-                        "Start"
+                        {start_label.clone()}
                     </div>
                     <DatePicker
                         id_base=start_id_base
@@ -137,15 +158,15 @@ pub fn DateRangePicker(
                         on_selected_day_change=on_start_change
                         first_weekday=first_weekday
                         show_outside_days=show_outside_days
-                        placeholder="Start date".to_string()
-                        aria_label="Start date".to_string()
+                        placeholder=start_placeholder.clone()
+                        aria_label=start_aria_label.clone()
                         class_name="ui-date-range-picker__picker".to_string()
                     />
                 </div>
 
                 <div class="ui-date-range-picker__field" data-slot="date-range-picker-end">
                     <div class="ui-date-range-picker__field-label" data-slot="date-range-picker-end-label">
-                        "End"
+                        {end_label.clone()}
                     </div>
                     <DatePicker
                         id_base=end_id_base
@@ -157,8 +178,8 @@ pub fn DateRangePicker(
                         on_selected_day_change=on_end_change
                         first_weekday=first_weekday
                         show_outside_days=show_outside_days
-                        placeholder="End date".to_string()
-                        aria_label="End date".to_string()
+                        placeholder=end_placeholder.clone()
+                        aria_label=end_aria_label.clone()
                         class_name="ui-date-range-picker__picker".to_string()
                     />
                 </div>
@@ -166,7 +187,7 @@ pub fn DateRangePicker(
 
             <Show when=move || state.get().is_invalid_range>
                 <div class="ui-date-range-picker__hint" data-slot="date-range-picker-hint">
-                    "End date must be on or after start date."
+                    {invalid_range_message.clone()}
                 </div>
             </Show>
         </div>

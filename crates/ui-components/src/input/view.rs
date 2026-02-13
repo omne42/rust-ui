@@ -33,6 +33,7 @@ pub fn Input(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
     #[prop(optional, into)] placeholder: Option<String>,
+    #[prop(optional, into)] clear_aria_label: Option<String>,
     #[prop(optional)] input_type: Option<&'static str>,
     #[prop(optional)] is_clearable: bool,
     #[prop(optional)] label_hidden: bool,
@@ -68,6 +69,7 @@ pub fn Input(
     let aria_label = StoredValue::new(aria_label);
     let description = StoredValue::new(description);
     let error = StoredValue::new(error);
+    let clear_aria_label = StoredValue::new(logic::resolve_clear_aria_label(clear_aria_label));
 
     let start_content = start_content.map(StoredValue::new);
     let end_content = end_content.map(StoredValue::new);
@@ -219,7 +221,7 @@ pub fn Input(
                     aria-hidden=move || (!view_state.get().show_clear).then_some("true")
                     type="button"
                     tabindex="-1"
-                    aria-label="Clear"
+                    aria-label=move || clear_aria_label.get_value()
                     node_ref=clear_button_ref
                     disabled=move || disabled || read_only || !view_state.get().show_clear
                     on:pointerdown=move |ev: ev::PointerEvent| {

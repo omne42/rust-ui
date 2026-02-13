@@ -57,6 +57,9 @@
 - Gate F（混合分发兼容验证）：
   - 在底层 package 版本矩阵下，抽样 source 组件可编译（至少 `Button` / `Select` / `Overlay`）
   - 若版本不兼容，CI 必须输出明确失败原因与迁移指引链接
+- Gate G（组件级裁剪验证）：
+  - `ui-components` 在最小特性集下可编译（示例：`button,input`）
+  - 组件 CSS 聚合结果只包含已启用特性的样式（无 `select/modal/chart` 泄漏）
 
 ## 1. 仓库结构（目标态）
 
@@ -113,6 +116,18 @@
 - source 组件必须声明并遵守底层 package 的支持版本区间。
 - 底层 package 升级必须提供迁移说明或自动迁移工具。
 - 不采用“全层源码拷贝”作为默认路径，避免用户依赖爆炸。
+
+## 2.3 组件级特性切分与裁剪（目标）
+
+`ui-components` 采用“组件级 feature + 条件 CSS 聚合”策略。
+
+要求：
+
+- 组件或组件族按 feature 切分（如 `button`、`input`、`overlay`）。
+- 提供 `full` 便利特性给 docs/demo，全量场景不破坏开发效率。
+- `default-features = false` 时支持最小特性集编译（按需点菜）。
+- `inject-css` 只控制注入行为，不得等价于“全量组件样式注入”。
+- 禁止引入全组件中央注册表，避免破坏 DCE/LTO。
 
 ## 3. 上游参考（只用于对齐概念）
 
@@ -250,6 +265,20 @@
 - 依赖：t30
 - 验收：
   - `cargo check -p web-demo --target wasm32-unknown-unknown`
+- 验证命令：同上
+
+### t32 - ui-components：组件级 feature 裁剪（v0）
+
+- 目标：让 package 模式具备可验证的 Tree Shaking 能力
+- 输出：
+  - `ui-components` 的组件级 features（至少 `button`、`input`、`overlay/select` 样例）
+  - 条件化 `lib.rs` 模块导出与 re-export
+  - 条件化 CSS 聚合（仅拼接启用组件样式）
+- 依赖：t30（先有稳定 Button 再抽 feature 边界）
+- 验收：
+  - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features button,input,inject-css`
+  - `cargo test -p ui-components --test css_feature_slicing --no-default-features --features button,input,inject-css`
+  - `cargo check -p docs-app --target wasm32-unknown-unknown`（`full` 场景不回归）
 - 验证命令：同上
 
 ### t40 - Overlay v1（Popover 或 Modal）

@@ -1,5 +1,7 @@
+use crate::checkbox_field::CheckboxFieldMotion;
 use crate::checkbox_field::{
     CheckboxFieldIndicatorPlacement, CheckboxFieldStateInput, CheckboxFieldTone, logic,
+    motion::{self},
 };
 use crate::{Checkbox, CheckboxVariant};
 use leptos::prelude::*;
@@ -17,7 +19,11 @@ pub fn CheckboxField(
     #[prop(optional)] tone: CheckboxFieldTone,
     #[prop(optional)] indicator_placement: CheckboxFieldIndicatorPlacement,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: CheckboxFieldMotion,
 ) -> impl IntoView {
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != CheckboxFieldMotion::default();
+
     let id_base = StoredValue::new(logic::normalize_id_base(id_base));
 
     let (label, has_custom_label) = logic::normalize_label(label);
@@ -82,6 +88,8 @@ pub fn CheckboxField(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             role="group"
             aria-label=move || checkbox_aria_label.get_value()
             aria-describedby=move || state.get().has_description.then(|| description_id.get())

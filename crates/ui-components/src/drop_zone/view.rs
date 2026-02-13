@@ -60,11 +60,8 @@ pub fn DropZone(
         motion,
     );
 
-    let label = label.filter(|value| !value.trim().is_empty());
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .or_else(|| label.clone())
-        .unwrap_or_else(|| "Drop files".to_string());
+    let (label, aria_label, has_custom_aria_label) =
+        super::logic::resolve_labels(label, aria_label);
 
     let on_drag_enter = move |ev: ev::DragEvent| {
         if disabled {
@@ -184,6 +181,8 @@ pub fn DropZone(
                 "custom"
             }
             data-custom-motion=(motion != DropZoneMotion::default()).then_some("true")
+            data-aria-source=if has_custom_aria_label { "custom" } else { "default" }
+            data-has-label=label.is_some().then_some("true")
         >
             {label.clone().map(|label| view! {
                 <div class="ui-drop-zone__label" data-slot="drop-zone-label">{label}</div>

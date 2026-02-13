@@ -1,9 +1,9 @@
 mod logic;
-mod render;
 pub mod styles;
+mod view;
 
 pub use logic::{DEFAULT_ARIA_LABEL, HeaderTone};
-pub use render::Header;
+pub use view::Header;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct HeaderStateInput {

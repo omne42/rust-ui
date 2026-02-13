@@ -1,4 +1,8 @@
-use crate::scroll_area::logic::{self, ScrollAreaStateInput};
+use crate::scroll_area::{
+    ScrollAreaMotion,
+    logic::{self, ScrollAreaStateInput},
+    motion,
+};
 use leptos::{html, prelude::*};
 
 #[component]
@@ -7,6 +11,7 @@ pub fn ScrollArea(
     #[prop(optional)] orientation: crate::scroll_area::ScrollAreaOrientation,
     #[prop(optional)] max_height_px: Option<u32>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] motion: ScrollAreaMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     children: Children,
 ) -> impl IntoView {
@@ -22,6 +27,8 @@ pub fn ScrollArea(
     });
 
     let class = logic::compose_class_name(class_name, state);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != ScrollAreaMotion::default();
 
     let viewport_ref: NodeRef<html::Div> = NodeRef::new();
 
@@ -61,6 +68,8 @@ pub fn ScrollArea(
         <div
             class=class
             data-slot="scroll-area"
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-orientation=state.orientation_attr
             data-disabled=state.disabled.then_some("true")
             data-max-height=state.max_height_attr

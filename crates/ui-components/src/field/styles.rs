@@ -1,9 +1,14 @@
 pub const CSS: &str = r#"
 .ui-field {
+  --ui-field-motion-duration: 160ms;
+
   display: grid;
   min-width: 0;
   gap: var(--ui-space-xs);
   color: var(--ui-fg);
+  transition:
+    color var(--ui-field-motion-duration) ease,
+    opacity var(--ui-field-motion-duration) ease;
 }
 
 .ui-field--orientation-vertical,
@@ -92,5 +97,11 @@ pub const CSS: &str = r#"
 .ui-field[data-custom-class="true"] {
   outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-field {
+    --ui-field-motion-duration: 1ms;
+  }
 }
 "#;

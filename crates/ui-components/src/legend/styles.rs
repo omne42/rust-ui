@@ -1,5 +1,7 @@
 pub const CSS: &str = r#"
 .ui-legend {
+  --ui-legend-motion-duration: 140ms;
+
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-2xs);
@@ -9,6 +11,9 @@ pub const CSS: &str = r#"
   font-size: 0.9375rem;
   line-height: 1.25;
   font-weight: 600;
+  transition:
+    color var(--ui-legend-motion-duration) ease,
+    opacity var(--ui-legend-motion-duration) ease;
 }
 
 .ui-legend--tone-default,
@@ -65,5 +70,11 @@ pub const CSS: &str = r#"
   align-items: center;
   color: var(--ui-danger);
   font-size: 0.85em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-legend {
+    --ui-legend-motion-duration: 1ms;
+  }
 }
 "#;

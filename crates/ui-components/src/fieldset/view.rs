@@ -1,5 +1,5 @@
 use crate::fieldset::{
-    FieldsetStateInput,
+    FieldsetMotion, FieldsetStateInput,
     logic::{self, FieldsetOrientation, FieldsetTone},
 };
 use leptos::{children::ViewFn, prelude::*};
@@ -18,7 +18,11 @@ pub fn Fieldset(
     #[prop(optional, into)] actions: Option<ViewFn>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: FieldsetMotion,
 ) -> impl IntoView {
+    let motion = crate::fieldset::motion::sanitize_motion(motion);
+    let has_custom_motion = motion != FieldsetMotion::default();
+
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
 
     let legend = logic::normalize_optional_text(legend);
@@ -67,6 +71,8 @@ pub fn Fieldset(
             data-orientation=move || state.get().orientation_attr
             data-tone=move || state.get().tone_attr
             data-state=move || state.get().data_state_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             data-message-kind=move || state.get().message_kind_attr
             data-required=move || state.get().is_required.then_some("true")
             data-disabled=move || state.get().is_disabled.then_some("true")

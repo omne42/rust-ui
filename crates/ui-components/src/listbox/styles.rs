@@ -12,6 +12,11 @@ pub const CSS: &str = r#"
   outline: none;
 }
 
+.ui-listbox[data-motion-source="custom"],
+.ui-listbox[data-custom-motion="true"] {
+  --ui-listbox-custom-motion: 1;
+}
+
 .ui-listbox--focus-visible {
   outline: 3px solid var(--ui-focus-ring);
   outline-offset: 2px;
@@ -32,6 +37,13 @@ pub const CSS: &str = r#"
   cursor: default;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.ui-listbox .ui-active-highlight {
+  transition:
+    transform 160ms cubic-bezier(0.2, 0, 0, 1),
+    height 160ms cubic-bezier(0.2, 0, 0, 1),
+    opacity 120ms ease-out;
 }
 
 .ui-listbox__option[data-selected=\"true\"] {

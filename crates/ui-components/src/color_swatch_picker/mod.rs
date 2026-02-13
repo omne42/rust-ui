@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{ColorSwatchPickerItem, DEFAULT_ARIA_LABEL};
+pub use motion::ColorSwatchPickerMotion;
 pub use view::ColorSwatchPicker;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

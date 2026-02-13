@@ -1,8 +1,9 @@
 use crate::flex::{
-    FlexStateInput,
+    FlexMotion, FlexStateInput,
     logic::{self, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap},
+    motion,
 };
-use leptos::prelude::*;
+use leptos::{html, prelude::*};
 
 #[component]
 pub fn Flex(
@@ -12,11 +13,16 @@ pub fn Flex(
     #[prop(optional)] align: FlexAlign,
     #[prop(optional)] gap: FlexGap,
     #[prop(optional)] inline: bool,
+    #[prop(optional)] motion: FlexMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
 ) -> impl IntoView {
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let motion = motion::sanitize_motion(motion);
+    let has_custom_motion = motion != FlexMotion::default();
+    let root_ref: NodeRef<html::Div> = NodeRef::new();
+    motion::attach_motion(root_ref, motion);
 
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -39,6 +45,7 @@ pub fn Flex(
 
     view! {
         <div
+            node_ref=root_ref
             class=move || class.get()
             data-slot="flex"
             data-direction=move || state.get().direction_attr
@@ -51,6 +58,8 @@ pub fn Flex(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=if has_custom_motion { "custom" } else { "default" }
+            data-custom-motion=has_custom_motion.then_some("true")
             aria-label=aria_label
         >
             {children()}

@@ -1,12 +1,15 @@
 mod logic;
-mod render;
+pub mod motion;
 pub mod styles;
+#[path = "view.rs"]
+mod view_component;
 
 pub use logic::{
     DEFAULT_ARIA_LABEL, ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius,
     ViewShadow,
 };
-pub use render::View;
+pub use motion::ViewMotion;
+pub use view_component::View;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ViewStateInput {
