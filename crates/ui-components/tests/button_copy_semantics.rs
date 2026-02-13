@@ -229,7 +229,7 @@ fn button_copy_docs_default_playground_locks_contract_values() {
 
     for needle in [
         "pub(super) fn button_copy() -> AnyView",
-        "<Playground title=\"Label + variant\" code=code>",
+        "<Playground title=\"Label + variant\" code_signal=code>",
         "text=\"cargo add ui-components\".to_string()",
         "label=\"Copy install command\".to_string()",
         "copied_label=\"Copied!\".to_string()",
@@ -250,7 +250,7 @@ fn button_copy_docs_state_matrix_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<Playground title=\"Disabled + empty matrix\" code=states_code>",
+        "<Playground title=\"Disabled + empty matrix\" code_signal=states_code>",
         "text=\"https://example.com/docs\".to_string()",
         "variant=ButtonVariant::Outline",
         "text=\"   \".to_string()",
@@ -289,11 +289,11 @@ fn button_copy_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<Playground title=\"Label + variant\" code=code>",
+        "<Playground title=\"Label + variant\" code_signal=code>",
         "text=\"cargo add ui-components\".to_string()",
         "label=\"Copy install command\".to_string()",
         "copied_label=\"Copied!\".to_string()",
-        "<Playground title=\"Disabled + empty matrix\" code=states_code>",
+        "<Playground title=\"Disabled + empty matrix\" code_signal=states_code>",
         "text=\"   \".to_string()",
         "label=\"Nothing to copy\".to_string()",
         "disabled=true",

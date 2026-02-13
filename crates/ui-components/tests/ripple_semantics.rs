@@ -136,8 +136,8 @@ fn ripple_docs_page_covers_primary_playgrounds() {
         "pub(super) fn motion_ripple() -> AnyView",
         "title=\"MotionRipple\"",
         "slug=\"motion-ripple\"",
-        "Playground title=\"Animation Matrix\"",
-        "Playground title=\"Custom Boundary + Class\"",
+        "title=\"Animation Matrix\"",
+        "title=\"Custom Boundary + Class\"",
     ] {
         assert!(
             source.contains(needle),
@@ -151,9 +151,9 @@ fn ripple_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
-        "let matrix_code = r#\"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />",
+        "let matrix_code = Signal::derive(move || {",
         "duration_ms: 880",
-        "let custom_code = r#\"<MotionRipple",
+        "let custom_code = Signal::derive(move || {",
         "bounded=false",
         "duration_ms: 620",
         "duration_ms: 520",

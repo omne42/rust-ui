@@ -150,8 +150,8 @@ fn switch_docs_page_covers_primary_playgrounds() {
         "title=\"Switch\"",
         "slug=\"switch\"",
         "description=\"Switch toggle with HeroUI-level spring thumb motion and Spectrum-style root state attrs.\"",
-        "<Playground title=\"Controlled + on_change\" code=code>",
-        "<Playground title=\"State matrix\" code=states_code>",
+        "<Playground title=\"Controlled + on_change\" code_signal=code>",
+        "<Playground title=\"State matrix\" code_signal=states_code>",
         "<Switch",
     ] {
         assert!(

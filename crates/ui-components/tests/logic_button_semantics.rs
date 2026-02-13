@@ -120,8 +120,8 @@ fn logic_button_docs_page_covers_primary_playgrounds() {
         "title=\"LogicButton\"",
         "slug=\"logic-button\"",
         "description=\"Spectrum-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts.\"",
-        "<Playground title=\"AND + OR variants\" code=basic_code>",
-        "<Playground title=\"Custom class + Disabled\" code=state_code>",
+        "<Playground title=\"AND + OR variants\" code_signal=basic_code>",
+        "<Playground title=\"Custom class + Disabled\" code_signal=state_code>",
         "<LogicButton",
     ] {
         assert!(

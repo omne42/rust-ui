@@ -125,12 +125,12 @@ fn color_field_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Controlled Value\" code=basic_code>",
+        "<Playground title=\"Controlled Value\" code_signal=basic_code>",
         "id_base=\"docs-color-field-basic\".to_string()",
         "label=\"Fill color\".to_string()",
         "value=value.into()",
         "on_value_change=on_value_change",
-        "<Playground title=\"Invalid + Disabled + Custom Class\" code=states_code>",
+        "<Playground title=\"Invalid + Disabled + Custom Class\" code_signal=states_code>",
         "id_base=\"docs-color-field-invalid\".to_string()",
         "default_value=\"javascript:alert(1)\".to_string()",
         "class_name=\"docs-color-field-custom\".to_string()",

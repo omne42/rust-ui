@@ -143,8 +143,8 @@ fn sidebar_menu_action_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarMenuAction\"",
         "slug=\"sidebar-menu-action\"",
         "description=\"Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts.\"",
-        "<Playground title=\"Default Hover-Only Action\" code=default_code>",
-        "<Playground title=\"Always Visible + Disabled + Custom\" code=always_visible_code>",
+        "<Playground title=\"Default Hover-Only Action\" code_signal=default_code>",
+        "<Playground title=\"Always Visible + Disabled + Custom\" code_signal=always_visible_code>",
         "<SidebarMenuAction",
     ] {
         assert!(

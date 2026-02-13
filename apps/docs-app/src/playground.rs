@@ -1,5 +1,6 @@
 use leptos::children::ViewFn;
 use leptos::prelude::*;
+use std::collections::HashSet;
 use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, IconButton, OnPress};
 
 const DEFAULT_PLAYGROUND_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::*;";
@@ -9,25 +10,53 @@ fn normalize_code_snippet(raw: &str) -> Option<String> {
     (!trimmed.is_empty()).then(|| trimmed.to_string())
 }
 
+fn import_root(line: &str) -> Option<&str> {
+    let trimmed = line.trim();
+    let path = trimmed.strip_prefix("use ")?.strip_suffix(';')?.trim();
+    path.split("::").next().map(str::trim)
+}
+
+fn collect_import_roots(raw: &str) -> HashSet<String> {
+    raw.lines()
+        .filter_map(import_root)
+        .map(ToString::to_string)
+        .collect()
+}
+
+fn missing_import_lines(raw: &str, imports: &str) -> Vec<String> {
+    let existing_roots = collect_import_roots(raw);
+    let mut seen_missing = HashSet::new();
+
+    imports
+        .lines()
+        .filter_map(normalize_code_snippet)
+        .filter_map(|line| {
+            let root = import_root(&line)?;
+            if existing_roots.contains(root) || !seen_missing.insert(root.to_string()) {
+                return None;
+            }
+
+            Some(line)
+        })
+        .collect()
+}
+
 fn compose_copy_ready_code(raw: &str, imports: &str) -> String {
     let Some(raw) = normalize_code_snippet(raw) else {
         return String::new();
     };
 
-    let has_imports = raw
-        .lines()
-        .map(str::trim_start)
-        .any(|line| line.starts_with("use "));
-
-    if has_imports {
-        return raw;
-    }
-
     let Some(imports) = normalize_code_snippet(imports) else {
         return raw;
     };
 
-    format!("{imports}\n\n{raw}")
+    let missing_imports = missing_import_lines(&raw, &imports);
+
+    if missing_imports.is_empty() {
+        raw
+    } else {
+        format!("{}\n\n{raw}", missing_imports.join("\n"))
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -221,7 +250,20 @@ mod tests {
 
         assert_eq!(
             code,
-            "use ui_components::{Button, ButtonVariant};\n\n<Button variant=ButtonVariant::Default>\"Button\"</Button>"
+            "use leptos::prelude::*;\n\nuse ui_components::{Button, ButtonVariant};\n\n<Button variant=ButtonVariant::Default>\"Button\"</Button>"
+        );
+    }
+
+    #[test]
+    fn compose_copy_ready_code_does_not_duplicate_when_roots_exist() {
+        let code = compose_copy_ready_code(
+            "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant};\n\n<Button variant=ButtonVariant::Default>\"Button\"</Button>",
+            "use leptos::prelude::*;\nuse ui_components::*;",
+        );
+
+        assert_eq!(
+            code,
+            "use leptos::prelude::*;\nuse ui_components::{Button, ButtonVariant};\n\n<Button variant=ButtonVariant::Default>\"Button\"</Button>"
         );
     }
 }

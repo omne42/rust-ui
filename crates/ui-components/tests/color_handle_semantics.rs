@@ -115,13 +115,13 @@ fn color_handle_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Focused + Dragging + Position\" code=basic_code>",
+        "<Playground title=\"Focused + Dragging + Position\" code_signal=basic_code>",
         "id_base=\"docs-color-handle-idle\".to_string()",
         "id_base=\"docs-color-handle-focused\".to_string()",
         "focused=true",
         "id_base=\"docs-color-handle-dragging\".to_string()",
         "dragging=true",
-        "<Playground title=\"Disabled + Custom Class + Loupe Off\" code=states_code>",
+        "<Playground title=\"Disabled + Custom Class + Loupe Off\" code_signal=states_code>",
         "id_base=\"docs-color-handle-disabled\".to_string()",
         "disabled=true",
         "id_base=\"docs-color-handle-custom\".to_string()",

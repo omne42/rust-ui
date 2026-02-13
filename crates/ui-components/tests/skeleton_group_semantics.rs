@@ -127,8 +127,8 @@ fn skeleton_group_docs_page_covers_primary_playgrounds() {
         r#"title="SkeletonGroup""#,
         r#"slug="skeleton-group""#,
         r#"description="Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers.""#,
-        r#"<Playground title="Shimmer + Pulse Layout" code=loading_code>"#,
-        r#"<Playground title="Loaded + Skeleton Only" code=state_code>"#,
+        r#"<Playground title="Shimmer + Pulse Layout" code_signal=loading_code>"#,
+        r#"<Playground title="Loaded + Skeleton Only" code_signal=state_code>"#,
         "<SkeletonGroup",
     ] {
         assert!(

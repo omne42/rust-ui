@@ -271,7 +271,10 @@ pub use badge::BadgeVariant;
 pub use bottom_sheet::{BottomSheet, BottomSheetMotion};
 pub use breadcrumbs::{Breadcrumb, BreadcrumbItem, Breadcrumbs};
 pub use button::Button;
-pub use button::{ButtonLoadingPlacement, ButtonMotion, ButtonSize, ButtonVariant};
+pub use button::{
+    ButtonA11y, ButtonAction, ButtonIntent, ButtonLoadingPlacement, ButtonMotion, ButtonSchema,
+    ButtonSize, ButtonSpec, ButtonText, ButtonVariant,
+};
 pub use button_copy::{ButtonCopy, ButtonCopyMotion};
 pub use button_flip::{FlipButton, FlipButtonMotion, FlipDirection};
 pub use button_group::{ButtonGroup, ButtonGroupOrientation};

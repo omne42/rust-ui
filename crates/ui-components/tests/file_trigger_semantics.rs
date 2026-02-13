@@ -184,8 +184,8 @@ fn file_trigger_docs_page_covers_primary_playgrounds() {
         "title=\"FileTrigger\"",
         "slug=\"file-trigger\"",
         "description=\"A Button that forwards to an invisible <input type=file>.\"",
-        "<Playground title=\"Pick files\" code=code>",
-        "<Playground title=\"Pick files with custom motion\" code=motion_code>",
+        "<Playground title=\"Pick files\" code_signal=code>",
+        "<Playground title=\"Pick files with custom motion\" code_signal=motion_code>",
         "<FileTrigger",
     ] {
         assert!(

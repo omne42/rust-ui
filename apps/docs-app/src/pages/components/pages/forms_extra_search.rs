@@ -23,7 +23,8 @@ pub(super) fn search() -> AnyView {
     let marker_on_clear =
         Callback::new(move |_| set_marker_clear_count.update(|count| *count += 1));
 
-    let basic_code = r#"let (value, set_value) = signal(String::new());
+    let basic_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
 let on_submit = Callback::new(|query: String| { /* ... */ });
 let on_clear = Callback::new(|()| { /* ... */ });
 <Search
@@ -34,9 +35,12 @@ let on_clear = Callback::new(|()| { /* ... */ });
   on_submit=on_submit
   on_clear=on_clear
   placeholder=\"Try: overlay\".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let validation_code = r#"let required_invalid = Signal::derive(move || value.get().trim().is_empty());
+    let validation_code = Signal::derive(move || {
+        r#"let required_invalid = Signal::derive(move || value.get().trim().is_empty());
 <Search
   id=\"required-search\".to_string()
   label=\"Required query\".to_string()
@@ -45,28 +49,42 @@ let on_clear = Callback::new(|()| { /* ... */ });
   required=true
   invalid=required_invalid
   error=\"Query is required\".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"let mut marker_motion = SearchFieldMotion::default();
+    let markers_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
+let (invalid, set_invalid) = signal(false);
+let on_submit = Callback::new(move |_| {
+  set_invalid.set(value.get().trim().is_empty());
+});
+let on_clear = Callback::new(move |_| {
+  set_value.set(String::new());
+  set_invalid.set(false);
+});
+let mut marker_motion = SearchFieldMotion::default();
 marker_motion.hidden_scale = 0.78;
 marker_motion.hover_scale = 1.08;
 marker_motion.tap_scale = 0.92;
 
 <Search
-  id=\"docs-search-markers\".to_string()
-  label=\"Search runtime docs\".to_string()
+  id="docs-search-markers".to_string()
+  label="Search runtime docs".to_string()
   value=value
   set_value=set_value
   required=true
   invalid=Signal::derive(move || invalid.get())
-  description=\"Inspect source/state marker contracts\".to_string()
-  error=\"Query is required\".to_string()
-  placeholder=\"Try: spring\".to_string()
-  class_name=\"docs-search-state\".to_string()
+  description="Inspect source/state marker contracts".to_string()
+  error="Query is required".to_string()
+  placeholder="Try: spring".to_string()
+  class_name="docs-search-state".to_string()
   on_submit=on_submit
   on_clear=on_clear
   motion=marker_motion
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let marker_motion = SearchFieldMotion {
         hidden_scale: 0.78,
@@ -82,7 +100,7 @@ marker_motion.tap_scale = 0.92;
             group="Forms"
             description="Spectrum-compatible Search alias for upstream naming parity, preserving SearchField accessibility/state contracts and HeroUI-level clear-button spring motion."
         >
-            <Playground title="Submit + Clear" code=basic_code>
+            <Playground title="Submit + Clear" code_signal=basic_code>
                 <div class="docs-stack">
                     <Search
                         id="docs-search-basic".to_string()
@@ -99,7 +117,7 @@ marker_motion.tap_scale = 0.92;
                 </div>
             </Playground>
 
-            <Playground title="Required + Invalid" code=validation_code>
+            <Playground title="Required + Invalid" code_signal=validation_code>
                 <div class="docs-stack">
                     <Search
                         id="docs-search-required".to_string()
@@ -121,7 +139,7 @@ marker_motion.tap_scale = 0.92;
             <Playground
                 title="State + Source Markers"
                 description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, `data-submit-handler-source`, `data-clear-handler-source`, and `data-motion-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <Search

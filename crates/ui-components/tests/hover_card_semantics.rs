@@ -284,9 +284,9 @@ fn hover_card_docs_page_covers_primary_playgrounds() {
         "title=\"HoverCard\"",
         "slug=\"hover-card\"",
         "description=\"Hover/focus triggered card with open/close delays.\"",
-        "<Playground title=\"HoverCard\" code=code>",
+        "<Playground title=\"HoverCard\" code_signal=code>",
         "title=\"State + Source Markers\"",
-        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "<Playground title=\"Custom Motion Contract\" code_signal=motion_code>",
         "<HoverCard",
     ] {
         assert!(

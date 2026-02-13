@@ -141,8 +141,8 @@ fn sidebar_menu_badge_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarMenuBadge\"",
         "slug=\"sidebar-menu-badge\"",
         "description=\"Shadcn-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable data-marker contracts.\"",
-        "<Playground title=\"Default Numeric Badge\" code=default_code>",
-        "<Playground title=\"Muted + Disabled + Custom\" code=muted_code>",
+        "<Playground title=\"Default Numeric Badge\" code_signal=default_code>",
+        "<Playground title=\"Muted + Disabled + Custom\" code_signal=muted_code>",
         "<SidebarMenuBadge",
     ] {
         assert!(

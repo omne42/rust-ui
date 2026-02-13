@@ -4,10 +4,13 @@ use leptos::prelude::*;
 use ui_components::{Icons, IconsGlyph, IconsScale, IconsSet, IconsTone};
 
 pub(super) fn icons() -> AnyView {
-    let default_code = r#"<Icons name="check".to_string() set=IconsSet::Ui scale=IconsScale::Medium tone=IconsTone::Accent decorative=false />
-<Icons name="workflow:warning".to_string() scale=IconsScale::Large tone=IconsTone::Danger decorative=false />"#;
+    let default_code = Signal::derive(move || {
+        r#"<Icons name="check".to_string() set=IconsSet::Ui scale=IconsScale::Medium tone=IconsTone::Accent decorative=false />
+<Icons name="workflow:warning".to_string() scale=IconsScale::Large tone=IconsTone::Danger decorative=false />"#.to_string()
+    });
 
-    let custom_code = r#"<Icons
+    let custom_code = Signal::derive(move || {
+        r#"<Icons
   name="workflow:deploy".to_string()
   set=IconsSet::Workflow
   scale=IconsScale::Large
@@ -15,9 +18,12 @@ pub(super) fn icons() -> AnyView {
   glyphs=vec![IconsGlyph::new("workflow:deploy", "🚀").with_aria_label("Workflow Deploy")]
   decorative=false
   class_name="docs-icons-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"<Icons
+    let markers_code = Signal::derive(move || {
+        r#"<Icons
   name="check".to_string()
   set=IconsSet::Workflow
   scale=IconsScale::Large
@@ -26,7 +32,9 @@ pub(super) fn icons() -> AnyView {
   decorative=false
   aria_label="Explicit icon label".to_string()
   class_name="docs-icons-state".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -35,7 +43,7 @@ pub(super) fn icons() -> AnyView {
             group="Display"
             description="Spectrum-compatible `icons` package wrapper that maps medium/large scale and ui/workflow set selection onto IconsUi/IconsWorkflow with stable source-state contracts."
         >
-            <Playground title="Medium + Large Set Selection" code=default_code>
+            <Playground title="Medium + Large Set Selection" code_signal=default_code>
                 <div class="docs-row">
                     <Icons
                         name="check".to_string()
@@ -53,7 +61,7 @@ pub(super) fn icons() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Workflow Glyph Extension" code=custom_code>
+            <Playground title="Custom Workflow Glyph Extension" code_signal=custom_code>
                 <div class="docs-row">
                     <Icons
                         name="workflow:deploy".to_string()
@@ -73,7 +81,7 @@ pub(super) fn icons() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect wrapper markers like `data-state`, `data-set`, `data-scale`, `data-set-source`, `data-aria-source`, `data-class-source`, `data-glyph-source`, and `data-tone-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <Icons

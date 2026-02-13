@@ -263,9 +263,9 @@ fn sheet_docs_page_covers_primary_playgrounds() {
         "title=\"Sheet\"",
         "slug=\"sheet\"",
         "description=\"Sheet overlay (mobile-friendly) with placement, spring enter/exit, and dismiss control flags.\"",
-        "<Playground title=\"Bottom sheet\" code=code>",
+        "<Playground title=\"Bottom sheet\" code_signal=code>",
         "title=\"State + Source Markers\"",
-        "code=marker_code",
+        "code_signal=marker_code",
         "<Sheet",
     ] {
         assert!(

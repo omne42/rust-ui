@@ -162,8 +162,8 @@ fn sidebar_docs_page_covers_primary_playgrounds() {
         r#"title="Sidebar""#,
         r#"slug="sidebar""#,
         r#"description="Shadcn-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and Spectrum-style data markers.""#,
-        r#"<Playground title="Offcanvas + Slot Markers" code=basic_code>"#,
-        r#"<Playground title="Controlled + Right Inset/Icon" code=controlled_code>"#,
+        r#"<Playground title="Offcanvas + Slot Markers" code_signal=basic_code>"#,
+        r#"<Playground title="Controlled + Right Inset/Icon" code_signal=controlled_code>"#,
         "<Sidebar",
     ] {
         assert!(

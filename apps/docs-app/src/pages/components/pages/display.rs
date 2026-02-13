@@ -12,7 +12,8 @@ use ui_components::{
 };
 
 pub(super) fn alert() -> AnyView {
-    let variants_code = r#"<Alert variant=AlertVariant::Default title="Notice".to_string() description="Something happened.".to_string()>
+    let variants_code = Signal::derive(move || {
+        r#"<Alert variant=AlertVariant::Default title="Notice".to_string() description="Something happened.".to_string()>
   <Button variant=ButtonVariant::Secondary>"Undo"</Button>
 </Alert>
 <Alert variant=AlertVariant::Accent title="Syncing".to_string() description="Deployment is in progress.".to_string()>
@@ -20,9 +21,11 @@ pub(super) fn alert() -> AnyView {
 </Alert>
 <Alert variant=AlertVariant::Danger title="Failed".to_string() description="Publishing failed.".to_string()>
   <Button variant=ButtonVariant::Secondary>"Retry"</Button>
-</Alert>"#;
+</Alert>"#.to_string()
+    });
 
-    let compact_code = r#"<Alert
+    let compact_code = Signal::derive(move || {
+        r#"<Alert
   variant=AlertVariant::Accent
   description="Custom class without title".to_string()
   class_name="docs-alert-custom".to_string()
@@ -31,7 +34,9 @@ pub(super) fn alert() -> AnyView {
 </Alert>
 <Alert variant=AlertVariant::Default title="Heads up".to_string()>
   <Button variant=ButtonVariant::Secondary>"Dismiss"</Button>
-</Alert>"#;
+</Alert>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -40,7 +45,7 @@ pub(super) fn alert() -> AnyView {
             group="Display"
             description="Inline alert surface with centralized variant/content state attrs and action slot semantics."
         >
-            <Playground title="Variants + Live Region" code=variants_code>
+            <Playground title="Variants + Live Region" code_signal=variants_code>
                 <div class="docs-stack">
                     <Alert
                         variant=AlertVariant::Default
@@ -72,7 +77,7 @@ pub(super) fn alert() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Compact" code=compact_code>
+            <Playground title="Custom Class + Compact" code_signal=compact_code>
                 <div class="docs-stack">
                     <Alert
                         variant=AlertVariant::Accent
@@ -96,9 +101,12 @@ pub(super) fn alert() -> AnyView {
 }
 
 pub(super) fn inline_alert() -> AnyView {
-    let code = r#"<InlineAlert tone=InlineAlertTone::Info title="Info".to_string()>
+    let code = Signal::derive(move || {
+        r#"<InlineAlert tone=InlineAlertTone::Info title="Info".to_string()>
   "Message"
-</InlineAlert>"#;
+</InlineAlert>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -107,7 +115,7 @@ pub(super) fn inline_alert() -> AnyView {
             group="Display"
             description="Compact alert with tone/fill variants and optional icon."
         >
-            <Playground title="Inline alerts" code=code>
+            <Playground title="Inline alerts" code_signal=code>
                 <div class="docs-stack">
                     <InlineAlert
                         tone=InlineAlertTone::Info
@@ -133,17 +141,23 @@ pub(super) fn inline_alert() -> AnyView {
 }
 
 pub(super) fn badge() -> AnyView {
-    let matrix_code = r#"<Badge variant=BadgeVariant::Default>"Default"</Badge>
+    let matrix_code = Signal::derive(move || {
+        r#"<Badge variant=BadgeVariant::Default>"Default"</Badge>
 <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
 <Badge variant=BadgeVariant::Danger>"Danger"</Badge>
-<Badge variant=BadgeVariant::Outline>"Outline"</Badge>"#;
+<Badge variant=BadgeVariant::Outline>"Outline"</Badge>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
+    let custom_code = Signal::derive(move || {
+        r#"<Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
   "Release"
 </Badge>
 <Badge variant=BadgeVariant::Outline class_name="docs-badge-custom".to_string()>
   "Beta"
-</Badge>"#;
+</Badge>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -152,7 +166,7 @@ pub(super) fn badge() -> AnyView {
             group="Display"
             description="Status badge with centralized variant/fill state attrs and custom-class contract."
         >
-            <Playground title="Variant Matrix" code=matrix_code>
+            <Playground title="Variant Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Badge variant=BadgeVariant::Default>"Default"</Badge>
                     <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
@@ -161,7 +175,7 @@ pub(super) fn badge() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Outline" code=custom_code>
+            <Playground title="Custom Class + Outline" code_signal=custom_code>
                 <div class="docs-row">
                     <Badge variant=BadgeVariant::Accent class_name="docs-badge-custom".to_string()>
                         "Release"
@@ -177,21 +191,29 @@ pub(super) fn badge() -> AnyView {
 }
 
 pub(super) fn status_light() -> AnyView {
-    let variants_code = r#"<StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
+    let variants_code = Signal::derive(move || {
+        r#"<StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
 <StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
-<StatusLight variant=StatusLightVariant::Danger>"Failed"</StatusLight>"#;
+<StatusLight variant=StatusLightVariant::Danger>"Failed"</StatusLight>"#
+            .to_string()
+    });
 
-    let role_code =
-        r#"<StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>"#;
+    let role_code = Signal::derive(move || {
+        r#"<StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
+    let custom_code = Signal::derive(move || {
+        r#"<StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
 <StatusLight
   role=StatusLightRole::Status
   variant=StatusLightVariant::Accent
   class_name="docs-status-light-custom".to_string()
 >
   "Deploy started"
-</StatusLight>"#;
+</StatusLight>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -200,7 +222,7 @@ pub(super) fn status_light() -> AnyView {
             group="Display"
             description="Status indicator + label with centralized variant/live/role-source state attrs and optional custom-class contract."
         >
-            <Playground title="Variants" code=variants_code>
+            <Playground title="Variants" code_signal=variants_code>
                 <div class="docs-row">
                     <StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
                     <StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
@@ -208,7 +230,7 @@ pub(super) fn status_light() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Live Region Role" code=role_code>
+            <Playground title="Live Region Role" code_signal=role_code>
                 <div class="docs-row">
                     <StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>
                     <StatusLight
@@ -221,7 +243,7 @@ pub(super) fn status_light() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Static" code=custom_code>
+            <Playground title="Custom Class + Static" code_signal=custom_code>
                 <div class="docs-row">
                     <StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
                     <StatusLight
@@ -242,21 +264,28 @@ pub(super) fn chip() -> AnyView {
     let (removed, set_removed) = signal(false);
     let on_dismiss = Callback::new(move |_| set_removed.set(true));
 
-    let removable_code = r#"<Chip
+    let removable_code = Signal::derive(move || {
+        r#"<Chip
   variant=ChipVariant::Accent
   size=ChipSize::Md
   on_dismiss=Some(on_dismiss)
   dismiss_aria_label="Remove reviewer".to_string()
 >
   "Reviewer"
-</Chip>"#;
+</Chip>"#
+            .to_string()
+    });
 
-    let variants_code = r#"<Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
+    let variants_code = Signal::derive(move || {
+        r#"<Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
 <Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
 <Chip variant=ChipVariant::Danger size=ChipSize::Lg>"Danger"</Chip>
-<Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>"#;
+<Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Chip
+    let custom_code = Signal::derive(move || {
+        r#"<Chip
   variant=ChipVariant::Accent
   on_dismiss=Some(Callback::new(|_| ()))
   dismiss_aria_label="  Remove reviewer  ".to_string()
@@ -266,10 +295,15 @@ pub(super) fn chip() -> AnyView {
 </Chip>
 <Chip variant=ChipVariant::Outline class_name="docs-chip-custom".to_string()>
   "Read only"
-</Chip>"#;
+</Chip>"#
+            .to_string()
+    });
 
-    let disabled_code = r#"<Chip disabled=true on_dismiss=Some(on_dismiss)>"Locked"</Chip>
-<Chip disabled=true>"Read only"</Chip>"#;
+    let disabled_code = Signal::derive(move || {
+        r#"<Chip disabled=true on_dismiss=Some(on_dismiss)>"Locked"</Chip>
+<Chip disabled=true>"Read only"</Chip>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -278,7 +312,7 @@ pub(super) fn chip() -> AnyView {
             group="Display"
             description="Chip / tag pill with centralized variant-size-state attrs, dismiss-label source contracts, and optional custom class semantics."
         >
-            <Playground title="Removable" code=removable_code>
+            <Playground title="Removable" code_signal=removable_code>
                 <div class="docs-row">
                     <Show
                         when=move || !removed.get()
@@ -296,7 +330,7 @@ pub(super) fn chip() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Variants + Sizes" code=variants_code>
+            <Playground title="Variants + Sizes" code_signal=variants_code>
                 <div class="docs-row">
                     <Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
                     <Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
@@ -305,7 +339,7 @@ pub(super) fn chip() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Class" code=custom_code>
+            <Playground title="Custom Label + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <Chip
                         variant=ChipVariant::Accent
@@ -321,7 +355,7 @@ pub(super) fn chip() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Static" code=disabled_code>
+            <Playground title="Disabled + Static" code_signal=disabled_code>
                 <div class="docs-row">
                     <Chip
                         disabled=true
@@ -343,11 +377,15 @@ pub(super) fn chip() -> AnyView {
     .into_any()
 }
 pub(super) fn skeleton() -> AnyView {
-    let shimmer_code = r#"<Skeleton variant=SkeletonVariant::Rect shimmer=true class_name="docs-skeleton-line".to_string() />
-<Skeleton variant=SkeletonVariant::Circle shimmer=true class_name="docs-skeleton-avatar".to_string() />"#;
+    let shimmer_code = Signal::derive(move || {
+        r#"<Skeleton variant=SkeletonVariant::Rect shimmer=true class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Circle shimmer=true class_name="docs-skeleton-avatar".to_string() />"#.to_string()
+    });
 
-    let still_code = r#"<Skeleton variant=SkeletonVariant::Rect shimmer=false class_name="docs-skeleton-line".to_string() />
-<Skeleton variant=SkeletonVariant::Circle shimmer=false class_name="docs-skeleton-avatar".to_string() />"#;
+    let still_code = Signal::derive(move || {
+        r#"<Skeleton variant=SkeletonVariant::Rect shimmer=false class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Circle shimmer=false class_name="docs-skeleton-avatar".to_string() />"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -356,7 +394,7 @@ pub(super) fn skeleton() -> AnyView {
             group="Display"
             description="Skeleton placeholder blocks with centralized variant/shimmer state attrs."
         >
-            <Playground title="Shimmer" code=shimmer_code>
+            <Playground title="Shimmer" code_signal=shimmer_code>
                 <div class="docs-stack">
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
@@ -365,7 +403,7 @@ pub(super) fn skeleton() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Still" code=still_code>
+            <Playground title="Still" code_signal=still_code>
                 <div class="docs-stack">
                     <Skeleton
                         variant=SkeletonVariant::Rect
@@ -390,18 +428,23 @@ pub(super) fn skeleton() -> AnyView {
 }
 
 pub(super) fn circular_progress() -> AnyView {
-    let matrix_code = r#"<CircularProgress aria_label="Loading".to_string() />
+    let matrix_code = Signal::derive(move || {
+        r#"<CircularProgress aria_label="Loading".to_string() />
 <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
 <CircularProgress aria_label="Syncing mail".to_string() thickness_px=3.0 />
-<CircularProgress aria_label="Syncing mail".to_string() size_px=30.0 thickness_px=4.0 />"#;
+<CircularProgress aria_label="Syncing mail".to_string() size_px=30.0 thickness_px=4.0 />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<CircularProgress
+    let custom_code = Signal::derive(move || {
+        r#"<CircularProgress
   aria_label="Background refresh".to_string()
   size_px=28.0
   thickness_px=3.5
   class_name="docs-circular-progress-custom".to_string()
 />
-<CircularProgress aria_label="   ".to_string() class_name="docs-circular-progress-custom".to_string() />"#;
+<CircularProgress aria_label="   ".to_string() class_name="docs-circular-progress-custom".to_string() />"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -410,7 +453,7 @@ pub(super) fn circular_progress() -> AnyView {
             group="Display"
             description="Indeterminate circular progress with centralized size/thickness/label source attrs."
         >
-            <Playground title="Size + Thickness Matrix" code=matrix_code>
+            <Playground title="Size + Thickness Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <CircularProgress aria_label="Loading".to_string() />
                     <CircularProgress aria_label="Syncing mail".to_string() size_px=24.0 />
@@ -423,7 +466,7 @@ pub(super) fn circular_progress() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Class" code=custom_code>
+            <Playground title="Custom Label + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <CircularProgress
                         aria_label="Background refresh".to_string()
@@ -443,13 +486,18 @@ pub(super) fn circular_progress() -> AnyView {
 }
 
 pub(super) fn spinner() -> AnyView {
-    let matrix_code = r#"<Spinner size=SpinnerSize::Sm />
+    let matrix_code = Signal::derive(move || {
+        r#"<Spinner size=SpinnerSize::Sm />
 <Spinner size=SpinnerSize::Md />
-<Spinner size=SpinnerSize::Lg />"#;
+<Spinner size=SpinnerSize::Lg />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Spinner aria_label="Fetching notifications".to_string() />
+    let custom_code = Signal::derive(move || {
+        r#"<Spinner aria_label="Fetching notifications".to_string() />
 <Spinner aria_label="   ".to_string() class_name="docs-spinner-custom".to_string() />
-<Spinner aria_label="Syncing inbox".to_string() class_name="docs-spinner-custom".to_string() size=SpinnerSize::Lg />"#;
+<Spinner aria_label="Syncing inbox".to_string() class_name="docs-spinner-custom".to_string() size=SpinnerSize::Lg />"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -458,7 +506,7 @@ pub(super) fn spinner() -> AnyView {
             group="Display"
             description="Spinner wraps CircularProgress with centralized size/label/class source attrs."
         >
-            <Playground title="Size Matrix" code=matrix_code>
+            <Playground title="Size Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Spinner size=SpinnerSize::Sm />
                     <Spinner size=SpinnerSize::Md />
@@ -466,7 +514,7 @@ pub(super) fn spinner() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Class" code=custom_code>
+            <Playground title="Custom Label + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <Spinner aria_label="Fetching notifications".to_string() />
                     <Spinner
@@ -489,11 +537,15 @@ pub(super) fn progress() -> AnyView {
     let (value, set_value) = signal(42.0_f64);
     let progress_value = Signal::derive(move || Some(value.get()));
 
-    let matrix_code = r#"let progress_value = Signal::derive(move || Some(value.get()));
+    let matrix_code = Signal::derive(move || {
+        r#"let progress_value = Signal::derive(move || Some(value.get()));
 <Progress aria_label="Determinate".to_string() value=progress_value />
-<Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#;
+<Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Progress
+    let custom_code = Signal::derive(move || {
+        r#"<Progress
   aria_label="Syncing tasks".to_string()
   value=Signal::derive(|| Some(64.0))
   min=0.0
@@ -506,7 +558,9 @@ pub(super) fn progress() -> AnyView {
   aria_label="   ".to_string()
   value=Signal::derive(|| Some(18.0))
   class_name="docs-progress-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -515,7 +569,7 @@ pub(super) fn progress() -> AnyView {
             group="Display"
             description="Spring-driven linear progress with centralized source attrs."
         >
-            <Playground title="Determinate + Indeterminate" code=matrix_code>
+            <Playground title="Determinate + Indeterminate" code_signal=matrix_code>
                 <div class="docs-stack">
                     <Progress aria_label="Determinate".to_string() value=progress_value />
                     <Progress aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
@@ -537,7 +591,7 @@ pub(super) fn progress() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Motion + Class" code=custom_code>
+            <Playground title="Custom Label + Motion + Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <Progress
                         aria_label="Syncing tasks".to_string()
@@ -561,12 +615,15 @@ pub(super) fn progress() -> AnyView {
 }
 
 pub(super) fn progress_bar() -> AnyView {
-    let matrix_code = r#"<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
+    let matrix_code = Signal::derive(move || {
+        r#"<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
 <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
 <ProgressBar variant=ProgressBarVariant::Danger size=ProgressBarSize::Lg value=54.0 max=100.0 />
-<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />"#;
+<ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Md indeterminate=true />"#.to_string()
+    });
 
-    let custom_code = r#"<ProgressBar
+    let custom_code = Signal::derive(move || {
+        r#"<ProgressBar
   variant=ProgressBarVariant::Accent
   size=ProgressBarSize::Md
   value=64.0
@@ -581,7 +638,9 @@ pub(super) fn progress_bar() -> AnyView {
   max=f64::NAN
   aria_label="   ".to_string()
   class_name="docs-progress-bar-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -590,7 +649,7 @@ pub(super) fn progress_bar() -> AnyView {
             group="Display"
             description="Native <progress> element with centralized variant/size/state source attrs."
         >
-            <Playground title="Variant + Size Matrix" code=matrix_code>
+            <Playground title="Variant + Size Matrix" code_signal=matrix_code>
                 <div class="docs-stack">
                     <ProgressBar variant=ProgressBarVariant::Default size=ProgressBarSize::Sm value=24.0 max=100.0 />
                     <ProgressBar variant=ProgressBarVariant::Accent size=ProgressBarSize::Md value=72.0 max=100.0 />
@@ -599,7 +658,7 @@ pub(super) fn progress_bar() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Class" code=custom_code>
+            <Playground title="Custom Label + Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <ProgressBar
                         variant=ProgressBarVariant::Accent
@@ -628,10 +687,13 @@ pub(super) fn progress_circle() -> AnyView {
     let (value, set_value) = signal(35.0_f64);
     let progress_value = Signal::derive(move || Some(value.get()));
 
-    let matrix_code = r#"<ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
-<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#;
+    let matrix_code = Signal::derive(move || {
+        r#"<ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
+<ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />"#.to_string()
+    });
 
-    let custom_code = r#"<ProgressCircle
+    let custom_code = Signal::derive(move || {
+        r#"<ProgressCircle
   aria_label="Sync progress".to_string()
   value=Signal::derive(|| Some(64.0))
   min=0.0
@@ -645,7 +707,9 @@ pub(super) fn progress_circle() -> AnyView {
   aria_label="   ".to_string()
   value=Signal::derive(|| Some(18.0))
   class_name="docs-progress-circle-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -654,7 +718,7 @@ pub(super) fn progress_circle() -> AnyView {
             group="Display"
             description="Spring-animated circular progress with centralized source attrs."
         >
-            <Playground title="Determinate + Indeterminate" code=matrix_code>
+            <Playground title="Determinate + Indeterminate" code_signal=matrix_code>
                 <div class="docs-row">
                     <ProgressCircle aria_label="Determinate".to_string() value=progress_value min=0.0 max=100.0 />
                     <ProgressCircle aria_label="Indeterminate".to_string() value=Signal::derive(|| None) />
@@ -667,7 +731,7 @@ pub(super) fn progress_circle() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Value Label + Class" code=custom_code>
+            <Playground title="Custom Value Label + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <ProgressCircle
                         aria_label="Sync progress".to_string()
@@ -694,12 +758,15 @@ pub(super) fn meter() -> AnyView {
     let (value, set_value) = signal(42_i64);
     let meter_value = Signal::derive(move || Some(value.get() as f64));
 
-    let matrix_code = r#"let meter_value = Signal::derive(move || Some(value.get() as f64));
+    let matrix_code = Signal::derive(move || {
+        r#"let meter_value = Signal::derive(move || Some(value.get() as f64));
 <Meter id="docs-meter-default".to_string() label="Completion".to_string() value=meter_value min=0.0 max=100.0 />
 <Meter id="docs-meter-danger".to_string() label="Risk".to_string() value=meter_value variant=MeterVariant::Danger size=MeterSize::Lg />
-<Meter id="docs-meter-compact".to_string() label="Compact".to_string() value=meter_value size=MeterSize::Sm show_value_label=false />"#;
+<Meter id="docs-meter-compact".to_string() label="Compact".to_string() value=meter_value size=MeterSize::Sm show_value_label=false />"#.to_string()
+    });
 
-    let custom_code = r#"<Meter
+    let custom_code = Signal::derive(move || {
+        r#"<Meter
   id="docs-meter-custom".to_string()
   label="Sync progress".to_string()
   aria_label="Background sync".to_string()
@@ -722,7 +789,9 @@ pub(super) fn meter() -> AnyView {
   label="Pending".to_string()
   value=Signal::derive(|| None)
   class_name="docs-meter-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -731,7 +800,7 @@ pub(super) fn meter() -> AnyView {
             group="Display"
             description="Spring-driven meter with centralized variant/size/phase source attrs."
         >
-            <Playground title="Variant + Size Matrix" code=matrix_code>
+            <Playground title="Variant + Size Matrix" code_signal=matrix_code>
                 <div class="docs-stack">
                     <Meter
                         id="docs-meter-default".to_string()
@@ -766,7 +835,7 @@ pub(super) fn meter() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Label + Motion + Class" code=custom_code>
+            <Playground title="Custom Label + Motion + Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <Meter
                         id="docs-meter-custom".to_string()
@@ -800,15 +869,20 @@ pub(super) fn meter() -> AnyView {
 }
 
 pub(super) fn code() -> AnyView {
-    let variants_code = r#"<Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
+    let variants_code = Signal::derive(move || {
+        r#"<Code variant=CodeVariant::Inline>"cargo test -p ui-components"</Code>
 <Code variant=CodeVariant::Block>
   "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"
-</Code>"#;
+</Code>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>"--deny warnings"</Code>
+    let custom_code = Signal::derive(move || {
+        r#"<Code variant=CodeVariant::Inline class_name="docs-code-custom".to_string()>"--deny warnings"</Code>
 <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
   "cargo test -p ui-components --test code_semantics\ncargo test -p ui-components"
-</Code>"#;
+</Code>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -817,7 +891,7 @@ pub(super) fn code() -> AnyView {
             group="Display"
             description="Inline/Block code surface with centralized variant state attrs and optional custom-class contract."
         >
-            <Playground title="Variant Matrix" code=variants_code>
+            <Playground title="Variant Matrix" code_signal=variants_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <span>"Run "</span>
@@ -831,7 +905,7 @@ cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Block" code=custom_code>
+            <Playground title="Custom Class + Block" code_signal=custom_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <span>"CI flags: "</span>
@@ -851,11 +925,16 @@ cargo test -p ui-components"#}
 }
 
 pub(super) fn kbd() -> AnyView {
-    let matrix_code = r#"<Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
-<Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>"#;
+    let matrix_code = Signal::derive(move || {
+        r#"<Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
+<Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
-<Kbd size=KbdSize::Sm keys="Shift".to_string() class_name="docs-kbd-custom".to_string()>"Tab"</Kbd>"#;
+    let custom_code = Signal::derive(move || {
+        r#"<Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
+<Kbd size=KbdSize::Sm keys="Shift".to_string() class_name="docs-kbd-custom".to_string()>"Tab"</Kbd>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -864,7 +943,7 @@ pub(super) fn kbd() -> AnyView {
             group="Display"
             description="Keyboard keycap with centralized size/keys state attrs and optional custom-class contract."
         >
-            <Playground title="Size + Keys Matrix" code=matrix_code>
+            <Playground title="Size + Keys Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
                     <Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>
@@ -872,7 +951,7 @@ pub(super) fn kbd() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Label Only" code=custom_code>
+            <Playground title="Custom Class + Label Only" code_signal=custom_code>
                 <div class="docs-row">
                     <Kbd size=KbdSize::Md class_name="docs-kbd-custom".to_string()>"Esc"</Kbd>
                     <Kbd
@@ -894,17 +973,23 @@ pub(super) fn code_block() -> AnyView {
     Ok(())
 }"#;
 
-    let matrix_code = r#"<CodeBlock
+    let matrix_code = Signal::derive(move || {
+        r#"<CodeBlock
   code=rust_code.to_string()
   language="rust".to_string()
   label="deploy.rs".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let compact_code = r#"<CodeBlock
+    let compact_code = Signal::derive(move || {
+        r#"<CodeBlock
   code="cargo test -p ui-components --test code_block_semantics".to_string()
   copyable=false
   class_name="docs-code-block-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -913,7 +998,7 @@ pub(super) fn code_block() -> AnyView {
             group="Display"
             description="Multiline code surface with centralized header/state attrs and spring-driven copy flash motion."
         >
-            <Playground title="Header + Copy Motion" code=matrix_code>
+            <Playground title="Header + Copy Motion" code_signal=matrix_code>
                 <CodeBlock
                     code=rust_code.to_string()
                     language="rust".to_string()
@@ -921,7 +1006,7 @@ pub(super) fn code_block() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Compact + No Copy" code=compact_code>
+            <Playground title="Compact + No Copy" code_signal=compact_code>
                 <CodeBlock
                     code="cargo test -p ui-components --test code_block_semantics".to_string()
                     copyable=false
@@ -933,7 +1018,8 @@ pub(super) fn code_block() -> AnyView {
     .into_any()
 }
 pub(super) fn snippet() -> AnyView {
-    let copy_code = r#"<Snippet
+    let copy_code = Signal::derive(move || {
+        r#"<Snippet
   text="cargo fmt --all".to_string()
   label="Command".to_string()
   copyable=true
@@ -942,9 +1028,12 @@ pub(super) fn snippet() -> AnyView {
   text="RUST_LOG=debug".to_string()
   copyable=true
   copied_label="Done".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let custom_code = r#"<Snippet
+    let custom_code = Signal::derive(move || {
+        r#"<Snippet
   text="cargo test -p ui-components --test snippet_semantics".to_string()
   copyable=false
   class_name="docs-snippet-custom".to_string()
@@ -954,7 +1043,8 @@ pub(super) fn snippet() -> AnyView {
   label="CI".to_string()
   copyable=false
   class_name="docs-snippet-custom".to_string()
-/>"#;
+/>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -963,14 +1053,14 @@ pub(super) fn snippet() -> AnyView {
             group="Display"
             description="Text snippet with centralized multiline/copy state attrs and optional copied-label/custom-class contracts."
         >
-            <Playground title="Copyable + Copied Label" code=copy_code>
+            <Playground title="Copyable + Copied Label" code_signal=copy_code>
                 <div class="docs-stack">
                     <Snippet text="cargo fmt --all".to_string() label="Command".to_string() copyable=true />
                     <Snippet text="RUST_LOG=debug".to_string() copyable=true copied_label="Done".to_string() />
                 </div>
             </Playground>
 
-            <Playground title="Static + Multiline Custom" code=custom_code>
+            <Playground title="Static + Multiline Custom" code_signal=custom_code>
                 <div class="docs-stack">
                     <Snippet
                         text="cargo test -p ui-components --test snippet_semantics".to_string()
@@ -991,12 +1081,16 @@ pub(super) fn snippet() -> AnyView {
 }
 
 pub(super) fn link() -> AnyView {
-    let states_code = r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
+    let states_code = Signal::derive(move || {
+        r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
 <Link href="https://example.com".to_string() target="_blank">"External link"</Link>
 <Link href="#/docs/welcome".to_string() disabled=true>"Disabled"</Link>
-<Link href="   ".to_string()>"Missing href"</Link>"##;
+<Link href="   ".to_string()>"Missing href"</Link>"##
+            .to_string()
+    });
 
-    let custom_code = r#"<Link
+    let custom_code = Signal::derive(move || {
+        r#"<Link
   href="https://example.com".to_string()
   target="_blank"
   rel="sponsored".to_string()
@@ -1004,7 +1098,9 @@ pub(super) fn link() -> AnyView {
   class_name="docs-link-custom".to_string()
 >
   "Partner docs"
-</Link>"#;
+</Link>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1013,7 +1109,7 @@ pub(super) fn link() -> AnyView {
             group="Display"
             description="Text link with centralized disabled/target/rel state attrs and headless hover + focus-visible semantics."
         >
-            <Playground title="State Matrix" code=states_code>
+            <Playground title="State Matrix" code_signal=states_code>
                 <div class="docs-row">
                     <Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
                     <Link href="https://example.com".to_string() target="_blank">
@@ -1024,7 +1120,7 @@ pub(super) fn link() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Rel + Class" code=custom_code>
+            <Playground title="Custom Rel + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <Link
                         href="https://example.com".to_string()
@@ -1045,13 +1141,19 @@ pub(super) fn link() -> AnyView {
 pub(super) fn avatar() -> AnyView {
     let src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Cdefs%3E%3CradialGradient%20id%3D%27g%27%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%2732%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23ff4bd8%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%232b5cff%27/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2732%27%20fill%3D%27url(%23g)%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2752%25%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%20font-size%3D%2724%27%20font-family%3D%27system-ui%27%20fill%3D%27white%27%3EA%3C/text%3E%3C/svg%3E";
 
-    let image_code = r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#;
+    let image_code = Signal::derive(move || {
+        r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#.to_string()
+    });
 
-    let states_code = r#"<Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
+    let states_code = Signal::derive(move || {
+        r#"<Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
 <Avatar alt="Anonymous collaborator".to_string() size=AvatarSize::Sm />
-<Avatar size=AvatarSize::Lg />"#;
+<Avatar size=AvatarSize::Lg />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Avatar
+    let custom_code = Signal::derive(move || {
+        r#"<Avatar
   name="  Ada Lovelace  ".to_string()
   alt="  Team lead  ".to_string()
   size=AvatarSize::Lg
@@ -1061,7 +1163,9 @@ pub(super) fn avatar() -> AnyView {
   alt="  Anonymous collaborator  ".to_string()
   src="   ".to_string()
   class_name="docs-avatar-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1070,7 +1174,7 @@ pub(super) fn avatar() -> AnyView {
             group="Display"
             description="Avatar with image/error fallback, normalized labels, and Spectrum-style root state attrs + custom-class contract."
         >
-            <Playground title="Image + Fallback" code=image_code>
+            <Playground title="Image + Fallback" code_signal=image_code>
                 <div class="docs-row">
                     <Avatar name="Ada Lovelace".to_string() src=src.to_string() size=AvatarSize::Md />
                     <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
@@ -1078,7 +1182,7 @@ pub(super) fn avatar() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Sizes + Label Sources" code=states_code>
+            <Playground title="Sizes + Label Sources" code_signal=states_code>
                 <div class="docs-row">
                     <Avatar
                         name="Ada Lovelace".to_string()
@@ -1091,7 +1195,7 @@ pub(super) fn avatar() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Normalized Props" code=custom_code>
+            <Playground title="Custom Class + Normalized Props" code_signal=custom_code>
                 <div class="docs-row">
                     <Avatar
                         name="  Ada Lovelace  ".to_string()
@@ -1149,24 +1253,119 @@ pub(super) fn avatar_group() -> AnyView {
     let size_items = items.clone();
     let custom_items = items.clone();
 
-    let overflow_code = r#"<AvatarGroup items=items.clone() max=3 size=AvatarSize::Md />"#;
+    let overflow_code = Signal::derive(move || {
+        r#"<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Katherine Johnson".to_string()),
+      src: None,
+      alt: Some("Katherine".to_string()),
+    },
+  ]
+  max=3
+  size=AvatarSize::Md
+/>"#
+        .to_string()
+    });
 
-    let sizes_code = r#"<AvatarGroup items=items.clone() max=6 size=AvatarSize::Sm />
-<AvatarGroup items=items.clone() max=6 size=AvatarSize::Lg />"#;
+    let sizes_code = Signal::derive(move || {
+        r#"<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+  ]
+  max=6
+  size=AvatarSize::Sm
+/>
+<AvatarGroup
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+  ]
+  max=6
+  size=AvatarSize::Lg
+/>"#
+        .to_string()
+    });
 
-    let custom_code = r#"<AvatarGroup
+    let custom_code = Signal::derive(move || {
+        r#"<AvatarGroup
   items=Vec::<AvatarGroupItem>::new()
   size=AvatarSize::Md
   aria_label="No collaborators".to_string()
   class_name="docs-avatar-group-custom".to_string()
 />
 <AvatarGroup
-  items=items.clone()
+  items=vec![
+    AvatarGroupItem {
+      name: Some("Ada Lovelace".to_string()),
+      src: None,
+      alt: Some("Ada".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Grace Hopper".to_string()),
+      src: None,
+      alt: Some("Grace".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Alan Turing".to_string()),
+      src: None,
+      alt: Some("Alan".to_string()),
+    },
+    AvatarGroupItem {
+      name: Some("Katherine Johnson".to_string()),
+      src: None,
+      alt: Some("Katherine".to_string()),
+    },
+  ]
   max=3
   size=AvatarSize::Md
   aria_label="Core collaborators".to_string()
   class_name="docs-avatar-group-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1175,7 +1374,7 @@ pub(super) fn avatar_group() -> AnyView {
             group="Display"
             description="Stacked avatars with centralized overflow/empty/aria-label-source state attrs and Spectrum-style root contracts."
         >
-            <Playground title="Overflow Stack" code=overflow_code>
+            <Playground title="Overflow Stack" code_signal=overflow_code>
                 <div class="docs-row">
                     <AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />
                     <AvatarGroup
@@ -1187,7 +1386,7 @@ pub(super) fn avatar_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Sizes Without Overflow" code=sizes_code>
+            <Playground title="Sizes Without Overflow" code_signal=sizes_code>
                 <div class="docs-row">
                     <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Sm />
                     <AvatarGroup items=size_items.clone() max=6 size=AvatarSize::Md />
@@ -1195,7 +1394,7 @@ pub(super) fn avatar_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Aria + Class" code=custom_code>
+            <Playground title="Custom Aria + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <AvatarGroup
                         items=empty_items.clone()
@@ -1221,7 +1420,9 @@ pub(super) fn avatar_group() -> AnyView {
 pub(super) fn image() -> AnyView {
     let src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27180%27%20viewBox%3D%270%200%20320%20180%27%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20fill%3D%27%23111%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27%23fff%27%20font-size%3D%2720%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%3Erust-ui%3C/text%3E%3C/svg%3E";
 
-    let code = r#"<Image src=Some(src.to_string()) alt="Demo".to_string() />"#;
+    let code = Signal::derive(move || {
+        r#"<Image src=Some(src.to_string()) alt="Demo".to_string() />"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1230,7 +1431,7 @@ pub(super) fn image() -> AnyView {
             group="Display"
             description="Image with skeleton, blur, and zoom motion."
         >
-            <Playground title="Image" code=code>
+            <Playground title="Image" code_signal=code>
                 <div class="docs-row">
                     <Image
                         src=src.to_string()
@@ -1247,7 +1448,10 @@ pub(super) fn image() -> AnyView {
 }
 
 pub(super) fn illustrated_message() -> AnyView {
-    let code = r#"<IllustratedMessage title="Empty".to_string() description="Nothing here".to_string() />"#;
+    let code = Signal::derive(move || {
+        r#"<IllustratedMessage title="Empty".to_string() description="Nothing here".to_string() />"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1256,7 +1460,7 @@ pub(super) fn illustrated_message() -> AnyView {
             group="Display"
             description="Empty-state component with optional illustration and actions."
         >
-            <Playground title="Empty state" code=code>
+            <Playground title="Empty state" code_signal=code>
                 <IllustratedMessage
                     title="No results".to_string()
                     description="Try changing your search.".to_string()
@@ -1312,11 +1516,14 @@ pub(super) fn motion_ripple() -> AnyView {
         );
     };
 
-    let matrix_code = r#"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />
+    let matrix_code = Signal::derive(move || {
+        r#"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />
 <MotionRipple node_ref=slow_ref motion=RippleMotion { duration_ms: 880, ..RippleMotion::default() } />
-<MotionRipple node_ref=static_ref motion=RippleMotion::disabled() />"#;
+<MotionRipple node_ref=static_ref motion=RippleMotion::disabled() />"#.to_string()
+    });
 
-    let custom_code = r#"<MotionRipple
+    let custom_code = Signal::derive(move || {
+        r#"<MotionRipple
   node_ref=custom_ref
   motion=RippleMotion { duration_ms: 620, ..RippleMotion::default() }
   class_name="docs-ripple-custom".to_string()
@@ -1326,7 +1533,9 @@ pub(super) fn motion_ripple() -> AnyView {
   bounded=false
   motion=RippleMotion { duration_ms: 520, ..RippleMotion::default() }
   class_name="docs-ripple-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1335,7 +1544,7 @@ pub(super) fn motion_ripple() -> AnyView {
             group="Display"
             description="Ripple overlay with centralized boundary/motion/class source attrs and WAAPI trigger helpers."
         >
-            <Playground title="Animation Matrix" code=matrix_code>
+            <Playground title="Animation Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <button class="docs-ripple-surface" type="button" on:click=on_default_click>
                         <span class="docs-ripple-label">"Default (420ms)"</span>
@@ -1374,7 +1583,7 @@ pub(super) fn motion_ripple() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Boundary + Class" code=custom_code>
+            <Playground title="Custom Boundary + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <button
                         class="docs-ripple-surface docs-ripple-surface--accent"
@@ -1409,11 +1618,15 @@ pub(super) fn motion_ripple() -> AnyView {
     .into_any()
 }
 pub(super) fn static_number() -> AnyView {
-    let matrix_code = r#"<StaticNumber number=12345.67 decimal_places=2 thousand_separator=",".to_string() />
+    let matrix_code = Signal::derive(move || {
+        r#"<StaticNumber number=12345.67 decimal_places=2 thousand_separator=",".to_string() />
 <StaticNumber number=-9876.5 decimal_places=1 thousand_separator=",".to_string() />
-<StaticNumber number=1000.0 decimal_places=0 />"#;
+<StaticNumber number=1000.0 decimal_places=0 />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<StaticNumber
+    let custom_code = Signal::derive(move || {
+        r#"<StaticNumber
   number=42.123456789
   decimal_separator=",".to_string()
   decimal_places=30
@@ -1424,7 +1637,9 @@ pub(super) fn static_number() -> AnyView {
   number=f64::NAN
   decimal_places=2
   class_name="docs-static-number-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1433,7 +1648,7 @@ pub(super) fn static_number() -> AnyView {
             group="Display"
             description="Static number formatting with centralized sign/separator/class source attrs."
         >
-            <Playground title="Formatting Matrix" code=matrix_code>
+            <Playground title="Formatting Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <StaticNumber
                         number=12345.67
@@ -1449,7 +1664,7 @@ pub(super) fn static_number() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Separators + Class" code=custom_code>
+            <Playground title="Custom Separators + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <StaticNumber
                         number=42.123456789
@@ -1474,11 +1689,18 @@ pub(super) fn sliding_number() -> AnyView {
     let (value, set_value) = signal(12345.67_f64);
     let number_signal: Signal<f64> = Signal::derive(move || value.get());
 
-    let matrix_code = r#"let number_signal: Signal<f64> = Signal::derive(move || value.get());
-<SlidingNumber number=number_signal decimal_places=2 thousand_separator=",".to_string() />
-<SlidingNumber number=number_signal decimal_places=0 />"#;
+    let matrix_code = Signal::derive(move || {
+        r#"<SlidingNumber
+  number=Signal::derive(move || value.get())
+  decimal_places=2
+  thousand_separator=",".to_string()
+/>
+<SlidingNumber number=Signal::derive(move || value.get()) decimal_places=0 />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<SlidingNumber
+    let custom_code = Signal::derive(move || {
+        r#"<SlidingNumber
   number=Signal::derive(|| 42123.456)
   decimal_separator=",".to_string()
   decimal_places=30
@@ -1490,7 +1712,9 @@ pub(super) fn sliding_number() -> AnyView {
   decimal_places=2
   motion=ui_components::SlidingNumberMotion { animate: false, ..Default::default() }
   class_name="docs-sliding-number-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1499,7 +1723,7 @@ pub(super) fn sliding_number() -> AnyView {
             group="Display"
             description="Spring-animated number transitions with centralized sign/source/motion attrs."
         >
-            <Playground title="Animated Matrix" code=matrix_code>
+            <Playground title="Animated Matrix" code_signal=matrix_code>
                 <div class="docs-stack">
                     <SlidingNumber
                         number=number_signal
@@ -1525,7 +1749,7 @@ pub(super) fn sliding_number() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Separators + Motion + Class" code=custom_code>
+            <Playground title="Custom Separators + Motion + Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <SlidingNumber
                         number=Signal::derive(|| 42123.456)

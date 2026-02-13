@@ -163,7 +163,7 @@ fn input_docs_page_covers_primary_playgrounds() {
         "title=\"Input\"",
         "slug=\"input\"",
         "description=\"Spectrum-style text input with label, description/error, and clear button.\"",
-        "<Playground title=\"Clearable + validation\" code=code>",
+        "<Playground title=\"Clearable + validation\" code_signal=code>",
         "<Input",
     ] {
         assert!(

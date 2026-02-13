@@ -133,8 +133,8 @@ fn switch_group_docs_page_covers_primary_playgrounds() {
         "title=\"SwitchGroup\"",
         "slug=\"switch-group\"",
         "description=\"Spectrum/HeroUI-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers.\"",
-        "<Playground title=\"Required + Description\" code=base_code>",
-        "<Playground title=\"Horizontal + Invalid + Disabled + Custom Class\" code=states_code>",
+        "<Playground title=\"Required + Description\" code_signal=base_code>",
+        "<Playground title=\"Horizontal + Invalid + Disabled + Custom Class\" code_signal=states_code>",
         "<SwitchGroup",
     ] {
         assert!(

@@ -147,7 +147,7 @@ fn swatch_docs_default_and_state_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
 
     for needle in [
-        "<Playground title=\"Size + Shape + Rounding\" code=size_code>",
+        "<Playground title=\"Size + Shape + Rounding\" code_signal=size_code>",
         "size=SwatchSize::Xs",
         "size=SwatchSize::S",
         "size=SwatchSize::M",
@@ -155,7 +155,7 @@ fn swatch_docs_default_and_state_playgrounds_lock_contract_values() {
         "shape=SwatchShape::Rectangle",
         "rounding=SwatchRounding::Full",
         "border=SwatchBorder::Light",
-        "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code=state_code>",
+        "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code_signal=state_code>",
         "label=\"Brand blue\".to_string()",
         "selected=move || selected.get()",
         "on_selected_change=on_selected_change",
@@ -178,7 +178,7 @@ fn swatch_docs_custom_motion_playground_locks_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_swatch.rs");
 
     for needle in [
-        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "<Playground title=\"Custom Motion Contract\" code_signal=motion_code>",
         "let custom_motion = SwatchMotion {",
         "selected_scale: 1.12,",
         "selected_ring_opacity: 0.92,",
@@ -205,9 +205,9 @@ fn swatch_docs_page_covers_primary_playgrounds() {
         "title=\"Swatch\"",
         "slug=\"swatch\"",
         "description=\"Spectrum-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and HeroUI-grade spring selection motion.\"",
-        "<Playground title=\"Size + Shape + Rounding\" code=size_code>",
-        "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code=state_code>",
-        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "<Playground title=\"Size + Shape + Rounding\" code_signal=size_code>",
+        "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code_signal=state_code>",
+        "<Playground title=\"Custom Motion Contract\" code_signal=motion_code>",
         "<Swatch",
     ] {
         assert!(

@@ -125,13 +125,13 @@ fn color_swatch_picker_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
-        "<Playground title=\"Basic Selection\" code=basic_code>",
+        "<Playground title=\"Basic Selection\" code_signal=basic_code>",
         "ColorSwatchPickerItem::named(\"#A00\", \"Red\")",
         "ColorSwatchPickerItem::named(\"#f80\", \"Orange\")",
         "ColorSwatchPickerItem::named(\"#080\", \"Green\")",
         "ColorSwatchPickerItem::named(\"#08f\", \"Blue\")",
         "default_selected_color=\"#f80\".to_string()",
-        "<Playground title=\"Transparency + Disabled + Custom Class\" code=state_code>",
+        "<Playground title=\"Transparency + Disabled + Custom Class\" code_signal=state_code>",
         "ColorSwatchPickerItem::named(\"rgba(14, 116, 144, 0.4)\", \"Cyan 40%\").disabled(true)",
         "ColorSwatchPickerItem::named(\"rgba(255, 0, 0, 0)\", \"Transparent\")",
         "ColorSwatchPickerItem::new(\"#08f\")",

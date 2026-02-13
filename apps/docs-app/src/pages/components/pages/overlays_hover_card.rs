@@ -4,11 +4,15 @@ use leptos::prelude::*;
 use ui_components::{Button, ButtonVariant, HoverCard, HoverCardMotion};
 
 pub(super) fn hover_card() -> AnyView {
-    let code = r##"<HoverCard content=move || view!{ <div>...</div> }>
+    let code = Signal::derive(move || {
+        r##"<HoverCard content=move || view!{ <div>...</div> }>
   <a href="#">"Hover"</a>
-</HoverCard>"##;
+</HoverCard>"##
+            .to_string()
+    });
 
-    let markers_code = r##"<HoverCard
+    let markers_code = Signal::derive(move || {
+        r##"<HoverCard
   open_delay_ms=220
   close_delay_ms=260
   class_name="docs-hover-card-state".to_string()
@@ -26,9 +30,11 @@ pub(super) fn hover_card() -> AnyView {
   }
 >
   <Button variant=ButtonVariant::Secondary>"Inspect markers"</Button>
-</HoverCard>"##;
+</HoverCard>"##.to_string()
+    });
 
-    let motion_code = r##"let custom_motion = HoverCardMotion {
+    let motion_code = Signal::derive(move || {
+        r##"let custom_motion = HoverCardMotion {
   initial_scale: 0.93,
   offset_y_px: 18.0,
   ..HoverCardMotion::default()
@@ -45,7 +51,9 @@ pub(super) fn hover_card() -> AnyView {
   content=move || view! { "Default motion" }
 >
   <Button variant=ButtonVariant::Secondary>"Default motion"</Button>
-</HoverCard>"##;
+</HoverCard>"##
+            .to_string()
+    });
 
     let custom_motion = HoverCardMotion {
         initial_scale: 0.93,
@@ -60,7 +68,7 @@ pub(super) fn hover_card() -> AnyView {
             group="Overlays"
             description="Hover/focus triggered card with open/close delays."
         >
-            <Playground title="HoverCard" code=code>
+            <Playground title="HoverCard" code_signal=code>
                 <div class="docs-row">
                     <HoverCard content=move || view! {
                         <div class="docs-stack">
@@ -78,7 +86,7 @@ pub(super) fn hover_card() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect root/trigger/panel contracts: data-state/data-open/data-motion-source/data-delay-source/data-id-source."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <HoverCard
@@ -107,7 +115,7 @@ pub(super) fn hover_card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code=motion_code>
+            <Playground title="Custom Motion Contract" code_signal=motion_code>
                 <div class="docs-row">
                     <HoverCard
                         motion=custom_motion

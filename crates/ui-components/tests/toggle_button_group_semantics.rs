@@ -128,10 +128,12 @@ fn toggle_button_group_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "code_signal=code",
-        "let orientation = ToggleButtonGroupOrientation::{orientation:?};",
-        "let attached = {attached};",
-        "let variant = ToggleButtonVariant::{variant:?};",
-        "let size = ToggleButtonSize::{size:?};",
+        "let mut toggle_props = String::new();",
+        "if orientation != ToggleButtonGroupOrientation::Horizontal {",
+        "orientation=ToggleButtonGroupOrientation::{orientation:?}",
+        "if attached {",
+        "variant=ToggleButtonVariant::{variant:?}",
+        "size=ToggleButtonSize::{size:?}",
         "selected=a",
         "set_selected=set_a",
         "selected=b",

@@ -4,11 +4,11 @@ use leptos::prelude::*;
 use ui_components::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
     ActionButtonLoadingPlacement, ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup,
-    ButtonGroupOrientation, ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton,
-    LinkButton, MenuItemKind, OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize,
-    ShareButton, ShareButtonIconPlacement, ShareButtonItem, SharePlatform, Switch, ThemeMode,
-    ThemeToggleButton, ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation,
-    ToggleButtonSize, ToggleButtonVariant,
+    ButtonGroupOrientation, ButtonLoadingPlacement, ButtonSize, ButtonVariant, FlipButton,
+    FlipDirection, IconButton, LinkButton, MenuItemKind, OnPress, SearchInputButton,
+    SegmentedControl, SegmentedControlSize, ShareButton, ShareButtonIconPlacement, ShareButtonItem,
+    SharePlatform, Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
+    ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant,
 };
 
 pub(super) fn button() -> AnyView {
@@ -29,11 +29,11 @@ pub(super) fn button() -> AnyView {
     });
 
     let size_options = vec![
-        "XS".to_string(),
-        "S".to_string(),
-        "M".to_string(),
-        "L".to_string(),
-        "XL".to_string(),
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
     ];
     let (size_index, set_size_index) = signal(Some(2_usize));
     let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
@@ -46,16 +46,75 @@ pub(super) fn button() -> AnyView {
 
     let (disabled, set_disabled) = signal(false);
     let (loading, set_loading) = signal(false);
+    let loading_placement_options =
+        vec!["Start".to_string(), "End".to_string(), "Center".to_string()];
+    let (loading_placement_index, set_loading_placement_index) = signal(Some(0_usize));
+    let loading_placement =
+        Signal::derive(move || match loading_placement_index.get().unwrap_or(0) {
+            1 => ButtonLoadingPlacement::End,
+            2 => ButtonLoadingPlacement::Center,
+            _ => ButtonLoadingPlacement::Start,
+        });
+    let (icon_only, set_icon_only) = signal(false);
+    let (full_width, set_full_width) = signal(false);
+    let (show_start, set_show_start) = signal(false);
+    let (show_end, set_show_end) = signal(false);
 
     let code = Signal::derive(move || {
         let variant = variant.get();
         let size = size.get();
         let disabled = disabled.get();
         let loading = loading.get();
+        let loading_placement = loading_placement.get();
+        let icon_only = icon_only.get();
+        let full_width = full_width.get();
+        let show_start = show_start.get();
+        let show_end = show_end.get();
 
-        format!(
-            "use leptos::prelude::*;\nuse ui_components::{{Button, ButtonSize, ButtonVariant}};\n\nlet variant = ButtonVariant::{variant:?};\nlet size = ButtonSize::{size:?};\nlet disabled = {disabled};\nlet is_loading = {loading};\n\nview! {{\n    <Button\n        variant=variant\n        size=size\n        disabled=disabled\n        is_loading=is_loading\n    >\n        \"Button\"\n    </Button>\n}}"
-        )
+        let mut snippet = vec!["<Button".to_string()];
+
+        if variant != ButtonVariant::Default {
+            snippet.push(format!("  variant=ButtonVariant::{variant:?}"));
+        }
+        if size != ButtonSize::M {
+            snippet.push(format!("  size=ButtonSize::{size:?}"));
+        }
+        if disabled {
+            snippet.push("  disabled=true".to_string());
+        }
+        if loading {
+            snippet.push("  is_loading=true".to_string());
+            if loading_placement != ButtonLoadingPlacement::Start {
+                snippet.push(format!(
+                    "  loading_placement=ButtonLoadingPlacement::{loading_placement:?}"
+                ));
+            }
+        }
+        if icon_only {
+            snippet.push("  is_icon_only=true".to_string());
+            snippet.push("  aria_label=\"Button\".to_string()".to_string());
+        }
+        if full_width {
+            snippet.push("  full_width=true".to_string());
+        }
+        if show_start {
+            snippet.push("  start_content=move || view! { <span>\"★\"</span> }".to_string());
+        }
+        if show_end {
+            snippet.push("  end_content=move || view! { <span>\"→\"</span> }".to_string());
+        }
+
+        snippet.extend([
+            ">".to_string(),
+            if icon_only {
+                "  \"★\"".to_string()
+            } else {
+                "  \"Button\"".to_string()
+            },
+            "</Button>".to_string(),
+        ]);
+
+        snippet.join("\n")
     });
 
     view! {
@@ -92,6 +151,19 @@ pub(super) fn button() -> AnyView {
 
                         <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
                         <Switch checked=loading set_checked=set_loading>"Loading"</Switch>
+                        <div class="docs-search__label">"Loading placement"</div>
+                        <SegmentedControl
+                            id_base="docs-button-loading-placement".to_string()
+                            options=loading_placement_options.clone()
+                            selected_index=loading_placement_index
+                            set_selected_index=set_loading_placement_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Button loading placement".to_string()
+                        />
+                        <Switch checked=icon_only set_checked=set_icon_only>"Icon only"</Switch>
+                        <Switch checked=full_width set_checked=set_full_width>"Full width"</Switch>
+                        <Switch checked=show_start set_checked=set_show_start>"Start slot"</Switch>
+                        <Switch checked=show_end set_checked=set_show_end>"End slot"</Switch>
                     </div>
                 }
             >
@@ -100,19 +172,86 @@ pub(super) fn button() -> AnyView {
                     let size = size.get();
                     let disabled = disabled.get();
                     let is_loading = loading.get();
+                    let loading_placement = loading_placement.get();
+                    let icon_only = icon_only.get();
+                    let full_width = full_width.get();
+                    let show_start = show_start.get();
+                    let show_end = show_end.get();
 
                     view! {
-                        <div class="docs-row">
-                            <Button
-                                variant=variant
-                                size=size
-                                disabled=disabled
-                                is_loading=is_loading
-                            >
-                                "Button"
-                            </Button>
+                        <div class="docs-stack" style="width: min(100%, 360px);">
+                            <div class="docs-row" style="width: 100%;">
+                                {match (show_start, show_end) {
+                                    (true, true) => view! {
+                                        <Button
+                                            variant=variant
+                                            size=size
+                                            disabled=disabled
+                                            is_loading=is_loading
+                                            loading_placement=loading_placement
+                                            is_icon_only=icon_only
+                                            full_width=full_width
+                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                            start_content=move || view! { <span>"★"</span> }
+                                            end_content=move || view! { <span>"→"</span> }
+                                        >
+                                            {if icon_only { "★" } else { "Button" }}
+                                        </Button>
+                                    }
+                                        .into_any(),
+                                    (true, false) => view! {
+                                        <Button
+                                            variant=variant
+                                            size=size
+                                            disabled=disabled
+                                            is_loading=is_loading
+                                            loading_placement=loading_placement
+                                            is_icon_only=icon_only
+                                            full_width=full_width
+                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                            start_content=move || view! { <span>"★"</span> }
+                                        >
+                                            {if icon_only { "★" } else { "Button" }}
+                                        </Button>
+                                    }
+                                        .into_any(),
+                                    (false, true) => view! {
+                                        <Button
+                                            variant=variant
+                                            size=size
+                                            disabled=disabled
+                                            is_loading=is_loading
+                                            loading_placement=loading_placement
+                                            is_icon_only=icon_only
+                                            full_width=full_width
+                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                            end_content=move || view! { <span>"→"</span> }
+                                        >
+                                            {if icon_only { "★" } else { "Button" }}
+                                        </Button>
+                                    }
+                                        .into_any(),
+                                    (false, false) => view! {
+                                        <Button
+                                            variant=variant
+                                            size=size
+                                            disabled=disabled
+                                            is_loading=is_loading
+                                            loading_placement=loading_placement
+                                            is_icon_only=icon_only
+                                            full_width=full_width
+                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                        >
+                                            {if icon_only { "★" } else { "Button" }}
+                                        </Button>
+                                    }
+                                        .into_any(),
+                                }}
+                            </div>
                             <span class="ui-muted">
-                                {format!("{variant:?} · {size:?}")}
+                                {format!(
+                                    "{variant:?} · {size:?} · {loading_placement:?} · icon_only={icon_only} · full_width={full_width}"
+                                )}
                             </span>
                         </div>
                     }
@@ -129,13 +268,17 @@ pub(super) fn action_button() -> AnyView {
         set_press_count.update(|count| *count += 1);
     });
 
-    let code = r#"let on_press: OnPress = Callback::new(|_| {
-  logging::log!("pressed");
-});
+    let code = Signal::derive(move || {
+        r#"<ActionButton
+  on_press=Callback::new(move |_| {})
+>
+  "Action"
+</ActionButton>"#
+            .to_string()
+    });
 
-<ActionButton on_press=on_press>"Action"</ActionButton>"#;
-
-    let states_code = r#"<ActionButton
+    let states_code = Signal::derive(move || {
+        r#"<ActionButton
   is_loading=true
   loading_placement=ActionButtonLoadingPlacement::Start
   start_content=move || view! { <span>"★"</span> }
@@ -148,7 +291,9 @@ pub(super) fn action_button() -> AnyView {
   end_content=move || view! { <span>"→"</span> }
 >
   "End"
-</ActionButton>"#;
+</ActionButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -157,7 +302,7 @@ pub(super) fn action_button() -> AnyView {
             group="Actions"
             description="Spectrum-style action trigger with state attrs and HeroUI-grade spring hover/press feedback."
         >
-            <Playground title="Default + callback" code=code>
+            <Playground title="Default + callback" code_signal=code>
                 <div class="docs-row">
                     <ActionButton on_press=on_press>"Action"</ActionButton>
                     <ActionButton is_quiet=true on_press=on_press>"Quiet"</ActionButton>
@@ -174,7 +319,7 @@ pub(super) fn action_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Loading placement + icon-only" code=states_code>
+            <Playground title="Loading placement + icon-only" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ActionButton
@@ -226,21 +371,21 @@ pub(super) fn action_button_group() -> AnyView {
         set_press_count.update(|count| *count += 1);
     });
 
-    let code = r#"let on_press: OnPress = Callback::new(|_| {
-  logging::log!("group press");
-});
-
-<ActionButtonGroup
+    let code = Signal::derive(move || {
+        r#"<ActionButtonGroup
   size=ActionButtonSize::S
   density=ActionButtonGroupDensity::Compact
   is_quiet=true
 >
-  <ActionButton on_press=on_press>"One"</ActionButton>
-  <ActionButton on_press=on_press>"Two"</ActionButton>
-  <ActionButton on_press=on_press>"Three"</ActionButton>
-</ActionButtonGroup>"#;
+  <ActionButton on_press=Callback::new(move |_| {})>"One"</ActionButton>
+  <ActionButton on_press=Callback::new(move |_| {})>"Two"</ActionButton>
+  <ActionButton on_press=Callback::new(move |_| {})>"Three"</ActionButton>
+</ActionButtonGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"<ActionButtonGroup
+    let states_code = Signal::derive(move || {
+        r#"<ActionButtonGroup
   orientation=ActionButtonGroupOrientation::Vertical
   is_justified=true
   aria_label="Vertical actions".to_string()
@@ -252,7 +397,9 @@ pub(super) fn action_button_group() -> AnyView {
 <ActionButtonGroup disabled=true density=ActionButtonGroupDensity::Compact>
   <ActionButton>"Disabled"</ActionButton>
   <ActionButton>"Group"</ActionButton>
-</ActionButtonGroup>"#;
+</ActionButtonGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -261,7 +408,7 @@ pub(super) fn action_button_group() -> AnyView {
             group="Actions"
             description="Toolbar-style action clusters with Spectrum state attrs for orientation, density, quiet/filled, and enablement."
         >
-            <Playground title="Default + compact" code=code>
+            <Playground title="Default + compact" code_signal=code>
                 <div class="docs-stack">
                     <ActionButtonGroup
                         size=ActionButtonSize::S
@@ -280,7 +427,7 @@ pub(super) fn action_button_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Vertical + justified + disabled" code=states_code>
+            <Playground title="Vertical + justified + disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ActionButtonGroup
@@ -338,13 +485,17 @@ pub(super) fn button_group() -> AnyView {
         set_bottom_count.update(|count| *count += 1);
     });
 
-    let code = r#"<ButtonGroup attached=true>
+    let code = Signal::derive(move || {
+        r#"<ButtonGroup attached=true>
   <Button variant=ButtonVariant::Secondary>"Left"</Button>
   <Button variant=ButtonVariant::Secondary>"Middle"</Button>
   <Button variant=ButtonVariant::Secondary>"Right"</Button>
-</ButtonGroup>"#;
+</ButtonGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"<ButtonGroup
+    let states_code = Signal::derive(move || {
+        r#"<ButtonGroup
   attached=false
   orientation=ButtonGroupOrientation::Vertical
   aria_label="Document actions".to_string()
@@ -352,7 +503,9 @@ pub(super) fn button_group() -> AnyView {
   <Button variant=ButtonVariant::Outline>"Top"</Button>
   <Button variant=ButtonVariant::Outline disabled=true>"Disabled"</Button>
   <Button variant=ButtonVariant::Outline>"Bottom"</Button>
-</ButtonGroup>"#;
+</ButtonGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -361,7 +514,7 @@ pub(super) fn button_group() -> AnyView {
             group="Actions"
             description="Groups Buttons with Spectrum-style root state attrs for orientation, attachment, and accessible labeling."
         >
-            <Playground title="Attached horizontal" code=code>
+            <Playground title="Attached horizontal" code_signal=code>
                 <div class="docs-stack">
                     <ButtonGroup attached=true orientation=ButtonGroupOrientation::Horizontal>
                         <Button variant=ButtonVariant::Secondary on_press=on_left>
@@ -386,7 +539,7 @@ pub(super) fn button_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Vertical + detached" code=states_code>
+            <Playground title="Vertical + detached" code_signal=states_code>
                 <div class="docs-stack">
                     <ButtonGroup
                         attached=false
@@ -425,31 +578,31 @@ pub(super) fn icon_button() -> AnyView {
     });
 
     let variant_options = vec![
-        "Ghost".to_string(),
-        "Secondary".to_string(),
-        "Outline".to_string(),
         "Default".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Outline".to_string(),
     ];
-    let (variant_index, set_variant_index) = signal(Some(1_usize));
-    let variant = Signal::derive(move || match variant_index.get().unwrap_or(1) {
-        0 => ButtonVariant::Ghost,
-        2 => ButtonVariant::Outline,
-        3 => ButtonVariant::Default,
-        _ => ButtonVariant::Secondary,
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ButtonVariant::Secondary,
+        2 => ButtonVariant::Ghost,
+        3 => ButtonVariant::Outline,
+        _ => ButtonVariant::Default,
     });
 
     let size_options = vec![
-        "XS".to_string(),
-        "S".to_string(),
-        "M".to_string(),
-        "L".to_string(),
-        "XL".to_string(),
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
     ];
     let (size_index, set_size_index) = signal(Some(2_usize));
     let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
         0 => ButtonSize::IconXs,
         1 => ButtonSize::IconS,
-        2 => ButtonSize::IconM,
+        2 => ButtonSize::Icon,
         3 => ButtonSize::IconL,
         _ => ButtonSize::IconXl,
     });
@@ -461,12 +614,32 @@ pub(super) fn icon_button() -> AnyView {
         let size = size.get();
         let disabled = search_disabled.get();
 
-        format!(
-            "use leptos::prelude::*;\nuse ui_components::{{ButtonSize, ButtonVariant, IconButton, OnPress}};\n\nlet on_press: OnPress = Callback::new(|_| {{\n    logging::log!(\"pressed\");\n}});\n\nlet variant = ButtonVariant::{variant:?};\nlet size = ButtonSize::{size:?};\nlet disabled = {disabled};\n\nview! {{\n    <IconButton\n        aria_label=\"Search\".to_string()\n        variant=variant\n        size=size\n        disabled=disabled\n        on_press=on_press\n    >\n        <span aria-hidden=\"true\">\"⌕\"</span>\n    </IconButton>\n}}"
-        )
+        let mut snippet = vec![
+            "<IconButton".to_string(),
+            "  aria_label=\"Search\".to_string()".to_string(),
+        ];
+
+        if variant != ButtonVariant::Default {
+            snippet.push(format!("  variant=ButtonVariant::{variant:?}"));
+        }
+        if size != ButtonSize::Icon {
+            snippet.push(format!("  size=ButtonSize::{size:?}"));
+        }
+        if disabled {
+            snippet.push("  disabled=true".to_string());
+        }
+
+        snippet.extend([
+            ">".to_string(),
+            "  <span aria-hidden=\"true\">\"⌕\"</span>".to_string(),
+            "</IconButton>".to_string(),
+        ]);
+
+        snippet.join("\n")
     });
 
-    let states_code = r#"<IconButton aria_label="Search xs".to_string() size=ButtonSize::IconXs>
+    let states_code = Signal::derive(move || {
+        r#"<IconButton aria_label="Search xs".to_string() size=ButtonSize::IconXs>
   <svg ... />
 </IconButton>
 <IconButton aria_label="Search s".to_string() size=ButtonSize::IconS>
@@ -480,7 +653,9 @@ pub(super) fn icon_button() -> AnyView {
 </IconButton>
 <IconButton aria_label="Search xl".to_string() size=ButtonSize::IconXl disabled=true>
   <svg ... />
-</IconButton>"#;
+</IconButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -569,7 +744,7 @@ pub(super) fn icon_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Size + disabled matrix" code=states_code>
+            <Playground title="Size + disabled matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <IconButton aria_label="Search xs".to_string() size=ButtonSize::IconXs>
@@ -719,11 +894,11 @@ pub(super) fn link_button() -> AnyView {
     });
 
     let size_options = vec![
-        "XS".to_string(),
-        "S".to_string(),
-        "M".to_string(),
-        "L".to_string(),
-        "XL".to_string(),
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
     ];
     let (size_index, set_size_index) = signal(Some(2_usize));
     let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
@@ -735,54 +910,72 @@ pub(super) fn link_button() -> AnyView {
     });
 
     let (disabled, set_disabled) = signal(false);
-    let (open_in_new_tab, set_open_in_new_tab) = signal(true);
-    let (sponsored_rel, set_sponsored_rel) = signal(true);
+    let (open_in_new_tab, set_open_in_new_tab) = signal(false);
+    let (sponsored_rel, set_sponsored_rel) = signal(false);
 
     let code = Signal::derive(move || {
         let variant = variant.get();
         let size = size.get();
         let disabled = disabled.get();
-        let target = if open_in_new_tab.get() {
-            "Some(\"_blank\")"
-        } else {
-            "None"
-        };
-        let rel = if sponsored_rel.get() {
-            "Some(\"sponsored\".to_string())"
-        } else {
-            "None"
-        };
 
-        format!(
-            "use leptos::prelude::*;\nuse ui_components::{{ButtonSize, ButtonVariant, LinkButton}};\n\nlet variant = ButtonVariant::{variant:?};\nlet size = ButtonSize::{size:?};\nlet disabled = {disabled};\nlet target = {target};\nlet rel = {rel};\n\nview! {{\n    <LinkButton\n        href=\"https://example.com/docs\".to_string()\n        variant=variant\n        size=size\n        disabled=disabled\n        target=target\n        rel=rel\n        aria_label=\"Open docs in a new tab\".to_string()\n    >\n        \"Open docs\"\n    </LinkButton>\n}}"
-        )
+        let mut snippet = vec![
+            "<LinkButton".to_string(),
+            "  href=\"https://example.com/docs\".to_string()".to_string(),
+        ];
+
+        if variant != ButtonVariant::Default {
+            snippet.push(format!("  variant=ButtonVariant::{variant:?}"));
+        }
+        if size != ButtonSize::M {
+            snippet.push(format!("  size=ButtonSize::{size:?}"));
+        }
+        if disabled {
+            snippet.push("  disabled=true".to_string());
+        }
+        if open_in_new_tab.get() {
+            snippet.push("  target=Some(\"_blank\")".to_string());
+        }
+        if sponsored_rel.get() {
+            snippet.push("  rel=Some(\"sponsored\".to_string())".to_string());
+        }
+
+        snippet.extend([
+            ">".to_string(),
+            "  \"Open docs\"".to_string(),
+            "</LinkButton>".to_string(),
+        ]);
+
+        snippet.join("\n")
     });
 
-    let states_code = r#"<LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
-  "XS"
+    let states_code = Signal::derive(move || {
+        r#"<LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
+  "xs"
 </LinkButton>
 <LinkButton href="https://example.com/s".to_string() size=ButtonSize::S>
-  "S"
+  "s"
 </LinkButton>
 <LinkButton href="https://example.com/m".to_string() size=ButtonSize::M>
-  "M"
+  "m"
 </LinkButton>
 <LinkButton
   href="https://example.com/l".to_string()
   size=ButtonSize::L
   variant=ButtonVariant::Secondary
 >
-  "L secondary"
+  "l secondary"
 </LinkButton>
 <LinkButton
   href="https://example.com/xl".to_string()
   size=ButtonSize::Xl
 >
-  "XL"
+  "xl"
 </LinkButton>
 <LinkButton href="https://example.com/disabled".to_string() disabled=true>
   "Disabled"
-</LinkButton>"#;
+</LinkButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -884,33 +1077,33 @@ pub(super) fn link_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Variant + size + disabled matrix" code=states_code>
+            <Playground title="Variant + size + disabled matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
-                            "XS"
+                            "xs"
                         </LinkButton>
                         <LinkButton href="https://example.com/s".to_string() size=ButtonSize::S>
-                            "S"
+                            "s"
                         </LinkButton>
                         <LinkButton
                             href="https://example.com/m".to_string()
                             size=ButtonSize::M
                         >
-                            "M"
+                            "m"
                         </LinkButton>
                         <LinkButton
                             href="https://example.com/l".to_string()
                             size=ButtonSize::L
                             variant=ButtonVariant::Secondary
                         >
-                            "L secondary"
+                            "l secondary"
                         </LinkButton>
                         <LinkButton
                             href="https://example.com/xl".to_string()
                             size=ButtonSize::Xl
                         >
-                            "XL"
+                            "xl"
                         </LinkButton>
                     </div>
                     <div class="docs-row">
@@ -961,11 +1154,11 @@ pub(super) fn toggle_button() -> AnyView {
     });
 
     let size_options = vec![
-        "XS".to_string(),
-        "S".to_string(),
-        "M".to_string(),
-        "L".to_string(),
-        "XL".to_string(),
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
     ];
     let (size_index, set_size_index) = signal(Some(2_usize));
     let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
@@ -983,16 +1176,39 @@ pub(super) fn toggle_button() -> AnyView {
         let size = size.get();
         let disabled = disabled.get();
 
-        format!(
-            "use leptos::prelude::*;\nuse ui_components::{{ToggleButton, ToggleButtonSize, ToggleButtonVariant}};\n\nlet (selected, set_selected) = signal(false);\nlet variant = ToggleButtonVariant::{variant:?};\nlet size = ToggleButtonSize::{size:?};\nlet disabled = {disabled};\nlet on_change = Callback::new(move |next: bool| {{\n    logging::log!(\"toggle changed: {{next}}\");\n}});\n\nview! {{\n    <ToggleButton\n        selected=selected\n        set_selected=set_selected\n        variant=variant\n        size=size\n        disabled=disabled\n        on_change=Some(on_change)\n    >\n        \"Toggle\"\n    </ToggleButton>\n}}"
-        )
+        let mut snippet = vec![
+            "let (selected, set_selected) = signal(false);".to_string(),
+            String::new(),
+            "<ToggleButton".to_string(),
+            "  selected=selected".to_string(),
+            "  set_selected=set_selected".to_string(),
+        ];
+
+        if variant != ToggleButtonVariant::Default {
+            snippet.push(format!("  variant=ToggleButtonVariant::{variant:?}"));
+        }
+        if size != ToggleButtonSize::M {
+            snippet.push(format!("  size=ToggleButtonSize::{size:?}"));
+        }
+        if disabled {
+            snippet.push("  disabled=true".to_string());
+        }
+
+        snippet.extend([
+            ">".to_string(),
+            "  \"Toggle\"".to_string(),
+            "</ToggleButton>".to_string(),
+        ]);
+
+        snippet.join("\n")
     });
 
     let (notifications, set_notifications) = signal(true);
     let (disabled_selected, set_disabled_selected) = signal(true);
     let (disabled_unselected, set_disabled_unselected) = signal(false);
 
-    let states_code = r#"<ToggleButton
+    let states_code = Signal::derive(move || {
+        r#"<ToggleButton
   selected=notifications
   set_selected=set_notifications
   variant=ToggleButtonVariant::Accent
@@ -1005,7 +1221,9 @@ pub(super) fn toggle_button() -> AnyView {
 </ToggleButton>
 <ToggleButton selected=disabled_unselected set_selected=set_disabled_unselected disabled=true>
   "Disabled off"
-</ToggleButton>"#;
+</ToggleButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1072,7 +1290,7 @@ pub(super) fn toggle_button() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Variant + size + disabled matrix" code=states_code>
+            <Playground title="Variant + size + disabled matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ToggleButton
@@ -1124,7 +1342,7 @@ pub(super) fn toggle_button_group() -> AnyView {
         _ => ToggleButtonGroupOrientation::Horizontal,
     });
 
-    let (attached, set_attached) = signal(true);
+    let (attached, set_attached) = signal(false);
 
     let variant_options = vec![
         "Default".to_string(),
@@ -1145,11 +1363,11 @@ pub(super) fn toggle_button_group() -> AnyView {
     });
 
     let size_options = vec![
-        "XS".to_string(),
-        "S".to_string(),
-        "M".to_string(),
-        "L".to_string(),
-        "XL".to_string(),
+        "xs".to_string(),
+        "s".to_string(),
+        "m".to_string(),
+        "l".to_string(),
+        "xl".to_string(),
     ];
     let (size_index, set_size_index) = signal(Some(2_usize));
     let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
@@ -1166,32 +1384,46 @@ pub(super) fn toggle_button_group() -> AnyView {
         let variant = variant.get();
         let size = size.get();
 
-        vec![
-            "use leptos::prelude::*;".to_string(),
-            "use ui_components::{ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant};".to_string(),
-            String::new(),
+        let mut toggle_props = String::new();
+        if variant != ToggleButtonVariant::Default {
+            toggle_props.push_str(&format!(" variant=ToggleButtonVariant::{variant:?}"));
+        }
+        if size != ToggleButtonSize::M {
+            toggle_props.push_str(&format!(" size=ToggleButtonSize::{size:?}"));
+        }
+
+        let mut snippet = vec![
             "let (bold, set_bold) = signal(false);".to_string(),
             "let (italic, set_italic) = signal(true);".to_string(),
             "let (underline, set_underline) = signal(false);".to_string(),
             String::new(),
-            format!("let orientation = ToggleButtonGroupOrientation::{orientation:?};"),
-            format!("let attached = {attached};"),
-            format!("let variant = ToggleButtonVariant::{variant:?};"),
-            format!("let size = ToggleButtonSize::{size:?};"),
-            String::new(),
-            "view! {".to_string(),
-            "    <ToggleButtonGroup".to_string(),
-            "        orientation=orientation".to_string(),
-            "        attached=attached".to_string(),
-            "        aria_label=\"Formatting controls\".to_string()".to_string(),
-            "    >".to_string(),
-            "        <ToggleButton selected=bold set_selected=set_bold variant=variant size=size>\"Bold\"</ToggleButton>".to_string(),
-            "        <ToggleButton selected=italic set_selected=set_italic variant=variant size=size>\"Italic\"</ToggleButton>".to_string(),
-            "        <ToggleButton selected=underline set_selected=set_underline variant=variant size=size>\"Underline\"</ToggleButton>".to_string(),
-            "    </ToggleButtonGroup>".to_string(),
-            "}".to_string(),
-        ]
-        .join("\n")
+            "<ToggleButtonGroup".to_string(),
+        ];
+
+        if orientation != ToggleButtonGroupOrientation::Horizontal {
+            snippet.push(format!(
+                "  orientation=ToggleButtonGroupOrientation::{orientation:?}"
+            ));
+        }
+        if attached {
+            snippet.push("  attached=true".to_string());
+        }
+
+        snippet.extend([
+            ">".to_string(),
+            format!(
+                "  <ToggleButton selected=bold set_selected=set_bold{toggle_props}>\"Bold\"</ToggleButton>"
+            ),
+            format!(
+                "  <ToggleButton selected=italic set_selected=set_italic{toggle_props}>\"Italic\"</ToggleButton>"
+            ),
+            format!(
+                "  <ToggleButton selected=underline set_selected=set_underline{toggle_props}>\"Underline\"</ToggleButton>"
+            ),
+            "</ToggleButtonGroup>".to_string(),
+        ]);
+
+        snippet.join("\n")
     });
 
     let (left, set_left) = signal(true);
@@ -1201,7 +1433,8 @@ pub(super) fn toggle_button_group() -> AnyView {
         usize::from(left.get()) + usize::from(center.get()) + usize::from(right.get())
     });
 
-    let states_code = r#"<ToggleButtonGroup
+    let states_code = Signal::derive(move || {
+        r#"<ToggleButtonGroup
   orientation=ToggleButtonGroupOrientation::Vertical
   attached=false
   aria_label="Alignment controls".to_string()
@@ -1209,7 +1442,9 @@ pub(super) fn toggle_button_group() -> AnyView {
   <ToggleButton selected=left set_selected=set_left>"Left"</ToggleButton>
   <ToggleButton selected=center set_selected=set_center>"Center"</ToggleButton>
   <ToggleButton selected=right set_selected=set_right>"Right"</ToggleButton>
-</ToggleButtonGroup>"#;
+</ToggleButtonGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1306,7 +1541,7 @@ pub(super) fn toggle_button_group() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Vertical + detached" code=states_code>
+            <Playground title="Vertical + detached" code_signal=states_code>
                 <div class="docs-stack">
                     <ToggleButtonGroup
                         orientation=ToggleButtonGroupOrientation::Vertical
@@ -1372,40 +1607,26 @@ pub(super) fn theme_toggle_button() -> AnyView {
         let disabled = disabled.get();
         let two_mode_cycle = two_mode_cycle.get();
         let custom_aria_label = custom_aria_label.get();
-        let modes = if two_mode_cycle {
-            "vec![ThemeMode::Dark, ThemeMode::Light]"
-        } else {
-            "vec![ThemeMode::Light, ThemeMode::Dark, ThemeMode::Oled]"
-        };
 
         let mut snippet = vec![
-            "use leptos::prelude::*;".to_string(),
-            "use ui_components::{ThemeMode, ThemeToggleButton};".to_string(),
-            String::new(),
             format!("let (mode, set_mode) = signal(ThemeMode::{mode:?});"),
-            format!("let disabled = {disabled};"),
-            format!("let modes = {modes};"),
+            String::new(),
+            "<ThemeToggleButton".to_string(),
+            "  mode=mode".to_string(),
+            "  set_mode=set_mode".to_string(),
         ];
 
+        if disabled {
+            snippet.push("  disabled=true".to_string());
+        }
+        if two_mode_cycle {
+            snippet.push("  modes=vec![ThemeMode::Dark, ThemeMode::Light]".to_string());
+        }
         if custom_aria_label {
-            snippet.push("let aria_label = \"Switch UI mode\".to_string();".to_string());
+            snippet.push("  aria_label=\"Switch UI mode\".to_string()".to_string());
         }
 
-        snippet.extend([
-            String::new(),
-            "view! {".to_string(),
-            "    <ThemeToggleButton".to_string(),
-            "        mode=mode".to_string(),
-            "        set_mode=set_mode".to_string(),
-            "        modes=modes".to_string(),
-            "        disabled=disabled".to_string(),
-        ]);
-
-        if custom_aria_label {
-            snippet.push("        aria_label=aria_label".to_string());
-        }
-
-        snippet.extend(["    />".to_string(), "}".to_string()]);
+        snippet.push("/>".to_string());
 
         snippet.join("\n")
     });
@@ -1413,13 +1634,19 @@ pub(super) fn theme_toggle_button() -> AnyView {
     let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
     let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];
 
-    let states_code = r#"<ThemeToggleButton
+    let states_code = Signal::derive(move || {
+        r#"let (custom_mode, set_custom_mode) = signal(ThemeMode::Dark);
+let (mode, set_mode) = signal(ThemeMode::System);
+
+<ThemeToggleButton
   mode=custom_mode
   set_mode=set_custom_mode
   modes=vec![ThemeMode::Dark, ThemeMode::Light]
   aria_label="Switch UI mode".to_string()
 />
-<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />"#;
+<ThemeToggleButton mode=mode set_mode=set_mode disabled=true />"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1493,7 +1720,7 @@ pub(super) fn theme_toggle_button() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Custom modes + disabled" code=states_code>
+            <Playground title="Custom modes + disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ThemeToggleButton
@@ -1523,35 +1750,45 @@ pub(super) fn search_input_button() -> AnyView {
     });
 
     let preset_options = vec![
+        "Default".to_string(),
         "Docs".to_string(),
         "Command".to_string(),
         "Components".to_string(),
     ];
     let (preset_index, set_preset_index) = signal(Some(0_usize));
     let placeholder = Signal::derive(move || match preset_index.get().unwrap_or(0) {
-        1 => "Command menu".to_string(),
-        2 => "Find components".to_string(),
-        _ => "Search docs".to_string(),
+        1 => "Search docs".to_string(),
+        2 => "Command menu".to_string(),
+        3 => "Find components".to_string(),
+        _ => "Search".to_string(),
     });
     let compact_placeholder = Signal::derive(move || match preset_index.get().unwrap_or(0) {
-        1 => "Cmd".to_string(),
-        2 => "Find".to_string(),
+        1 => "Search".to_string(),
+        2 => "Cmd".to_string(),
+        3 => "Find".to_string(),
         _ => "Search".to_string(),
     });
 
-    let meta_key_options = vec!["⌘".to_string(), "Ctrl".to_string(), "Alt".to_string()];
+    let meta_key_options = vec![
+        "None".to_string(),
+        "⌘".to_string(),
+        "Ctrl".to_string(),
+        "Alt".to_string(),
+    ];
     let (meta_key_index, set_meta_key_index) = signal(Some(0_usize));
     let meta_key_label = Signal::derive(move || match meta_key_index.get().unwrap_or(0) {
-        1 => "Ctrl".to_string(),
-        2 => "Alt".to_string(),
-        _ => "⌘".to_string(),
+        1 => "⌘".to_string(),
+        2 => "Ctrl".to_string(),
+        3 => "Alt".to_string(),
+        _ => String::new(),
     });
 
-    let key_label_options = vec!["K".to_string(), "F".to_string()];
+    let key_label_options = vec!["None".to_string(), "K".to_string(), "F".to_string()];
     let (key_label_index, set_key_label_index) = signal(Some(0_usize));
     let key_label = Signal::derive(move || match key_label_index.get().unwrap_or(0) {
-        1 => "F".to_string(),
-        _ => "K".to_string(),
+        1 => "K".to_string(),
+        2 => "F".to_string(),
+        _ => String::new(),
     });
 
     let (disabled, set_disabled) = signal(false);
@@ -1565,50 +1802,54 @@ pub(super) fn search_input_button() -> AnyView {
         let disabled = disabled.get();
         let custom_aria_label = custom_aria_label.get();
 
-        let mut snippet = vec![
-            "use leptos::prelude::*;".to_string(),
-            "use ui_components::SearchInputButton;".to_string(),
-            String::new(),
-            "let (count, set_count) = signal(0_usize);".to_string(),
-            "let on_press = Callback::new(move |_| set_count.update(|value| *value += 1));"
-                .to_string(),
-            String::new(),
-            "view! {".to_string(),
-            "    <SearchInputButton".to_string(),
-            format!("        placeholder=\"{placeholder}\".to_string()"),
-            format!("        compact_placeholder=\"{compact_placeholder}\".to_string()"),
-            format!("        meta_key_label=\"{meta_key_label}\".to_string()"),
-            format!("        key_label=\"{key_label}\".to_string()"),
-            format!("        disabled={disabled}"),
-        ];
+        let mut snippet = vec!["<SearchInputButton".to_string()];
 
+        if placeholder != "Search" {
+            snippet.push(format!("  placeholder=\"{placeholder}\".to_string()"));
+        }
+        if compact_placeholder != placeholder {
+            snippet.push(format!(
+                "  compact_placeholder=\"{compact_placeholder}\".to_string()"
+            ));
+        }
+        if !meta_key_label.is_empty() {
+            snippet.push(format!("  meta_key_label=\"{meta_key_label}\".to_string()"));
+        }
+        if !key_label.is_empty() {
+            snippet.push(format!("  key_label=\"{key_label}\".to_string()"));
+        }
+        if disabled {
+            snippet.push("  disabled=true".to_string());
+        }
         if custom_aria_label {
-            snippet.push("        aria_label=\"Open command menu\".to_string()".to_string());
+            snippet.push("  aria_label=\"Open command menu\".to_string()".to_string());
         }
 
-        snippet.extend([
-            "        on_press=on_press".to_string(),
-            "    />".to_string(),
-            "}".to_string(),
-        ]);
+        snippet.push("/>".to_string());
 
         snippet.join("\n")
     });
 
-    let states_code = r#"<SearchInputButton placeholder="Find components".to_string() />
+    let states_code = Signal::derive(move || {
+        r#"<SearchInputButton placeholder="Find components".to_string() />
 <SearchInputButton
   placeholder="Find components".to_string()
   compact_placeholder="Find".to_string()
 />
 <SearchInputButton placeholder="Disabled search".to_string() disabled=true />
-<SearchInputButton placeholder="Forced disabled".to_string() is_disabled=true />"#;
+<SearchInputButton placeholder="Forced disabled".to_string() is_disabled=true />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<SearchInputButton
+    let custom_code = Signal::derive(move || {
+        r#"<SearchInputButton
   placeholder="Browse components".to_string()
   compact_placeholder="Browse".to_string()
   aria_label="Open component search".to_string()
   class_name="docs-search-input-button-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1703,7 +1944,7 @@ pub(super) fn search_input_button() -> AnyView {
                 }}
             </Playground>
 
-            <Playground title="Placeholder + disabled matrix" code=states_code>
+            <Playground title="Placeholder + disabled matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <SearchInputButton placeholder="Find components".to_string() />
@@ -1722,7 +1963,7 @@ pub(super) fn search_input_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Aria Label" code=custom_code>
+            <Playground title="Custom Class + Aria Label" code_signal=custom_code>
                 <div class="docs-row">
                     <SearchInputButton
                         placeholder="Browse components".to_string()
@@ -1741,15 +1982,21 @@ pub(super) fn search_input_button() -> AnyView {
     .into_any()
 }
 pub(super) fn button_copy() -> AnyView {
-    let code = r#"<ButtonCopy
+    let code = Signal::derive(move || {
+        r#"<ButtonCopy
   text="cargo add ui-components".to_string()
   label="Copy install command".to_string()
   copied_label="Copied!".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<ButtonCopy text="https://example.com/docs".to_string() variant=ButtonVariant::Outline />
+    let states_code = Signal::derive(move || {
+        r#"<ButtonCopy text="https://example.com/docs".to_string() variant=ButtonVariant::Outline />
 <ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
-<ButtonCopy text="token".to_string() disabled=true />"#;
+<ButtonCopy text="token".to_string() disabled=true />"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1758,7 +2005,7 @@ pub(super) fn button_copy() -> AnyView {
             group="Actions"
             description="Copy-to-clipboard button with Spectrum-style disabled/empty semantics and live copied announcements."
         >
-            <Playground title="Label + variant" code=code>
+            <Playground title="Label + variant" code_signal=code>
                 <div class="docs-row">
                     <ButtonCopy
                         text="cargo add ui-components".to_string()
@@ -1774,7 +2021,7 @@ pub(super) fn button_copy() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + empty matrix" code=states_code>
+            <Playground title="Disabled + empty matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ButtonCopy
@@ -1794,23 +2041,32 @@ pub(super) fn button_copy() -> AnyView {
     .into_any()
 }
 pub(super) fn flip_button() -> AnyView {
-    let code = r#"<FlipButton
+    let code = Signal::derive(move || {
+        r#"<FlipButton
   from=FlipDirection::Top
   front=move || view! { <Button variant=ButtonVariant::Secondary>"Front"</Button> }
   back=move || view! { <Button variant=ButtonVariant::Accent>"Back"</Button> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<FlipButton from=FlipDirection::Top front=... back=... />
+    let states_code = Signal::derive(move || {
+        r#"<FlipButton from=FlipDirection::Top front=... back=... />
 <FlipButton from=FlipDirection::Bottom front=... back=... />
 <FlipButton from=FlipDirection::Left front=... back=... />
-<FlipButton from=FlipDirection::Right front=... back=... />"#;
+<FlipButton from=FlipDirection::Right front=... back=... />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<FlipButton
+    let custom_code = Signal::derive(move || {
+        r#"<FlipButton
   from=FlipDirection::Left
   class_name="docs-flip-button-custom".to_string()
   front=move || view! { <Button variant=ButtonVariant::Outline>"Inspect"</Button> }
   back=move || view! { <Button variant=ButtonVariant::Accent>"Inspecting"</Button> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1819,7 +2075,7 @@ pub(super) fn flip_button() -> AnyView {
             group="Actions"
             description="HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs."
         >
-            <Playground title="Top flip" code=code>
+            <Playground title="Top flip" code_signal=code>
                 <div class="docs-row">
                     <FlipButton
                         from=FlipDirection::Top
@@ -1829,7 +2085,7 @@ pub(super) fn flip_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Direction matrix" code=states_code>
+            <Playground title="Direction matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <FlipButton
@@ -1851,7 +2107,7 @@ pub(super) fn flip_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class" code=custom_code>
+            <Playground title="Custom Class" code_signal=custom_code>
                 <div class="docs-row">
                     <FlipButton
                         from=FlipDirection::Left
@@ -1879,26 +2135,35 @@ pub(super) fn share_button() -> AnyView {
     let custom_items_for_matrix = custom_items.clone();
     let custom_items_for_custom = custom_items.clone();
 
-    let code = r#"let on_icon_press = Callback::new(|platform: SharePlatform| {
+    let code = Signal::derive(move || {
+        r#"let on_icon_press = Callback::new(|platform: SharePlatform| {
   logging::log!("pressed: {platform:?}");
 });
-<ShareButton on_icon_press=Some(on_icon_press) />"#;
+<ShareButton on_icon_press=Some(on_icon_press) />"#
+            .to_string()
+    });
 
-    let states_code = r#"<ShareButton
+    let states_code = Signal::derive(move || {
+        r#"<ShareButton
   icon=ShareButtonIconPlacement::Prefix
   from=FlipDirection::Left
   label="Share now".to_string()
   items=custom_items_for_matrix.clone()
 />
-<ShareButton icon=ShareButtonIconPlacement::None label="Iconless".to_string() />"#;
+<ShareButton icon=ShareButtonIconPlacement::None label="Iconless".to_string() />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<ShareButton
+    let custom_code = Signal::derive(move || {
+        r#"<ShareButton
   class_name="docs-share-button-custom".to_string()
   icon=ShareButtonIconPlacement::Prefix
   from=FlipDirection::Right
   label="Share docs".to_string()
   items=custom_items.clone()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1907,7 +2172,7 @@ pub(super) fn share_button() -> AnyView {
             group="Actions"
             description="Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion."
         >
-            <Playground title="Default + callback" code=code>
+            <Playground title="Default + callback" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ShareButton on_icon_press=on_icon_press />
@@ -1923,7 +2188,7 @@ pub(super) fn share_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Icon placement + custom items" code=states_code>
+            <Playground title="Icon placement + custom items" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ShareButton
@@ -1945,7 +2210,7 @@ pub(super) fn share_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Direction" code=custom_code>
+            <Playground title="Custom Class + Direction" code_signal=custom_code>
                 <div class="docs-row">
                     <ShareButton
                         class_name="docs-share-button-custom".to_string()
@@ -2000,39 +2265,57 @@ pub(super) fn action_menu() -> AnyView {
     let on_marker_action =
         Callback::new(move |index: usize| set_last_marker_action.set(Some(index)));
 
-    let code = r#"<ActionMenu
+    let code = Signal::derive(move || {
+        r#"<ActionMenu
   id_base="demo".to_string()
-  items=items
-  on_action=on_action
-/>"#;
+  items=vec![
+    "Open dashboard".to_string(),
+    "Duplicate project".to_string(),
+    "Archive workspace".to_string(),
+  ]
+  on_action=Callback::new(move |index: usize| {
+    logging::log!("action index: {}", index);
+  })
+/>"#
+        .to_string()
+    });
 
-    let controlled_code = r#"let (open, set_open) = signal(false);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
+    let controlled_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
 
 <ActionMenu
   id_base="action-controlled".to_string()
-  items=items
-  on_action=on_action
+  items=vec![
+    "Open dashboard".to_string(),
+    "Duplicate project".to_string(),
+    "Archive workspace".to_string(),
+  ]
+  on_action=Callback::new(move |index: usize| {
+    logging::log!("action index: {}", index);
+  })
   close_on_action=false
   disabled_indices=vec![1]
-  open=open_signal
-  on_open_change=Callback::new(move |next| set_open.set(next))
-/>"#;
+  open=open
+  on_open_change=Callback::new(move |next| set_open_raw.set(next))
+/>"#
+        .to_string()
+    });
 
-    let marker_code = r#"let (open_raw, set_open_raw) = signal(true);
+    let marker_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
 let open: Signal<bool> = Signal::derive(move || open_raw.get());
-let motion = ui_components::ActionMenuMotion {
-  popover: ui_components::PopoverMotion {
-    initial_scale: 0.93,
-    offset_y_px: 8.0,
-    ..ui_components::PopoverMotion::default()
-  },
-};
 
 <ActionMenu
   id_base="docs-action-menu-markers".to_string()
-  items=items
-  on_action=on_action
+  items=vec![
+    "Open dashboard".to_string(),
+    "Duplicate project".to_string(),
+    "Archive workspace".to_string(),
+  ]
+  on_action=Callback::new(move |index: usize| {
+    logging::log!("action index: {}", index);
+  })
   disabled_indices=vec![2]
   item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]
   close_on_action=false
@@ -2041,20 +2324,39 @@ let motion = ui_components::ActionMenuMotion {
   on_open_change=Callback::new(move |next| set_open_raw.set(next))
   aria_label="Workspace actions".to_string()
   class_name="docs-action-menu-custom".to_string()
-  motion=motion
-/>"#;
+  motion=ui_components::ActionMenuMotion {
+    popover: ui_components::PopoverMotion {
+      initial_scale: 0.93,
+      offset_y_px: 8.0,
+      ..ui_components::PopoverMotion::default()
+    },
+  }
+/>"#
+        .to_string()
+    });
 
-    let disabled_code = r#"<ActionMenu
+    let disabled_code = Signal::derive(move || {
+        r#"<ActionMenu
   id_base="action-disabled".to_string()
-  items=items
-  on_action=on_action
+  items=vec![
+    "Open dashboard".to_string(),
+    "Duplicate project".to_string(),
+    "Archive workspace".to_string(),
+  ]
+  on_action=Callback::new(move |index: usize| {
+    logging::log!("action index: {}", index);
+  })
   disabled=true
 />
 <ActionMenu
   id_base="action-empty".to_string()
   items=Vec::<String>::new()
-  on_action=on_action
-/>"#;
+  on_action=Callback::new(move |index: usize| {
+    logging::log!("action index: {}", index);
+  })
+/>"#
+        .to_string()
+    });
 
     let marker_motion = ui_components::ActionMenuMotion {
         popover: ui_components::PopoverMotion {
@@ -2071,7 +2373,7 @@ let motion = ui_components::ActionMenuMotion {
             group="Actions"
             description="ActionButton-triggered menu surface with Spectrum state/source data attrs and HeroUI-grade popover spring motion (controlled/uncontrolled + close strategy)."
         >
-            <Playground title="Default" code=code>
+            <Playground title="Default" code_signal=code>
                 <div class="docs-row">
                     <ActionMenu
                         id_base="docs-action-menu".to_string()
@@ -2090,7 +2392,7 @@ let motion = ui_components::ActionMenuMotion {
                 </div>
             </Playground>
 
-            <Playground title="Controlled + persistent open" code=controlled_code>
+            <Playground title="Controlled + persistent open" code_signal=controlled_code>
                 <div class="docs-stack">
                     <ActionMenu
                         id_base="docs-action-menu-controlled".to_string()
@@ -2113,7 +2415,7 @@ let motion = ui_components::ActionMenuMotion {
                 </div>
             </Playground>
 
-            <Playground title="State + Source Markers" code=marker_code>
+            <Playground title="State + Source Markers" code_signal=marker_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <button type="button" on:click=move |_| set_marker_open_raw.set(true)>
@@ -2158,7 +2460,7 @@ let motion = ui_components::ActionMenuMotion {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Empty" code=disabled_code>
+            <Playground title="Disabled + Empty" code_signal=disabled_code>
                 <div class="docs-row">
                     <ActionMenu
                         id_base="docs-action-menu-disabled".to_string()

@@ -115,8 +115,8 @@ fn help_text_docs_page_covers_primary_playgrounds() {
         "title=\"HelpText\"",
         "slug=\"help-text\"",
         "description=\"Spectrum-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts.\"",
-        "<Playground title=\"Description (Neutral)\" code=description_code>",
-        "<Playground title=\"Invalid + Error Icon\" code=error_code>",
+        "<Playground title=\"Description (Neutral)\" code_signal=description_code>",
+        "<Playground title=\"Invalid + Error Icon\" code_signal=error_code>",
         "<HelpText",
     ] {
         assert!(

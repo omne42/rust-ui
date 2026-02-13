@@ -160,8 +160,8 @@ fn field_label_docs_page_covers_primary_playgrounds() {
         "title=\"FieldLabel\"",
         "slug=\"field-label\"",
         "description=\"Spectrum-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts.\"",
-        "<Playground title=\"Tone + Required\" code=tone_code>",
-        "<Playground title=\"Custom Indicator + Aria + Class\" code=custom_code>",
+        "<Playground title=\"Tone + Required\" code_signal=tone_code>",
+        "<Playground title=\"Custom Indicator + Aria + Class\" code_signal=custom_code>",
         "<FieldLabel",
     ] {
         assert!(

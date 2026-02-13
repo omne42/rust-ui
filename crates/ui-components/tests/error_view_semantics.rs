@@ -146,8 +146,8 @@ fn error_view_docs_page_covers_primary_playgrounds() {
         "title=\"ErrorView\"",
         "slug=\"error-view\"",
         "description=\"Spectrum/HeroUI-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers.\"",
-        "<Playground title=\"Invalid Visibility\" code=basic_code>",
-        "<Playground title=\"Custom Content + Motion + Actions\" code=state_code>",
+        "<Playground title=\"Invalid Visibility\" code_signal=basic_code>",
+        "<Playground title=\"Custom Content + Motion + Actions\" code_signal=state_code>",
         "<ErrorView",
     ] {
         assert!(

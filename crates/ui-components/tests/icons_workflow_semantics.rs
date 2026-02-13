@@ -151,14 +151,14 @@ fn icons_workflow_docs_default_and_custom_playgrounds_lock_contract_values() {
     );
 
     for needle in [
-        "<Playground title=\"Built-in Workflow Glyphs\" code=defaults_code>",
+        "<Playground title=\"Built-in Workflow Glyphs\" code_signal=defaults_code>",
         "icon=\"success\".to_string()",
         "icon=\"warning\".to_string()",
         "size=IconsWorkflowSize::Md",
         "tone=IconsWorkflowTone::Accent",
         "tone=IconsWorkflowTone::Danger",
         "decorative=false",
-        "<Playground title=\"Custom Workflow Extension\" code=custom_code>",
+        "<Playground title=\"Custom Workflow Extension\" code_signal=custom_code>",
         "icon=\"workflow:deploy\".to_string()",
         "IconsetGlyph::new(\"workflow:deploy\", \"🚀\")",
         ".with_aria_label(\"Workflow Deploy\")",
@@ -208,8 +208,8 @@ fn icons_workflow_docs_page_covers_primary_playgrounds() {
         "title=\"IconsWorkflow\"",
         "slug=\"icons-workflow\"",
         "description=\"Spectrum-compatible icons-workflow wrapper with workflow namespace normalization, built-in workflow glyph defaults, and Iconset accessibility/source-state contracts.\"",
-        "<Playground title=\"Built-in Workflow Glyphs\" code=defaults_code>",
-        "<Playground title=\"Custom Workflow Extension\" code=custom_code>",
+        "<Playground title=\"Built-in Workflow Glyphs\" code_signal=defaults_code>",
+        "<Playground title=\"Custom Workflow Extension\" code_signal=custom_code>",
         "title=\"State + Source Markers\"",
         "<IconsWorkflow",
     ] {

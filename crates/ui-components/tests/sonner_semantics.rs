@@ -270,8 +270,8 @@ fn sonner_docs_page_covers_primary_playgrounds() {
         "title=\"Sonner\"",
         "slug=\"sonner\"",
         "description=\"Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts.\"",
-        "<Playground title=\"Portal Queue + Variants\" code=basic_code>",
-        "<Playground title=\"Inline Top-Center + Max Queue\" code=state_code>",
+        "<Playground title=\"Portal Queue + Variants\" code_signal=basic_code>",
+        "<Playground title=\"Inline Top-Center + Max Queue\" code_signal=state_code>",
         "title=\"State + Source Markers\"",
         "<Sonner",
     ] {

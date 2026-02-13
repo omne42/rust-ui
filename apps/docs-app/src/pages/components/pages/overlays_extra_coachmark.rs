@@ -18,7 +18,8 @@ pub(super) fn coachmark() -> AnyView {
         set_controlled_open_raw.update(|open| *open = !*open);
     });
 
-    let basic_code = r#"<Coachmark
+    let basic_code = Signal::derive(move || {
+        r#"<Coachmark
   title=\"Welcome to the tour\".to_string()
   default_open=true
   current_step=2
@@ -28,22 +29,27 @@ pub(super) fn coachmark() -> AnyView {
   asset_variant=CoachmarkAssetVariant::Folder
 >
   <div>Tour copy</div>
-</Coachmark>"#;
+</Coachmark>"#
+            .to_string()
+    });
 
-    let controlled_code = r#"let (open, set_open) = signal(false);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
+    let controlled_code = Signal::derive(move || {
+        r#"let (open, set_open) = signal(false);
 
 <Coachmark
   title=\"Keyboard shortcuts\".to_string()
-  open=open_signal
+  open=Signal::derive(move || open.get())
   on_open_change=Callback::new(move |next| set_open.set(next))
   primary_cta=\"Got it\".to_string()
   shortcut_key=\"K\".to_string()
   modifier_keys=vec![\"⌘\".to_string()]
   asset_src=\"https://picsum.photos/420/260\".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"<Coachmark
+    let markers_code = Signal::derive(move || {
+        r#"<Coachmark
   title=\"Shortcuts\".to_string()
   aria_label=\"Coachmark help\".to_string()
   current_step=2
@@ -56,7 +62,9 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   class_name=\"docs-coachmark-state\".to_string()
 >
   <div>Inspect data-state/source markers on root + content.</div>
-</Coachmark>"#;
+</Coachmark>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -65,7 +73,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             group="Overlays"
             description="Spectrum-compatible Coachmark primitive for guided tours, composed on ContextualHelp/Popover contracts with HeroUI-level spring overlay motion and optional asset + CTA navigation semantics."
         >
-            <Playground title="Step + CTA + Asset Variant" code=basic_code>
+            <Playground title="Step + CTA + Asset Variant" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <Coachmark
                         title="Welcome to the tour".to_string()
@@ -88,7 +96,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled + Image Asset + Actions" code=controlled_code>
+            <Playground title="Controlled + Image Asset + Actions" code_signal=controlled_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
@@ -126,7 +134,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             <Playground
                 title="State + Source Markers"
                 description="Inspect root markers like `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, and content-level `data-asset-source` for Spectrum-compatible coachmark contracts."
-                code=markers_code
+                code_signal=markers_code
             >
                 <Coachmark
                     title="Shortcuts".to_string()

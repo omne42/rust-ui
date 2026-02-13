@@ -147,14 +147,14 @@ fn icons_ui_docs_default_and_custom_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons_ui.rs");
 
     for needle in [
-        "<Playground title=\"Built-in UI Glyphs\" code=defaults_code>",
+        "<Playground title=\"Built-in UI Glyphs\" code_signal=defaults_code>",
         "icon=\"check\".to_string()",
         "icon=\"close\".to_string()",
         "size=IconsUiSize::Md",
         "tone=IconsUiTone::Accent",
         "tone=IconsUiTone::Danger",
         "decorative=false",
-        "<Playground title=\"Custom Registry Extension\" code=custom_code>",
+        "<Playground title=\"Custom Registry Extension\" code_signal=custom_code>",
         "icon=\"ui:save\".to_string()",
         "IconsetGlyph::new(\"ui:save\", \"💾\")",
         ".with_aria_label(\"UI Save\")",
@@ -202,8 +202,8 @@ fn icons_ui_docs_page_covers_primary_playgrounds() {
         "title=\"IconsUi\"",
         "slug=\"icons-ui\"",
         "description=\"Spectrum-compatible icons-ui wrapper with built-in UI icon registry defaults, namespace normalization, and Iconset accessibility/source-state contracts.\"",
-        "<Playground title=\"Built-in UI Glyphs\" code=defaults_code>",
-        "<Playground title=\"Custom Registry Extension\" code=custom_code>",
+        "<Playground title=\"Built-in UI Glyphs\" code_signal=defaults_code>",
+        "<Playground title=\"Custom Registry Extension\" code_signal=custom_code>",
         "title=\"State + Source Markers\"",
         "<IconsUi",
     ] {

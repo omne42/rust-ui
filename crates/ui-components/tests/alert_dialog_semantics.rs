@@ -308,7 +308,7 @@ fn alert_dialog_docs_default_playground_locks_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_alert_dialog.rs");
 
     for needle in [
-        "<Playground title=\"AlertDialog\" code=code>",
+        "<Playground title=\"AlertDialog\" code_signal=code>",
         "<Button variant=ButtonVariant::Destructive on_press=open_alert>",
         "id_base=\"docs-alert\".to_string()",
         "title=\"Delete item?\".to_string()",

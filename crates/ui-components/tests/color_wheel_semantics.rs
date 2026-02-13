@@ -123,11 +123,11 @@ fn color_wheel_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Controlled Hue Wheel\" code=basic_code>",
+        "<Playground title=\"Controlled Hue Wheel\" code_signal=basic_code>",
         "id_base=\"docs-color-wheel-hue\".to_string()",
         "value=value.into()",
         "on_value_change=on_value_change",
-        "<Playground title=\"Disabled + Reduced Motion + Custom Class\" code=states_code>",
+        "<Playground title=\"Disabled + Reduced Motion + Custom Class\" code_signal=states_code>",
         "id_base=\"docs-color-wheel-disabled\".to_string()",
         "value=disabled_value.into()",
         "on_value_change=on_disabled_change",

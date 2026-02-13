@@ -114,8 +114,8 @@ fn field_error_docs_page_covers_primary_playgrounds() {
         "title=\"FieldError\"",
         "slug=\"field-error\"",
         "description=\"Spectrum/HeroUI-style field error primitive with centralized visibility/tone/message normalization and stable data contracts.\"",
-        "<Playground title=\"Visible + Tone\" code=default_code>",
-        "<Playground title=\"Hidden + Disabled + Custom Class\" code=hidden_code>",
+        "<Playground title=\"Visible + Tone\" code_signal=default_code>",
+        "<Playground title=\"Hidden + Disabled + Custom Class\" code_signal=hidden_code>",
         "<FieldError",
     ] {
         assert!(

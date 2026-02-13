@@ -59,13 +59,13 @@ fn dnd_module_docs_page_covers_primary_playgrounds() {
         "pub(super) fn file_trigger() -> AnyView",
         "title=\"FileTrigger\"",
         "slug=\"file-trigger\"",
-        "<Playground title=\"Pick files\" code=code>",
-        "<Playground title=\"Pick files with custom motion\" code=motion_code>",
+        "<Playground title=\"Pick files\" code_signal=code>",
+        "<Playground title=\"Pick files with custom motion\" code_signal=motion_code>",
         "pub(super) fn drop_zone() -> AnyView",
         "title=\"DropZone\"",
         "slug=\"drop-zone\"",
-        "<Playground title=\"Drop / paste\" code=code>",
-        "<Playground title=\"Drop / paste with custom motion\" code=motion_code>",
+        "<Playground title=\"Drop / paste\" code_signal=code>",
+        "<Playground title=\"Drop / paste with custom motion\" code_signal=motion_code>",
     ] {
         assert!(
             source.contains(needle),

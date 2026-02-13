@@ -11,7 +11,8 @@ use ui_components::{
 };
 
 pub(super) fn field_error() -> AnyView {
-    let default_code = r#"<FieldError
+    let default_code = Signal::derive(move || {
+        r#"<FieldError
   visible=true
   message="Email is required".to_string()
 />
@@ -26,9 +27,12 @@ pub(super) fn field_error() -> AnyView {
   show_icon=true
   message="Two-factor code is invalid".to_string()
 />
-"#;
+"#
+        .to_string()
+    });
 
-    let hidden_code = r#"<FieldError
+    let hidden_code = Signal::derive(move || {
+        r#"<FieldError
   visible=false
   message="This text should not render when hidden".to_string()
 />
@@ -37,7 +41,9 @@ pub(super) fn field_error() -> AnyView {
   disabled=true
   show_icon=true
   class_name="docs-field-error-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -46,7 +52,7 @@ pub(super) fn field_error() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style field error primitive with centralized visibility/tone/message normalization and stable data contracts."
         >
-            <Playground title="Visible + Tone" code=default_code>
+            <Playground title="Visible + Tone" code_signal=default_code>
                 <div class="docs-stack">
                     <FieldError
                         visible=true
@@ -67,7 +73,7 @@ pub(super) fn field_error() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Hidden + Disabled + Custom Class" code=hidden_code>
+            <Playground title="Hidden + Disabled + Custom Class" code_signal=hidden_code>
                 <div class="docs-stack">
                     <FieldError
                         visible=false
@@ -87,7 +93,8 @@ pub(super) fn field_error() -> AnyView {
 }
 
 pub(super) fn error_message() -> AnyView {
-    let tone_code = r#"<ErrorMessage text="Invalid email address".to_string() />
+    let tone_code = Signal::derive(move || {
+        r#"<ErrorMessage text="Invalid email address".to_string() />
 <ErrorMessage
   text="Username contains unsupported characters.".to_string()
   tone=ErrorMessageTone::Neutral
@@ -95,9 +102,12 @@ pub(super) fn error_message() -> AnyView {
 <ErrorMessage
   text="Verification code expired, request a new one.".to_string()
   tone=ErrorMessageTone::Negative
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let state_code = r#"<ErrorMessage
+    let state_code = Signal::derive(move || {
+        r#"<ErrorMessage
   text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
   truncate=true
   class_name="docs-error-message-custom".to_string()
@@ -107,7 +117,8 @@ pub(super) fn error_message() -> AnyView {
   disabled=true
   element=ErrorMessageElement::Div
   aria_label="Disabled error message".to_string()
-/>"#;
+/>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -116,7 +127,7 @@ pub(super) fn error_message() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts."
         >
-            <Playground title="Tone Variants" code=tone_code>
+            <Playground title="Tone Variants" code_signal=tone_code>
                 <div class="docs-stack">
                     <ErrorMessage
                         text="Invalid email address".to_string()
@@ -133,7 +144,7 @@ pub(super) fn error_message() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Truncate + Disabled + Element + Custom Class" code=state_code>
+            <Playground title="Truncate + Disabled + Element + Custom Class" code_signal=state_code>
                 <div class="docs-stack docs-error-message-limit">
                     <ErrorMessage
                         text="A very long validation message that should truncate in constrained layouts to keep form rhythm predictable.".to_string()
@@ -154,16 +165,20 @@ pub(super) fn error_message() -> AnyView {
 }
 
 pub(super) fn description() -> AnyView {
-    let tone_code = r#"<Description
+    let tone_code = Signal::derive(move || {
+        r#"<Description
   text="This appears below the field as guidance.".to_string()
   tone=DescriptionTone::Default
 />
 <Description
   text="Two-factor code expired. Request a new one.".to_string()
   tone=DescriptionTone::Negative
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let truncate_code = r#"<Description
+    let truncate_code = Signal::derive(move || {
+        r#"<Description
   text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
   element=DescriptionElement::Span
   truncate=true
@@ -173,7 +188,8 @@ pub(super) fn description() -> AnyView {
   text="Disabled helper text".to_string()
   disabled=true
   tone=DescriptionTone::Muted
-/>"#;
+/>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -182,7 +198,7 @@ pub(super) fn description() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style form description primitive with centralized tone/state/source contracts and stable slot semantics."
         >
-            <Playground title="Tone Variants" code=tone_code>
+            <Playground title="Tone Variants" code_signal=tone_code>
                 <div class="docs-stack">
                     <Description
                         text="This appears below the field as guidance.".to_string()
@@ -200,7 +216,7 @@ pub(super) fn description() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Truncate + Element + Disabled" code=truncate_code>
+            <Playground title="Truncate + Element + Disabled" code_signal=truncate_code>
                 <div class="docs-stack docs-description-limit">
                     <Description
                         text="A very long assistant text that should truncate in constrained layouts to avoid breaking form rhythm.".to_string()
@@ -221,16 +237,20 @@ pub(super) fn description() -> AnyView {
 }
 
 pub(super) fn fieldset() -> AnyView {
-    let default_code = r#"<Fieldset
+    let default_code = Signal::derive(move || {
+        r#"<Fieldset
   legend="Notification channels".to_string()
   description="Pick every channel you want to receive release updates from.".to_string()
   required=true
 >
   <label><input type="checkbox" /> "Email"</label>
   <label><input type="checkbox" /> "SMS"</label>
-</Fieldset>"#;
+</Fieldset>"#
+            .to_string()
+    });
 
-    let invalid_code = r#"<Fieldset
+    let invalid_code = Signal::derive(move || {
+        r#"<Fieldset
   orientation=FieldsetOrientation::Horizontal
   tone=FieldsetTone::Muted
   invalid=true
@@ -244,7 +264,8 @@ pub(super) fn fieldset() -> AnyView {
 >
   <label><input type="checkbox" /> "Email"</label>
   <label><input type="checkbox" /> "SMS"</label>
-</Fieldset>"#;
+</Fieldset>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -253,7 +274,7 @@ pub(super) fn fieldset() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts."
         >
-            <Playground title="Legend + Description" code=default_code>
+            <Playground title="Legend + Description" code_signal=default_code>
                 <Fieldset
                     legend="Notification channels".to_string()
                     description="Pick every channel you want to receive release updates from.".to_string()
@@ -275,7 +296,7 @@ pub(super) fn fieldset() -> AnyView {
                 </Fieldset>
             </Playground>
 
-            <Playground title="Horizontal + Invalid + Actions" code=invalid_code>
+            <Playground title="Horizontal + Invalid + Actions" code_signal=invalid_code>
                 <Fieldset
                     orientation=FieldsetOrientation::Horizontal
                     tone=FieldsetTone::Muted
@@ -309,17 +330,23 @@ pub(super) fn fieldset() -> AnyView {
 }
 
 pub(super) fn label() -> AnyView {
-    let emphasis_code = r#"<Label text="Name".to_string() for_id="name".to_string() required=true />
+    let emphasis_code = Signal::derive(move || {
+        r#"<Label text="Name".to_string() for_id="name".to_string() required=true />
 <Label text="Hint".to_string() emphasis=LabelEmphasis::Subtle />
-<Label text="Critical".to_string() emphasis=LabelEmphasis::Strong required=true />"#;
+<Label text="Critical".to_string() emphasis=LabelEmphasis::Strong required=true />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Label
+    let custom_code = Signal::derive(move || {
+        r#"<Label
   text="Assignee".to_string()
   for_id="assignee".to_string()
   required=true
   required_indicator="(required)".to_string()
   class_name="docs-label-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -328,7 +355,7 @@ pub(super) fn label() -> AnyView {
             group="Forms"
             description="Form label primitive with centralized required/emphasis/source state contracts."
         >
-            <Playground title="Emphasis + Required" code=emphasis_code>
+            <Playground title="Emphasis + Required" code_signal=emphasis_code>
                 <div class="docs-stack">
                     <Label text="Name".to_string() for_id="docs-label-name".to_string() required=true />
                     <input id="docs-label-name" class="docs-search__input" type="text" placeholder="Type name" />
@@ -338,7 +365,7 @@ pub(super) fn label() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Indicator + Class" code=custom_code>
+            <Playground title="Custom Indicator + Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <Label
                         text="Assignee".to_string()
@@ -361,15 +388,19 @@ pub(super) fn label() -> AnyView {
 }
 
 pub(super) fn field() -> AnyView {
-    let required_code = r#"<Field
+    let required_code = Signal::derive(move || {
+        r#"<Field
   label="Email".to_string()
   required=true
   description="We'll only use this for release notes.".to_string()
 >
   <input class="docs-search__input" type="email" placeholder="name@example.com" />
-</Field>"#;
+</Field>"#
+            .to_string()
+    });
 
-    let invalid_code = r#"<Field
+    let invalid_code = Signal::derive(move || {
+        r#"<Field
   orientation=FieldOrientation::Horizontal
   tone=FieldTone::Muted
   invalid=true
@@ -377,7 +408,9 @@ pub(super) fn field() -> AnyView {
   class_name="docs-field-custom".to_string()
 >
   <input class="docs-search__input" type="email" placeholder="owner@company.com" />
-</Field>"#;
+</Field>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -386,7 +419,7 @@ pub(super) fn field() -> AnyView {
             group="Forms"
             description="Form field wrapper with centralized orientation/tone/validation/message-state modeling and stable data contracts."
         >
-            <Playground title="Required + Description" code=required_code>
+            <Playground title="Required + Description" code_signal=required_code>
                 <Field
                     label="Email".to_string()
                     required=true
@@ -401,7 +434,7 @@ pub(super) fn field() -> AnyView {
                 </Field>
             </Playground>
 
-            <Playground title="Horizontal + Invalid + Custom Class" code=invalid_code>
+            <Playground title="Horizontal + Invalid + Custom Class" code_signal=invalid_code>
                 <Field
                     orientation=FieldOrientation::Horizontal
                     tone=FieldTone::Muted
@@ -422,16 +455,22 @@ pub(super) fn field() -> AnyView {
 }
 
 pub(super) fn help_text() -> AnyView {
-    let description_code = r#"<HelpText
+    let description_code = Signal::derive(move || {
+        r#"<HelpText
   description="Use at least 12 characters.".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let error_code = r#"<HelpText
+    let error_code = Signal::derive(move || {
+        r#"<HelpText
   invalid=true
   show_error_icon=true
   error_message="Password does not meet complexity requirements.".to_string()
   class_name="docs-help-text-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -440,7 +479,7 @@ pub(super) fn help_text() -> AnyView {
             group="Forms"
             description="Spectrum-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts."
         >
-            <Playground title="Description (Neutral)" code=description_code>
+            <Playground title="Description (Neutral)" code_signal=description_code>
                 <div class="docs-stack">
                     <HelpText
                         description="Use at least 12 characters.".to_string()
@@ -453,7 +492,7 @@ pub(super) fn help_text() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Invalid + Error Icon" code=error_code>
+            <Playground title="Invalid + Error Icon" code_signal=error_code>
                 <div class="docs-stack">
                     <HelpText
                         invalid=true
@@ -478,15 +517,19 @@ pub(super) fn textarea() -> AnyView {
     let (value_marker, set_value_marker) = signal("Pending review".to_string());
     let (marker_invalid, set_marker_invalid) = signal(false);
 
-    let basic_code = r#"let (value, set_value) = signal(String::new());
+    let basic_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
 <Textarea id="about".to_string()
   label="About".to_string()
   value=value
   set_value=set_value
   placeholder="Write something…".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"let (value, set_value) = signal("Pending review".to_string());
+    let markers_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal("Pending review".to_string());
 let (invalid, set_invalid) = signal(false);
 <Textarea
   id="summary".to_string()
@@ -500,7 +543,9 @@ let (invalid, set_invalid) = signal(false);
   placeholder="Write a summary".to_string()
   rows=5
   class_name="docs-textarea-state".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -509,7 +554,7 @@ let (invalid, set_invalid) = signal(false);
             group="Forms"
             description="Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics and stable state/source markers."
         >
-            <Playground title="Basic Textarea" code=basic_code>
+            <Playground title="Basic Textarea" code_signal=basic_code>
                 <Textarea
                     id="docs-textarea-basic".to_string()
                     label="About".to_string()
@@ -522,7 +567,7 @@ let (invalid, set_invalid) = signal(false);
             <Playground
                 title="State + Source Markers"
                 description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <Textarea
@@ -562,10 +607,9 @@ pub(super) fn slider() -> AnyView {
 
     let (disabled_value, set_disabled_value) = signal(68.0_f64);
 
-    let code = r#"let (value, set_value) = signal(36.0_f64);
-let on_change = Callback::new(move |next: f64| {
-  logging::log!("slider changed: {next}");
-});
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(36.0_f64);
+
 <Slider
   id="volume".to_string()
   label="Volume".to_string()
@@ -574,10 +618,16 @@ let on_change = Callback::new(move |next: f64| {
   min=0.0
   max=100.0
   step=1.0
-  on_change=Some(on_change)
-/>"#;
+  on_change=Callback::new(move |_| {})
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<Slider
+    let states_code = Signal::derive(move || {
+        r#"let (disabled_value, set_disabled_value) = signal(68.0_f64);
+let (fine_value, set_fine_value) = signal(0.35_f64);
+
+<Slider
   id="slider-disabled".to_string()
   label="Disabled".to_string()
   value=disabled_value
@@ -587,13 +637,15 @@ let on_change = Callback::new(move |next: f64| {
 <Slider
   id="slider-fine".to_string()
   label="Fine Step".to_string()
-  value=value
-  set_value=set_value
+  value=fine_value
+  set_value=set_fine_value
   min=0.0
   max=1.0
   step=0.05
   motion=SliderMotion::disabled()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let fine_motion = SliderMotion::disabled();
 
@@ -604,7 +656,7 @@ let on_change = Callback::new(move |next: f64| {
             group="Forms"
             description="Range slider with spring-driven fill/thumb motion and Spectrum-style state data contracts."
         >
-            <Playground title="Controlled + on_change" code=code>
+            <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
                     <Slider
                         id="docs-slider-volume".to_string()
@@ -623,7 +675,7 @@ let on_change = Callback::new(move |next: f64| {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Fine Step" code=states_code>
+            <Playground title="Disabled + Fine Step" code_signal=states_code>
                 <div class="docs-stack">
                     <Slider
                         id="docs-slider-disabled".to_string()
@@ -651,16 +703,20 @@ let on_change = Callback::new(move |next: f64| {
 }
 
 pub(super) fn calendar() -> AnyView {
-    let code = r#"<Calendar
+    let code = Signal::derive(move || {
+        r#"<Calendar
   year=2026
   month=1
   selected_day=Some(6)
   tone=CalendarTone::Default
   first_weekday=CalendarFirstWeekday::Sunday
   show_outside_days=true
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<Calendar
+    let states_code = Signal::derive(move || {
+        r#"<Calendar
   year=2026
   month=2
   selected_day=Some(14)
@@ -668,7 +724,9 @@ pub(super) fn calendar() -> AnyView {
   first_weekday=CalendarFirstWeekday::Monday
   show_outside_days=false
   class_name="docs-calendar-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -677,7 +735,7 @@ pub(super) fn calendar() -> AnyView {
             group="Forms"
             description="Month-grid calendar with centralized date normalization and Spectrum-style tone/weekday/source state contracts."
         >
-            <Playground title="Default + Outside Days" code=code>
+            <Playground title="Default + Outside Days" code_signal=code>
                 <Calendar
                     year=2026
                     month=1
@@ -688,7 +746,7 @@ pub(super) fn calendar() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Monday First + Strong Tone" code=states_code>
+            <Playground title="Monday First + Strong Tone" code_signal=states_code>
                 <Calendar
                     year=2026
                     month=2
@@ -705,7 +763,8 @@ pub(super) fn calendar() -> AnyView {
 }
 
 pub(super) fn date_picker() -> AnyView {
-    let code = r#"<DatePicker
+    let code = Signal::derive(move || {
+        r#"<DatePicker
   id_base="release-date".to_string()
   year=2026
   month=3
@@ -713,9 +772,12 @@ pub(super) fn date_picker() -> AnyView {
   tone=DatePickerTone::Default
   first_weekday=CalendarFirstWeekday::Sunday
   show_outside_days=true
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<DatePicker
+    let states_code = Signal::derive(move || {
+        r#"<DatePicker
   id_base="ship-date".to_string()
   year=2026
   month=4
@@ -728,7 +790,9 @@ pub(super) fn date_picker() -> AnyView {
   motion=DatePickerMotion {
     popover: PopoverMotion { initial_scale: 0.95, offset_y_px: 10.0, ..PopoverMotion::default() },
   }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -737,7 +801,7 @@ pub(super) fn date_picker() -> AnyView {
             group="Forms"
             description="Date picker trigger + popover calendar with centralized open/value/source state contracts and HeroUI-grade popover motion handoff."
         >
-            <Playground title="Default + Outside Days" code=code>
+            <Playground title="Default + Outside Days" code_signal=code>
                 <DatePicker
                     id_base="docs-date-picker-release".to_string()
                     year=2026
@@ -749,7 +813,7 @@ pub(super) fn date_picker() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Monday First + Strong Tone" code=states_code>
+            <Playground title="Monday First + Strong Tone" code_signal=states_code>
                 <DatePicker
                     id_base="docs-date-picker-ship".to_string()
                     year=2026
@@ -780,7 +844,8 @@ pub(super) fn time_field() -> AnyView {
         set_value.set(next);
     });
 
-    let code = r#"let (value, set_value) = signal(Some("09:30".to_string()));
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(Some("09:30".to_string()));
 let on_value_change = Callback::new(move |next: Option<String>| {
   set_value.set(next);
 });
@@ -791,9 +856,12 @@ let on_value_change = Callback::new(move |next: Option<String>| {
   value=value
   on_value_change=on_value_change
   minute_step=15
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<TimeField
+    let states_code = Signal::derive(move || {
+        r#"<TimeField
   id_base="ship-window".to_string()
   label="Ship window".to_string()
   tone=TimeFieldTone::Strong
@@ -801,7 +869,9 @@ let on_value_change = Callback::new(move |next: Option<String>| {
   default_value="18:45".to_string()
   placeholder="hour:minute".to_string()
   class_name="docs-time-field-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -810,7 +880,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             group="Forms"
             description="Time entry field with centralized hour/minute normalization and Spectrum-style state/source data contracts."
         >
-            <Playground title="Controlled + Step 15" code=code>
+            <Playground title="Controlled + Step 15" code_signal=code>
                 <div class="docs-stack">
                     <TimeField
                         id_base="docs-time-field-controlled".to_string()
@@ -826,7 +896,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                 </div>
             </Playground>
 
-            <Playground title="Strong Tone + Custom Placeholder" code=states_code>
+            <Playground title="Strong Tone + Custom Placeholder" code_signal=states_code>
                 <TimeField
                     id_base="docs-time-field-strong".to_string()
                     label="Ship window".to_string()
@@ -854,7 +924,8 @@ pub(super) fn date_range_picker() -> AnyView {
         set_end_day.set(next);
     });
 
-    let code = r#"let (start_day, set_start_day) = signal(Some(8_u8));
+    let code = Signal::derive(move || {
+        r#"let (start_day, set_start_day) = signal(Some(8_u8));
 let (end_day, set_end_day) = signal(Some(19_u8));
 
 <DateRangePicker
@@ -867,9 +938,12 @@ let (end_day, set_end_day) = signal(Some(19_u8));
   end_day=end_day
   on_start_day_change=Callback::new(move |next| set_start_day.set(next))
   on_end_day_change=Callback::new(move |next| set_end_day.set(next))
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<DateRangePicker
+    let states_code = Signal::derive(move || {
+        r#"<DateRangePicker
   id_base="ship-window".to_string()
   start_year=2026
   start_month=7
@@ -879,7 +953,9 @@ let (end_day, set_end_day) = signal(Some(19_u8));
   default_end_day=12
   tone=DateRangePickerTone::Strong
   class_name="docs-date-range-picker-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -888,7 +964,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
             group="Forms"
             description="Two DatePicker composition with centralized range validity/value-shape derivation and Spectrum-style state/source contracts."
         >
-            <Playground title="Controlled + Shared Month" code=code>
+            <Playground title="Controlled + Shared Month" code_signal=code>
                 <div class="docs-stack">
                     <DateRangePicker
                         id_base="docs-date-range-picker-controlled".to_string()
@@ -909,7 +985,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
                 </div>
             </Playground>
 
-            <Playground title="Strong Tone + Invalid Range Hint" code=states_code>
+            <Playground title="Strong Tone + Invalid Range Hint" code_signal=states_code>
                 <DateRangePicker
                     id_base="docs-date-range-picker-strong".to_string()
                     start_year=2026
@@ -933,7 +1009,8 @@ pub(super) fn date_field() -> AnyView {
         set_value.set(next);
     });
 
-    let code = r#"let (value, set_value) = signal(Some("2026-03-14".to_string()));
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(Some("2026-03-14".to_string()));
 let on_value_change = Callback::new(move |next: Option<String>| {
   set_value.set(next);
 });
@@ -943,16 +1020,21 @@ let on_value_change = Callback::new(move |next: Option<String>| {
   label="Invoice date".to_string()
   value=value
   on_value_change=on_value_change
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<DateField
+    let states_code = Signal::derive(move || {
+        r#"<DateField
   id_base="ship-date".to_string()
   label="Ship date".to_string()
   tone=DateFieldTone::Strong
   default_value="2026-07-22".to_string()
   placeholder="year-month-day".to_string()
   class_name="docs-date-field-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -961,7 +1043,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             group="Forms"
             description="Segmented date entry field with centralized year/month/day normalization and Spectrum-style state/source contracts."
         >
-            <Playground title="Controlled Value" code=code>
+            <Playground title="Controlled Value" code_signal=code>
                 <div class="docs-stack">
                     <DateField
                         id_base="docs-date-field-controlled".to_string()
@@ -975,7 +1057,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                 </div>
             </Playground>
 
-            <Playground title="Strong Tone + Custom Placeholder" code=states_code>
+            <Playground title="Strong Tone + Custom Placeholder" code_signal=states_code>
                 <DateField
                     id_base="docs-date-field-strong".to_string()
                     label="Ship date".to_string()

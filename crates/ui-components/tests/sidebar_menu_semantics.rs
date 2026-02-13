@@ -167,8 +167,8 @@ fn sidebar_menu_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarMenu\"",
         "slug=\"sidebar-menu\"",
         "description=\"Shadcn-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, Spectrum-style data contracts, and HeroUI-level active-highlight motion.\"",
-        "<Playground title=\"Badge + Item Action\" code=badge_code>",
-        "<Playground title=\"Controlled + Collapsible Submenu\" code=controlled_code>",
+        "<Playground title=\"Badge + Item Action\" code_signal=badge_code>",
+        "<Playground title=\"Controlled + Collapsible Submenu\" code_signal=controlled_code>",
         "<SidebarMenu",
     ] {
         assert!(

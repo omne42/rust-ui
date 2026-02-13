@@ -138,7 +138,7 @@ fn theme_toggle_docs_default_cycle_playground_locks_contract_values() {
         "<Switch checked=two_mode_cycle set_checked=set_two_mode_cycle>",
         "<Switch checked=custom_aria_label set_checked=set_custom_aria_label>",
         "modes=modes",
-        "aria_label=aria_label",
+        "if custom_aria_label {",
         "\"mode: \" {move || format!(\"{:?}\", mode.get())}",
     ] {
         assert!(
@@ -153,7 +153,7 @@ fn theme_toggle_docs_custom_modes_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "<Playground title=\"Custom modes + disabled\" code=states_code>",
+        "<Playground title=\"Custom modes + disabled\" code_signal=states_code>",
         "let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];",
         "mode=custom_mode",
         "set_mode=set_custom_mode",
@@ -196,7 +196,7 @@ fn button_theme_toggle_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Default cycle\"",
         "code_signal=code",
         "let modes = if two_mode_cycle {",
-        "<Playground title=\"Custom modes + disabled\" code=states_code>",
+        "<Playground title=\"Custom modes + disabled\" code_signal=states_code>",
         "let custom_modes = vec![ThemeMode::Dark, ThemeMode::Light];",
         "modes=custom_modes.clone()",
         "aria_label=\"Switch UI mode\".to_string()",

@@ -268,7 +268,7 @@ fn dialog_docs_default_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
 
     for needle in [
-        "<Playground title=\"Dialog\" code=code>",
+        "<Playground title=\"Dialog\" code_signal=code>",
         "<Button on_press=open_dialog>\"Open dialog\"</Button>",
         "id_base=\"docs-dialog\".to_string()",
         "title=\"Dialog title\".to_string()",
@@ -293,8 +293,8 @@ fn dialog_docs_page_covers_primary_playgrounds() {
         "title=\"Dialog\"",
         "slug=\"dialog\"",
         "description=\"Dialog panel with header/body/footer structure on top of Overlay.\"",
-        "<Playground title=\"Dialog\" code=code>",
-        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "<Playground title=\"Dialog\" code_signal=code>",
+        "<Playground title=\"State + Source Markers\" code_signal=marker_code>",
         "data-id-source",
         "data-title-source",
         "data-description-source",

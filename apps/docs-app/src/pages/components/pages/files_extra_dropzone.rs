@@ -11,16 +11,23 @@ pub(super) fn dropzone() -> AnyView {
     let marker_on_drop_files =
         Callback::new(move |_: Vec<DroppedFile>| set_marker_events.update(|count| *count += 1));
 
-    let basic_code = r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
+    let basic_code = Signal::derive(move || {
+        r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
 <Dropzone label=\"Upload\".to_string() on_drop_files=on_drop_files>
   \"Drop files here\"
-</Dropzone>"#;
+</Dropzone>"#
+            .to_string()
+    });
 
-    let disabled_code = r#"<Dropzone label=\"Disabled\".to_string() disabled=true>
+    let disabled_code = Signal::derive(move || {
+        r#"<Dropzone label=\"Disabled\".to_string() disabled=true>
   \"Dropzone disabled\"
-</Dropzone>"#;
+</Dropzone>"#
+            .to_string()
+    });
 
-    let markers_code = r#"let mut marker_motion = DropZoneMotion::default();
+    let markers_code = Signal::derive(move || {
+        r#"let mut marker_motion = DropZoneMotion::default();
 marker_motion.hover_scale = 1.02;
 marker_motion.drop_scale = 1.01;
 
@@ -32,7 +39,9 @@ marker_motion.drop_scale = 1.01;
   on_drop_files=Callback::new(move |_| { /* marker */ })
 >
   <div>\"Inspect root source/state markers\"</div>
-</Dropzone>"#;
+</Dropzone>"#
+            .to_string()
+    });
 
     let marker_motion = DropZoneMotion {
         hover_scale: 1.02,
@@ -47,7 +56,7 @@ marker_motion.drop_scale = 1.01;
             group="Files"
             description="Spectrum-compatible Dropzone alias for upstream naming parity, preserving DropZone drag/drop + paste accessibility contracts and HeroUI-level spring interaction motion."
         >
-            <Playground title="Drop / paste" code=basic_code>
+            <Playground title="Drop / paste" code_signal=basic_code>
                 <div class="docs-stack">
                     <Dropzone label="Upload".to_string() on_drop_files=on_drop_files>
                         <div class="docs-drop-zone">
@@ -84,7 +93,7 @@ marker_motion.drop_scale = 1.01;
                 </div>
             </Playground>
 
-            <Playground title="Disabled" code=disabled_code>
+            <Playground title="Disabled" code_signal=disabled_code>
                 <Dropzone label="Disabled".to_string() disabled=true>
                     <div class="docs-drop-zone">
                         <div>"Dropzone disabled"</div>
@@ -96,7 +105,7 @@ marker_motion.drop_scale = 1.01;
             <Playground
                 title="State + Source Markers"
                 description="Inspect root markers like `data-state`, `data-label-source`, `data-aria-source`, `data-drop-handler-source`, `data-class-source`, and `data-motion-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <Dropzone

@@ -54,7 +54,7 @@ fn form_docs_page_covers_primary_playgrounds() {
         "title=\"Form\"",
         "slug=\"form\"",
         "description=\"A context provider for form-wide disabled/required/label layout.\"",
-        "<Playground title=\"Label layout context\" code=code>",
+        "<Playground title=\"Label layout context\" code_signal=code>",
         "<Form",
     ] {
         assert!(

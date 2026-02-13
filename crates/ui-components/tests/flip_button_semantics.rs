@@ -198,9 +198,9 @@ fn flip_button_docs_page_covers_primary_playgrounds() {
         "title=\"FlipButton\"",
         "slug=\"flip-button\"",
         "description=\"HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
-        "<Playground title=\"Top flip\" code=code>",
-        "<Playground title=\"Direction matrix\" code=states_code>",
-        "<Playground title=\"Custom Class\" code=custom_code>",
+        "<Playground title=\"Top flip\" code_signal=code>",
+        "<Playground title=\"Direction matrix\" code_signal=states_code>",
+        "<Playground title=\"Custom Class\" code_signal=custom_code>",
         "<FlipButton",
     ] {
         assert!(

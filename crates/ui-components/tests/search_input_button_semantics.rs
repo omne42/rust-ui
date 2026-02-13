@@ -230,8 +230,8 @@ fn search_input_button_docs_page_covers_primary_playgrounds() {
         "aria_label=\"Search input shortcut key\".to_string()",
         "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
         "<Switch checked=custom_aria_label set_checked=set_custom_aria_label>",
-        "<Playground title=\"Placeholder + disabled matrix\" code=states_code>",
-        "<Playground title=\"Custom Class + Aria Label\" code=custom_code>",
+        "<Playground title=\"Placeholder + disabled matrix\" code_signal=states_code>",
+        "<Playground title=\"Custom Class + Aria Label\" code_signal=custom_code>",
         "<SearchInputButton",
     ] {
         assert!(
@@ -255,8 +255,8 @@ fn search_input_button_docs_playgrounds_lock_state_matrix_contract_values() {
         "code_signal=code",
         "let preset_options = vec![",
         "let placeholder = Signal::derive(move || match preset_index.get().unwrap_or(0)",
-        "let meta_key_options = vec![\"⌘\".to_string(), \"Ctrl\".to_string(), \"Alt\".to_string()];",
-        "let key_label_options = vec![\"K\".to_string(), \"F\".to_string()];",
+        "let meta_key_options = vec![",
+        "let key_label_options = vec![",
         "placeholder=placeholder",
         "compact_placeholder=compact_placeholder",
         "meta_key_label=meta_key_label",

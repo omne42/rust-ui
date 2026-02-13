@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs-app` + `ui-components`: aligns interactive docs playground contracts on `code_signal`, updates SearchInputButton/PickerButton/ToggleButton/ToggleButtonGroup/LinkButton and Item module snippet matrices, refreshes semantics assertions for current docs-source markers (including code-block/image/illustrated-message/ripple/ui-root contracts), and adapts `ButtonSpec` to the current `Button` prop/state contract.
+
 - `docs-app` + `ui-components`: upgrades `SearchInputButton` interactive playground to control-driven, copy-ready reactive code (preset/shortcut/disabled/aria), and hardens `search_input_button_semantics` + `button_search_input_semantics` docs-contract coverage for the new dynamic controls.
 
 - `docs-app` + `ui-components`: upgrades `ThemeToggleButton` default-cycle playground to control-driven, copy-ready reactive code (start mode/disabled/mode-cycle/aria label), and hardens both `theme_toggle_button_semantics` and `button_theme_toggle_semantics` docs-contract coverage.

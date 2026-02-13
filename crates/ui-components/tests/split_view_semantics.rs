@@ -153,11 +153,11 @@ fn split_view_docs_default_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/layout_extra_split_view.rs");
 
     for needle in [
-        "<Playground title=\"Horizontal + Default Split\" code=horizontal_code>",
+        "<Playground title=\"Horizontal + Default Split\" code_signal=horizontal_code>",
         "orientation=ResizableOrientation::Horizontal",
         "default_split_percent=40.0",
         "with_handle=true",
-        "<Playground title=\"Controlled + Vertical Bounds\" code=vertical_code>",
+        "<Playground title=\"Controlled + Vertical Bounds\" code_signal=vertical_code>",
         "orientation=ResizableOrientation::Vertical",
         "split_percent=split",
         "on_split_percent_change=on_split_change",
@@ -207,8 +207,8 @@ fn split_view_docs_page_covers_primary_playgrounds() {
         "title=\"SplitView\"",
         "slug=\"split-view\"",
         "description=\"Spectrum-compatible SplitView alias for upstream naming parity, preserving Resizable controlled/uncontrolled split contracts and HeroUI-level drag/keyboard handle interaction behavior.\"",
-        "<Playground title=\"Horizontal + Default Split\" code=horizontal_code>",
-        "<Playground title=\"Controlled + Vertical Bounds\" code=vertical_code>",
+        "<Playground title=\"Horizontal + Default Split\" code_signal=horizontal_code>",
+        "<Playground title=\"Controlled + Vertical Bounds\" code_signal=vertical_code>",
         "title=\"State + Source Markers\"",
         "<SplitView",
     ] {

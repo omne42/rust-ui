@@ -116,8 +116,8 @@ fn input_group_docs_page_covers_primary_playgrounds() {
         "title=\"InputGroup\"",
         "slug=\"input-group\"",
         "description=\"Composes one or more inputs with shared prefix/suffix addons and Spectrum-style state contracts.\"",
-        "<Playground title=\"Attached Addons\" code=code>",
-        "<Playground title=\"Detached + Disabled\" code=states_code>",
+        "<Playground title=\"Attached Addons\" code_signal=code>",
+        "<Playground title=\"Detached + Disabled\" code_signal=states_code>",
         "<InputGroup",
     ] {
         assert!(

@@ -219,9 +219,9 @@ fn modal_docs_page_covers_primary_playgrounds() {
         "title=\"Modal\"",
         "slug=\"modal\"",
         "description=\"Overlay composition with centralized title/description/class state attrs and stable modal slots.\"",
-        "<Playground title=\"Label + Description\" code=semantic_code>",
+        "<Playground title=\"Label + Description\" code_signal=semantic_code>",
         "title=\"State + Source Markers\"",
-        "code=custom_code",
+        "code_signal=custom_code",
         "<Modal",
     ] {
         assert!(

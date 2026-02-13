@@ -194,12 +194,12 @@ fn chart_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
-        "<Playground title=\"Bar + Hover/Keyboard + Action\" code=bar_code>",
+        "<Playground title=\"Bar + Hover/Keyboard + Action\" code_signal=bar_code>",
         "id_base=\"docs-chart-bar\".to_string()",
         "kind=ChartKind::Bar",
         "on_action=on_action",
         "\"last action: \"",
-        "<Playground title=\"Controlled Line + Active Index\" code=line_code>",
+        "<Playground title=\"Controlled Line + Active Index\" code_signal=line_code>",
         "id_base=\"docs-chart-line\".to_string()",
         "kind=ChartKind::Line",
         "active_index=controlled_active",

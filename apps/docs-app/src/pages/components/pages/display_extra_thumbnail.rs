@@ -4,7 +4,8 @@ use leptos::prelude::*;
 use ui_components::{Thumbnail, ThumbnailMotion, ThumbnailSize};
 
 pub(super) fn thumbnail() -> AnyView {
-    let size_code = r#"<Thumbnail size=ThumbnailSize::Size100>
+    let size_code = Signal::derive(move || {
+        r#"<Thumbnail size=ThumbnailSize::Size100>
   <img src="https://picsum.photos/180/120" alt="Landscape" />
 </Thumbnail>
 <Thumbnail size=ThumbnailSize::Size500>
@@ -12,9 +13,12 @@ pub(super) fn thumbnail() -> AnyView {
 </Thumbnail>
 <Thumbnail size=ThumbnailSize::Size900>
   <img src="https://picsum.photos/500/120" alt="Panorama" />
-</Thumbnail>"#;
+</Thumbnail>"#
+            .to_string()
+    });
 
-    let state_code = r##"<Thumbnail
+    let state_code = Signal::derive(move || {
+        r##"<Thumbnail
   size=ThumbnailSize::Size600
   background="#0f172a".to_string()
   cover=true
@@ -24,9 +28,12 @@ pub(super) fn thumbnail() -> AnyView {
   class_name="docs-thumbnail-custom".to_string()
 >
   <img src="https://picsum.photos/500/300" alt="Cover sample" />
-</Thumbnail>"##;
+</Thumbnail>"##
+            .to_string()
+    });
 
-    let motion_code = r##"let custom_motion = ThumbnailMotion {
+    let motion_code = Signal::derive(move || {
+        r##"let custom_motion = ThumbnailMotion {
   active_scale: 1.08,
   active_ring_opacity: 0.9,
   ..ThumbnailMotion::default()
@@ -47,7 +54,9 @@ pub(super) fn thumbnail() -> AnyView {
   motion=ThumbnailMotion::disabled()
 >
   <img src="https://picsum.photos/480/320" alt="Reduced motion contract" />
-</Thumbnail>"##;
+</Thumbnail>"##
+            .to_string()
+    });
 
     let custom_motion = ThumbnailMotion {
         active_scale: 1.08,
@@ -62,7 +71,7 @@ pub(super) fn thumbnail() -> AnyView {
             group="Display"
             description="Spectrum-compatible thumbnail primitive with size/background/cover/layer contracts and HeroUI-grade spring focus-selection motion."
         >
-            <Playground title="Sizes" code=size_code>
+            <Playground title="Sizes" code_signal=size_code>
                 <div class="docs-row">
                     <Thumbnail size=ThumbnailSize::Size100>
                         <img src="https://picsum.photos/180/120" alt="Landscape" />
@@ -76,7 +85,7 @@ pub(super) fn thumbnail() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Cover + Background + Layer + Selected" code=state_code>
+            <Playground title="Cover + Background + Layer + Selected" code_signal=state_code>
                 <Thumbnail
                     size=ThumbnailSize::Size600
                     background="#0f172a".to_string()
@@ -90,7 +99,7 @@ pub(super) fn thumbnail() -> AnyView {
                 </Thumbnail>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code=motion_code>
+            <Playground title="Custom Motion Contract" code_signal=motion_code>
                 <div class="docs-row">
                     <Thumbnail
                         size=ThumbnailSize::Size600

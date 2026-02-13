@@ -83,13 +83,13 @@ fn collection_module_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
 
     for needle in [
-        "<Playground title=\"Media + Content + Actions\" code=basic_code>",
+        "title=\"Media + Content + Actions\"",
         "<ItemGroup>",
-        "<Item variant=ItemVariant::Outline size=ItemSize::Default>",
+        "<Item variant=variant size=size>",
         "<ItemMedia variant=ItemMediaVariant::Icon>",
         "<ItemSeparator />",
-        "<Item variant=ItemVariant::Default size=ItemSize::Default>",
-        "<Playground title=\"Header + Footer Layout\" code=advanced_code>",
+        "<Item>",
+        "title=\"Header + Footer Layout\"",
         "<Item variant=ItemVariant::Muted size=ItemSize::Sm>",
         "<ItemHeader>",
         "<ItemFooter>",

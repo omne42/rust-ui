@@ -127,8 +127,8 @@ fn empty_state_docs_page_covers_primary_playgrounds() {
         "title=\"EmptyState\"",
         "slug=\"empty-state\"",
         "description=\"Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers.\"",
-        "<Playground title=\"Tone + Alignment + Actions\" code=tone_code>",
-        "<Playground title=\"Compact + Bordered + Custom Class\" code=state_code>",
+        "<Playground title=\"Tone + Alignment + Actions\" code_signal=tone_code>",
+        "<Playground title=\"Compact + Bordered + Custom Class\" code_signal=state_code>",
         "<EmptyState",
     ] {
         assert!(

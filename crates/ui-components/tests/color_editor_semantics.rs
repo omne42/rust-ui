@@ -133,13 +133,13 @@ fn color_editor_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Controlled Color + Controlled Format\" code=basic_code>",
+        "<Playground title=\"Controlled Color + Controlled Format\" code_signal=basic_code>",
         "id_base=\"docs-color-editor-basic\".to_string()",
         "selected_color=selected_color_signal",
         "on_selected_change=on_selected_change",
         "format=format_signal",
         "on_format_change=on_format_change",
-        "<Playground title=\"Disabled + Alpha Hidden + Reduced Motion\" code=states_code>",
+        "<Playground title=\"Disabled + Alpha Hidden + Reduced Motion\" code_signal=states_code>",
         "id_base=\"docs-color-editor-disabled\".to_string()",
         "default_selected_color=\"#0ea5e9\".to_string()",
         "default_format=ColorEditorFormat::Rgb",

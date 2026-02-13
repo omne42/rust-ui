@@ -211,7 +211,7 @@ fn bottom_sheet_docs_page_contains_custom_motion_playground() {
         "title=\"BottomSheet\"",
         "slug=\"bottom-sheet\"",
         "Custom Motion Contract",
-        "let custom_motion_code = r#\"<BottomSheet",
+        "let custom_motion_code = Signal::derive(move || {",
         "<BottomSheet",
     ] {
         assert!(
@@ -227,7 +227,7 @@ fn bottom_sheet_docs_custom_motion_playground_locks_contract_values() {
 
     for needle in [
         "title=\"Custom Motion Contract\"",
-        "let custom_motion_code = r#\"<BottomSheet",
+        "let custom_motion_code = Signal::derive(move || {",
         "motion=BottomSheetMotion {",
         "sheet: ui_components::SheetMotion {",
         "initial_offset_px: 64.0",

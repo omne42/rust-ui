@@ -204,11 +204,11 @@ fn collapsible_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/collections_groups.rs");
 
     for needle in [
-        "<Playground title=\"Controlled Collapsible\" code=basic_code>",
+        "<Playground title=\"Controlled Collapsible\" code_signal=basic_code>",
         "id_base=\"docs-collapsible\".to_string()",
         "open=open.into()",
         "on_open_change=on_open_change",
-        "<Playground title=\"Disabled + Custom Motion\" code=states_code>",
+        "<Playground title=\"Disabled + Custom Motion\" code_signal=states_code>",
         "id_base=\"docs-collapsible-disabled\".to_string()",
         "disabled=true",
         "class_name=\"docs-collapsible-custom\".to_string()",

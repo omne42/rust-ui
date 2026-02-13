@@ -4,13 +4,17 @@ use leptos::prelude::*;
 use ui_components::{Sidebar, SidebarCollapsible, SidebarInset, SidebarSide, SidebarVariant};
 
 pub(super) fn sidebar_inset() -> AnyView {
-    let default_code = r#"<SidebarInset aria_label="Workspace inset region".to_string()>
+    let default_code = Signal::derive(move || {
+        r#"<SidebarInset aria_label="Workspace inset region".to_string()>
   <span>"Overview"</span>
   <span>"Recent activity"</span>
   <span>"Pinned links"</span>
-</SidebarInset>"#;
+</SidebarInset>"#
+            .to_string()
+    });
 
-    let compact_code = r#"<SidebarInset
+    let compact_code = Signal::derive(move || {
+        r#"<SidebarInset
   side=SidebarSide::Right
   padded=false
   recessed=false
@@ -20,7 +24,9 @@ pub(super) fn sidebar_inset() -> AnyView {
 >
   <span class="ui-muted">"Read-only"</span>
   <span class="ui-muted">"3 warnings"</span>
-</SidebarInset>"#;
+</SidebarInset>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -29,7 +35,7 @@ pub(super) fn sidebar_inset() -> AnyView {
             group="Layout"
             description="Shadcn-compatible sidebar inset primitive with side/padding/surface contracts and Spectrum-style root data markers."
         >
-            <Playground title="Default Inset Region" code=default_code>
+            <Playground title="Default Inset Region" code_signal=default_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Inset
@@ -45,7 +51,7 @@ pub(super) fn sidebar_inset() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Compact + Plain + Disabled" code=compact_code>
+            <Playground title="Compact + Plain + Disabled" code_signal=compact_code>
                 <Sidebar
                     side=SidebarSide::Right
                     variant=SidebarVariant::Inset

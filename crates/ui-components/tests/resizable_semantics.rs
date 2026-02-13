@@ -188,8 +188,8 @@ fn resizable_docs_page_covers_primary_playgrounds() {
         "title=\"Resizable\"",
         "slug=\"resizable\"",
         "description=\"Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and Spectrum-style state data contracts.\"",
-        "<Playground title=\"Horizontal + Handle Grip\" code=horizontal_code>",
-        "<Playground title=\"Controlled + Vertical Bounds\" code=vertical_code>",
+        "<Playground title=\"Horizontal + Handle Grip\" code_signal=horizontal_code>",
+        "<Playground title=\"Controlled + Vertical Bounds\" code_signal=vertical_code>",
         "<Resizable",
     ] {
         assert!(

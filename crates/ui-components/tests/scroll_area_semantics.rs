@@ -127,8 +127,8 @@ fn scroll_area_docs_page_covers_primary_playgrounds() {
         "title=\"ScrollArea\"",
         "slug=\"scroll-area\"",
         "description=\"Shadcn-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts.\"",
-        "<Playground title=\"Vertical + Max Height\" code=default_code>",
-        "<Playground title=\"Horizontal + Both + Disabled\" code=state_code>",
+        "<Playground title=\"Vertical + Max Height\" code_signal=default_code>",
+        "<Playground title=\"Horizontal + Both + Disabled\" code_signal=state_code>",
         "<ScrollArea",
     ] {
         assert!(

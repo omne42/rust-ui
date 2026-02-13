@@ -128,13 +128,13 @@ fn color_area_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Controlled Grid Selection\" code=basic_code>",
+        "<Playground title=\"Controlled Grid Selection\" code_signal=basic_code>",
         "id_base=\"docs-color-area-basic\".to_string()",
         "label=\"Saturation / Lightness\".to_string()",
         "value=value.into()",
         "on_value_change=on_value_change",
         "preview_color=\"#7c3aed\".to_string()",
-        "<Playground title=\"Disabled + Custom Grid + Custom Class\" code=states_code>",
+        "<Playground title=\"Disabled + Custom Grid + Custom Class\" code_signal=states_code>",
         "id_base=\"docs-color-area-disabled\".to_string()",
         "default_value=(0.25, 0.85)",
         "grid_size=15",

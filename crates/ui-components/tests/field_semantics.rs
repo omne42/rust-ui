@@ -119,8 +119,8 @@ fn field_docs_page_covers_primary_playgrounds() {
         "title=\"Field\"",
         "slug=\"field\"",
         "description=\"Form field wrapper with centralized orientation/tone/validation/message-state modeling and stable data contracts.\"",
-        "<Playground title=\"Required + Description\" code=required_code>",
-        "<Playground title=\"Horizontal + Invalid + Custom Class\" code=invalid_code>",
+        "<Playground title=\"Required + Description\" code_signal=required_code>",
+        "<Playground title=\"Horizontal + Invalid + Custom Class\" code_signal=invalid_code>",
         "<Field",
     ] {
         assert!(

@@ -148,8 +148,8 @@ fn sidebar_content_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarContent\"",
         "slug=\"sidebar-content\"",
         "description=\"Shadcn-compatible sidebar content region primitive with centralized padding/scroll/state contracts and Spectrum-style data markers.\"",
-        "<Playground title=\"Default Scrollable Content\" code=default_code>",
-        "<Playground title=\"Compact + Static + Custom\" code=compact_code>",
+        "<Playground title=\"Default Scrollable Content\" code_signal=default_code>",
+        "<Playground title=\"Compact + Static + Custom\" code_signal=compact_code>",
         "<SidebarContent",
     ] {
         assert!(

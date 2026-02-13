@@ -304,9 +304,9 @@ fn menubar_docs_page_covers_primary_playgrounds() {
         "title=\"Menubar\"",
         "slug=\"menubar\"",
         "description=\"Shadcn-compatible persistent menubar with horizontal trigger navigation, Spectrum-style state/source attrs, and HeroUI-level spring popover motion reuse.\"",
-        "<Playground title=\"Desktop Menubar + Action Dispatch\" code=code>",
-        "<Playground title=\"Controlled Open + Persistent + Disabled Menu\" code=states_code>",
-        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "<Playground title=\"Desktop Menubar + Action Dispatch\" code_signal=code>",
+        "<Playground title=\"Controlled Open + Persistent + Disabled Menu\" code_signal=states_code>",
+        "<Playground title=\"State + Source Markers\" code_signal=marker_code>",
         "<Menubar",
     ] {
         assert!(

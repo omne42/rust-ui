@@ -119,7 +119,7 @@ fn inline_alert_docs_page_covers_primary_playgrounds() {
         "title=\"InlineAlert\"",
         "slug=\"inline-alert\"",
         "description=\"Compact alert with tone/fill variants and optional icon.\"",
-        "<Playground title=\"Inline alerts\" code=code>",
+        "<Playground title=\"Inline alerts\" code_signal=code>",
         "<InlineAlert",
     ] {
         assert!(

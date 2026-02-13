@@ -6,18 +6,41 @@ use ui_components::{
 };
 
 pub(super) fn sidebar_menu_action() -> AnyView {
-    let default_code = r#"<SidebarMenuAction
-  aria_label="Open item actions".to_string()
-  on_press=Callback::new(move |_| set_last_action.set("open".to_string()))
-/>"#;
+    let default_code = Signal::derive(move || {
+        r#"let (last_action, set_last_action) = signal("none".to_string());
 
-    let always_visible_code = r#"<SidebarMenuAction
+<Sidebar
+  side=SidebarSide::Left
+  variant=SidebarVariant::Sidebar
+  collapsible=SidebarCollapsible::Icon
+  show_trigger=false
+>
+  <SidebarContent>
+    <div class="docs-stack docs-stack--tight">
+      <div class="ui-sidebar-menu__item-main">
+        <span>"Project Alpha"</span>
+        <SidebarMenuAction
+          aria_label="Open item actions".to_string()
+          on_press=Callback::new(move |_| set_last_action.set("open".to_string()))
+        />
+      </div>
+      <span class="ui-muted">"last action: " {move || last_action.get()}</span>
+    </div>
+  </SidebarContent>
+</Sidebar>"#
+            .to_string()
+    });
+
+    let always_visible_code = Signal::derive(move || {
+        r#"<SidebarMenuAction
   hover_only=false
   disabled=true
   label="!".to_string()
   aria_label="Disabled always-visible action".to_string()
   class_name="docs-sidebar-menu-action-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let (last_action, set_last_action) = signal("none".to_string());
     let on_press = Callback::new(move |_| set_last_action.set("open".to_string()));
@@ -29,7 +52,7 @@ pub(super) fn sidebar_menu_action() -> AnyView {
             group="Layout"
             description="Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts."
         >
-            <Playground title="Default Hover-Only Action" code=default_code>
+            <Playground title="Default Hover-Only Action" code_signal=default_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -52,7 +75,7 @@ pub(super) fn sidebar_menu_action() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Always Visible + Disabled + Custom" code=always_visible_code>
+            <Playground title="Always Visible + Disabled + Custom" code_signal=always_visible_code>
                 <Sidebar
                     side=SidebarSide::Right
                     variant=SidebarVariant::Inset

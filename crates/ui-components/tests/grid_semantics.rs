@@ -119,8 +119,8 @@ fn grid_docs_page_covers_primary_playgrounds() {
         "title=\"Grid\"",
         "slug=\"grid\"",
         "description=\"Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts.\"",
-        "<Playground title=\"Columns + Gap\" code=columns_code>",
-        "<Playground title=\"AutoFit + Dense + Equal Rows\" code=adaptive_code>",
+        "<Playground title=\"Columns + Gap\" code_signal=columns_code>",
+        "<Playground title=\"AutoFit + Dense + Equal Rows\" code_signal=adaptive_code>",
         "<Grid",
     ] {
         assert!(

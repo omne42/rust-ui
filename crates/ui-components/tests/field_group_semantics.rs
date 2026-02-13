@@ -131,8 +131,8 @@ fn field_group_docs_page_covers_primary_playgrounds() {
         "title=\"FieldGroup\"",
         "slug=\"field-group\"",
         "description=\"Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers.\"",
-        "<Playground title=\"Vertical + Label + Description\" code=base_code>",
-        "<Playground title=\"Horizontal + Compact + Invalid + Disabled\" code=states_code>",
+        "<Playground title=\"Vertical + Label + Description\" code_signal=base_code>",
+        "<Playground title=\"Horizontal + Compact + Invalid + Disabled\" code_signal=states_code>",
         "<FieldGroup",
     ] {
         assert!(

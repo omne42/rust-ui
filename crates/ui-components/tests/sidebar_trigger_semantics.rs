@@ -164,8 +164,8 @@ fn sidebar_trigger_docs_page_covers_primary_playgrounds() {
         r#"title="SidebarTrigger""#,
         r#"slug="sidebar-trigger""#,
         r#"description="Shadcn-compatible sidebar trigger primitive with controlled/uncontrolled open state, Spectrum-style data contracts, and motion-ready state transitions.""#,
-        r#"<Playground title="Default Trigger" code=default_code>"#,
-        r#"<Playground title="Controlled + Custom Label" code=controlled_code>"#,
+        r#"<Playground title="Default Trigger" code_signal=default_code>"#,
+        r#"<Playground title="Controlled + Custom Label" code_signal=controlled_code>"#,
         "<SidebarTrigger",
     ] {
         assert!(

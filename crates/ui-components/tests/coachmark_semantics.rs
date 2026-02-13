@@ -151,12 +151,12 @@ fn coachmark_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra_coachmark.rs");
 
     for needle in [
-        "<Playground title=\"Step + CTA + Asset Variant\" code=basic_code>",
+        "<Playground title=\"Step + CTA + Asset Variant\" code_signal=basic_code>",
         "default_open=true",
         "primary_cta=\"Next\".to_string()",
         "asset_variant=CoachmarkAssetVariant::Folder",
         "on_primary=on_primary",
-        "<Playground title=\"Controlled + Image Asset + Actions\" code=controlled_code>",
+        "<Playground title=\"Controlled + Image Asset + Actions\" code_signal=controlled_code>",
         "<Button variant=ButtonVariant::Secondary on_press=toggle_controlled>",
         "open=controlled_open",
         "asset_src=\"https://picsum.photos/420/260\".to_string()",

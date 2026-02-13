@@ -236,9 +236,9 @@ fn popover_docs_page_covers_primary_playgrounds() {
         "title=\"Popover\"",
         "slug=\"popover\"",
         "description=\"Positioned portal panel anchored to a trigger with Spectrum-style state markers and HeroUI-grade spring motion contract. Requires presence to unmount after exit.\"",
-        "<Playground title=\"Popover\" code=code>",
+        "<Playground title=\"Popover\" code_signal=code>",
         "title=\"State + Source Markers\"",
-        "code=motion_code",
+        "code_signal=motion_code",
         "<Popover",
     ] {
         assert!(

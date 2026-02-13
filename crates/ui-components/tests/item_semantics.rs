@@ -107,8 +107,8 @@ fn item_docs_page_covers_primary_playgrounds() {
         "pub(super) fn item_primitives() -> AnyView",
         "title=\"Item\"",
         "slug=\"item\"",
-        "Playground title=\"Media + Content + Actions\"",
-        "Playground title=\"Header + Footer Layout\"",
+        "title=\"Media + Content + Actions\"",
+        "title=\"Header + Footer Layout\"",
     ] {
         assert!(
             source.contains(needle),
@@ -124,10 +124,10 @@ fn item_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Media + Content + Actions\"",
-        "variant=ItemVariant::Outline size=ItemSize::Default",
+        "variant=variant size=size",
         "variant=ItemMediaVariant::Icon",
         "<ItemSeparator />",
-        "variant=ItemVariant::Default size=ItemSize::Default",
+        "<Item>",
         "variant=ItemMediaVariant::Image",
         "title=\"Header + Footer Layout\"",
         "variant=ItemVariant::Muted size=ItemSize::Sm",

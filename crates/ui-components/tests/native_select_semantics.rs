@@ -146,8 +146,8 @@ fn native_select_docs_page_covers_primary_playgrounds() {
         "title=\"NativeSelect\"",
         "slug=\"native-select\"",
         "description=\"Spectrum-style native `<select>` wrapper with controllable selection, root `data-*` contracts, and stable option normalization.\"",
-        "<Playground title=\"Controlled + Placeholder\" code=code>",
-        "<Playground title=\"Required + Invalid + Disabled\" code=states_code>",
+        "<Playground title=\"Controlled + Placeholder\" code_signal=code>",
+        "<Playground title=\"Required + Invalid + Disabled\" code_signal=states_code>",
         "<NativeSelect",
     ] {
         assert!(

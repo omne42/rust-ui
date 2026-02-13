@@ -11,7 +11,8 @@ pub(super) fn checkbox_field() -> AnyView {
     let (terms, set_terms) = signal(false);
     let (read_only, set_read_only) = signal(true);
 
-    let code = r#"let (newsletter, set_newsletter) = signal(true);
+    let code = Signal::derive(move || {
+        r#"let (newsletter, set_newsletter) = signal(true);
 
 <CheckboxField
   checked=newsletter
@@ -19,9 +20,12 @@ pub(super) fn checkbox_field() -> AnyView {
   id_base="newsletter-checkbox-field".to_string()
   label="Subscribe to product updates".to_string()
   description="Receive release notes and occasional best-practice tips.".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"let (terms, set_terms) = signal(false);
+    let states_code = Signal::derive(move || {
+        r#"let (terms, set_terms) = signal(false);
 
 <CheckboxField
   checked=terms
@@ -33,7 +37,9 @@ pub(super) fn checkbox_field() -> AnyView {
   tone=CheckboxFieldTone::Quiet
   invalid=true
   class_name="docs-checkbox-field-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -42,7 +48,7 @@ pub(super) fn checkbox_field() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style checkbox field primitive with centralized tone/indicator/state derivation and stable slot/data-state markers."
         >
-            <Playground title="Controlled + Description" code=code>
+            <Playground title="Controlled + Description" code_signal=code>
                 <div class="docs-stack">
                     <CheckboxField
                         checked=newsletter
@@ -57,7 +63,7 @@ pub(super) fn checkbox_field() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Indicator End + Quiet + Invalid/Disabled" code=states_code>
+            <Playground title="Indicator End + Quiet + Invalid/Disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <CheckboxField
                         checked=terms
@@ -98,7 +104,8 @@ pub(super) fn form_field() -> AnyView {
     let (tos, set_tos) = signal(false);
     let (read_only, set_read_only) = signal(true);
 
-    let code = r#"let (marketing, set_marketing) = signal(true);
+    let code = Signal::derive(move || {
+        r#"let (marketing, set_marketing) = signal(true);
 
 <FormField
   selected=marketing
@@ -107,9 +114,12 @@ pub(super) fn form_field() -> AnyView {
   label="Subscribe to product updates".to_string()
   description="Receive release notes and occasional best-practice tips.".to_string()
   indicator_placement=FormFieldIndicatorPlacement::Start
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"let (tos, set_tos) = signal(false);
+    let states_code = Signal::derive(move || {
+        r#"let (tos, set_tos) = signal(false);
 
 <FormField
   selected=tos
@@ -123,7 +133,9 @@ pub(super) fn form_field() -> AnyView {
   invalid=true
   error_message="Please accept terms to continue.".to_string()
   class_name="docs-form-field-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -132,7 +144,7 @@ pub(super) fn form_field() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers."
         >
-            <Playground title="Switch Indicator + Description" code=code>
+            <Playground title="Switch Indicator + Description" code_signal=code>
                 <div class="docs-stack">
                     <FormField
                         selected=marketing
@@ -148,7 +160,7 @@ pub(super) fn form_field() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Checkbox Indicator + Quiet + Invalid/Disabled" code=states_code>
+            <Playground title="Checkbox Indicator + Quiet + Invalid/Disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <FormField
                         selected=tos
@@ -188,14 +200,18 @@ pub(super) fn form_field() -> AnyView {
 }
 
 pub(super) fn legend() -> AnyView {
-    let required_code = r#"<fieldset class=\"docs-stack\"> 
+    let required_code = Signal::derive(move || {
+        r#"<fieldset class=\"docs-stack\"> 
   <Legend
     text=\"Notification settings\".to_string()
     required=true
   />
-</fieldset>"#;
+</fieldset>"#
+            .to_string()
+    });
 
-    let states_code = r#"<fieldset class=\"docs-stack\"> 
+    let states_code = Signal::derive(move || {
+        r#"<fieldset class=\"docs-stack\"> 
   <Legend
     text=\"Billing preferences\".to_string()
     tone=LegendTone::Muted
@@ -207,7 +223,9 @@ pub(super) fn legend() -> AnyView {
     tone=LegendTone::Strong
     disabled=true
   />
-</fieldset>"#;
+</fieldset>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -216,7 +234,7 @@ pub(super) fn legend() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-compatible fieldset legend primitive with centralized tone/required/disabled contracts and stable slot/data-state markers."
         >
-            <Playground title="Required Legend" code=required_code>
+            <Playground title="Required Legend" code_signal=required_code>
                 <fieldset class="docs-stack">
                     <Legend text="Notification settings".to_string() required=true />
                     <div class="ui-muted">
@@ -225,7 +243,7 @@ pub(super) fn legend() -> AnyView {
                 </fieldset>
             </Playground>
 
-            <Playground title="Tone + Custom Indicator + Disabled" code=states_code>
+            <Playground title="Tone + Custom Indicator + Disabled" code_signal=states_code>
                 <fieldset class="docs-stack">
                     <Legend
                         text="Billing preferences".to_string()

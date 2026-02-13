@@ -129,12 +129,12 @@ fn color_loupe_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Open + Position Buckets\" code=basic_code>",
+        "<Playground title=\"Open + Position Buckets\" code_signal=basic_code>",
         "id_base=\"docs-color-loupe-start\".to_string()",
         "id_base=\"docs-color-loupe-center\".to_string()",
         "id_base=\"docs-color-loupe-end\".to_string()",
         "open=true",
-        "<Playground title=\"Disabled + Custom Label + Custom Class\" code=states_code>",
+        "<Playground title=\"Disabled + Custom Label + Custom Class\" code_signal=states_code>",
         "id_base=\"docs-color-loupe-disabled\".to_string()",
         "disabled=true",
         "id_base=\"docs-color-loupe-custom\".to_string()",

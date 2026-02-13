@@ -200,10 +200,10 @@ fn picker_docs_page_covers_primary_playgrounds() {
         "title=\"Picker\"",
         "slug=\"picker\"",
         "description=\"Spectrum-compatible Picker alias for upstream naming parity, preserving Select accessibility/state contracts and HeroUI-level trigger/listbox interaction behavior.\"",
-        "<Playground title=\"Basic Selection\" code=basic_code>",
-        "<Playground title=\"Controlled Open + Disabled Option\" code=controlled_code>",
+        "<Playground title=\"Basic Selection\" code_signal=basic_code>",
+        "<Playground title=\"Controlled Open + Disabled Option\" code_signal=controlled_code>",
         "title=\"State + Source Markers\"",
-        "code=markers_code",
+        "code_signal=markers_code",
         "<Picker",
     ] {
         assert!(

@@ -37,6 +37,41 @@ pub const CSS: &str = r#"
   animation: ui-button-spin 0.8s linear infinite;
 }
 
+.ui-button__start,
+.ui-button__label,
+.ui-button__end {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ui-button--full-width {
+  width: 100%;
+}
+
+.ui-button--icon-only {
+  padding-inline: 0;
+}
+
+.ui-button--icon-only.ui-button--size-xs {
+  width: 28px;
+}
+
+.ui-button--icon-only.ui-button--size-s {
+  width: 32px;
+}
+
+.ui-button--icon-only.ui-button--size-m {
+  width: 36px;
+}
+
+.ui-button--icon-only.ui-button--size-l {
+  width: 40px;
+}
+
+.ui-button--icon-only.ui-button--size-xl {
+  width: 44px;
+}
+
 .ui-button[data-loading-placement="center"] .ui-button__spinner {
   position: absolute;
   left: 50%;

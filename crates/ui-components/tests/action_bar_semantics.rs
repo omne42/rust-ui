@@ -198,14 +198,14 @@ fn action_bar_docs_default_and_state_playgrounds_lock_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
 
     for needle in [
-        "<Playground title=\"Selection + clear action\" code=code>",
+        "<Playground title=\"Selection + clear action\" code_signal=code>",
         "selected_count=selected_count_signal",
         "on_clear_selection=clear_selection",
         "aria_label=\"Bulk actions\".to_string()",
         "class_name=\"docs-action-bar\".to_string()",
         "<ActionButton>\"Delete\"</ActionButton>",
         "<ActionButton is_quiet=true>\"Archive\"</ActionButton>",
-        "<Playground title=\"Top placement + custom text + reduced motion\" code=state_code>",
+        "<Playground title=\"Top placement + custom text + reduced motion\" code_signal=state_code>",
         "position=ActionBarPosition::Top",
         "force_visible=true",
         "selection_text=\"Rows selected\".to_string()",
@@ -225,7 +225,7 @@ fn action_bar_docs_custom_motion_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
 
     for needle in [
-        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "<Playground title=\"Custom Motion Contract\" code_signal=motion_code>",
         "let mut custom_motion = ActionBarMotion::default();",
         "custom_motion.spring.stiffness = 280.0;",
         "custom_motion.spring.damping = 24.0;",

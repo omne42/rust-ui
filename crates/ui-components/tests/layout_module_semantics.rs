@@ -65,8 +65,8 @@ fn layout_module_docs_page_covers_primary_playgrounds() {
         "title=\"Flex\"",
         "slug=\"flex\"",
         "description=\"Spectrum-style flex layout primitive with centralized direction/wrap/alignment/gap normalization and stable data-state contracts.\"",
-        "<Playground title=\"Direction + Wrap + Gap\" code=matrix_code>",
-        "<Playground title=\"Inline + Distribution\" code=inline_code>",
+        "<Playground title=\"Direction + Wrap + Gap\" code_signal=matrix_code>",
+        "<Playground title=\"Inline + Distribution\" code_signal=inline_code>",
         "<Flex",
     ] {
         assert!(
@@ -80,8 +80,8 @@ fn layout_module_docs_page_covers_primary_playgrounds() {
         "title=\"Grid\"",
         "slug=\"grid\"",
         "description=\"Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts.\"",
-        "<Playground title=\"Columns + Gap\" code=columns_code>",
-        "<Playground title=\"AutoFit + Dense + Equal Rows\" code=adaptive_code>",
+        "<Playground title=\"Columns + Gap\" code_signal=columns_code>",
+        "<Playground title=\"AutoFit + Dense + Equal Rows\" code_signal=adaptive_code>",
         "<Grid",
     ] {
         assert!(

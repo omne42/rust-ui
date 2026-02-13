@@ -4,13 +4,17 @@ use leptos::prelude::*;
 use ui_components::{Sidebar, SidebarCollapsible, SidebarContent, SidebarSide, SidebarVariant};
 
 pub(super) fn sidebar_content() -> AnyView {
-    let default_code = r#"<SidebarContent aria_label="Workspace content".to_string()>
+    let default_code = Signal::derive(move || {
+        r#"<SidebarContent aria_label="Workspace content".to_string()>
   <span>"Dashboard"</span>
   <span>"Projects"</span>
   <span>"Billing"</span>
-</SidebarContent>"#;
+</SidebarContent>"#
+            .to_string()
+    });
 
-    let compact_code = r#"<SidebarContent
+    let compact_code = Signal::derive(move || {
+        r#"<SidebarContent
   padded=false
   scrollable=false
   aria_label="Compact static content".to_string()
@@ -18,7 +22,9 @@ pub(super) fn sidebar_content() -> AnyView {
 >
   <span class="ui-muted">"Activity"</span>
   <span class="ui-muted">"Usage"</span>
-</SidebarContent>"#;
+</SidebarContent>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -27,7 +33,7 @@ pub(super) fn sidebar_content() -> AnyView {
             group="Layout"
             description="Shadcn-compatible sidebar content region primitive with centralized padding/scroll/state contracts and Spectrum-style data markers."
         >
-            <Playground title="Default Scrollable Content" code=default_code>
+            <Playground title="Default Scrollable Content" code_signal=default_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -44,7 +50,7 @@ pub(super) fn sidebar_content() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Compact + Static + Custom" code=compact_code>
+            <Playground title="Compact + Static + Custom" code_signal=compact_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Inset

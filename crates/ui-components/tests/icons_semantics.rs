@@ -156,7 +156,7 @@ fn icons_docs_default_and_custom_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_icons.rs");
 
     for needle in [
-        "<Playground title=\"Medium + Large Set Selection\" code=default_code>",
+        "<Playground title=\"Medium + Large Set Selection\" code_signal=default_code>",
         "name=\"check\".to_string()",
         "set=IconsSet::Ui",
         "scale=IconsScale::Medium",
@@ -164,7 +164,7 @@ fn icons_docs_default_and_custom_playgrounds_lock_contract_values() {
         "name=\"workflow:warning\".to_string()",
         "scale=IconsScale::Large",
         "tone=IconsTone::Danger",
-        "<Playground title=\"Custom Workflow Glyph Extension\" code=custom_code>",
+        "<Playground title=\"Custom Workflow Glyph Extension\" code_signal=custom_code>",
         "name=\"workflow:deploy\".to_string()",
         "set=IconsSet::Workflow",
         "tone=IconsTone::Default",
@@ -213,8 +213,8 @@ fn icons_docs_page_covers_primary_playgrounds() {
         "title=\"Icons\"",
         "slug=\"icons\"",
         "description=\"Spectrum-compatible `icons` package wrapper that maps medium/large scale and ui/workflow set selection onto IconsUi/IconsWorkflow with stable source-state contracts.\"",
-        "<Playground title=\"Medium + Large Set Selection\" code=default_code>",
-        "<Playground title=\"Custom Workflow Glyph Extension\" code=custom_code>",
+        "<Playground title=\"Medium + Large Set Selection\" code_signal=default_code>",
+        "<Playground title=\"Custom Workflow Glyph Extension\" code_signal=custom_code>",
         "title=\"State + Source Markers\"",
         "<Icons",
     ] {

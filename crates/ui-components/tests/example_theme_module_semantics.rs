@@ -77,8 +77,8 @@ fn example_theme_module_docs_page_covers_primary_playgrounds() {
         "pub(super) fn ui_root() -> AnyView",
         "title=\"UiRoot\"",
         "slug=\"ui-root\"",
-        "<Playground title=\"Usage\" code=usage_code>",
-        "<Playground title=\"State Contract\" code=contract_code>",
+        "<Playground title=\"Usage\" code_signal=usage_code>",
+        "<Playground title=\"State Contract\" code_signal=contract_code>",
         "<UiRoot",
     ] {
         assert!(
@@ -93,11 +93,11 @@ fn example_theme_module_docs_playgrounds_lock_state_matrix_contract_values() {
     let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
 
     for needle in [
-        "let usage_code = r#\"use ui_components::{UiRoot, Theme};",
+        "let usage_code = Signal::derive(move || {",
         "let theme = Signal::derive(|| Theme::dark());",
         "<UiRoot theme=theme safe_area=true>",
         "title=\"State Contract\"",
-        "let contract_code = r#\"<UiRoot ...>",
+        "let contract_code = Signal::derive(move || {",
         "data-theme-scheme=\"light|dark\"",
         "data-state=\"default|safe-area\"",
         "data-safe-area=\"true\" (optional)",

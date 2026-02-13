@@ -102,7 +102,7 @@ fn illustrated_message_docs_page_covers_primary_playgrounds() {
         "pub(super) fn illustrated_message() -> AnyView",
         "title=\"IllustratedMessage\"",
         "slug=\"illustrated-message\"",
-        "Playground title=\"Empty state\"",
+        "title=\"Empty state\"",
     ] {
         assert!(
             source.contains(needle),
@@ -116,7 +116,7 @@ fn illustrated_message_docs_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
-        "let code = r#\"<IllustratedMessage title=\"Empty\".to_string() description=\"Nothing here\".to_string() />\"#;",
+        "let code = Signal::derive(move || {",
         "title=\"No results\".to_string()",
         "description=\"Try changing your search.\".to_string()",
         "illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }",
@@ -136,7 +136,7 @@ fn illustrated_message_docs_playgrounds_lock_state_matrix_contract_values() {
     for needle in [
         "title=\"IllustratedMessage\"",
         "slug=\"illustrated-message\"",
-        "Playground title=\"Empty state\"",
+        "title=\"Empty state\"",
         "title=\"No results\".to_string()",
         "description=\"Try changing your search.\".to_string()",
         "illustration=move || view! { <div class=\"docs-illustration\">\"◎\"</div> }",

@@ -81,8 +81,8 @@ fn gridlist_module_docs_page_covers_primary_playgrounds() {
     for needle in [
         "title=\"ListBox\"",
         "slug=\"listbox\"",
-        "<Playground title=\"Selection + Typeahead\" code=code>",
-        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<Playground title=\"Selection + Typeahead\" code_signal=code>",
+        "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<ListBox",
     ] {
         assert!(

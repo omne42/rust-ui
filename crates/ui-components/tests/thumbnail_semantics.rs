@@ -176,14 +176,14 @@ fn thumbnail_docs_default_and_state_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_thumbnail.rs");
 
     for needle in [
-        "<Playground title=\"Sizes\" code=size_code>",
+        "<Playground title=\"Sizes\" code_signal=size_code>",
         "size=ThumbnailSize::Size100",
         "size=ThumbnailSize::Size500",
         "size=ThumbnailSize::Size900",
         "alt=\"Landscape\"",
         "alt=\"Portrait\"",
         "alt=\"Panorama\"",
-        "<Playground title=\"Cover + Background + Layer + Selected\" code=state_code>",
+        "<Playground title=\"Cover + Background + Layer + Selected\" code_signal=state_code>",
         "size=ThumbnailSize::Size600",
         "background=\"#0f172a\".to_string()",
         "cover=true",
@@ -206,7 +206,7 @@ fn thumbnail_docs_custom_motion_playground_locks_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_thumbnail.rs");
 
     for needle in [
-        "<Playground title=\"Custom Motion Contract\" code=motion_code>",
+        "<Playground title=\"Custom Motion Contract\" code_signal=motion_code>",
         "let custom_motion = ThumbnailMotion {",
         "active_scale: 1.08,",
         "active_ring_opacity: 0.9,",

@@ -213,9 +213,9 @@ fn share_button_docs_page_covers_primary_playgrounds() {
         "title=\"ShareButton\"",
         "slug=\"share-button\"",
         "description=\"Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion.\"",
-        "<Playground title=\"Default + callback\" code=code>",
-        "<Playground title=\"Icon placement + custom items\" code=states_code>",
-        "<Playground title=\"Custom Class + Direction\" code=custom_code>",
+        "<Playground title=\"Default + callback\" code_signal=code>",
+        "<Playground title=\"Icon placement + custom items\" code_signal=states_code>",
+        "<Playground title=\"Custom Class + Direction\" code_signal=custom_code>",
         "<ShareButton",
     ] {
         assert!(

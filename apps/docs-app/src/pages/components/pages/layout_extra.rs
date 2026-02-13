@@ -35,7 +35,8 @@ use ui_components::{
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
-    let preset_code = r#"<AspectRatio ratio=AspectRatioPreset::Square radius=AspectRatioRadius::Sm fill=true>
+    let preset_code = Signal::derive(move || {
+        r#"<AspectRatio ratio=AspectRatioPreset::Square radius=AspectRatioRadius::Sm fill=true>
   <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::None>"1:1"</View>
 </AspectRatio>
 <AspectRatio ratio=AspectRatioPreset::Video radius=AspectRatioRadius::Md fill=true>
@@ -43,9 +44,11 @@ pub(super) fn aspect_ratio() -> AnyView {
 </AspectRatio>
 <AspectRatio ratio=AspectRatioPreset::Portrait radius=AspectRatioRadius::Md fill=true>
   <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::None>"3:4"</View>
-</AspectRatio>"#;
+</AspectRatio>"#.to_string()
+    });
 
-    let framed_code = r#"<AspectRatio
+    let framed_code = Signal::derive(move || {
+        r#"<AspectRatio
   ratio=AspectRatioPreset::UltraWide
   radius=AspectRatioRadius::Lg
   bordered=true
@@ -61,7 +64,9 @@ pub(super) fn aspect_ratio() -> AnyView {
   >
     "21:9 framed media"
   </View>
-</AspectRatio>"#;
+</AspectRatio>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -70,7 +75,7 @@ pub(super) fn aspect_ratio() -> AnyView {
             group="Layout"
             description="Shadcn/HeroUI-compatible media frame primitive with centralized ratio/radius/frame/source normalization and stable state-marker contracts."
         >
-            <Playground title="Ratio Presets" code=preset_code>
+            <Playground title="Ratio Presets" code_signal=preset_code>
                 <div class="docs-stack">
                     <AspectRatio ratio=AspectRatioPreset::Square radius=AspectRatioRadius::Sm fill=true>
                         <View
@@ -111,7 +116,7 @@ pub(super) fn aspect_ratio() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Bordered + Fill + Custom Aria/Class" code=framed_code>
+            <Playground title="Bordered + Fill + Custom Aria/Class" code_signal=framed_code>
                 <AspectRatio
                     ratio=AspectRatioPreset::UltraWide
                     radius=AspectRatioRadius::Lg
@@ -136,14 +141,18 @@ pub(super) fn aspect_ratio() -> AnyView {
 }
 
 pub(super) fn grid() -> AnyView {
-    let columns_code = r#"<Grid columns=GridColumns::Three gap=GridGap::Md>
+    let columns_code = Signal::derive(move || {
+        r#"<Grid columns=GridColumns::Three gap=GridGap::Md>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"A"</View>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"B"</View>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"C"</View>
   <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>"D"</View>
-</Grid>"#;
+</Grid>"#
+            .to_string()
+    });
 
-    let adaptive_code = r#"<Grid
+    let adaptive_code = Signal::derive(move || {
+        r#"<Grid
   columns=GridColumns::AutoFit
   rows=GridRows::Equal
   gap=GridGap::Lg
@@ -155,7 +164,8 @@ pub(super) fn grid() -> AnyView {
   <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Sm>"Revenue"</View>
   <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Sm>"Users"</View>
   <View background=ViewBackground::Subtle border=ViewBorder::Subtle padding=ViewPadding::Md radius=ViewRadius::Sm>"Latency"</View>
-</Grid>"#;
+</Grid>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -164,7 +174,7 @@ pub(super) fn grid() -> AnyView {
             group="Layout"
             description="Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts."
         >
-            <Playground title="Columns + Gap" code=columns_code>
+            <Playground title="Columns + Gap" code_signal=columns_code>
                 <Grid columns=GridColumns::Three gap=GridGap::Md aria_label="Overview cards grid".to_string()>
                     <View border=ViewBorder::Subtle padding=ViewPadding::Sm radius=ViewRadius::Sm>
                         "A"
@@ -187,7 +197,7 @@ pub(super) fn grid() -> AnyView {
                 </Grid>
             </Playground>
 
-            <Playground title="AutoFit + Dense + Equal Rows" code=adaptive_code>
+            <Playground title="AutoFit + Dense + Equal Rows" code_signal=adaptive_code>
                 <Grid
                     columns=GridColumns::AutoFit
                     rows=GridRows::Equal
@@ -237,25 +247,50 @@ pub(super) fn grid() -> AnyView {
 }
 
 pub(super) fn scroll_area() -> AnyView {
-    let default_code = r#"<ScrollArea max_height_px=180>
-  {rows}
-</ScrollArea>"#;
+    let default_code = Signal::derive(move || {
+        r#"<ScrollArea max_height_px=180>
+  <div class="docs-stack docs-stack--tight">
+    {(1..=24)
+      .map(|idx| {
+        view! { <div class="docs-scroll-shadow-item">{format!("Release note {idx}")}</div> }
+      })
+      .collect_view()}
+  </div>
+</ScrollArea>"#
+            .to_string()
+    });
 
-    let state_code = r#"<ScrollArea
+    let state_code = Signal::derive(move || {
+        r#"<ScrollArea
   orientation=ScrollAreaOrientation::Horizontal
   max_height_px=120
   class_name="docs-scroll-area-custom".to_string()
 >
-  {chips}
+  <div class="docs-row">
+    {(1..=16)
+      .map(|idx| {
+        view! { <span class="ui-chip ui-chip--flat docs-scroll-area-chip">{format!("Tag {idx}")}</span> }
+      })
+      .collect_view()}
+  </div>
 </ScrollArea>
+
 <ScrollArea
   orientation=ScrollAreaOrientation::Both
   disabled=true
   max_height_px=120
   aria_label="Disabled logs".to_string()
 >
-  {grid}
-</ScrollArea>"#;
+  <div class="docs-scroll-area-grid">
+    {(1..=20)
+      .map(|idx| {
+        view! { <div class="docs-scroll-shadow-item">{format!("Cell {idx}")}</div> }
+      })
+      .collect_view()}
+  </div>
+</ScrollArea>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -264,7 +299,7 @@ pub(super) fn scroll_area() -> AnyView {
             group="Layout"
             description="Shadcn-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts."
         >
-            <Playground title="Vertical + Max Height" code=default_code>
+            <Playground title="Vertical + Max Height" code_signal=default_code>
                 <ScrollArea max_height_px=180>
                     <div class="docs-stack docs-stack--tight">
                         {(1..=24)
@@ -276,7 +311,7 @@ pub(super) fn scroll_area() -> AnyView {
                 </ScrollArea>
             </Playground>
 
-            <Playground title="Horizontal + Both + Disabled" code=state_code>
+            <Playground title="Horizontal + Both + Disabled" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
                     <ScrollArea
                         orientation=ScrollAreaOrientation::Horizontal
@@ -322,15 +357,19 @@ pub(super) fn scroll_area() -> AnyView {
 }
 
 pub(super) fn resizable() -> AnyView {
-    let horizontal_code = r#"<Resizable
+    let horizontal_code = Signal::derive(move || {
+        r#"<Resizable
   orientation=ResizableOrientation::Horizontal
   default_split_percent=36.0
   with_handle=true
   first=move || view! { <div>"Sidebar"</div> }
   second=move || view! { <div>"Content"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let vertical_code = r#"let (split_raw, set_split_raw) = signal(58.0_f64);
+    let vertical_code = Signal::derive(move || {
+        r#"let (split_raw, set_split_raw) = signal(58.0_f64);
 let split: Signal<f64> = Signal::derive(move || split_raw.get());
 
 <Resizable
@@ -343,7 +382,9 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
   class_name="docs-resizable-custom".to_string()
   first=move || view! { <div>"Header"</div> }
   second=move || view! { <div>"Body"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let (split_raw, set_split_raw) = signal(58.0_f64);
     let split: Signal<f64> = Signal::derive(move || split_raw.get());
@@ -358,7 +399,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
             group="Layout"
             description="Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and Spectrum-style state data contracts."
         >
-            <Playground title="Horizontal + Handle Grip" code=horizontal_code>
+            <Playground title="Horizontal + Handle Grip" code_signal=horizontal_code>
                 <Resizable
                     orientation=ResizableOrientation::Horizontal
                     default_split_percent=36.0
@@ -396,7 +437,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                 />
             </Playground>
 
-            <Playground title="Controlled + Vertical Bounds" code=vertical_code>
+            <Playground title="Controlled + Vertical Bounds" code_signal=vertical_code>
                 <div class="docs-stack docs-stack--tight">
                     <Resizable
                         orientation=ResizableOrientation::Vertical
@@ -444,7 +485,8 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
 }
 
 pub(super) fn sidebar() -> AnyView {
-    let basic_code = r#"<Sidebar
+    let basic_code = Signal::derive(move || {
+        r#"<Sidebar
   side=SidebarSide::Left
   variant=SidebarVariant::Sidebar
   collapsible=SidebarCollapsible::Offcanvas
@@ -456,9 +498,12 @@ pub(super) fn sidebar() -> AnyView {
     <span>"Settings"</span>
   </div>
   <div class="ui-sidebar__footer"><span>"Free plan"</span></div>
-</Sidebar>"#;
+</Sidebar>"#
+            .to_string()
+    });
 
-    let controlled_code = r#"let (open_raw, set_open_raw) = signal(true);
+    let controlled_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
 let open: Signal<bool> = Signal::derive(move || open_raw.get());
 let on_open_change = Callback::new(move |next| set_open_raw.set(next));
 
@@ -478,7 +523,9 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
   <div class="ui-sidebar__header"><strong>"Inspector"</strong></div>
   <div class="ui-sidebar__content"><span>"Layers"</span><span>"Tokens"</span></div>
   <div class="ui-sidebar__footer"><span>"Ctrl+B / Cmd+B"</span></div>
-</Sidebar>"#;
+</Sidebar>"#
+            .to_string()
+    });
 
     let (open_raw, set_open_raw) = signal(true);
     let open: Signal<bool> = Signal::derive(move || open_raw.get());
@@ -491,7 +538,7 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
             group="Layout"
             description="Shadcn-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and Spectrum-style data markers."
         >
-            <Playground title="Offcanvas + Slot Markers" code=basic_code>
+            <Playground title="Offcanvas + Slot Markers" code_signal=basic_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -538,7 +585,7 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
                 </Sidebar>
             </Playground>
 
-            <Playground title="Controlled + Right Inset/Icon" code=controlled_code>
+            <Playground title="Controlled + Right Inset/Icon" code_signal=controlled_code>
                 <div class="docs-stack docs-stack--tight">
                     <button
                         class="ui-button"
@@ -583,19 +630,25 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
 }
 
 pub(super) fn sidebar_header() -> AnyView {
-    let basic_code = r#"<SidebarHeader aria_label="Workspace header".to_string()>
+    let basic_code = Signal::derive(move || {
+        r#"<SidebarHeader aria_label="Workspace header".to_string()>
   <strong>"Workspace"</strong>
   <span class="ui-muted">"5 active projects"</span>
-</SidebarHeader>"#;
+</SidebarHeader>"#
+            .to_string()
+    });
 
-    let disabled_code = r#"<SidebarHeader
+    let disabled_code = Signal::derive(move || {
+        r#"<SidebarHeader
   disabled=true
   aria_label="Disabled inspector header".to_string()
   class_name="docs-sidebar-header-custom".to_string()
 >
   <strong>"Inspector"</strong>
   <span class="ui-muted">"Read-only mode"</span>
-</SidebarHeader>"#;
+</SidebarHeader>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -604,7 +657,7 @@ pub(super) fn sidebar_header() -> AnyView {
             group="Layout"
             description="Shadcn-compatible sidebar header region primitive with centralized disabled/source-state contracts and Spectrum-style data markers."
         >
-            <Playground title="Default Header Region" code=basic_code>
+            <Playground title="Default Header Region" code_signal=basic_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -624,7 +677,7 @@ pub(super) fn sidebar_header() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Disabled + Custom Class" code=disabled_code>
+            <Playground title="Disabled + Custom Class" code_signal=disabled_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Inset
@@ -768,23 +821,93 @@ pub(super) fn sidebar_menu() -> AnyView {
     let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
     let on_active_change = Callback::new(move |next: Option<String>| set_active_raw.set(next));
 
-    let badge_code = r#"<SidebarMenu
-  items=items
-  on_action=Callback::new(move |id: String| set_last_action.set(id))
-  on_item_action=Callback::new(move |id: String| set_last_item_action.set(id))
-/>"#;
-
-    let controlled_code = r#"let (active_raw, set_active_raw) = signal(Some("tokens".to_string()));
-let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
+    let badge_code = Signal::derive(move || {
+        r#"let (last_action, set_last_action) = signal("none".to_string());
+let (last_item_action, set_last_item_action) = signal("none".to_string());
 
 <SidebarMenu
-  items=items
-  active_id=active
+  items=vec![
+    SidebarMenuItem {
+      id: "activity".to_string(),
+      label: "Activity".to_string(),
+      href: Some("/activity".to_string()),
+      badge: Some("4".to_string()),
+      action_label: Some("Activity actions".to_string()),
+      disabled: false,
+      sub_items: vec![],
+      default_sub_open: false,
+    },
+    SidebarMenuItem {
+      id: "billing".to_string(),
+      label: "Billing".to_string(),
+      href: Some("/billing".to_string()),
+      badge: Some("1".to_string()),
+      action_label: Some("Billing actions".to_string()),
+      disabled: false,
+      sub_items: vec![],
+      default_sub_open: false,
+    },
+  ]
+  on_action=Callback::new(move |id: String| set_last_action.set(id))
+  on_item_action=Callback::new(move |id: String| set_last_item_action.set(id))
+/>
+<span class="ui-muted">"Action: " {move || last_action.get()} " · Item action: " {move || last_item_action.get()}</span>"#
+        .to_string()
+    });
+
+    let controlled_code = Signal::derive(move || {
+        r#"let (active_raw, set_active_raw) = signal(Some("tokens".to_string()));
+
+<SidebarMenu
+  items=vec![
+    SidebarMenuItem {
+      id: "workspace".to_string(),
+      label: "Workspace".to_string(),
+      href: None,
+      badge: None,
+      action_label: Some("Workspace actions".to_string()),
+      disabled: false,
+      sub_items: vec![
+        SidebarMenuSubItem {
+          id: "overview".to_string(),
+          label: "Overview".to_string(),
+          href: Some("/workspace/overview".to_string()),
+          disabled: false,
+        },
+        SidebarMenuSubItem {
+          id: "tokens".to_string(),
+          label: "Design tokens".to_string(),
+          href: Some("/workspace/tokens".to_string()),
+          disabled: false,
+        },
+      ],
+      default_sub_open: true,
+    },
+    SidebarMenuItem {
+      id: "releases".to_string(),
+      label: "Releases".to_string(),
+      href: None,
+      badge: None,
+      action_label: Some("Release actions".to_string()),
+      disabled: false,
+      sub_items: vec![SidebarMenuSubItem {
+        id: "changelog".to_string(),
+        label: "Changelog".to_string(),
+        href: Some("/releases/changelog".to_string()),
+        disabled: false,
+      }],
+      default_sub_open: false,
+    },
+  ]
+  active_id=Signal::derive(move || active_raw.get())
   on_active_id_change=Callback::new(move |next| set_active_raw.set(next))
   allow_submenu_collapse=true
   show_badges=false
   show_actions=true
-/>"#;
+/>
+<span class="ui-muted">"active: " {move || active_raw.get().unwrap_or_else(|| "none".to_string())}</span>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -793,7 +916,7 @@ let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
             group="Layout"
             description="Shadcn-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, Spectrum-style data contracts, and HeroUI-level active-highlight motion."
         >
-            <Playground title="Badge + Item Action" code=badge_code>
+            <Playground title="Badge + Item Action" code_signal=badge_code>
                 <div class="docs-stack docs-stack--tight">
                     <Sidebar
                         side=SidebarSide::Left
@@ -819,7 +942,7 @@ let active: Signal<Option<String>> = Signal::derive(move || active_raw.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled + Collapsible Submenu" code=controlled_code>
+            <Playground title="Controlled + Collapsible Submenu" code_signal=controlled_code>
                 <div class="docs-stack docs-stack--tight">
                     <Sidebar
                         side=SidebarSide::Left

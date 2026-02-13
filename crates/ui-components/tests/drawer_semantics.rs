@@ -289,7 +289,7 @@ fn drawer_docs_page_covers_primary_playgrounds() {
         "title=\"Drawer\"",
         "slug=\"drawer\"",
         "description=\"Sheet composition with centralized placement/description/footer/close state attrs and stable drawer slots.\"",
-        "<Playground title=\"Right Drawer + Slots\" code=semantic_code>",
+        "<Playground title=\"Right Drawer + Slots\" code_signal=semantic_code>",
         "title=\"State + Source Markers\"",
         "<Drawer",
         "placement=DrawerPlacement::Right",

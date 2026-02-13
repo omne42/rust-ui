@@ -139,8 +139,8 @@ fn slider_docs_page_covers_primary_playgrounds() {
         "title=\"Slider\"",
         "slug=\"slider\"",
         "description=\"Range slider with spring-driven fill/thumb motion and Spectrum-style state data contracts.\"",
-        "<Playground title=\"Controlled + on_change\" code=code>",
-        "<Playground title=\"Disabled + Fine Step\" code=states_code>",
+        "<Playground title=\"Controlled + on_change\" code_signal=code>",
+        "<Playground title=\"Disabled + Fine Step\" code_signal=states_code>",
         "<Slider",
     ] {
         assert!(

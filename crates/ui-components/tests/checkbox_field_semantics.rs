@@ -150,11 +150,11 @@ fn checkbox_field_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");
 
     for needle in [
-        "<Playground title=\"Controlled + Description\" code=code>",
+        "<Playground title=\"Controlled + Description\" code_signal=code>",
         "id_base=\"docs-checkbox-field-newsletter\".to_string()",
         "label=\"Subscribe to product updates\".to_string()",
         "description=\"Receive release notes and occasional best-practice tips.\".to_string()",
-        "<Playground title=\"Indicator End + Quiet + Invalid/Disabled\" code=states_code>",
+        "<Playground title=\"Indicator End + Quiet + Invalid/Disabled\" code_signal=states_code>",
         "id_base=\"docs-checkbox-field-terms\".to_string()",
         "indicator_placement=CheckboxFieldIndicatorPlacement::End",
         "tone=CheckboxFieldTone::Quiet",

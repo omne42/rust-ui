@@ -14,15 +14,19 @@ pub(super) fn split_view() -> AnyView {
     let marker_split: Signal<f64> = Signal::derive(move || marker_split_raw.get());
     let marker_on_split_change = Callback::new(move |next: f64| set_marker_split_raw.set(next));
 
-    let horizontal_code = r#"<SplitView
+    let horizontal_code = Signal::derive(move || {
+        r#"<SplitView
   orientation=ResizableOrientation::Horizontal
   default_split_percent=40.0
   with_handle=true
   first=move || view! { <div>\"Navigation\"</div> }
   second=move || view! { <div>\"Inspector\"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let vertical_code = r#"let (split_raw, set_split_raw) = signal(62.0_f64);
+    let vertical_code = Signal::derive(move || {
+        r#"let (split_raw, set_split_raw) = signal(62.0_f64);
 let split: Signal<f64> = Signal::derive(move || split_raw.get());
 
 <SplitView
@@ -35,9 +39,12 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
   class_name=\"docs-split-view-custom\".to_string()
   first=move || view! { <div>\"Header\"</div> }
   second=move || view! { <div>\"Body\"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"let (split_raw, set_split_raw) = signal(58.0_f64);
+    let markers_code = Signal::derive(move || {
+        r#"let (split_raw, set_split_raw) = signal(58.0_f64);
 let split: Signal<f64> = Signal::derive(move || split_raw.get());
 
 <SplitView
@@ -52,7 +59,9 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
   class_name=\"docs-split-view-state\".to_string()
   first=move || view! { <div>\"Left\"</div> }
   second=move || view! { <div>\"Right\"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -61,7 +70,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
             group="Layout"
             description="Spectrum-compatible SplitView alias for upstream naming parity, preserving Resizable controlled/uncontrolled split contracts and HeroUI-level drag/keyboard handle interaction behavior."
         >
-            <Playground title="Horizontal + Default Split" code=horizontal_code>
+            <Playground title="Horizontal + Default Split" code_signal=horizontal_code>
                 <SplitView
                     orientation=ResizableOrientation::Horizontal
                     default_split_percent=40.0
@@ -93,7 +102,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                 />
             </Playground>
 
-            <Playground title="Controlled + Vertical Bounds" code=vertical_code>
+            <Playground title="Controlled + Vertical Bounds" code_signal=vertical_code>
                 <div class="docs-stack docs-stack--tight">
                     <SplitView
                         orientation=ResizableOrientation::Vertical
@@ -139,7 +148,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
             <Playground
                 title="State + Source Markers"
                 description="Inspect wrapper markers like `data-state`, `data-orientation`, `data-split-mode`, `data-handle`, `data-default-split-source`, `data-bounds-source`, `data-label-source`, `data-class-source`, and `data-handler-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <SplitView

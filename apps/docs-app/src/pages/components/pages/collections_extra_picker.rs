@@ -27,50 +27,85 @@ pub(super) fn picker() -> AnyView {
     let marker_open: Signal<bool> = Signal::derive(move || marker_open_raw.get());
     let marker_on_open_change = Callback::new(move |next: bool| set_marker_open_raw.set(next));
 
-    let basic_code = r#"let (selected, set_selected) = signal(Some(1_usize));
-<Picker
-  id_base=\"region\".to_string()
-  items=items
-  selected_index=selected
-  set_selected_index=set_selected
-  placeholder=\"Choose region\".to_string()
-/>"#;
+    let basic_code = Signal::derive(move || {
+        let selected = selected.get();
+        let selected_literal = selected
+            .map(|value| format!("Some({value}_usize)"))
+            .unwrap_or_else(|| "None".to_string());
 
-    let controlled_code = r#"let (open_raw, set_open_raw) = signal(false);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
+        vec![
+            format!("let (selected, set_selected) = signal({selected_literal});"),
+            String::new(),
+            "<Picker".to_string(),
+            "  id_base=\"region\".to_string()".to_string(),
+            "  items=items".to_string(),
+            "  selected_index=selected".to_string(),
+            "  set_selected_index=set_selected".to_string(),
+            "  placeholder=\"Choose region\".to_string()".to_string(),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
 
-<Picker
-  id_base=\"region-controlled\".to_string()
-  items=items
-  selected_index=selected
-  set_selected_index=set_selected
-  open=open
-  on_open_change=Callback::new(move |next| set_open_raw.set(next))
-  disabled_indices=vec![3]
-/>"#;
+    let controlled_code = Signal::derive(move || {
+        let selected = selected_controlled.get();
+        let selected_literal = selected
+            .map(|value| format!("Some({value}_usize)"))
+            .unwrap_or_else(|| "None".to_string());
+        let open_raw = open_raw.get();
 
-    let markers_code = r#"let (open_raw, set_open_raw) = signal(true);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
+        vec![
+            format!("let (selected, set_selected) = signal({selected_literal});"),
+            format!("let (open_raw, set_open_raw) = signal({open_raw});"),
+            "let open: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
+            String::new(),
+            "<Picker".to_string(),
+            "  id_base=\"region-controlled\".to_string()".to_string(),
+            "  items=items".to_string(),
+            "  selected_index=selected".to_string(),
+            "  set_selected_index=set_selected".to_string(),
+            "  open=open".to_string(),
+            "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
+            "  disabled_indices=vec![3]".to_string(),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
 
-<Picker
-  id_base=\"region-markers\".to_string()
-  items=items
-  selected_index=selected
-  set_selected_index=set_selected
-  open=open
-  default_open=true
-  on_open_change=Callback::new(move |next| set_open_raw.set(next))
-  disabled_indices=vec![1]
-  motion=SelectMotion {
-    popover: PopoverMotion {
-      initial_scale: 1.0,
-      offset_y_px: 0.0,
-      ..PopoverMotion::default()
-    }
-  }
-  placeholder=\"Pick region\".to_string()
-  class_name=\"docs-picker-state\".to_string()
-/>"#;
+    let markers_code = Signal::derive(move || {
+        let selected = marker_selected.get();
+        let selected_literal = selected
+            .map(|value| format!("Some({value}_usize)"))
+            .unwrap_or_else(|| "None".to_string());
+        let open_raw = marker_open_raw.get();
+
+        vec![
+            format!("let (selected, set_selected) = signal({selected_literal});"),
+            format!("let (open_raw, set_open_raw) = signal({open_raw});"),
+            "let open: Signal<bool> = Signal::derive(move || open_raw.get());".to_string(),
+            String::new(),
+            "<Picker".to_string(),
+            "  id_base=\"region-markers\".to_string()".to_string(),
+            "  items=items".to_string(),
+            "  selected_index=selected".to_string(),
+            "  set_selected_index=set_selected".to_string(),
+            "  open=open".to_string(),
+            "  default_open=true".to_string(),
+            "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
+            "  disabled_indices=vec![1]".to_string(),
+            "  motion=SelectMotion {".to_string(),
+            "    popover: PopoverMotion {".to_string(),
+            "      initial_scale: 1.0,".to_string(),
+            "      offset_y_px: 0.0,".to_string(),
+            "      ..PopoverMotion::default()".to_string(),
+            "    }".to_string(),
+            "  }".to_string(),
+            "  placeholder=\"Pick region\".to_string()".to_string(),
+            "  class_name=\"docs-picker-state\".to_string()".to_string(),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
 
     view! {
         <ComponentPage
@@ -79,7 +114,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             group="Collections"
             description="Spectrum-compatible Picker alias for upstream naming parity, preserving Select accessibility/state contracts and HeroUI-level trigger/listbox interaction behavior."
         >
-            <Playground title="Basic Selection" code=basic_code>
+            <Playground title="Basic Selection" code_signal=basic_code>
                 <div class="docs-stack">
                     <Picker
                         id_base="docs-picker-basic".to_string()
@@ -95,7 +130,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled Open + Disabled Option" code=controlled_code>
+            <Playground title="Controlled Open + Disabled Option" code_signal=controlled_code>
                 <div class="docs-stack">
                     <Picker
                         id_base="docs-picker-controlled".to_string()
@@ -113,7 +148,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             <Playground
                 title="State + Source Markers"
                 description="Inspect wrapper markers like `data-state`, `data-selection`, `data-disabled-options`, `data-open-mode`, `data-initial-open`, `data-placeholder-source`, `data-handler-source`, `data-placement-source`, and `data-motion-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <Picker

@@ -143,8 +143,8 @@ fn sidebar_footer_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarFooter\"",
         "slug=\"sidebar-footer\"",
         "description=\"Shadcn-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and Spectrum-style data markers.\"",
-        "<Playground title=\"Default Footer Region\" code=default_code>",
-        "<Playground title=\"Disabled + Custom Class\" code=disabled_code>",
+        "<Playground title=\"Default Footer Region\" code_signal=default_code>",
+        "<Playground title=\"Disabled + Custom Class\" code_signal=disabled_code>",
         "<SidebarFooter",
     ] {
         assert!(

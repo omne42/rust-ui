@@ -118,8 +118,8 @@ fn label_docs_page_covers_primary_playgrounds() {
         "title=\"Label\"",
         "slug=\"label\"",
         "description=\"Form label primitive with centralized required/emphasis/source state contracts.\"",
-        "<Playground title=\"Emphasis + Required\" code=emphasis_code>",
-        "<Playground title=\"Custom Indicator + Class\" code=custom_code>",
+        "<Playground title=\"Emphasis + Required\" code_signal=emphasis_code>",
+        "<Playground title=\"Custom Indicator + Class\" code_signal=custom_code>",
         "<Label",
     ] {
         assert!(

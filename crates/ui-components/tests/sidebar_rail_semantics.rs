@@ -164,8 +164,8 @@ fn sidebar_rail_docs_page_covers_primary_playgrounds() {
         r#"title="SidebarRail""#,
         r#"slug="sidebar-rail""#,
         r#"description="Shadcn-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and Spectrum-style data markers.""#,
-        r#"<Playground title="Default Rail" code=default_code>"#,
-        r#"<Playground title="Controlled Right Rail" code=controlled_code>"#,
+        r#"<Playground title="Default Rail" code_signal=default_code>"#,
+        r#"<Playground title="Controlled Right Rail" code_signal=controlled_code>"#,
         "<SidebarRail",
     ] {
         assert!(

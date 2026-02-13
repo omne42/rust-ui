@@ -127,8 +127,8 @@ fn sidebar_header_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarHeader\"",
         "slug=\"sidebar-header\"",
         "description=\"Shadcn-compatible sidebar header region primitive with centralized disabled/source-state contracts and Spectrum-style data markers.\"",
-        "<Playground title=\"Default Header Region\" code=basic_code>",
-        "<Playground title=\"Disabled + Custom Class\" code=disabled_code>",
+        "<Playground title=\"Default Header Region\" code_signal=basic_code>",
+        "<Playground title=\"Disabled + Custom Class\" code_signal=disabled_code>",
         "<SidebarHeader",
     ] {
         assert!(

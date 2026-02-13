@@ -112,7 +112,7 @@ fn image_docs_page_covers_primary_playgrounds() {
         "pub(super) fn image() -> AnyView",
         "title=\"Image\"",
         "slug=\"image\"",
-        "Playground title=\"Image\"",
+        "title=\"Image\"",
     ] {
         assert!(
             source.contains(needle),
@@ -126,7 +126,7 @@ fn image_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
-        "let code = r#\"<Image src=Some(src.to_string()) alt=\"Demo\".to_string() />\"#;",
+        "let code = Signal::derive(move || {",
         "<Image",
         "src=src.to_string()",
         "alt=\"Demo image\".to_string()",

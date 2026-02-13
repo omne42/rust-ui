@@ -62,8 +62,8 @@ fn hidden_date_input_module_docs_page_covers_primary_playgrounds() {
         "title=\"DateInputGroup\"",
         "slug=\"date-input-group\"",
         "description=\"Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers.\"",
-        "<Playground title=\"DateField + Prefix/Suffix\" code=code>",
-        "<Playground title=\"Secondary + Full Width + Invalid\" code=states_code>",
+        "<Playground title=\"DateField + Prefix/Suffix\" code_signal=code>",
+        "<Playground title=\"Secondary + Full Width + Invalid\" code_signal=states_code>",
         "<DateInputGroup",
     ] {
         assert!(

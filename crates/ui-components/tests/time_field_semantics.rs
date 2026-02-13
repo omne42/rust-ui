@@ -133,8 +133,8 @@ fn time_field_docs_page_covers_primary_playgrounds() {
         "title=\"TimeField\"",
         "slug=\"time-field\"",
         "description=\"Time entry field with centralized hour/minute normalization and Spectrum-style state/source data contracts.\"",
-        "<Playground title=\"Controlled + Step 15\" code=code>",
-        "<Playground title=\"Strong Tone + Custom Placeholder\" code=states_code>",
+        "<Playground title=\"Controlled + Step 15\" code_signal=code>",
+        "<Playground title=\"Strong Tone + Custom Placeholder\" code_signal=states_code>",
         "<TimeField",
     ] {
         assert!(

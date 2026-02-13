@@ -147,14 +147,14 @@ fn calendar_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     for needle in [
-        "<Playground title=\"Default + Outside Days\" code=code>",
+        "<Playground title=\"Default + Outside Days\" code_signal=code>",
         "year=2026",
         "month=1",
         "selected_day=Some(6)",
         "tone=CalendarTone::Default",
         "first_weekday=CalendarFirstWeekday::Sunday",
         "show_outside_days=true",
-        "<Playground title=\"Monday First + Strong Tone\" code=states_code>",
+        "<Playground title=\"Monday First + Strong Tone\" code_signal=states_code>",
         "month=2",
         "selected_day=Some(14)",
         "tone=CalendarTone::Strong",

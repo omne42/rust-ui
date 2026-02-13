@@ -202,12 +202,12 @@ fn flip_card_docs_default_and_disabled_playgrounds_lock_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
-        "<Playground title=\"Click + Keyboard Flip\" code=basic_code>",
+        "<Playground title=\"Click + Keyboard Flip\" code_signal=basic_code>",
         "<div class=\"ui-flip-card__title\">\"Front\"</div>",
         "Click or press Enter/Space to flip.",
         "<div class=\"ui-flip-card__title\">\"Back\"</div>",
         "Back face stays keyboard reachable with the same button semantics.",
-        "<Playground title=\"Disabled\" code=disabled_code>",
+        "<Playground title=\"Disabled\" code_signal=disabled_code>",
         "disabled=true",
         "<div class=\"ui-flip-card__title\">\"Disabled front\"</div>",
         "No click/keyboard toggle while disabled.",
@@ -255,9 +255,9 @@ fn flip_card_docs_page_covers_primary_playgrounds() {
         "title=\"FlipCard\"",
         "slug=\"flip-card\"",
         "description=\"3D front/back card with Spectrum-style state/source markers and HeroUI-grade spring motion for flip/hover interactions.\"",
-        "<Playground title=\"Click + Keyboard Flip\" code=basic_code>",
+        "<Playground title=\"Click + Keyboard Flip\" code_signal=basic_code>",
         "title=\"State + Source Markers\"",
-        "<Playground title=\"Disabled\" code=disabled_code>",
+        "<Playground title=\"Disabled\" code_signal=disabled_code>",
         "<FlipCard",
     ] {
         assert!(

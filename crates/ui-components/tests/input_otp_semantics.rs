@@ -100,7 +100,7 @@ fn input_otp_docs_page_covers_primary_playgrounds() {
         "title=\"InputOtp\"",
         "slug=\"input-otp\"",
         "description=\"HeroUI-style OTP input with a single hidden input and slot chrome.\"",
-        "<Playground title=\"OTP\" code=code>",
+        "<Playground title=\"OTP\" code_signal=code>",
         "<InputOtp",
     ] {
         assert!(

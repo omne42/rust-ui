@@ -61,8 +61,8 @@ fn shared_element_transition_module_docs_page_covers_primary_playgrounds() {
         "title=\"View\"",
         "slug=\"view\"",
         "description=\"General-purpose Spectrum-style container with centralized surface token state and stable data markers.\"",
-        "<Playground title=\"Surface Tokens\" code=surface_code>",
-        "<Playground title=\"Element + Fluid + Custom Class\" code=element_code>",
+        "<Playground title=\"Surface Tokens\" code_signal=surface_code>",
+        "<Playground title=\"Element + Fluid + Custom Class\" code_signal=element_code>",
         "<View",
     ] {
         assert!(

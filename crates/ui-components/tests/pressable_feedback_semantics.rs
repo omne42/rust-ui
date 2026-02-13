@@ -139,8 +139,8 @@ fn pressable_feedback_docs_page_covers_primary_playgrounds() {
         "title=\"PressableFeedback\"",
         "slug=\"pressable-feedback\"",
         "description=\"HeroUI-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition.\"",
-        "<Playground title=\"Scale + Highlight\" code=basic_code>",
-        "<Playground title=\"Highlight + Ripple + Custom Motion\" code=custom_code>",
+        "<Playground title=\"Scale + Highlight\" code_signal=basic_code>",
+        "<Playground title=\"Highlight + Ripple + Custom Motion\" code_signal=custom_code>",
         "<PressableFeedback",
     ] {
         assert!(

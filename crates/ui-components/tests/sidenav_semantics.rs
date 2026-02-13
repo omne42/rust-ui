@@ -207,8 +207,8 @@ fn sidenav_docs_page_covers_primary_playgrounds() {
         r#"title="Sidenav""#,
         r#"slug="sidenav""#,
         r#"description="Spectrum-compatible Sidenav alias for upstream naming parity, preserving Sidebar controlled/uncontrolled accessibility contracts and HeroUI-level trigger/rail interaction behavior.""#,
-        r#"<Playground title="Controlled + Floating" code=controlled_code>"#,
-        r#"<Playground title="Icon Collapsible + No Shortcut" code=states_code>"#,
+        r#"<Playground title="Controlled + Floating" code_signal=controlled_code>"#,
+        r#"<Playground title="Icon Collapsible + No Shortcut" code_signal=states_code>"#,
         "title=\"State + Source Markers\"",
         "<Sidenav",
     ] {

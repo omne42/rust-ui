@@ -14,10 +14,16 @@ pub(super) fn file_trigger() -> AnyView {
     let on_custom_files =
         Callback::new(move |next: Vec<FileTriggerFile>| set_custom_files.set(next));
 
-    let code = r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
-<FileTrigger multiple=true on_files=on_files>"Pick files"</FileTrigger>"#;
+    let code = Signal::derive(move || {
+        r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
+<FileTrigger multiple=true on_files=on_files>"Pick files"</FileTrigger>"#
+            .to_string()
+    });
 
-    let motion_code = r#"<FileTrigger
+    let motion_code = Signal::derive(move || {
+        r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
+
+<FileTrigger
   multiple=true
   motion=FileTriggerMotion {
     trigger: ButtonMotion {
@@ -29,7 +35,9 @@ pub(super) fn file_trigger() -> AnyView {
   on_files=on_files
 >
   "Pick files (custom motion)"
-</FileTrigger>"#;
+</FileTrigger>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -38,7 +46,7 @@ pub(super) fn file_trigger() -> AnyView {
             group="Files"
             description="A Button that forwards to an invisible <input type=file>."
         >
-            <Playground title="Pick files" code=code>
+            <Playground title="Pick files" code_signal=code>
                 <div class="docs-stack">
                     <FileTrigger multiple=true on_files=on_files>
                         "Pick files"
@@ -71,7 +79,7 @@ pub(super) fn file_trigger() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Pick files with custom motion" code=motion_code>
+            <Playground title="Pick files with custom motion" code_signal=motion_code>
                 <div class="docs-stack">
                     <FileTrigger
                         multiple=true
@@ -125,12 +133,18 @@ pub(super) fn drop_zone() -> AnyView {
     let (files, set_files) = signal(Vec::<DroppedFile>::new());
     let on_drop_files = Callback::new(move |next: Vec<DroppedFile>| set_files.set(next));
 
-    let code = r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
+    let code = Signal::derive(move || {
+        r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
 <DropZone label="Upload".to_string() on_drop_files=on_drop_files>
   "Drop files here"
-</DropZone>"#;
+</DropZone>"#
+            .to_string()
+    });
 
-    let motion_code = r#"<DropZone
+    let motion_code = Signal::derive(move || {
+        r#"let on_drop_files = Callback::new(|files: Vec<DroppedFile>| { /* ... */ });
+
+<DropZone
   label="Upload".to_string()
   motion=DropZoneMotion {
     hover_scale: 1.015,
@@ -141,7 +155,9 @@ pub(super) fn drop_zone() -> AnyView {
   on_drop_files=on_drop_files
 >
   "Drop files here"
-</DropZone>"#;
+</DropZone>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -150,7 +166,7 @@ pub(super) fn drop_zone() -> AnyView {
             group="Files"
             description="Drag-and-drop + paste file ingestion with focus handling."
         >
-            <Playground title="Drop / paste" code=code>
+            <Playground title="Drop / paste" code_signal=code>
                 <div class="docs-stack">
                     <DropZone label="Upload".to_string() on_drop_files=on_drop_files>
                         <div class="docs-drop-zone">
@@ -187,7 +203,7 @@ pub(super) fn drop_zone() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Drop / paste with custom motion" code=motion_code>
+            <Playground title="Drop / paste with custom motion" code_signal=motion_code>
                 <div class="docs-stack">
                     <DropZone
                         label="Upload (custom motion)".to_string()

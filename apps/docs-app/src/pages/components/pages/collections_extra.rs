@@ -50,7 +50,8 @@ pub(super) fn table() -> AnyView {
     let columns_secondary = columns;
     let rows_primary = rows.clone();
 
-    let code = r#"let columns = vec![
+    let code = Signal::derive(move || {
+        r#"let columns = vec![
   TableColumn::new("service", "Service"),
   TableColumn::new("region", "Region"),
   TableColumn::new("uptime", "Uptime").with_align(TableCellAlign::End),
@@ -66,9 +67,17 @@ let rows = vec![
   rows=rows
   caption="Service health".to_string()
   striped=true
-/>"#;
+/>"#.to_string()
+    });
 
-    let states_code = r#"<Table
+    let states_code = Signal::derive(move || {
+        r#"let columns = vec![
+  TableColumn::new("service", "Service"),
+  TableColumn::new("region", "Region"),
+  TableColumn::new("uptime", "Uptime").with_align(TableCellAlign::End),
+];
+
+<Table
   columns=columns
   rows=Vec::<TableRow>::new()
   variant=TableVariant::Outline
@@ -77,7 +86,9 @@ let rows = vec![
   sticky_header=true
   empty_label="No active incidents".to_string()
   class_name="docs-table-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -86,7 +97,7 @@ let rows = vec![
             group="Collections"
             description="Data table primitive with centralized row/column normalization and Spectrum-style state markers for density/layout/variant contracts."
         >
-            <Playground title="Default + Striped" code=code>
+            <Playground title="Default + Striped" code_signal=code>
                 <Table
                     columns=columns_primary
                     rows=rows_primary
@@ -95,7 +106,7 @@ let rows = vec![
                 />
             </Playground>
 
-            <Playground title="Compact + Fixed + Empty" code=states_code>
+            <Playground title="Compact + Fixed + Empty" code_signal=states_code>
                 <Table
                     columns=columns_secondary
                     rows=empty_rows
@@ -132,7 +143,8 @@ pub(super) fn step_list() -> AnyView {
     let (selected_index, set_selected_index) = signal(Some(1_usize));
     let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_index.set(next));
 
-    let code = r#"let (selected_index, set_selected_index) = signal(Some(1_usize));
+    let code = Signal::derive(move || {
+        r#"let (selected_index, set_selected_index) = signal(Some(1_usize));
 let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_index.set(next));
 
 <StepList
@@ -145,9 +157,12 @@ let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_i
   selected_index=selected_index.into()
   on_selected_change=on_selected_change
   completed_indices=vec![0]
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<StepList
+    let states_code = Signal::derive(move || {
+        r#"<StepList
   steps=signal(vec![
     StepListItem::new("plan", "Plan").described("Pick your subscription tier"),
     StepListItem::new("profile", "Profile").described("Fill organization details"),
@@ -161,7 +176,9 @@ let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_i
   default_selected_index=3
   class_name="docs-step-list-custom".to_string()
   aria_label="Workspace setup steps".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -170,7 +187,7 @@ let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_i
             group="Collections"
             description="Spectrum-compatible step progression primitive with centralized orientation/size/status normalization and stable slot + data-state contracts."
         >
-            <Playground title="Controlled Selection" code=code>
+            <Playground title="Controlled Selection" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
                     <StepList
                         steps=signal(steps).0
@@ -185,7 +202,7 @@ let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_i
                 </div>
             </Playground>
 
-            <Playground title="Vertical + Emphasized + Disabled" code=states_code>
+            <Playground title="Vertical + Emphasized + Disabled" code_signal=states_code>
                 <StepList
                     steps=signal(steps_with_disabled).0
                     orientation=StepListOrientation::Vertical
@@ -218,7 +235,8 @@ pub(super) fn tree() -> AnyView {
     let nodes_primary = nodes.clone();
     let nodes_secondary = nodes;
 
-    let code = r#"let nodes = vec![
+    let code = Signal::derive(move || {
+        r#"let nodes = vec![
   TreeNode::new("root-app", "Applications").with_children(vec![
     TreeNode::new("app-web", "Web Console"),
     TreeNode::new("app-mobile", "Mobile App"),
@@ -234,9 +252,23 @@ pub(super) fn tree() -> AnyView {
   nodes=nodes
   default_expanded_ids=BTreeSet::from(["root-app".to_string()])
   default_selected_id="app-web".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<Tree
+    let states_code = Signal::derive(move || {
+        r#"let nodes = vec![
+  TreeNode::new("root-app", "Applications").with_children(vec![
+    TreeNode::new("app-web", "Web Console"),
+    TreeNode::new("app-mobile", "Mobile App"),
+  ]),
+  TreeNode::new("root-services", "Services").with_children(vec![
+    TreeNode::new("svc-api", "API Gateway"),
+    TreeNode::new("svc-worker", "Worker Pool"),
+  ]),
+];
+
+<Tree
   id_base="inventory-tree".to_string()
   nodes=nodes
   tone=TreeTone::Strong
@@ -244,7 +276,9 @@ pub(super) fn tree() -> AnyView {
   default_expanded_ids=BTreeSet::from(["root-services".to_string()])
   default_selected_id="svc-api".to_string()
   class_name="docs-tree-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -253,7 +287,7 @@ pub(super) fn tree() -> AnyView {
             group="Collections"
             description="Hierarchical tree with controllable expand/selection state and Spectrum-style density/tone/state marker contracts."
         >
-            <Playground title="Default + Expanded Root" code=code>
+            <Playground title="Default + Expanded Root" code_signal=code>
                 <Tree
                     id_base="docs-tree-default".to_string()
                     nodes=nodes_primary
@@ -262,7 +296,7 @@ pub(super) fn tree() -> AnyView {
                 />
             </Playground>
 
-            <Playground title="Strong + Compact" code=states_code>
+            <Playground title="Strong + Compact" code_signal=states_code>
                 <Tree
                     id_base="docs-tree-strong".to_string()
                     nodes=nodes_secondary
@@ -298,7 +332,8 @@ pub(super) fn disclosure_group() -> AnyView {
     let on_single_change =
         Callback::new(move |next: BTreeSet<usize>| set_expanded_single.set(next));
 
-    let code = r#"let (expanded, set_expanded) = signal(BTreeSet::from([0_usize]));
+    let code = Signal::derive(move || {
+        r#"let (expanded, set_expanded) = signal(BTreeSet::from([0_usize]));
 let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded.set(next));
 
 <DisclosureGroup
@@ -315,9 +350,12 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
   <div>"Security policy details"</div>
   <div>"Billing ownership details"</div>
   <div>"Escalation chain details"</div>
-</DisclosureGroup>"#;
+</DisclosureGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (expanded, set_expanded) = signal(BTreeSet::from([1_usize]));
+    let states_code = Signal::derive(move || {
+        r#"let (expanded, set_expanded) = signal(BTreeSet::from([1_usize]));
 let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded.set(next));
 
 <DisclosureGroup
@@ -332,7 +370,9 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
   selection_mode=DisclosureGroupSelectionMode::Single
   disabled_indices=vec![2]
   class_name="docs-disclosure-group-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -341,7 +381,7 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
             group="Collections"
             description="Spectrum/HeroUI-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals."
         >
-            <Playground title="Multiple + Controlled" code=code>
+            <Playground title="Multiple + Controlled" code_signal=code>
                 <div class="docs-stack">
                     <DisclosureGroup
                         labels=labels
@@ -377,7 +417,7 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
                 </div>
             </Playground>
 
-            <Playground title="Single + Disabled Item + Custom Class" code=states_code>
+            <Playground title="Single + Disabled Item + Custom Class" code_signal=states_code>
                 <div class="docs-stack">
                     <DisclosureGroup
                         labels=single_labels
@@ -429,7 +469,8 @@ pub(super) fn listbox_item() -> AnyView {
         set_selected_states.update(|value| *value = !*value);
     });
 
-    let code = r#"let (selected, set_selected) = signal(true);
+    let code = Signal::derive(move || {
+        r#"let (selected, set_selected) = signal(true);
 
 <ListBoxItem
   index=0
@@ -438,9 +479,12 @@ pub(super) fn listbox_item() -> AnyView {
   on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
 >
   "San Francisco"
-</ListBoxItem>"#;
+</ListBoxItem>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (selected, set_selected) = signal(true);
+    let states_code = Signal::derive(move || {
+        r#"let (selected, set_selected) = signal(true);
 
 <ListBoxItem
   id="docs-listbox-item-focused".to_string()
@@ -457,7 +501,9 @@ pub(super) fn listbox_item() -> AnyView {
 
 <ListBoxItem index=2 disabled=true>
   "Disabled option"
-</ListBoxItem>"#;
+</ListBoxItem>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -466,7 +512,7 @@ pub(super) fn listbox_item() -> AnyView {
             group="Collections"
             description="Spectrum/HeroUI-style listbox option primitive with centralized selection/focus/divider/source normalization and stable `slot` + `data-*` state contracts."
         >
-            <Playground title="Selectable Option" code=code>
+            <Playground title="Selectable Option" code_signal=code>
                 <div class="docs-stack">
                     <ListBoxItem
                         index=0
@@ -483,7 +529,7 @@ pub(super) fn listbox_item() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Focused + Divider + Disabled" code=states_code>
+            <Playground title="Focused + Divider + Disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <ListBoxItem
                         id="docs-listbox-item-focused".to_string()
@@ -524,7 +570,8 @@ pub(super) fn listbox_section() -> AnyView {
         set_selected_secondary.update(|value| *value = !*value);
     });
 
-    let code = r#"<ListBoxSection
+    let code = Signal::derive(move || {
+        r#"<ListBoxSection
   title="Preferred regions".to_string()
   item_count=3
   aria_label="Preferred regions section".to_string()
@@ -532,9 +579,12 @@ pub(super) fn listbox_section() -> AnyView {
   <ListBoxItem index=0 selected=true show_selection_indicator=true>"US East"</ListBoxItem>
   <ListBoxItem index=1>"EU West"</ListBoxItem>
   <ListBoxItem index=2>"AP South"</ListBoxItem>
-</ListBoxSection>"#;
+</ListBoxSection>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (selected, set_selected) = signal(true);
+    let states_code = Signal::derive(move || {
+        r#"let (selected, set_selected) = signal(true);
 
 <ListBoxSection
   title="Advanced targets".to_string()
@@ -558,7 +608,9 @@ pub(super) fn listbox_section() -> AnyView {
 
 <ListBoxSection title="Empty section".to_string() item_count=0 disabled=true>
   <span class="ui-muted">"No options available"</span>
-</ListBoxSection>"#;
+</ListBoxSection>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -567,7 +619,7 @@ pub(super) fn listbox_section() -> AnyView {
             group="Collections"
             description="Spectrum/HeroUI-style listbox section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
         >
-            <Playground title="Default Section" code=code>
+            <Playground title="Default Section" code_signal=code>
                 <ListBoxSection
                     title="Preferred regions".to_string()
                     item_count=3
@@ -585,7 +637,7 @@ pub(super) fn listbox_section() -> AnyView {
                 </ListBoxSection>
             </Playground>
 
-            <Playground title="Quiet + Sticky + Divider + Empty" code=states_code>
+            <Playground title="Quiet + Sticky + Divider + Empty" code_signal=states_code>
                 <div class="docs-stack">
                     <ListBoxSection
                         title="Advanced targets".to_string()
@@ -655,7 +707,8 @@ pub(super) fn menu_item() -> AnyView {
         set_radio_selected.update(|value| *value = !*value);
     });
 
-    let code = r#"<MenuItem
+    let code = Signal::derive(move || {
+        r#"<MenuItem
   index=0
   kind=MenuItemKind::Action
   aria_label="Open profile".to_string()
@@ -674,9 +727,12 @@ let checkbox_kind = MenuItemKind::Checkbox {
   on_press=Callback::new(move |_| set_checked.update(|value| *value = !*value))
 >
   "Pin to favorites"
-</MenuItem>"#;
+</MenuItem>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (is_primary, set_is_primary) = signal(true);
+    let states_code = Signal::derive(move || {
+        r#"let (is_primary, set_is_primary) = signal(true);
 let radio_kind = MenuItemKind::Radio {
   is_checked: Signal::derive(move || is_primary.get()),
 };
@@ -695,7 +751,9 @@ let radio_kind = MenuItemKind::Radio {
 
 <MenuItem index=3 disabled=true>
   "Disabled destructive action"
-</MenuItem>"#;
+</MenuItem>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -704,7 +762,7 @@ let radio_kind = MenuItemKind::Radio {
             group="Collections"
             description="Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts."
         >
-            <Playground title="Action + Checkbox" code=code>
+            <Playground title="Action + Checkbox" code_signal=code>
                 <div class="docs-stack">
                     <MenuItem
                         index=0
@@ -729,7 +787,7 @@ let radio_kind = MenuItemKind::Radio {
                 </div>
             </Playground>
 
-            <Playground title="Radio + Submenu + Disabled" code=states_code>
+            <Playground title="Radio + Submenu + Disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <MenuItem
                         id="docs-menu-item-radio".to_string()
@@ -773,7 +831,8 @@ pub(super) fn menu_section() -> AnyView {
     let toggle_primary =
         Callback::new(move |_| set_primary_checked.update(|value| *value = !*value));
 
-    let code = r#"<MenuSection
+    let code = Signal::derive(move || {
+        r#"<MenuSection
   title="Workspace actions".to_string()
   item_count=3
   aria_label="Workspace actions section".to_string()
@@ -781,9 +840,12 @@ pub(super) fn menu_section() -> AnyView {
   <MenuItem index=0 kind=MenuItemKind::Action>"Open workspace"</MenuItem>
   <MenuItem index=1 kind=MenuItemKind::Action>"Rename workspace"</MenuItem>
   <MenuItem index=2 kind=MenuItemKind::Action>"Archive workspace"</MenuItem>
-</MenuSection>"#;
+</MenuSection>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (checked, set_checked) = signal(true);
+    let states_code = Signal::derive(move || {
+        r#"let (checked, set_checked) = signal(true);
 let radio_kind = MenuItemKind::Radio {
   is_checked: Signal::derive(move || checked.get()),
 };
@@ -804,7 +866,8 @@ let radio_kind = MenuItemKind::Radio {
 
 <MenuSection title="Empty state".to_string() item_count=0 disabled=true>
   <span class="ui-muted">"No actions available"</span>
-</MenuSection>"#;
+</MenuSection>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -813,7 +876,7 @@ let radio_kind = MenuItemKind::Radio {
             group="Collections"
             description="Spectrum/HeroUI-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
         >
-            <Playground title="Default Section" code=code>
+            <Playground title="Default Section" code_signal=code>
                 <MenuSection
                     title="Workspace actions".to_string()
                     item_count=3
@@ -831,7 +894,7 @@ let radio_kind = MenuItemKind::Radio {
                 </MenuSection>
             </Playground>
 
-            <Playground title="Quiet + Sticky + Divider + Empty" code=states_code>
+            <Playground title="Quiet + Sticky + Divider + Empty" code_signal=states_code>
                 <div class="docs-stack">
                     <MenuSection
                         title="Advanced routing".to_string()
@@ -896,22 +959,32 @@ pub(super) fn dropdown() -> AnyView {
     let open_signal: Signal<bool> = Signal::derive(move || open_raw.get());
     let on_open_change = Callback::new(move |next: bool| set_open_raw.set(next));
 
-    let code = r#"<Dropdown
+    let code = Signal::derive(move || {
+        r#"let on_action = Callback::new(move |index: usize| {
+  let _ = index;
+});
+
+<Dropdown
   id_base="profile-dropdown".to_string()
   items=vec!["Profile".to_string(), "Settings".to_string(), "Sign out".to_string()]
   on_action=on_action
 >
   "Open actions"
-</Dropdown>"#;
+</Dropdown>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (open, set_open) = signal(false);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
+    let states_code = Signal::derive(move || {
+        r#"let (open, set_open) = signal(false);
+let on_action = Callback::new(move |index: usize| {
+  let _ = index;
+});
 
 <Dropdown
   id_base="controlled-dropdown".to_string()
   items=vec!["Rename".to_string(), "Duplicate".to_string(), "Archive".to_string()]
   on_action=on_action
-  open=open_signal
+  open=Signal::derive(move || open.get())
   on_open_change=Callback::new(move |next| set_open.set(next))
   close_on_action=false
   disabled_indices=vec![1]
@@ -922,7 +995,9 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   class_name="docs-dropdown-custom".to_string()
 >
   "Controlled dropdown"
-</Dropdown>"#;
+</Dropdown>"#
+            .to_string()
+    });
 
     let motion = DropdownMotion {
         popover: PopoverMotion {
@@ -939,7 +1014,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             group="Collections"
             description="Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion."
         >
-            <Playground title="Default" code=code>
+            <Playground title="Default" code_signal=code>
                 <div class="docs-row">
                     <Dropdown id_base="docs-dropdown-default".to_string() items=items on_action=on_action>
                         "Open actions"
@@ -956,7 +1031,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled + Persistent + Motion" code=states_code>
+            <Playground title="Controlled + Persistent + Motion" code_signal=states_code>
                 <div class="docs-stack">
                     <Dropdown
                         id_base="docs-dropdown-controlled".to_string()

@@ -56,7 +56,7 @@ fn spinbutton_module_docs_page_covers_primary_playgrounds() {
         "title=\"NumberField\"",
         "slug=\"number-field\"",
         "description=\"Numeric input with steppers and keyboard control.\"",
-        "<Playground title=\"Stepper\" code=code>",
+        "<Playground title=\"Stepper\" code_signal=code>",
         "<NumberField",
     ] {
         assert!(

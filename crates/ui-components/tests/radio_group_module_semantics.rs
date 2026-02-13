@@ -63,8 +63,8 @@ fn radio_group_module_docs_page_covers_primary_playgrounds() {
         "title=\"RadioGroup\"",
         "slug=\"radio-group\"",
         "description=\"Roving tabindex radiogroup with HeroUI-level spring motion and Spectrum-style root state attrs.\"",
-        "<Playground title=\"Selection + Root State\" code=code>",
-        "<Playground title=\"Horizontal + Disabled + Empty\" code=states_code>",
+        "<Playground title=\"Selection + Root State\" code_signal=code>",
+        "<Playground title=\"Horizontal + Disabled + Empty\" code_signal=states_code>",
         "<RadioGroup",
         "<Radio",
     ] {

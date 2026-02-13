@@ -250,10 +250,10 @@ fn preview_card_docs_page_covers_primary_playgrounds() {
         "title=\"PreviewCard\"",
         "slug=\"preview-card\"",
         "description=\"Spectrum-compatible link preview popover with hover/focus trigger semantics, source-state markers, and HeroUI-level spring motion.\"",
-        "<Playground title=\"Basic Preview\" code=code>",
+        "<Playground title=\"Basic Preview\" code_signal=code>",
         "title=\"State + Source Markers\"",
-        "code=markers_code",
-        "<Playground title=\"Default Fallbacks\" code=fallback_code>",
+        "code_signal=markers_code",
+        "<Playground title=\"Default Fallbacks\" code_signal=fallback_code>",
         "<PreviewCard",
     ] {
         assert!(

@@ -4,12 +4,16 @@ use leptos::prelude::*;
 use ui_components::{Sidebar, SidebarCollapsible, SidebarFooter, SidebarSide, SidebarVariant};
 
 pub(super) fn sidebar_footer() -> AnyView {
-    let default_code = r#"<SidebarFooter bordered=true aria_label="Workspace footer".to_string()>
+    let default_code = Signal::derive(move || {
+        r#"<SidebarFooter bordered=true aria_label="Workspace footer".to_string()>
   <span class="ui-muted">"Free plan"</span>
   <span class="ui-muted">"2 seats remaining"</span>
-</SidebarFooter>"#;
+</SidebarFooter>"#
+            .to_string()
+    });
 
-    let disabled_code = r#"<SidebarFooter
+    let disabled_code = Signal::derive(move || {
+        r#"<SidebarFooter
   disabled=true
   bordered=true
   aria_label="Disabled usage footer".to_string()
@@ -17,7 +21,9 @@ pub(super) fn sidebar_footer() -> AnyView {
 >
   <span class="ui-muted">"Read-only quota"</span>
   <span class="ui-muted">"Upgrade required"</span>
-</SidebarFooter>"#;
+</SidebarFooter>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -26,7 +32,7 @@ pub(super) fn sidebar_footer() -> AnyView {
             group="Layout"
             description="Shadcn-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and Spectrum-style data markers."
         >
-            <Playground title="Default Footer Region" code=default_code>
+            <Playground title="Default Footer Region" code_signal=default_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -46,7 +52,7 @@ pub(super) fn sidebar_footer() -> AnyView {
                 </Sidebar>
             </Playground>
 
-            <Playground title="Disabled + Custom Class" code=disabled_code>
+            <Playground title="Disabled + Custom Class" code_signal=disabled_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Inset

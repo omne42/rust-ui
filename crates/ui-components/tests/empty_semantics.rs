@@ -141,11 +141,11 @@ fn empty_docs_default_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
 
     for needle in [
-        "<Playground title=\"Header + Icon Variant\" code=basic_code>",
+        "<Playground title=\"Header + Icon Variant\" code_signal=basic_code>",
         "<EmptyMedia variant=EmptyMediaVariant::Icon>",
         "\"No messages\"",
         "\"You're all caught up.\"",
-        "<Playground title=\"Content Action Region\" code=content_code>",
+        "<Playground title=\"Content Action Region\" code_signal=content_code>",
         "<Empty class_name=\"docs-empty-custom\".to_string()>",
         "\"No deployments\"",
         "\"Create your first release to populate this list.\"",
@@ -191,8 +191,8 @@ fn empty_docs_page_covers_primary_playgrounds() {
         "title=\"Empty\"",
         "slug=\"empty\"",
         "description=\"Shadcn-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering.\"",
-        "<Playground title=\"Header + Icon Variant\" code=basic_code>",
-        "<Playground title=\"Content Action Region\" code=content_code>",
+        "<Playground title=\"Header + Icon Variant\" code_signal=basic_code>",
+        "<Playground title=\"Content Action Region\" code_signal=content_code>",
         "title=\"State + Source Markers\"",
         "<Empty",
     ] {

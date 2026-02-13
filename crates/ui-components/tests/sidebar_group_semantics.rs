@@ -163,8 +163,8 @@ fn sidebar_group_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarGroup\"",
         "slug=\"sidebar-group\"",
         "description=\"Shadcn-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, Spectrum-style data contracts, and motion-ready collapse behavior.\"",
-        "<Playground title=\"Label + Group Action\" code=base_code>",
-        "<Playground title=\"Controlled + Collapsible Group\" code=controlled_code>",
+        "<Playground title=\"Label + Group Action\" code_signal=base_code>",
+        "<Playground title=\"Controlled + Collapsible Group\" code_signal=controlled_code>",
         "<SidebarGroup",
     ] {
         assert!(

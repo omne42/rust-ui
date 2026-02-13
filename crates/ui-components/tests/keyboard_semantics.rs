@@ -100,8 +100,8 @@ fn keyboard_docs_page_covers_primary_playgrounds() {
         "title=\"Keyboard\"",
         "slug=\"keyboard\"",
         "description=\"Keyboard command primitive (`<kbd>`) with centralized tone/compact/source state contracts.\"",
-        "<Playground title=\"Tone\" code=tone_code>",
-        "<Playground title=\"Compact + Custom Aria/Class\" code=compact_code>",
+        "<Playground title=\"Tone\" code_signal=tone_code>",
+        "<Playground title=\"Compact + Custom Aria/Class\" code_signal=compact_code>",
         "<Keyboard",
     ] {
         assert!(

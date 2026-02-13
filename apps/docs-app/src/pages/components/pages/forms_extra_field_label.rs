@@ -4,18 +4,24 @@ use leptos::prelude::*;
 use ui_components::{FieldLabel, FieldLabelTone};
 
 pub(super) fn field_label() -> AnyView {
-    let tone_code = r#"<FieldLabel text=\"Email\".to_string() for_id=\"email\".to_string() required=true />
+    let tone_code = Signal::derive(move || {
+        r#"<FieldLabel text=\"Email\".to_string() for_id=\"email\".to_string() required=true />
 <FieldLabel text=\"Helper\".to_string() tone=FieldLabelTone::Muted />
-<FieldLabel text=\"Critical\".to_string() tone=FieldLabelTone::Strong required=true />"#;
+<FieldLabel text=\"Critical\".to_string() tone=FieldLabelTone::Strong required=true />"#
+            .to_string()
+    });
 
-    let custom_code = r#"<FieldLabel
+    let custom_code = Signal::derive(move || {
+        r#"<FieldLabel
   text=\"Assignee\".to_string()
   for_id=\"assignee\".to_string()
   required=true
   required_indicator=\"(required)\".to_string()
   aria_label=\"Assignee field label\".to_string()
   class_name=\"docs-field-label-custom\".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -24,7 +30,7 @@ pub(super) fn field_label() -> AnyView {
             group="Forms"
             description="Spectrum-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts."
         >
-            <Playground title="Tone + Required" code=tone_code>
+            <Playground title="Tone + Required" code_signal=tone_code>
                 <div class="docs-stack">
                     <FieldLabel
                         text="Email".to_string()
@@ -47,7 +53,7 @@ pub(super) fn field_label() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Indicator + Aria + Class" code=custom_code>
+            <Playground title="Custom Indicator + Aria + Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <FieldLabel
                         text="Assignee".to_string()

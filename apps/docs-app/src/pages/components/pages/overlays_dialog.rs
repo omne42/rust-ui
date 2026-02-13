@@ -19,13 +19,27 @@ pub(super) fn dialog() -> AnyView {
     let open_dialog: OnPress = Callback::new(move |_| set_open_raw.set(true));
     let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
-    let code = r#"<Dialog open=open on_close=close id_base="d".to_string() title="Title".to_string()>
-  move || view!{ ... }
-</Dialog>"#;
+    let code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
 
-    let marker_code = r#"<Dialog
-  open=open
-  on_close=close
+<Dialog
+  open=Signal::derive(move || open_raw.get())
+  on_close=Callback::new(move |_| set_open_raw.set(false))
+  id_base="d".to_string()
+  title="Title".to_string()
+>
+  move || view! { ... }
+</Dialog>"#
+            .to_string()
+    });
+
+    let marker_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let on_exit_complete = Callback::new(move |_| {});
+
+<Dialog
+  open=Signal::derive(move || open_raw.get())
+  on_close=Callback::new(move |_| set_open_raw.set(false))
   id_base="docs-dialog-marker".to_string()
   title="Marker dialog".to_string()
   description="Inspect source markers".to_string()
@@ -42,7 +56,9 @@ pub(super) fn dialog() -> AnyView {
   on_exit_complete=on_exit_complete
 >
   ...
-</Dialog>"#;
+</Dialog>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -51,7 +67,7 @@ pub(super) fn dialog() -> AnyView {
             group="Overlays"
             description="Dialog panel with header/body/footer structure on top of Overlay."
         >
-            <Playground title="Dialog" code=code>
+            <Playground title="Dialog" code_signal=code>
                 <div class="docs-row">
                     <Button on_press=open_dialog>"Open dialog"</Button>
                 </div>
@@ -79,7 +95,7 @@ pub(super) fn dialog() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="State + Source Markers" code=marker_code>
+            <Playground title="State + Source Markers" code_signal=marker_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button on_press=open_dialog variant=ButtonVariant::Secondary>

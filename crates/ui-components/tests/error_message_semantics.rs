@@ -114,8 +114,8 @@ fn error_message_docs_page_covers_primary_playgrounds() {
         "title=\"ErrorMessage\"",
         "slug=\"error-message\"",
         "description=\"Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts.\"",
-        "<Playground title=\"Tone Variants\" code=tone_code>",
-        "<Playground title=\"Truncate + Disabled + Element + Custom Class\" code=state_code>",
+        "<Playground title=\"Tone Variants\" code_signal=tone_code>",
+        "<Playground title=\"Truncate + Disabled + Element + Custom Class\" code_signal=state_code>",
         "<ErrorMessage",
     ] {
         assert!(

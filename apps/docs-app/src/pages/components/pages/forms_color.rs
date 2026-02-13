@@ -11,7 +11,8 @@ pub(super) fn color_field() -> AnyView {
     let (value, set_value) = signal(Some("#4f46e5".to_string()));
     let on_value_change = Callback::new(move |next: Option<String>| set_value.set(next));
 
-    let basic_code = r##"let (value, set_value) = signal(Some("#4f46e5".to_string()));
+    let basic_code = Signal::derive(move || {
+        r##"let (value, set_value) = signal(Some("#4f46e5".to_string()));
 let on_value_change = Callback::new(move |next: Option<String>| set_value.set(next));
 
 <ColorField
@@ -19,9 +20,12 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
   label="Fill color".to_string()
   value=value.into()
   on_value_change=on_value_change
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let states_code = r##"<ColorField
+    let states_code = Signal::derive(move || {
+        r##"<ColorField
   id_base="docs-color-field-invalid".to_string()
   label="Brand color".to_string()
   default_value="javascript:alert(1)".to_string()
@@ -32,7 +36,9 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
   label="Accent color".to_string()
   default_value="#0ea5e9".to_string()
   disabled=true
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -41,7 +47,7 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
             group="Forms"
             description="Spectrum-compatible color text field with centralized label/placeholder/aria/state normalization, sanitized preview rendering, and stable slot/data contracts."
         >
-            <Playground title="Controlled Value" code=basic_code>
+            <Playground title="Controlled Value" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorField
                         id_base="docs-color-field-basic".to_string()
@@ -56,7 +62,7 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
                 </div>
             </Playground>
 
-            <Playground title="Invalid + Disabled + Custom Class" code=states_code>
+            <Playground title="Invalid + Disabled + Custom Class" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorField
                         id_base="docs-color-field-invalid".to_string()
@@ -81,7 +87,8 @@ pub(super) fn color_area() -> AnyView {
     let (value, set_value) = signal((0.6_f32, 0.4_f32));
     let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next));
 
-    let basic_code = r##"let (value, set_value) = signal((0.6_f32, 0.4_f32));
+    let basic_code = Signal::derive(move || {
+        r##"let (value, set_value) = signal((0.6_f32, 0.4_f32));
 let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next));
 
 <ColorArea
@@ -90,9 +97,12 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
   value=value.into()
   on_value_change=on_value_change
   preview_color="#7c3aed".to_string()
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let states_code = r##"<ColorArea
+    let states_code = Signal::derive(move || {
+        r##"<ColorArea
   id_base="docs-color-area-disabled".to_string()
   label="Accent area".to_string()
   default_value=(0.25, 0.85)
@@ -100,7 +110,9 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
   step=0.05
   disabled=true
   class_name="docs-color-area-custom".to_string()
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -109,7 +121,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
             group="Forms"
             description="Spectrum-compatible two-axis color selection primitive with centralized step/grid normalization, keyboard navigation, and stable slot/data-state contracts."
         >
-            <Playground title="Controlled Grid Selection" code=basic_code>
+            <Playground title="Controlled Grid Selection" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorArea
                         id_base="docs-color-area-basic".to_string()
@@ -128,7 +140,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Custom Grid + Custom Class" code=states_code>
+            <Playground title="Disabled + Custom Grid + Custom Class" code_signal=states_code>
                 <ColorArea
                     id_base="docs-color-area-disabled".to_string()
                     label="Accent area".to_string()
@@ -153,7 +165,8 @@ pub(super) fn color_slider() -> AnyView {
 
     let reduced_motion = ColorSliderMotion::disabled();
 
-    let basic_code = r##"let (hue, set_hue) = signal(220.0_f64);
+    let basic_code = Signal::derive(move || {
+        r##"let (hue, set_hue) = signal(220.0_f64);
 let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
 
 <ColorSlider
@@ -162,9 +175,12 @@ let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
   label="Hue".to_string()
   value=hue.into()
   on_value_change=on_hue_change
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let states_code = r##"let reduced_motion = ColorSliderMotion::disabled();
+    let states_code = Signal::derive(move || {
+        r##"let reduced_motion = ColorSliderMotion::disabled();
 
 <ColorSlider
   id_base="docs-color-slider-alpha".to_string()
@@ -183,7 +199,9 @@ let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
   track_end_color="#38bdf8".to_string()
   motion=reduced_motion
   class_name="docs-color-slider-custom".to_string()
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -192,7 +210,7 @@ let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
             group="Forms"
             description="Spectrum-compatible single-channel color slider with centralized channel/range/value normalization, spring motion integration, and stable slot/data-state contracts."
         >
-            <Playground title="Controlled Hue Channel" code=basic_code>
+            <Playground title="Controlled Hue Channel" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorSlider
                         id_base="docs-color-slider-hue".to_string()
@@ -207,7 +225,7 @@ let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
                 </div>
             </Playground>
 
-            <Playground title="Disabled Alpha + Custom Track + Reduced Motion" code=states_code>
+            <Playground title="Disabled Alpha + Custom Track + Reduced Motion" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorSlider
                         id_base="docs-color-slider-alpha".to_string()
@@ -243,7 +261,8 @@ pub(super) fn color_wheel() -> AnyView {
 
     let reduced_motion = ColorWheelMotion::disabled();
 
-    let basic_code = r##"let (value, set_value) = signal(32.0_f64);
+    let basic_code = Signal::derive(move || {
+        r##"let (value, set_value) = signal(32.0_f64);
 let on_value_change = Callback::new(move |next: f64| set_value.set(next));
 
 <ColorWheel
@@ -251,9 +270,12 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
   label="Hue wheel".to_string()
   value=value.into()
   on_value_change=on_value_change
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let states_code = r##"let reduced_motion = ColorWheelMotion::disabled();
+    let states_code = Signal::derive(move || {
+        r##"let reduced_motion = ColorWheelMotion::disabled();
 
 <ColorWheel
   id_base="docs-color-wheel-disabled".to_string()
@@ -268,7 +290,9 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
   default_value=282.0
   motion=reduced_motion
   class_name="docs-color-wheel-custom".to_string()
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -277,7 +301,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             group="Forms"
             description="Spectrum-compatible hue wheel with centralized value/step/wrap-around normalization, spring-driven thumb motion, and stable slot/data-state contracts."
         >
-            <Playground title="Controlled Hue Wheel" code=basic_code>
+            <Playground title="Controlled Hue Wheel" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorWheel
                         id_base="docs-color-wheel-hue".to_string()
@@ -291,7 +315,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Reduced Motion + Custom Class" code=states_code>
+            <Playground title="Disabled + Reduced Motion + Custom Class" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorWheel
                         id_base="docs-color-wheel-disabled".to_string()
@@ -333,7 +357,8 @@ pub(super) fn color_picker() -> AnyView {
     let selected_color_signal: Signal<Option<String>> = selected_color.into();
     let open_signal: Signal<bool> = open.into();
 
-    let basic_code = r##"let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
+    let basic_code = Signal::derive(move || {
+        r##"let (selected_color, set_selected_color) = signal(Some("#ef4444".to_string()));
 let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));
 let (open, set_open) = signal(false);
 let on_open_change = Callback::new(move |next: bool| set_open.set(next));
@@ -358,9 +383,12 @@ let open_signal: Signal<bool> = open.into();
     selected_color=selected_color_signal
     on_selected_change=on_selected_change
   />
-</ColorPicker>"##;
+</ColorPicker>"##
+            .to_string()
+    });
 
-    let states_code = r##"<ColorPicker
+    let states_code = Signal::derive(move || {
+        r##"<ColorPicker
   id_base="docs-color-picker-disabled".to_string()
   label="Disabled".to_string()
   default_selected_color="#0ea5e9".to_string()
@@ -379,7 +407,9 @@ let open_signal: Signal<bool> = open.into();
   <div class="docs-stack docs-stack--tight">
     <span class="ui-muted">"Custom content area"</span>
   </div>
-</ColorPicker>"##;
+</ColorPicker>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -388,7 +418,7 @@ let open_signal: Signal<bool> = open.into();
             group="Forms"
             description="Spectrum-compatible color picker primitive that composes swatch trigger + popover content with controllable color/open state and stable slot/data-state contracts."
         >
-            <Playground title="Controlled Color + Controlled Open" code=basic_code>
+            <Playground title="Controlled Color + Controlled Open" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorPicker
                         id_base="docs-color-picker-basic".to_string()
@@ -412,7 +442,7 @@ let open_signal: Signal<bool> = open.into();
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Default Open + Custom Class" code=states_code>
+            <Playground title="Disabled + Default Open + Custom Class" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorPicker
                         id_base="docs-color-picker-disabled".to_string()
@@ -444,7 +474,8 @@ let open_signal: Signal<bool> = open.into();
 pub(super) fn color_thumb() -> AnyView {
     let board_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm); background: color-mix(in oklch, var(--ui-bg), var(--ui-fg) 2%);";
 
-    let basic_code = r##"let board_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm);";
+    let basic_code = Signal::derive(move || {
+        r##"let board_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm);";
 
 <div style=board_style>
   <ColorThumb
@@ -467,9 +498,11 @@ pub(super) fn color_thumb() -> AnyView {
     x_percent=82.0
     y_percent=28.0
   />
-</div>"##;
+</div>"##.to_string()
+    });
 
-    let states_code = r##"<div style=board_style>
+    let states_code = Signal::derive(move || {
+        r##"<div style=board_style>
   <ColorThumb
     id_base="docs-color-thumb-disabled".to_string()
     color="#a78bfa".to_string()
@@ -486,7 +519,9 @@ pub(super) fn color_thumb() -> AnyView {
     y_percent=40.0
     class_name="docs-color-thumb-custom".to_string()
   />
-</div>"##;
+</div>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -495,7 +530,7 @@ pub(super) fn color_thumb() -> AnyView {
             group="Forms"
             description="Spectrum-compatible draggable color thumb primitive with focus/drag/loupe state contracts, sanitized color source handling, and stable slot/data-state markers."
         >
-            <Playground title="Focused + Dragging + Position" code=basic_code>
+            <Playground title="Focused + Dragging + Position" code_signal=basic_code>
                 <div style=board_style>
                     <ColorThumb
                         id_base="docs-color-thumb-idle".to_string()
@@ -520,7 +555,7 @@ pub(super) fn color_thumb() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Custom Class + Loupe Off" code=states_code>
+            <Playground title="Disabled + Custom Class + Loupe Off" code_signal=states_code>
                 <div style=board_style>
                     <ColorThumb
                         id_base="docs-color-thumb-disabled".to_string()
@@ -558,7 +593,8 @@ pub(super) fn color_editor() -> AnyView {
 
     let reduced_motion = ColorSliderMotion::disabled();
 
-    let basic_code = r##"let (selected_color, set_selected_color) = signal(Some("#4f46e5".to_string()));
+    let basic_code = Signal::derive(move || {
+        r##"let (selected_color, set_selected_color) = signal(Some("#4f46e5".to_string()));
 let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));
 
 let (format, set_format) = signal(ColorEditorFormat::Hex);
@@ -574,9 +610,12 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
   on_selected_change=on_selected_change
   format=format_signal
   on_format_change=on_format_change
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let states_code = r##"let reduced_motion = ColorSliderMotion::disabled();
+    let states_code = Signal::derive(move || {
+        r##"let reduced_motion = ColorSliderMotion::disabled();
 
 <ColorEditor
   id_base="docs-color-editor-disabled".to_string()
@@ -596,7 +635,9 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
   default_alpha=64.0
   default_area=(0.46, 0.88)
   motion=reduced_motion
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -605,7 +646,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
             group="Forms"
             description="Spectrum-compatible color editor primitive that composes color area + sliders + field + format switching with controllable color/format state and stable slot/data-state contracts."
         >
-            <Playground title="Controlled Color + Controlled Format" code=basic_code>
+            <Playground title="Controlled Color + Controlled Format" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorEditor
                         id_base="docs-color-editor-basic".to_string()
@@ -625,7 +666,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Alpha Hidden + Reduced Motion" code=states_code>
+            <Playground title="Disabled + Alpha Hidden + Reduced Motion" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorEditor
                         id_base="docs-color-editor-disabled".to_string()
@@ -656,7 +697,8 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
 pub(super) fn color_handle() -> AnyView {
     let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
 
-    let basic_code = r##"let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
+    let basic_code = Signal::derive(move || {
+        r##"let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem;";
 
 <div style=surface_style>
   <ColorHandle
@@ -679,9 +721,12 @@ pub(super) fn color_handle() -> AnyView {
     x_percent=82.0
     y_percent=28.0
   />
-</div>"##;
+</div>"##
+            .to_string()
+    });
 
-    let states_code = r##"<div style=surface_style>
+    let states_code = Signal::derive(move || {
+        r##"<div style=surface_style>
   <ColorHandle
     id_base="docs-color-handle-disabled".to_string()
     color="#a78bfa".to_string()
@@ -698,7 +743,9 @@ pub(super) fn color_handle() -> AnyView {
     y_percent=40.0
     class_name="docs-color-handle-custom".to_string()
   />
-</div>"##;
+</div>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -707,7 +754,7 @@ pub(super) fn color_handle() -> AnyView {
             group="Forms"
             description="Spectrum-compatible draggable color handle primitive with composed thumb/loupe behavior, centralized state derivation, and stable slot/data-state contracts."
         >
-            <Playground title="Focused + Dragging + Position" code=basic_code>
+            <Playground title="Focused + Dragging + Position" code_signal=basic_code>
                 <div style=surface_style>
                     <ColorHandle
                         id_base="docs-color-handle-idle".to_string()
@@ -732,7 +779,7 @@ pub(super) fn color_handle() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Custom Class + Loupe Off" code=states_code>
+            <Playground title="Disabled + Custom Class + Loupe Off" code_signal=states_code>
                 <div style=surface_style>
                     <ColorHandle
                         id_base="docs-color-handle-disabled".to_string()
@@ -760,7 +807,8 @@ pub(super) fn color_handle() -> AnyView {
 pub(super) fn color_loupe() -> AnyView {
     let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm); background: color-mix(in oklch, var(--ui-bg), var(--ui-fg) 2%);";
 
-    let basic_code = r##"let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm);";
+    let basic_code = Signal::derive(move || {
+        r##"let surface_style = "position: relative; inline-size: 12rem; block-size: 7rem; border: 1px dashed color-mix(in oklch, var(--ui-border), transparent 24%); border-radius: var(--ui-radius-sm);";
 
 <div style=surface_style>
   <ColorLoupe
@@ -784,9 +832,11 @@ pub(super) fn color_loupe() -> AnyView {
     x_percent=82.0
     y_percent=24.0
   />
-</div>"##;
+</div>"##.to_string()
+    });
 
-    let states_code = r##"<div style=surface_style>
+    let states_code = Signal::derive(move || {
+        r##"<div style=surface_style>
   <ColorLoupe
     id_base="docs-color-loupe-disabled".to_string()
     color="#a78bfa".to_string()
@@ -804,7 +854,9 @@ pub(super) fn color_loupe() -> AnyView {
     aria_label="Accent loupe".to_string()
     class_name="docs-color-loupe-custom".to_string()
   />
-</div>"##;
+</div>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -813,7 +865,7 @@ pub(super) fn color_loupe() -> AnyView {
             group="Forms"
             description="Spectrum-compatible color loupe overlay primitive with centralized open/disabled/position normalization, checkerboard alpha preview, and stable slot/data-state contracts."
         >
-            <Playground title="Open + Position Buckets" code=basic_code>
+            <Playground title="Open + Position Buckets" code_signal=basic_code>
                 <div style=surface_style>
                     <ColorLoupe
                         id_base="docs-color-loupe-start".to_string()
@@ -839,7 +891,7 @@ pub(super) fn color_loupe() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Custom Label + Custom Class" code=states_code>
+            <Playground title="Disabled + Custom Label + Custom Class" code_signal=states_code>
                 <div style=surface_style>
                     <ColorLoupe
                         id_base="docs-color-loupe-disabled".to_string()

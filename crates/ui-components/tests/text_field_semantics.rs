@@ -98,7 +98,7 @@ fn text_field_docs_page_covers_primary_playgrounds() {
         "title=\"TextField\"",
         "slug=\"text-field\"",
         "description=\"A compact field wrapper built on headless text field semantics with explicit state/source marker contracts.\"",
-        "<Playground title=\"Label + placeholder\" code=code>",
+        "<Playground title=\"Label + placeholder\" code_signal=code>",
         "title=\"State + Source Markers\"",
         "<TextField",
     ] {

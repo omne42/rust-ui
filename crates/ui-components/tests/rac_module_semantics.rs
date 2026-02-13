@@ -61,8 +61,8 @@ fn rac_module_docs_page_covers_primary_playgrounds() {
         "title=\"UiRoot\"",
         "slug=\"ui-root\"",
         "description=\"Provider that injects theme tokens + layered component CSS and exposes stable root state attrs.\"",
-        "<Playground title=\"Usage\" code=usage_code>",
-        "<Playground title=\"State Contract\" code=contract_code>",
+        "<Playground title=\"Usage\" code_signal=usage_code>",
+        "<Playground title=\"State Contract\" code_signal=contract_code>",
         "<UiRoot",
     ] {
         assert!(

@@ -155,7 +155,7 @@ fn iconset_docs_default_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_iconset.rs");
 
     for needle in [
-        "<Playground title=\"Registry Namespace Resolution\" code=registry_code>",
+        "<Playground title=\"Registry Namespace Resolution\" code_signal=registry_code>",
         "icon=\"workflow:check\".to_string()",
         "icon=\"workflow:alert\".to_string()",
         "glyphs=workflow_glyphs.clone()",
@@ -163,7 +163,7 @@ fn iconset_docs_default_playgrounds_lock_contract_values() {
         "tone=IconsetTone::Accent",
         "tone=IconsetTone::Danger",
         "decorative=false",
-        "<Playground title=\"Fallback + Source State\" code=fallback_code>",
+        "<Playground title=\"Fallback + Source State\" code_signal=fallback_code>",
         "icon=\"ui:unknown\".to_string()",
         "iconset=\"ui\".to_string()",
         "size=IconsetSize::Lg",
@@ -211,8 +211,8 @@ fn iconset_docs_page_covers_primary_playgrounds() {
         "title=\"Iconset\"",
         "slug=\"iconset\"",
         "description=\"Spectrum-compatible Iconset registry wrapper for namespace + icon-name resolution, composed on Icon accessibility contracts with stable source markers.\"",
-        "<Playground title=\"Registry Namespace Resolution\" code=registry_code>",
-        "<Playground title=\"Fallback + Source State\" code=fallback_code>",
+        "<Playground title=\"Registry Namespace Resolution\" code_signal=registry_code>",
+        "<Playground title=\"Fallback + Source State\" code_signal=fallback_code>",
         "title=\"State + Source Markers\"",
         "<Iconset",
     ] {

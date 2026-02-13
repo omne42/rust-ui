@@ -140,11 +140,11 @@ fn close_button_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
 
     for needle in [
-        "<Playground title=\"Default + OverBackground + Custom Label\" code=basic_code>",
+        "<Playground title=\"Default + OverBackground + Custom Label\" code_signal=basic_code>",
         "<CloseButton />",
         "variant=CloseButtonVariant::OverBackground",
         "aria_label=\"Dismiss popover\".to_string()",
-        "<Playground title=\"Size Matrix + Disabled + Custom Class\" code=state_code>",
+        "<Playground title=\"Size Matrix + Disabled + Custom Class\" code_signal=state_code>",
         "size=CloseButtonSize::Sm",
         "size=CloseButtonSize::Lg",
         "size=CloseButtonSize::Xl",

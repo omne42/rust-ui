@@ -109,8 +109,8 @@ fn legend_docs_page_covers_primary_playgrounds() {
         "pub(super) fn fieldset() -> AnyView",
         "title=\"Fieldset\"",
         "slug=\"fieldset\"",
-        "<Playground title=\"Legend + Description\" code=default_code>",
-        "<Playground title=\"Horizontal + Invalid + Actions\" code=invalid_code>",
+        "<Playground title=\"Legend + Description\" code_signal=default_code>",
+        "<Playground title=\"Horizontal + Invalid + Actions\" code_signal=invalid_code>",
         "legend=\"Notification channels\".to_string()",
         "<Fieldset",
     ] {

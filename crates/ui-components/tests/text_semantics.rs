@@ -122,8 +122,8 @@ fn text_docs_page_covers_primary_playgrounds() {
         "title=\"Text\"",
         "slug=\"text\"",
         "description=\"Typography primitive with centralized tone/alignment/weight/source state contracts and Spectrum-style data markers.\"",
-        "<Playground title=\"Tone + Weight Matrix\" code=tone_code>",
-        "<Playground title=\"Alignment + Truncate + Element\" code=states_code>",
+        "<Playground title=\"Tone + Weight Matrix\" code_signal=tone_code>",
+        "<Playground title=\"Alignment + Truncate + Element\" code_signal=states_code>",
         "<Text",
     ] {
         assert!(

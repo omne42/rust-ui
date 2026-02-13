@@ -56,28 +56,53 @@ pub(super) fn overlay() -> AnyView {
         ..OverlayMotion::default()
     };
 
-    let code = r#"let (open, set_open) = signal(false);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
-let (present, set_present) = signal(open_signal.get_untracked());
-// mount while open, unmount after exit via on_exit_complete
-<Show when=move || present.get()>
-  <Overlay open=open_signal on_close=close on_exit_complete=on_exit_complete>...</Overlay>
-</Show>"#;
+    let code = Signal::derive(move || {
+        r#"let (open, set_open) = signal(false);
+let (present, set_present) = signal(open.get_untracked());
+let on_close: OnPress = Callback::new(move |_| set_open.set(false));
+let on_exit_complete = Callback::new(move |_| set_present.set(false));
 
-    let marker_code = r#"<Overlay
-  open=open_signal
+<Show when=move || present.get()>
+  <Overlay
+    open=Signal::derive(move || open.get())
+    on_close=on_close
+    on_exit_complete=on_exit_complete
+  >
+    ...
+  </Overlay>
+</Show>"#
+            .to_string()
+    });
+
+    let marker_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let motion = OverlayMotion {
+  initial_scale: 0.94,
+  initial_y_px: 14.0,
+  ..OverlayMotion::default()
+};
+
+<Overlay
+  open=open
   on_close=close
   role="alertdialog"
   is_dismissable=false
   is_keyboard_dismiss_disabled=true
-  motion=custom_motion
+  motion=motion
   class_name="docs-overlay-state".to_string()
   aria_labelledby="overlay-marker-title".to_string()
   aria_describedby="overlay-marker-desc".to_string()
-  on_exit_complete=on_exit_complete
+  on_exit_complete=Callback::new(move |_| {})
 >
-  ...
-</Overlay>"#;
+  <div class="ui-card">
+    <h4 id="overlay-marker-title">"Overlay markers"</h4>
+    <p id="overlay-marker-desc">"Verifies controlled state and source markers."</p>
+  </div>
+</Overlay>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -86,7 +111,7 @@ let (present, set_present) = signal(open_signal.get_untracked());
             group="Overlays"
             description="Portal + backdrop + focus trap + overlay stack (Esc/topmost). Supports dismiss control flags and requires presence to unmount after exit."
         >
-            <Playground title="Overlay presence" code=code>
+            <Playground title="Overlay presence" code_signal=code>
                 <div class="docs-row">
                     <Button on_press=open_overlay>"Open overlay"</Button>
                     <span class="ui-muted">"open: " {move || open_raw.get().to_string()}</span>
@@ -110,7 +135,7 @@ let (present, set_present) = signal(open_signal.get_untracked());
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-role-source`, `data-motion-source`, and `data-exit-source` contracts."
-                code=marker_code
+                code_signal=marker_code
             >
                 <div class="docs-row">
                     <Button on_press=open_marker>"Open marker overlay"</Button>
@@ -188,21 +213,37 @@ pub(super) fn popover() -> AnyView {
         ..PopoverMotion::default()
     };
 
-    let code = r#"<Button node_ref=anchor_ref on_press=toggle>"Open"</Button>
+    let code = Signal::derive(move || {
+        r#"let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+let (open_raw, set_open_raw) = signal(false);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+let (present, set_present) = signal(open.get_untracked());
+let toggle: OnPress = Callback::new(move |_| set_open_raw.update(|value| *value = !*value));
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| set_present.set(false));
+
+<Button node_ref=anchor_ref on_press=toggle>"Open"</Button>
 <Show when=present>
   <Popover open=open anchor_ref=anchor_ref on_close=close on_exit_complete=finish_exit>
     ...
   </Popover>
-</Show>"#;
+</Show>"#
+            .to_string()
+    });
 
-    let motion_code = r#"let custom_motion = PopoverMotion {
+    let motion_code = Signal::derive(move || {
+        r#"let anchor_ref: NodeRef<html::Button> = NodeRef::new();
+let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
+let custom_motion = PopoverMotion {
   initial_scale: 0.95,
   offset_y_px: 12.0,
   ..PopoverMotion::default()
 };
 
 <Popover
-  open=open
+  open=Signal::derive(move || open_raw.get())
   anchor_ref=anchor_ref
   on_close=close
   motion=custom_motion
@@ -211,7 +252,9 @@ pub(super) fn popover() -> AnyView {
   on_exit_complete=finish_exit
 >
   ...
-</Popover>"#;
+</Popover>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -220,7 +263,7 @@ pub(super) fn popover() -> AnyView {
             group="Overlays"
             description="Positioned portal panel anchored to a trigger with Spectrum-style state markers and HeroUI-grade spring motion contract. Requires presence to unmount after exit."
         >
-            <Playground title="Popover" code=code>
+            <Playground title="Popover" code_signal=code>
                 <div class="docs-row">
                     <Button node_ref=anchor_ref on_press=toggle aria_haspopup="dialog" aria_expanded=open>
                         {move || if open_raw.get() { "Close popover" } else { "Open popover" }}
@@ -246,7 +289,7 @@ pub(super) fn popover() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-modal`, `data-motion-source`, `data-placement-source`, `data-modal-source`, and `data-exit-source` contracts."
-                code=motion_code
+                code_signal=motion_code
             >
                 <div class="docs-row">
                     <Button
@@ -325,21 +368,37 @@ pub(super) fn modal() -> AnyView {
         ..OverlayMotion::default()
     };
 
-    let semantic_code = r#"<Show when=present>
-  <Modal
-    open=open
-    id_base="m".to_string()
-    title="Confirm".to_string()
-    description="Modal composes Overlay and wires aria attributes.".to_string()
-    on_close=close
-    on_exit_complete=on_exit_complete
-  >
-    ...
-  </Modal>
-</Show>"#;
+    let semantic_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let open: Signal<bool> = Signal::derive(move || open_raw.get());
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let on_exit_complete = Callback::new(move |_| {});
 
-    let custom_code = r#"<Modal
+<Modal
   open=open
+  id_base="m".to_string()
+  title="Confirm".to_string()
+  description="Modal composes Overlay and wires aria attributes.".to_string()
+  on_close=close
+  on_exit_complete=on_exit_complete
+>
+  ...
+</Modal>"#
+            .to_string()
+    });
+
+    let custom_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let on_exit_complete = Callback::new(move |_| {});
+let custom_motion = OverlayMotion {
+  initial_scale: 0.92,
+  initial_y_px: 18.0,
+  ..OverlayMotion::default()
+};
+
+<Modal
+  open=Signal::derive(move || open_raw.get())
   id_base="m-custom".to_string()
   title="Title only".to_string()
   class_name="docs-modal-custom".to_string()
@@ -348,7 +407,9 @@ pub(super) fn modal() -> AnyView {
   on_exit_complete=on_exit_complete
 >
   ...
-</Modal>"#;
+</Modal>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -357,7 +418,7 @@ pub(super) fn modal() -> AnyView {
             group="Overlays"
             description="Overlay composition with centralized title/description/class state attrs and stable modal slots."
         >
-            <Playground title="Label + Description" code=semantic_code>
+            <Playground title="Label + Description" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_modal>"Open described modal"</Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
@@ -389,7 +450,7 @@ pub(super) fn modal() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-id-source`, `data-title-source`, `data-description-source`, `data-motion-source`, and `data-exit-source` contracts."
-                code=custom_code
+                code_signal=custom_code
             >
                 <div class="docs-row">
                     <Button on_press=open_custom_modal>"Open custom modal"</Button>
@@ -471,12 +532,33 @@ pub(super) fn sheet() -> AnyView {
         ..SheetMotion::default()
     };
 
-    let code = r#"<Sheet open=open placement=SheetPlacement::Bottom on_close=close on_exit_complete=finish_exit>
-  move || view!{ ... }
-</Sheet>"#;
+    let code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
 
-    let marker_code = r#"<Sheet
-  open=open
+<Sheet
+  open=Signal::derive(move || open_raw.get())
+  placement=SheetPlacement::Bottom
+  on_close=close
+  on_exit_complete=finish_exit
+>
+  move || view! { ... }
+</Sheet>"#
+            .to_string()
+    });
+
+    let marker_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
+let custom_motion = SheetMotion {
+  initial_offset_px: 56.0,
+  ..SheetMotion::default()
+};
+
+<Sheet
+  open=Signal::derive(move || open_raw.get())
   placement=SheetPlacement::Right
   on_close=close
   is_dismissable=false
@@ -485,7 +567,9 @@ pub(super) fn sheet() -> AnyView {
   on_exit_complete=finish_exit
 >
   ...
-</Sheet>"#;
+</Sheet>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -494,7 +578,7 @@ pub(super) fn sheet() -> AnyView {
             group="Overlays"
             description="Sheet overlay (mobile-friendly) with placement, spring enter/exit, and dismiss control flags."
         >
-            <Playground title="Bottom sheet" code=code>
+            <Playground title="Bottom sheet" code_signal=code>
                 <div class="docs-row">
                     <Button on_press=open_sheet>"Open sheet"</Button>
                 </div>
@@ -520,7 +604,7 @@ pub(super) fn sheet() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-placement-source`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-motion-source`, and `data-exit-source` contracts."
-                code=marker_code
+                code_signal=marker_code
             >
                 <div class="docs-row">
                     <Button on_press=open_marker>"Open marker sheet"</Button>
@@ -587,8 +671,13 @@ pub(super) fn drawer() -> AnyView {
             ..SheetMotion::default()
         },
     };
-    let semantic_code = r#"<Drawer
-  open=open
+    let semantic_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
+
+<Drawer
+  open=Signal::derive(move || open_raw.get())
   id_base="dr".to_string()
   title="Drawer".to_string()
   description="Sheet composition with header/body/footer slots.".to_string()
@@ -598,9 +687,16 @@ pub(super) fn drawer() -> AnyView {
   on_exit_complete=finish_exit
 >
   ...
-</Drawer>"#;
-    let custom_code = r#"<Drawer
-  open=open
+</Drawer>"#
+            .to_string()
+    });
+    let custom_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
+
+<Drawer
+  open=Signal::derive(move || open_raw.get())
   id_base="dr-left".to_string()
   title="Left drawer".to_string()
   placement=DrawerPlacement::Left
@@ -616,7 +712,9 @@ pub(super) fn drawer() -> AnyView {
   on_exit_complete=finish_exit
 >
   ...
-</Drawer>"#;
+</Drawer>"#
+            .to_string()
+    });
     view! {
         <ComponentPage
             title="Drawer"
@@ -624,7 +722,7 @@ pub(super) fn drawer() -> AnyView {
             group="Overlays"
             description="Sheet composition with centralized placement/description/footer/close state attrs and stable drawer slots."
         >
-            <Playground title="Right Drawer + Slots" code=semantic_code>
+            <Playground title="Right Drawer + Slots" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_drawer>"Open right drawer"</Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
@@ -655,7 +753,7 @@ pub(super) fn drawer() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-placement-source`, `data-description-source`, `data-footer-source`, `data-motion-source`, and `data-exit-source` contracts."
-                code=custom_code
+                code_signal=custom_code
             >
                 <div class="docs-row">
                     <Button on_press=open_custom_drawer>"Open left drawer"</Button>
@@ -695,15 +793,19 @@ pub(super) fn tooltip() -> AnyView {
 }
 
 pub(super) fn preview_card() -> AnyView {
-    let code = r##"<PreviewCard
+    let code = Signal::derive(move || {
+        r##"<PreviewCard
   title="React Spectrum".to_string()
   description="Design system and component architecture documentation.".to_string()
   url="https://react-spectrum.adobe.com".to_string()
   image_src="https://react-spectrum.adobe.com/static/logo.png".to_string()
   trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let markers_code = r##"<PreviewCard
+    let markers_code = Signal::derive(move || {
+        r##"<PreviewCard
   id="docs-preview-card".to_string()
   title="Custom title".to_string()
   description="Custom description for source markers.".to_string()
@@ -721,13 +823,18 @@ pub(super) fn preview_card() -> AnyView {
   trigger=move || view! {
     <Button variant=ButtonVariant::Secondary>"Inspect markers"</Button>
   }
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let fallback_code = r##"<PreviewCard
+    let fallback_code = Signal::derive(move || {
+        r##"<PreviewCard
   trigger=move || view! {
     <Button variant=ButtonVariant::Ghost>"Uses defaults"</Button>
   }
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -736,7 +843,7 @@ pub(super) fn preview_card() -> AnyView {
             group="Overlays"
             description="Spectrum-compatible link preview popover with hover/focus trigger semantics, source-state markers, and HeroUI-level spring motion."
         >
-            <Playground title="Basic Preview" code=code>
+            <Playground title="Basic Preview" code_signal=code>
                 <div class="docs-row">
                     <PreviewCard
                         title="React Spectrum".to_string()
@@ -753,7 +860,7 @@ pub(super) fn preview_card() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-content`, `data-delay-source`, `data-title-source`, `data-description-source`, `data-url-source`, `data-site-label-source`, and `data-motion-source` contracts on root/trigger/panel."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <PreviewCard
@@ -782,7 +889,7 @@ pub(super) fn preview_card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Default Fallbacks" code=fallback_code>
+            <Playground title="Default Fallbacks" code_signal=fallback_code>
                 <div class="docs-row">
                     <PreviewCard
                         trigger=move || {
@@ -800,15 +907,19 @@ pub(super) fn preview_card() -> AnyView {
 }
 
 pub(super) fn preview_link_card() -> AnyView {
-    let code = r##"<PreviewLinkCard
+    let code = Signal::derive(move || {
+        r##"<PreviewLinkCard
   title="Rust UI docs"
   description="Preview component behavior and source markers."
   url="https://github.com/adobe/react-spectrum"
   image_src="https://avatars.githubusercontent.com/u/476009?v=4"
   trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let markers_code = r##"<PreviewLinkCard
+    let markers_code = Signal::derive(move || {
+        r##"<PreviewLinkCard
   id="docs-preview-link-card"
   title="Custom title"
   description="Custom description for source markers."
@@ -824,11 +935,16 @@ pub(super) fn preview_link_card() -> AnyView {
     ..PreviewLinkCardMotion::default()
   }
   trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Inspect markers"</Button> }
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let fallback_code = r##"<PreviewLinkCard
+    let fallback_code = Signal::derive(move || {
+        r##"<PreviewLinkCard
   trigger=move || view! { <Button variant=ButtonVariant::Ghost>"Uses defaults"</Button> }
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -837,7 +953,7 @@ pub(super) fn preview_link_card() -> AnyView {
             group="Overlays"
             description="Hover-triggered preview link card with overlay positioning, motion contract, and source markers."
         >
-            <Playground title="Preview Snapshot" code=code>
+            <Playground title="Preview Snapshot" code_signal=code>
                 <div class="docs-row">
                     <PreviewLinkCard
                         title="Rust UI docs".to_string()
@@ -854,7 +970,7 @@ pub(super) fn preview_link_card() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-content`, `data-delay-source`, `data-title-source`, `data-description-source`, `data-url-source`, `data-site-label-source`, and `data-motion-source` contracts on root/trigger/panel."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <PreviewLinkCard
@@ -883,7 +999,7 @@ pub(super) fn preview_link_card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Default Fallbacks" code=fallback_code>
+            <Playground title="Default Fallbacks" code_signal=fallback_code>
                 <div class="docs-row">
                     <PreviewLinkCard
                         trigger=move || {
@@ -913,22 +1029,30 @@ pub(super) fn contextual_help() -> AnyView {
         set_controlled_open_raw.update(|open| *open = !*open);
     });
 
-    let semantic_code = r#"<ContextualHelp
+    let semantic_code = Signal::derive(move || {
+        r#"<ContextualHelp
   heading="Contextual help".to_string()
   footer=move || view! { "Popover-based" }
 >
   <div>"Content"</div>
-</ContextualHelp>"#;
+</ContextualHelp>"#
+            .to_string()
+    });
 
-    let controlled_code = r#"<ContextualHelp
+    let controlled_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+
+<ContextualHelp
   variant=ContextualHelpVariant::Info
-  open=controlled_open
-  on_open_change=on_open_change
+  open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next: bool| set_open_raw.set(next))
   aria_label="More info".to_string()
   class_name="docs-contextual-help-custom".to_string()
 >
   <div>"Controlled content"</div>
-</ContextualHelp>"#;
+</ContextualHelp>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -937,7 +1061,7 @@ pub(super) fn contextual_help() -> AnyView {
             group="Overlays"
             description="Non-modal popover help trigger with centralized variant/placement/heading/footer state attrs."
         >
-            <Playground title="Help Variant + Slots" code=semantic_code>
+            <Playground title="Help Variant + Slots" code_signal=semantic_code>
                 <div class="docs-row">
                     <ContextualHelp
                         heading="Contextual help".to_string()
@@ -951,7 +1075,7 @@ pub(super) fn contextual_help() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Info Variant + Controlled" code=controlled_code>
+            <Playground title="Info Variant + Controlled" code_signal=controlled_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
@@ -989,17 +1113,22 @@ pub(super) fn toast() -> AnyView {
     let close_danger: OnPress = Callback::new(move |_| set_open_danger_raw.set(false));
     let reopen_danger: OnPress = Callback::new(move |_| set_open_danger_raw.set(true));
 
-    let code_basic = r#"let (open, set_open) = signal(true);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
+    let code_basic = Signal::derive(move || {
+        r#"let (open, set_open) = signal(true);
 <Toast
   id="docs-toast-basic".to_string()
   title="Saved".to_string()
   description="Cloud sync completed.".to_string()
-  open=open_signal
+  open=Signal::derive(move || open.get())
   on_close=Callback::new(move |_| set_open.set(false))
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let code_danger = r#"let motion = ToastMotion { initial_y_px: 18.0, initial_scale: 0.96, ..ToastMotion::default() };
+    let code_danger = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+let motion = ToastMotion { initial_y_px: 18.0, initial_scale: 0.96, ..ToastMotion::default() };
+
 <Toast
   id="docs-toast-danger".to_string()
   title="Failed".to_string()
@@ -1007,8 +1136,11 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
   variant=ToastVariant::Danger
   class_name="docs-toast-custom".to_string()
   motion=motion
-  open=open_signal
-/>"#;
+  open=Signal::derive(move || open_raw.get())
+  on_close=Callback::new(move |_| set_open_raw.set(false))
+/>"#
+        .to_string()
+    });
 
     let danger_motion = ToastMotion {
         initial_y_px: 18.0,
@@ -1023,7 +1155,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             group="Overlays"
             description="Single toast primitive with Spectrum-style aria contracts, explicit open state, and spring-based entry/exit motion."
         >
-            <Playground title="Basic Toast + Escape/Close" code=code_basic>
+            <Playground title="Basic Toast + Escape/Close" code_signal=code_basic>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button variant=ButtonVariant::Secondary on_press=reopen_default>
@@ -1043,7 +1175,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 </div>
             </Playground>
 
-            <Playground title="State + Source Markers" code=code_danger>
+            <Playground title="State + Source Markers" code_signal=code_danger>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button variant=ButtonVariant::Destructive on_press=reopen_danger>
@@ -1089,9 +1221,12 @@ pub(super) fn toast_viewport() -> AnyView {
         });
     });
 
-    let code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+    let code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
 <ToastViewport />
-store.push_simple("Saved");"#;
+store.push_simple("Saved");"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1100,7 +1235,7 @@ store.push_simple("Saved");"#;
             group="Overlays"
             description="Toast viewport (portal) with per-toast spring motion and auto-dismiss."
         >
-            <Playground title="Toasts" code=code>
+            <Playground title="Toasts" code_signal=code>
                 <div class="docs-row">
                     <Button variant=ButtonVariant::Secondary on_press=push_simple>"Push toast"</Button>
                     <Button variant=ButtonVariant::Destructive on_press=push_danger>"Push danger"</Button>

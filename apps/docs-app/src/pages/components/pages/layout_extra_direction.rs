@@ -11,13 +11,18 @@ use leptos::prelude::*;
 use ui_components::{DirectionMode, DirectionProvider};
 
 pub(super) fn direction_provider() -> AnyView {
-    let ltr_code = r#"<DirectionProvider direction=DirectionMode::Ltr>
+    let ltr_code = Signal::derive(move || {
+        r#"<DirectionProvider direction=DirectionMode::Ltr>
   <div class="docs-direction-demo">"Name → Value"</div>
-</DirectionProvider>"#;
+</DirectionProvider>"#
+            .to_string()
+    });
 
-    let rtl_code = r##"<DirectionProvider direction=DirectionMode::Rtl class_name="docs-direction-rtl".to_string()>
+    let rtl_code = Signal::derive(move || {
+        r##"<DirectionProvider direction=DirectionMode::Rtl class_name="docs-direction-rtl".to_string()>
   <div class="docs-direction-demo">"الاسم ← القيمة"</div>
-</DirectionProvider>"##;
+</DirectionProvider>"##.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -26,7 +31,7 @@ pub(super) fn direction_provider() -> AnyView {
             group="Layout"
             description="Shadcn/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot + data-direction contracts."
         >
-            <Playground title="LTR Direction" code=ltr_code>
+            <Playground title="LTR Direction" code_signal=ltr_code>
                 <DirectionProvider direction=DirectionMode::Ltr>
                     <div class="docs-direction-demo">
                         "Name → Value"
@@ -34,7 +39,7 @@ pub(super) fn direction_provider() -> AnyView {
                 </DirectionProvider>
             </Playground>
 
-            <Playground title="RTL Direction + Class" code=rtl_code>
+            <Playground title="RTL Direction + Class" code_signal=rtl_code>
                 <DirectionProvider
                     direction=DirectionMode::Rtl
                     class_name="docs-direction-rtl".to_string()

@@ -3,6 +3,26 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{Tag, TagSize, TagVariant, Tags};
 
+fn tags_literal(tags: &[Tag]) -> String {
+    if tags.is_empty() {
+        return "vec![]".to_string();
+    }
+
+    let entries = tags
+        .iter()
+        .map(|tag| {
+            if tag.disabled {
+                format!("  Tag::disabled(\"{}\", \"{}\")", tag.id, tag.label)
+            } else {
+                format!("  Tag::new(\"{}\", \"{}\")", tag.id, tag.label)
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(",\n");
+
+    format!("vec![\n{entries}\n]")
+}
+
 pub(super) fn tags() -> AnyView {
     let (tags, set_tags) = signal(vec![
         Tag::new("rust", "Rust"),
@@ -31,37 +51,70 @@ pub(super) fn tags() -> AnyView {
     });
     let marker_invalid = Signal::derive(move || marker_tags.get().len() < 2);
 
-    let removable_code = r#"let (tags, set_tags) = signal(vec![
-  Tag::new(\"rust\", \"Rust\"),
-  Tag::new(\"leptos\", \"Leptos\"),
-]);
-let on_remove = Callback::new(move |target: Tag| {
-  set_tags.update(|items| items.retain(|item| item.id != target.id));
-});
-<Tags tags=tags on_remove=on_remove label=\"Technologies\".to_string() />"#;
+    let removable_code = Signal::derive(move || {
+        let tags_literal = tags_literal(&tags.get());
 
-    let states_code = r#"<Tags
-  tags=static_tags
-  disabled=true
-  label=\"Disabled tags\".to_string()
-/>"#;
+        vec![
+            format!("let (tags, set_tags) = signal({tags_literal});"),
+            "let on_remove = Callback::new(move |target: Tag| {".to_string(),
+            "  set_tags.update(|items| items.retain(|item| item.id != target.id));".to_string(),
+            "});".to_string(),
+            String::new(),
+            "<Tags".to_string(),
+            "  tags=tags".to_string(),
+            "  on_remove=on_remove".to_string(),
+            "  label=\"Technologies\".to_string()".to_string(),
+            "  description=\"Remove enabled tags; disabled tags remain.\".to_string()".to_string(),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
 
-    let markers_code = r#"let invalid = Signal::derive(move || tags.get().len() < 2);
-<Tags
-  tags=tags
-  on_remove=on_remove
-  variant=TagVariant::Surface
-  size=TagSize::Sm
-  id_base=\"docs-tags-markers\".to_string()
-  label=\"Marker tags\".to_string()
-  description=\"Inspect tags wrapper markers\".to_string()
-  error=\"Keep at least two tags\".to_string()
-  invalid=invalid
-  required=true
-  aria_describedby=Signal::derive(|| Some(\"tags-hint\".to_string()))
-  aria_label=\"Marker tag list\".to_string()
-  class_name=\"docs-tags-state\".to_string()
-/>"#;
+    let states_code = Signal::derive(move || {
+        let tags_literal = tags_literal(&static_tags.get());
+
+        [
+            format!("let tags = signal({tags_literal}).0;"),
+            String::new(),
+            "<Tags".to_string(),
+            "  tags=tags".to_string(),
+            "  disabled=true".to_string(),
+            "  label=\"Disabled tags\".to_string()".to_string(),
+            "  description=\"Read-only tag collection\".to_string()".to_string(),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
+
+    let markers_code = Signal::derive(move || {
+        let tags_literal = tags_literal(&marker_tags.get());
+
+        vec![
+            format!("let (tags, set_tags) = signal({tags_literal});"),
+            "let on_remove = Callback::new(move |target: Tag| {".to_string(),
+            "  set_tags.update(|items| items.retain(|item| item.id != target.id));".to_string(),
+            "});".to_string(),
+            "let invalid = Signal::derive(move || tags.get().len() < 2);".to_string(),
+            String::new(),
+            "<Tags".to_string(),
+            "  tags=tags".to_string(),
+            "  on_remove=on_remove".to_string(),
+            "  variant=TagVariant::Surface".to_string(),
+            "  size=TagSize::Sm".to_string(),
+            "  id_base=\"docs-tags-markers\".to_string()".to_string(),
+            "  label=\"Marker tags\".to_string()".to_string(),
+            "  description=\"Inspect tags wrapper markers\".to_string()".to_string(),
+            "  error=\"Keep at least two tags\".to_string()".to_string(),
+            "  invalid=invalid".to_string(),
+            "  required=true".to_string(),
+            "  aria_describedby=Signal::derive(move || Some(\"tags-hint\".to_string()))"
+                .to_string(),
+            "  aria_label=\"Marker tag list\".to_string()".to_string(),
+            "  class_name=\"docs-tags-state\".to_string()".to_string(),
+            "/>".to_string(),
+        ]
+        .join("\n")
+    });
 
     view! {
         <ComponentPage
@@ -70,7 +123,7 @@ let on_remove = Callback::new(move |target: Tag| {
             group="Collections"
             description="Spectrum-compatible Tags alias for upstream naming parity, preserving TagGroup collection semantics, accessibility contracts, and HeroUI-level removable chip interaction patterns."
         >
-            <Playground title="Removable Tags" code=removable_code>
+            <Playground title="Removable Tags" code_signal=removable_code>
                 <div class="docs-stack">
                     <Tags
                         tags=tags
@@ -85,7 +138,7 @@ let on_remove = Callback::new(move |target: Tag| {
                 </div>
             </Playground>
 
-            <Playground title="Disabled Tags" code=states_code>
+            <Playground title="Disabled Tags" code_signal=states_code>
                 <Tags
                     tags=static_tags
                     disabled=true
@@ -97,7 +150,7 @@ let on_remove = Callback::new(move |target: Tag| {
             <Playground
                 title="State + Source Markers"
                 description="Inspect wrapper markers like `data-state`, `data-content`, `data-removal`, `data-constraint`, `data-label-source`, `data-describedby-source`, `data-class-source`, `data-variant-source`, `data-size-source`, and `data-handler-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <Tags

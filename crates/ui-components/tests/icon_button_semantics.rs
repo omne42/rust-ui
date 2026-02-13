@@ -164,7 +164,7 @@ fn icon_button_docs_actions_page_covers_primary_playgrounds() {
         "<Playground",
         "title=\"on_press + variants\"",
         "code_signal=code",
-        "<Playground title=\"Size + disabled matrix\" code=states_code>",
+        "<Playground title=\"Size + disabled matrix\" code_signal=states_code>",
         "<IconButton",
         "aria_label=\"Close dialog\".to_string()",
         "variant=ButtonVariant::Ghost",
@@ -221,7 +221,7 @@ fn icon_button_docs_page_covers_primary_playgrounds() {
         "slug=\"icon-button\"",
         "description=\"A Button wrapper that enforces accessible labeling and icon sizing while preserving motion/press semantics.\"",
         "code_signal=code",
-        "<Playground title=\"Size + disabled matrix\" code=states_code>",
+        "<Playground title=\"Size + disabled matrix\" code_signal=states_code>",
         "<IconButton",
     ] {
         assert!(

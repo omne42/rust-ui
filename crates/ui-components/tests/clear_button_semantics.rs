@@ -140,11 +140,11 @@ fn clear_button_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
 
     for needle in [
-        "<Playground title=\"Default + OverBackground\" code=basic_code>",
+        "<Playground title=\"Default + OverBackground\" code_signal=basic_code>",
         "aria_label=\"Clear query\".to_string()",
         "variant=ui_components::ClearButtonVariant::OverBackground",
         "aria_label=\"Dismiss overlay\".to_string()",
-        "<Playground title=\"Inset + Focus Mode + Disabled\" code=state_code>",
+        "<Playground title=\"Inset + Focus Mode + Disabled\" code_signal=state_code>",
         "inset=true",
         "prevent_focus=true",
         "aria_label=\"Clear token\".to_string()",

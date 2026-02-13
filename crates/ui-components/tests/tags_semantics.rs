@@ -151,13 +151,13 @@ fn tags_docs_default_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/collections_extra_tags.rs");
 
     for needle in [
-        "<Playground title=\"Removable Tags\" code=removable_code>",
+        "<Playground title=\"Removable Tags\" code_signal=removable_code>",
         "<Tags",
         "tags=tags",
         "on_remove=on_remove",
         "label=\"Technologies\".to_string()",
         "description=\"Remove enabled tags; disabled tags remain.\".to_string()",
-        "<Playground title=\"Disabled Tags\" code=states_code>",
+        "<Playground title=\"Disabled Tags\" code_signal=states_code>",
         "tags=static_tags",
         "disabled=true",
         "label=\"Disabled tags\".to_string()",

@@ -16,44 +16,75 @@ pub(super) fn action_bar() -> AnyView {
 
     let clear_selection = Callback::new(move |_| set_selected_count.set(0));
 
-    let code = r#"let (selected_count, set_selected_count) = signal(3_usize);
-let selected_count_signal = Signal::derive(move || selected_count.get());
+    let code = Signal::derive(move || {
+        let selected_count = selected_count.get();
 
-<ActionBar
-  selected_count=selected_count_signal
-  on_clear_selection=Callback::new(move |_| set_selected_count.set(0))
->
-  <ActionButton>"Delete"</ActionButton>
-  <ActionButton is_quiet=true>"Archive"</ActionButton>
-</ActionBar>"#;
+        vec![
+            "<ActionBar".to_string(),
+            format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
+            "  on_clear_selection=Callback::new(move |_| {})".to_string(),
+            "  aria_label=\"Bulk actions\".to_string()".to_string(),
+            "  class_name=\"docs-action-bar\".to_string()".to_string(),
+            ">".to_string(),
+            "  <ActionButton>\"Delete\"</ActionButton>".to_string(),
+            "  <ActionButton is_quiet=true>\"Archive\"</ActionButton>".to_string(),
+            "</ActionBar>".to_string(),
+        ]
+        .join("\n")
+    });
 
-    let state_code = r#"<ActionBar
-  selected_count=Signal::derive(move || selected_count.get())
-  position=ActionBarPosition::Top
-  force_visible=true
-  selection_text="Rows selected".to_string()
-  clear_label="Clear all".to_string()
-  motion=ActionBarMotion::disabled()
-/>"#;
+    let state_code = Signal::derive(move || {
+        let selected_count = selected_count.get();
 
-    let motion_code = r#"let mut custom_motion = ActionBarMotion::default();
-custom_motion.spring.stiffness = 280.0;
-custom_motion.spring.damping = 24.0;
-custom_motion.spring.mass = 1.0;
-custom_motion.spring.precision = 0.002;
-custom_motion.hidden_translate_px = 44.0;
-custom_motion.hidden_opacity = 0.22;
+        vec![
+            "<ActionBar".to_string(),
+            format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
+            "  position=ActionBarPosition::Top".to_string(),
+            "  force_visible=true".to_string(),
+            "  selection_text=\"Rows selected\".to_string()".to_string(),
+            "  clear_label=\"Clear all\".to_string()".to_string(),
+            "  motion=ActionBarMotion::disabled()".to_string(),
+            ">".to_string(),
+            "  <ActionButton is_quiet=true>\"Tag\"</ActionButton>".to_string(),
+            "  <ActionButton is_quiet=true>\"Assign\"</ActionButton>".to_string(),
+            "</ActionBar>".to_string(),
+        ]
+        .join(
+            "
+",
+        )
+    });
 
-<ActionBar
-  selected_count=Signal::derive(move || selected_count.get())
-  force_visible=true
-  motion=custom_motion
-/>
-<ActionBar
-  selected_count=Signal::derive(move || selected_count.get())
-  force_visible=true
-  motion=ActionBarMotion::disabled()
-/>"#;
+    let motion_code = Signal::derive(move || {
+        let selected_count = selected_count.get();
+
+        vec![
+            "<ActionBar".to_string(),
+            format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
+            "  force_visible=true".to_string(),
+            "  motion=ActionBarMotion {".to_string(),
+            "    hidden_translate_px: 44.0,".to_string(),
+            "    hidden_opacity: 0.22,".to_string(),
+            "    ..ActionBarMotion::default()".to_string(),
+            "  }".to_string(),
+            ">".to_string(),
+            "  <ActionButton is_quiet=true>\"Sync\"</ActionButton>".to_string(),
+            "  <ActionButton is_quiet=true>\"Share\"</ActionButton>".to_string(),
+            "</ActionBar>".to_string(),
+            "<ActionBar".to_string(),
+            format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
+            "  force_visible=true".to_string(),
+            "  motion=ActionBarMotion::disabled()".to_string(),
+            ">".to_string(),
+            "  <ActionButton is_quiet=true>\"Sync\"</ActionButton>".to_string(),
+            "  <ActionButton is_quiet=true>\"Share\"</ActionButton>".to_string(),
+            "</ActionBar>".to_string(),
+        ]
+        .join(
+            "
+",
+        )
+    });
 
     let mut custom_motion = ActionBarMotion::default();
     custom_motion.spring.stiffness = 280.0;
@@ -70,7 +101,7 @@ custom_motion.hidden_opacity = 0.22;
             group="Actions"
             description="Bulk-action surface with Spectrum-style selection contracts and HeroUI-grade spring visibility motion."
         >
-            <Playground title="Selection + clear action" code=code>
+            <Playground title="Selection + clear action" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <ui_components::Button
@@ -106,7 +137,7 @@ custom_motion.hidden_opacity = 0.22;
                 </div>
             </Playground>
 
-            <Playground title="Top placement + custom text + reduced motion" code=state_code>
+            <Playground title="Top placement + custom text + reduced motion" code_signal=state_code>
                 <div class="docs-stack">
                     <ActionBar
                         selected_count=selected_count_signal
@@ -125,7 +156,7 @@ custom_motion.hidden_opacity = 0.22;
                 </div>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code=motion_code>
+            <Playground title="Custom Motion Contract" code_signal=motion_code>
                 <div class="docs-stack">
                     <ActionBar
                         selected_count=selected_count_signal
@@ -151,14 +182,18 @@ custom_motion.hidden_opacity = 0.22;
 }
 
 pub(super) fn field_button() -> AnyView {
-    let default_code = r#"<FieldButton aria_label="Open options".to_string()>
+    let default_code = Signal::derive(move || {
+        r#"<FieldButton aria_label="Open options".to_string()>
   "Options"
 </FieldButton>
 <FieldButton quiet=true aria_label="Open calendar".to_string()>
   "📅"
-</FieldButton>"#;
+</FieldButton>"#
+            .to_string()
+    });
 
-    let state_code = r#"<FieldButton
+    let state_code = Signal::derive(move || {
+        r#"<FieldButton
   invalid=true
   is_active=true
   aria_label="Invalid trigger".to_string()
@@ -168,7 +203,9 @@ pub(super) fn field_button() -> AnyView {
 </FieldButton>
 <FieldButton disabled=true aria_label="Disabled trigger".to_string()>
   "Disabled"
-</FieldButton>"#;
+</FieldButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -177,7 +214,7 @@ pub(super) fn field_button() -> AnyView {
             group="Actions"
             description="Spectrum-style field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
         >
-            <Playground title="Default + Quiet" code=default_code>
+            <Playground title="Default + Quiet" code_signal=default_code>
                 <div class="docs-row">
                     <FieldButton aria_label="Open options".to_string()>
                         "Options"
@@ -188,7 +225,7 @@ pub(super) fn field_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Invalid + Active + Disabled" code=state_code>
+            <Playground title="Invalid + Active + Disabled" code_signal=state_code>
                 <div class="docs-row">
                     <FieldButton
                         invalid=true
@@ -209,14 +246,18 @@ pub(super) fn field_button() -> AnyView {
 }
 
 pub(super) fn infield_button() -> AnyView {
-    let default_code = r#"<InfieldButton aria_label="Open in-field options".to_string()>
+    let default_code = Signal::derive(move || {
+        r#"<InfieldButton aria_label="Open in-field options".to_string()>
   "⋯"
 </InfieldButton>
 <InfieldButton quiet=true aria_label="Open calendar".to_string()>
   "📅"
-</InfieldButton>"#;
+</InfieldButton>"#
+            .to_string()
+    });
 
-    let state_code = r#"<InfieldButton
+    let state_code = Signal::derive(move || {
+        r#"<InfieldButton
   invalid=true
   is_active=true
   aria_label="Invalid in-field trigger".to_string()
@@ -226,7 +267,9 @@ pub(super) fn infield_button() -> AnyView {
 </InfieldButton>
 <InfieldButton disabled=true aria_label="Disabled in-field trigger".to_string()>
   "Disabled"
-</InfieldButton>"#;
+</InfieldButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -235,7 +278,7 @@ pub(super) fn infield_button() -> AnyView {
             group="Actions"
             description="Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
         >
-            <Playground title="Default + Quiet" code=default_code>
+            <Playground title="Default + Quiet" code_signal=default_code>
                 <div class="docs-row">
                     <InfieldButton aria_label="Open in-field options".to_string()>
                         "⋯"
@@ -246,7 +289,7 @@ pub(super) fn infield_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Invalid + Active + Disabled" code=state_code>
+            <Playground title="Invalid + Active + Disabled" code_signal=state_code>
                 <div class="docs-row">
                     <InfieldButton
                         invalid=true
@@ -267,14 +310,18 @@ pub(super) fn infield_button() -> AnyView {
 }
 
 pub(super) fn clear_button() -> AnyView {
-    let basic_code = r#"<ClearButton aria_label="Clear query".to_string()>
+    let basic_code = Signal::derive(move || {
+        r#"<ClearButton aria_label="Clear query".to_string()>
   "×"
 </ClearButton>
 <ClearButton variant=ClearButtonVariant::OverBackground aria_label="Dismiss overlay".to_string()>
   "×"
-</ClearButton>"#;
+</ClearButton>"#
+            .to_string()
+    });
 
-    let state_code = r#"<ClearButton
+    let state_code = Signal::derive(move || {
+        r#"<ClearButton
   inset=true
   prevent_focus=true
   aria_label="Clear token".to_string()
@@ -284,7 +331,9 @@ pub(super) fn clear_button() -> AnyView {
 </ClearButton>
 <ClearButton disabled=true exclude_from_tab_order=true aria_label="Disabled clear".to_string()>
   "×"
-</ClearButton>"#;
+</ClearButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -293,7 +342,7 @@ pub(super) fn clear_button() -> AnyView {
             group="Actions"
             description="Spectrum-style clear affordance with centralized variant/inset/focus-mode normalization and stable state/source data contracts."
         >
-            <Playground title="Default + OverBackground" code=basic_code>
+            <Playground title="Default + OverBackground" code_signal=basic_code>
                 <div class="docs-row">
                     <ClearButton aria_label="Clear query".to_string()>
                         "×"
@@ -307,7 +356,7 @@ pub(super) fn clear_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Inset + Focus Mode + Disabled" code=state_code>
+            <Playground title="Inset + Focus Mode + Disabled" code_signal=state_code>
                 <div class="docs-row">
                     <ClearButton
                         inset=true
@@ -331,17 +380,23 @@ pub(super) fn clear_button() -> AnyView {
     .into_any()
 }
 pub(super) fn close_button() -> AnyView {
-    let basic_code = r#"<CloseButton />
+    let basic_code = Signal::derive(move || {
+        r#"<CloseButton />
 <CloseButton variant=CloseButtonVariant::OverBackground />
-<CloseButton aria_label="Dismiss popover".to_string() />"#;
+<CloseButton aria_label="Dismiss popover".to_string() />"#
+            .to_string()
+    });
 
-    let state_code = r#"<CloseButton size=CloseButtonSize::Sm />
+    let state_code = Signal::derive(move || {
+        r#"<CloseButton size=CloseButtonSize::Sm />
 <CloseButton size=CloseButtonSize::Lg />
 <CloseButton
   size=CloseButtonSize::Xl
   disabled=true
   class_name="docs-close-button-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -350,7 +405,7 @@ pub(super) fn close_button() -> AnyView {
             group="Actions"
             description="Spectrum/HeroUI-style close affordance with default icon fallback, centralized variant+size contracts, and stable state/source data markers."
         >
-            <Playground title="Default + OverBackground + Custom Label" code=basic_code>
+            <Playground title="Default + OverBackground + Custom Label" code_signal=basic_code>
                 <div class="docs-row">
                     <CloseButton />
                     <CloseButton variant=CloseButtonVariant::OverBackground />
@@ -358,7 +413,7 @@ pub(super) fn close_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Size Matrix + Disabled + Custom Class" code=state_code>
+            <Playground title="Size Matrix + Disabled + Custom Class" code_signal=state_code>
                 <div class="docs-row">
                     <CloseButton size=CloseButtonSize::Sm />
                     <CloseButton size=CloseButtonSize::Lg />
@@ -375,14 +430,18 @@ pub(super) fn close_button() -> AnyView {
 }
 
 pub(super) fn logic_button() -> AnyView {
-    let basic_code = r#"<LogicButton variant=LogicButtonVariant::And>
+    let basic_code = Signal::derive(move || {
+        r#"<LogicButton variant=LogicButtonVariant::And>
   "AND"
 </LogicButton>
 <LogicButton variant=LogicButtonVariant::Or>
   "OR"
-</LogicButton>"#;
+</LogicButton>"#
+            .to_string()
+    });
 
-    let state_code = r#"<LogicButton
+    let state_code = Signal::derive(move || {
+        r#"<LogicButton
   variant=LogicButtonVariant::And
   class_name="docs-logic-button-custom".to_string()
 >
@@ -390,7 +449,9 @@ pub(super) fn logic_button() -> AnyView {
 </LogicButton>
 <LogicButton variant=LogicButtonVariant::Or disabled=true>
   "Disabled"
-</LogicButton>"#;
+</LogicButton>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -399,7 +460,7 @@ pub(super) fn logic_button() -> AnyView {
             group="Actions"
             description="Spectrum-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts."
         >
-            <Playground title="AND + OR variants" code=basic_code>
+            <Playground title="AND + OR variants" code_signal=basic_code>
                 <div class="docs-row">
                     <LogicButton variant=LogicButtonVariant::And>
                         "AND"
@@ -410,7 +471,7 @@ pub(super) fn logic_button() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom class + Disabled" code=state_code>
+            <Playground title="Custom class + Disabled" code_signal=state_code>
                 <div class="docs-row">
                     <LogicButton
                         variant=LogicButtonVariant::And
@@ -450,28 +511,58 @@ pub(super) fn action_group() -> AnyView {
     let items_primary = items.clone();
     let items_secondary = items;
 
-    let code = r#"let items = vec![
-  ActionGroupItem::new("align-left", "Align Left"),
-  ActionGroupItem::new("align-center", "Align Center"),
-  ActionGroupItem::new("align-right", "Align Right"),
-];
+    let code = Signal::derive(move || {
+        let selected_ids = selected_ids.get();
+        let selected_literal = if selected_ids.is_empty() {
+            None
+        } else {
+            let ids = selected_ids
+                .iter()
+                .map(|id| format!("\"{id}\".to_string()"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            Some(format!("BTreeSet::from([{ids}])"))
+        };
 
-<ActionGroup
-  id_base="text-align".to_string()
-  items=items
-  selected_ids=selected_ids
-  on_selected_change=on_selected_change
-  on_action=on_action
-/>"#;
+        let mut snippet = vec![
+            "<ActionGroup".to_string(),
+            "  id_base=\"text-align\".to_string()".to_string(),
+            "  items=vec![".to_string(),
+            "    ActionGroupItem::new(\"align-left\", \"Align Left\"),".to_string(),
+            "    ActionGroupItem::new(\"align-center\", \"Align Center\"),".to_string(),
+            "    ActionGroupItem::new(\"align-right\", \"Align Right\"),".to_string(),
+            "    ActionGroupItem::new(\"align-justify\", \"Justify\").disabled(true),".to_string(),
+            "  ]".to_string(),
+        ];
 
-    let states_code = r#"<ActionGroup
+        if let Some(selected_literal) = selected_literal {
+            snippet.push(format!("  default_selected_ids={selected_literal}"));
+        }
+
+        snippet.extend([">".to_string(), "</ActionGroup>".to_string()]);
+
+        snippet.join(
+            "
+",
+        )
+    });
+
+    let states_code = Signal::derive(move || {
+        r#"<ActionGroup
   id_base="text-style".to_string()
-  items=items
+  items=vec![
+    ActionGroupItem::new("align-left", "Align Left"),
+    ActionGroupItem::new("align-center", "Align Center"),
+    ActionGroupItem::new("align-right", "Align Right"),
+    ActionGroupItem::new("align-justify", "Justify").disabled(true),
+  ]
   selection_mode=ActionGroupSelectionMode::Multiple
   default_selected_ids=BTreeSet::from(["align-left".to_string(), "align-center".to_string()])
   tone=ActionGroupTone::Strong
   class_name="docs-action-group-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -480,7 +571,7 @@ pub(super) fn action_group() -> AnyView {
             group="Actions"
             description="Selectable action cluster with centralized selection normalization and Spectrum-style state/source data contracts."
         >
-            <Playground title="Single Selection + Action Callback" code=code>
+            <Playground title="Single Selection + Action Callback" code_signal=code>
                 <div class="docs-stack">
                     <ActionGroup
                         id_base="docs-action-group-single".to_string()
@@ -496,7 +587,7 @@ pub(super) fn action_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Multiple + Strong Tone" code=states_code>
+            <Playground title="Multiple + Strong Tone" code_signal=states_code>
                 <ActionGroup
                     id_base="docs-action-group-multiple".to_string()
                     items=items_secondary
@@ -518,49 +609,78 @@ pub(super) fn toggle() -> AnyView {
     let (pressed, set_pressed) = signal(false);
     let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
 
-    let basic_code = r#"let (pressed, set_pressed) = signal(false);
-let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
+    let basic_code = Signal::derive(move || {
+        let pressed = pressed.get();
 
-<Toggle
-  pressed=pressed
-  set_pressed=set_pressed
-  on_pressed_change=on_pressed_change
->
-  "Bold"
-</Toggle>"#;
+        [
+            format!("let (pressed, set_pressed) = signal({pressed});"),
+            String::new(),
+            "<Toggle".to_string(),
+            "  pressed=pressed".to_string(),
+            "  set_pressed=set_pressed".to_string(),
+            ">".to_string(),
+            "  \"Bold\"".to_string(),
+            "</Toggle>".to_string(),
+        ]
+        .join(
+            "
+",
+        )
+    });
 
-    let states_code = r#"<Toggle
-  pressed=pressed
-  set_pressed=set_pressed
-  variant=ToggleVariant::Outline
-  size=ToggleSize::Sm
->
-  "Italic"
-</Toggle>
-<Toggle
-  pressed=pressed
-  set_pressed=set_pressed
-  variant=ToggleVariant::Ghost
-  disabled=true
->
-  "Disabled"
-</Toggle>"#;
+    let states_code = Signal::derive(move || {
+        let pressed = pressed.get();
 
-    let markers_code = r##"<Toggle
-  pressed=pressed
-  set_pressed=set_pressed
-  variant=ToggleVariant::Outline
-  size=ToggleSize::Sm
-  motion=ToggleMotion {
-    tap_scale: 0.92,
-    ..ToggleMotion::default()
-  }
-  class_name="docs-toggle-state".to_string()
-  aria_label="Toggle formatting".to_string()
-  on_pressed_change=on_pressed_change
->
-  "Markers"
-</Toggle>"##;
+        vec![
+            format!("let (pressed, set_pressed) = signal({pressed});"),
+            String::new(),
+            "<Toggle".to_string(),
+            "  pressed=pressed".to_string(),
+            "  set_pressed=set_pressed".to_string(),
+            "  variant=ToggleVariant::Outline".to_string(),
+            "  size=ToggleSize::Sm".to_string(),
+            ">".to_string(),
+            "  \"Italic\"".to_string(),
+            "</Toggle>".to_string(),
+            "<Toggle".to_string(),
+            "  pressed=pressed".to_string(),
+            "  set_pressed=set_pressed".to_string(),
+            "  variant=ToggleVariant::Ghost".to_string(),
+            "  disabled=true".to_string(),
+            ">".to_string(),
+            "  \"Disabled\"".to_string(),
+            "</Toggle>".to_string(),
+        ]
+        .join(
+            "
+",
+        )
+    });
+
+    let markers_code = Signal::derive(move || {
+        let pressed = pressed.get();
+
+        vec![
+            format!("let (pressed, set_pressed) = signal({pressed});"),
+            String::new(),
+            "<Toggle".to_string(),
+            "  pressed=pressed".to_string(),
+            "  set_pressed=set_pressed".to_string(),
+            "  variant=ToggleVariant::Outline".to_string(),
+            "  size=ToggleSize::Sm".to_string(),
+            "  motion=ToggleMotion { tap_scale: 0.92, ..ToggleMotion::default() }".to_string(),
+            "  class_name=\"docs-toggle-state\".to_string()".to_string(),
+            "  aria_label=\"Toggle formatting\".to_string()".to_string(),
+            "  on_pressed_change=Callback::new(move |_| {})".to_string(),
+            ">".to_string(),
+            "  \"Markers\"".to_string(),
+            "</Toggle>".to_string(),
+        ]
+        .join(
+            "
+",
+        )
+    });
 
     view! {
         <ComponentPage
@@ -569,7 +689,7 @@ let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
             group="Actions"
             description="Shadcn-compatible single toggle primitive with Spectrum-style press/focus contracts and HeroUI-grade spring press motion."
         >
-            <Playground title="Controlled Toggle" code=basic_code>
+            <Playground title="Controlled Toggle" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Toggle
@@ -584,7 +704,7 @@ let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
                 </div>
             </Playground>
 
-            <Playground title="Outline + Ghost + Disabled" code=states_code>
+            <Playground title="Outline + Ghost + Disabled" code_signal=states_code>
                 <div class="docs-row">
                     <Toggle
                         pressed=pressed
@@ -608,7 +728,7 @@ let on_pressed_change = Callback::new(move |next: bool| set_pressed.set(next));
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-interaction`, `data-variant-source`, `data-motion-source`, `data-aria-source`, and `data-handler-source` contracts."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <Toggle
@@ -660,28 +780,58 @@ pub(super) fn toggle_group() -> AnyView {
     let on_alignment_selected_change =
         Callback::new(move |next: BTreeSet<String>| set_alignment_selected_raw.set(next));
 
-    let code = r#"let (selected, set_selected) = signal(BTreeSet::from(["bold".to_string()]));
-let selected_signal: Signal<BTreeSet<String>> = Signal::derive(move || selected.get());
+    let code = Signal::derive(move || {
+        let selected_ids = style_selected_raw.get();
+        let selected_literal = if selected_ids.is_empty() {
+            None
+        } else {
+            let ids = selected_ids
+                .iter()
+                .map(|id| format!("\"{id}\".to_string()"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            Some(format!("BTreeSet::from([{ids}])"))
+        };
 
-<ToggleGroup
-  id_base="formatting".to_string()
-  items=items
-  selected_ids=selected_signal
-  on_selected_ids_change=Callback::new(move |next| set_selected.set(next))
-  selection_mode=ToggleGroupSelectionMode::Multiple
-  attached=true
-/>"#;
+        let mut snippet = vec![
+            "<ToggleGroup".to_string(),
+            "  id_base=\"formatting\".to_string()".to_string(),
+            "  items=vec![".to_string(),
+            "    ToggleGroupItem::new(\"bold\", \"Bold\"),".to_string(),
+            "    ToggleGroupItem::new(\"italic\", \"Italic\"),".to_string(),
+            "    ToggleGroupItem::new(\"underline\", \"Underline\"),".to_string(),
+            "  ]".to_string(),
+            "  attached=true".to_string(),
+        ];
 
-    let states_code = r#"<ToggleGroup
+        if let Some(selected_literal) = selected_literal {
+            snippet.push(format!("  default_selected_ids={selected_literal}"));
+        }
+
+        snippet.extend([">".to_string(), "</ToggleGroup>".to_string()]);
+
+        snippet.join(
+            "
+",
+        )
+    });
+
+    let states_code = Signal::derive(move || {
+        r#"<ToggleGroup
   id_base="alignment".to_string()
-  items=alignment_items
-  selected_ids=alignment_selected
-  on_selected_ids_change=on_alignment_selected_change
+  items=vec![
+    ToggleGroupItem::new("left", "Left"),
+    ToggleGroupItem::new("center", "Center"),
+    ToggleGroupItem::new("right", "Right").disabled(true),
+  ]
+  default_selected_ids=BTreeSet::from(["center".to_string()])
   selection_mode=ToggleGroupSelectionMode::Single
   orientation=ToggleGroupOrientation::Vertical
   attached=false
   aria_label="Alignment controls".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -690,7 +840,7 @@ let selected_signal: Signal<BTreeSet<String>> = Signal::derive(move || selected.
             group="Actions"
             description="Shadcn-compatible grouped toggle primitive with controlled selection modes and Spectrum-style root state contracts."
         >
-            <Playground title="Multiple + Attached" code=code>
+            <Playground title="Multiple + Attached" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
                     <ToggleGroup
                         id_base="docs-toggle-group-formatting".to_string()
@@ -714,7 +864,7 @@ let selected_signal: Signal<BTreeSet<String>> = Signal::derive(move || selected.
                 </div>
             </Playground>
 
-            <Playground title="Single + Vertical + Disabled Item" code=states_code>
+            <Playground title="Single + Vertical + Disabled Item" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <ToggleGroup
                         id_base="docs-toggle-group-alignment".to_string()

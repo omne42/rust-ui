@@ -67,8 +67,8 @@ fn list_module_docs_page_covers_primary_playgrounds() {
         "title=\"ListBox\"",
         "slug=\"listbox\"",
         "description=\"Listbox with active highlight spring motion, typeahead, and Spectrum-style root state attrs.\"",
-        "<Playground title=\"Selection + Typeahead\" code=code>",
-        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<Playground title=\"Selection + Typeahead\" code_signal=code>",
+        "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<ListBox",
     ] {
         assert!(
@@ -82,8 +82,8 @@ fn list_module_docs_page_covers_primary_playgrounds() {
         "title=\"Item\"",
         "slug=\"item\"",
         "description=\"Shadcn-compatible item composition primitives (`Item*`) with stable slot/variant/size contracts for media-content-actions and header-footer layouts.\"",
-        "<Playground title=\"Media + Content + Actions\" code=basic_code>",
-        "<Playground title=\"Header + Footer Layout\" code=advanced_code>",
+        "title=\"Media + Content + Actions\"",
+        "title=\"Header + Footer Layout\"",
         "<Item",
     ] {
         assert!(
@@ -126,8 +126,8 @@ fn list_module_docs_playgrounds_lock_state_matrix_contract_values() {
     for needle in [
         "title=\"Media + Content + Actions\"",
         "<ItemGroup>",
-        "variant=ItemVariant::Outline",
-        "size=ItemSize::Default",
+        "variant=variant",
+        "size=size",
         "<ItemMedia variant=ItemMediaVariant::Icon>",
         "\"Build Artifact\"",
         "\"Generated from latest CI pipeline.\"",

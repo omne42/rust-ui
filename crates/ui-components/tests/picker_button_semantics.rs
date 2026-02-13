@@ -200,10 +200,11 @@ fn picker_button_docs_page_covers_primary_playgrounds() {
         "title=\"PickerButton\"",
         "slug=\"picker-button\"",
         "description=\"Spectrum-compatible PickerButton alias for upstream naming parity, preserving FieldButton accessibility/state contracts and HeroUI-level press/focus interaction behavior.\"",
-        "<Playground title=\"Interactive\" code=basic_code>",
-        "<Playground title=\"State Matrix\" code=states_code>",
+        "title=\"Interactive\"",
+        "code_signal=code",
+        "<Playground title=\"State Matrix\" code_signal=states_code>",
         "title=\"State + Source Markers\"",
-        "code=markers_code",
+        "code_signal=markers_code",
         "<PickerButton",
     ] {
         assert!(
@@ -221,7 +222,7 @@ fn picker_button_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Interactive\"",
-        "<PickerButton on_press=on_press>",
+        "on_press=on_press",
         "\"Choose item\"",
         "title=\"State Matrix\"",
         "<PickerButton quiet=true>",

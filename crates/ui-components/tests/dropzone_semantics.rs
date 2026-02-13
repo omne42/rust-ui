@@ -195,8 +195,8 @@ fn dropzone_docs_page_covers_primary_playgrounds() {
         "title=\"Dropzone\"",
         "slug=\"dropzone\"",
         "description=\"Spectrum-compatible Dropzone alias for upstream naming parity, preserving DropZone drag/drop + paste accessibility contracts and HeroUI-level spring interaction motion.\"",
-        "<Playground title=\"Drop / paste\" code=basic_code>",
-        "<Playground title=\"Disabled\" code=disabled_code>",
+        "<Playground title=\"Drop / paste\" code_signal=basic_code>",
+        "<Playground title=\"Disabled\" code_signal=disabled_code>",
         "title=\"State + Source Markers\"",
         "<Dropzone",
     ] {

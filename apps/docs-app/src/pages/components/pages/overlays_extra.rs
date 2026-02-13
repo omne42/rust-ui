@@ -51,19 +51,23 @@ pub(super) fn bottom_sheet() -> AnyView {
     let on_custom_motion_exit_complete =
         Callback::new(move |_| set_present_custom_motion.set(false));
 
-    let semantic_code = r#"<BottomSheet
+    let semantic_code = Signal::derive(move || {
+        r#"<BottomSheet
   open=open
   id_base="bottom-sheet".to_string()
   title="Update available".to_string()
   description="A newer version with security improvements is ready to install.".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| {})
   footer=move || view! { ... }
   on_exit_complete=finish_exit
 >
   ...
-</BottomSheet>"#;
+</BottomSheet>"#
+            .to_string()
+    });
 
-    let detached_code = r#"<BottomSheet
+    let detached_code = Signal::derive(move || {
+        r#"<BottomSheet
   open=open
   id_base="bottom-sheet-detached".to_string()
   title="Quick actions".to_string()
@@ -71,13 +75,16 @@ pub(super) fn bottom_sheet() -> AnyView {
   bottom_inset_px=16.0
   show_close_button=false
   class_name="docs-bottom-sheet-custom".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| {})
   on_exit_complete=finish_exit
 >
   ...
-</BottomSheet>"#;
+</BottomSheet>"#
+            .to_string()
+    });
 
-    let custom_motion_code = r#"<BottomSheet
+    let custom_motion_code = Signal::derive(move || {
+        r#"<BottomSheet
   open=open
   id_base="bottom-sheet-motion".to_string()
   title="Motion tuned".to_string()
@@ -88,11 +95,13 @@ pub(super) fn bottom_sheet() -> AnyView {
       ..ui_components::SheetMotion::default()
     }
   }
-  on_close=close
+  on_close=Callback::new(move |_| {})
   on_exit_complete=finish_exit
 >
   ...
-</BottomSheet>"#;
+</BottomSheet>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -101,7 +110,7 @@ pub(super) fn bottom_sheet() -> AnyView {
             group="Overlays"
             description="Spectrum/HeroUI-style bottom sheet primitive composed from Sheet with centralized handle/description/footer/detached contracts and stable slot/data-state markers."
         >
-            <Playground title="Semantic Bottom Sheet" code=semantic_code>
+            <Playground title="Semantic Bottom Sheet" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_sheet>"Open bottom sheet"</Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
@@ -134,7 +143,7 @@ pub(super) fn bottom_sheet() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="Detached + Title Only + Custom Class" code=detached_code>
+            <Playground title="Detached + Title Only + Custom Class" code_signal=detached_code>
                 <div class="docs-row">
                     <Button on_press=open_detached_sheet>"Open detached sheet"</Button>
                     <span class="ui-muted">"open: " {move || open_detached_raw.get().to_string()}</span>
@@ -165,7 +174,7 @@ pub(super) fn bottom_sheet() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code=custom_motion_code>
+            <Playground title="Custom Motion Contract" code_signal=custom_motion_code>
                 <div class="docs-row">
                     <Button on_press=open_custom_motion_sheet>"Open custom motion sheet"</Button>
                     <span class="ui-muted">"open: " {move || open_custom_motion_raw.get().to_string()}</span>
@@ -232,19 +241,23 @@ pub(super) fn tray() -> AnyView {
         },
     };
 
-    let semantic_code = r#"<Tray
+    let semantic_code = Signal::derive(move || {
+        r#"<Tray
   open=open
   id_base="tray".to_string()
   title="Filters".to_string()
   description="Bottom tray with semantic heading + footer actions.".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| {})
   footer=move || view! { ... }
   on_exit_complete=finish_exit
 >
   ...
-</Tray>"#;
+</Tray>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Tray
+    let custom_code = Signal::derive(move || {
+        r#"<Tray
   open=open
   id_base="tray-fixed".to_string()
   title="Fixed tray".to_string()
@@ -259,11 +272,13 @@ pub(super) fn tray() -> AnyView {
   is_keyboard_dismiss_disabled=true
   show_close_button=false
   class_name="docs-tray-custom".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| {})
   on_exit_complete=finish_exit
 >
   ...
-</Tray>"#;
+</Tray>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -272,7 +287,7 @@ pub(super) fn tray() -> AnyView {
             group="Overlays"
             description="Spectrum-compatible bottom tray primitive composed from Sheet with centralized description/footer/close/height contracts and stable slot/data-state markers."
         >
-            <Playground title="Tray + Footer Actions" code=semantic_code>
+            <Playground title="Tray + Footer Actions" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_tray>"Open tray"</Button>
                     <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
@@ -304,7 +319,7 @@ pub(super) fn tray() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-size-source`, `data-dismiss-source`, `data-keyboard-dismiss-source`, `data-motion-source`, and `data-exit-source` contracts."
-                code=custom_code
+                code_signal=custom_code
             >
                 <div class="docs-row">
                     <Button on_press=open_custom_tray>"Open fixed tray"</Button>
@@ -379,19 +394,30 @@ pub(super) fn sonner() -> AnyView {
     });
     let clear_source: OnPress = Callback::new(move |_| source_store.get_value().clear.run(()));
 
-    let basic_code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+    let basic_code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
 <Sonner store=store.clone() />
-store.push_simple("Saved");"#;
+store.push_simple("Saved");"#
+            .to_string()
+    });
 
-    let state_code = r#"<Sonner
+    let state_code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+
+<Sonner
   store=store.clone()
   portal=false
   position=SonnerPosition::TopCenter
   max_toasts=2
   class_name="docs-sonner-inline".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let source_code = r#"<Sonner
+    let source_code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+
+<Sonner
   store=store.clone()
   portal=false
   position=SonnerPosition::TopLeft
@@ -403,7 +429,9 @@ store.push_simple("Saved");"#;
     initial_scale: 0.94,
     ..ToastMotion::default()
   }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let custom_motion = ToastMotion {
         initial_y_px: 22.0,
@@ -418,7 +446,7 @@ store.push_simple("Saved");"#;
             group="Overlays"
             description="Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts."
         >
-            <Playground title="Portal Queue + Variants" code=basic_code>
+            <Playground title="Portal Queue + Variants" code_signal=basic_code>
                 <div class="docs-row">
                     <Button variant=ButtonVariant::Secondary on_press=push_saved>
                         "Push success"
@@ -430,7 +458,7 @@ store.push_simple("Saved");"#;
                 <Sonner store=portal_store.get_value() />
             </Playground>
 
-            <Playground title="Inline Top-Center + Max Queue" code=state_code>
+            <Playground title="Inline Top-Center + Max Queue" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button on_press=push_inline>"Push accent"</Button>
@@ -451,7 +479,7 @@ store.push_simple("Saved");"#;
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
-                code=source_code
+                code_signal=source_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
@@ -516,19 +544,30 @@ pub(super) fn toaster() -> AnyView {
     });
     let clear_source: OnPress = Callback::new(move |_| source_store.get_value().clear.run(()));
 
-    let basic_code = r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+    let basic_code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
 <Toaster store=store.clone() />
-store.push_simple("Synced");"#;
+store.push_simple("Synced");"#
+            .to_string()
+    });
 
-    let state_code = r#"<Toaster
+    let state_code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+
+<Toaster
   store=store.clone()
   portal=false
   position=ToasterPosition::TopCenter
   max_toasts=2
   class_name="docs-toaster-inline".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let source_code = r#"<Toaster
+    let source_code = Signal::derive(move || {
+        r#"let store = provide_toast_store(ToastStoreOptions { max_toasts: 3 });
+
+<Toaster
   store=store.clone()
   portal=false
   position=ToasterPosition::TopLeft
@@ -540,7 +579,9 @@ store.push_simple("Synced");"#;
     initial_scale: 0.95,
     ..ToastMotion::default()
   }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let custom_motion = ToastMotion {
         initial_y_px: 20.0,
@@ -555,7 +596,7 @@ store.push_simple("Synced");"#;
             group="Overlays"
             description="Shadcn-compatible toast host that composes Sonner/ToastViewport with centralized slot/queue/position/store source-state contracts and HeroUI-level spring motion handoff."
         >
-            <Playground title="Portal Queue Host" code=basic_code>
+            <Playground title="Portal Queue Host" code_signal=basic_code>
                 <div class="docs-row">
                     <Button variant=ButtonVariant::Secondary on_press=push_saved>
                         "Push success"
@@ -567,7 +608,7 @@ store.push_simple("Synced");"#;
                 <Toaster store=portal_store.get_value() />
             </Playground>
 
-            <Playground title="Inline Top-Center Host" code=state_code>
+            <Playground title="Inline Top-Center Host" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button on_press=push_inline>"Push inline toast"</Button>
@@ -588,7 +629,7 @@ store.push_simple("Synced");"#;
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-queue`, `data-position-source`, `data-portal-source`, `data-max-toasts-source`, `data-store-source`, and `data-motion-source` contracts."
-                code=source_code
+                code_signal=source_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
@@ -637,41 +678,53 @@ pub(super) fn underlay() -> AnyView {
     let close_source: OnPress = Callback::new(move |_| set_open_source_raw.set(false));
     let open_source_underlay: OnPress = Callback::new(move |_| set_open_source_raw.set(true));
 
-    let code = r#"let (open, set_open) = signal(false);
-let open_signal: Signal<bool> = Signal::derive(move || open.get());
+    let code = Signal::derive(move || {
+        r#"let (open, set_open) = signal(false);
 
 <Underlay
   id_base="docs-underlay-basic".to_string()
-  open=open_signal
+  open=Signal::derive(move || open.get())
   on_close=Callback::new(move |_| set_open.set(false))
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let state_code = r#"<Underlay
+    let state_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+
+<Underlay
   id_base="docs-underlay-transparent".to_string()
-  open=open_signal
+  open=Signal::derive(move || open_raw.get())
   transparent=true
   class_name="docs-underlay-custom".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| set_open_raw.set(false))
 />
 <Underlay
   id_base="docs-underlay-disabled".to_string()
   open=Signal::derive(|| true)
   disabled=true
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let source_code = r#"<Underlay
+    let source_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+
+<Underlay
   id_base="docs-underlay-source".to_string()
-  open=open_signal
+  open=Signal::derive(move || open_raw.get())
   transparent=true
   class_name="docs-underlay-source".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| set_open_raw.set(false))
 />
 <Underlay
   id_base="docs-underlay-source-disabled".to_string()
   open=Signal::derive(|| true)
   disabled=true
   class_name="docs-underlay-disabled-source".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -680,7 +733,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             group="Overlays"
             description="Spectrum-compatible full-viewport underlay primitive with centralized open/transparent/disabled/close source-state derivation and stable slot/data-state markers."
         >
-            <Playground title="Scrim + Click To Close" code=code>
+            <Playground title="Scrim + Click To Close" code_signal=code>
                 <div class="docs-row">
                     <Button on_press=open_scrim_underlay>
                         {move || if open_scrim_raw.get() { "Underlay open" } else { "Open underlay" }}
@@ -695,7 +748,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
                 />
             </Playground>
 
-            <Playground title="Transparent + Disabled + Custom Class" code=state_code>
+            <Playground title="Transparent + Disabled + Custom Class" code_signal=state_code>
                 <div class="docs-row">
                     <Button variant=ButtonVariant::Secondary on_press=open_transparent_underlay>
                         {move || {
@@ -730,7 +783,7 @@ let open_signal: Signal<bool> = Signal::derive(move || open.get());
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-tone`, `data-close-mode`, `data-transparent-source`, `data-disabled-source`, `data-close-source`, and `data-class-source` contracts."
-                code=source_code
+                code_signal=source_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">

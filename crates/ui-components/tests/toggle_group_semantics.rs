@@ -141,8 +141,8 @@ fn toggle_group_docs_page_covers_primary_playgrounds() {
         "title=\"ToggleGroup\"",
         "slug=\"toggle-group\"",
         "description=\"Shadcn-compatible grouped toggle primitive with controlled selection modes and Spectrum-style root state contracts.\"",
-        "<Playground title=\"Multiple + Attached\" code=code>",
-        "<Playground title=\"Single + Vertical + Disabled Item\" code=states_code>",
+        "<Playground title=\"Multiple + Attached\" code_signal=code>",
+        "<Playground title=\"Single + Vertical + Disabled Item\" code_signal=states_code>",
         "<ToggleGroup",
     ] {
         assert!(

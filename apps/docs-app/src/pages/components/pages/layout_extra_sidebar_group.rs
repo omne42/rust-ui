@@ -61,26 +61,81 @@ pub(super) fn sidebar_group() -> AnyView {
     let group_open: Signal<bool> = Signal::derive(move || group_open_raw.get());
     let on_group_open_change = Callback::new(move |next: bool| set_group_open_raw.set(next));
 
-    let base_code = r#"<SidebarGroup
+    let base_code = Signal::derive(move || {
+        r#"<SidebarGroup
   label="Help".to_string()
   action_label="Add".to_string()
-  on_action=Callback::new(move |_| set_action_count.update(|count| *count += 1))
+  on_action=Callback::new(move |_| {})
 >
-  <SidebarMenu items=items />
-</SidebarGroup>"#;
+  <SidebarMenu
+    items=vec![
+      SidebarMenuItem {
+        id: "support".to_string(),
+        label: "Support".to_string(),
+        href: Some("/support".to_string()),
+        badge: Some("2".to_string()),
+        action_label: Some("Support item action".to_string()),
+        disabled: false,
+        sub_items: vec![],
+        default_sub_open: false,
+      },
+      SidebarMenuItem {
+        id: "feedback".to_string(),
+        label: "Feedback".to_string(),
+        href: Some("/feedback".to_string()),
+        badge: Some("1".to_string()),
+        action_label: Some("Feedback item action".to_string()),
+        disabled: false,
+        sub_items: vec![],
+        default_sub_open: false,
+      },
+    ]
+  />
+</SidebarGroup>"#
+            .to_string()
+    });
 
-    let controlled_code = r#"let (open_raw, set_open_raw) = signal(true);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
+    let controlled_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
 
 <SidebarGroup
-  open=open
+  open=Signal::derive(move || open_raw.get())
   on_open_change=Callback::new(move |next| set_open_raw.set(next))
   collapsible=true
   show_action=false
   label="Architecture".to_string()
 >
-  <SidebarMenu items=items allow_submenu_collapse=true show_actions=true />
-</SidebarGroup>"#;
+  <SidebarMenu
+    items=vec![SidebarMenuItem {
+      id: "project".to_string(),
+      label: "Project docs".to_string(),
+      href: None,
+      badge: None,
+      action_label: Some("Project item action".to_string()),
+      disabled: false,
+      sub_items: vec![
+        SidebarMenuSubItem {
+          id: "install".to_string(),
+          label: "Installation".to_string(),
+          href: Some("/docs/install".to_string()),
+          disabled: false,
+        },
+        SidebarMenuSubItem {
+          id: "routing".to_string(),
+          label: "Routing".to_string(),
+          href: Some("/docs/routing".to_string()),
+          disabled: false,
+        },
+      ],
+      default_sub_open: true,
+    }]
+    allow_submenu_collapse=true
+    show_actions=true
+    show_badges=false
+  />
+</SidebarGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -89,7 +144,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             group="Layout"
             description="Shadcn-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, Spectrum-style data contracts, and motion-ready collapse behavior."
         >
-            <Playground title="Label + Group Action" code=base_code>
+            <Playground title="Label + Group Action" code_signal=base_code>
                 <Sidebar
                     side=SidebarSide::Left
                     variant=SidebarVariant::Sidebar
@@ -117,7 +172,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 </Sidebar>
             </Playground>
 
-            <Playground title="Controlled + Collapsible Group" code=controlled_code>
+            <Playground title="Controlled + Collapsible Group" code_signal=controlled_code>
                 <div class="docs-stack docs-stack--tight">
                     <button
                         class="ui-button"

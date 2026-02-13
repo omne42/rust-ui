@@ -26,21 +26,29 @@ pub(super) fn alert_dialog() -> AnyView {
         set_confirmed.update(|value| *value = value.saturating_add(10));
     });
 
-    let code = r#"<AlertDialog
-  open=open
+    let code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+
+<AlertDialog
+  open=Signal::derive(move || open_raw.get())
   id_base="a".to_string()
   title="Confirm".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| set_open_raw.set(false))
   confirm_label="Confirm".to_string()
-  on_confirm=on_confirm
-/>"#;
+  on_confirm=Callback::new(move |_| {})
+/>"#
+        .to_string()
+    });
 
-    let marker_code = r#"<AlertDialog
-  open=open
+    let marker_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
+
+<AlertDialog
+  open=Signal::derive(move || open_raw.get())
   id_base="a-marker".to_string()
   title="Delete workspace?".to_string()
   description="Inspect source markers.".to_string()
-  on_close=close
+  on_close=Callback::new(move |_| set_open_raw.set(false))
   confirm_label="Delete now".to_string()
   cancel_label="Dismiss".to_string()
   secondary_label="Save draft".to_string()
@@ -55,7 +63,9 @@ pub(super) fn alert_dialog() -> AnyView {
       ..ui_components::OverlayMotion::default()
     }
   }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -64,7 +74,7 @@ pub(super) fn alert_dialog() -> AnyView {
             group="Overlays"
             description="Alertdialog role composition with destructive/default variants."
         >
-            <Playground title="AlertDialog" code=code>
+            <Playground title="AlertDialog" code_signal=code>
                 <div class="docs-row">
                     <Button variant=ButtonVariant::Destructive on_press=open_alert>
                         "Open destructive"
@@ -89,7 +99,7 @@ pub(super) fn alert_dialog() -> AnyView {
                 </Show>
             </Playground>
 
-            <Playground title="State + Source Markers" code=marker_code>
+            <Playground title="State + Source Markers" code_signal=marker_code>
                 <div class="docs-stack docs-stack--tight">
                     <div class="docs-row">
                         <Button variant=ButtonVariant::Secondary on_press=open_alert>

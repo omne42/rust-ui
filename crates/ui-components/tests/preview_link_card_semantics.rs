@@ -251,10 +251,10 @@ fn preview_link_card_docs_page_covers_primary_playgrounds() {
         "title=\"PreviewLinkCard\"",
         "slug=\"preview-link-card\"",
         "description=\"Hover-triggered preview link card with overlay positioning, motion contract, and source markers.\"",
-        "<Playground title=\"Preview Snapshot\" code=code>",
+        "<Playground title=\"Preview Snapshot\" code_signal=code>",
         "title=\"State + Source Markers\"",
-        "code=markers_code",
-        "<Playground title=\"Default Fallbacks\" code=fallback_code>",
+        "code_signal=markers_code",
+        "<Playground title=\"Default Fallbacks\" code_signal=fallback_code>",
         "<PreviewLinkCard",
     ] {
         assert!(

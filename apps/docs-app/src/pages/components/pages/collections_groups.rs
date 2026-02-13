@@ -11,39 +11,41 @@ pub(super) fn tag() -> AnyView {
 
     let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));
 
-    let matrix_code = r#"<Tag variant=TagVariant::Default size=TagSize::Sm>"Rust"</Tag>
-<Tag variant=TagVariant::Default size=TagSize::Md>"Leptos"</Tag>
-<Tag variant=TagVariant::Surface size=TagSize::Md>"HeroUI parity"</Tag>
-<Tag variant=TagVariant::Surface size=TagSize::Lg>"Spectrum contracts"</Tag>"#;
+    let matrix_code = Signal::derive(move || {
+        [
+            "<Tag variant=TagVariant::Default size=TagSize::Sm>\"Rust\"</Tag>".to_string(),
+            "<Tag variant=TagVariant::Default>\"Leptos\"</Tag>".to_string(),
+            "<Tag variant=TagVariant::Surface>\"HeroUI parity\"</Tag>".to_string(),
+            "<Tag variant=TagVariant::Surface size=TagSize::Lg>\"Spectrum contracts\"</Tag>"
+                .to_string(),
+        ]
+        .join("\n")
+    });
 
-    let states_code = r#"let on_remove_alpha = Callback::new(move |_| {
-  logging::log!("remove alpha");
-});
-let on_remove_beta = Callback::new(move |_| {
-  logging::log!("remove beta");
-});
-
-<Tag
-  variant=TagVariant::Surface
-  size=TagSize::Md
-  removable=true
-  on_remove=Some(on_remove_alpha)
-  remove_aria_label="Remove alpha release".to_string()
->
-  "alpha"
-</Tag>
-<Tag
-  variant=TagVariant::Default
-  size=TagSize::Md
-  removable=true
-  on_remove=Some(on_remove_beta)
-  class_name="docs-tag-custom".to_string()
->
-  "beta"
-</Tag>
-<Tag variant=TagVariant::Default size=TagSize::Md disabled=true removable=true>
-  "disabled"
-</Tag>"#;
+    let states_code = Signal::derive(move || {
+        vec![
+            format!("let (remove_count, set_remove_count) = signal({}_u32);", remove_count.get()),
+            "let on_remove_alpha = Callback::new(move |_| set_remove_count.update(|count| *count += 1));"
+                .to_string(),
+            "let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));"
+                .to_string(),
+            String::new(),
+            "<Tag".to_string(),
+            "  variant=TagVariant::Surface".to_string(),
+            "  removable=true".to_string(),
+            "  on_remove=on_remove_alpha".to_string(),
+            "  remove_aria_label=\"Remove alpha release\".to_string()".to_string(),
+            ">".to_string(),
+            "  \"alpha\"".to_string(),
+            "</Tag>".to_string(),
+            "<Tag removable=true on_remove=on_remove_beta class_name=\"docs-tag-custom\".to_string()>"
+                .to_string(),
+            "  \"beta\"".to_string(),
+            "</Tag>".to_string(),
+            "<Tag disabled=true removable=true>\"disabled\"</Tag>".to_string(),
+        ]
+        .join("\n")
+    });
 
     view! {
         <ComponentPage
@@ -52,7 +54,7 @@ let on_remove_beta = Callback::new(move |_| {
             group="Collections"
             description="Spectrum/HeroUI-style tag primitive with centralized variant/size/remove-action/source state contracts and stable slot/data markers."
         >
-            <Playground title="Variant + Size Matrix" code=matrix_code>
+            <Playground title="Variant + Size Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Tag variant=TagVariant::Default size=TagSize::Sm>
                         "Rust"
@@ -69,7 +71,7 @@ let on_remove_beta = Callback::new(move |_| {
                 </div>
             </Playground>
 
-            <Playground title="Removable + Disabled + Custom Class" code=states_code>
+            <Playground title="Removable + Disabled + Custom Class" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Tag
@@ -108,45 +110,61 @@ pub(super) fn collapsible() -> AnyView {
     let (open, set_open) = signal(true);
     let on_open_change = Callback::new(move |next: bool| set_open.set(next));
 
-    let basic_code = r#"let (open, set_open) = signal(true);
-let on_open_change = Callback::new(move |next: bool| set_open.set(next));
+    let basic_code = Signal::derive(move || {
+        vec![
+            format!("let (open, set_open) = signal({});", open.get()),
+            "let on_open_change = Callback::new(move |next: bool| set_open.set(next));".to_string(),
+            String::new(),
+            "<Collapsible".to_string(),
+            "  id_base=\"docs-collapsible\".to_string()".to_string(),
+            "  title=\"Advanced options\".to_string()".to_string(),
+            "  open=open.into()".to_string(),
+            "  on_open_change=on_open_change".to_string(),
+            ">".to_string(),
+            "  <div>\"Panel content with disclosure-level semantics.\"</div>".to_string(),
+            "</Collapsible>".to_string(),
+        ]
+        .join("\n")
+    });
 
-<Collapsible
-  id_base="collapsible".to_string()
-  title="Advanced options".to_string()
-  open=open.into()
-  on_open_change=on_open_change
->
-  <div>"Content"</div>
-</Collapsible>"#;
+    let states_code = Signal::derive(move || {
+        vec![
+            "<Collapsible".to_string(),
+            "  id_base=\"docs-collapsible-disabled\".to_string()".to_string(),
+            "  title=\"Disabled section\".to_string()".to_string(),
+            "  default_open=false".to_string(),
+            "  disabled=true".to_string(),
+            "  class_name=\"docs-collapsible-custom\".to_string()".to_string(),
+            "  motion=CollapsibleMotion {".to_string(),
+            "    panel_offset_y_px: 6.0,".to_string(),
+            "    ..CollapsibleMotion::default()".to_string(),
+            "  }".to_string(),
+            ">".to_string(),
+            "  <div>\"This content is intentionally not reachable while disabled.\"</div>"
+                .to_string(),
+            "</Collapsible>".to_string(),
+        ]
+        .join("\n")
+    });
 
-    let states_code = r#"<Collapsible
-  id_base="collapsible-disabled".to_string()
-  title="Disabled section".to_string()
-  default_open=false
-  disabled=true
-  class_name="docs-collapsible-custom".to_string()
-  motion=CollapsibleMotion {
-    panel_offset_y_px: 6.0,
-    ..CollapsibleMotion::default()
-  }
->
-  <div>"Hidden"</div>
-</Collapsible>"#;
-
-    let markers_code = r#"<Collapsible
-  id_base="collapsible-markers".to_string()
-  title="Advanced settings".to_string()
-  aria_label="Advanced settings panel".to_string()
-  default_open=true
-  class_name="docs-collapsible-state".to_string()
-  motion=CollapsibleMotion {
-    panel_offset_y_px: 8.0,
-    ..CollapsibleMotion::default()
-  }
->
-  <div>"Inspect root/trigger/panel marker contracts."</div>
-</Collapsible>"#;
+    let markers_code = Signal::derive(move || {
+        vec![
+            "<Collapsible".to_string(),
+            "  id_base=\"docs-collapsible-markers\".to_string()".to_string(),
+            "  title=\"Advanced settings\".to_string()".to_string(),
+            "  aria_label=\"Advanced settings panel\".to_string()".to_string(),
+            "  default_open=true".to_string(),
+            "  class_name=\"docs-collapsible-state\".to_string()".to_string(),
+            "  motion=CollapsibleMotion {".to_string(),
+            "    panel_offset_y_px: 8.0,".to_string(),
+            "    ..CollapsibleMotion::default()".to_string(),
+            "  }".to_string(),
+            ">".to_string(),
+            "  <div>\"Inspect root/trigger/panel marker contracts.\"</div>".to_string(),
+            "</Collapsible>".to_string(),
+        ]
+        .join("\n")
+    });
 
     let custom_motion = CollapsibleMotion {
         panel_offset_y_px: 6.0,
@@ -165,7 +183,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
             group="Collections"
             description="Shadcn-compatible collapsible primitive built on Disclosure semantics with HeroUI-level spring panel motion and stable state/source contracts."
         >
-            <Playground title="Controlled Collapsible" code=basic_code>
+            <Playground title="Controlled Collapsible" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <Collapsible
                         id_base="docs-collapsible".to_string()
@@ -182,7 +200,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Custom Motion" code=states_code>
+            <Playground title="Disabled + Custom Motion" code_signal=states_code>
                 <div class="docs-stack docs-stack--tight">
                     <Collapsible
                         id_base="docs-collapsible-disabled".to_string()
@@ -201,7 +219,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, `data-motion-source`, and `data-custom-motion` across collapsible root/trigger/panel contracts."
-                code=markers_code
+                code_signal=markers_code
             >
                 <Collapsible
                     id_base="docs-collapsible-markers".to_string()

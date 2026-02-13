@@ -186,10 +186,10 @@ fn toggle_button_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "let on_change = Callback::new(move |next: bool| {{",
-        "let variant = ToggleButtonVariant::{variant:?};",
-        "let size = ToggleButtonSize::{size:?};",
-        "let disabled = {disabled};",
+        "let (selected, set_selected) = signal(false);",
+        "if variant != ToggleButtonVariant::Default {",
+        "if size != ToggleButtonSize::M {",
+        "if disabled {",
         "code_signal=code",
         "\"selected: \"",
         "\"last on_change: \" {move || last_change.get()}",

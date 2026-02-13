@@ -161,8 +161,8 @@ fn infield_button_docs_page_covers_primary_playgrounds() {
         "title=\"InfieldButton\"",
         "slug=\"infield-button\"",
         "description=\"Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior.\"",
-        "<Playground title=\"Default + Quiet\" code=default_code>",
-        "<Playground title=\"Invalid + Active + Disabled\" code=state_code>",
+        "<Playground title=\"Default + Quiet\" code_signal=default_code>",
+        "<Playground title=\"Invalid + Active + Disabled\" code_signal=state_code>",
         "<InfieldButton",
     ] {
         assert!(

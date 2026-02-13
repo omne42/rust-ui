@@ -116,8 +116,8 @@ fn surface_docs_page_covers_primary_playgrounds() {
         "title=\"Surface\"",
         "slug=\"surface\"",
         "description=\"Spectrum/HeroUI-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers.\"",
-        "<Playground title=\"Tone + Elevation + Frame\" code=tone_code>",
-        "<Playground title=\"Custom Aria + Class\" code=custom_code>",
+        "<Playground title=\"Tone + Elevation + Frame\" code_signal=tone_code>",
+        "<Playground title=\"Custom Aria + Class\" code_signal=custom_code>",
         "<Surface",
     ] {
         assert!(

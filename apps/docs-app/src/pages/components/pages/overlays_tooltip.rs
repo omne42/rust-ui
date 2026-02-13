@@ -4,11 +4,15 @@ use leptos::prelude::*;
 use ui_components::{Button, ButtonVariant, Tooltip, TooltipMotion};
 
 pub(super) fn tooltip() -> AnyView {
-    let code = r#"<Tooltip content=move || view!{ "Tooltip" }>
+    let code = Signal::derive(move || {
+        r#"<Tooltip content=move || view!{ "Tooltip" }>
   <Button>"Hover"</Button>
-</Tooltip>"#;
+</Tooltip>"#
+            .to_string()
+    });
 
-    let markers_code = r##"<Tooltip
+    let markers_code = Signal::derive(move || {
+        r##"<Tooltip
   delay_ms=300
   close_delay_ms=200
   should_close_on_press=false
@@ -27,9 +31,12 @@ pub(super) fn tooltip() -> AnyView {
   }
 >
   <Button variant=ButtonVariant::Secondary>"Inspect tooltip"</Button>
-</Tooltip>"##;
+</Tooltip>"##
+            .to_string()
+    });
 
-    let motion_code = r##"let custom_motion = TooltipMotion {
+    let motion_code = Signal::derive(move || {
+        r##"let custom_motion = TooltipMotion {
   initial_scale: 0.92,
   offset_y_px: 14.0,
   ..TooltipMotion::default()
@@ -46,7 +53,9 @@ pub(super) fn tooltip() -> AnyView {
   content=move || view! { "Default motion" }
 >
   <Button variant=ButtonVariant::Secondary>"Default motion"</Button>
-</Tooltip>"##;
+</Tooltip>"##
+            .to_string()
+    });
 
     let custom_motion = TooltipMotion {
         initial_scale: 0.92,
@@ -61,7 +70,7 @@ pub(super) fn tooltip() -> AnyView {
             group="Overlays"
             description="Tooltip with delay/warmup/cooldown and anchor positioning."
         >
-            <Playground title="Hover / focus" code=code>
+            <Playground title="Hover / focus" code_signal=code>
                 <div class="docs-row">
                     <Tooltip content=move || view! { "This is a tooltip" }>
                         <Button variant=ButtonVariant::Secondary>"Hover me"</Button>
@@ -75,7 +84,7 @@ pub(super) fn tooltip() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-delay-source`, `data-trigger-source`, `data-press-source`, and `data-id-source` contracts."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <Tooltip
@@ -105,7 +114,7 @@ pub(super) fn tooltip() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code=motion_code>
+            <Playground title="Custom Motion Contract" code_signal=motion_code>
                 <div class="docs-row">
                     <Tooltip
                         motion=custom_motion

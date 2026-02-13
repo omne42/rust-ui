@@ -131,7 +131,7 @@ fn link_button_docs_page_covers_primary_playgrounds() {
         "<Playground",
         "title=\"External target + rel hardening\"",
         "code_signal=code",
-        "<Playground title=\"Variant + size + disabled matrix\" code=states_code>",
+        "<Playground title=\"Variant + size + disabled matrix\" code_signal=states_code>",
         "id_base=\"docs-link-button-variant\".to_string()",
         "id_base=\"docs-link-button-size\".to_string()",
         "aria_label=\"LinkButton variant\".to_string()",
@@ -159,10 +159,10 @@ fn link_button_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "code_signal=code",
-        "let target = if open_in_new_tab.get()",
-        "let rel = if sponsored_rel.get()",
-        "let target = {target};",
-        "let rel = {rel};",
+        "if open_in_new_tab.get() {",
+        "target=Some(\\\"_blank\\\")",
+        "if sponsored_rel.get() {",
+        "rel=Some(\\\"sponsored\\\".to_string())",
         "aria_label=\"Open docs in a new tab\".to_string()",
         "<LinkButton href=\"https://example.com/changelog\".to_string()>",
         "<LinkButton href=\"   \".to_string() variant=ButtonVariant::Ghost>",

@@ -220,10 +220,10 @@ fn search_docs_page_covers_primary_playgrounds() {
         "title=\"Search\"",
         "slug=\"search\"",
         "description=\"Spectrum-compatible Search alias for upstream naming parity, preserving SearchField accessibility/state contracts and HeroUI-level clear-button spring motion.\"",
-        "<Playground title=\"Submit + Clear\" code=basic_code>",
-        "<Playground title=\"Required + Invalid\" code=validation_code>",
+        "<Playground title=\"Submit + Clear\" code_signal=basic_code>",
+        "<Playground title=\"Required + Invalid\" code_signal=validation_code>",
         "title=\"State + Source Markers\"",
-        "code=markers_code",
+        "code_signal=markers_code",
         "<Search",
     ] {
         assert!(

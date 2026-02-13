@@ -342,15 +342,15 @@ fn carousel_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
 
     for needle in [
-        "<Playground title=\"Default + Indicator Motion\" code=code>",
+        "<Playground title=\"Default + Indicator Motion\" code_signal=code>",
         "id_base=\"docs-carousel-default\".to_string()",
         "default_selected_index=1",
-        "<Playground title=\"Controlled + Vertical + No Loop\" code=states_code>",
+        "<Playground title=\"Controlled + Vertical + No Loop\" code_signal=states_code>",
         "id_base=\"docs-carousel-vertical\".to_string()",
         "orientation=CarouselOrientation::Vertical",
         "loop_navigation=false",
         "aria_label=\"Feature carousel\".to_string()",
-        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "<Playground title=\"State + Source Markers\" code_signal=marker_code>",
         "id_base=\"docs-carousel-markers\".to_string()",
         "default_selected_index=0",
         "aria_label=\"Workspace spotlight\".to_string()",

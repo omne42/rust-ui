@@ -4,7 +4,8 @@ use leptos::prelude::*;
 use ui_components::{Iconset, IconsetGlyph, IconsetSize, IconsetTone};
 
 pub(super) fn iconset() -> AnyView {
-    let registry_code = r#"<Iconset
+    let registry_code = Signal::derive(move || {
+        r#"<Iconset
   icon="workflow:check".to_string()
   glyphs=vec![
     IconsetGlyph::new("workflow:check", "✓").with_aria_label("Workflow Check"),
@@ -13,18 +14,24 @@ pub(super) fn iconset() -> AnyView {
   size=IconsetSize::Md
   tone=IconsetTone::Accent
   decorative=false
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let fallback_code = r#"<Iconset
+    let fallback_code = Signal::derive(move || {
+        r#"<Iconset
   icon="ui:unknown".to_string()
   iconset="ui".to_string()
   size=IconsetSize::Lg
   tone=IconsetTone::Muted
   decorative=false
   class_name="docs-iconset-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"<Iconset
+    let markers_code = Signal::derive(move || {
+        r#"<Iconset
   icon="workflow:check".to_string()
   iconset="workflow".to_string()
   glyphs=vec![IconsetGlyph::new("workflow:check", "✓").with_aria_label("Registry Check")]
@@ -33,7 +40,9 @@ pub(super) fn iconset() -> AnyView {
   decorative=false
   aria_label="Explicit workflow check".to_string()
   class_name="docs-iconset-state".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     let workflow_glyphs = vec![
         IconsetGlyph::new("workflow:check", "✓").with_aria_label("Workflow Check"),
@@ -47,7 +56,7 @@ pub(super) fn iconset() -> AnyView {
             group="Display"
             description="Spectrum-compatible Iconset registry wrapper for namespace + icon-name resolution, composed on Icon accessibility contracts with stable source markers."
         >
-            <Playground title="Registry Namespace Resolution" code=registry_code>
+            <Playground title="Registry Namespace Resolution" code_signal=registry_code>
                 <div class="docs-row">
                     <Iconset
                         icon="workflow:check".to_string()
@@ -66,7 +75,7 @@ pub(super) fn iconset() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Fallback + Source State" code=fallback_code>
+            <Playground title="Fallback + Source State" code_signal=fallback_code>
                 <div class="docs-row">
                     <Iconset
                         icon="ui:unknown".to_string()
@@ -82,7 +91,7 @@ pub(super) fn iconset() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect wrapper markers like `data-state`, `data-icon-source`, `data-iconset-source`, `data-label-source`, `data-class-source`, `data-size-source`, and `data-tone-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <Iconset

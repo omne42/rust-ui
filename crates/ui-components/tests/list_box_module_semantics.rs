@@ -77,8 +77,8 @@ fn list_box_module_docs_page_covers_primary_playgrounds() {
         "title=\"ListBox\"",
         "slug=\"listbox\"",
         "description=\"Listbox with active highlight spring motion, typeahead, and Spectrum-style root state attrs.\"",
-        "<Playground title=\"Selection + Typeahead\" code=code>",
-        "<Playground title=\"Disabled + Empty\" code=states_code>",
+        "<Playground title=\"Selection + Typeahead\" code_signal=code>",
+        "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<ListBox",
     ] {
         assert!(
@@ -91,14 +91,14 @@ fn list_box_module_docs_page_covers_primary_playgrounds() {
         "pub(super) fn listbox_item() -> AnyView",
         "title=\"ListBoxItem\"",
         "slug=\"listbox-item\"",
-        "<Playground title=\"Selectable Option\" code=code>",
-        "<Playground title=\"Focused + Divider + Disabled\" code=states_code>",
+        "<Playground title=\"Selectable Option\" code_signal=code>",
+        "<Playground title=\"Focused + Divider + Disabled\" code_signal=states_code>",
         "<ListBoxItem",
         "pub(super) fn listbox_section() -> AnyView",
         "title=\"ListBoxSection\"",
         "slug=\"listbox-section\"",
-        "<Playground title=\"Default Section\" code=code>",
-        "<Playground title=\"Quiet + Sticky + Divider + Empty\" code=states_code>",
+        "<Playground title=\"Default Section\" code_signal=code>",
+        "<Playground title=\"Quiet + Sticky + Divider + Empty\" code_signal=states_code>",
         "<ListBoxSection",
     ] {
         assert!(

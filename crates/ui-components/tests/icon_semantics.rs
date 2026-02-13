@@ -125,8 +125,8 @@ fn icon_docs_page_covers_primary_playgrounds() {
         "title=\"Icon\"",
         "slug=\"icon\"",
         "description=\"Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers.\"",
-        "<Playground title=\"Size + Tone Matrix\" code=matrix_code>",
-        "<Playground title=\"Accessible + Disabled + Custom Class\" code=states_code>",
+        "<Playground title=\"Size + Tone Matrix\" code_signal=matrix_code>",
+        "<Playground title=\"Accessible + Disabled + Custom Class\" code_signal=states_code>",
         "<Icon",
     ] {
         assert!(

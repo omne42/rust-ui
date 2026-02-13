@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -10,6 +10,36 @@ fn docs_page_module_path(module: &str) -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("src/pages/components/pages")
         .join(format!("{module}.rs"))
+}
+
+fn read_actions_source() -> String {
+    let path = docs_page_module_path("actions");
+    fs::read_to_string(&path).unwrap_or_else(|err| {
+        panic!("failed to read {path:?}: {err}");
+    })
+}
+
+fn component_pages_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("src/pages/components/pages")
+}
+
+fn walk_rs_files(root: &Path, out: &mut Vec<PathBuf>) {
+    let entries = fs::read_dir(root).unwrap_or_else(|err| {
+        panic!("failed to read {root:?}: {err}");
+    });
+
+    for entry in entries.flatten() {
+        let path = entry.path();
+
+        if path.is_dir() {
+            walk_rs_files(&path, out);
+            continue;
+        }
+
+        if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+            out.push(path);
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -329,5 +359,299 @@ fn all_component_pages_have_at_least_one_playground() {
             block.contains(&title_needle),
             "`{module}::{func}` should set ComponentPage title to match catalog name (`{title_needle}`)"
         );
+    }
+}
+
+#[test]
+fn playgrounds_with_controls_define_code_signal() {
+    let mut files = Vec::new();
+    walk_rs_files(&component_pages_root(), &mut files);
+
+    for file in files {
+        let source = fs::read_to_string(&file).unwrap_or_else(|err| {
+            panic!("failed to read {file:?}: {err}");
+        });
+
+        let mut scan_from = 0;
+
+        while let Some(rel_start) = source[scan_from..].find("<Playground") {
+            let tag_start = scan_from + rel_start;
+            let tag_source = &source[tag_start..];
+            let Some(rel_end) = tag_source.find('>') else {
+                panic!("unterminated <Playground ...> tag in {file:?}");
+            };
+
+            let tag = &tag_source[..rel_end];
+            if tag.contains("controls=") {
+                assert!(
+                    tag.contains("code_signal="),
+                    "{file:?}: playground with controls must define code_signal for copy-ready dynamic code",
+                );
+            }
+
+            scan_from = tag_start + rel_end + 1;
+        }
+    }
+}
+
+#[test]
+fn actions_dynamic_snippets_inline_props_without_intermediate_let_bindings() {
+    let source = read_actions_source();
+    let forbidden = [
+        "\"let variant = ButtonVariant::",
+        "\"let size = ButtonSize::",
+        "\"let variant = ToggleButtonVariant::",
+        "\"let size = ToggleButtonSize::",
+        "\"let disabled = {disabled};",
+    ];
+
+    for needle in forbidden {
+        assert!(
+            !source.contains(needle),
+            "actions dynamic playground snippet should not contain `{needle}`",
+        );
+    }
+}
+
+#[test]
+fn actions_size_controls_use_spectrum_xs_to_xl_tokens() {
+    let source = read_actions_source();
+    let mut blocks = 0usize;
+    let mut scan_from = 0usize;
+
+    while let Some(rel_start) = source[scan_from..].find("let size_options = vec![") {
+        let block_start = scan_from + rel_start;
+        let block_source = &source[block_start..];
+        let Some(rel_end) = block_source.find("];") else {
+            panic!("unterminated size_options block in actions.rs");
+        };
+
+        let block = &block_source[..rel_end];
+        for size_token in ["\"xs\"", "\"s\"", "\"m\"", "\"l\"", "\"xl\""] {
+            assert!(
+                block.contains(size_token),
+                "size_options block must include {size_token}",
+            );
+        }
+
+        blocks += 1;
+        scan_from = block_start + rel_end + 2;
+    }
+
+    assert!(blocks > 0, "no size_options block found in actions.rs");
+    assert!(
+        source.contains("let (open_in_new_tab, set_open_in_new_tab) = signal(false);")
+            && source.contains("let (sponsored_rel, set_sponsored_rel) = signal(false);")
+            && source.contains("let (attached, set_attached) = signal(false);")
+            && source.contains("let (meta_key_index, set_meta_key_index) = signal(Some(0_usize));")
+            && source
+                .contains("let (key_label_index, set_key_label_index) = signal(Some(0_usize));"),
+        "dynamic playground controls must default to component default parameters",
+    );
+}
+
+fn is_ident_char(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || byte == b'_'
+}
+
+fn snippet_declares_ident(snippet: &str, ident: &str) -> bool {
+    snippet.lines().any(|line| {
+        let trimmed = line.trim();
+        if !trimmed.starts_with("let ") {
+            return false;
+        }
+
+        trimmed.contains(&format!("let {ident}"))
+            || trimmed.contains(&format!("{ident},"))
+            || trimmed.contains(&format!("{ident})"))
+            || trimmed.contains(&format!("{ident}:"))
+            || trimmed.contains(&format!("{ident} ="))
+    })
+}
+
+fn extract_code_snippets(source: &str) -> Vec<(usize, String)> {
+    let mut snippets = Vec::new();
+    let mut scan_from = 0usize;
+
+    while let Some(rel_start) = source[scan_from..].find("Signal::derive(move || {") {
+        let derive_start = scan_from + rel_start;
+        let derive_tail = &source[derive_start..];
+        let Some(rel_end) = derive_tail.find("\n    });") else {
+            break;
+        };
+        let derive_end = derive_start + rel_end;
+        let block = &source[derive_start..derive_end];
+
+        let mut block_scan = 0usize;
+        while let Some(raw_rel_start) = block[block_scan..].find("r#\"") {
+            let raw_start = block_scan + raw_rel_start + 3;
+            let Some(raw_rel_end) = block[raw_start..].find("\"#") else {
+                break;
+            };
+            let raw_end = raw_start + raw_rel_end;
+            let snippet = block[raw_start..raw_end].to_string();
+            let line = source[..(derive_start + raw_start)].matches('\n').count() + 1;
+            snippets.push((line, snippet));
+            block_scan = raw_end + 2;
+        }
+
+        scan_from = derive_end + "\n    });".len();
+    }
+
+    snippets
+}
+
+fn collect_setter_idents(snippet: &str) -> HashSet<String> {
+    let mut out = HashSet::new();
+
+    for method in [".set(", ".update("] {
+        let mut scan_from = 0usize;
+        while let Some(rel) = snippet[scan_from..].find(method) {
+            let method_start = scan_from + rel;
+            let bytes = snippet.as_bytes();
+            if method_start == 0 {
+                scan_from = method_start + method.len();
+                continue;
+            }
+
+            let ident_end = method_start;
+            let mut ident_start = ident_end;
+            while ident_start > 0 && is_ident_char(bytes[ident_start - 1]) {
+                ident_start -= 1;
+            }
+
+            if ident_start < ident_end {
+                let ident = &snippet[ident_start..ident_end];
+                if ident.starts_with("set_") {
+                    out.insert(ident.to_string());
+                }
+            }
+
+            scan_from = method_start + method.len();
+        }
+    }
+
+    out
+}
+
+#[test]
+fn all_playground_tags_use_code_signal() {
+    let mut files = Vec::new();
+    walk_rs_files(&component_pages_root(), &mut files);
+
+    for file in files {
+        let source = fs::read_to_string(&file).unwrap_or_else(|err| {
+            panic!("failed to read {file:?}: {err}");
+        });
+
+        let mut scan_from = 0usize;
+
+        while let Some(rel_start) = source[scan_from..].find("<Playground") {
+            let tag_start = scan_from + rel_start;
+            if tag_start > 0 {
+                let prev = source.as_bytes()[tag_start - 1] as char;
+                if prev == '"' || prev == '\'' {
+                    scan_from = tag_start + "<Playground".len();
+                    continue;
+                }
+            }
+
+            let tag_source = &source[tag_start..];
+            let Some(rel_end) = tag_source.find('>') else {
+                panic!("unterminated <Playground ...> tag in {file:?}");
+            };
+
+            let tag = &tag_source[..rel_end];
+            assert!(
+                tag.contains("code_signal="),
+                "{file:?}: every <Playground ...> must define code_signal",
+            );
+            assert!(
+                !tag.contains(" code="),
+                "{file:?}: legacy code= prop is not allowed on <Playground ...>",
+            );
+
+            scan_from = tag_start + rel_end + 1;
+        }
+    }
+}
+
+#[test]
+fn snippets_are_self_contained_without_external_bindings() {
+    let mut files = Vec::new();
+    walk_rs_files(&component_pages_root(), &mut files);
+
+    let common_idents = [
+        "items",
+        "groups",
+        "menus",
+        "points",
+        "labels",
+        "nodes",
+        "columns",
+        "tags",
+        "swatches",
+        "store",
+        "page",
+        "mode",
+        "anchor_ref",
+        "on_action",
+        "on_open_change",
+        "on_submit",
+        "on_clear",
+        "on_remove",
+        "on_files",
+        "on_drop_files",
+        "on_exit_complete",
+        "finish_exit",
+        "toggle",
+        "close",
+    ];
+
+    for file in files {
+        let source = fs::read_to_string(&file).unwrap_or_else(|err| {
+            panic!("failed to read {file:?}: {err}");
+        });
+
+        for (line, snippet) in extract_code_snippets(&source) {
+            for placeholder in ["{content}", "{rows}", "{chips}", "{grid}"] {
+                assert!(
+                    !snippet.contains(placeholder),
+                    "{file:?}:{line}: snippet contains unresolved placeholder `{placeholder}`",
+                );
+            }
+
+            for ident in common_idents {
+                let needle = format!("{ident}={ident}");
+                if snippet.contains(&needle) {
+                    assert!(
+                        snippet_declares_ident(&snippet, ident),
+                        "{file:?}:{line}: snippet references external `{needle}` without local declaration",
+                    );
+                }
+            }
+
+            for setter in collect_setter_idents(&snippet) {
+                assert!(
+                    snippet_declares_ident(&snippet, &setter),
+                    "{file:?}:{line}: snippet calls `{setter}.set/.update` without local declaration",
+                );
+            }
+
+            if snippet.contains("open=open_signal") {
+                assert!(
+                    snippet_declares_ident(&snippet, "open_signal"),
+                    "{file:?}:{line}: snippet references external `open_signal`",
+                );
+            }
+
+            for snippet_line in snippet.lines() {
+                let trimmed = snippet_line.trim();
+                assert!(
+                    !(trimmed.starts_with("let ") && trimmed.contains("_signal: Signal<")),
+                    "{file:?}:{line}: snippet should inline `Signal::derive(...)` instead of `{trimmed}`",
+                );
+            }
+        }
     }
 }

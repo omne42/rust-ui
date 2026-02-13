@@ -13,7 +13,8 @@ use ui_components::{
 };
 
 pub(super) fn alert_banner() -> AnyView {
-    let tone_code = r#"<AlertBanner
+    let tone_code = Signal::derive(move || {
+        r#"<AlertBanner
   tone=AlertBannerTone::Info
   fill=AlertBannerFill::Border
   title="Updates available".to_string()
@@ -28,9 +29,12 @@ pub(super) fn alert_banner() -> AnyView {
   description="Rollback completed. Review incident timeline.".to_string()
 >
   "Check logs before retrying."
-</AlertBanner>"#;
+</AlertBanner>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<AlertBanner
+    let custom_code = Signal::derive(move || {
+        r#"<AlertBanner
   tone=AlertBannerTone::Notice
   fill=AlertBannerFill::Bold
   hide_icon=true
@@ -39,9 +43,12 @@ pub(super) fn alert_banner() -> AnyView {
   class_name="docs-alert-banner-custom".to_string()
 >
   "Follow status page for live updates."
-</AlertBanner>"#;
+</AlertBanner>"#
+            .to_string()
+    });
 
-    let motion_code = r#"<AlertBanner
+    let motion_code = Signal::derive(move || {
+        r#"<AlertBanner
   tone=AlertBannerTone::Info
   fill=AlertBannerFill::Border
   title="Motion tuned".to_string()
@@ -51,7 +58,9 @@ pub(super) fn alert_banner() -> AnyView {
   }
 >
   "Inspect data-motion-source/data-custom-motion markers."
-</AlertBanner>"#;
+</AlertBanner>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -60,7 +69,7 @@ pub(super) fn alert_banner() -> AnyView {
             group="Display"
             description="Spectrum-compatible alert banner with centralized tone/fill/content contracts and HeroUI-grade spring reveal motion."
         >
-            <Playground title="Tone + Fill" code=tone_code>
+            <Playground title="Tone + Fill" code_signal=tone_code>
                 <div class="docs-stack">
                     <AlertBanner
                         tone=AlertBannerTone::Info
@@ -81,7 +90,7 @@ pub(super) fn alert_banner() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Bold + Hidden Icon + Custom Class" code=custom_code>
+            <Playground title="Bold + Hidden Icon + Custom Class" code_signal=custom_code>
                 <AlertBanner
                     tone=AlertBannerTone::Notice
                     fill=AlertBannerFill::Bold
@@ -94,7 +103,7 @@ pub(super) fn alert_banner() -> AnyView {
                 </AlertBanner>
             </Playground>
 
-            <Playground title="Custom motion contract" code=motion_code>
+            <Playground title="Custom motion contract" code_signal=motion_code>
                 <AlertBanner
                     tone=AlertBannerTone::Info
                     fill=AlertBannerFill::Border
@@ -113,22 +122,28 @@ pub(super) fn alert_banner() -> AnyView {
 }
 
 pub(super) fn labeled_value() -> AnyView {
-    let orientation_code = r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />
+    let orientation_code = Signal::derive(move || {
+        r#"<LabeledValue label="Project".to_string() value="Omne".to_string() />
 <LabeledValue
   label="Status".to_string()
   value="Healthy".to_string()
   orientation=LabeledValueOrientation::Inline
   tone=LabeledValueTone::Subtle
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let custom_code = r#"<LabeledValue
+    let custom_code = Signal::derive(move || {
+        r#"<LabeledValue
   label="Build".to_string()
   value="passing".to_string()
   description="Updated 2 minutes ago".to_string()
   aria_label="Build status".to_string()
   class_name="docs-labeled-value-custom".to_string()
   tone=LabeledValueTone::Strong
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -137,7 +152,7 @@ pub(super) fn labeled_value() -> AnyView {
             group="Display"
             description="Label-value pair primitive with centralized orientation/tone/source state contracts and Spectrum-style data markers."
         >
-            <Playground title="Orientation + Tone" code=orientation_code>
+            <Playground title="Orientation + Tone" code_signal=orientation_code>
                 <div class="docs-stack">
                     <LabeledValue label="Project".to_string() value="Omne".to_string() />
                     <LabeledValue
@@ -149,7 +164,7 @@ pub(super) fn labeled_value() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Description + Custom Aria/Class" code=custom_code>
+            <Playground title="Description + Custom Aria/Class" code_signal=custom_code>
                 <div class="docs-stack">
                     <LabeledValue
                         label="Build".to_string()
@@ -173,16 +188,22 @@ pub(super) fn labeled_value() -> AnyView {
 }
 
 pub(super) fn keyboard() -> AnyView {
-    let tone_code = r#"<Keyboard>"⌘K"</Keyboard>
-<Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>"#;
+    let tone_code = Signal::derive(move || {
+        r#"<Keyboard>"⌘K"</Keyboard>
+<Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>"#
+            .to_string()
+    });
 
-    let compact_code = r#"<Keyboard
+    let compact_code = Signal::derive(move || {
+        r#"<Keyboard
   compact=true
   aria_label="Open command palette".to_string()
   class_name="docs-keyboard-custom".to_string()
 >
   "Ctrl+Shift+P"
-</Keyboard>"#;
+</Keyboard>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -191,14 +212,14 @@ pub(super) fn keyboard() -> AnyView {
             group="Display"
             description="Keyboard command primitive (`<kbd>`) with centralized tone/compact/source state contracts."
         >
-            <Playground title="Tone" code=tone_code>
+            <Playground title="Tone" code_signal=tone_code>
                 <div class="docs-row">
                     <Keyboard>"⌘K"</Keyboard>
                     <Keyboard tone=KeyboardTone::Muted>"⌥⇧P"</Keyboard>
                 </div>
             </Playground>
 
-            <Playground title="Compact + Custom Aria/Class" code=compact_code>
+            <Playground title="Compact + Custom Aria/Class" code_signal=compact_code>
                 <div class="docs-row">
                     <Keyboard
                         compact=true
@@ -215,11 +236,15 @@ pub(super) fn keyboard() -> AnyView {
 }
 
 pub(super) fn text() -> AnyView {
-    let tone_code = r#"<Text text="Primary body copy".to_string() />
+    let tone_code = Signal::derive(move || {
+        r#"<Text text="Primary body copy".to_string() />
 <Text text="Subtle metadata".to_string() tone=TextTone::Subtle />
-<Text text="Strong headline".to_string() tone=TextTone::Strong weight=TextWeight::Bold />"#;
+<Text text="Strong headline".to_string() tone=TextTone::Strong weight=TextWeight::Bold />"#
+            .to_string()
+    });
 
-    let states_code = r#"<Text
+    let states_code = Signal::derive(move || {
+        r#"<Text
   text="Centered label".to_string()
   align=TextAlign::Center
   element=TextElement::Div
@@ -228,7 +253,9 @@ pub(super) fn text() -> AnyView {
   text="Long text that truncates when width is constrained by the container around it".to_string()
   truncate=true
   class_name="docs-text-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -237,7 +264,7 @@ pub(super) fn text() -> AnyView {
             group="Display"
             description="Typography primitive with centralized tone/alignment/weight/source state contracts and Spectrum-style data markers."
         >
-            <Playground title="Tone + Weight Matrix" code=tone_code>
+            <Playground title="Tone + Weight Matrix" code_signal=tone_code>
                 <div class="docs-stack">
                     <Text text="Primary body copy".to_string() />
                     <Text text="Subtle metadata".to_string() tone=TextTone::Subtle />
@@ -249,7 +276,7 @@ pub(super) fn text() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Alignment + Truncate + Element" code=states_code>
+            <Playground title="Alignment + Truncate + Element" code_signal=states_code>
                 <div class="docs-stack">
                     <Text
                         text="Centered label".to_string()
@@ -270,12 +297,16 @@ pub(super) fn text() -> AnyView {
 }
 
 pub(super) fn icon() -> AnyView {
-    let matrix_code = r#"<Icon size=IconSize::Sm tone=IconTone::Default decorative=true>"✓"</Icon>
+    let matrix_code = Signal::derive(move || {
+        r#"<Icon size=IconSize::Sm tone=IconTone::Default decorative=true>"✓"</Icon>
 <Icon size=IconSize::Md tone=IconTone::Muted decorative=true>"⚙"</Icon>
 <Icon size=IconSize::Lg tone=IconTone::Accent decorative=true>"★"</Icon>
-<Icon size=IconSize::Lg tone=IconTone::Danger decorative=true>"⚠"</Icon>"#;
+<Icon size=IconSize::Lg tone=IconTone::Danger decorative=true>"⚠"</Icon>"#
+            .to_string()
+    });
 
-    let states_code = r#"<Icon
+    let states_code = Signal::derive(move || {
+        r#"<Icon
   size=IconSize::Md
   tone=IconTone::Accent
   decorative=false
@@ -291,7 +322,9 @@ pub(super) fn icon() -> AnyView {
   decorative=true
 >
   "⚙"
-</Icon>"#;
+</Icon>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -300,7 +333,7 @@ pub(super) fn icon() -> AnyView {
             group="Display"
             description="Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers."
         >
-            <Playground title="Size + Tone Matrix" code=matrix_code>
+            <Playground title="Size + Tone Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Icon size=IconSize::Sm tone=IconTone::Default decorative=true>
                         "✓"
@@ -317,7 +350,7 @@ pub(super) fn icon() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Accessible + Disabled + Custom Class" code=states_code>
+            <Playground title="Accessible + Disabled + Custom Class" code_signal=states_code>
                 <div class="docs-row">
                     <Icon
                         size=IconSize::Md
@@ -344,7 +377,8 @@ pub(super) fn icon() -> AnyView {
 }
 
 pub(super) fn empty_state() -> AnyView {
-    let tone_code = r#"<EmptyState
+    let tone_code = Signal::derive(move || {
+        r#"<EmptyState
   title="No projects yet".to_string()
   description="Create your first project to unlock dashboards and team workflows.".to_string()
   tone=EmptyStateTone::Default
@@ -358,9 +392,12 @@ pub(super) fn empty_state() -> AnyView {
   description="Try a different query or clear filters.".to_string()
   tone=EmptyStateTone::Muted
   align=EmptyStateAlign::Center
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let state_code = r#"<EmptyState
+    let state_code = Signal::derive(move || {
+        r#"<EmptyState
   title="Deployments paused".to_string()
   description="Approvals are required before resuming this environment.".to_string()
   tone=EmptyStateTone::Accent
@@ -373,7 +410,9 @@ pub(super) fn empty_state() -> AnyView {
       "Review approvals"
     </ui_components::Button>
   }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -382,7 +421,7 @@ pub(super) fn empty_state() -> AnyView {
             group="Display"
             description="Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers."
         >
-            <Playground title="Tone + Alignment + Actions" code=tone_code>
+            <Playground title="Tone + Alignment + Actions" code_signal=tone_code>
                 <div class="docs-stack">
                     <EmptyState
                         title="No projects yet".to_string()
@@ -406,7 +445,7 @@ pub(super) fn empty_state() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Compact + Bordered + Custom Class" code=state_code>
+            <Playground title="Compact + Bordered + Custom Class" code_signal=state_code>
                 <EmptyState
                     title="Deployments paused".to_string()
                     description="Approvals are required before resuming this environment.".to_string()
@@ -430,16 +469,20 @@ pub(super) fn empty_state() -> AnyView {
 }
 
 pub(super) fn error_view() -> AnyView {
-    let basic_code = r#"<ErrorView
+    let basic_code = Signal::derive(move || {
+        r#"<ErrorView
   is_invalid=true
   message="Please enter a valid email address".to_string()
 />
 <ErrorView
   is_invalid=false
   message="This error stays hidden until the field becomes invalid.".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let state_code = r#"<ErrorView
+    let state_code = Signal::derive(move || {
+        r#"<ErrorView
   is_invalid=true
   tone=ErrorViewTone::Neutral
   compact=true
@@ -461,7 +504,9 @@ pub(super) fn error_view() -> AnyView {
   }
 >
   <span>"Validation failed. Check highlighted fields and retry."</span>
-</ErrorView>"#;
+</ErrorView>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -470,7 +515,7 @@ pub(super) fn error_view() -> AnyView {
             group="Display"
             description="Spectrum/HeroUI-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers."
         >
-            <Playground title="Invalid Visibility" code=basic_code>
+            <Playground title="Invalid Visibility" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <ErrorView
                         is_invalid=true
@@ -483,7 +528,7 @@ pub(super) fn error_view() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Content + Motion + Actions" code=state_code>
+            <Playground title="Custom Content + Motion + Actions" code_signal=state_code>
                 <ErrorView
                     is_invalid=true
                     tone=ErrorViewTone::Neutral
@@ -527,15 +572,19 @@ pub(super) fn pressable_feedback() -> AnyView {
         set_press_count.update(|count| *count += 1);
     });
 
-    let basic_code = r#"<PressableFeedback
+    let basic_code = Signal::derive(move || {
+        r#"<PressableFeedback
   effect=PressableFeedbackEffect::Highlight
   tone=PressableFeedbackTone::Accent
   on_press=on_press_count
 >
   <div class="docs-ripple-surface">"Press me"</div>
-</PressableFeedback>"#;
+</PressableFeedback>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<PressableFeedback
+    let custom_code = Signal::derive(move || {
+        r#"<PressableFeedback
   effect=PressableFeedbackEffect::HighlightRipple
   tone=PressableFeedbackTone::Neutral
   bounded=false
@@ -555,7 +604,9 @@ pub(super) fn pressable_feedback() -> AnyView {
 
 <PressableFeedback is_disabled=true effect=PressableFeedbackEffect::Highlight>
   <div class="docs-ripple-surface docs-ripple-surface--static">"Disabled"</div>
-</PressableFeedback>"#;
+</PressableFeedback>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -564,7 +615,7 @@ pub(super) fn pressable_feedback() -> AnyView {
             group="Display"
             description="HeroUI-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition."
         >
-            <Playground title="Scale + Highlight" code=basic_code>
+            <Playground title="Scale + Highlight" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
                     <PressableFeedback
                         effect=PressableFeedbackEffect::Highlight
@@ -582,7 +633,7 @@ pub(super) fn pressable_feedback() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Highlight + Ripple + Custom Motion" code=custom_code>
+            <Playground title="Highlight + Ripple + Custom Motion" code_signal=custom_code>
                 <div class="docs-stack docs-stack--tight">
                     <PressableFeedback
                         effect=PressableFeedbackEffect::HighlightRipple
@@ -620,12 +671,15 @@ pub(super) fn pressable_feedback() -> AnyView {
 }
 
 pub(super) fn color_swatch() -> AnyView {
-    let size_code = r##"<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Xs />
+    let size_code = Signal::derive(move || {
+        r##"<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Xs />
 <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Sm />
 <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Md />
-<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Lg rounding=ColorSwatchRounding::Full />"##;
+<ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Lg rounding=ColorSwatchRounding::Full />"##.to_string()
+    });
 
-    let state_code = r#"<ColorSwatch
+    let state_code = Signal::derive(move || {
+        r#"<ColorSwatch
   color="rgba(38, 99, 235, 0.35)".to_string()
   color_name="Brand blue".to_string()
   aria_label="Background color".to_string()
@@ -638,7 +692,9 @@ pub(super) fn color_swatch() -> AnyView {
   color_name="No fill".to_string()
   bordered=true
 />
-<ColorSwatch color="".to_string() bordered=true />"#;
+<ColorSwatch color="".to_string() bordered=true />"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -647,7 +703,7 @@ pub(super) fn color_swatch() -> AnyView {
             group="Display"
             description="Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source contracts and stable slot/data markers."
         >
-            <Playground title="Size + Rounding" code=size_code>
+            <Playground title="Size + Rounding" code_signal=size_code>
                 <div class="docs-row">
                     <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Xs />
                     <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Sm />
@@ -660,7 +716,7 @@ pub(super) fn color_swatch() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Transparency + Accessible Label + Shape" code=state_code>
+            <Playground title="Transparency + Accessible Label + Shape" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
                     <ColorSwatch
                         color="rgba(38, 99, 235, 0.35)".to_string()
@@ -698,7 +754,8 @@ pub(super) fn color_swatch_picker() -> AnyView {
         ColorSwatchPickerItem::new("#08f"),
     ];
 
-    let basic_code = r##"<ColorSwatchPicker
+    let basic_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
   swatches=signal(vec![
     ColorSwatchPickerItem::named("#A00", "Red"),
     ColorSwatchPickerItem::named("#f80", "Orange"),
@@ -706,9 +763,12 @@ pub(super) fn color_swatch_picker() -> AnyView {
     ColorSwatchPickerItem::named("#08f", "Blue"),
   ]).0
   default_selected_color="#f80".to_string()
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let state_code = r##"<ColorSwatchPicker
+    let state_code = Signal::derive(move || {
+        r##"<ColorSwatchPicker
   swatches=signal(vec![
     ColorSwatchPickerItem::named("#A00", "Red"),
     ColorSwatchPickerItem::named("rgba(14, 116, 144, 0.4)", "Cyan 40%").disabled(true),
@@ -719,7 +779,9 @@ pub(super) fn color_swatch_picker() -> AnyView {
   rounding=ColorSwatchRounding::Default
   class_name="docs-color-swatch-picker-custom".to_string()
   aria_label="Fill color".to_string()
-/>"##;
+/>"##
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -728,14 +790,14 @@ pub(super) fn color_swatch_picker() -> AnyView {
             group="Display"
             description="Spectrum-compatible selectable swatch group with centralized color normalization, single-selection state, keyboard roving, and stable slot/data state markers."
         >
-            <Playground title="Basic Selection" code=basic_code>
+            <Playground title="Basic Selection" code_signal=basic_code>
                 <ColorSwatchPicker
                     swatches=signal(swatches).0
                     default_selected_color="#f80".to_string()
                 />
             </Playground>
 
-            <Playground title="Transparency + Disabled + Custom Class" code=state_code>
+            <Playground title="Transparency + Disabled + Custom Class" code_signal=state_code>
                 <ColorSwatchPicker
                     swatches=signal(disabled_swatches).0
                     shape=ColorSwatchShape::Wide
@@ -750,16 +812,19 @@ pub(super) fn color_swatch_picker() -> AnyView {
 }
 
 pub(super) fn skeleton_group() -> AnyView {
-    let loading_code = r#"<SkeletonGroup
+    let loading_code = Signal::derive(move || {
+        r#"<SkeletonGroup
   is_loading=true
   variant=SkeletonGroupVariant::Shimmer
   layout=SkeletonGroupLayout::Vertical
 >
   <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
   <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
-</SkeletonGroup>"#;
+</SkeletonGroup>"#.to_string()
+    });
 
-    let state_code = r#"<SkeletonGroup
+    let state_code = Signal::derive(move || {
+        r#"<SkeletonGroup
   is_loading=false
   is_skeleton_only=false
   variant=SkeletonGroupVariant::None
@@ -774,7 +839,9 @@ pub(super) fn skeleton_group() -> AnyView {
   class_name="docs-skeleton-group-custom".to_string()
 >
   <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
-</SkeletonGroup>"#;
+</SkeletonGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -783,7 +850,7 @@ pub(super) fn skeleton_group() -> AnyView {
             group="Display"
             description="Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers."
         >
-            <Playground title="Shimmer + Pulse Layout" code=loading_code>
+            <Playground title="Shimmer + Pulse Layout" code_signal=loading_code>
                 <div class="docs-stack">
                     <SkeletonGroup
                         is_loading=true
@@ -828,7 +895,7 @@ pub(super) fn skeleton_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Loaded + Skeleton Only" code=state_code>
+            <Playground title="Loaded + Skeleton Only" code_signal=state_code>
                 <div class="docs-stack">
                     <SkeletonGroup
                         is_loading=false
@@ -867,7 +934,8 @@ pub(super) fn skeleton_group() -> AnyView {
 }
 
 pub(super) fn flip_card() -> AnyView {
-    let basic_code = r#"<FlipCard
+    let basic_code = Signal::derive(move || {
+        r#"<FlipCard
   front=move || view! {
     <div class="ui-flip-card__title">"Front"</div>
     <div class="ui-flip-card__description">"Click or press Enter/Space to flip."</div>
@@ -876,9 +944,12 @@ pub(super) fn flip_card() -> AnyView {
     <div class="ui-flip-card__title">"Back"</div>
     <div class="ui-flip-card__description">"Stable state/data markers for docs and tests."</div>
   }
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"<FlipCard
+    let markers_code = Signal::derive(move || {
+        r#"<FlipCard
   id="docs-flip-card"
   class_name="docs-flip-card-state".to_string()
   flip_on_hover=true
@@ -889,13 +960,18 @@ pub(super) fn flip_card() -> AnyView {
   }
   front=move || view! { <div>"Inspect markers (front)"</div> }
   back=move || view! { <div>"Inspect markers (back)"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let disabled_code = r#"<FlipCard
+    let disabled_code = Signal::derive(move || {
+        r#"<FlipCard
   disabled=true
   front=move || view! { <div>"Disabled front"</div> }
   back=move || view! { <div>"Disabled back"</div> }
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -904,7 +980,7 @@ pub(super) fn flip_card() -> AnyView {
             group="Display"
             description="3D front/back card with Spectrum-style state/source markers and HeroUI-grade spring motion for flip/hover interactions."
         >
-            <Playground title="Click + Keyboard Flip" code=basic_code>
+            <Playground title="Click + Keyboard Flip" code_signal=basic_code>
                 <div class="docs-row">
                     <FlipCard
                         front=move || {
@@ -934,7 +1010,7 @@ pub(super) fn flip_card() -> AnyView {
             <Playground
                 title="State + Source Markers"
                 description="Inspect `data-state`, `data-flip-mode`, `data-class-source`, `data-motion-source`, `data-id-source`, and face-level visibility markers (`data-visible`/`data-hidden`)."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-row">
                     <FlipCard
@@ -970,7 +1046,7 @@ pub(super) fn flip_card() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled" code=disabled_code>
+            <Playground title="Disabled" code_signal=disabled_code>
                 <div class="docs-row">
                     <FlipCard
                         disabled=true
@@ -1026,24 +1102,43 @@ pub(super) fn chart() -> AnyView {
     let on_controlled_active_change =
         Callback::new(move |next: usize| set_controlled_active_raw.set(next));
 
-    let bar_code = r#"<Chart
+    let bar_code = Signal::derive(move || {
+        r#"let (last_action, set_last_action) = signal("none".to_string());
+
+<Chart
   id_base="docs-chart-bar".to_string()
-  points=points
+  points=vec![
+    ChartPoint::new("jan", "Jan", 12.0),
+    ChartPoint::new("feb", "Feb", 18.5),
+    ChartPoint::new("mar", "Mar", 17.2),
+    ChartPoint::new("apr", "Apr", 24.7),
+    ChartPoint::new("may", "May", 28.1),
+  ]
   kind=ChartKind::Bar
   on_action=Callback::new(move |id: String| set_last_action.set(id))
-/>"#;
+/>
+<span class="ui-muted">"last action: " {move || last_action.get()}</span>"#
+            .to_string()
+    });
 
-    let line_code = r#"let (active_raw, set_active_raw) = signal(1_usize);
-let active: Signal<usize> = Signal::derive(move || active_raw.get());
+    let line_code = Signal::derive(move || {
+        r#"let (active_raw, set_active_raw) = signal(1_usize);
 
 <Chart
   id_base="docs-chart-line".to_string()
-  points=points
+  points=vec![
+    ChartPoint::new("q1", "Q1", 42.0),
+    ChartPoint::new("q2", "Q2", 56.0),
+    ChartPoint::new("q3", "Q3", 51.0),
+    ChartPoint::new("q4", "Q4", 63.0),
+  ]
   kind=ChartKind::Line
-  active_index=active
+  active_index=Signal::derive(move || active_raw.get())
   on_active_index_change=Callback::new(move |next| set_active_raw.set(next))
   class_name="docs-chart-custom".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -1052,7 +1147,7 @@ let active: Signal<usize> = Signal::derive(move || active_raw.get());
             group="Display"
             description="Shadcn-compatible chart primitive with bar/line modes, controlled active-index state, Spectrum-style data contracts, and HeroUI-level spring highlight motion for legends."
         >
-            <Playground title="Bar + Hover/Keyboard + Action" code=bar_code>
+            <Playground title="Bar + Hover/Keyboard + Action" code_signal=bar_code>
                 <div class="docs-stack docs-stack--tight">
                     <Chart
                         id_base="docs-chart-bar".to_string()
@@ -1067,7 +1162,7 @@ let active: Signal<usize> = Signal::derive(move || active_raw.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled Line + Active Index" code=line_code>
+            <Playground title="Controlled Line + Active Index" code_signal=line_code>
                 <div class="docs-stack docs-stack--tight">
                     <Chart
                         id_base="docs-chart-line".to_string()

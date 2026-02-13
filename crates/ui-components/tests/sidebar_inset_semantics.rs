@@ -142,8 +142,8 @@ fn sidebar_inset_docs_page_covers_primary_playgrounds() {
         "title=\"SidebarInset\"",
         "slug=\"sidebar-inset\"",
         "description=\"Shadcn-compatible sidebar inset primitive with side/padding/surface contracts and Spectrum-style root data markers.\"",
-        "<Playground title=\"Default Inset Region\" code=default_code>",
-        "<Playground title=\"Compact + Plain + Disabled\" code=compact_code>",
+        "<Playground title=\"Default Inset Region\" code_signal=default_code>",
+        "<Playground title=\"Compact + Plain + Disabled\" code_signal=compact_code>",
         "<SidebarInset",
     ] {
         assert!(

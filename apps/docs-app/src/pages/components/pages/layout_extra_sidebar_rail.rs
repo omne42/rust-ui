@@ -14,20 +14,54 @@ pub(super) fn sidebar_rail() -> AnyView {
     let right_open: Signal<bool> = Signal::derive(move || right_open_raw.get());
     let on_right_open_change = Callback::new(move |next: bool| set_right_open_raw.set(next));
 
-    let default_code =
-        r#"<SidebarRail on_open_change=Callback::new(move |next| set_open_raw.set(next)) />"#;
+    let default_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
 
-    let controlled_code = r#"let (open_raw, set_open_raw) = signal(true);
-let open: Signal<bool> = Signal::derive(move || open_raw.get());
+<SidebarRail on_open_change=Callback::new(move |next| set_open_raw.set(next)) />
+<Sidebar
+  open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next| set_open_raw.set(next))
+  side=SidebarSide::Left
+  variant=SidebarVariant::Sidebar
+  collapsible=SidebarCollapsible::Offcanvas
+  show_trigger=false
+>
+  <SidebarContent>
+    <span>"Dashboard"</span>
+    <span>"Projects"</span>
+    <span>"Billing"</span>
+  </SidebarContent>
+</Sidebar>"#
+            .to_string()
+    });
+
+    let controlled_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(true);
 
 <SidebarRail
-  open=open
+  open=Signal::derive(move || open_raw.get())
   on_open_change=Callback::new(move |next| set_open_raw.set(next))
   side=SidebarSide::Right
   aria_label="Toggle right rail".to_string()
   label="toggle inspector".to_string()
   class_name="docs-sidebar-rail-custom".to_string()
-/>"#;
+/>
+<Sidebar
+  open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next| set_open_raw.set(next))
+  side=SidebarSide::Right
+  variant=SidebarVariant::Inset
+  collapsible=SidebarCollapsible::Icon
+  show_trigger=false
+>
+  <SidebarContent>
+    <span class="ui-muted">"Tokens"</span>
+    <span class="ui-muted">"Layers"</span>
+    <span class="ui-muted">"Motion"</span>
+  </SidebarContent>
+</Sidebar>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -36,7 +70,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             group="Layout"
             description="Shadcn-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and Spectrum-style data markers."
         >
-            <Playground title="Default Rail" code=default_code>
+            <Playground title="Default Rail" code_signal=default_code>
                 <div class="docs-stack docs-stack--tight">
                     <SidebarRail on_open_change=on_open_change />
                     <Sidebar
@@ -57,7 +91,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
                 </div>
             </Playground>
 
-            <Playground title="Controlled Right Rail" code=controlled_code>
+            <Playground title="Controlled Right Rail" code_signal=controlled_code>
                 <div class="docs-stack docs-stack--tight">
                     <SidebarRail
                         open=right_open

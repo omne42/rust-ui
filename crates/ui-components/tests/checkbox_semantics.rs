@@ -184,13 +184,13 @@ fn checkbox_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in [
-        "<Playground title=\"Controlled + on_change\" code=code>",
+        "<Playground title=\"Controlled + on_change\" code_signal=code>",
         "<Checkbox",
         "checked=checked",
         "set_checked=set_checked",
         "on_change=on_accept_change",
         "\"Accept terms\"",
-        "<Playground title=\"Variant + Disabled matrix\" code=states_code>",
+        "<Playground title=\"Variant + Disabled matrix\" code_signal=states_code>",
         "variant=CheckboxVariant::Accent",
         "size=CheckboxSize::Lg",
         "disabled=true",

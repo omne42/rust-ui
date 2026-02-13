@@ -144,8 +144,8 @@ fn form_field_docs_page_covers_primary_playgrounds() {
         "title=\"FormField\"",
         "slug=\"form-field\"",
         "description=\"Spectrum/HeroUI-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers.\"",
-        "<Playground title=\"Switch Indicator + Description\" code=code>",
-        "<Playground title=\"Checkbox Indicator + Quiet + Invalid/Disabled\" code=states_code>",
+        "<Playground title=\"Switch Indicator + Description\" code_signal=code>",
+        "<Playground title=\"Checkbox Indicator + Quiet + Invalid/Disabled\" code_signal=states_code>",
         "<FormField",
     ] {
         assert!(

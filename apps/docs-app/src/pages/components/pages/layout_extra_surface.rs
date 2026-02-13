@@ -4,7 +4,8 @@ use leptos::prelude::*;
 use ui_components::{Surface, SurfaceElevation, SurfaceTone};
 
 pub(super) fn surface() -> AnyView {
-    let tone_code = r#"<Surface tone=SurfaceTone::Default elevation=SurfaceElevation::Raised>
+    let tone_code = Signal::derive(move || {
+        r#"<Surface tone=SurfaceTone::Default elevation=SurfaceElevation::Raised>
   <div>"Default raised surface"</div>
 </Surface>
 <Surface tone=SurfaceTone::Subtle elevation=SurfaceElevation::Flat bordered=true>
@@ -12,9 +13,12 @@ pub(super) fn surface() -> AnyView {
 </Surface>
 <Surface tone=SurfaceTone::Strong elevation=SurfaceElevation::Floating padded=false>
   <div>"Strong floating compact surface"</div>
-</Surface>"#;
+</Surface>"#
+            .to_string()
+    });
 
-    let custom_code = r#"<Surface
+    let custom_code = Signal::derive(move || {
+        r#"<Surface
   tone=SurfaceTone::Strong
   elevation=SurfaceElevation::Floating
   bordered=true
@@ -22,7 +26,9 @@ pub(super) fn surface() -> AnyView {
   class_name="docs-surface-custom".to_string()
 >
   <div>"Custom class + aria source marker"</div>
-</Surface>"#;
+</Surface>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -31,7 +37,7 @@ pub(super) fn surface() -> AnyView {
             group="Layout"
             description="Spectrum/HeroUI-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers."
         >
-            <Playground title="Tone + Elevation + Frame" code=tone_code>
+            <Playground title="Tone + Elevation + Frame" code_signal=tone_code>
                 <div class="docs-stack">
                     <Surface tone=SurfaceTone::Default elevation=SurfaceElevation::Raised>
                         <div class="docs-stack docs-stack--tight">
@@ -64,7 +70,7 @@ pub(super) fn surface() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Aria + Class" code=custom_code>
+            <Playground title="Custom Aria + Class" code_signal=custom_code>
                 <Surface
                     tone=SurfaceTone::Strong
                     elevation=SurfaceElevation::Floating

@@ -135,13 +135,13 @@ fn color_swatch_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
-        "<Playground title=\"Size + Rounding\" code=size_code>",
+        "<Playground title=\"Size + Rounding\" code_signal=size_code>",
         "size=ColorSwatchSize::Xs",
         "size=ColorSwatchSize::Sm",
         "size=ColorSwatchSize::Md",
         "size=ColorSwatchSize::Lg",
         "rounding=ColorSwatchRounding::Full",
-        "<Playground title=\"Transparency + Accessible Label + Shape\" code=state_code>",
+        "<Playground title=\"Transparency + Accessible Label + Shape\" code_signal=state_code>",
         "color_name=\"Brand blue\".to_string()",
         "aria_label=\"Background color\".to_string()",
         "shape=ColorSwatchShape::Wide",

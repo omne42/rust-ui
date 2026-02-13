@@ -124,8 +124,8 @@ fn labeled_value_docs_page_covers_primary_playgrounds() {
         "title=\"LabeledValue\"",
         "slug=\"labeled-value\"",
         "description=\"Label-value pair primitive with centralized orientation/tone/source state contracts and Spectrum-style data markers.\"",
-        "<Playground title=\"Orientation + Tone\" code=orientation_code>",
-        "<Playground title=\"Description + Custom Aria/Class\" code=custom_code>",
+        "<Playground title=\"Orientation + Tone\" code_signal=orientation_code>",
+        "<Playground title=\"Description + Custom Aria/Class\" code_signal=custom_code>",
         "<LabeledValue",
     ] {
         assert!(

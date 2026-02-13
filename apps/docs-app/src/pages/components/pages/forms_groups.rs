@@ -15,7 +15,8 @@ pub(super) fn switch_group() -> AnyView {
     let (critical_alerts, set_critical_alerts) = signal(true);
     let (maintenance_mode, set_maintenance_mode) = signal(false);
 
-    let base_code = r#"<SwitchGroup
+    let base_code = Signal::derive(move || {
+        r#"<SwitchGroup
   id_base="notifications".to_string()
   label="Notification channels".to_string()
   description="Choose which channels we can use to contact you.".to_string()
@@ -24,9 +25,12 @@ pub(super) fn switch_group() -> AnyView {
   <Switch checked=marketing set_checked=set_marketing>"Marketing email"</Switch>
   <Switch checked=product_updates set_checked=set_product_updates>"Product updates"</Switch>
   <Switch checked=security_alerts set_checked=set_security_alerts>"Security alerts"</Switch>
-</SwitchGroup>"#;
+</SwitchGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"<SwitchGroup
+    let states_code = Signal::derive(move || {
+        r#"<SwitchGroup
   id_base="system-controls".to_string()
   label="System controls".to_string()
   orientation=SwitchGroupOrientation::Horizontal
@@ -42,7 +46,9 @@ pub(super) fn switch_group() -> AnyView {
   <Switch checked=maintenance_mode set_checked=set_maintenance_mode disabled=true>
     "Maintenance mode"
   </Switch>
-</SwitchGroup>"#;
+</SwitchGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -51,7 +57,7 @@ pub(super) fn switch_group() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers."
         >
-            <Playground title="Required + Description" code=base_code>
+            <Playground title="Required + Description" code_signal=base_code>
                 <div class="docs-stack">
                     <SwitchGroup
                         id_base="docs-switch-group-notifications".to_string()
@@ -81,7 +87,7 @@ pub(super) fn switch_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Horizontal + Invalid + Disabled + Custom Class" code=states_code>
+            <Playground title="Horizontal + Invalid + Disabled + Custom Class" code_signal=states_code>
                 <div class="docs-stack">
                     <SwitchGroup
                         id_base="docs-switch-group-system".to_string()
@@ -114,7 +120,8 @@ pub(super) fn switch_group() -> AnyView {
 }
 
 pub(super) fn field_group() -> AnyView {
-    let base_code = r#"<FieldGroup
+    let base_code = Signal::derive(move || {
+        r#"<FieldGroup
   id_base="account-fields".to_string()
   label="Account details".to_string()
   description="Group related fields to keep form scanning predictable.".to_string()
@@ -125,9 +132,12 @@ pub(super) fn field_group() -> AnyView {
   <Field label="Email".to_string()>
     <input class="docs-search__input" type="email" placeholder="ada@example.com" />
   </Field>
-</FieldGroup>"#;
+</FieldGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"<FieldGroup
+    let states_code = Signal::derive(move || {
+        r#"<FieldGroup
   orientation=FieldGroupOrientation::Horizontal
   density=FieldGroupDensity::Compact
   invalid=true
@@ -141,7 +151,8 @@ pub(super) fn field_group() -> AnyView {
   <Field label="Purchase Order".to_string() disabled=true>
     <input class="docs-search__input" type="text" disabled />
   </Field>
-</FieldGroup>"#;
+</FieldGroup>"#.to_string()
+    });
 
     view! {
         <ComponentPage
@@ -150,7 +161,7 @@ pub(super) fn field_group() -> AnyView {
             group="Forms"
             description="Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers."
         >
-            <Playground title="Vertical + Label + Description" code=base_code>
+            <Playground title="Vertical + Label + Description" code_signal=base_code>
                 <FieldGroup
                     id_base="docs-field-group-account".to_string()
                     label="Account details".to_string()
@@ -174,7 +185,7 @@ pub(super) fn field_group() -> AnyView {
                 </FieldGroup>
             </Playground>
 
-            <Playground title="Horizontal + Compact + Invalid + Disabled" code=states_code>
+            <Playground title="Horizontal + Compact + Invalid + Disabled" code_signal=states_code>
                 <FieldGroup
                     id_base="docs-field-group-billing".to_string()
                     orientation=FieldGroupOrientation::Horizontal
@@ -214,7 +225,8 @@ pub(super) fn date_input_group() -> AnyView {
         set_ship_window.set(next);
     });
 
-    let code = r#"let (invoice_date, set_invoice_date) = signal(Some("2026-03-14".to_string()));
+    let code = Signal::derive(move || {
+        r#"let (invoice_date, set_invoice_date) = signal(Some("2026-03-14".to_string()));
 let on_invoice_date_change = Callback::new(move |next: Option<String>| {
   set_invoice_date.set(next);
 });
@@ -232,9 +244,12 @@ let on_invoice_date_change = Callback::new(move |next: Option<String>| {
     value=invoice_date
     on_value_change=on_invoice_date_change
   />
-</DateInputGroup>"#;
+</DateInputGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"let (ship_window, set_ship_window) = signal(Some("18:30".to_string()));
+    let states_code = Signal::derive(move || {
+        r#"let (ship_window, set_ship_window) = signal(Some("18:30".to_string()));
 let on_ship_window_change = Callback::new(move |next: Option<String>| {
   set_ship_window.set(next);
 });
@@ -257,7 +272,9 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
     value=ship_window
     on_value_change=on_ship_window_change
   />
-</DateInputGroup>"#;
+</DateInputGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -266,7 +283,7 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
             group="Forms"
             description="Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers."
         >
-            <Playground title="DateField + Prefix/Suffix" code=code>
+            <Playground title="DateField + Prefix/Suffix" code_signal=code>
                 <div class="docs-stack">
                     <DateInputGroup
                         aria_label="Invoice date controls".to_string()
@@ -289,7 +306,7 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
                 </div>
             </Playground>
 
-            <Playground title="Secondary + Full Width + Invalid" code=states_code>
+            <Playground title="Secondary + Full Width + Invalid" code_signal=states_code>
                 <div class="docs-stack">
                     <DateInputGroup
                         full_width=true

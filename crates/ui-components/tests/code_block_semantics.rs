@@ -168,8 +168,8 @@ fn code_block_docs_page_covers_primary_playgrounds() {
         "pub(super) fn code_block() -> AnyView",
         "title=\"CodeBlock\"",
         "slug=\"code-block\"",
-        "Playground title=\"Header + Copy Motion\"",
-        "Playground title=\"Compact + No Copy\"",
+        "title=\"Header + Copy Motion\"",
+        "title=\"Compact + No Copy\"",
     ] {
         assert!(
             source.contains(needle),

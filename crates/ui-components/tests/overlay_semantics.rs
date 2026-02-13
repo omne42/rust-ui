@@ -233,7 +233,7 @@ fn overlay_docs_default_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
 
     for needle in [
-        "<Playground title=\"Overlay presence\" code=code>",
+        "<Playground title=\"Overlay presence\" code_signal=code>",
         "<Button on_press=open_overlay>\"Open overlay\"</Button>",
         "<Overlay open=open on_close=on_close on_exit_complete=on_exit_complete>",
         "Esc or click backdrop closes. Tab is trapped.",
@@ -281,9 +281,9 @@ fn overlay_docs_page_covers_primary_playgrounds() {
         "title=\"Overlay\"",
         "slug=\"overlay\"",
         "description=\"Portal + backdrop + focus trap + overlay stack (Esc/topmost). Supports dismiss control flags and requires presence to unmount after exit.\"",
-        "<Playground title=\"Overlay presence\" code=code>",
+        "<Playground title=\"Overlay presence\" code_signal=code>",
         "title=\"State + Source Markers\"",
-        "code=marker_code",
+        "code_signal=marker_code",
         "<Overlay",
     ] {
         assert!(

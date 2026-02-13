@@ -152,7 +152,7 @@ fn checkbox_group_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in [
-        "<Playground title=\"Validation + Required\" code=code>",
+        "<Playground title=\"Validation + Required\" code_signal=code>",
         "id=\"docs-checkbox-group\".to_string()",
         "label=\"Fruits\".to_string()",
         "required=required",
@@ -160,7 +160,7 @@ fn checkbox_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "aria_describedby=aria_describedby",
         "id=\"docs-checkbox-group-extra\"",
         "\"Clear selections\"",
-        "<Playground title=\"Disabled + Optional\" code=states_code>",
+        "<Playground title=\"Disabled + Optional\" code_signal=states_code>",
         "id=\"docs-checkbox-group-disabled\".to_string()",
         "disabled=true",
         "id=\"docs-checkbox-group-optional\".to_string()",

@@ -12,7 +12,8 @@ pub(super) fn input_group() -> AnyView {
     let (email_user, set_email_user) = signal(String::new());
     let (search_query, set_search_query) = signal(String::new());
 
-    let code = r#"let (email_user, set_email_user) = signal(String::new());
+    let code = Signal::derive(move || {
+        r#"let (email_user, set_email_user) = signal(String::new());
 <InputGroup
   aria_label="Email input group".to_string()
   start_content=move || view! { <span>"@"</span> }
@@ -26,9 +27,15 @@ pub(super) fn input_group() -> AnyView {
     placeholder="username".to_string()
     label_hidden=true
   />
-</InputGroup>"#;
+</InputGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"<InputGroup
+    let states_code = Signal::derive(move || {
+        r#"let (search_query, set_search_query) = signal(String::new());
+let (disabled_value, set_disabled_value) = signal(String::new());
+
+<InputGroup
   attached=false
   aria_label="Search controls".to_string()
   start_content=move || view! { <span>"🔍"</span> }
@@ -46,14 +53,16 @@ pub(super) fn input_group() -> AnyView {
 <InputGroup disabled=true aria_label="Disabled controls".to_string()>
   <Input
     id="disabled-group-input".to_string()
-    value=email_user
-    set_value=set_email_user
+    value=disabled_value
+    set_value=set_disabled_value
     aria_label="Disabled field".to_string()
     placeholder="Disabled".to_string()
     label_hidden=true
     disabled=true
   />
-</InputGroup>"#;
+</InputGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -62,7 +71,7 @@ pub(super) fn input_group() -> AnyView {
             group="Forms"
             description="Composes one or more inputs with shared prefix/suffix addons and Spectrum-style state contracts."
         >
-            <Playground title="Attached Addons" code=code>
+            <Playground title="Attached Addons" code_signal=code>
                 <div class="docs-stack">
                     <InputGroup
                         aria_label="Email input group".to_string()
@@ -82,7 +91,7 @@ pub(super) fn input_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Detached + Disabled" code=states_code>
+            <Playground title="Detached + Disabled" code_signal=states_code>
                 <div class="docs-stack">
                     <InputGroup
                         attached=false
@@ -122,10 +131,30 @@ pub(super) fn form() -> AnyView {
     let (name, set_name) = signal(String::new());
     let (email, set_email) = signal(String::new());
 
-    let code = r#"<Form required=true label_position=FormLabelPosition::Left>
-  <Input id="name".to_string() label="Name".to_string() ... />
-  <Input id="email".to_string() label="Email".to_string() ... />
-</Form>"#;
+    let code = Signal::derive(move || {
+        r#"let (name, set_name) = signal(String::new());
+let (email, set_email) = signal(String::new());
+
+<Form required=true label_position=FormLabelPosition::Left label_align=FormLabelAlign::End>
+  <Input
+    id="name".to_string()
+    label="Name".to_string()
+    value=name
+    set_value=set_name
+    placeholder="Jane".to_string()
+    variant=InputVariant::Bordered
+  />
+  <Input
+    id="email".to_string()
+    label="Email".to_string()
+    value=email
+    set_value=set_email
+    placeholder="jane@example.com".to_string()
+    variant=InputVariant::Bordered
+  />
+</Form>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -134,7 +163,7 @@ pub(super) fn form() -> AnyView {
             group="Forms"
             description="A context provider for form-wide disabled/required/label layout."
         >
-            <Playground title="Label layout context" code=code>
+            <Playground title="Label layout context" code_signal=code>
                 <Form
                     required=true
                     label_position=FormLabelPosition::Left
@@ -171,14 +200,17 @@ pub(super) fn input() -> AnyView {
     let (value, set_value) = signal(String::new());
     let (invalid, set_invalid) = signal(false);
 
-    let code = r#"let (value, set_value) = signal(String::new());
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
 <Input id="name".to_string()
   label="Name".to_string()
   value=value
   set_value=set_value
   placeholder="Type something…".to_string()
   is_clearable=true
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -187,7 +219,7 @@ pub(super) fn input() -> AnyView {
             group="Forms"
             description="Spectrum-style text input with label, description/error, and clear button."
         >
-            <Playground title="Clearable + validation" code=code>
+            <Playground title="Clearable + validation" code_signal=code>
                 <div class="docs-stack">
                     <Input
                         id="docs-input".to_string()
@@ -222,7 +254,8 @@ pub(super) fn text_area() -> AnyView {
     let (value, set_value) = signal("Shipping notes".to_string());
     let (invalid, set_invalid) = signal(false);
 
-    let markers_code = r#"let (value, set_value) = signal("Shipping notes".to_string());
+    let markers_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal("Shipping notes".to_string());
 let (invalid, set_invalid) = signal(false);
 
 <TextArea
@@ -237,7 +270,9 @@ let (invalid, set_invalid) = signal(false);
   placeholder="Write release notes…".to_string()
   rows=6
   class_name="docs-text-area-state".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -249,7 +284,7 @@ let (invalid, set_invalid) = signal(false);
             <Playground
                 title="State + Source Markers"
                 description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <TextArea
@@ -280,12 +315,15 @@ let (invalid, set_invalid) = signal(false);
 
 pub(super) fn search_field() -> AnyView {
     let (value, set_value) = signal(String::new());
-    let code = r#"let (value, set_value) = signal(String::new());
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
 <SearchField id="search".to_string()
   label="Search".to_string()
   value=value
   set_value=set_value
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -294,7 +332,7 @@ pub(super) fn search_field() -> AnyView {
             group="Forms"
             description="Search input with clear action and keyboard-friendly semantics."
         >
-            <Playground title="Search" code=code>
+            <Playground title="Search" code_signal=code>
                 <SearchField
                     id="docs-search-field".to_string()
                     label="Search".to_string()
@@ -310,14 +348,17 @@ pub(super) fn search_field() -> AnyView {
 
 pub(super) fn number_field() -> AnyView {
     let (value, set_value) = signal(42_i64);
-    let code = r#"let (value, set_value) = signal(42_i64);
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(42_i64);
 <NumberField id="qty".to_string()
   label="Quantity".to_string()
   value=value
   set_value=set_value
   min=0
   max=100
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -326,7 +367,7 @@ pub(super) fn number_field() -> AnyView {
             group="Forms"
             description="Numeric input with steppers and keyboard control."
         >
-            <Playground title="Stepper" code=code>
+            <Playground title="Stepper" code_signal=code>
                 <div class="docs-row">
                     <NumberField
                         id="docs-number-field".to_string()
@@ -346,13 +387,16 @@ pub(super) fn number_field() -> AnyView {
 
 pub(super) fn input_otp() -> AnyView {
     let (value, set_value) = signal(String::new());
-    let code = r#"let (value, set_value) = signal(String::new());
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
 <InputOtp id_base="otp".to_string()
   label="One-time code".to_string()
   value=value
   set_value=set_value
   length=6
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -361,7 +405,7 @@ pub(super) fn input_otp() -> AnyView {
             group="Forms"
             description="HeroUI-style OTP input with a single hidden input and slot chrome."
         >
-            <Playground title="OTP" code=code>
+            <Playground title="OTP" code_signal=code>
                 <div class="docs-stack">
                     <InputOtp
                         id_base="docs-otp".to_string()
@@ -393,15 +437,25 @@ pub(super) fn checkbox() -> AnyView {
     let (disabled_checked, set_disabled_checked) = signal(true);
     let (disabled_unchecked, set_disabled_unchecked) = signal(false);
 
-    let code = r#"let (checked, set_checked) = signal(false);
-let on_change = Callback::new(move |next: bool| {
-  logging::log!("checkbox changed: {next}");
-});
-<Checkbox checked=checked set_checked=set_checked on_change=Some(on_change)>
-  "Accept terms"
-</Checkbox>"#;
+    let code = Signal::derive(move || {
+        r#"let (checked, set_checked) = signal(false);
 
-    let states_code = r#"<Checkbox
+<Checkbox
+  checked=checked
+  set_checked=set_checked
+  on_change=Callback::new(move |_| {})
+>
+  "Accept terms"
+</Checkbox>"#
+            .to_string()
+    });
+
+    let states_code = Signal::derive(move || {
+        r#"let (marketing, set_marketing) = signal(true);
+let (disabled_checked, set_disabled_checked) = signal(true);
+let (disabled_unchecked, set_disabled_unchecked) = signal(false);
+
+<Checkbox
   checked=marketing
   set_checked=set_marketing
   variant=CheckboxVariant::Accent
@@ -414,7 +468,9 @@ let on_change = Callback::new(move |next: bool| {
 </Checkbox>
 <Checkbox checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
   "Disabled off"
-</Checkbox>"#;
+</Checkbox>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -423,7 +479,7 @@ let on_change = Callback::new(move |next: bool| {
             group="Forms"
             description="Pressable checkbox with HeroUI-level spring indicator and Spectrum-style root state attrs."
         >
-            <Playground title="Controlled + on_change" code=code>
+            <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Checkbox
@@ -439,7 +495,7 @@ let on_change = Callback::new(move |next: bool| {
                 </div>
             </Playground>
 
-            <Playground title="Variant + Disabled matrix" code=states_code>
+            <Playground title="Variant + Disabled matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Checkbox
@@ -495,7 +551,8 @@ pub(super) fn checkbox_group() -> AnyView {
     let optional_selected_count =
         Signal::derive(move || usize::from(optional_email.get()) + usize::from(optional_sms.get()));
 
-    let code = r#"let invalid = Signal::derive(move || !(apple.get() || banana.get()));
+    let code = Signal::derive(move || {
+        r#"let invalid = Signal::derive(move || !(apple.get() || banana.get()));
 <CheckboxGroup
   id="demo".to_string()
   label="Fruits".to_string()
@@ -506,9 +563,12 @@ pub(super) fn checkbox_group() -> AnyView {
 >
   <Checkbox checked=apple set_checked=set_apple>"Apple"</Checkbox>
   <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
-</CheckboxGroup>"#;
+</CheckboxGroup>"#
+            .to_string()
+    });
 
-    let states_code = r#"<CheckboxGroup
+    let states_code = Signal::derive(move || {
+        r#"<CheckboxGroup
   id="disabled".to_string()
   label="Notifications".to_string()
   disabled=true
@@ -523,7 +583,9 @@ pub(super) fn checkbox_group() -> AnyView {
 >
   <Checkbox ...>"Email"</Checkbox>
   <Checkbox ...>"SMS"</Checkbox>
-</CheckboxGroup>"#;
+</CheckboxGroup>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -532,7 +594,7 @@ pub(super) fn checkbox_group() -> AnyView {
             group="Forms"
             description="Fieldset wrapper with normalized labels, validation semantics, and Spectrum-style root state attrs."
         >
-            <Playground title="Validation + Required" code=code>
+            <Playground title="Validation + Required" code_signal=code>
                 <div class="docs-stack">
                     <CheckboxGroup
                         id="docs-checkbox-group".to_string()
@@ -590,7 +652,7 @@ pub(super) fn checkbox_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Disabled + Optional" code=states_code>
+            <Playground title="Disabled + Optional" code_signal=states_code>
                 <div class="docs-row">
                     <div class="docs-stack">
                         <CheckboxGroup
@@ -643,15 +705,25 @@ pub(super) fn switch() -> AnyView {
     let (disabled_checked, set_disabled_checked) = signal(true);
     let (disabled_unchecked, set_disabled_unchecked) = signal(false);
 
-    let code = r#"let (checked, set_checked) = signal(true);
-let on_change = Callback::new(move |next: bool| {
-  logging::log!("switch changed: {next}");
-});
-<Switch checked=checked set_checked=set_checked on_change=Some(on_change)>
-  "Notifications"
-</Switch>"#;
+    let code = Signal::derive(move || {
+        r#"let (checked, set_checked) = signal(true);
 
-    let states_code = r#"<Switch checked=system_enabled set_checked=set_system_enabled>
+<Switch
+  checked=checked
+  set_checked=set_checked
+  on_change=Callback::new(move |_| {})
+>
+  "Notifications"
+</Switch>"#
+            .to_string()
+    });
+
+    let states_code = Signal::derive(move || {
+        r#"let (system_enabled, set_system_enabled) = signal(true);
+let (disabled_checked, set_disabled_checked) = signal(true);
+let (disabled_unchecked, set_disabled_unchecked) = signal(false);
+
+<Switch checked=system_enabled set_checked=set_system_enabled>
   "System alerts"
 </Switch>
 <Switch checked=disabled_checked set_checked=set_disabled_checked disabled=true>
@@ -659,7 +731,9 @@ let on_change = Callback::new(move |next: bool| {
 </Switch>
 <Switch checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>
   "Disabled off"
-</Switch>"#;
+</Switch>"#
+            .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -668,7 +742,7 @@ let on_change = Callback::new(move |next: bool| {
             group="Forms"
             description="Switch toggle with HeroUI-level spring thumb motion and Spectrum-style root state attrs."
         >
-            <Playground title="Controlled + on_change" code=code>
+            <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Switch
@@ -684,7 +758,7 @@ let on_change = Callback::new(move |next: bool| {
                 </div>
             </Playground>
 
-            <Playground title="State matrix" code=states_code>
+            <Playground title="State matrix" code_signal=states_code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Switch checked=system_enabled set_checked=set_system_enabled>
@@ -730,18 +804,34 @@ pub(super) fn radio_group() -> AnyView {
     let empty_options = Vec::<String>::new();
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
 
-    let code = r#"let (selected, set_selected) = signal(Some(1_usize));
+    let code = Signal::derive(move || {
+        r#"let (selected, set_selected) = signal(Some(1_usize));
+
 <RadioGroup
   id_base="size".to_string()
-  options=options
+  options=vec![
+    "Small".to_string(),
+    "Medium".to_string(),
+    "Large".to_string(),
+  ]
   label="Size".to_string()
   selected_index=selected
   set_selected_index=set_selected
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<RadioGroup
+    let states_code = Signal::derive(move || {
+        r#"let (billing_selected, set_billing_selected) = signal(Some(2_usize));
+let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
+<RadioGroup
   id_base="billing".to_string()
-  options=billing_options
+  options=vec![
+    "Monthly".to_string(),
+    "Quarterly".to_string(),
+    "Yearly".to_string(),
+  ]
   orientation=RadioGroupOrientation::Horizontal
   disabled_indices=vec![1]
   aria_labelledby="docs-radio-group-billing-label".to_string()
@@ -755,7 +845,9 @@ pub(super) fn radio_group() -> AnyView {
   aria_label="No options available".to_string()
   selected_index=empty_selected
   set_selected_index=set_empty_selected
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -764,7 +856,7 @@ pub(super) fn radio_group() -> AnyView {
             group="Forms"
             description="Roving tabindex radiogroup with HeroUI-level spring motion and Spectrum-style root state attrs."
         >
-            <Playground title="Selection + Root State" code=code>
+            <Playground title="Selection + Root State" code_signal=code>
                 <div class="docs-stack">
                     <RadioGroup
                         id_base="docs-radio-group".to_string()
@@ -782,7 +874,7 @@ pub(super) fn radio_group() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Horizontal + Disabled + Empty" code=states_code>
+            <Playground title="Horizontal + Disabled + Empty" code_signal=states_code>
                 <div class="docs-stack">
                     <div id=external_label_id.clone() class="ui-muted">"Billing cycle"</div>
                     <RadioGroup
@@ -821,8 +913,17 @@ pub(super) fn radio_group() -> AnyView {
 pub(super) fn radio() -> AnyView {
     let (checked, set_checked) = signal(false);
     let on_change = Callback::new(move |next: bool| set_checked.set(next));
-    let code = r#"let (checked, set_checked) = signal(false);
-<Radio id="r1".to_string() label="Standalone".to_string() checked=checked.into() on_change=Some(on_change) />"#;
+    let code = Signal::derive(move || {
+        r#"let (checked, set_checked) = signal(false);
+
+<Radio
+  id="r1".to_string()
+  label="Standalone".to_string()
+  checked=checked.into()
+  on_change=Callback::new(move |next: bool| set_checked.set(next))
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -831,7 +932,7 @@ pub(super) fn radio() -> AnyView {
             group="Forms"
             description="Standalone radio button (use RadioGroup for semantics)."
         >
-            <Playground title="Standalone" code=code>
+            <Playground title="Standalone" code_signal=code>
                 <div class="docs-row">
                     <Radio
                         id="docs-radio".to_string()
@@ -867,18 +968,34 @@ pub(super) fn segmented_control() -> AnyView {
     let empty_options = Vec::<String>::new();
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
 
-    let code = r#"let (selected, set_selected) = signal(Some(0_usize));
+    let code = Signal::derive(move || {
+        r#"let (selected, set_selected) = signal(Some(0_usize));
+
 <SegmentedControl
   id_base="seg".to_string()
-  options=options
+  options=vec![
+    "Overview".to_string(),
+    "Details".to_string(),
+    "Settings".to_string(),
+  ]
   selected_index=selected
   set_selected_index=set_selected
   disabled_indices=vec![2]
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let states_code = r#"<SegmentedControl
+    let states_code = Signal::derive(move || {
+        r#"let (vertical_selected, set_vertical_selected) = signal(Some(1_usize));
+let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
+<SegmentedControl
   id_base="seg-vertical".to_string()
-  options=vertical_options
+  options=vec![
+    "System".to_string(),
+    "Manual".to_string(),
+    "Hybrid".to_string(),
+  ]
   selected_index=vertical_selected
   set_selected_index=set_vertical_selected
   orientation=SegmentedControlOrientation::Vertical
@@ -892,7 +1009,9 @@ pub(super) fn segmented_control() -> AnyView {
   set_selected_index=set_empty_selected
   disabled=true
   aria_label="No options".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -901,7 +1020,7 @@ pub(super) fn segmented_control() -> AnyView {
             group="Forms"
             description="Segmented control with HeroUI-level indicator motion and Spectrum-style root state attrs."
         >
-            <Playground title="Selection + Root State" code=code>
+            <Playground title="Selection + Root State" code_signal=code>
                 <div class="docs-stack">
                     <SegmentedControl
                         id_base="docs-segments".to_string()
@@ -921,7 +1040,7 @@ pub(super) fn segmented_control() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Vertical + Disabled + Empty" code=states_code>
+            <Playground title="Vertical + Disabled + Empty" code_signal=states_code>
                 <div class="docs-row">
                     <div class="docs-stack">
                         <SegmentedControl

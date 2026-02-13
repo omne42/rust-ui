@@ -130,12 +130,12 @@ fn color_slider_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
-        "<Playground title=\"Controlled Hue Channel\" code=basic_code>",
+        "<Playground title=\"Controlled Hue Channel\" code_signal=basic_code>",
         "id_base=\"docs-color-slider-hue\".to_string()",
         "channel=ColorSliderChannel::Hue",
         "value=hue.into()",
         "on_value_change=on_hue_change",
-        "<Playground title=\"Disabled Alpha + Custom Track + Reduced Motion\" code=states_code>",
+        "<Playground title=\"Disabled Alpha + Custom Track + Reduced Motion\" code_signal=states_code>",
         "id_base=\"docs-color-slider-alpha\".to_string()",
         "channel=ColorSliderChannel::Alpha",
         "disabled=true",

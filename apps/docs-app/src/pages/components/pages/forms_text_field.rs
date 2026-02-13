@@ -10,15 +10,19 @@ pub(super) fn text_field() -> AnyView {
     let (marker_invalid, set_marker_invalid) = signal(false);
     let (marker_read_only, set_marker_read_only) = signal(false);
 
-    let code = r#"let (value, set_value) = signal(String::new());
+    let code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(String::new());
 <TextField id=\"name\".to_string()
   label=\"Name\".to_string()
   value=value
   set_value=set_value
   placeholder=\"Jane\".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
-    let markers_code = r#"let (marker_value, set_marker_value) = signal(\"release@omne.rs\".to_string());
+    let markers_code = Signal::derive(move || {
+        r#"let (marker_value, set_marker_value) = signal(\"release@omne.rs\".to_string());
 let (marker_invalid, set_marker_invalid) = signal(false);
 let (marker_read_only, set_marker_read_only) = signal(false);
 
@@ -35,7 +39,9 @@ let (marker_read_only, set_marker_read_only) = signal(false);
   placeholder=\"release@omne.rs\".to_string()
   input_type=\"email\"
   class_name=\"docs-text-field-state\".to_string()
-/>"#;
+/>"#
+        .to_string()
+    });
 
     view! {
         <ComponentPage
@@ -44,7 +50,7 @@ let (marker_read_only, set_marker_read_only) = signal(false);
             group="Forms"
             description="A compact field wrapper built on headless text field semantics with explicit state/source marker contracts."
         >
-            <Playground title="Label + placeholder" code=code>
+            <Playground title="Label + placeholder" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
                     <TextField
                         id="docs-text-field".to_string()
@@ -60,7 +66,7 @@ let (marker_read_only, set_marker_read_only) = signal(false);
             <Playground
                 title="State + Source Markers"
                 description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-type-source`."
-                code=markers_code
+                code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <TextField

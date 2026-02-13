@@ -4,7 +4,8 @@ use leptos::prelude::*;
 use ui_components::{Swatch, SwatchBorder, SwatchMotion, SwatchRounding, SwatchShape, SwatchSize};
 
 pub(super) fn swatch() -> AnyView {
-    let size_code = r##"<Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
+    let size_code = Signal::derive(move || {
+        r##"<Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
 <Swatch color="#ffcc00".to_string() size=SwatchSize::S />
 <Swatch color="#ffcc00".to_string() size=SwatchSize::M />
 <Swatch
@@ -13,9 +14,12 @@ pub(super) fn swatch() -> AnyView {
   shape=SwatchShape::Rectangle
   rounding=SwatchRounding::Full
   border=SwatchBorder::Light
-/>"##;
+/>"##
+            .to_string()
+    });
 
-    let state_code = r##"let (selected, set_selected) = signal(true);
+    let state_code = Signal::derive(move || {
+        r##"let (selected, set_selected) = signal(true);
 let on_selected_change = Callback::new(move |next: bool| set_selected.set(next));
 
 <Swatch
@@ -26,9 +30,12 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
 />
 <Swatch mixed_value=true size=SwatchSize::L shape=SwatchShape::Rectangle />
 <Swatch nothing=true border=SwatchBorder::None rounding=SwatchRounding::Full />
-<Swatch color="#111827".to_string() disabled=true />"##;
+<Swatch color="#111827".to_string() disabled=true />"##
+            .to_string()
+    });
 
-    let motion_code = r##"let custom_motion = SwatchMotion {
+    let motion_code = Signal::derive(move || {
+        r##"let custom_motion = SwatchMotion {
   selected_scale: 1.12,
   selected_ring_opacity: 0.92,
   ..SwatchMotion::default()
@@ -45,7 +52,9 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
   label="Reduced motion".to_string()
   selected=Signal::derive(|| true)
   motion=SwatchMotion::disabled()
-/>"##;
+/>"##
+            .to_string()
+    });
 
     let (selected, set_selected) = signal(true);
     let on_selected_change = Callback::new(move |next: bool| set_selected.set(next));
@@ -63,7 +72,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             group="Display"
             description="Spectrum-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and HeroUI-grade spring selection motion."
         >
-            <Playground title="Size + Shape + Rounding" code=size_code>
+            <Playground title="Size + Shape + Rounding" code_signal=size_code>
                 <div class="docs-row">
                     <Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
                     <Swatch color="#ffcc00".to_string() size=SwatchSize::S />
@@ -78,7 +87,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
                 </div>
             </Playground>
 
-            <Playground title="Mixed + Nothing + Disabled + Controlled" code=state_code>
+            <Playground title="Mixed + Nothing + Disabled + Controlled" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
                     <Swatch
                         color="rgba(38, 99, 235, 0.35)".to_string()
@@ -99,7 +108,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
                 </div>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code=motion_code>
+            <Playground title="Custom Motion Contract" code_signal=motion_code>
                 <div class="docs-row">
                     <Swatch
                         color="#7c3aed".to_string()

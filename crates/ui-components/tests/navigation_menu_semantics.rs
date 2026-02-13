@@ -315,9 +315,9 @@ fn navigation_menu_docs_page_covers_primary_playgrounds() {
         "pub(super) fn navigation_menu() -> AnyView",
         "title=\"NavigationMenu\"",
         "slug=\"navigation-menu\"",
-        "<Playground title=\"Default + Roving Focus + Selection\" code=code>",
-        "<Playground title=\"Controlled + Manual Activation\" code=states_code>",
-        "<Playground title=\"State + Source Markers\" code=marker_code>",
+        "<Playground title=\"Default + Roving Focus + Selection\" code_signal=code>",
+        "<Playground title=\"Controlled + Manual Activation\" code_signal=states_code>",
+        "<Playground title=\"State + Source Markers\" code_signal=marker_code>",
         "<NavigationMenu",
     ] {
         assert!(
