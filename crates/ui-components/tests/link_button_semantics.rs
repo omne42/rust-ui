@@ -128,12 +128,23 @@ fn link_button_docs_page_covers_primary_playgrounds() {
         "title=\"LinkButton\"",
         "slug=\"link-button\"",
         "description=\"Button styling on anchors with Spectrum-style disabled semantics and secure rel handling for external targets.\"",
-        "<Playground title=\"External target + rel hardening\" code=code>",
+        "<Playground",
+        "title=\"External target + rel hardening\"",
+        "code_signal=code",
         "<Playground title=\"Variant + size + disabled matrix\" code=states_code>",
+        "id_base=\"docs-link-button-variant\".to_string()",
+        "id_base=\"docs-link-button-size\".to_string()",
+        "aria_label=\"LinkButton variant\".to_string()",
+        "aria_label=\"LinkButton size\".to_string()",
+        "<Switch checked=disabled set_checked=set_disabled>\"Disabled\"</Switch>",
+        "<Switch checked=open_in_new_tab set_checked=set_open_in_new_tab>",
+        "\"Open in new tab (_blank)\"",
+        "<Switch checked=sponsored_rel set_checked=set_sponsored_rel>",
+        "\"Add sponsored rel\"",
         "<LinkButton",
         "href=\"https://example.com/docs\".to_string()",
         "target=\"_blank\"",
-        "rel=\"sponsored\".to_string()",
+        "rel=rel.clone()",
     ] {
         assert!(
             source.contains(needle),
@@ -147,6 +158,11 @@ fn link_button_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
+        "code_signal=code",
+        "let target = if open_in_new_tab.get()",
+        "let rel = if sponsored_rel.get()",
+        "let target = {target};",
+        "let rel = {rel};",
         "aria_label=\"Open docs in a new tab\".to_string()",
         "<LinkButton href=\"https://example.com/changelog\".to_string()>",
         "<LinkButton href=\"   \".to_string() variant=ButtonVariant::Ghost>",

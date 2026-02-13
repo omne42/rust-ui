@@ -704,13 +704,59 @@ pub(super) fn icon_button() -> AnyView {
 }
 
 pub(super) fn link_button() -> AnyView {
-    let code = r#"<LinkButton
-  href="https://example.com/docs".to_string()
-  target="_blank"
-  rel="sponsored".to_string()
->
-  "Open docs"
-</LinkButton>"#;
+    let variant_options = vec![
+        "Default".to_string(),
+        "Secondary".to_string(),
+        "Ghost".to_string(),
+        "Outline".to_string(),
+    ];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
+        1 => ButtonVariant::Secondary,
+        2 => ButtonVariant::Ghost,
+        3 => ButtonVariant::Outline,
+        _ => ButtonVariant::Default,
+    });
+
+    let size_options = vec![
+        "XS".to_string(),
+        "S".to_string(),
+        "M".to_string(),
+        "L".to_string(),
+        "XL".to_string(),
+    ];
+    let (size_index, set_size_index) = signal(Some(2_usize));
+    let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
+        0 => ButtonSize::Xs,
+        1 => ButtonSize::S,
+        2 => ButtonSize::M,
+        3 => ButtonSize::L,
+        _ => ButtonSize::Xl,
+    });
+
+    let (disabled, set_disabled) = signal(false);
+    let (open_in_new_tab, set_open_in_new_tab) = signal(true);
+    let (sponsored_rel, set_sponsored_rel) = signal(true);
+
+    let code = Signal::derive(move || {
+        let variant = variant.get();
+        let size = size.get();
+        let disabled = disabled.get();
+        let target = if open_in_new_tab.get() {
+            "Some(\"_blank\")"
+        } else {
+            "None"
+        };
+        let rel = if sponsored_rel.get() {
+            "Some(\"sponsored\".to_string())"
+        } else {
+            "None"
+        };
+
+        format!(
+            "use leptos::prelude::*;\nuse ui_components::{{ButtonSize, ButtonVariant, LinkButton}};\n\nlet variant = ButtonVariant::{variant:?};\nlet size = ButtonSize::{size:?};\nlet disabled = {disabled};\nlet target = {target};\nlet rel = {rel};\n\nview! {{\n    <LinkButton\n        href=\"https://example.com/docs\".to_string()\n        variant=variant\n        size=size\n        disabled=disabled\n        target=target\n        rel=rel\n        aria_label=\"Open docs in a new tab\".to_string()\n    >\n        \"Open docs\"\n    </LinkButton>\n}}"
+        )
+    });
 
     let states_code = r#"<LinkButton href="https://example.com/xs".to_string() size=ButtonSize::Xs>
   "XS"
@@ -745,24 +791,93 @@ pub(super) fn link_button() -> AnyView {
             group="Actions"
             description="Button styling on anchors with Spectrum-style disabled semantics and secure rel handling for external targets."
         >
-            <Playground title="External target + rel hardening" code=code>
-                <div class="docs-stack">
-                    <div class="docs-row">
-                        <LinkButton
-                            href="https://example.com/docs".to_string()
-                            target="_blank"
-                            rel="sponsored".to_string()
-                            aria_label="Open docs in a new tab".to_string()
-                        >
-                            "Open docs"
-                        </LinkButton>
-                        <LinkButton href="https://example.com/changelog".to_string()>
-                            "Same tab"
-                        </LinkButton>
-                        <LinkButton href="   ".to_string() variant=ButtonVariant::Ghost>
-                            "Missing href"
-                        </LinkButton>
+            <Playground
+                title="External target + rel hardening"
+                code_signal=code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-link-button-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="LinkButton variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-link-button-size".to_string()
+                            options=size_options.clone()
+                            selected_index=size_index
+                            set_selected_index=set_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="LinkButton size".to_string()
+                        />
+
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=open_in_new_tab set_checked=set_open_in_new_tab>
+                            "Open in new tab (_blank)"
+                        </Switch>
+                        <Switch checked=sponsored_rel set_checked=set_sponsored_rel>
+                            "Add sponsored rel"
+                        </Switch>
                     </div>
+                }
+            >
+                <div class="docs-stack">
+                    {move || {
+                        let variant = variant.get();
+                        let size = size.get();
+                        let disabled = disabled.get();
+                        let rel = if sponsored_rel.get() {
+                            "sponsored".to_string()
+                        } else {
+                            String::new()
+                        };
+
+                        view! {
+                            <div class="docs-row">
+                                {if open_in_new_tab.get() {
+                                    view! {
+                                        <LinkButton
+                                            href="https://example.com/docs".to_string()
+                                            target="_blank"
+                                            rel=rel.clone()
+                                            variant=variant
+                                            size=size
+                                            disabled=disabled
+                                            aria_label="Open docs in a new tab".to_string()
+                                        >
+                                            "Open docs"
+                                        </LinkButton>
+                                    }
+                                        .into_any()
+                                } else {
+                                    view! {
+                                        <LinkButton
+                                            href="https://example.com/docs".to_string()
+                                            rel=rel
+                                            variant=variant
+                                            size=size
+                                            disabled=disabled
+                                            aria_label="Open docs in the same tab".to_string()
+                                        >
+                                            "Open docs"
+                                        </LinkButton>
+                                    }
+                                        .into_any()
+                                }}
+                                <LinkButton href="https://example.com/changelog".to_string()>
+                                    "Same tab"
+                                </LinkButton>
+                                <LinkButton href="   ".to_string() variant=ButtonVariant::Ghost>
+                                    "Missing href"
+                                </LinkButton>
+                            </div>
+                        }
+                    }}
                     <span class="ui-muted">
                         "_blank links auto-append noopener+noreferrer; blank href is normalized as non-navigable."
                     </span>
@@ -816,7 +931,6 @@ pub(super) fn link_button() -> AnyView {
     }
     .into_any()
 }
-
 pub(super) fn toggle_button() -> AnyView {
     let (selected, set_selected) = signal(false);
     let (last_change, set_last_change) = signal("none".to_string());

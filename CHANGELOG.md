@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `docs-app` + `ui-components`: upgrades `LinkButton` docs playground to control-driven, copy-ready dynamic code output (`variant/size/disabled/target/rel` now live-sync snippet content), and hardens `link_button_semantics` assertions to lock the new interactive docs contract.
+
 - `docs-app` + `ui-components`: upgrades `IconButton` docs playgrounds with control-driven, copy-ready code output (`variant/size/disabled` selections now live-sync snippet content), aligns icon-size demos to Spectrum-style `xs/s/m/l/xl`, and hardens `icon_button_semantics` + playground coverage assertions for the new dynamic code contract.
 
 - `docs-app` + `ui-components`: upgrades Playground code panels to copy-paste-ready snippets (auto-prepending imports when missing and supporting control-driven dynamic code output), aligns Actions `Button` playground code with live control selections, and standardizes `Button` sizing contracts to Spectrum-style `xs/s/m/l/xl` (with icon-size counterparts and compatibility aliases), including updated docs/state-matrix semantics coverage for `button`, `icon-button`, `link-button`, and related size mappings.
