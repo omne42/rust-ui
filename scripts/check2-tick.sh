@@ -45,11 +45,7 @@ checks = [
     "Tree Shaking 支持",
     "全局注入机制",
     "样式契约 (`styles.rs`)",
-    "语义测试",
 ]
-
-if slow:
-    checks.append("文档完整性")
 
 src = os.path.join(root, "crates/ui-components/src")
 paths = []
@@ -60,6 +56,13 @@ for name in sorted(os.listdir(src)):
 
 changed = 0
 for path in paths:
+    module_dir = os.path.dirname(path)
+    logic_rs = os.path.join(module_dir, "logic.rs")
+    has_logic_tests = False
+    if os.path.isfile(logic_rs):
+        with open(logic_rs, "r", encoding="utf-8") as f:
+            has_logic_tests = "#[test]" in f.read()
+
     with open(path, "r", encoding="utf-8") as f:
         original = f.read()
 
@@ -68,6 +71,9 @@ for path in paths:
         needle = f"- [ ] **{label}**"
         replacement = f"- [x] **{label}**"
         updated = updated.replace(needle, replacement)
+
+    if has_logic_tests:
+        updated = updated.replace("- [ ] **单元测试**", "- [x] **单元测试**")
 
     if updated != original:
         changed += 1

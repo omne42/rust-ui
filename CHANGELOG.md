@@ -12,7 +12,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `scripts`: marks `scripts/check2-audit.sh` + `scripts/check2-tick.sh` as executable so the check2 audit/tick flow runs out of the box.
 
-- `scripts` + `ui-components`: extends check2 automation to (optionally) validate docs coverage via `docs-app` tests and to mark the verified docs/semantics checklist items as checked across component `check2.md` files.
+- `scripts` + `ui-components`: extends check2 automation to (optionally) validate docs coverage via `docs-app` tests, plus adds unit-test auditing/ticking (`logic.rs` must include `#[test]`) while keeping subjective checklist items manual.
 
 - `scripts` + `ui-components`: adds executable check2 auditing/ticking helpers (`scripts/check2-audit.sh`, `scripts/check2-tick.sh`) and marks the verified workspace layering items as checked in every component `check2.md`.
 

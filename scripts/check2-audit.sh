@@ -268,6 +268,34 @@ if [[ $? -ne 0 ]]; then
   ok=0
 fi
 
+# 8.1) unit tests coverage: every component logic.rs has at least one #[test]
+python3 - <<'PY'
+import os
+from pathlib import Path
+
+root = Path(os.environ["ROOT_DIR"])
+src = root / "crates/ui-components/src"
+
+missing = []
+for d in sorted(src.iterdir()):
+    if not d.is_dir():
+        continue
+    logic = d / "logic.rs"
+    if not logic.exists():
+        continue
+    txt = logic.read_text(encoding="utf-8")
+    if "#[test]" not in txt:
+        missing.append(d.name)
+
+if missing:
+    print("[check2] FAIL: logic.rs missing #[test] coverage in:", ", ".join(missing))
+    raise SystemExit(1)
+print("[check2] ok: every component logic.rs contains #[test] coverage (grep-based check)")
+PY
+if [[ $? -ne 0 ]]; then
+  ok=0
+fi
+
 # 9) docs coverage (slow): docs-app catalog covers public ui-components modules + at least one Playground per page
 if [[ "$slow" -eq 1 ]]; then
   if cargo test -p docs-app component_catalog_covers_public_component_modules >/dev/null \
