@@ -1501,12 +1501,12 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: adds `<Label>` with centralized emphasis/required/disabled/source state derivation and Spectrum-style `data-*` contracts.
 - `apps/docs-app`: adds a `Label` docs page with emphasis/required matrix and custom indicator/class playground coverage.
 
-- Cargo workspace scaffold with layered crates (`ui-core`, `ui-headless`, `ui-theme`, `ui-components`) and demo apps (`web-demo`, `tauri-demo`).
-- `ui-core`: initial headless state primitive `use_toggle_state` with unit tests.
-- `ui-core`: `use_overlay_trigger_state` (open/close/toggle + controlled/uncontrolled) with unit tests.
-- `ui-core`: `use_controlled_state` helper (value/default + on_change pattern) for building controlled/uncontrolled primitives.
-- `ui-core`: `use_single_selection_state` / `use_multiple_selection_state` for selection modeling.
-- `ui-core`: `use_list_state` (items + selection) for list-based components.
+- Cargo workspace scaffold with layered crates (`ui-state-primitives`, `ui-headless`, `ui-theme`, `ui-components`) and demo apps (`web-demo`, `tauri-demo`).
+- `ui-state-primitives`: initial headless state primitive `use_toggle_state` with unit tests.
+- `ui-state-primitives`: `use_overlay_trigger_state` (open/close/toggle + controlled/uncontrolled) with unit tests.
+- `ui-state-primitives`: `use_controlled_state` helper (value/default + on_change pattern) for building controlled/uncontrolled primitives.
+- `ui-state-primitives`: `use_single_selection_state` / `use_multiple_selection_state` for selection modeling.
+- `ui-state-primitives`: `use_list_state` (items + selection) for list-based components.
 - `ui-theme`: design tokens + CSS variable emitter, plus base/safe-area CSS helpers and unit tests.
 - `ui-theme`: adds a dark theme preset and additional color tokens (`fg-muted`, `bg-muted`, `accent-soft`).
 - `ui-theme`: switches preset colors to `oklch(...)` and adds an OLED theme preset (`Theme::oled()`).
@@ -1572,7 +1572,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Select` now composes `ListBox` and uses popover presence internally.
 - `ui-components`: adds `aria_haspopup` / `aria_expanded` / `aria_controls` support on `Button` for trigger-style components.
 - `ui-headless`: adds integration tests covering key hooks (hover, focus ring, press/button, checkbox/switch, listbox/menu, overlay stack).
-- Docs: adds per-crate `README.md` files describing responsibilities and usage (`ui-core`, `ui-headless`, `ui-theme`, `ui-motion`, `ui-components`).
+- Docs: adds per-crate `README.md` files describing responsibilities and usage (`ui-state-primitives`, `ui-headless`, `ui-theme`, `ui-motion`, `ui-components`).
 - CI: adds a GitHub Actions workflow that runs `cargo fmt`, `cargo clippy`, and `cargo test`.
 - `apps/web-demo`: adds `dev-overrides.css` as a hot-reload-friendly place to prototype component style changes.
 - `ui-headless`: adds `use_text_field` hook (+ unit tests) for wiring input `aria-describedby`/`aria-invalid`/`aria-required`.
@@ -1619,7 +1619,9 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
-- `ui-components`: marks the `Accordion` check2 `ui-core` definition item as pending re-verification (manual checklist hygiene).
+- `ui-components`: marks the `Accordion` check2 `ui-state-primitives` definition item as pending re-verification (manual checklist hygiene).
+
+- `ui-state-primitives`: renames the `ui-core` crate to reduce ambiguity and clarify its role as the platform-agnostic state-primitives layer.
 
 - `ui-headless` + `apps/docs-app`: moves cross-component infrastructure (i18n registry, trace/perf hooks) into `ui-headless` and keeps debug overlay UI in the app layer.
 
@@ -1754,7 +1756,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Popover` now supports `is_modal` (defaults true) and sets `data-placement` for correct transform origin and motion direction.
 - `ui-components`: re-exports `provide_focus_visible`, `provide_overlay_stack`, and `OnPress` to reduce app-layer coupling.
 - `ui-components`: `Tabs` now supports manual keyboard activation and a spring-driven selection indicator (HeroUI-style feel), with hover/press/focus-visible states.
-- `ui-core`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).
+- `ui-state-primitives`: callback types are now `Send + Sync` (uses `Arc<dyn Fn(...) + Send + Sync>`).
 - `ui-headless`: `use_press` now supports keyboard Enter/Space (with click de-duping) and exposes key handlers that indicate when callers should `preventDefault` (for custom elements).
 - `ui-headless`: `use_button` now supports `ButtonElement` + returns `ButtonAttrs` (`role`/`tabindex`/`aria-disabled`) for custom button semantics.
 - `ui-headless`: `use_listbox` now supports `on_action` to react to selection activation.

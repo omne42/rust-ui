@@ -1,4 +1,4 @@
-//! `ui-core` — platform-agnostic UI state primitives (React Stately analogue).
+//! `ui-state-primitives` — platform-agnostic UI state primitives (React Stately analogue).
 
 pub mod controlled;
 pub mod list;

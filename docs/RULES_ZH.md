@@ -16,7 +16,7 @@
 ```
 .
 ├── crates/
-│   ├── ui-core        # 纯状态（Stately）
+│   ├── ui-state-primitives        # 纯状态（Stately）
 │   ├── ui-headless    # 行为 + A11y（Aria）
 │   ├── ui-theme       # 设计系统 tokens → CSS vars（OKLCH + OLED）
 │   ├── ui-motion      # 高级动效引擎/后端（WAAPI + Spring runtime）
@@ -38,16 +38,16 @@
 
 ### 2.1 依赖方向（单向）
 
-- `ui-core`：**不依赖任何内部 crate**（平台无关；禁止 DOM/web-sys）。
+- `ui-state-primitives`：**不依赖任何内部 crate**（平台无关；禁止 DOM/web-sys）。
 - `ui-theme`：不依赖 `ui-components`（tokens 不知道组件存在）。
-- `ui-headless`：可选依赖 `ui-core`；**禁止依赖** `ui-components` / `ui-theme`。
+- `ui-headless`：可选依赖 `ui-state-primitives`；**禁止依赖** `ui-components` / `ui-theme`。
 - `ui-motion`：不依赖 `ui-components`（引擎不关心组件）。
-- `ui-components`：允许依赖 `ui-headless + ui-theme + ui-motion`（必要时才依赖 `ui-core`）。
+- `ui-components`：允许依赖 `ui-headless + ui-theme + ui-motion`（必要时才依赖 `ui-state-primitives`）。
 - `apps/*`：依赖 `ui-components`（上层不直接接触 `web-sys`）。
 
 ### 2.2 每层职责（对标 React Spectrum）
 
-#### `ui-core`（React Stately）
+#### `ui-state-primitives`（React Stately）
 
 - 只做：**状态建模**（受控/非受控、选择、集合、开关等）。
 - 不做：DOM、事件标准化、样式、动画。
@@ -76,7 +76,7 @@
 
 #### `ui-components`（最终组件库）
 
-- 只做：把 `ui-core` 状态 + `ui-headless` 行为 + `ui-theme` 样式 + `ui-motion` 动效组合成最终组件。
+- 只做：把 `ui-state-primitives` 状态 + `ui-headless` 行为 + `ui-theme` 样式 + `ui-motion` 动效组合成最终组件。
 - 对外 API：尽量小而稳（v0 冻结后避免破坏性改动）。
 - 公开 API 禁止暴露 `web-sys` 类型；DOM 细节只存在于 `cfg(wasm32)` 的内部实现中。
 

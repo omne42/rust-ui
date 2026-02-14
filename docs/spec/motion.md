@@ -1,10 +1,10 @@
 # Motion 规格（v0）
 
-目标：在不破坏 `ui-core / ui-headless / ui-components / ui-theme` 分层的前提下，原生提供“高级 motion”（非 CSS transition/animation）。
+目标：在不破坏 `ui-state-primitives / ui-headless / ui-components / ui-theme` 分层的前提下，原生提供“高级 motion”（非 CSS transition/animation）。
 
 ## 分层约束（必须遵守）
 
-- `ui-core`：纯状态/状态机；禁止 motion（无 DOM）。
+- `ui-state-primitives`：纯状态/状态机；禁止 motion（无 DOM）。
 - `ui-headless`：交互与 A11y；**不做视觉表现**，也不做动画编排（只输出状态/handlers/attrs）。
 - `ui-theme`：tokens（可包含 motion tokens：duration/easing/spring 参数），但不绑定具体实现。
 - `ui-components`：组件实现与“视觉表达”；组件内部可定义 motion contract（例如 `ButtonMotion`），但不要把 motion 逻辑塞进 `ui-headless`。

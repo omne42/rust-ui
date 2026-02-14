@@ -62,18 +62,18 @@ report() {
   printf 'architecture-check: %s\n  %s\n' "$title" "$detail" >&2
 }
 
-# 1) ui-core must stay platform-agnostic and independent.
+# 1) ui-state-primitives must stay platform-agnostic and independent.
 for path in "${files[@]}"; do
-  [[ "$path" == crates/ui-core/src/* ]] || continue
+  [[ "$path" == crates/ui-state-primitives/src/* ]] || continue
   content="$(read_snapshot "$path" || true)"
   [[ -n "$content" ]] || continue
 
   if printf '%s\n' "$content" | rg -n "\b(web_sys|js_sys|wasm_bindgen)\b|leptos::web_sys|\bwindow\(|\bdocument\(" >/dev/null; then
-    report "ui-core purity violation" "$path references platform/web APIs."
+    report "ui-state-primitives purity violation" "$path references platform/web APIs."
   fi
 
-  if printf '%s\n' "$content" | rg -n "\bui_(headless|components|theme|motion)::" >/dev/null; then
-    report "ui-core dependency direction violation" "$path references higher-layer internal crates."
+  if printf '%s\n' "$content" | rg -n "\bui_(headless|components|theme|motion|compat)::" >/dev/null; then
+    report "ui-state-primitives dependency direction violation" "$path references higher-layer internal crates."
   fi
 done
 

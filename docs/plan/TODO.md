@@ -5,9 +5,9 @@
 
 ## A. 全局规则（必须遵守，违反即返工）
 
-- [ ] 分层不破：`ui-core`（纯状态）→ `ui-headless`（交互/A11y）→ `ui-components`（组件）→ `apps/*`（应用）
-- [ ] 依赖单向：`ui-core` 不依赖任何其他 crate；`ui-theme` 不依赖 `ui-components`
-- [ ] `ui-core` 禁止 `web-sys` / DOM / 平台能力（保持可移植、可单测）
+- [ ] 分层不破：`ui-state-primitives`（纯状态）→ `ui-headless`（交互/A11y）→ `ui-components`（组件）→ `apps/*`（应用）
+- [ ] 依赖单向：`ui-state-primitives` 不依赖任何其他 crate；`ui-theme` 不依赖 `ui-components`
+- [ ] `ui-state-primitives` 禁止 `web-sys` / DOM / 平台能力（保持可移植、可单测）
 - [ ] `ui-components` 不直接碰 `web-sys`（一律通过 `ui-headless` 注入行为）
 - [ ] `ui-headless` 的 DOM 交互必须 feature-gated（至少 `web`/`ssr`），且能 `wasm32-unknown-unknown` 编译
 - [ ] `ui-components` 必须支持组件级 feature 切分（最小特性集可编译），禁止全组件中央注册表
@@ -41,7 +41,7 @@
 
 - [x] `t01` 创建 workspace（根 `Cargo.toml`）
 - [x] `t01` 创建目录：
-  - [x] `crates/ui-core`
+  - [x] `crates/ui-state-primitives`
   - [x] `crates/ui-headless`
   - [x] `crates/ui-theme`
   - [x] `crates/ui-components`
@@ -56,10 +56,10 @@
 ### 1.2 依赖矩阵（低耦合护栏）
 
 - [ ] 固化依赖关系（写入各 `Cargo.toml`，禁止循环）：
-  - [ ] `ui-core`：无内部依赖
+  - [ ] `ui-state-primitives`：无内部依赖
   - [ ] `ui-theme`：无内部依赖
-  - [ ] `ui-headless`：可依赖 `ui-core`（可选），不可依赖 `ui-components/ui-theme`
-  - [ ] `ui-components`：仅依赖 `ui-headless` + `ui-theme`（必要时再依赖 `ui-core`，但优先不依赖）
+  - [ ] `ui-headless`：可依赖 `ui-state-primitives`（可选），不可依赖 `ui-components/ui-theme`
+  - [ ] `ui-components`：仅依赖 `ui-headless` + `ui-theme`（必要时再依赖 `ui-state-primitives`，但优先不依赖）
   - [ ] `apps/*`：依赖 `ui-components`（可间接使用 headless/theme）
 
 **Stop Gate**
@@ -81,11 +81,11 @@
 
 > 目标：先把跨 crate 的接口边界写清楚，避免实现时互相“反向渗透”。
 
-### 3.1 ui-core v0 API（纯状态）
+### 3.1 ui-state-primitives v0 API（纯状态）
 
 - [ ] 冻结模块与导出（示例）：
-  - [ ] `ui_core::toggle::{ToggleState, ToggleStateOptions, use_toggle_state}`
-  - [ ] `ui_core::controlled::{use_controlled_state}`（如需要）
+  - [ ] `ui_state_primitives::toggle::{ToggleState, ToggleStateOptions, use_toggle_state}`
+  - [ ] `ui_state_primitives::controlled::{use_controlled_state}`（如需要）
 - [ ] 明确所有权与更新策略：状态由 core 持有；回调由调用者提供；不触碰 DOM
 
 ### 3.2 ui-headless v0 API（交互/A11y）
@@ -115,7 +115,7 @@
 **Stop Gate**
 - [ ] `cargo check --workspace`
 
-## 4) ui-core（Stately v0：先有血液循环）
+## 4) ui-state-primitives（Stately v0：先有血液循环）
 
 目标：把“状态”做成可复用、可测试、无平台依赖的最小集。
 
@@ -129,7 +129,7 @@
 - [x] `t10` 单测覆盖：只读不变更、受控回调被调用、非受控内部更新
 
 **Stop Gate**
-- [ ] `cargo test -p ui-core`
+- [ ] `cargo test -p ui-state-primitives`
 
 ## 5) ui-headless（React Aria v0：交互内核）
 
@@ -280,7 +280,7 @@
 
 > 这些任务不属于 MVP/Phase 1，但用于保证路线图“完整”。每个条目在落地时都应拆成 tXX 级任务并加入 `task_dag.json`。
 
-### 12.1 ui-core（集合/选择/受控工具）
+### 12.1 ui-state-primitives（集合/选择/受控工具）
 
 - [x] `use_controlled_state` 完整化（支持 value/defaultValue/onChange 的通用模式）
 - [x] `use_list_state`（items + selection，v0）
@@ -345,7 +345,7 @@
 - [ ] 5.9 i18n/l10n 默认纳入：文案可覆盖，格式化可策略化，注入点稳定可测
 - [ ] 5.10 数据可视化兼容：可扩展到 `ui-charts`，并保留语义/A11y 降级路径
 - [ ] 5.11 混合分发：`core/headless/theme/motion` package-first，`components` source-first
-- [ ] 5.12 生态位目标：Leptos-first，同时保持 `ui-core/ui-headless` 可迁移潜力
+- [ ] 5.12 生态位目标：Leptos-first，同时保持 `ui-state-primitives/ui-headless` 可迁移潜力
 - [ ] 5.13 贡献者可成长：低门槛上手路径、局部任务切入、样例与清单齐备
 - [ ] 5.14 样式哲学：token-first + `styles.rs` 静态契约，应用层可用 utility 但不反向污染组件契约
 - [ ] 5.15 可裁剪交付：组件级 feature + CSS 同步裁剪，禁止破坏 DCE 的全局可达反模式

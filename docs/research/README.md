@@ -73,7 +73,7 @@
 
 > 先落地最小切片：`Press + FocusVisible + Button`，再进入 Overlay。
 
-- ui-core（React Stately）
+- ui-state-primitives（React Stately）
   - `use_toggle_state`：纯状态与受控/非受控模式（类比 `useToggleState`）。
 - ui-headless（React Aria）
   - `use_press`：统一 pointer/mouse/touch/keyboard，产出 `is_pressed` + 一组事件处理器/属性。
@@ -92,7 +92,7 @@
 
 ## 任务 DAG（v0，摘要）
 
-1. `t1-workspace`：workspace + `ui-core/ui-headless/ui-components/ui-theme/demo-tauri` crate 壳（`cargo check -p ...` 全过）
+1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-components/ui-theme/demo-tauri` crate 壳（`cargo check -p ...` 全过）
 2. `t2-headless-interaction`：最小交互系统（Press + FocusVisible）
 3. `t3-theme-tokens`：最小 tokens（颜色/圆角/间距…）
 4. `t4-components-button`：Button v0（组合 t2+t3）

@@ -10,7 +10,7 @@
 - [x] 组件目标、非目标、风险边界已写清楚。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `ui-core` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [ ] `ui-state-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
 - [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），输出 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
 - [ ] `ui-motion` 定义：动效引擎与契约执行层（spring、keyframes、WAAPI backend）。不关心业务组件语义；非 wasm 提供 no-op/stub，保证 SSR/tooling 可编译。
 - [ ] `ui-theme` 定义：设计 token 与主题层（Light/Dark/OLED）+ CSS 变量生成。只输出 theme/tokens/base css，不做组件 CSS。
@@ -24,7 +24,7 @@
 - [ ] 默认值来源单一：统一在 `logic.rs` 归一，不在 `view.rs` 分散决策。
 - [ ] 状态管理语义清晰：用类型化状态输入与 `logic.rs` 归一化替代分散 view 逻辑。
 - [ ] 离散状态用 `enum`（variant/size/mode 等）约束输入空间，避免多个 `Option<bool>` 拼状态机。
-- [ ] `ui-core` 提供可组合状态原语，不强制单一全局状态框架；应用层全局状态接入需通过桥接层，不让组件直接绑定业务 store。
+- [ ] `ui-state-primitives` 提供可组合状态原语，不强制单一全局状态框架；应用层全局状态接入需通过桥接层，不让组件直接绑定业务 store。
 - [ ] 组件库异步交互模式统一：`is_loading`、error/retry、`aria-busy`、禁用态语义一致；鼓励可复用抽象（如 `use_async_action` 方向），避免每组件一套协议。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
@@ -83,7 +83,7 @@
 - [ ] 基线 5 A11y + i18n/l10n：A11y 契约在 `crates/ui-headless/src/a11y.rs`，组件挂载在 `view.rs`，文案与本地化落点 `i18n.rs`（按需新增），语义测试与 E2E 分别在 `crates/ui-components/tests/*` 与 `e2e/tests/*`。
 
 ### 9. 明确禁止的反模式
-- [ ] 在 `ui-core` 写 DOM/样式逻辑。
+- [ ] 在 `ui-state-primitives` 写 DOM/样式逻辑。
 - [ ] 在 `ui-headless` 写视觉和动画编排。
 - [ ] 在 `view` 层隐藏关键状态决策。
 - [ ] 新增参数但不纳入统一命名与契约。

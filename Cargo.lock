@@ -4648,10 +4648,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ui-core"
-version = "0.0.0"
-
-[[package]]
 name = "ui-headless"
 version = "0.0.0"
 dependencies = [
@@ -4671,6 +4667,10 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
 ]
+
+[[package]]
+name = "ui-state-primitives"
+version = "0.0.0"
 
 [[package]]
 name = "ui-theme"
@@ -4976,8 +4976,8 @@ dependencies = [
  "console_error_panic_hook",
  "leptos",
  "ui-components",
- "ui-core",
  "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]

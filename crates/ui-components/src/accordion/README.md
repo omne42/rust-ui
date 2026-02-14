@@ -1,6 +1,6 @@
 # Accordion
 
-`Accordion` 是一个基于 `ui-core` + `ui-headless` + `ui-motion` 组合出来的折叠面板组件。
+`Accordion` 是一个基于 `ui-state-primitives` + `ui-headless` + `ui-motion` 组合出来的折叠面板组件。
 
 ## 目标 / 非目标 / 风险边界
 

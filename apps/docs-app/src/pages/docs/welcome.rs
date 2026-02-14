@@ -15,7 +15,7 @@ pub fn Welcome() -> impl IntoView {
             <h2>"Welcome"</h2>
             <p>
                 "This repo builds a layered Leptos UI system (Spectrum-style): "
-                <code>"ui-core"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", "
+                <code>"ui-state-primitives"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", "
                 <code>"ui-motion"</code> ", " <code>"ui-components"</code> "."
             </p>
             <p>"Use the left nav to explore docs and component playgrounds."</p>

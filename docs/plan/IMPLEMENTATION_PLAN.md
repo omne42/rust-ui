@@ -36,7 +36,7 @@
 
 满足以下全部条件才算 Phase 1 完成：
 
-- Workspace 中存在 `ui-core/ui-headless/ui-theme/ui-components` 四个 crate，并且边界清晰
+- Workspace 中存在 `ui-state-primitives/ui-headless/ui-theme/ui-components` 四个 crate，并且边界清晰
 - 存在可提交 demo（`apps/web-demo`），能展示：
   - Button 的 pressed/disabled/focus-visible 状态
   - Overlay v1（Popover 或 Modal）可被打开/关闭（Esc + 点击外部）
@@ -67,7 +67,7 @@
 .
 ├── Cargo.toml
 ├── crates
-│   ├── ui-core
+│   ├── ui-state-primitives
 │   ├── ui-headless
 │   ├── ui-theme
 │   └── ui-components
@@ -83,7 +83,7 @@
 
 约定：
 
-- `ui-core`：纯状态（禁止 `web-sys`、禁止 DOM 假设）
+- `ui-state-primitives`：纯状态（禁止 `web-sys`、禁止 DOM 假设）
 - `ui-headless`：交互/A11y（允许 `web-sys`，但要有 feature gate）
 - `ui-theme`：tokens + CSS variables（不依赖 `ui-components`）
 - `ui-components`：Leptos 组件（不直接使用 `web-sys`，通过 `ui-headless` 间接接触 DOM）
@@ -99,7 +99,7 @@
 
 ## 2.1 Public API 稳定性规则（v0）
 
-- `ui-core`：只导出“纯状态模型/状态机”，不导出任何 DOM/渲染相关类型。
+- `ui-state-primitives`：只导出“纯状态模型/状态机”，不导出任何 DOM/渲染相关类型。
 - `ui-headless`：只导出“交互/可访问性模型 + Leptos 可挂载的 handlers/attrs”，不导出具体 UI 样式与 class 名。
 - `ui-components`：只导出组件与其 props；组件对外只暴露稳定 props，不透传 headless 的内部结构体（避免锁死后续重构）。
 - `ui-theme`：只导出 tokens 与生成的 CSS（变量名先冻结为 v0，后续增量扩展）。
@@ -108,7 +108,7 @@
 
 采用混合分发（Hybrid Distribution）：
 
-- Package 分发：`ui-core` / `ui-headless` / `ui-theme` / `ui-motion`
+- Package 分发：`ui-state-primitives` / `ui-headless` / `ui-theme` / `ui-motion`
 - Source 分发：`ui-components`（按需拉取组件源码，shadcn-like）
 
 约束：
@@ -192,14 +192,14 @@
 - 验收：字段齐全（id/depends_on/verify 等），并与本文保持一致
 - 验证命令：无（文档任务）
 
-### t10 - ui-core：最小状态原语（Stately v0）
+### t10 - ui-state-primitives：最小状态原语（Stately v0）
 
 - 目标：提供 1-2 个纯状态 hook（优先 toggle），为组件层提供稳定 API
-- 输出：`ui-core::toggle::{use_toggle_state, ToggleState}`
+- 输出：`ui-state-primitives::toggle::{use_toggle_state, ToggleState}`
 - 依赖：t01
-- 验收：`cargo test -p ui-core`
+- 验收：`cargo test -p ui-state-primitives`
 - 验证命令：
-  - `cargo test -p ui-core`
+  - `cargo test -p ui-state-primitives`
 
 ### t11 - ui-theme：tokens + CSS variables（v0）
 

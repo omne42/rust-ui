@@ -51,7 +51,7 @@
 
 `rust-ui` 是一个按职责分层的 workspace：
 
-- `ui-core`：纯状态原语（Stately analogue）。
+- `ui-state-primitives`：纯状态原语（Stately analogue）。
 - `ui-headless`：交互与可访问性原语（Aria analogue）。
 - `ui-theme`：设计 token 与 CSS 变量输出。
 - `ui-motion`：动效引擎与执行后端。
@@ -176,7 +176,7 @@ A11y 不是“后期补丁”，而是原语层职责：
 
 分层建议：
 
-- `ui-core`：仅处理与语言无关的状态与规则。
+- `ui-state-primitives`：仅处理与语言无关的状态与规则。
 - `ui-headless`：定义语义与格式化契约（不持有业务字典）。
 - `ui-components`：消费外部 locale/formatter/messages 并渲染。
 
@@ -198,7 +198,7 @@ A11y 不是“后期补丁”，而是原语层职责：
 默认分发边界：
 
 - Package-first（稳定依赖层）：
-  - `ui-core`
+  - `ui-state-primitives`
   - `ui-headless`
   - `ui-theme`
   - `ui-motion`
@@ -229,13 +229,13 @@ A11y 不是“后期补丁”，而是原语层职责：
 
 原则：
 
-- `ui-core` 尽量保持框架无关抽象，不锁死到单一响应式实现。
+- `ui-state-primitives` 尽量保持框架无关抽象，不锁死到单一响应式实现。
 - `ui-headless` 通过 adapter 层管理与具体 UI 框架的绑定。
 - 把“框架耦合点”显式标注并控制在薄层边界内。
 
 长期价值：
 
-- 让 `ui-core`/`ui-headless` 有机会成为 Rust UI 生态的通用原语层。
+- 让 `ui-state-primitives`/`ui-headless` 有机会成为 Rust UI 生态的通用原语层。
 - 降低未来迁移到 Dioxus/Iced/其他框架时的重写成本。
 
 ## 5.13 贡献者可成长性是一等约束
@@ -541,7 +541,7 @@ DX 基线能力：
 
 - `serde`：`UiSpec` 的序列化/反序列化、版本迁移与错误报告标准化。
 - `tracing`：定义统一 span/event 语义，贯穿状态、交互、生成、渲染链路。
-- async：避免把 `ui-core`/`ui-headless` 绑定到单一运行时（tokio/async-std）。
+- async：避免把 `ui-state-primitives`/`ui-headless` 绑定到单一运行时（tokio/async-std）。
 
 要求：
 
@@ -554,8 +554,8 @@ DX 基线能力：
 
 原则：
 
-- `ui-core` 提供可组合状态原语，不强制单一全局状态框架。
-- 应用层可选接入全局状态方案，但必须保持与 `ui-core` 契约一致。
+- `ui-state-primitives` 提供可组合状态原语，不强制单一全局状态框架。
+- 应用层可选接入全局状态方案，但必须保持与 `ui-state-primitives` 契约一致。
 - 跨页面/跨区域状态同步要有明确桥接层，不让组件直接依赖业务 store 细节。
 
 目标：
@@ -566,7 +566,7 @@ DX 基线能力：
 
 我们将测试分层明确化：
 
-- 单元测试：`ui-core` 纯逻辑与状态机。
+- 单元测试：`ui-state-primitives` 纯逻辑与状态机。
 - 集成测试：`ui-headless + ui-components` 的交互契约验证。
 - E2E：真实浏览器场景下的端到端回归。
 
@@ -630,7 +630,7 @@ E2E 基线要求：
 
 ## 8.3 明确禁止的反模式
 
-- 在 `ui-core` 写 DOM/样式逻辑。
+- 在 `ui-state-primitives` 写 DOM/样式逻辑。
 - 在 `ui-headless` 写视觉和动画编排。
 - 在 `view` 层隐藏关键状态决策。
 - 新增参数但不进入统一命名与契约体系。
@@ -651,7 +651,7 @@ WASM 场景下，调试成本必须被系统性降低，而不是依赖 `console
 建议方向：
 
 - 建立 `devtools` 协议层，逐步靠近“组件树 + 状态流”可视化能力。
-- 在 `ui-core`/`ui-headless` 增加可选 trace hooks，统一追踪接口。
+- 在 `ui-state-primitives`/`ui-headless` 增加可选 trace hooks，统一追踪接口。
 
 ## 8.5 运行时性能与内存剖析哲学
 

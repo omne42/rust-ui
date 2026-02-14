@@ -2,7 +2,7 @@
 
 Layered UI primitives + components for Leptos:
 
-- `crates/ui-core`: state (Stately)
+- `crates/ui-state-primitives`: state (Stately)
 - `crates/ui-headless`: behavior + a11y (Aria)
 - `crates/ui-theme`: tokens → CSS variables
 - `crates/ui-motion`: spring/WAAPI motion runtime

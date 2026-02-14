@@ -2,7 +2,7 @@
 
 ## 项目结构与模块组织
 本仓库是 Rust Workspace，采用分层 UI 架构：
-- `crates/ui-core`：状态原语与核心模型。
+- `crates/ui-state-primitives`：状态原语与核心模型。
 - `crates/ui-headless`：交互行为与 A11y 语义契约。
 - `crates/ui-theme`：设计 token 与 CSS 变量生成。
 - `crates/ui-motion`：动效能力（spring、keyframes、presets）。

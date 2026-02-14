@@ -41,7 +41,7 @@
       "title": "Workspace + crate skeletons",
       "outputs": [
         "Cargo.toml",
-        "crates/ui-core/Cargo.toml",
+        "crates/ui-state-primitives/Cargo.toml",
         "crates/ui-headless/Cargo.toml",
         "crates/ui-theme/Cargo.toml",
         "crates/ui-components/Cargo.toml",
@@ -77,11 +77,11 @@
     },
     {
       "id": "t10",
-      "title": "ui-core: state primitives v0",
-      "outputs": ["ui-core::toggle::{use_toggle_state, ToggleState}"],
+      "title": "ui-state-primitives: state primitives v0",
+      "outputs": ["ui-state-primitives::toggle::{use_toggle_state, ToggleState}"],
       "depends_on": ["t01"],
-      "acceptance": ["cargo test -p ui-core passes"],
-      "verify": ["cargo test -p ui-core"]
+      "acceptance": ["cargo test -p ui-state-primitives passes"],
+      "verify": ["cargo test -p ui-state-primitives"]
     },
     {
       "id": "t11",

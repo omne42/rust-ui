@@ -5,7 +5,7 @@
 ## 调研问题
 
 1. Spectrum 是否存在明确的样式基准，而不是仅有视觉理念？
-2. 这些基准是否能映射到本仓库分层（`ui-core/ui-headless/ui-theme/ui-motion/ui-components`）？
+2. 这些基准是否能映射到本仓库分层（`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`）？
 
 ## 核心结论
 
@@ -26,12 +26,12 @@ Spectrum 存在可执行的样式基准，核心在 token 与上下文轴，而�
 更准确的策略是：
 
 1. 全量学习：语义状态、A11y 契约、token 体系、命名与不变量。
-2. 分层落地：按 `ui-core -> ui-headless -> ui-theme -> ui-motion -> ui-components` 单向映射。
+2. 分层落地：按 `ui-state-primitives -> ui-headless -> ui-theme -> ui-motion -> ui-components` 单向映射。
 3. 分批迁移：按组件切片推进，不做一次性重写。
 
 建议分层映射如下：
 
-1. `ui-core`：定义稳定语义元语（如 `ColorRole`、`Density`、`InteractionState`、`MotionPreset`）。
+1. `ui-state-primitives`：定义稳定语义元语（如 `ColorRole`、`Density`、`InteractionState`、`MotionPreset`）。
 2. `ui-headless`：把交互/A11y 状态绑定到元语状态机，避免语义漂移。
 3. `ui-theme`：将 “语义角色 -> token/CSS 变量” 固化为单向映射。
 4. `ui-motion`：以语义动效（enter/exit/emphasis）消费元语，而非散落时长参数。
@@ -55,7 +55,7 @@ Spectrum 存在可执行的样式基准，核心在 token 与上下文轴，而�
 
 ## 落地建议（全量学习，分层落地）
 
-1. 在 `ui-core` 建立语义词典与状态 `enum`，先消灭松散 `Option<bool>` 组合状态。
+1. 在 `ui-state-primitives` 建立语义词典与状态 `enum`，先消灭松散 `Option<bool>` 组合状态。
 2. 在 `ui-theme` 固化 token 映射矩阵（覆盖 `system/color/scale`）。
 3. 在 `ui-headless` 与 `ui-motion` 对齐状态语义与 reduced-motion 契约。
 4. 在 `ui-components` 仅消费语义，不新增私有状态命名。

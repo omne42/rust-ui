@@ -1,4 +1,4 @@
-//! `ui-components` — Leptos components that compose ui-core + ui-headless + ui-theme.
+//! `ui-components` — Leptos components that compose ui-state-primitives + ui-headless + ui-theme.
 
 #[cfg(feature = "component-active_highlight")]
 mod active_highlight;

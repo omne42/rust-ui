@@ -4,7 +4,7 @@
 
 It composes:
 
-- `ui-core` (state)
+- `ui-state-primitives` (state)
 - `ui-headless` (interaction + a11y)
 - `ui-theme` (tokens → CSS variables)
 - `ui-motion` (spring/WAAPI backends)

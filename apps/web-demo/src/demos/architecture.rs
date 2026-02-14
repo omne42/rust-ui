@@ -9,7 +9,7 @@ pub fn ArchitectureDemo() -> impl IntoView {
                 "Rule of thumb: keep state pure, keep DOM behavior in headless hooks, keep visuals in components."
             </p>
             <ul>
-                <li><code>"ui-core"</code> " — state primitives (controlled/uncontrolled), no DOM."</li>
+                <li><code>"ui-state-primitives"</code> " — state primitives (controlled/uncontrolled), no DOM."</li>
                 <li><code>"ui-headless"</code> " — interaction + a11y (press/focus-visible/roving tabindex), feature-gated."</li>
                 <li><code>"ui-theme"</code> " — tokens → CSS variables."</li>
                 <li><code>"ui-components"</code> " — composed Leptos components; no direct " <code>"web-sys"</code> " usage."</li>

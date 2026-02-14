@@ -65,7 +65,7 @@ fn App() -> impl IntoView {
                 <div>
                     <h1 class="demo-title">"rust-ui"</h1>
                     <div class="demo-subtitle">
-                        "Leptos UI primitives: " <code>"ui-core"</code> " / " <code>"ui-headless"</code> " / " <code>"ui-theme"</code> " / " <code>"ui-components"</code>
+                        "Leptos UI primitives: " <code>"ui-state-primitives"</code> " / " <code>"ui-headless"</code> " / " <code>"ui-theme"</code> " / " <code>"ui-components"</code>
                     </div>
                 </div>
                 <Button on_press=toggle_theme>

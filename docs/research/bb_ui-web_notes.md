@@ -16,9 +16,9 @@
 
 对 `rust-ui` 的映射：
 
-- `ui-core`：只放纯状态与状态机（受控/非受控、集合/选择等）；可单测；不引入 DOM 假设。
+- `ui-state-primitives`：只放纯状态与状态机（受控/非受控、集合/选择等）；可单测；不引入 DOM 假设。
 - `ui-headless`：专注“行为 + A11y + 事件标准化”（FocusVisible/Press/Overlay dismiss 等），并通过 feature gate 处理 Web/SSR。
-- `ui-components`：只负责“长什么样”，组合 `ui-core + ui-headless + ui-theme`，**不直接使用 `web-sys`**。
+- `ui-components`：只负责“长什么样”，组合 `ui-state-primitives + ui-headless + ui-theme`，**不直接使用 `web-sys`**。
 
 落地约束（我们已经在做，但需要持续守住）：
 
@@ -51,7 +51,7 @@
 
 - Default：`ui-components::{Button, Select, MenuTrigger, ...}`
 - Composed：把一些组合组件拆成可组合 pieces（例如 `SelectRoot/SelectTrigger/SelectPopover/...`）
-- Raw：`ui-headless::use_*` 与 `ui-core::use_*`
+- Raw：`ui-headless::use_*` 与 `ui-state-primitives::use_*`
 
 ### 1.4 Tokens as Interfaces（把 Token 当协议）
 

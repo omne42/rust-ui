@@ -20,9 +20,9 @@
 
 ## 1. 分层归属（放错层就是 bug）
 
-依赖方向：`ui-core -> ui-headless -> ui-components -> apps/*`
+依赖方向：`ui-state-primitives -> ui-headless -> ui-components -> apps/*`
 
-- `ui-core`：纯状态原语与不变量建模（与语言/DOM/运行时无关）。
+- `ui-state-primitives`：纯状态原语与不变量建模（与语言/DOM/运行时无关）。
 - `ui-headless`：交互行为 + A11y 语义契约（输出 attrs/handlers/state），以及跨组件基础设施的**契约与注入点**（例如 i18n registry、trace/perf hooks）。
 - `ui-theme`：token 与 CSS 变量生成，不含组件 CSS。
 - `ui-motion`：动效运行时（可 wasm/no-op）。

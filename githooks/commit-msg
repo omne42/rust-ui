@@ -31,7 +31,7 @@ Allowed types:
   feat, fix, docs, refactor, perf, test, chore, build, ci, revert
 
 Examples:
-  feat(ui-core): add toggle state
+  feat(ui-state-primitives): add toggle state
   fix(ui-headless): prevent double press
   docs(plan): refine task dag
 EOF
