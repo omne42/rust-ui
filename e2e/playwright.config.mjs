@@ -8,6 +8,12 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"], ["html", { open: "never", outputFolder: "artifacts/html-report" }]],
+  projects: [
+    {
+      name: "chromium",
+      use: { browserName: "chromium", headless: true },
+    },
+  ],
   use: {
     baseURL,
     trace: "retain-on-failure",
@@ -15,4 +21,3 @@ export default defineConfig({
     video: "retain-on-failure",
   },
 });
-

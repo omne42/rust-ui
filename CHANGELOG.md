@@ -14,7 +14,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `scripts` + `ui-components`: extends check2 automation to validate semantics coverage and (with `scripts/check2-audit.sh --slow`) docs coverage via `docs-app` tests; `scripts/check2-tick.sh` can now auto-tick the audited `语义测试`/`文档完整性`/`单元测试` items while keeping subjective checklist items manual.
 
-- `e2e` + `scripts`: adds a Playwright E2E harness for `apps/docs-app` (`e2e/`, `scripts/e2e-docs-app.sh`) including a components-page coverage test (sample/all) plus a nav-sheet open/close regression test, and wires `check2-audit.sh --e2e` / `check2-tick.sh --e2e` helpers.
+- `e2e` + `scripts`: adds a Playwright E2E harness for `apps/docs-app` (`e2e/`, `scripts/e2e-docs-app.sh`) including core regressions (boot, command menu nav, nav-sheet open/close, playground code toggle) plus a components-page coverage test (sample/all), and wires `check2-audit.sh --e2e` / `check2-tick.sh --e2e` helpers.
 
 - `scripts` + `ui-components`: adds executable check2 auditing/ticking helpers (`scripts/check2-audit.sh`, `scripts/check2-tick.sh`) and marks the verified workspace layering items as checked in every component `check2.md`.
 
