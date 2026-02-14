@@ -4,4 +4,4 @@ pub mod css;
 pub mod theme;
 pub mod tokens;
 
-pub use theme::Theme;
+pub use theme::{Theme, ThemeColor, ThemeContext, ThemeScale, ThemeSystem};

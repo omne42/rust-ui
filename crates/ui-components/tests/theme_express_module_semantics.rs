@@ -14,7 +14,7 @@ fn theme_express_module_exports_express_theme_contract() {
     for needle in [
         "pub use ui_theme::Theme;",
         "pub fn express_theme() -> Theme {",
-        "Theme::light()",
+        "Theme::express(ThemeColor::Light, ThemeScale::Medium)",
     ] {
         assert!(
             source.contains(needle),

@@ -1623,6 +1623,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-state-primitives`: renames the `ui-core` crate to reduce ambiguity and clarify its role as the platform-agnostic state-primitives layer.
 
+- `ui-theme`: makes `ui-theme` the single source of truth for token taxonomy + theme context axes (`system/color/scale`), moves CSS variable emission into `crates/ui-theme/src/css.rs`, and adds regression gates for scale baselines + WCAG 2.1 AA contrast checks.
+
 - `ui-headless` + `apps/docs-app`: moves cross-component infrastructure (i18n registry, trace/perf hooks) into `ui-headless` and keeps debug overlay UI in the app layer.
 
 - `scripts/check-architecture.sh` + `apps/*`: allow apps to depend on lower layers directly (per `docs/philosophy.md`), and stop re-exporting trace/perf/provider infrastructure from `ui-components`.

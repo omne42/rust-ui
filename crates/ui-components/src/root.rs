@@ -1,5 +1,4 @@
 use leptos::prelude::*;
-use ui_theme::theme::ColorScheme;
 use ui_theme::{Theme, css};
 
 use ui_headless::{UiI18n, provide_ui_i18n};
@@ -13,20 +12,35 @@ pub struct UiRootStateInput {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct UiRootState {
     pub theme_scheme_attr: &'static str,
+    pub theme_color_attr: &'static str,
+    pub theme_system_attr: &'static str,
+    pub theme_scale_attr: &'static str,
     pub safe_area: bool,
     pub has_safe_area: bool,
 }
 
 pub fn resolve_theme_scheme(theme: Theme) -> &'static str {
-    match theme.scheme {
-        ColorScheme::Light => "light",
-        ColorScheme::Dark => "dark",
-    }
+    theme.ctx.color.css_color_scheme()
+}
+
+pub fn resolve_theme_color(theme: Theme) -> &'static str {
+    theme.ctx.color.as_str()
+}
+
+pub fn resolve_theme_system(theme: Theme) -> &'static str {
+    theme.ctx.system.as_str()
+}
+
+pub fn resolve_theme_scale(theme: Theme) -> &'static str {
+    theme.ctx.scale.as_str()
 }
 
 pub fn resolve_state(input: UiRootStateInput) -> UiRootState {
     UiRootState {
         theme_scheme_attr: resolve_theme_scheme(input.theme),
+        theme_color_attr: resolve_theme_color(input.theme),
+        theme_system_attr: resolve_theme_system(input.theme),
+        theme_scale_attr: resolve_theme_scale(input.theme),
         safe_area: input.safe_area,
         has_safe_area: input.safe_area,
     }
@@ -101,6 +115,9 @@ body {
                     }
                 }
                 data-theme-scheme=move || state.get().theme_scheme_attr
+                data-theme-color=move || state.get().theme_color_attr
+                data-theme-system=move || state.get().theme_system_attr
+                data-theme-scale=move || state.get().theme_scale_attr
                 data-safe-area=move || state.get().has_safe_area.then_some("true")
             >
                 {children()}
@@ -118,6 +135,14 @@ mod tests {
         assert_eq!(resolve_theme_scheme(Theme::light()), "light");
         assert_eq!(resolve_theme_scheme(Theme::dark()), "dark");
         assert_eq!(resolve_theme_scheme(Theme::oled()), "dark");
+    }
+
+    #[test]
+    fn resolve_theme_axes_are_stable_strings() {
+        let theme = Theme::light();
+        assert_eq!(resolve_theme_color(theme), "light");
+        assert_eq!(resolve_theme_system(theme), "spectrum-two");
+        assert_eq!(resolve_theme_scale(theme), "medium");
     }
 
     #[test]

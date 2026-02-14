@@ -102,7 +102,7 @@ fn example_theme_module_docs_playgrounds_lock_state_matrix_contract_values() {
         "data-state=\"default|safe-area\"",
         "data-safe-area=\"true\" (optional)",
         "\"UiRoot injects BASE_CSS + theme CSS variables + component CSS in one place.\"",
-        "\"`data-theme-scheme` mirrors `Theme::scheme` (`light`/`dark`).\"",
+        "\"`data-theme-scheme` mirrors the CSS `color-scheme` value (`light`/`dark`).\"",
         "\"`data-state` + `data-safe-area` describe safe-area mode.\"",
     ] {
         assert!(
