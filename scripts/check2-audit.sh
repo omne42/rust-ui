@@ -44,6 +44,8 @@ has_rg_matches() {
 
 ok=1
 slow=0
+e2e=0
+e2e_coverage="sample"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,11 +53,23 @@ while [[ $# -gt 0 ]]; do
       slow=1
       shift
       ;;
+    --e2e)
+      e2e=1
+      e2e_coverage="sample"
+      shift
+      ;;
+    --e2e-all)
+      e2e=1
+      e2e_coverage="all"
+      shift
+      ;;
     -h|--help)
       cat <<'USAGE'
-usage: scripts/check2-audit.sh [--slow]
+usage: scripts/check2-audit.sh [--slow] [--e2e|--e2e-all]
 
   --slow  additionally runs docs coverage checks (invokes cargo tests)
+  --e2e      runs Playwright E2E suite against docs-app (sample coverage)
+  --e2e-all  runs Playwright E2E suite against docs-app (full component coverage)
 USAGE
       exit 0
       ;;
@@ -304,6 +318,15 @@ if [[ "$slow" -eq 1 ]]; then
   else
     ok=0
     fail "docs-app coverage tests failed (run: cargo test -p docs-app component_catalog_covers_public_component_modules ; cargo test -p docs-app every_component_doc_page_renders_at_least_one_playground)" || true
+  fi
+fi
+
+if [[ "$e2e" -eq 1 ]]; then
+  if E2E_COVERAGE="$e2e_coverage" "$ROOT_DIR/scripts/e2e-docs-app.sh"; then
+    pass "docs-app Playwright E2E suite passes (coverage: $e2e_coverage)"
+  else
+    ok=0
+    fail "docs-app Playwright E2E suite failed (coverage: $e2e_coverage; run: E2E_COVERAGE=$e2e_coverage ./scripts/e2e-docs-app.sh)" || true
   fi
 fi
 
