@@ -43,6 +43,28 @@ has_rg_matches() {
 }
 
 ok=1
+slow=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --slow)
+      slow=1
+      shift
+      ;;
+    -h|--help)
+      cat <<'USAGE'
+usage: scripts/check2-audit.sh [--slow]
+
+  --slow  additionally runs docs coverage checks (invokes cargo tests)
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "[check2] FAIL: unknown arg: $1" >&2
+      exit 2
+      ;;
+  esac
+done
 
 # 1) ui-core purity (no deps; no leptos/dom/web-sys usage)
 core_toml="$ROOT_DIR/crates/ui-core/Cargo.toml"
@@ -215,6 +237,47 @@ root_rs="$components_src/root.rs"
 must_have_rg "UiRoot injects BASE_CSS" "$root_rs" "BASE_CSS"
 must_have_rg "UiRoot injects theme CSS variables" "$root_rs" "to_css_variables\\(\\)"
 must_have_rg "UiRoot injects component CSS" "$root_rs" "push_components_css\\("
+
+# 8) semantics coverage: every check2.md component directory has a semantics test file
+python3 - <<'PY'
+import os
+from pathlib import Path
+
+root = Path(os.environ["ROOT_DIR"])
+components_root = root / "crates/ui-components"
+src = components_root / "src"
+tests = components_root / "tests"
+
+check2_dirs = [p.name for p in sorted(src.iterdir()) if p.is_dir() and (p / "check2.md").exists()]
+test_names = {p.name for p in tests.glob("*.rs")}
+
+missing = []
+for name in check2_dirs:
+    if f"{name}_semantics.rs" in test_names:
+        continue
+    if f"{name}_module_semantics.rs" in test_names:
+        continue
+    missing.append(name)
+
+if missing:
+    print("[check2] FAIL: missing semantics tests for:", ", ".join(missing))
+    raise SystemExit(1)
+print("[check2] ok: every check2.md module has a semantics test")
+PY
+if [[ $? -ne 0 ]]; then
+  ok=0
+fi
+
+# 9) docs coverage (slow): docs-app catalog covers public ui-components modules + at least one Playground per page
+if [[ "$slow" -eq 1 ]]; then
+  if cargo test -p docs-app component_catalog_covers_public_component_modules >/dev/null \
+    && cargo test -p docs-app every_component_doc_page_renders_at_least_one_playground >/dev/null; then
+    pass "docs-app covers every public ui-components module (via tests)"
+  else
+    ok=0
+    fail "docs-app coverage tests failed (run: cargo test -p docs-app component_catalog_covers_public_component_modules ; cargo test -p docs-app every_component_doc_page_renders_at_least_one_playground)" || true
+  fi
+fi
 
 if [[ "$ok" -ne 1 ]]; then
   echo "[check2] audit: FAILED" >&2

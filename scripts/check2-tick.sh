@@ -3,21 +3,28 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 MODE="${1:-dry-run}"
+SLOW="${2:-}"
+
+if [[ "$SLOW" != "" && "$SLOW" != "--slow" ]]; then
+  echo "[check2-tick] FAIL: unknown arg: $SLOW" >&2
+  exit 2
+fi
 
 if [[ "$MODE" != "dry-run" && "$MODE" != "--apply" ]]; then
   cat >&2 <<'USAGE'
-usage: scripts/check2-tick.sh [dry-run|--apply]
+usage: scripts/check2-tick.sh [dry-run|--apply] [--slow]
   dry-run  print what would change (default)
   --apply  apply checkbox ticks in component check2.md files
+  --slow   run docs coverage checks before applying ticks
 USAGE
   exit 2
 fi
 
 if [[ "$MODE" == "--apply" ]]; then
-  bash "$ROOT_DIR/scripts/check2-audit.sh"
+  bash "$ROOT_DIR/scripts/check2-audit.sh" ${SLOW:-}
 fi
 
-ROOT_DIR="$ROOT_DIR" MODE="$MODE" python3 - <<'PY'
+ROOT_DIR="$ROOT_DIR" MODE="$MODE" SLOW="$SLOW" python3 - <<'PY'
 import os
 import sys
 import signal
@@ -26,6 +33,7 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 root = os.environ.get("ROOT_DIR")
 mode = os.environ.get("MODE")
+slow = os.environ.get("SLOW") == "--slow"
 apply = mode == "--apply"
 
 checks = [
@@ -37,7 +45,11 @@ checks = [
     "Tree Shaking 支持",
     "全局注入机制",
     "样式契约 (`styles.rs`)",
+    "语义测试",
 ]
+
+if slow:
+    checks.append("文档完整性")
 
 src = os.path.join(root, "crates/ui-components/src")
 paths = []
