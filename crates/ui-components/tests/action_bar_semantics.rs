@@ -44,12 +44,14 @@ fn action_bar_uses_logic_state_model() {
     }
 
     for needle in [
-        "logic::normalize_aria_label(aria_label)",
-        "logic::normalize_clear_label(clear_label)",
+        "i18n::use_ui_i18n()",
+        "i18n.strings::<ActionBarStrings>()",
+        "logic::normalize_aria_label(aria_label, strings.aria_label.as_ref())",
+        "logic::normalize_clear_label(clear_label, strings.clear_label.as_ref())",
         "logic::normalize_selection_text(selection_text)",
         "logic::resolve_state(ActionBarStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
-        "resolve_selection_text(state.get().selected_count, selection_text.clone())",
+        "resolve_selection_text(",
         "motion::attach_motion(root_ref, visible, motion)",
     ] {
         assert!(

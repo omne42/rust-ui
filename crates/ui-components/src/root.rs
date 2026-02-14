@@ -2,6 +2,8 @@ use leptos::prelude::*;
 use ui_theme::theme::ColorScheme;
 use ui_theme::{Theme, css};
 
+use ui_headless::{UiI18n, provide_ui_i18n};
+
 #[derive(Clone, Copy)]
 pub struct UiRootStateInput {
     pub theme: Theme,
@@ -36,7 +38,9 @@ pub fn UiRoot(
     #[prop(into)] theme: Signal<Theme>,
     #[prop(optional)] inject_components_css: bool,
     #[prop(optional)] safe_area: bool,
+    #[prop(optional)] i18n: UiI18n,
 ) -> impl IntoView {
+    provide_ui_i18n(i18n);
     let safe_area = StoredValue::new(safe_area);
     let inject_components_css = StoredValue::new(inject_components_css);
 

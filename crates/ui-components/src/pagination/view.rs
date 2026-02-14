@@ -1,9 +1,10 @@
 use crate::{
     button::{Button, ButtonSize, ButtonVariant},
-    pagination::{PaginationItem, logic, resolve_pagination_range},
+    pagination::{PaginationItem, PaginationStrings, logic, resolve_pagination_range},
 };
 use leptos::prelude::*;
 use ui_headless::OnPress;
+use ui_headless::i18n;
 
 #[component]
 pub fn Pagination(
@@ -17,11 +18,11 @@ pub fn Pagination(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<PaginationStrings>();
     let on_change = StoredValue::new(on_change);
 
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Pagination".to_string());
+    let aria_label = logic::normalize_aria_label(aria_label, strings.aria_label.as_ref());
 
     let base_class = "ui-pagination".to_string();
     let class = class_name
@@ -73,6 +74,9 @@ pub fn Pagination(
         }
     });
 
+    let prev_page_label = strings.previous_page_aria_label.as_ref().to_string();
+    let next_page_label = strings.next_page_aria_label.as_ref().to_string();
+
     view! {
         <nav
             class=class
@@ -99,7 +103,7 @@ pub fn Pagination(
                                 disabled=is_prev_disabled
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
-                                aria_label="Previous page"
+                                aria_label=prev_page_label.clone()
                                 on_press=prev_on_press
                             >
                                 "‹"
@@ -195,7 +199,7 @@ pub fn Pagination(
                                 disabled=is_next_disabled
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
-                                aria_label="Next page"
+                                aria_label=next_page_label.clone()
                                 on_press=next_on_press
                             >
                                 "›"

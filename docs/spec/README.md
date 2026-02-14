@@ -20,6 +20,12 @@
 - `docs/spec/tree_shaking.md`
   - Tree Shaking / 组件级裁剪策略与验收契约
 
+- `docs/spec/i18n.md`
+  - i18n / l10n 注入契约（组件层）
+
+- `docs/spec/component_boundaries.md`
+  - UI 组件边界：什么是组件，什么不是
+
 - `docs/spec/heroui-parameter-design-strategy.md`
   - 参数模型演进与组件 API 设计策略
 

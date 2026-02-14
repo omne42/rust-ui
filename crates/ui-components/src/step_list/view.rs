@@ -1,12 +1,9 @@
-use crate::{
-    overlay_open,
-    step_list::{
-        StepListItem, StepListItemStateInput, StepListOrientation, StepListSize,
-        StepListStateInput,
-        logic::{self},
-    },
+use crate::step_list::{
+    StepListItem, StepListItemStateInput, StepListOrientation, StepListSize, StepListStateInput,
+    logic::{self},
 };
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn StepList(

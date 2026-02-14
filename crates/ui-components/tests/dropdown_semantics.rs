@@ -45,7 +45,7 @@ fn dropdown_uses_logic_state_model() {
         "logic::normalize_aria_label(aria_label)",
         "logic::normalize_id_base(id_base)",
         "logic::normalize_disabled_indices(disabled_indices, item_count)",
-        "let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);",
+        "overlay_open::use_controllable_open_state_traced(",
         "logic::resolve_state(crate::dropdown::DropdownStateInput {",
         "logic::compose_class_name(class_name, state)",
     ] {

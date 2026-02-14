@@ -2,6 +2,7 @@ use leptos::children::ViewFn;
 use leptos::prelude::*;
 use std::collections::HashSet;
 use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, IconButton, OnPress};
+use ui_headless::UiPerfProbe;
 
 const DEFAULT_PLAYGROUND_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::*;";
 
@@ -204,7 +205,9 @@ pub fn Playground(
             </div>
 
             <div class="playground__body">
-                <div class="playground__preview">{children()}</div>
+                <UiPerfProbe name=format!("Playground::{title}")>
+                    <div class="playground__preview">{children()}</div>
+                </UiPerfProbe>
                 {controls.get_value().map(|controls| {
                     view! {
                         <aside class="playground__controls" data-slot="playground-controls">

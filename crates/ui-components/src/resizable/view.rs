@@ -1,7 +1,7 @@
-use crate::overlay_open;
 use crate::resizable::logic::{self, ResizableOrientation, ResizableStateInput};
 use leptos::children::ViewFn;
 use leptos::{ev, html, prelude::*};
+use ui_headless as overlay_open;
 
 #[component]
 pub fn Resizable(

@@ -4,8 +4,8 @@ use crate::date_range_picker::{
     DateRangePickerStateInput,
     logic::{self, DateRangePickerTone},
 };
-use crate::overlay_open;
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn DateRangePicker(

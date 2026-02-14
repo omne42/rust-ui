@@ -25,7 +25,6 @@ fn spinner_uses_logic_state_model() {
     let logic_source = load_source("src/spinner/logic.rs");
 
     for needle in [
-        "pub const DEFAULT_ARIA_LABEL",
         "pub struct SpinnerStateInput",
         "pub struct SpinnerState",
         "pub fn normalize_optional_text(",
@@ -42,8 +41,10 @@ fn spinner_uses_logic_state_model() {
     }
 
     for needle in [
+        "i18n::use_ui_i18n()",
+        "i18n.strings::<CommonStrings>()",
         "logic::normalize_optional_text(class_name)",
-        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_aria_label(aria_label, common.loading_aria_label.as_ref())",
         "logic::resolve_state(SpinnerStateInput {",
         "logic::compose_class_name(class_name, state)",
     ] {

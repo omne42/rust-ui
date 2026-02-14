@@ -30,6 +30,17 @@ pub fn resolve_pagination_state(
     }
 }
 
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    value.and_then(|value| {
+        let trimmed = value.trim();
+        (!trimmed.is_empty()).then(|| trimmed.to_string())
+    })
+}
+
+pub fn normalize_aria_label(value: Option<String>, default: &str) -> String {
+    normalize_optional_text(value).unwrap_or_else(|| default.to_string())
+}
+
 pub fn resolve_pagination_range(
     total_pages: usize,
     current_page: usize,
@@ -158,5 +169,21 @@ mod tests {
         let state = resolve_pagination_state(8, 4, true);
         assert!(state.is_prev_disabled);
         assert!(state.is_next_disabled);
+    }
+
+    #[test]
+    fn normalize_helpers_trim_and_fallback() {
+        assert_eq!(normalize_optional_text(None), None);
+        assert_eq!(normalize_optional_text(Some(" \n\t ".to_string())), None);
+        assert_eq!(
+            normalize_optional_text(Some("  aria  ".to_string())),
+            Some("aria".to_string())
+        );
+
+        assert_eq!(normalize_aria_label(None, "Default"), "Default");
+        assert_eq!(
+            normalize_aria_label(Some("  Pagination  ".to_string()), "Default"),
+            "Pagination"
+        );
     }
 }

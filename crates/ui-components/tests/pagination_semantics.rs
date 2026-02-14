@@ -57,10 +57,14 @@ fn pagination_prev_next_buttons_expose_slots_and_disabled_state() {
     let source = load_source("src/pagination/view.rs");
 
     for needle in [
+        "i18n::use_ui_i18n()",
+        "i18n.strings::<PaginationStrings>()",
         "data-slot=\"pagination-prev\"",
         "data-slot=\"pagination-next\"",
-        "aria_label=\"Previous page\"",
-        "aria_label=\"Next page\"",
+        "let prev_page_label = strings.previous_page_aria_label.as_ref().to_string();",
+        "let next_page_label = strings.next_page_aria_label.as_ref().to_string();",
+        "aria_label=prev_page_label.clone()",
+        "aria_label=next_page_label.clone()",
         "let is_prev_disabled = state.get().is_prev_disabled;",
         "let is_next_disabled = state.get().is_next_disabled;",
         "disabled=is_prev_disabled",

@@ -1,11 +1,12 @@
 use crate::menubar::{
     MenuOpenFocusStrategy, MenubarMenu, MenubarMotion, MenubarPartStateInput, MenubarSlot, logic,
 };
-use crate::overlay_open;
-use crate::{Menu, OnPress, Popover, presence::use_presence};
+use crate::{Menu, OnPress, Popover};
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
+use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::use_presence;
 
 #[cfg(target_arch = "wasm32")]
 fn focus_trigger(trigger_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {

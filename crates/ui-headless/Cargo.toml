@@ -22,4 +22,4 @@ any_spawner = { version = "0.3", features = ["futures-executor"] }
 wasm-bindgen = "0.2.108"
 js-sys = "0.3.85"
 send_wrapper = "0.6"
-web-sys = { version = "0.3.85", features = ["Document", "DomRect", "Element", "EventTarget", "FocusEvent", "HtmlButtonElement", "HtmlDivElement", "HtmlElement", "KeyboardEvent", "Node", "NodeList", "PointerEvent", "ResizeObserver", "ResizeObserverEntry", "Window"] }
+web-sys = { version = "0.3.85", features = ["Document", "DomRect", "Element", "EventTarget", "FocusEvent", "HtmlButtonElement", "HtmlDivElement", "HtmlElement", "KeyboardEvent", "Node", "NodeList", "Performance", "PointerEvent", "ResizeObserver", "ResizeObserverEntry", "Window"] }

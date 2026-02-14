@@ -6,6 +6,8 @@ use crate::{
     },
 };
 use leptos::prelude::*;
+use ui_headless::i18n;
+use ui_headless::i18n::CommonStrings;
 
 #[component]
 pub fn Spinner(
@@ -13,8 +15,11 @@ pub fn Spinner(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
     let class_name = logic::normalize_optional_text(class_name);
-    let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
+    let (aria_label, has_custom_aria_label) =
+        logic::resolve_aria_label(aria_label, common.loading_aria_label.as_ref());
 
     let state = logic::resolve_state(SpinnerStateInput {
         size,

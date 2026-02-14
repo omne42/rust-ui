@@ -8,6 +8,7 @@ publish = false
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-components = { path = "../../crates/ui-components" }
 ui-core = { path = "../../crates/ui-core" }
+ui-headless = { path = "../../crates/ui-headless" }
 
 [dev-dependencies]
 any_spawner = { version = "0.3", features = ["futures-executor"] }

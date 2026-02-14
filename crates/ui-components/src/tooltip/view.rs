@@ -55,7 +55,7 @@ pub fn Tooltip(
     let tooltip_id: StoredValue<String> = StoredValue::new(trigger_aria.state.id().to_string());
 
     let open: Signal<bool> = trigger_aria.state.is_open().into();
-    let presence = crate::presence::use_presence(open);
+    let presence = ui_headless::use_presence(open);
 
     let root_state = Memo::new(move |_| {
         logic::resolve_state(TooltipPartStateInput {

@@ -3,8 +3,8 @@ use crate::collapsible::{
     logic::{self},
 };
 use crate::disclosure::{DisclosureIds, motion};
-use crate::overlay_open;
 use leptos::{html, prelude::*};
+use ui_headless as overlay_open;
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
 };
@@ -37,7 +37,12 @@ pub fn Collapsible(
     let trigger_id = ids.trigger_id.clone();
     let panel_id = ids.panel_id.clone();
 
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "collapsible",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 

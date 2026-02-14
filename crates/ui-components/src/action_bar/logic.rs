@@ -1,3 +1,4 @@
+use crate::action_bar::ActionBarStrings;
 use crate::action_bar::{
     ActionBarPhase, ActionBarPosition, ActionBarSelectionKind, ActionBarState, ActionBarStateInput,
 };
@@ -15,20 +16,20 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
+pub fn normalize_aria_label(value: Option<String>, fallback: &str) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (fallback.to_string(), false)
 }
 
-pub fn normalize_clear_label(value: Option<String>) -> (String, bool) {
+pub fn normalize_clear_label(value: Option<String>, fallback: &str) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
 
-    (DEFAULT_CLEAR_LABEL.to_string(), false)
+    (fallback.to_string(), false)
 }
 
 pub fn normalize_selection_text(value: Option<String>) -> (Option<String>, bool) {
@@ -45,16 +46,16 @@ pub fn resolve_selection_kind(selected_count: usize) -> ActionBarSelectionKind {
     }
 }
 
-pub fn resolve_selection_text(selected_count: usize, custom_text: Option<String>) -> String {
+pub fn resolve_selection_text(
+    selected_count: usize,
+    custom_text: Option<String>,
+    strings: &ActionBarStrings,
+) -> String {
     if let Some(custom_text) = custom_text {
         return custom_text;
     }
 
-    match selected_count {
-        0 => DEFAULT_SELECTION_EMPTY_LABEL.to_string(),
-        1 => DEFAULT_SELECTION_SINGLE_LABEL.to_string(),
-        count => format!("{count} {DEFAULT_SELECTION_MULTIPLE_SUFFIX}"),
-    }
+    strings.selection_label(selected_count)
 }
 
 pub fn resolve_state(input: ActionBarStateInput) -> ActionBarState {
@@ -175,36 +176,38 @@ mod tests {
 
     #[test]
     fn normalize_labels_use_defaults_when_empty() {
-        let (label, custom) = normalize_aria_label(Some("  Batch actions  ".to_string()));
+        let (label, custom) =
+            normalize_aria_label(Some("  Batch actions  ".to_string()), DEFAULT_ARIA_LABEL);
         assert_eq!(label, "Batch actions");
         assert!(custom);
 
-        let (label, custom) = normalize_aria_label(Some(" \n ".to_string()));
+        let (label, custom) = normalize_aria_label(Some(" \n ".to_string()), DEFAULT_ARIA_LABEL);
         assert_eq!(label, DEFAULT_ARIA_LABEL);
         assert!(!custom);
 
-        let (clear_label, custom) = normalize_clear_label(None);
+        let (clear_label, custom) = normalize_clear_label(None, DEFAULT_CLEAR_LABEL);
         assert_eq!(clear_label, DEFAULT_CLEAR_LABEL);
         assert!(!custom);
     }
 
     #[test]
     fn resolve_selection_text_supports_default_and_custom_paths() {
+        let strings = ActionBarStrings::default();
         assert_eq!(
-            resolve_selection_text(0, None),
+            resolve_selection_text(0, None, &strings),
             DEFAULT_SELECTION_EMPTY_LABEL
         );
         assert_eq!(
-            resolve_selection_text(1, None),
+            resolve_selection_text(1, None, &strings),
             DEFAULT_SELECTION_SINGLE_LABEL
         );
         assert_eq!(
-            resolve_selection_text(3, None),
-            format!("3 {DEFAULT_SELECTION_MULTIPLE_SUFFIX}")
+            resolve_selection_text(3, None, &strings),
+            "3 items selected"
         );
 
         assert_eq!(
-            resolve_selection_text(24, Some("24 rows selected".to_string())),
+            resolve_selection_text(24, Some("24 rows selected".to_string()), &strings),
             "24 rows selected"
         );
     }

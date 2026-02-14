@@ -61,7 +61,7 @@ fn sidebar_uses_logic_state_model() {
     }
 
     for needle in [
-        "overlay_open::use_controllable_open_state(",
+        "overlay_open::use_controllable_open_state_traced(",
         "logic::normalize_shortcut_key(shortcut_key, enable_shortcut)",
         "logic::resolve_state(SidebarStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
@@ -83,7 +83,7 @@ fn sidebar_supports_controlled_and_uncontrolled_open_state() {
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
         "let is_controlled = open.is_some()",
-        "overlay_open::use_controllable_open_state(",
+        "overlay_open::use_controllable_open_state_traced(",
     ] {
         assert!(
             source.contains(needle),

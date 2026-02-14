@@ -1,8 +1,9 @@
 use crate::menu_trigger::{MenuTriggerMotion, logic};
-use crate::overlay_open;
-use crate::{Button, Menu, MenuItemKind, OnPress, Popover, presence::use_presence};
+use crate::{Button, Menu, MenuItemKind, OnPress, Popover};
 use leptos::{ev, html, prelude::*};
+use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::use_presence;
 
 #[component]
 pub fn MenuTrigger(
@@ -39,7 +40,12 @@ pub fn MenuTrigger(
     let motion = crate::menu_trigger::motion::sanitize_motion(motion);
 
     let is_controlled = open.is_some();
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "menu-trigger",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
@@ -86,7 +92,7 @@ pub fn MenuTrigger(
     let ids = logic::resolve_ids(&id_base.get_value());
     let trigger_id = StoredValue::new(ids.trigger_id);
     let menu_id = StoredValue::new(ids.menu_id);
-    let aria_controls = crate::a11y::aria_controls_when_open(open, menu_id.get_value());
+    let aria_controls = ui_headless::aria_controls_when_open(open, menu_id.get_value());
 
     let presence = use_presence(open);
 

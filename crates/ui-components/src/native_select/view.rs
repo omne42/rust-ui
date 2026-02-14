@@ -2,8 +2,8 @@ use crate::native_select::{
     NativeSelectOption, NativeSelectStateInput,
     logic::{self, NativeSelectSize},
 };
-use crate::overlay_open;
 use leptos::{ev, prelude::*};
+use ui_headless as overlay_open;
 
 #[component]
 pub fn NativeSelect(

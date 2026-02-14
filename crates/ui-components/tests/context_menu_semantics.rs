@@ -139,7 +139,7 @@ fn context_menu_supports_controlled_and_uncontrolled_open_state() {
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
-        "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
+        "overlay_open::use_controllable_open_state_traced(",
         "let has_custom_open = open.is_some()",
         "let has_custom_default_open = default_open.is_some()",
     ] {

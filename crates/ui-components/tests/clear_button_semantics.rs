@@ -41,7 +41,9 @@ fn clear_button_uses_logic_state_model() {
     }
 
     for needle in [
-        "logic::normalize_aria_label(aria_label)",
+        "i18n::use_ui_i18n()",
+        "i18n.strings::<CommonStrings>()",
+        "logic::normalize_aria_label(aria_label, common.clear_aria_label.as_ref())",
         "logic::resolve_state(ClearButtonStateInput {",
         "logic::compose_class_name(class_name, state)",
     ] {

@@ -1,10 +1,10 @@
 use crate::command::{Command, CommandGroup, CommandMotion};
 use crate::command_dialog::{CommandDialogPartStateInput, CommandDialogSlot, logic};
-use crate::overlay_open;
-use crate::presence::use_presence;
 use crate::{Modal, OnPress, OverlayMotion};
 use leptos::prelude::*;
 use std::sync::Arc;
+use ui_headless as overlay_open;
+use ui_headless::use_presence;
 
 #[component]
 pub fn CommandDialog(
@@ -56,7 +56,12 @@ pub fn CommandDialog(
     let has_custom_command_motion = command_motion != CommandMotion::default();
     let has_custom_overlay_motion = overlay_motion != OverlayMotion::default();
 
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "command-dialog",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 

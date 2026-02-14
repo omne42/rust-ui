@@ -801,6 +801,7 @@ dependencies = [
  "leptos",
  "pulldown-cmark",
  "ui-components",
+ "ui-headless",
  "web-sys",
 ]
 
@@ -4626,6 +4627,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
 
 [[package]]
+name = "ui-compat"
+version = "0.0.0"
+dependencies = [
+ "ui-components",
+ "ui-headless",
+]
+
+[[package]]
 name = "ui-components"
 version = "0.0.0"
 dependencies = [
@@ -4968,6 +4977,7 @@ dependencies = [
  "leptos",
  "ui-components",
  "ui-core",
+ "ui-headless",
 ]
 
 [[package]]

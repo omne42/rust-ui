@@ -41,7 +41,7 @@ fn color_picker_uses_logic_state_model() {
 
     for needle in [
         "overlay_open::use_controllable_state(",
-        "overlay_open::use_controllable_open_state(",
+        "overlay_open::use_controllable_open_state_traced(",
         "use_presence(open)",
         "logic::resolve_state(ColorPickerStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",

@@ -46,9 +46,11 @@ fn empty_state_uses_logic_state_model() {
     }
 
     for needle in [
-        "logic::normalize_title(title)",
-        "logic::normalize_description(description)",
-        "logic::normalize_aria_label(aria_label)",
+        "i18n::use_ui_i18n()",
+        "i18n.strings::<EmptyStateStrings>()",
+        "logic::normalize_title(title, strings.default_title.as_ref())",
+        "logic::normalize_description(description, strings.default_description.as_ref())",
+        "logic::normalize_aria_label(aria_label, strings.default_aria_label.as_ref())",
         "logic::resolve_state(EmptyStateStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
     ] {

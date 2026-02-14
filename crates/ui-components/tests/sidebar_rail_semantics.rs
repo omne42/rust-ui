@@ -54,7 +54,7 @@ fn sidebar_rail_uses_logic_state_model() {
     }
 
     for needle in [
-        "overlay_open::use_controllable_open_state(",
+        "overlay_open::use_controllable_open_state_traced(",
         "logic::normalize_aria_label(aria_label)",
         "logic::normalize_label(label)",
         "logic::resolve_state(SidebarRailStateInput {",
@@ -76,7 +76,7 @@ fn sidebar_rail_supports_controlled_and_uncontrolled_open_state() {
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
         "let is_controlled = open.is_some()",
-        "overlay_open::use_controllable_open_state(",
+        "overlay_open::use_controllable_open_state_traced(",
     ] {
         assert!(
             source.contains(needle),

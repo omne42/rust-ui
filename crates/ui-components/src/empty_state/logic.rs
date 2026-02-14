@@ -60,28 +60,22 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn normalize_title(value: Option<String>) -> (String, bool) {
-    if let Some(title) = normalize_optional_text(value) {
-        return (title, true);
-    }
-
-    (DEFAULT_TITLE.to_string(), false)
+pub fn normalize_title(value: Option<String>, default: &str) -> (String, bool) {
+    normalize_optional_text(value)
+        .map(|title| (title, true))
+        .unwrap_or_else(|| (default.to_string(), false))
 }
 
-pub fn normalize_description(value: Option<String>) -> (String, bool) {
-    if let Some(description) = normalize_optional_text(value) {
-        return (description, true);
-    }
-
-    (DEFAULT_DESCRIPTION.to_string(), false)
+pub fn normalize_description(value: Option<String>, default: &str) -> (String, bool) {
+    normalize_optional_text(value)
+        .map(|description| (description, true))
+        .unwrap_or_else(|| (default.to_string(), false))
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+pub fn normalize_aria_label(value: Option<String>, default: &str) -> (String, bool) {
+    normalize_optional_text(value)
+        .map(|label| (label, true))
+        .unwrap_or_else(|| (default.to_string(), false))
 }
 
 pub fn resolve_state(input: EmptyStateStateInput) -> EmptyStateState {
@@ -218,29 +212,32 @@ mod tests {
             Some("add filters".to_string())
         );
 
-        let (title, custom_title) = normalize_title(Some("  No matches  ".to_string()));
+        let (title, custom_title) = normalize_title(Some("  No matches  ".to_string()), "Default");
         assert_eq!(title, "No matches");
         assert!(custom_title);
 
-        let (title, custom_title) = normalize_title(None);
-        assert_eq!(title, DEFAULT_TITLE);
+        let (title, custom_title) = normalize_title(None, "Default title");
+        assert_eq!(title, "Default title");
         assert!(!custom_title);
 
-        let (description, custom_description) =
-            normalize_description(Some("  Try another keyword  ".to_string()));
+        let (description, custom_description) = normalize_description(
+            Some("  Try another keyword  ".to_string()),
+            "Default description",
+        );
         assert_eq!(description, "Try another keyword");
         assert!(custom_description);
 
-        let (description, custom_description) = normalize_description(None);
-        assert_eq!(description, DEFAULT_DESCRIPTION);
+        let (description, custom_description) = normalize_description(None, "Default description");
+        assert_eq!(description, "Default description");
         assert!(!custom_description);
 
-        let (label, custom_label) = normalize_aria_label(Some("  Project state  ".to_string()));
+        let (label, custom_label) =
+            normalize_aria_label(Some("  Project state  ".to_string()), "Default label");
         assert_eq!(label, "Project state");
         assert!(custom_label);
 
-        let (label, custom_label) = normalize_aria_label(None);
-        assert_eq!(label, DEFAULT_ARIA_LABEL);
+        let (label, custom_label) = normalize_aria_label(None, "Default label");
+        assert_eq!(label, "Default label");
         assert!(!custom_label);
     }
 

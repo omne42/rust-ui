@@ -1,7 +1,8 @@
 use super::{logic, motion::ComboBoxMotion};
-use crate::{overlay_open, presence::use_presence};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use std::{collections::HashSet, sync::Arc};
+use ui_headless as overlay_open;
+use ui_headless::use_presence;
 use ui_headless::{
     ComboBoxOptions, FocusRingOptions, PopoverPlacement, PopoverPositionOptions, TextFieldOptions,
     use_combo_box, use_focus_ring, use_popover_position, use_text_field,
@@ -207,7 +208,12 @@ pub fn ComboBox(
 
     let class = logic::compose_class_name(class_name, state);
 
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "combo-box",
+        open,
+        default_open,
+        on_open_change,
+    );
     let is_open = open_state.open;
     let set_open = open_state.request_open_change;
     let presence = use_presence(is_open);

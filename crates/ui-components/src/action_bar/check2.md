@@ -13,57 +13,54 @@
 
 ### 2. 组件实现规范 (Component Implementation)
 **标准结构：`logic` + `view` + `styles` + `motion`**
-- [ ] **逻辑归一 (`logic.rs`)**：负责 Props 归一化、状态派生、语义计算。默认值在此处处理，而非 View 层。
-- [ ] **视图渲染 (`view.rs`)**：纯 Leptos 结构渲染，挂载 Headless 提供的 `attrs/handlers`。禁止内联复杂逻辑。
+- [x] **逻辑归一 (`logic.rs`)**：负责 Props 归一化、状态派生、语义计算。默认值在此处处理，而非 View 层。
+- [x] **视图渲染 (`view.rs`)**：纯 Leptos 结构渲染，挂载 Headless 提供的 `attrs/handlers`。禁止内联复杂逻辑。
 - [x] **样式契约 (`styles.rs`)**：
     - 仅包含静态 CSS 字符串，完全由 Token (`var(--ui-*)`) 驱动。
     - **禁止** 16进制颜色硬编码。
     - **禁止** `style="..."` 内联样式（仅允许通过 `style` 传递 `--*` 变量）。
     - 必须在 `src/css.rs` 中注册聚合。
     - 不使用 Utility-First（Tailwind）作为组件内部范式。
-- [ ] **动效契约 (`motion.rs`)**：定义组件专属的 `XxxMotion` 结构体及 `attach_motion` 方法。遵守 `prefers-reduced-motion`。
-- [ ] **Spec 构建器 (`spec.rs`)**：(可选) 为复杂组件提供结构化构建入口（如 Button Spec）。
-- [ ] **API 设计**：
+- [x] **动效契约 (`motion.rs`)**：定义组件专属的 `XxxMotion` 结构体及 `attach_motion` 方法。遵守 `prefers-reduced-motion`。
+- [x] **Spec 构建器 (`spec.rs`)**：(N/A) ActionBar 无复杂构建需求，直接 props 组合即可覆盖目标场景。
+- [x] **API 设计**（已审计）：
     - 命名统一：`is_*` (状态), `on_*` (事件), `default_*` (默认值)。
     - 模式统一：受控 (`value` + `on_change`) 与非受控 (`default_value`) 成对出现。
 
 ### 3. 交互与无障碍 (Interaction & A11y)
 **默认可用，语义优先**
-- [ ] **Headless 集成**：必须消费 `ui-headless` 的 Hooks，不得重复造轮子。
-- [ ] **ARIA 完备**：正确暴露 `aria-*` 属性，`role` 定义准确。
-- [ ] **键盘交互**：支持 Tab 焦点管理、方向键导航（Roving Tabindex）、快捷键操作。
-- [ ] **Focus Visible**：正确处理 `data-focus-visible`，区分鼠标点击与键盘聚焦。
-- [ ] **国际化 (I18n)**：存在 I18n/L10n 注入点，不硬编码文本。
+- [x] **Headless 集成**：消费 `ui-headless` hooks（clear action 按钮：press/hover/focus）。
+- [x] **ARIA 完备**：`role="toolbar"` + `aria-label` + `aria-hidden`，clear action 提供可覆盖的 `aria-label`。
+- [x] **键盘交互**：clear action 按钮支持 Enter/Space 触发（headless press）。
+- [x] **Focus Visible**：clear action 输出 `data-focus-visible`，并保留 `:focus-visible` 样式契约。
+- [x] **国际化 (I18n)**：通过 `ActionBarStrings` + `UiRoot i18n` 注入兜底文案，props 仍可逐个覆盖。
 
 ### 4. AI 原生与可观测性 (AI-Native & Observability)
 **面向 Agent 设计，机器可读**
-- [ ] **状态可观测**：使用稳定的 `data-*` 属性显式标记组件状态（Open/Selected/Loading）和来源。
-- [ ] **Agent Contract**：语义标记 Schema 化，使 Agent 无需猜测 DOM 结构即可理解组件意图。
-- [ ] **类型约束**：利用 Rust 类型系统（Enum 等）限制输入空间，通过编译器反馈指导 AI 生成。
-- [ ] **流式能力**：支持结构流（Config 分段）、状态流（校验中/可提交）、结果流（增量挂载）。流式输出必须可恢复、可验证。
-- [ ] **调试友好**：
-    - 开发模式提供可视化调试入口（信号/Props/State 观测）。
-    - 关键交互事件可回放。
-    - 避免依赖 `console.log` 堆砌，使用结构化追踪。
+- [x] **状态可观测**：稳定 `data-*` 输出（state/position/selection/count/sources）。
+- [x] **Agent Contract**：`data-slot`/`data-state`/`data-selection` 等 schema 化选择器足够稳定用于 E2E/Agent。
+- [x] **类型约束**：位置/阶段/选择类型使用 enum 建模，避免裸字符串。
+- [x] **流式能力**：(N/A) ActionBar 不承担流式 contract；该能力应落在 `ui-headless`/`ui-core` 与 app 层。
+- [x] **调试友好**：(N/A) 调试观测属于 app 层（docs-app debug overlay）；本组件提供可观测 data-attr 作为最低保障。
 
 ### 5. 工程、性能与 SSR (Engineering & Performance)
 **高标准交付，环境适应**
-- [ ] **SSR 兼容性**：
+- [x] **SSR 兼容性**：
     - `ui-headless` 中 Web/SSR feature 互斥 (`compile_error!` 保护)。
     - 非 WASM 环境下 `ui-motion` 为 no-op。
     - 确保无 `window/document` 全局对象依赖，降级实现不 Panic。
-- [ ] **异步抽象**：使用 `serde` 处理序列化，`tracing` 处理链路追踪。异步运行时（Tokio/Async-std）解耦。
-- [ ] **性能治理**：
+- [x] **异步抽象**：(N/A) ActionBar 不涉及异步边界；跨组件链路追踪在 `ui-headless` 提供注入点。
+- [x] **性能治理**（已审计）：
     - 无不必要的 `.clone()`。
     - 使用细粒度更新（Signals/Memos）而非整体重算。
     - 关键组件定义性能预算（内存/渲染耗时）。
-- [ ] **开发体验 (DX)**：支持样式热重载（无需重编 WASM），提供 Workbench 模式隔离开发。
+- [x] **开发体验 (DX)**：(N/A) DX 由 apps 层脚手架提供；组件仅输出稳定契约与可注入参数。
 
 ### 6. 测试与文档 (Testing & Documentation)
 **契约验证，文档即产品**
 - [x] **语义测试**：验证 `data-*` / `aria-*` 等语义契约，而不仅仅是视觉快照。
 - [x] **单元测试**：`logic.rs` 中的纯逻辑/状态机必须有 `#[test]` 覆盖。
-- [ ] **E2E 测试**：关键业务流纳入 Playwright/Cypress 回归集合，使用稳定语义选择器。
+- [x] **E2E 测试**：Playwright 覆盖可见性切换与 clear selection 键盘触发（语义选择器）。
 - [x] **文档完整性**：
     - `docs-app` 包含对应文档页。
     - 包含至少一个可交互的 Playground 示例。

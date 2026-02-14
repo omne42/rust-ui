@@ -13,6 +13,7 @@
 ## 本机其它项目参考（设计/治理/文档）
 
 - `bb/packages/ui-web` 的架构/色彩/文档演进笔记：`docs/research/bb_ui-web_notes.md`
+- Spectrum 设计元语样式基准检索记录（2026-02-14）：`docs/research/spectrum-design-primitives-search-2026-02-14.md`
 
 ## Upstream 参考仓库（本地 clone）
 

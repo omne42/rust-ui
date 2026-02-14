@@ -1,8 +1,8 @@
-use crate::overlay_open;
 use crate::sidebar::logic::{
     self, SidebarCollapsible, SidebarSide, SidebarStateInput, SidebarVariant,
 };
 use leptos::{ev, prelude::*};
+use ui_headless as overlay_open;
 
 #[component]
 pub fn Sidebar(
@@ -29,8 +29,12 @@ pub fn Sidebar(
     let shortcut_key = logic::normalize_shortcut_key(shortcut_key, enable_shortcut);
 
     let is_controlled = open.is_some();
-    let open_state =
-        overlay_open::use_controllable_open_state(open, Some(default_open), on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "sidebar",
+        open,
+        Some(default_open),
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 

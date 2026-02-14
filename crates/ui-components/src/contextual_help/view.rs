@@ -2,10 +2,11 @@ use crate::contextual_help::{
     ContextualHelpMotion, ContextualHelpVariant,
     logic::{self, ContextualHelpStateInput},
 };
-use crate::presence::use_presence;
-use crate::{Button, ButtonSize, ButtonVariant, OnPress, Popover, overlay_open};
+use crate::{Button, ButtonSize, ButtonVariant, OnPress, Popover};
 use leptos::{children::ViewFn, html, prelude::*};
+use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::use_presence;
 
 fn next_id() -> u64 {
     use std::cell::Cell;
@@ -36,7 +37,12 @@ pub fn ContextualHelp(
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
     let is_controlled = open.is_some();
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "contextual-help",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
@@ -73,7 +79,7 @@ pub fn ContextualHelp(
     let panel_id = StoredValue::new(format!("{id}-panel"));
     let heading_id = StoredValue::new(format!("{id}-heading"));
     let content_id = StoredValue::new(format!("{id}-content"));
-    let aria_controls = crate::a11y::aria_controls_when_open(open, panel_id.get_value());
+    let aria_controls = ui_headless::aria_controls_when_open(open, panel_id.get_value());
 
     let panel_aria_label =
         StoredValue::new((!state.has_heading).then(|| trigger_aria_label.clone()));

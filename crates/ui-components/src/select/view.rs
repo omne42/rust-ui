@@ -1,9 +1,10 @@
-use crate::overlay_open;
 use crate::select::{SelectMotion, logic};
-use crate::{Button, ListBox, OnPress, Popover, presence::use_presence};
+use crate::{Button, ListBox, OnPress, Popover};
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc, time::Duration};
+use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::use_presence;
 
 #[component]
 pub fn Select(
@@ -42,7 +43,12 @@ pub fn Select(
     let (last_typed_at, set_last_typed_at) = signal(None::<std::time::Instant>);
     let typeahead_timeout = Duration::from_millis(500);
 
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "select",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
@@ -93,7 +99,7 @@ pub fn Select(
     let ids = logic::resolve_ids(&id_base.get_value());
     let trigger_id = StoredValue::new(ids.trigger_id);
     let listbox_id = StoredValue::new(ids.listbox_id);
-    let aria_controls = crate::a11y::aria_controls_when_open(open, listbox_id.get_value());
+    let aria_controls = ui_headless::aria_controls_when_open(open, listbox_id.get_value());
 
     let on_action: Callback<usize> = Callback::new(move |_| request_open_change.run(false));
 

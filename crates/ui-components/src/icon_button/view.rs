@@ -2,6 +2,8 @@ use crate::button::{Button, ButtonMotion, ButtonSize, ButtonVariant};
 use crate::icon_button::{IconButtonStateInput, logic};
 use leptos::{html, prelude::*};
 use ui_headless::OnPress;
+use ui_headless::i18n;
+use ui_headless::i18n::CommonStrings;
 
 #[component]
 pub fn IconButton(
@@ -16,10 +18,13 @@ pub fn IconButton(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
     let class_name = logic::normalize_optional_text(class_name);
     let class_name_for_inner = class_name.clone().unwrap_or_default();
 
-    let (aria_label, has_explicit_aria_label) = logic::normalize_aria_label(aria_label);
+    let (aria_label, has_explicit_aria_label) =
+        logic::normalize_aria_label(aria_label, common.icon_button_aria_label.as_ref());
     let has_custom_press_handler = on_press.is_some();
 
     let state = logic::resolve_state(IconButtonStateInput {

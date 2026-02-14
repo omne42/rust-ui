@@ -2,9 +2,9 @@ use crate::action_group::{
     ActionGroupItem, ActionGroupSelectionMode, ActionGroupStateInput,
     logic::{self, ActionGroupTone},
 };
-use crate::overlay_open;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn ActionGroup(

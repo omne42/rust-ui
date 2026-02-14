@@ -2,8 +2,8 @@ use super::{
     SwatchBorder, SwatchMotion, SwatchRounding, SwatchShape, SwatchSize, logic,
     motion as swatch_motion,
 };
-use crate::overlay_open;
 use leptos::{ev, html, prelude::*};
+use ui_headless as overlay_open;
 
 #[component]
 pub fn Swatch(

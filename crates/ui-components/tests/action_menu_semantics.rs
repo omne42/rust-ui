@@ -142,7 +142,7 @@ fn action_menu_supports_controlled_and_uncontrolled_open_state() {
         "let has_custom_open = open.is_some()",
         "let has_custom_default_open = default_open.is_some()",
         "let has_custom_on_open_change = on_open_change.is_some()",
-        "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
+        "overlay_open::use_controllable_open_state_traced(",
     ] {
         assert!(
             source.contains(needle),

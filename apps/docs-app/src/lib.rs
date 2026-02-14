@@ -6,6 +6,7 @@ pub mod router;
 pub mod toc;
 
 mod command_menu;
+mod debug_overlay;
 mod search_index;
 
 #[cfg(all(target_arch = "wasm32", not(erase_components)))]
@@ -17,8 +18,9 @@ Ensure `.cargo/config.toml` is picked up (workspace root), or set `RUSTFLAGS=\"-
 use leptos::prelude::*;
 use ui_components::{
     ButtonSize, ButtonVariant, IconButton, Sheet, SheetPlacement, Theme, ThemeMode,
-    ThemeToggleButton, UiRoot, provide_focus_visible, provide_overlay_stack,
+    ThemeToggleButton, UiRoot,
 };
+use ui_headless::{provide_focus_visible, provide_overlay_stack, provide_ui_trace};
 
 #[cfg(target_arch = "wasm32")]
 fn set_document_title(title: &str) {
@@ -38,6 +40,8 @@ fn set_document_title(_title: &str) {}
 pub fn App() -> impl IntoView {
     provide_focus_visible();
     provide_overlay_stack();
+    let debug_overlay_enabled = cfg!(debug_assertions);
+    provide_ui_trace(debug_overlay_enabled);
 
     let (theme_mode, set_theme_mode) = signal(ThemeMode::Light);
     let theme = Signal::derive(move || match theme_mode.get() {
@@ -115,7 +119,15 @@ pub fn App() -> impl IntoView {
     });
 
     view! {
-        <UiRoot theme=theme safe_area=true inject_components_css=true>
+        <UiRoot
+            theme=theme
+            safe_area=true
+            inject_components_css=true
+        >
+            <Show when=move || debug_overlay_enabled>
+                <style>{debug_overlay::CSS}</style>
+                <debug_overlay::UiDebugOverlay enabled=true />
+            </Show>
             <div class="docs-shell">
                 <header class="docs-header">
                     <div class="docs-header__title">

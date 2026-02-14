@@ -40,7 +40,7 @@ fn icon_button_logic_exposes_state_helpers() {
 
     for needle in [
         "pub fn normalize_optional_text(",
-        "pub fn normalize_aria_label(aria_label: String)",
+        "pub fn normalize_aria_label(aria_label: String, default: &str)",
         "pub fn resolve_state(input: IconButtonStateInput)",
         "pub fn compose_class_name(base_class_name: Option<String>, state: IconButtonState)",
         "DEFAULT_ARIA_LABEL",
@@ -59,7 +59,9 @@ fn icon_button_view_uses_logic_state_contracts() {
     for needle in [
         "pub fn IconButton(",
         "logic::normalize_optional_text(class_name)",
-        "logic::normalize_aria_label(aria_label)",
+        "i18n::use_ui_i18n()",
+        "i18n.strings::<CommonStrings>()",
+        "logic::normalize_aria_label(aria_label, common.icon_button_aria_label.as_ref())",
         "logic::resolve_state(IconButtonStateInput {",
         "logic::compose_class_name(class_name, state)",
         "<Button",

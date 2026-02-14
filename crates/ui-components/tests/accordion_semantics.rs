@@ -77,6 +77,7 @@ fn accordion_emits_spectrum_style_data_attributes() {
         "data-all-closed=move || (!state.get().has_open_items).then_some(\"true\")",
         "data-multiple-open=move || state.get().has_multiple_open.then_some(\"true\")",
         "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
+        "data-open-state-source=open_state_source",
         "data-selection-mode=match selection_mode",
         "data-motion-source=if motion == AccordionMotion::default()",
         "data-custom-motion=(motion != AccordionMotion::default()).then_some(\"true\")",

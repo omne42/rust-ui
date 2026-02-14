@@ -1,9 +1,9 @@
 use crate::active_highlight::attach_active_highlight_motion;
 use crate::chart::ChartMotion;
 use crate::chart::logic::{self, ChartKind, ChartPoint, ChartStateInput};
-use crate::overlay_open;
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn Chart(

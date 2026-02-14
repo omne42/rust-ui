@@ -1,5 +1,7 @@
 use crate::button::{Button, ButtonSize, ButtonVariant};
+use crate::number_field::NumberFieldStrings;
 use leptos::{ev, html, prelude::*};
+use ui_headless::i18n;
 use ui_headless::{
     FocusRingOptions, NumberFieldOptions, TextFieldOptions, use_focus_ring, use_number_field,
     use_text_field,
@@ -25,6 +27,8 @@ pub fn NumberField(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<NumberFieldStrings>();
     let focus_ring = use_focus_ring(FocusRingOptions {
         is_disabled: disabled,
     });
@@ -139,7 +143,7 @@ pub fn NumberField(
                         disabled=disabled
                         variant=ButtonVariant::Ghost
                         size=ButtonSize::IconSm
-                        aria_label="Decrement"
+                        aria_label=strings.decrement_aria_label.as_ref().to_string()
                         on_press=number_field.handlers.decrement
                     >
                         "−"
@@ -148,7 +152,7 @@ pub fn NumberField(
                         disabled=disabled
                         variant=ButtonVariant::Ghost
                         size=ButtonSize::IconSm
-                        aria_label="Increment"
+                        aria_label=strings.increment_aria_label.as_ref().to_string()
                         on_press=number_field.handlers.increment
                     >
                         "+"

@@ -11,7 +11,8 @@ use ui_components::{
 };
 
 pub(super) fn action_bar() -> AnyView {
-    let (selected_count, set_selected_count) = signal(0_usize);
+    // Keep the first playground visible by default so docs + E2E coverage can assert presence.
+    let (selected_count, set_selected_count) = signal(2_usize);
     let selected_count_signal = Signal::derive(move || selected_count.get());
 
     let clear_selection = Callback::new(move |_| set_selected_count.set(0));

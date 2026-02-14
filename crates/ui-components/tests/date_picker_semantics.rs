@@ -48,7 +48,7 @@ fn date_picker_uses_logic_state_model() {
     }
 
     for needle in [
-        "overlay_open::use_controllable_open_state(open, default_open, on_open_change)",
+        "overlay_open::use_controllable_open_state_traced(",
         "overlay_open::use_controllable_state(",
         "logic::normalize_placeholder(placeholder)",
         "logic::normalize_aria_label(aria_label)",

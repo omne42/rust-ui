@@ -1,10 +1,11 @@
 use crate::code_block::{
-    CodeBlockMotion,
+    CodeBlockMotion, CodeBlockStrings,
     logic::{self, CodeBlockStateInput},
     motion,
 };
 use crate::{Button, ButtonSize, ButtonVariant};
 use leptos::{html, prelude::*};
+use ui_headless::i18n;
 
 fn copy_icon(copied: bool) -> impl IntoView {
     if copied {
@@ -53,6 +54,11 @@ pub fn CodeBlock(
     #[prop(optional)] motion: CodeBlockMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<CodeBlockStrings>();
+    let copy_to_clipboard_aria_label = strings.copy_to_clipboard_aria_label.as_ref().to_string();
+    let copy_to_clipboard_aria_label = StoredValue::new(copy_to_clipboard_aria_label);
+    let copied_status_text = strings.copied_status_text.as_ref().to_string();
     let motion = crate::code_block::motion::sanitize_motion(motion);
     let label = logic::normalize_optional_text(label);
     let language = logic::normalize_optional_text(language);
@@ -75,7 +81,7 @@ pub fn CodeBlock(
     let language = StoredValue::new(language);
 
     let copy_logic = crate::snippet::logic::use_snippet_logic(code_value.get_value());
-    let copied_label = StoredValue::new("Copied".to_string());
+    let copied_label = StoredValue::new(copied_status_text);
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     motion::attach_motion(root_ref, copy_logic.copied.into(), motion);
@@ -111,7 +117,7 @@ pub fn CodeBlock(
                             class_name="ui-code-block__copy-button".to_string()
                             variant=ButtonVariant::Ghost
                             size=ButtonSize::IconSm
-                            aria_label="Copy to clipboard".to_string()
+                            aria_label=copy_to_clipboard_aria_label.get_value()
                             on_press=copy_logic.copy
                         >
                             {move || copy_icon(copy_logic.copied.get())}

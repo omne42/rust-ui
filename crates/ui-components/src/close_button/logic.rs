@@ -61,12 +61,12 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
+pub fn normalize_aria_label(value: Option<String>, default: &str) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (default.to_string(), false)
 }
 
 pub fn resolve_state(input: CloseButtonStateInput) -> CloseButtonState {
@@ -164,11 +164,12 @@ mod tests {
             Some("docs-close-button".to_string())
         );
 
-        let (aria_label, custom) = normalize_aria_label(Some("  Dismiss panel  ".to_string()));
+        let (aria_label, custom) =
+            normalize_aria_label(Some("  Dismiss panel  ".to_string()), DEFAULT_ARIA_LABEL);
         assert_eq!(aria_label, "Dismiss panel");
         assert!(custom);
 
-        let (aria_label, custom) = normalize_aria_label(None);
+        let (aria_label, custom) = normalize_aria_label(None, DEFAULT_ARIA_LABEL);
         assert_eq!(aria_label, DEFAULT_ARIA_LABEL);
         assert!(!custom);
     }

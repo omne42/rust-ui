@@ -1,8 +1,10 @@
+mod i18n;
 mod logic;
 pub mod motion;
 pub mod styles;
 mod view;
 
+pub use i18n::ActionBarStrings;
 pub use logic::{
     DEFAULT_ARIA_LABEL, DEFAULT_CLEAR_LABEL, DEFAULT_SELECTION_EMPTY_LABEL,
     DEFAULT_SELECTION_MULTIPLE_SUFFIX, DEFAULT_SELECTION_SINGLE_LABEL,

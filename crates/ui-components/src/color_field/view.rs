@@ -1,9 +1,10 @@
+use crate::ColorSwatch;
 use crate::color_field::{
     ColorFieldStateInput,
     logic::{self},
 };
-use crate::{ColorSwatch, overlay_open};
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn ColorField(

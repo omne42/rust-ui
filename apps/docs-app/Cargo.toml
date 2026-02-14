@@ -8,6 +8,7 @@ publish = false
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 pulldown-cmark = "0.13.0"
 ui-components = { path = "../../crates/ui-components" }
+ui-headless = { path = "../../crates/ui-headless" }
 
 [dev-dependencies]
 any_spawner = { version = "0.3", features = ["futures-executor"] }
@@ -16,7 +17,7 @@ any_spawner = { version = "0.3", features = ["futures-executor"] }
 console_error_panic_hook = "0.1.7"
 gloo-events = "0.2.0"
 js-sys = "0.3.85"
-web-sys = { version = "0.3.85", features = ["Document", "DomRect", "Element", "EventTarget", "KeyboardEvent", "Location", "Navigator", "Window"] }
+web-sys = { version = "0.3.85", features = ["Attr", "Document", "DomRect", "Element", "EventTarget", "KeyboardEvent", "Location", "NamedNodeMap", "Navigator", "Window"] }
 
 [lints.rust.unexpected_cfgs]
 level = "warn"

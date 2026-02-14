@@ -170,13 +170,10 @@ all-components = [
     "component-progress",
     "component-progress_bar",
     "component-progress_circle",
-    "component-provider",
-    "component-rac",
     "component-radio",
     "component-radio_group",
     "component-resizable",
     "component-ripple",
-    "component-s2",
     "component-scroll_area",
     "component-scroll_shadow",
     "component-search",
@@ -210,8 +207,6 @@ all-components = [
     "component-split_view",
     "component-status_light",
     "component-step_list",
-    "component-story_utils",
-    "component-style_macro_s1",
     "component-surface",
     "component-swatch",
     "component-switch",
@@ -221,7 +216,6 @@ all-components = [
     "component-tag",
     "component-tag_group",
     "component-tags",
-    "component-test_utils",
     "component-text",
     "component-text_area",
     "component-text_field",
@@ -245,7 +239,6 @@ all-components = [
     "component-tray",
     "component-tree",
     "component-underlay",
-    "component-utils",
     "component-view",
     "component-virtualizer",
     "component-visually_hidden",
@@ -409,13 +402,10 @@ component-preview_link_card = []
 component-progress = []
 component-progress_bar = []
 component-progress_circle = []
-component-provider = []
-component-rac = []
 component-radio = []
 component-radio_group = []
 component-resizable = []
 component-ripple = []
-component-s2 = []
 component-scroll_area = []
 component-scroll_shadow = []
 component-search = []
@@ -449,8 +439,6 @@ component-spinner = []
 component-split_view = []
 component-status_light = []
 component-step_list = []
-component-story_utils = []
-component-style_macro_s1 = []
 component-surface = []
 component-swatch = []
 component-switch = []
@@ -460,7 +448,6 @@ component-tabs = []
 component-tag = []
 component-tag_group = []
 component-tags = []
-component-test_utils = []
 component-text = []
 component-text_area = []
 component-text_field = []
@@ -484,7 +471,6 @@ component-top_nav = []
 component-tray = []
 component-tree = []
 component-underlay = []
-component-utils = []
 component-view = []
 component-virtualizer = []
 component-visually_hidden = []

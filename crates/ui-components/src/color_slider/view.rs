@@ -2,8 +2,9 @@ use crate::color_slider::{
     ColorSliderChannel, ColorSliderMotion, ColorSliderStateInput,
     logic::{self},
 };
-use crate::{overlay_open, slider::motion as slider_motion};
+use crate::slider::motion as slider_motion;
 use leptos::{ev, html, prelude::*};
+use ui_headless as overlay_open;
 
 #[component]
 pub fn ColorSlider(

@@ -1,11 +1,8 @@
 //! `ui-components` — Leptos components that compose ui-core + ui-headless + ui-theme.
 
-mod a11y;
 #[cfg(feature = "component-active_highlight")]
 mod active_highlight;
 mod css;
-mod overlay_open;
-mod presence;
 
 #[cfg(feature = "component-accordion")]
 pub mod accordion;
@@ -319,10 +316,6 @@ pub mod progress;
 pub mod progress_bar;
 #[cfg(feature = "component-progress_circle")]
 pub mod progress_circle;
-#[cfg(feature = "component-provider")]
-pub mod provider;
-#[cfg(feature = "component-rac")]
-pub mod rac;
 #[cfg(feature = "component-radio")]
 pub mod radio;
 #[cfg(feature = "component-radio_group")]
@@ -332,8 +325,6 @@ pub mod resizable;
 #[cfg(feature = "component-ripple")]
 pub mod ripple;
 pub mod root;
-#[cfg(feature = "component-s2")]
-pub mod s2;
 #[cfg(feature = "component-scroll_area")]
 pub mod scroll_area;
 #[cfg(feature = "component-scroll_shadow")]
@@ -400,10 +391,6 @@ pub mod split_view;
 pub mod status_light;
 #[cfg(feature = "component-step_list")]
 pub mod step_list;
-#[cfg(feature = "component-story_utils")]
-pub mod story_utils;
-#[cfg(feature = "component-style_macro_s1")]
-pub mod style_macro_s1;
 #[cfg(feature = "component-surface")]
 pub mod surface;
 #[cfg(feature = "component-swatch")]
@@ -422,8 +409,6 @@ pub mod tag;
 pub mod tag_group;
 #[cfg(feature = "component-tags")]
 pub mod tags;
-#[cfg(feature = "component-test_utils")]
-pub mod test_utils;
 #[cfg(feature = "component-text")]
 pub mod text;
 #[cfg(feature = "component-text_area")]
@@ -470,8 +455,6 @@ pub mod tray;
 pub mod tree;
 #[cfg(feature = "component-underlay")]
 pub mod underlay;
-#[cfg(feature = "component-utils")]
-pub mod utils;
 #[cfg(feature = "component-view")]
 pub mod view;
 #[cfg(feature = "component-virtualizer")]
@@ -482,9 +465,12 @@ pub mod visually_hidden;
 pub mod well;
 
 pub use root::UiRoot;
-pub use ui_headless::{MenuItemKind, OnPress, provide_focus_visible, provide_overlay_stack};
+pub use ui_headless::{MenuItemKind, OnPress};
 pub use ui_theme::Theme;
 
+#[cfg(feature = "inject-css")]
+// Intentionally exposed as a thin wrapper below to keep the public API stable while
+// allowing internal CSS aggregation to evolve.
 #[cfg(feature = "all-components")]
 mod all_components {
     use crate::*;
@@ -679,7 +665,6 @@ mod all_components {
     pub use progress::{Progress, ProgressMotion, ProgressRange};
     pub use progress_bar::{ProgressBar, ProgressBarSize, ProgressBarVariant};
     pub use progress_circle::{ProgressCircle, ProgressCircleMotion};
-    pub use provider::Provider;
     pub use radio::{Radio, RadioGroup, RadioGroupOrientation, RadioMotion};
     pub use radio_group::RadioGroupItem;
     pub use resizable::ResizableMotion;

@@ -3,9 +3,9 @@ use crate::carousel::{
     CarouselItem, CarouselItemResolved, CarouselMotion, CarouselOrientation,
     CarouselPartStateInput, CarouselSlot, logic,
 };
-use crate::overlay_open;
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn Carousel(

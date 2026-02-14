@@ -1,10 +1,10 @@
-use crate::overlay_open;
 use crate::tree::{
     TreeDensity, TreeNode, TreeStateInput,
     logic::{self, TreeTone},
 };
 use leptos::prelude::*;
 use std::collections::BTreeSet;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn Tree(

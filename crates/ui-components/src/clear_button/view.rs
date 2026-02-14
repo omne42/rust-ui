@@ -3,6 +3,8 @@ use crate::clear_button::{
     logic::{self, ClearButtonVariant},
 };
 use leptos::{html, prelude::*};
+use ui_headless::i18n;
+use ui_headless::i18n::CommonStrings;
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, OnPress, use_button, use_focus_ring, use_hover,
 };
@@ -21,7 +23,10 @@ pub fn ClearButton(
     #[prop(optional)] on_press: Option<OnPress>,
     children: Children,
 ) -> impl IntoView {
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let i18n = i18n::use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
+    let (aria_label, has_custom_aria_label) =
+        logic::normalize_aria_label(aria_label, common.clear_aria_label.as_ref());
 
     let class_name = logic::normalize_optional_text(class_name);
 

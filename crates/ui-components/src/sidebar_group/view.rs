@@ -1,6 +1,6 @@
-use crate::overlay_open;
 use crate::sidebar_group::logic::{self, SidebarGroupStateInput};
 use leptos::{ev, prelude::*};
+use ui_headless as overlay_open;
 
 #[component]
 pub fn SidebarGroup(
@@ -25,8 +25,12 @@ pub fn SidebarGroup(
 
     let default_open = logic::normalize_default_open(default_open);
     let is_controlled = open.is_some();
-    let open_state =
-        overlay_open::use_controllable_open_state(open, Some(default_open), on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "sidebar-group",
+        open,
+        Some(default_open),
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 

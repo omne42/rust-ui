@@ -1,71 +1,106 @@
-### 1. 架构与分层边界 (Architecture & Layering)
-**核心原则：单向依赖，职责分离，环境隔离**
-- [x] **Core 层纯净性**：`crates/ui-core` 仅包含纯状态原语（Toggle/Selection/List 等），**零依赖** `Leptos/DOM/web-sys`，确保逻辑可单测、可移植。
-- [x] **Headless 层抽象**：`crates/ui-headless` 封装交互与 A11y（Press/Focus/Hover/Menu 等），输出 `attrs + handlers + state`。**严禁**包含样式或动效。
-- [x] **Motion 层独立**：`crates/ui-motion` 实现动效引擎（Spring/WAAPI）。非 WASM 环境提供 no-op 实现，确保 SSR 可编译。
-- [x] **Theme 层解耦**：`crates/ui-theme` 仅负责 Token 定义与 CSS 变量生成（Light/Dark/OLED），不包含组件具体 CSS。
-- [x] **Component 层组合**：`crates/ui-components` 作为最终组装层。对外 API **严禁暴露** `web-sys` 类型，DOM 细节封装在内部。
-- [x] **Tree Shaking 支持**：
-    - Package 模式：`ui-components` 支持组件级 feature，按需编译。
-    - Source 模式：源码拉取天然支持裁剪。
-    - 样式裁剪：禁止无条件聚合所有 CSS，需随组件按需加载。
-- [x] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
+# 单组件 Check List（完整版，Spectrum 对齐）
 
-### 2. 组件实现规范 (Component Implementation)
-**标准结构：`logic` + `view` + `styles` + `motion`**
-- [ ] **逻辑归一 (`logic.rs`)**：负责 Props 归一化、状态派生、语义计算。默认值在此处处理，而非 View 层。
-- [ ] **视图渲染 (`view.rs`)**：纯 Leptos 结构渲染，挂载 Headless 提供的 `attrs/handlers`。禁止内联复杂逻辑。
-- [x] **样式契约 (`styles.rs`)**：
-    - 仅包含静态 CSS 字符串，完全由 Token (`var(--ui-*)`) 驱动。
-    - **禁止** 16进制颜色硬编码。
-    - **禁止** `style="..."` 内联样式（仅允许通过 `style` 传递 `--*` 变量）。
-    - 必须在 `src/css.rs` 中注册聚合。
-    - 不使用 Utility-First（Tailwind）作为组件内部范式。
-- [ ] **动效契约 (`motion.rs`)**：定义组件专属的 `XxxMotion` 结构体及 `attach_motion` 方法。遵守 `prefers-reduced-motion`。
-- [ ] **Spec 构建器 (`spec.rs`)**：(可选) 为复杂组件提供结构化构建入口（如 Button Spec）。
-- [ ] **API 设计**：
-    - 命名统一：`is_*` (状态), `on_*` (事件), `default_*` (默认值)。
-    - 模式统一：受控 (`value` + `on_change`) 与非受控 (`default_value`) 成对出现。
+> 用途：每次新增或改动一个组件时，按本清单逐项检查。  
+> 执行顺序：`大骨架 -> 小骨架 -> 实现细节 -> 测试与文档 -> 合并门禁`。
 
-### 3. 交互与无障碍 (Interaction & A11y)
-**默认可用，语义优先**
-- [ ] **Headless 集成**：必须消费 `ui-headless` 的 Hooks，不得重复造轮子。
-- [ ] **ARIA 完备**：正确暴露 `aria-*` 属性，`role` 定义准确。
-- [ ] **键盘交互**：支持 Tab 焦点管理、方向键导航（Roving Tabindex）、快捷键操作。
-- [ ] **Focus Visible**：正确处理 `data-focus-visible`，区分鼠标点击与键盘聚焦。
-- [ ] **国际化 (I18n)**：存在 I18n/L10n 注入点，不硬编码文本。
+### 0. 适用范围与顺序纪律
+- [x] 本清单仅评估“一个组件”的改动结果，不替代仓库级治理。
+- [x] 先过第 1-2 节（骨架）再进入第 3-6 节（实现细节）。
+- [x] 发现跨组件/跨层系统性问题时，升级为仓库级任务，不在组件内打补丁。
+- [x] 组件目标、非目标、风险边界已写清楚。
 
-### 4. AI 原生与可观测性 (AI-Native & Observability)
-**面向 Agent 设计，机器可读**
-- [ ] **状态可观测**：使用稳定的 `data-*` 属性显式标记组件状态（Open/Selected/Loading）和来源。
-- [ ] **Agent Contract**：语义标记 Schema 化，使 Agent 无需猜测 DOM 结构即可理解组件意图。
-- [ ] **类型约束**：利用 Rust 类型系统（Enum 等）限制输入空间，通过编译器反馈指导 AI 生成。
-- [ ] **流式能力**：支持结构流（Config 分段）、状态流（校验中/可提交）、结果流（增量挂载）。流式输出必须可恢复、可验证。
-- [ ] **调试友好**：
-    - 开发模式提供可视化调试入口（信号/Props/State 观测）。
-    - 关键交互事件可回放。
-    - 避免依赖 `console.log` 堆砌，使用结构化追踪。
+### 1. 大骨架（架构边界与层职责）
+- [x] `ui-core` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），输出 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [ ] `ui-motion` 定义：动效引擎与契约执行层（spring、keyframes、WAAPI backend）。不关心业务组件语义；非 wasm 提供 no-op/stub，保证 SSR/tooling 可编译。
+- [ ] `ui-theme` 定义：设计 token 与主题层（Light/Dark/OLED）+ CSS 变量生成。只输出 theme/tokens/base css，不做组件 CSS。
+- [ ] `ui-components` 定义：最终 Leptos 组件层，组合 headless + motion + theme。对外 API 不暴露 `web-sys` 类型；DOM/wasm 细节放内部模块。
+- [ ] 依赖方向正确：无反向依赖、无跨层偷用、无重复造轮子。
+- [ ] Spectrum 三轴一致：组件明确映射 `system/color/scale`，不引入私有命名体系。
 
-### 5. 工程、性能与 SSR (Engineering & Performance)
-**高标准交付，环境适应**
-- [ ] **SSR 兼容性**：
-    - `ui-headless` 中 Web/SSR feature 互斥 (`compile_error!` 保护)。
-    - 非 WASM 环境下 `ui-motion` 为 no-op。
-    - 确保无 `window/document` 全局对象依赖，降级实现不 Panic。
-- [ ] **异步抽象**：使用 `serde` 处理序列化，`tracing` 处理链路追踪。异步运行时（Tokio/Async-std）解耦。
-- [ ] **性能治理**：
-    - 无不必要的 `.clone()`。
-    - 使用细粒度更新（Signals/Memos）而非整体重算。
-    - 关键组件定义性能预算（内存/渲染耗时）。
-- [ ] **开发体验 (DX)**：支持样式热重载（无需重编 WASM），提供 Workbench 模式隔离开发。
+### 2. 小骨架（API 设计检查 + 状态管理检查）
+- [ ] API 命名统一：`is_*`、`on_*`、`default_*`。
+- [ ] 受控/非受控成对设计：`value + on_value_change` 对应 `default_value`，`open + on_open_change` 对应 `default_open`。
+- [ ] 默认值来源单一：统一在 `logic.rs` 归一，不在 `view.rs` 分散决策。
+- [ ] 状态管理语义清晰：用类型化状态输入与 `logic.rs` 归一化替代分散 view 逻辑。
+- [ ] 离散状态用 `enum`（variant/size/mode 等）约束输入空间，避免多个 `Option<bool>` 拼状态机。
+- [ ] `ui-core` 提供可组合状态原语，不强制单一全局状态框架；应用层全局状态接入需通过桥接层，不让组件直接绑定业务 store。
+- [ ] 组件库异步交互模式统一：`is_loading`、error/retry、`aria-busy`、禁用态语义一致；鼓励可复用抽象（如 `use_async_action` 方向），避免每组件一套协议。
 
-### 6. 测试与文档 (Testing & Documentation)
-**契约验证，文档即产品**
-- [x] **语义测试**：验证 `data-*` / `aria-*` 等语义契约，而不仅仅是视觉快照。
-- [x] **单元测试**：`logic.rs` 中的纯逻辑/状态机必须有 `#[test]` 覆盖。
-- [ ] **E2E 测试**：关键业务流纳入 Playwright/Cypress 回归集合，使用稳定语义选择器。
-- [x] **文档完整性**：
-    - `docs-app` 包含对应文档页。
-    - 包含至少一个可交互的 Playground 示例。
-    - API 文档清晰，无暴露底层实现细节。
-    - 每个组件都需要有heroui水平的单组件文档
+### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
+- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+
+### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
+- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [ ] 性能治理进入常规门禁：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+
+### 5. 文件落点检查（必须提及）
+- [ ] `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）。
+- [ ] `crates/ui-components/src/css.rs`：聚合组件 CSS（`push_components_css`）。
+- [ ] `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars + components css。
+- [ ] `crates/ui-components/src/active_highlight.rs`：高亮条样式与 motion driver。
+- [ ] `crates/ui-components/src/overlay_open.rs`：若存在则用于 open-state 辅助；当前仓库已迁移到 `ui-headless`（`crates/ui-headless/src/controllable_state.rs`），需在组件中通过 headless API 使用。
+- [ ] `crates/ui-components/src/presence.rs`：若存在则用于生命周期；当前仓库 presence 原语在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
+- [ ] `crates/ui-components/src/a11y.rs`：若存在则放共享 A11y 小工具；当前共享实现位于 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`）。
+- [ ] `mod.rs`：最小稳定导出面（存在且无过度导出）。
+- [ ] `logic.rs`：props 归一化、派生状态、来源标记（存在）。
+- [ ] `styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`（存在）。
+- [ ] `view.rs`：纯 Leptos view 结构渲染（存在，禁止 `render.rs` 漂移）。
+- [ ] `motion.rs`：`XxxMotion + attach_motion`（交互组件必须有）。
+- [ ] `spec.rs`：仅极少数组件专用（当前主要 button）。
+
+### 6. AI 原生能力（Agent Contract + 流式）
+- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [ ] 流式能力作为 AI 原生特征而非可选增强：结构流（Spec/Config）、状态流（规划/校验/可预览/可提交）、结果流（增量挂载）。
+- [ ] 流式输出可恢复（断流重连不破坏会话状态）、可验证（分片不绕过契约校验）、可标识（草稿/已验证/可提交）。
+
+### 7. 测试与文档（验证闭环）
+- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [ ] 变更说明完整：风险点、兼容性影响、验证命令与结果。
+
+### 8. Spectrum 五项硬基线（组件级必过，含文件落点）
+- [ ] 基线 1 Token 统一基线：定义 `crates/ui-theme/src/tokens.rs`，映射 `crates/ui-theme/src/theme.rs`，变量输出 `crates/ui-theme/src/css.rs`，组件消费 `crates/ui-components/src/<component>/styles.rs`。
+- [ ] 基线 2 三轴上下文：`system/color/scale` 定义于 `crates/ui-theme/src/theme.rs`，组件在 `logic.rs` 选择并在 `view.rs` 生效。
+- [ ] 基线 3 Token 分类可追溯：分类源 `crates/ui-theme/src/tokens.rs`，规范文档 `docs/spec/styling.md`，组件映射落点 `styles.rs`。
+- [ ] 基线 4 量化尺寸可回归：尺寸基准定义在 `tokens.rs`，映射在 `theme.rs`，主题回归测试建议 `crates/ui-theme/tests/token_scale_baseline.rs`，组件语义回归 `crates/ui-components/tests/<component>_semantics.rs`。
+- [ ] 基线 5 A11y + i18n/l10n：A11y 契约在 `crates/ui-headless/src/a11y.rs`，组件挂载在 `view.rs`，文案与本地化落点 `i18n.rs`（按需新增），语义测试与 E2E 分别在 `crates/ui-components/tests/*` 与 `e2e/tests/*`。
+
+### 9. 明确禁止的反模式
+- [ ] 在 `ui-core` 写 DOM/样式逻辑。
+- [ ] 在 `ui-headless` 写视觉和动画编排。
+- [ ] 在 `view` 层隐藏关键状态决策。
+- [ ] 新增参数但不纳入统一命名与契约。
+- [ ] 公共 API 泄露底层实现细节类型。
+- [ ] 用临时补丁破坏跨组件一致性。
+
+### 10. 合并门禁（最终裁决）
+- [ ] 架构正确（边界不破）。
+- [ ] 行为正确（状态与交互语义成立）。
+- [ ] 可访问性达标（默认可用）。
+- [ ] 可测试（契约可断言）。
+- [ ] 可维护（命名和模式一致）。
+- [ ] 可解释（人和自动化都能读懂）。
+- [ ] 改动在正确层。
+- [ ] 命名与全库一致。
+- [ ] 无效状态被限制或归一化。
+- [ ] 暴露必要语义标记。
+- [ ] 覆盖 reduced-motion / SSR / wasm 分支。
+- [ ] 文档与示例同步更新。
+- [ ] 门禁完整通过（fmt/clippy/test/smoke 等）。

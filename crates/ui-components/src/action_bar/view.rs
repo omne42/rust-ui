@@ -1,9 +1,12 @@
 use crate::action_bar::{
-    ActionBarMotion, ActionBarPosition, ActionBarStateInput,
+    ActionBarMotion, ActionBarPosition, ActionBarStateInput, ActionBarStrings,
     logic::{self, resolve_selection_text},
     motion,
 };
 use leptos::{html, prelude::*};
+use ui_headless::i18n;
+use ui_headless::use_button;
+use ui_headless::{ButtonOptions, FocusRingOptions, HoverOptions, use_focus_ring, use_hover};
 
 #[component]
 pub fn ActionBar(
@@ -18,8 +21,13 @@ pub fn ActionBar(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] children: Option<Children>,
 ) -> impl IntoView {
-    let (aria_label, has_custom_label) = logic::normalize_aria_label(aria_label);
-    let (clear_label, has_custom_clear_label) = logic::normalize_clear_label(clear_label);
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<ActionBarStrings>();
+
+    let (aria_label, has_custom_label) =
+        logic::normalize_aria_label(aria_label, strings.aria_label.as_ref());
+    let (clear_label, has_custom_clear_label) =
+        logic::normalize_clear_label(clear_label, strings.clear_label.as_ref());
     let (selection_text, has_custom_selection_text) =
         logic::normalize_selection_text(selection_text);
 
@@ -30,6 +38,8 @@ pub fn ActionBar(
 
     let has_clear_action = on_clear_selection.is_some();
     let on_clear_selection = StoredValue::new(on_clear_selection);
+
+    let strings = StoredValue::new(strings);
 
     let state = Signal::derive(move || {
         logic::resolve_state(ActionBarStateInput {
@@ -48,7 +58,11 @@ pub fn ActionBar(
     let class =
         Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
     let selection_text = Signal::derive(move || {
-        resolve_selection_text(state.get().selected_count, selection_text.clone())
+        resolve_selection_text(
+            state.get().selected_count,
+            selection_text.clone(),
+            strings.get_value().as_ref(),
+        )
     });
     let visible = Signal::derive(move || state.get().is_visible);
 
@@ -94,13 +108,47 @@ pub fn ActionBar(
                 {on_clear_selection.get_value().map(|on_clear_selection| {
                     let clear_label_attr = clear_label.clone();
                     let clear_label_text = clear_label.clone();
+                    let aria = use_button(ButtonOptions {
+                        on_press: Some(on_clear_selection),
+                        ..Default::default()
+                    });
+                    let focus_ring = use_focus_ring(FocusRingOptions::default());
+                    let hover = use_hover(HoverOptions::default());
                     view! {
                         <button
                             type="button"
                             class="ui-action-bar__clear"
                             data-slot="action-bar-clear"
+                            data-hovered=move || hover.is_hovered.get().then_some("true")
+                            data-pressed=move || aria.is_pressed.get().then_some("true")
+                            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
                             aria-label=clear_label_attr
-                            on:click=move |_| on_clear_selection.run(())
+                            role=aria.attrs.role
+                            tabindex=aria.attrs.tabindex
+                            aria-disabled=aria.attrs.aria_disabled
+                            on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
+                            on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
+                            on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())
+                            on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
+                            on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
+                            on:click=move |_| aria.handlers.press.on_click.run(())
+                            on:keydown=move |ev| {
+                                let key = ev.key();
+                                if aria.handlers.press.on_key_down.run(key) {
+                                    ev.prevent_default();
+                                }
+                            }
+                            on:keyup=move |ev| {
+                                let key = ev.key();
+                                if aria.handlers.press.on_key_up.run(key) {
+                                    ev.prevent_default();
+                                }
+                            }
+                            on:blur=move |_| {
+                                aria.handlers.press.on_blur.run(());
+                                focus_ring.handlers.on_blur.run(());
+                            }
+                            on:focus=move |_| focus_ring.handlers.on_focus.run(())
                         >
                             {clear_label_text}
                         </button>

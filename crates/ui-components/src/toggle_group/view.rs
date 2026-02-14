@@ -1,4 +1,3 @@
-use crate::overlay_open;
 use crate::toggle_button::{ToggleButton, ToggleButtonSize, ToggleButtonVariant};
 use crate::toggle_group::{
     ToggleGroupItem, ToggleGroupStateInput,
@@ -6,6 +5,7 @@ use crate::toggle_group::{
 };
 use leptos::prelude::*;
 use std::collections::BTreeSet;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn ToggleGroup(

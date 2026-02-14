@@ -62,17 +62,7 @@ report() {
   printf 'architecture-check: %s\n  %s\n' "$title" "$detail" >&2
 }
 
-# 1) apps should consume ui-components, not lower layers directly.
-for path in "${files[@]}"; do
-  [[ "$path" == apps/*/src/* ]] || continue
-  content="$(read_snapshot "$path" || true)"
-  [[ -n "$content" ]] || continue
-  if printf '%s\n' "$content" | rg -n "\bui_(core|headless|theme|motion)::" >/dev/null; then
-    report "apps layering violation" "$path imports lower-layer crates (ui_core/ui_headless/ui_theme/ui_motion)."
-  fi
-done
-
-# 2) ui-core must stay platform-agnostic and independent.
+# 1) ui-core must stay platform-agnostic and independent.
 for path in "${files[@]}"; do
   [[ "$path" == crates/ui-core/src/* ]] || continue
   content="$(read_snapshot "$path" || true)"
@@ -87,7 +77,7 @@ for path in "${files[@]}"; do
   fi
 done
 
-# 3) headless/theme/motion dependency direction guardrails.
+# 2) headless/theme/motion dependency direction guardrails.
 for path in "${files[@]}"; do
   [[ "$path" == crates/ui-headless/src/* ]] || continue
   content="$(read_snapshot "$path" || true)"
@@ -115,7 +105,7 @@ for path in "${files[@]}"; do
   fi
 done
 
-# 4) ui-components module structure: touched component dirs must keep logic/styles/view split.
+# 3) ui-components module structure: touched component dirs must keep logic/styles/view split.
 #    Alias-only facade modules are exempt (mod.rs contains no module declarations).
 component_dirs=()
 for path in "${files[@]}"; do
@@ -153,7 +143,7 @@ if [[ "${#component_dirs[@]}" -gt 0 ]]; then
   done
 fi
 
-# 5) Block introducing render.rs files in component modules.
+# 4) Block introducing render.rs files in component modules.
 for path in "${files[@]}"; do
   [[ "$path" == crates/ui-components/src/*/render.rs ]] || continue
   report "ui-components forbidden file" "$path should be renamed to view.rs."

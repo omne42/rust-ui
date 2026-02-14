@@ -10,10 +10,10 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn normalize_aria_label(aria_label: String) -> (String, bool) {
+pub fn normalize_aria_label(aria_label: String, default: &str) -> (String, bool) {
     let trimmed = aria_label.trim();
     if trimmed.is_empty() {
-        (DEFAULT_ARIA_LABEL.to_string(), false)
+        (default.to_string(), false)
     } else {
         (trimmed.to_string(), true)
     }
@@ -110,11 +110,12 @@ mod tests {
 
     #[test]
     fn normalize_aria_label_trims_and_falls_back() {
-        let (label, explicit) = normalize_aria_label("  Close dialog  ".to_string());
+        let (label, explicit) =
+            normalize_aria_label("  Close dialog  ".to_string(), DEFAULT_ARIA_LABEL);
         assert_eq!(label, "Close dialog");
         assert!(explicit);
 
-        let (label, explicit) = normalize_aria_label("   ".to_string());
+        let (label, explicit) = normalize_aria_label("   ".to_string(), DEFAULT_ARIA_LABEL);
         assert_eq!(label, DEFAULT_ARIA_LABEL);
         assert!(!explicit);
     }

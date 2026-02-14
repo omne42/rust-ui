@@ -10,13 +10,15 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-components`: adds per-component Cargo feature gates (`component-*`) plus `all-components` so downstream crates can tree-shake unused components (including CSS aggregation) while preserving default behavior.
 
-- `scripts`: marks `scripts/check2-audit.sh` + `scripts/check2-tick.sh` as executable so the check2 audit/tick flow runs out of the box.
+- `check2`: keeps per-component `check2.md` as a human-owned checklist (manual verification + manual ticking; no automation scripts mutate Markdown).
 
-- `scripts` + `ui-components`: extends check2 automation to validate semantics coverage and (with `scripts/check2-audit.sh --slow`) docs coverage via `docs-app` tests; `scripts/check2-tick.sh` can now auto-tick the audited `语义测试`/`文档完整性`/`单元测试` items while keeping subjective checklist items manual.
+- `ui-compat`: adds a dedicated compatibility-shims crate (Spectrum/RAC naming parity, provider/story/test/utils/style-macro) so `ui-components` stays focused on actual UI components.
 
-- `e2e` + `scripts`: adds a Playwright E2E harness for `apps/docs-app` (`e2e/`, `scripts/e2e-docs-app.sh`) including core regressions (boot, command menu nav, nav-sheet open/close, playground code toggle) plus a components-page coverage test (sample/all), and wires `check2-audit.sh --e2e` / `check2-tick.sh --e2e` helpers.
+- `docs/spec`: adds i18n injection + component-boundary specs (`docs/spec/i18n.md`, `docs/spec/component_boundaries.md`) and registers them in the docs index.
 
-- `scripts` + `ui-components`: adds executable check2 auditing/ticking helpers (`scripts/check2-audit.sh`, `scripts/check2-tick.sh`) and marks the verified workspace layering items as checked in every component `check2.md`.
+- `e2e`: adds a Playwright regression for `ActionBar` (visibility + clear selection keyboard flow).
+
+- `e2e` + `scripts`: adds a Playwright E2E harness for `apps/docs-app` (`e2e/`, `scripts/e2e-docs-app.sh`) including core regressions (boot, command menu nav, nav-sheet open/close, playground code toggle) plus a components-page coverage test (sample/all).
 
 - `ui-components`: makes `<UiRoot>` component CSS injection opt-in via `inject_components_css`, fixes missing CSS aggregation for `drag_and_drop` and `overlays`, and extends the check2 audit to cover the styles contract and UiRoot injection invariants.
 
@@ -1616,6 +1618,12 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `Autocomplete` now normalizes label/placeholder/message text, exposes option focus + empty-result slots/state attrs, and aligns root `data-empty` to filtered results.
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
+
+- `ui-headless` + `apps/docs-app`: moves cross-component infrastructure (i18n registry, trace/perf hooks) into `ui-headless` and keeps debug overlay UI in the app layer.
+
+- `scripts/check-architecture.sh` + `apps/*`: allow apps to depend on lower layers directly (per `docs/philosophy.md`), and stop re-exporting trace/perf/provider infrastructure from `ui-components`.
+
+- `ui-components`: completes `ActionBar` check2 remediation (i18n bundle + headless press/hover/focus for the clear action) and adds a docs default state that stays visible for coverage/E2E.
 
 - `ui-components`: `SlidingNumber` now snapshots decimal/thousand separators before reactive formatting derivation, fixing moved-value ownership errors during native/wasm compilation.
 - `apps/web-demo`: replaced the full `<App />` construction unit test with a deterministic `DemoTheme` cycle test, removing stack-overflow failures from workspace test gates.

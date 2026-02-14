@@ -1,5 +1,3 @@
-pub const DEFAULT_ARIA_LABEL: &str = "Loading";
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SpinnerSize {
     Sm,
@@ -52,13 +50,13 @@ pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     })
 }
 
-pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
+pub fn resolve_aria_label(value: Option<String>, default: &str) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
-        let is_custom = label != DEFAULT_ARIA_LABEL;
+        let is_custom = label != default;
         return (label, is_custom);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (default.to_string(), false)
 }
 
 pub fn resolve_state(input: SpinnerStateInput) -> SpinnerState {
@@ -130,16 +128,17 @@ mod tests {
 
     #[test]
     fn resolve_aria_label_defaults_and_detects_custom_source() {
+        let default_aria_label = "Loading";
         assert_eq!(
-            resolve_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            resolve_aria_label(None, default_aria_label),
+            (default_aria_label.to_string(), false)
         );
         assert_eq!(
-            resolve_aria_label(Some("  Loading  ".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            resolve_aria_label(Some("  Loading  ".to_string()), default_aria_label),
+            (default_aria_label.to_string(), false)
         );
         assert_eq!(
-            resolve_aria_label(Some(" Fetching activity ".to_string())),
+            resolve_aria_label(Some(" Fetching activity ".to_string()), default_aria_label),
             ("Fetching activity".to_string(), true)
         );
     }

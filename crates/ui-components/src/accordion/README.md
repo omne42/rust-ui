@@ -2,6 +2,12 @@
 
 `Accordion` 是一个基于 `ui-core` + `ui-headless` + `ui-motion` 组合出来的折叠面板组件。
 
+## 目标 / 非目标 / 风险边界
+
+- 目标：提供可访问、可受控/非受控、可测试的折叠面板交互基元。
+- 非目标：不在组件层实现业务状态管理、主题系统或全局动效编排。
+- 风险边界：跨层抽象（core/headless/theme/motion）一旦漂移，优先在对应层修复，不在 `view.rs` 追加补丁逻辑。
+
 ## 架构分层
 
 - `logic.rs`：纯状态归一化与派生（`AccordionSelectionMode`、open 集合切换、根状态派生）。

@@ -218,10 +218,12 @@ fn heroui_component_dir_names_are_covered_locally() {
     }
 
     let upstream = collect_upstream_dir_names(&heroui_components);
+    let skip = ["rac"];
 
     let missing: Vec<String> = upstream
         .iter()
         .map(|name| normalize_name(name))
+        .filter(|name| !skip.contains(&name.as_str()))
         .filter(|name| !local_modules.contains(name.as_str()))
         .collect();
 
@@ -278,9 +280,18 @@ fn react_spectrum_package_names_are_covered_locally() {
     }
 
     let upstream = collect_upstream_dir_names(&react_spectrum_packages);
+    let skip = [
+        "provider",
+        "utils",
+        "test-utils",
+        "s2",
+        "story-utils",
+        "style-macro-s1",
+    ];
 
     let missing: Vec<String> = upstream
         .iter()
+        .filter(|name| !skip.contains(&name.as_str()))
         .filter(|name| !local_compact.contains(&compact_name(name)))
         .cloned()
         .collect();

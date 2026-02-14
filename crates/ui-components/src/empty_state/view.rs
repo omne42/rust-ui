@@ -1,9 +1,10 @@
 use crate::empty_state::{
-    EmptyStateStateInput,
+    EmptyStateStateInput, EmptyStateStrings,
     logic::{self, EmptyStateAlign, EmptyStateTone},
 };
 use leptos::children::ViewFn;
 use leptos::prelude::*;
+use ui_headless::i18n;
 
 #[component]
 pub fn EmptyState(
@@ -18,13 +19,17 @@ pub fn EmptyState(
     #[prop(optional, into)] icon: Option<ViewFn>,
     #[prop(optional, into)] actions: Option<ViewFn>,
 ) -> impl IntoView {
-    let (title, has_custom_title) = logic::normalize_title(title);
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<EmptyStateStrings>();
+    let (title, has_custom_title) = logic::normalize_title(title, strings.default_title.as_ref());
     let title = StoredValue::new(title);
 
-    let (description, has_custom_description) = logic::normalize_description(description);
+    let (description, has_custom_description) =
+        logic::normalize_description(description, strings.default_description.as_ref());
     let description = StoredValue::new(description);
 
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let (aria_label, has_custom_aria_label) =
+        logic::normalize_aria_label(aria_label, strings.default_aria_label.as_ref());
 
     let has_icon = icon.is_some();
     let has_actions = actions.is_some();

@@ -1,9 +1,9 @@
-use crate::overlay_open;
 use crate::time_field::{
     TimeFieldStateInput,
     logic::{self, TimeFieldTone},
 };
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn TimeField(

@@ -1,6 +1,6 @@
 use crate::disclosure::{DisclosureIds, DisclosureMotion, logic, motion};
-use crate::overlay_open;
 use leptos::{html, prelude::*};
+use ui_headless as overlay_open;
 use ui_headless::{
     ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
 };
@@ -26,7 +26,12 @@ pub fn Disclosure(
         .filter(|value| !value.trim().is_empty())
         .unwrap_or_else(|| label.clone());
 
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "disclosure",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 

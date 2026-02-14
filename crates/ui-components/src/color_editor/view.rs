@@ -2,10 +2,9 @@ use crate::color_editor::{
     ColorEditorFormat, ColorEditorStateInput,
     logic::{self},
 };
-use crate::{
-    ColorArea, ColorField, ColorSlider, ColorSliderChannel, ColorSliderMotion, overlay_open,
-};
+use crate::{ColorArea, ColorField, ColorSlider, ColorSliderChannel, ColorSliderMotion};
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn ColorEditor(

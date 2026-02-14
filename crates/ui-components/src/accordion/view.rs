@@ -1,7 +1,7 @@
 use crate::accordion::{AccordionMotion, AccordionSelectionMode, logic, motion};
-use crate::overlay_open;
 use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
 use std::{collections::BTreeSet, sync::Arc};
+use ui_headless as overlay_open;
 use ui_headless::{
     FocusRingOptions, HoverOptions, PressOptions, RovingOrientation, RovingTabIndexOptions,
     use_focus_ring, use_hover, use_press, use_roving_tabindex,
@@ -67,6 +67,11 @@ pub fn Accordion(
         &default_open_indices.unwrap_or_default(),
         item_count,
     );
+    let open_state_source = if open_indices.is_some() {
+        "controlled"
+    } else {
+        "uncontrolled"
+    };
     let open_state = overlay_open::use_controllable_state(
         open_indices,
         Some(default_open_indices),
@@ -160,6 +165,7 @@ pub fn Accordion(
                 let press = use_press(PressOptions {
                     is_disabled,
                     on_press: Some(on_press),
+                    prevent_default_for_keyboard: true,
                     ..Default::default()
                 });
 
@@ -291,6 +297,7 @@ pub fn Accordion(
             data-all-closed=move || (!state.get().has_open_items).then_some("true")
             data-multiple-open=move || state.get().has_multiple_open.then_some("true")
             data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
+            data-open-state-source=open_state_source
             data-selection-mode=match selection_mode {
                 AccordionSelectionMode::Single => "single",
                 AccordionSelectionMode::Multiple => "multiple",

@@ -1,10 +1,11 @@
+use crate::ColorSwatch;
 use crate::color_area::{
     ColorAreaMotion, ColorAreaStateInput,
     logic::{self},
     motion,
 };
-use crate::{ColorSwatch, overlay_open};
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 
 #[component]
 pub fn ColorArea(

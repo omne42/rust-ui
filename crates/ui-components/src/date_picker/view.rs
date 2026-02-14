@@ -1,12 +1,13 @@
 use crate::date_picker::{
-    DatePickerMotion, DatePickerStateInput,
+    DatePickerMotion, DatePickerStateInput, DatePickerStrings,
     logic::{self, DatePickerTone},
 };
-use crate::overlay_open;
-use crate::presence::use_presence;
 use crate::{Button, Calendar, CalendarFirstWeekday, CalendarTone, OnPress, Popover};
 use leptos::{html, prelude::*};
+use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::i18n;
+use ui_headless::use_presence;
 
 #[component]
 pub fn DatePicker(
@@ -29,9 +30,18 @@ pub fn DatePicker(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<DatePickerStrings>();
+    let calendar_aria_label = strings.calendar_aria_label.as_ref().to_string();
+    let calendar_aria_label = StoredValue::new(calendar_aria_label);
     let normalized_month = logic::normalize_month(month);
 
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "date-picker",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
@@ -113,7 +123,7 @@ pub fn DatePicker(
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
     let on_day_press = StoredValue::new(on_day_press);
 
-    let aria_controls = crate::a11y::aria_controls_when_open(open, panel_id.get_value());
+    let aria_controls = ui_headless::aria_controls_when_open(open, panel_id.get_value());
 
     view! {
         <div
@@ -172,17 +182,17 @@ pub fn DatePicker(
                         {move || {
                             let selected_day = selected_day.get();
                             view! {
-                                <Calendar
+                                    <Calendar
                                     year=year
                                     month=normalized_month
                                     tone=calendar_tone
                                     first_weekday=first_weekday
-                                    show_outside_days=show_outside_days
-                                    selected_day=selected_day
-                                    on_day_press=Some(on_day_press.get_value())
-                                    aria_label="Date picker calendar".to_string()
-                                    class_name="ui-date-picker__calendar".to_string()
-                                />
+                                        show_outside_days=show_outside_days
+                                        selected_day=selected_day
+                                        on_day_press=Some(on_day_press.get_value())
+                                        aria_label=calendar_aria_label.get_value()
+                                        class_name="ui-date-picker__calendar".to_string()
+                                    />
                             }
                         }}
                     </div>

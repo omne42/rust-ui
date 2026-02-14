@@ -3,9 +3,11 @@ use crate::color_picker::{
     logic::{self},
 };
 use crate::color_swatch::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};
-use crate::{OnPress, Popover, overlay_open, presence::use_presence};
+use crate::{OnPress, Popover};
 use leptos::{html, prelude::*};
+use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::use_presence;
 
 #[component]
 pub fn ColorPicker(
@@ -47,7 +49,12 @@ pub fn ColorPicker(
         Memo::new(move |_| logic::sanitize_selected_color(selected_state.value.get()));
 
     let is_open_controlled = open.is_some();
-    let open_state = overlay_open::use_controllable_open_state(open, default_open, on_open_change);
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "color-picker",
+        open,
+        default_open,
+        on_open_change,
+    );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
@@ -92,7 +99,7 @@ pub fn ColorPicker(
 
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
-    let aria_controls = crate::a11y::aria_controls_when_open(open, panel_id.get_value());
+    let aria_controls = ui_headless::aria_controls_when_open(open, panel_id.get_value());
 
     let children = StoredValue::new(children);
 

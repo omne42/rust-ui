@@ -67,6 +67,8 @@ pub fn ComponentPage(
             </div>
         </section>
 
-        {children()}
+        <div class="docs-component-root" data-slot=slug data-component=slug>
+            {children()}
+        </div>
     }
 }

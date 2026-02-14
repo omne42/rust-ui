@@ -13,7 +13,8 @@ use demos::{
     TextAreaDemo, TextFieldDemo, TooltipDemo, TypographyDemo,
 };
 use leptos::{mount::mount_to_body, prelude::*};
-use ui_components::{Button, OnPress, Theme, UiRoot, provide_focus_visible, provide_overlay_stack};
+use ui_components::{Button, OnPress, Theme, UiRoot};
+use ui_headless::{provide_focus_visible, provide_overlay_stack};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum DemoTheme {
@@ -54,7 +55,11 @@ fn App() -> impl IntoView {
     let toggle_theme: OnPress = Callback::new(move |_| set_demo_theme.update(|t| *t = t.next()));
 
     view! {
-        <UiRoot theme=theme safe_area=true inject_components_css=true>
+        <UiRoot
+            theme=theme
+            safe_area=true
+            inject_components_css=true
+        >
         <div class="demo-shell">
             <header class="demo-header">
                 <div>

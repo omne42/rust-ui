@@ -5,9 +5,9 @@ use crate::{
         logic::{self},
         motion,
     },
-    overlay_open,
 };
 use leptos::prelude::*;
+use ui_headless as overlay_open;
 use ui_headless::{RadioGroupOptions, RovingOrientation, use_radio_group};
 
 #[component]

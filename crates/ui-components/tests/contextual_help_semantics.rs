@@ -63,7 +63,7 @@ fn contextual_help_uses_controllable_open_and_presence() {
     let source = load_source("src/contextual_help/view.rs");
 
     for needle in [
-        "overlay_open::use_controllable_open_state",
+        "overlay_open::use_controllable_open_state_traced",
         "use_presence(open)",
         "on_exit_complete=presence.finish_exit",
     ] {

@@ -35,6 +35,8 @@
 | `docs/spec/motion.md` | Spec | Active | 动效架构约束 |
 | `docs/spec/styling.md` | Spec | Active | 样式系统规范 |
 | `docs/spec/tree_shaking.md` | Spec | Active | Tree Shaking / 组件级裁剪规范 |
+| `docs/spec/i18n.md` | Spec | Draft | i18n / l10n 注入契约（组件层） |
+| `docs/spec/component_boundaries.md` | Spec | Draft | UI 组件边界与跨层归属规则 |
 | `docs/spec/heroui-parameter-design-strategy.md` | Spec | Draft | 参数模型对齐策略 |
 | `docs/spec/hyper-structure-ui-development-playbook.md` | Spec | Draft | AI Verified/Struct-First 执行手册 |
 
@@ -54,6 +56,7 @@
 | --- | --- | --- | --- |
 | `docs/research/README.md` | Research | Active | 调研入口与上游定位 |
 | `docs/research/spectrum-heroui-style-interface-study.md` | Research | Reference | Spectrum × HeroUI 综合研究 |
+| `docs/research/spectrum-design-primitives-search-2026-02-14.md` | Research | Reference | Spectrum 设计元语样式基准检索记录 |
 | `docs/research/android-spike.md` | Research | Reference | Android/WebView 可行性记录 |
 | `docs/research/bb_ui-web_notes.md` | Research | Reference | 外部项目经验记录 |
 
