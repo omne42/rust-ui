@@ -1619,6 +1619,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
+- `ui-components`: marks the `Accordion` check2 `ui-core` definition item as pending re-verification (manual checklist hygiene).
+
 - `ui-headless` + `apps/docs-app`: moves cross-component infrastructure (i18n registry, trace/perf hooks) into `ui-headless` and keeps debug overlay UI in the app layer.
 
 - `scripts/check-architecture.sh` + `apps/*`: allow apps to depend on lower layers directly (per `docs/philosophy.md`), and stop re-exporting trace/perf/provider infrastructure from `ui-components`.

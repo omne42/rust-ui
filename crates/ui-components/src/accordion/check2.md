@@ -10,7 +10,7 @@
 - [x] 组件目标、非目标、风险边界已写清楚。
 
 ### 1. 大骨架（架构边界与层职责）
-- [x] `ui-core` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [ ] `ui-core` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
 - [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），输出 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
 - [ ] `ui-motion` 定义：动效引擎与契约执行层（spring、keyframes、WAAPI backend）。不关心业务组件语义；非 wasm 提供 no-op/stub，保证 SSR/tooling 可编译。
 - [ ] `ui-theme` 定义：设计 token 与主题层（Light/Dark/OLED）+ CSS 变量生成。只输出 theme/tokens/base css，不做组件 CSS。
