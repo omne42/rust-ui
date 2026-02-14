@@ -106,6 +106,32 @@ else
   pass "ui-components pub items do not mention web_sys (grep-based check)"
 fi
 
+# 5.1) Tree-shaking: component-level feature gates exist (package mode)
+components_toml="$ROOT_DIR/crates/ui-components/Cargo.toml"
+if has_rg_matches "^all-components\\s*=\\s*\\[" "$components_toml" \
+  && has_rg_matches "^component-[a-z0-9_]+\\s*=\\s*\\[\\]\\s*$" "$components_toml"; then
+  pass "ui-components defines all-components + per-component features"
+else
+  ok=0
+  fail "ui-components missing all-components/component-* feature definitions in $components_toml" || true
+fi
+
+components_lib="$components_src/lib.rs"
+if has_rg_matches "\\#\\[cfg\\(feature = \\\"component-" "$components_lib"; then
+  pass "ui-components gates component modules behind component-* features"
+else
+  ok=0
+  fail "ui-components missing component-* cfg gates in $components_lib" || true
+fi
+
+css_rs="$components_src/css.rs"
+if has_rg_matches "\\#\\[cfg\\(feature = \\\"component-" "$css_rs"; then
+  pass "ui-components gates CSS aggregation behind component-* features"
+else
+  ok=0
+  fail "ui-components css aggregation is not feature-gated in $css_rs" || true
+fi
+
 # 6) styles contract: no hardcoded hex colors; no HTML style="..."; styles aggregated
 if has_rg_matches "#[0-9a-fA-F]{3,8}\\b" "$components_src" --glob "*/styles.rs"; then
   ok=0
@@ -150,7 +176,6 @@ else
 fi
 
 # Ensure every component-local styles.rs with embedded raw string CSS is aggregated in css.rs.
-css_rs="$components_src/css.rs"
 python3 - <<'PY'
 import os
 root = os.environ["ROOT_DIR"]

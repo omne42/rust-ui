@@ -13,6 +13,10 @@ USAGE
   exit 2
 fi
 
+if [[ "$MODE" == "--apply" ]]; then
+  bash "$ROOT_DIR/scripts/check2-audit.sh"
+fi
+
 ROOT_DIR="$ROOT_DIR" MODE="$MODE" python3 - <<'PY'
 import os
 import sys
@@ -30,6 +34,7 @@ checks = [
     "Motion 层独立",
     "Theme 层解耦",
     "Component 层组合",
+    "Tree Shaking 支持",
     "全局注入机制",
     "样式契约 (`styles.rs`)",
 ]

@@ -5,7 +5,7 @@
 - [x] **Motion 层独立**：`crates/ui-motion` 实现动效引擎（Spring/WAAPI）。非 WASM 环境提供 no-op 实现，确保 SSR 可编译。
 - [x] **Theme 层解耦**：`crates/ui-theme` 仅负责 Token 定义与 CSS 变量生成（Light/Dark/OLED），不包含组件具体 CSS。
 - [x] **Component 层组合**：`crates/ui-components` 作为最终组装层。对外 API **严禁暴露** `web-sys` 类型，DOM 细节封装在内部。
-- [ ] **Tree Shaking 支持**：
+- [x] **Tree Shaking 支持**：
     - Package 模式：`ui-components` 支持组件级 feature，按需编译。
     - Source 模式：源码拉取天然支持裁剪。
     - 样式裁剪：禁止无条件聚合所有 CSS，需随组件按需加载。

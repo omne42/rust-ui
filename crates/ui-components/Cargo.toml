@@ -8,10 +8,487 @@ publish = false
 path = "src/lib.rs"
 
 [features]
-default = ["inject-css"]
+default = ["inject-css", "all-components"]
 
 inject-css = []
 
+all-components = [
+    "component-accordion",
+    "component-action_bar",
+    "component-action_button",
+    "component-action_button_group",
+    "component-action_group",
+    "component-action_menu",
+    "component-active_highlight",
+    "component-alert",
+    "component-alert_banner",
+    "component-alert_dialog",
+    "component-aspect_ratio",
+    "component-asset",
+    "component-auto_height",
+    "component-autocomplete",
+    "component-avatar",
+    "component-avatar_group",
+    "component-badge",
+    "component-bottom_sheet",
+    "component-breadcrumb",
+    "component-breadcrumbs",
+    "component-button",
+    "component-button_copy",
+    "component-button_flip",
+    "component-button_group",
+    "component-button_search_input",
+    "component-button_share",
+    "component-button_theme_toggle",
+    "component-calendar",
+    "component-card",
+    "component-carousel",
+    "component-chart",
+    "component-checkbox",
+    "component-checkbox_field",
+    "component-checkbox_group",
+    "component-chip",
+    "component-circular_progress",
+    "component-clear_button",
+    "component-close_button",
+    "component-coachmark",
+    "component-code",
+    "component-code_block",
+    "component-collapsible",
+    "component-collection",
+    "component-color",
+    "component-color_area",
+    "component-color_editor",
+    "component-color_field",
+    "component-color_handle",
+    "component-color_loupe",
+    "component-color_picker",
+    "component-color_slider",
+    "component-color_swatch",
+    "component-color_swatch_picker",
+    "component-color_thumb",
+    "component-color_wheel",
+    "component-combo_box",
+    "component-combobox",
+    "component-command",
+    "component-command_dialog",
+    "component-content",
+    "component-context_menu",
+    "component-contextual_help",
+    "component-date_field",
+    "component-date_input_group",
+    "component-date_picker",
+    "component-date_range_picker",
+    "component-description",
+    "component-dialog",
+    "component-direction",
+    "component-disclosure",
+    "component-disclosure_group",
+    "component-divider",
+    "component-dnd",
+    "component-drag_and_drop",
+    "component-drawer",
+    "component-drop_zone",
+    "component-dropdown",
+    "component-dropdown_menu",
+    "component-dropzone",
+    "component-empty",
+    "component-empty_state",
+    "component-error_message",
+    "component-error_view",
+    "component-example_theme",
+    "component-field",
+    "component-field_button",
+    "component-field_error",
+    "component-field_group",
+    "component-field_label",
+    "component-fieldset",
+    "component-file_trigger",
+    "component-flex",
+    "component-flip_card",
+    "component-footer",
+    "component-form",
+    "component-form_field",
+    "component-grid",
+    "component-grid_list",
+    "component-gridlist",
+    "component-group",
+    "component-header",
+    "component-heading",
+    "component-help_text",
+    "component-hidden_date_input",
+    "component-hover_card",
+    "component-icon",
+    "component-icon_button",
+    "component-icons",
+    "component-icons_ui",
+    "component-icons_workflow",
+    "component-iconset",
+    "component-illustrated_message",
+    "component-image",
+    "component-infield_button",
+    "component-inline_alert",
+    "component-input",
+    "component-input_group",
+    "component-input_otp",
+    "component-item",
+    "component-kbd",
+    "component-keyboard",
+    "component-label",
+    "component-labeled_value",
+    "component-layout",
+    "component-legend",
+    "component-link",
+    "component-link_button",
+    "component-list",
+    "component-list_box",
+    "component-listbox",
+    "component-listbox_item",
+    "component-listbox_section",
+    "component-logic_button",
+    "component-menu",
+    "component-menu_item",
+    "component-menu_section",
+    "component-menu_trigger",
+    "component-menubar",
+    "component-meter",
+    "component-modal",
+    "component-native_select",
+    "component-navigation_menu",
+    "component-number",
+    "component-number_field",
+    "component-overlay",
+    "component-overlay_arrow",
+    "component-overlays",
+    "component-pagination",
+    "component-picker",
+    "component-picker_button",
+    "component-popover",
+    "component-pressable_feedback",
+    "component-preview_card",
+    "component-preview_link_card",
+    "component-progress",
+    "component-progress_bar",
+    "component-progress_circle",
+    "component-provider",
+    "component-rac",
+    "component-radio",
+    "component-radio_group",
+    "component-resizable",
+    "component-ripple",
+    "component-s2",
+    "component-scroll_area",
+    "component-scroll_shadow",
+    "component-search",
+    "component-search_field",
+    "component-segmented_control",
+    "component-select",
+    "component-selection_indicator",
+    "component-separator",
+    "component-shared_element_transition",
+    "component-sheet",
+    "component-sidebar",
+    "component-sidebar_content",
+    "component-sidebar_footer",
+    "component-sidebar_group",
+    "component-sidebar_header",
+    "component-sidebar_inset",
+    "component-sidebar_menu",
+    "component-sidebar_menu_action",
+    "component-sidebar_menu_badge",
+    "component-sidebar_rail",
+    "component-sidebar_trigger",
+    "component-sidenav",
+    "component-skeleton",
+    "component-skeleton_group",
+    "component-slider",
+    "component-snippet",
+    "component-sonner",
+    "component-spacer",
+    "component-spinbutton",
+    "component-spinner",
+    "component-split_view",
+    "component-status_light",
+    "component-step_list",
+    "component-story_utils",
+    "component-style_macro_s1",
+    "component-surface",
+    "component-swatch",
+    "component-switch",
+    "component-switch_group",
+    "component-table",
+    "component-tabs",
+    "component-tag",
+    "component-tag_group",
+    "component-tags",
+    "component-test_utils",
+    "component-text",
+    "component-text_area",
+    "component-text_field",
+    "component-textarea",
+    "component-textfield",
+    "component-theme_dark",
+    "component-theme_default",
+    "component-theme_express",
+    "component-theme_light",
+    "component-thumbnail",
+    "component-time_field",
+    "component-toast",
+    "component-toaster",
+    "component-toggle",
+    "component-toggle_button",
+    "component-toggle_button_group",
+    "component-toggle_group",
+    "component-toolbar",
+    "component-tooltip",
+    "component-top_nav",
+    "component-tray",
+    "component-tree",
+    "component-underlay",
+    "component-utils",
+    "component-view",
+    "component-virtualizer",
+    "component-visually_hidden",
+    "component-well",
+]
+
+component-accordion = []
+component-action_bar = []
+component-action_button = []
+component-action_button_group = []
+component-action_group = []
+component-action_menu = []
+component-active_highlight = []
+component-alert = []
+component-alert_banner = []
+component-alert_dialog = []
+component-aspect_ratio = []
+component-asset = []
+component-auto_height = []
+component-autocomplete = []
+component-avatar = []
+component-avatar_group = []
+component-badge = []
+component-bottom_sheet = []
+component-breadcrumb = []
+component-breadcrumbs = []
+component-button = []
+component-button_copy = []
+component-button_flip = []
+component-button_group = []
+component-button_search_input = []
+component-button_share = []
+component-button_theme_toggle = []
+component-calendar = []
+component-card = []
+component-carousel = []
+component-chart = []
+component-checkbox = []
+component-checkbox_field = []
+component-checkbox_group = []
+component-chip = []
+component-circular_progress = []
+component-clear_button = []
+component-close_button = []
+component-coachmark = []
+component-code = []
+component-code_block = []
+component-collapsible = []
+component-collection = []
+component-color = []
+component-color_area = []
+component-color_editor = []
+component-color_field = []
+component-color_handle = []
+component-color_loupe = []
+component-color_picker = []
+component-color_slider = []
+component-color_swatch = []
+component-color_swatch_picker = []
+component-color_thumb = []
+component-color_wheel = []
+component-combo_box = []
+component-combobox = []
+component-command = []
+component-command_dialog = []
+component-content = []
+component-context_menu = []
+component-contextual_help = []
+component-date_field = []
+component-date_input_group = []
+component-date_picker = []
+component-date_range_picker = []
+component-description = []
+component-dialog = []
+component-direction = []
+component-disclosure = []
+component-disclosure_group = []
+component-divider = []
+component-dnd = []
+component-drag_and_drop = []
+component-drawer = []
+component-drop_zone = []
+component-dropdown = []
+component-dropdown_menu = []
+component-dropzone = []
+component-empty = []
+component-empty_state = []
+component-error_message = []
+component-error_view = []
+component-example_theme = []
+component-field = []
+component-field_button = []
+component-field_error = []
+component-field_group = []
+component-field_label = []
+component-fieldset = []
+component-file_trigger = []
+component-flex = []
+component-flip_card = []
+component-footer = []
+component-form = []
+component-form_field = []
+component-grid = []
+component-grid_list = []
+component-gridlist = []
+component-group = []
+component-header = []
+component-heading = []
+component-help_text = []
+component-hidden_date_input = []
+component-hover_card = []
+component-icon = []
+component-icon_button = []
+component-icons = []
+component-icons_ui = []
+component-icons_workflow = []
+component-iconset = []
+component-illustrated_message = []
+component-image = []
+component-infield_button = []
+component-inline_alert = []
+component-input = []
+component-input_group = []
+component-input_otp = []
+component-item = []
+component-kbd = []
+component-keyboard = []
+component-label = []
+component-labeled_value = []
+component-layout = []
+component-legend = []
+component-link = []
+component-link_button = []
+component-list = []
+component-list_box = []
+component-listbox = []
+component-listbox_item = []
+component-listbox_section = []
+component-logic_button = []
+component-menu = []
+component-menu_item = []
+component-menu_section = []
+component-menu_trigger = []
+component-menubar = []
+component-meter = []
+component-modal = []
+component-native_select = []
+component-navigation_menu = []
+component-number = []
+component-number_field = []
+component-overlay = []
+component-overlay_arrow = []
+component-overlays = []
+component-pagination = []
+component-picker = []
+component-picker_button = []
+component-popover = []
+component-pressable_feedback = []
+component-preview_card = []
+component-preview_link_card = []
+component-progress = []
+component-progress_bar = []
+component-progress_circle = []
+component-provider = []
+component-rac = []
+component-radio = []
+component-radio_group = []
+component-resizable = []
+component-ripple = []
+component-s2 = []
+component-scroll_area = []
+component-scroll_shadow = []
+component-search = []
+component-search_field = []
+component-segmented_control = []
+component-select = []
+component-selection_indicator = []
+component-separator = []
+component-shared_element_transition = []
+component-sheet = []
+component-sidebar = []
+component-sidebar_content = []
+component-sidebar_footer = []
+component-sidebar_group = []
+component-sidebar_header = []
+component-sidebar_inset = []
+component-sidebar_menu = []
+component-sidebar_menu_action = []
+component-sidebar_menu_badge = []
+component-sidebar_rail = []
+component-sidebar_trigger = []
+component-sidenav = []
+component-skeleton = []
+component-skeleton_group = []
+component-slider = []
+component-snippet = []
+component-sonner = []
+component-spacer = []
+component-spinbutton = []
+component-spinner = []
+component-split_view = []
+component-status_light = []
+component-step_list = []
+component-story_utils = []
+component-style_macro_s1 = []
+component-surface = []
+component-swatch = []
+component-switch = []
+component-switch_group = []
+component-table = []
+component-tabs = []
+component-tag = []
+component-tag_group = []
+component-tags = []
+component-test_utils = []
+component-text = []
+component-text_area = []
+component-text_field = []
+component-textarea = []
+component-textfield = []
+component-theme_dark = []
+component-theme_default = []
+component-theme_express = []
+component-theme_light = []
+component-thumbnail = []
+component-time_field = []
+component-toast = []
+component-toaster = []
+component-toggle = []
+component-toggle_button = []
+component-toggle_button_group = []
+component-toggle_group = []
+component-toolbar = []
+component-tooltip = []
+component-top_nav = []
+component-tray = []
+component-tree = []
+component-underlay = []
+component-utils = []
+component-view = []
+component-virtualizer = []
+component-visually_hidden = []
+component-well = []
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../ui-headless" }
