@@ -45,7 +45,11 @@ checks = [
     "Tree Shaking 支持",
     "全局注入机制",
     "样式契约 (`styles.rs`)",
+    "语义测试",
 ]
+
+if slow:
+    checks.append("文档完整性")
 
 src = os.path.join(root, "crates/ui-components/src")
 paths = []
