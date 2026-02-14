@@ -4643,6 +4643,7 @@ dependencies = [
  "tachys",
  "ui-headless",
  "ui-motion",
+ "ui-state-primitives",
  "ui-theme",
  "web-sys",
 ]

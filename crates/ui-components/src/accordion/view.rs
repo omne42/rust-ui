@@ -1,10 +1,13 @@
 use crate::accordion::{AccordionMotion, AccordionSelectionMode, logic, motion};
 use leptos::{children::ChildrenFragment as Children, ev, html, prelude::*};
 use std::{collections::BTreeSet, sync::Arc};
-use ui_headless as overlay_open;
+use ui_headless::a11y::aria_expanded;
 use ui_headless::{
     FocusRingOptions, HoverOptions, PressOptions, RovingOrientation, RovingTabIndexOptions,
     use_focus_ring, use_hover, use_press, use_roving_tabindex,
+};
+use ui_state_primitives::controlled::{
+    ControlledOnChange, ControlledStateOptions, use_controlled_state,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -62,7 +65,7 @@ pub fn Accordion(
     let item_count = labels.len().min(panels.iter().len());
     let (item_count_signal, _set_item_count) = signal(item_count);
 
-    let default_open_indices = logic::normalize_open_indices(
+    let default_open_indices = logic::normalize_open_indices_for_items(
         selection_mode,
         &default_open_indices.unwrap_or_default(),
         item_count,
@@ -72,20 +75,37 @@ pub fn Accordion(
     } else {
         "uncontrolled"
     };
-    let open_state = overlay_open::use_controllable_state(
-        open_indices,
-        Some(default_open_indices),
-        on_open_change,
-    );
+
+    let on_open_change: Option<ControlledOnChange<BTreeSet<usize>>> = on_open_change.map(|cb| {
+        Arc::new(move |next: BTreeSet<usize>| cb.run(next)) as ControlledOnChange<BTreeSet<usize>>
+    });
+
+    let open_state = RwSignal::new(use_controlled_state(
+        BTreeSet::new(),
+        ControlledStateOptions {
+            value: open_indices.map(|value| value.get_untracked()),
+            default_value: Some(default_open_indices),
+            on_change: on_open_change,
+        },
+    ));
+
+    if let Some(open_indices) = open_indices {
+        Effect::new(move |_| {
+            open_state.update(|state| state.sync_controlled(Some(open_indices.get())));
+        });
+    }
+
     let open_indices = Memo::new({
-        let open_indices = open_state.value;
-        move |_| logic::normalize_open_indices(selection_mode, &open_indices.get(), item_count)
+        move |_| {
+            open_state.with(|state| {
+                logic::normalize_open_indices_for_items(selection_mode, state.value(), item_count)
+            })
+        }
     });
     let request_open_change = {
-        let request_open_change = open_state.request_change;
         Callback::new(move |next: BTreeSet<usize>| {
-            let next = logic::normalize_open_indices(selection_mode, &next, item_count);
-            request_open_change.run(next);
+            let next = logic::normalize_open_indices_for_items(selection_mode, &next, item_count);
+            open_state.update(|state| state.set_value(next));
         })
     };
 
@@ -158,7 +178,11 @@ pub fn Accordion(
                 motion::attach_panel_motion(panel_ref, panel_surface_ref, open, panel_hidden, motion);
 
                 let on_press = Callback::new(move |_| {
-                    let next = logic::toggle_open_indices(selection_mode, &open_indices.get_untracked(), index);
+                    let next = logic::toggle_open_indices_for_items(
+                        selection_mode,
+                        &open_indices.get_untracked(),
+                        index,
+                    );
                     request_open_change.run(next);
                 });
 
@@ -224,7 +248,7 @@ pub fn Accordion(
                                     -1
                                 }
                             }
-                            aria-expanded=move || if open.get() { "true" } else { "false" }
+                            aria-expanded=aria_expanded(open)
                             aria-controls=panel_id.clone()
                             data-hovered=move || if hover.is_hovered.get() { Some("true") } else { None }
                             data-pressed=move || if press.is_pressed.get() { Some("true") } else { None }

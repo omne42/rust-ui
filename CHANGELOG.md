@@ -1619,11 +1619,13 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
-- `ui-components`: marks the `Accordion` check2 `ui-state-primitives` definition item as pending re-verification (manual checklist hygiene).
+- `ui-state-primitives` + `ui-components/accordion`: move accordion expansion invariants (toggle/normalize/summarize) into `ui-state-primitives::expansion`, and route accordion controlled/uncontrolled open-state through `ui-state-primitives::controlled::ControlledState` so components only assemble and map stable state primitives.
 
 - `ui-state-primitives`: renames the `ui-core` crate to reduce ambiguity and clarify its role as the platform-agnostic state-primitives layer.
 
 - `ui-theme`: makes `ui-theme` the single source of truth for token taxonomy + theme context axes (`system/color/scale`), moves CSS variable emission into `crates/ui-theme/src/css.rs`, and adds regression gates for scale baselines + WCAG 2.1 AA contrast checks.
+
+- `ui-headless`: adds `a11y::aria_expanded` to centralize `aria-expanded` mapping.
 
 - `ui-headless` + `apps/docs-app`: moves cross-component infrastructure (i18n registry, trace/perf hooks) into `ui-headless` and keeps debug overlay UI in the app layer.
 
