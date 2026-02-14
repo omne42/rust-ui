@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `scripts` + `ui-components`: adds executable check2 auditing/ticking helpers (`scripts/check2-audit.sh`, `scripts/check2-tick.sh`) and marks the verified workspace layering items as checked in every component `check2.md`.
 
+- `ui-components`: makes `<UiRoot>` component CSS injection opt-in via `inject_components_css`, fixes missing CSS aggregation for `drag_and_drop` and `overlays`, and extends the check2 audit to cover the styles contract and UiRoot injection invariants.
+
 - `ui-components` + `docs-app`: completes the check2 contract remediation pass across component modules, restores missing compatibility exports/pages (`List`, `OverlaysRoot`, `ContextMenuMotion`, `Gridlist`, `Group`, `Rac`, `Resizable`, `SidebarMenuAction`), and reconciles inline-style policy enforcement by keeping `style=` only in allowlisted view files while preserving motion/state data contracts.
 
 - `docs`: adds repository-wide docs governance and markdown index (`docs/DOCS_GOVERNANCE.md`, `docs/DOCS_INDEX.md`) plus new docs entrypoints for `docs/`, `docs/plan/`, and `docs/spec/`; refreshes philosophy/planning/research guidance and migrates root `todo.md` to the dedicated playground planning flow.

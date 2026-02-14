@@ -30,7 +30,7 @@ fn App() -> impl IntoView {
     let theme = Signal::derive(|| Theme::dark());
 
     view! {
-        <UiRoot theme=theme safe_area=true>
+        <UiRoot theme=theme safe_area=true inject_components_css=true>
             <Button>"Hello"</Button>
         </UiRoot>
     }
@@ -51,4 +51,3 @@ Most components follow an internal split:
 ```bash
 cargo test -p ui-components
 ```
-

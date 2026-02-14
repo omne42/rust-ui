@@ -29,6 +29,9 @@ checks = [
     "Headless 层抽象",
     "Motion 层独立",
     "Theme 层解耦",
+    "Component 层组合",
+    "全局注入机制",
+    "样式契约 (`styles.rs`)",
 ]
 
 src = os.path.join(root, "crates/ui-components/src")

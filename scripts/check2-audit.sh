@@ -2,6 +2,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+export ROOT_DIR
 
 fail() {
   echo "[check2] FAIL: $*" >&2
@@ -10,6 +11,18 @@ fail() {
 
 pass() {
   echo "[check2] ok: $*"
+}
+
+must_have_rg() {
+  local what="$1"
+  local file="$2"
+  local pattern="$3"
+  if has_rg_matches "$pattern" "$file"; then
+    pass "$what"
+  else
+    ok=0
+    fail "$what (missing pattern: $pattern in $file)" || true
+  fi
 }
 
 section_has_entries() {
@@ -92,6 +105,91 @@ if has_rg_matches "\\bpub\\b[^\\n]*(leptos::web_sys|web_sys)::" "$components_src
 else
   pass "ui-components pub items do not mention web_sys (grep-based check)"
 fi
+
+# 6) styles contract: no hardcoded hex colors; no HTML style="..."; styles aggregated
+if has_rg_matches "#[0-9a-fA-F]{3,8}\\b" "$components_src" --glob "*/styles.rs"; then
+  ok=0
+  fail "ui-components styles.rs contains hex colors (disallowed by check2)" || true
+else
+  pass "ui-components styles.rs contains no hex colors"
+fi
+
+if has_rg_matches "style=\\\"" "$components_src" --glob "*/view.rs"; then
+  ok=0
+  fail "ui-components view.rs contains inline style=\\\"...\\\" (disallowed by check2)" || true
+else
+  pass "ui-components view.rs contains no style=\\\"...\\\""
+fi
+
+if has_rg_matches "(format!\\(|String::|to_string\\()" "$components_src" --glob "*/styles.rs"; then
+  ok=0
+  fail "ui-components styles.rs appears to build CSS dynamically (disallowed by check2)" || true
+else
+  pass "ui-components styles.rs is static (no obvious dynamic builders)"
+fi
+
+if rg -n --pcre2 --glob "*/styles.rs" "var\\(--(?!ui-)" "$components_src" >/dev/null 2>&1; then
+  ok=0
+  fail "ui-components styles.rs contains CSS vars not under --ui-* (disallowed by check2)" || true
+else
+  pass "ui-components styles.rs uses only --ui-* CSS vars (grep-based check)"
+fi
+
+if rg -n --glob "*/styles.rs" -- '--tw-|@apply|\btw-' "$components_src" >/dev/null 2>&1; then
+  ok=0
+  fail "ui-components styles.rs appears to use utility-first patterns (grep-based check)" || true
+else
+  pass "ui-components styles.rs does not use obvious utility-first patterns"
+fi
+
+if rg -n --pcre2 --glob "*/styles.rs" "\\b(rgb|hsl)a?\\(" "$components_src" >/dev/null 2>&1; then
+  ok=0
+  fail "ui-components styles.rs contains rgb()/hsl() colors (disallowed by check2)" || true
+else
+  pass "ui-components styles.rs contains no rgb()/hsl() colors"
+fi
+
+# Ensure every component-local styles.rs with embedded raw string CSS is aggregated in css.rs.
+css_rs="$components_src/css.rs"
+python3 - <<'PY'
+import os
+root = os.environ["ROOT_DIR"]
+components_src = os.path.join(root, "crates/ui-components/src")
+css_rs = os.path.join(components_src, "css.rs")
+css = open(css_rs, "r", encoding="utf-8").read()
+
+missing = []
+for comp in sorted(os.listdir(components_src)):
+    d = os.path.join(components_src, comp)
+    if not os.path.isdir(d):
+        continue
+    styles = os.path.join(d, "styles.rs")
+    if not os.path.exists(styles):
+        continue
+    txt = open(styles, "r", encoding="utf-8").read()
+    if "pub const CSS" not in txt:
+        continue
+    # heuristic: only require aggregation for components that define embedded CSS text
+    if 'r#"' not in txt and 'r"' not in txt:
+        continue
+    if f"crate::{comp}::styles::CSS" in css or f"crate::{comp}::CSS" in css:
+        continue
+    missing.append(comp)
+
+if missing:
+    print("[check2] FAIL: component styles.rs not aggregated in css.rs:", ", ".join(missing))
+    raise SystemExit(1)
+print("[check2] ok: component-local CSS aggregated in css.rs")
+PY
+if [[ $? -ne 0 ]]; then
+  ok=0
+fi
+
+# 7) UiRoot injection: base CSS + theme vars + component CSS are injected
+root_rs="$components_src/root.rs"
+must_have_rg "UiRoot injects BASE_CSS" "$root_rs" "BASE_CSS"
+must_have_rg "UiRoot injects theme CSS variables" "$root_rs" "to_css_variables\\(\\)"
+must_have_rg "UiRoot injects component CSS" "$root_rs" "push_components_css\\("
 
 if [[ "$ok" -ne 1 ]]; then
   echo "[check2] audit: FAILED" >&2

@@ -34,9 +34,11 @@ pub fn resolve_state(input: UiRootStateInput) -> UiRootState {
 pub fn UiRoot(
     children: Children,
     #[prop(into)] theme: Signal<Theme>,
+    #[prop(optional)] inject_components_css: bool,
     #[prop(optional)] safe_area: bool,
 ) -> impl IntoView {
     let safe_area = StoredValue::new(safe_area);
+    let inject_components_css = StoredValue::new(inject_components_css);
 
     let state = Memo::new(move |_| {
         resolve_state(UiRootStateInput {
@@ -51,7 +53,9 @@ pub fn UiRoot(
         let mut out = String::new();
         out.push_str(css::BASE_CSS);
         out.push_str(&theme.get().to_css_variables());
-        crate::css::push_components_css(&mut out);
+        if inject_components_css.get_value() {
+            crate::css::push_components_css(&mut out);
+        }
         out.push_str(
             r#"
 html, body { height: 100%; }

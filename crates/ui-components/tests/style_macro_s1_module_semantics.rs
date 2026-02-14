@@ -35,7 +35,7 @@ fn crate_root_registers_style_macro_s1_module() {
 
 #[test]
 fn style_macro_s1_compatibility_reuses_ui_root_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "title=\"UiRoot\"",
@@ -44,14 +44,14 @@ fn style_macro_s1_compatibility_reuses_ui_root_docs_playground() {
     ] {
         assert!(
             source.contains(needle),
-            "layout ui_root docs should contain `{needle}` for style-macro-s1 compatibility coverage."
+            "ui_root docs should contain `{needle}` for style-macro-s1 compatibility coverage."
         );
     }
 }
 
 #[test]
 fn style_macro_s1_module_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "pub(super) fn ui_root() -> AnyView",
@@ -64,14 +64,14 @@ fn style_macro_s1_module_docs_page_covers_primary_playgrounds() {
     ] {
         assert!(
             source.contains(needle),
-            "layout ui_root docs should include `{needle}` for style_macro_s1_module primary playground coverage.",
+            "ui_root docs should include `{needle}` for style_macro_s1_module primary playground coverage.",
         );
     }
 }
 
 #[test]
 fn style_macro_s1_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "title=\"Usage\"",
@@ -87,7 +87,7 @@ fn style_macro_s1_module_docs_playgrounds_lock_state_matrix_contract_values() {
     ] {
         assert!(
             source.contains(needle),
-            "layout ui_root playgrounds should contain `{needle}` for style_macro_s1_module contracts.",
+            "ui_root playgrounds should contain `{needle}` for style_macro_s1_module contracts.",
         );
     }
 }

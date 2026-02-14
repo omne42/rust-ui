@@ -42,7 +42,7 @@ fn example_theme_compatibility_reuses_ui_root_docs_playground() {
         "component docs mapping should route example-theme coverage to the existing ui-root playground."
     );
 
-    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let ui_root_source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "pub(super) fn ui_root() -> AnyView",
@@ -52,8 +52,8 @@ fn example_theme_compatibility_reuses_ui_root_docs_playground() {
         "Theme::dark()",
     ] {
         assert!(
-            layout_source.contains(needle),
-            "layout ui_root docs should contain `{needle}` for example-theme compatibility coverage."
+            ui_root_source.contains(needle),
+            "ui_root docs should contain `{needle}` for example-theme compatibility coverage."
         );
     }
 }
@@ -61,7 +61,7 @@ fn example_theme_compatibility_reuses_ui_root_docs_playground() {
 #[test]
 fn example_theme_module_docs_page_covers_primary_playgrounds() {
     let component_map_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
-    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let ui_root_source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "\"example-theme\" => &[\"ui-root\"],",
@@ -82,20 +82,20 @@ fn example_theme_module_docs_page_covers_primary_playgrounds() {
         "<UiRoot",
     ] {
         assert!(
-            layout_source.contains(needle),
-            "layout docs page should include `{needle}` for example_theme_module ui_root coverage.",
+            ui_root_source.contains(needle),
+            "ui_root docs page should include `{needle}` for example_theme_module ui_root coverage.",
         );
     }
 }
 
 #[test]
 fn example_theme_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let layout_source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let ui_root_source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "let usage_code = Signal::derive(move || {",
         "let theme = Signal::derive(|| Theme::dark());",
-        "<UiRoot theme=theme safe_area=true>",
+        "<UiRoot theme=theme safe_area=true inject_components_css=true>",
         "title=\"State Contract\"",
         "let contract_code = Signal::derive(move || {",
         "data-theme-scheme=\"light|dark\"",
@@ -106,7 +106,7 @@ fn example_theme_module_docs_playgrounds_lock_state_matrix_contract_values() {
         "\"`data-state` + `data-safe-area` describe safe-area mode.\"",
     ] {
         assert!(
-            layout_source.contains(needle),
+            ui_root_source.contains(needle),
             "example_theme_module docs playgrounds should contain `{needle}`.",
         );
     }

@@ -35,12 +35,12 @@ fn crate_root_registers_test_utils_module() {
 
 #[test]
 fn test_utils_compatibility_reuses_ui_root_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in ["title=\"UiRoot\"", "slug=\"ui-root\"", "Theme::dark()"] {
         assert!(
             source.contains(needle),
-            "layout ui_root docs should contain `{needle}` for test-utils compatibility coverage."
+            "ui_root docs should contain `{needle}` for test-utils compatibility coverage."
         );
     }
 }

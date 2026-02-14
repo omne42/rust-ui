@@ -29,19 +29,19 @@ fn crate_root_registers_s2_module() {
 
 #[test]
 fn s2_compatibility_reuses_ui_root_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in ["title=\"UiRoot\"", "slug=\"ui-root\"", "<UiRoot"] {
         assert!(
             source.contains(needle),
-            "layout ui_root docs should contain `{needle}` for s2 compatibility coverage."
+            "ui_root docs should contain `{needle}` for s2 compatibility coverage."
         );
     }
 }
 
 #[test]
 fn s2_module_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
     let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
 
     for needle in [
@@ -55,7 +55,7 @@ fn s2_module_docs_page_covers_primary_playgrounds() {
     ] {
         assert!(
             source.contains(needle),
-            "layout docs should include `{needle}` for s2 module primary playground coverage.",
+            "ui_root docs should include `{needle}` for s2 module primary playground coverage.",
         );
     }
 
@@ -67,12 +67,12 @@ fn s2_module_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn s2_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "title=\"Usage\"",
         "let theme = Signal::derive(|| Theme::dark());",
-        "<UiRoot theme=theme safe_area=true>",
+        "<UiRoot theme=theme safe_area=true inject_components_css=true>",
         "This docs app already mounts a global UiRoot at startup.",
         "UiRoot injects BASE_CSS + theme CSS variables + component CSS in one place.",
         "safe_area=true adds the safe-area inset contract used on mobile/WebView shells.",
@@ -87,7 +87,7 @@ fn s2_module_docs_playgrounds_lock_state_matrix_contract_values() {
     ] {
         assert!(
             source.contains(needle),
-            "layout docs playgrounds should contain `{needle}` for s2 module contracts.",
+            "ui_root docs playgrounds should contain `{needle}` for s2 module contracts.",
         );
     }
 }

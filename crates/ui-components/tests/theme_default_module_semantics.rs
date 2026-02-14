@@ -35,7 +35,7 @@ fn crate_root_registers_theme_default_module() {
 
 #[test]
 fn theme_default_compatibility_reuses_ui_root_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/ui_root.rs");
 
     for needle in [
         "pub(super) fn ui_root() -> AnyView",
@@ -46,7 +46,7 @@ fn theme_default_compatibility_reuses_ui_root_docs_playground() {
     ] {
         assert!(
             source.contains(needle),
-            "layout ui_root docs should contain `{needle}` for theme-default compatibility coverage."
+            "ui_root docs should contain `{needle}` for theme-default compatibility coverage."
         );
     }
 }

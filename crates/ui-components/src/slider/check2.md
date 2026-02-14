@@ -9,7 +9,7 @@
     - Package 模式：`ui-components` 支持组件级 feature，按需编译。
     - Source 模式：源码拉取天然支持裁剪。
     - 样式裁剪：禁止无条件聚合所有 CSS，需随组件按需加载。
-- [ ] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
+- [x] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
 
 ### 2. 组件实现规范 (Component Implementation)
 **标准结构：`logic` + `view` + `styles` + `motion`**

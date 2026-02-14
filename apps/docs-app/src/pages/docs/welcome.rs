@@ -6,7 +6,7 @@ use ui_components::{Button, ButtonVariant};
 pub fn Welcome() -> impl IntoView {
     let code = r#"use ui_components::{UiRoot, Theme, Button, ButtonVariant};
 
-<UiRoot theme=Theme::light() safe_area=true>
+<UiRoot theme=Theme::light() safe_area=true inject_components_css=true>
   <Button variant=ButtonVariant::Default>"Hello"</Button>
 </UiRoot>"#;
 

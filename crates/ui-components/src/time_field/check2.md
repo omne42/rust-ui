@@ -4,18 +4,18 @@
 - [x] **Headless 层抽象**：`crates/ui-headless` 封装交互与 A11y（Press/Focus/Hover/Menu 等），输出 `attrs + handlers + state`。**严禁**包含样式或动效。
 - [x] **Motion 层独立**：`crates/ui-motion` 实现动效引擎（Spring/WAAPI）。非 WASM 环境提供 no-op 实现，确保 SSR 可编译。
 - [x] **Theme 层解耦**：`crates/ui-theme` 仅负责 Token 定义与 CSS 变量生成（Light/Dark/OLED），不包含组件具体 CSS。
-- [ ] **Component 层组合**：`crates/ui-components` 作为最终组装层。对外 API **严禁暴露** `web-sys` 类型，DOM 细节封装在内部。
+- [x] **Component 层组合**：`crates/ui-components` 作为最终组装层。对外 API **严禁暴露** `web-sys` 类型，DOM 细节封装在内部。
 - [ ] **Tree Shaking 支持**：
     - Package 模式：`ui-components` 支持组件级 feature，按需编译。
     - Source 模式：源码拉取天然支持裁剪。
     - 样式裁剪：禁止无条件聚合所有 CSS，需随组件按需加载。
-- [ ] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
+- [x] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
 
 ### 2. 组件实现规范 (Component Implementation)
 **标准结构：`logic` + `view` + `styles` + `motion`**
 - [x] **逻辑归一 (`logic.rs`)**：负责 Props 归一化、状态派生、语义计算。默认值在此处处理，而非 View 层。
 - [x] **视图渲染 (`view.rs`)**：纯 Leptos 结构渲染，挂载 Headless 提供的 `attrs/handlers`。禁止内联复杂逻辑。
-- [ ] **样式契约 (`styles.rs`)**：
+- [x] **样式契约 (`styles.rs`)**：
     - 仅包含静态 CSS 字符串，完全由 Token (`var(--ui-*)`) 驱动。
     - **禁止** 16进制颜色硬编码。
     - **禁止** `style="..."` 内联样式（仅允许通过 `style` 传递 `--*` 变量）。

@@ -9,13 +9,13 @@
     - Package 模式：`ui-components` 支持组件级 feature，按需编译。
     - Source 模式：源码拉取天然支持裁剪。
     - 样式裁剪：禁止无条件聚合所有 CSS，需随组件按需加载。
-- [ ] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
+- [x] **全局注入机制**：`UiRoot` (`src/root.rs`) 统一负责 Base CSS + Theme Vars + Component CSS 的注入。
 
 ### 2. 组件实现规范 (Component Implementation)
 **标准结构：`logic` + `view` + `styles` + `motion`**
 - [ ] **逻辑归一 (`logic.rs`)**：负责 Props 归一化、状态派生、语义计算。默认值在此处处理，而非 View 层。
 - [ ] **视图渲染 (`view.rs`)**：纯 Leptos 结构渲染，挂载 Headless 提供的 `attrs/handlers`。禁止内联复杂逻辑。
-- [ ] **样式契约 (`styles.rs`)**：
+- [x] **样式契约 (`styles.rs`)**：
     - 仅包含静态 CSS 字符串，完全由 Token (`var(--ui-*)`) 驱动。
     - **禁止** 16进制颜色硬编码。
     - **禁止** `style="..."` 内联样式（仅允许通过 `style` 传递 `--*` 变量）。

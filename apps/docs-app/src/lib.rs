@@ -115,7 +115,7 @@ pub fn App() -> impl IntoView {
     });
 
     view! {
-        <UiRoot theme=theme safe_area=true>
+        <UiRoot theme=theme safe_area=true inject_components_css=true>
             <div class="docs-shell">
                 <header class="docs-header">
                     <div class="docs-header__title">

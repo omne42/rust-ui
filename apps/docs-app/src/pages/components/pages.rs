@@ -49,6 +49,7 @@ mod layout_extra_split_view;
 mod overlays;
 mod overlays_extra;
 mod overlays_extra_coachmark;
+mod ui_root;
 
 use self::{
     actions as a, actions_extra as ax, actions_extra_icon_button as axib,
@@ -396,7 +397,7 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         layout::scroll_shadow
     ),
     component_doc!("AutoHeight", "auto-height", "Layout", layout::auto_height),
-    component_doc!("UiRoot", "ui-root", "Layout", layout::ui_root),
+    component_doc!("UiRoot", "ui-root", "Layout", ui_root::ui_root),
     component_doc!("Alert", "alert", "Display", display::alert),
     component_doc!(
         "AlertBanner",

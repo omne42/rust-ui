@@ -54,7 +54,7 @@ fn App() -> impl IntoView {
     let toggle_theme: OnPress = Callback::new(move |_| set_demo_theme.update(|t| *t = t.next()));
 
     view! {
-        <UiRoot theme=theme safe_area=true>
+        <UiRoot theme=theme safe_area=true inject_components_css=true>
         <div class="demo-shell">
             <header class="demo-header">
                 <div>

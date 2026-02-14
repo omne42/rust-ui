@@ -120,6 +120,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::file_trigger::styles::CSS);
     out.push_str(crate::flip_card::styles::CSS);
     out.push_str(crate::drop_zone::styles::CSS);
+    out.push_str(crate::drag_and_drop::styles::CSS);
     out.push_str(crate::dropzone::styles::CSS);
     out.push_str(crate::empty_state::styles::CSS);
     out.push_str(crate::empty::styles::CSS);
@@ -144,6 +145,7 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::disclosure::styles::CSS);
     out.push_str(crate::disclosure_group::styles::CSS);
     out.push_str(crate::overlay::styles::CSS);
+    out.push_str(crate::overlays::styles::CSS);
     out.push_str(crate::underlay::styles::CSS);
     out.push_str(crate::popover::styles::CSS);
     out.push_str(crate::preview_card::styles::CSS);
