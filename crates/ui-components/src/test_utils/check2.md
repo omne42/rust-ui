@@ -1,9 +1,9 @@
 ### 1. 架构与分层边界 (Architecture & Layering)
 **核心原则：单向依赖，职责分离，环境隔离**
-- [ ] **Core 层纯净性**：`crates/ui-core` 仅包含纯状态原语（Toggle/Selection/List 等），**零依赖** `Leptos/DOM/web-sys`，确保逻辑可单测、可移植。
-- [ ] **Headless 层抽象**：`crates/ui-headless` 封装交互与 A11y（Press/Focus/Hover/Menu 等），输出 `attrs + handlers + state`。**严禁**包含样式或动效。
-- [ ] **Motion 层独立**：`crates/ui-motion` 实现动效引擎（Spring/WAAPI）。非 WASM 环境提供 no-op 实现，确保 SSR 可编译。
-- [ ] **Theme 层解耦**：`crates/ui-theme` 仅负责 Token 定义与 CSS 变量生成（Light/Dark/OLED），不包含组件具体 CSS。
+- [x] **Core 层纯净性**：`crates/ui-core` 仅包含纯状态原语（Toggle/Selection/List 等），**零依赖** `Leptos/DOM/web-sys`，确保逻辑可单测、可移植。
+- [x] **Headless 层抽象**：`crates/ui-headless` 封装交互与 A11y（Press/Focus/Hover/Menu 等），输出 `attrs + handlers + state`。**严禁**包含样式或动效。
+- [x] **Motion 层独立**：`crates/ui-motion` 实现动效引擎（Spring/WAAPI）。非 WASM 环境提供 no-op 实现，确保 SSR 可编译。
+- [x] **Theme 层解耦**：`crates/ui-theme` 仅负责 Token 定义与 CSS 变量生成（Light/Dark/OLED），不包含组件具体 CSS。
 - [x] **Component 层组合**：`crates/ui-components` 作为最终组装层。对外 API **严禁暴露** `web-sys` 类型，DOM 细节封装在内部。
 - [ ] **Tree Shaking 支持**：
     - Package 模式：`ui-components` 支持组件级 feature，按需编译。
