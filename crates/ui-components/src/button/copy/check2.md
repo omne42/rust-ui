@@ -93,25 +93,25 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
