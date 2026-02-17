@@ -79,7 +79,7 @@ fn asset_styles_include_variant_state_and_accessibility_markers() {
     ] {
         assert!(
             source.contains(selector),
-            "Asset styles should include `{selector}` for Spectrum-compatible state/accessibility contracts."
+            "Asset styles should include `{selector}` for baseline-compatible state/accessibility contracts."
         );
     }
 }
@@ -164,7 +164,7 @@ fn asset_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"State + Source Markers\"",
         "variant=AssetVariant::Custom",
         "size=AssetSize::Size800",
-        "label=\"Hero Artwork\".to_string()",
+        "label=\"Featured Artwork\".to_string()",
         "class_name=\"docs-asset-state\".to_string()",
     ] {
         assert!(

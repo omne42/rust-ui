@@ -269,7 +269,7 @@ fn sonner_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sonner() -> AnyView",
         "title=\"Sonner\"",
         "slug=\"sonner\"",
-        "description=\"Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts.\"",
+        "description=\"baseline-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts.\"",
         "<Playground title=\"Portal Queue + Variants\" code_signal=basic_code>",
         "<Playground title=\"Inline Top-Center + Max Queue\" code_signal=state_code>",
         "title=\"State + Source Markers\"",

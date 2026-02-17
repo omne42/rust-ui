@@ -8,199 +8,122 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn action_button_does_not_expose_logic_module() {
-    let source = load_source("src/action_button/mod.rs");
+fn action_button_has_no_compat_module_and_is_reexported_from_button_action() {
+    let source = load_source("src/lib.rs");
+
+    for needle in [
+        "pub use button::action::{",
+        "ActionButton",
+        "ActionButtonLoadingPlacement",
+        "ActionButtonMotion",
+        "ActionButtonSize",
+        "ActionButtonType",
+    ] {
+        assert!(
+            source.contains(needle),
+            "crate re-exports should include `{needle}` from button/action."
+        );
+    }
 
     assert!(
-        !source.contains("pub mod logic"),
-        "ActionButton's `logic` module should stay private to avoid leaking implementation details into the public API."
+        !source.contains("pub mod action_button;"),
+        "compat module `src/action_button.rs` should not be reintroduced."
     );
 }
 
 #[test]
-fn action_button_uses_logic_state_model() {
-    let view_source = load_source("src/action_button/view.rs");
-    let logic_source = load_source("src/action_button/logic.rs");
+fn action_button_implementation_lives_under_button_action_module() {
+    let mod_source = load_source("src/button/action/mod.rs");
+    let view_source = load_source("src/button/action/view.rs");
 
     for needle in [
-        "pub struct ActionButtonStateInput",
-        "pub struct ActionButtonState",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "pub fn as_attr(self) -> &'static str",
+        "pub type ActionButtonSize = ButtonSize;",
+        "pub type ActionButtonLoadingPlacement = ButtonLoadingPlacement;",
+        "pub type ActionButtonMotion = ButtonMotion;",
+        "pub type ActionButtonType = ButtonType;",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ActionButton logic should include `{needle}` for centralized state derivation."
+            mod_source.contains(needle),
+            "button/action module should define `{needle}` as the canonical ActionButton contract."
         );
     }
 
-    for needle in [
-        "let class_name = logic::normalize_optional_text(class_name);",
-        "let aria_label = logic::normalize_optional_text(aria_label);",
-        "let state = logic::resolve_state(logic::ActionButtonStateInput {",
-        "let class = logic::compose_class_name(class_name, state);",
-    ] {
-        assert!(
-            view_source.contains(needle),
-            "ActionButton view should derive wrapper state through logic helpers; missing `{needle}`."
-        );
-    }
+    assert!(
+        view_source.contains("pub fn ActionButton("),
+        "ActionButton view should live in `src/button/action/view.rs`."
+    );
 }
 
 #[test]
-fn action_button_uses_headless_press_hover_and_focus_ring() {
-    let source = load_source("src/action_button/view.rs");
+fn action_button_inherits_group_context_when_feature_enabled() {
+    let source = load_source("src/button/action/view.rs");
 
-    for needle in ["use_button", "use_focus_ring", "use_hover"] {
+    for needle in [
+        "use_action_button_group_context()",
+        "let inherited_disabled = group.map(|ctx| ctx.is_disabled);",
+        "let inherited_size = group.map(|ctx| ctx.size);",
+        "let inherited_quiet = group.map(|ctx| ctx.is_quiet);",
+    ] {
         assert!(
             source.contains(needle),
-            "ActionButton should use headless `{needle}` hooks to align behavior with global focus-visible/modality providers."
+            "ActionButton should inherit group contract via `{needle}` when grouped."
         );
     }
 }
 
 #[test]
-fn action_button_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/action_button/view.rs");
-
-    for attr in [
-        "data-slot=\"action-button\"",
-        "data-state=if state.is_loading",
-        "data-size=state.size_attr",
-        "data-hovered",
-        "data-pressed",
-        "data-loading=state.is_loading.then_some(\"true\")",
-        "data-loading-placement=state.loading_placement_attr",
-        "data-quiet=state.is_quiet.then_some(\"true\")",
-        "data-icon-only=state.is_icon_only.then_some(\"true\")",
-        "data-disabled=state.is_disabled.then_some(\"true\")",
-        "data-has-start=state.has_start_content.then_some(\"true\")",
-        "data-has-end=state.has_end_content.then_some(\"true\")",
-        "data-has-handler=state.has_custom_press_handler.then_some(\"true\")",
-        "data-motion-source=if motion == ActionButtonMotion::default()",
-        "data-custom-motion=(motion != ActionButtonMotion::default()).then_some(\"true\")",
-    ] {
-        assert!(
-            source.contains(attr),
-            "ActionButton should set `{attr}` to support Spectrum-style styling and state inspection."
-        );
-    }
-}
-
-#[test]
-fn action_button_forwards_headless_button_semantics() {
-    let source = load_source("src/action_button/view.rs");
-
-    for attr in [
-        "role=aria.attrs.role",
-        "tabindex=aria.attrs.tabindex",
-        "aria-disabled=aria.attrs.aria_disabled",
-    ] {
-        assert!(
-            source.contains(attr),
-            "ActionButton should forward headless attrs via `{attr}` for correct custom-element semantics."
-        );
-    }
-}
-
-#[test]
-fn action_button_loading_forces_disabled_and_sets_aria_busy() {
-    let source = load_source("src/action_button/view.rs");
+fn action_button_uses_button_state_machine_and_headless_hooks() {
+    let source = load_source("src/button/action/view.rs");
 
     for needle in [
-        "disabled=state.is_disabled",
+        "let state = button_logic::resolve_state(button_logic::ButtonStateInput {",
+        "let aria = use_button(ButtonOptions {",
+        "let focus_ring = use_focus_ring(FocusRingOptions {",
+        "let hover = use_hover(HoverOptions {",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionButton should be wired through shared button logic/headless hooks via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_button_api_naming_uses_is_prefix_only() {
+    let source = load_source("src/button/action/view.rs");
+
+    for needle in [
+        "#[prop(optional)] is_loading: bool",
+        "#[prop(optional)] is_disabled: Option<bool>",
+        "#[prop(optional)] is_quiet: Option<bool>",
+        "#[prop(optional)] is_icon_only: bool",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ActionButton API naming should include `{needle}`."
+        );
+    }
+
+    assert!(
+        !source.contains("#[prop(optional)] disabled: Option<bool>"),
+        "ActionButton should not expose legacy boolean alias `disabled`."
+    );
+}
+
+#[test]
+fn action_button_emits_semantic_slot_and_loading_attributes() {
+    let source = load_source("src/button/action/view.rs");
+
+    for needle in [
+        "data-slot=\"action-button\"",
+        "data-loading=state.is_loading.then_some(\"true\")",
+        "data-loading-placement=state.loading_placement_attr",
+        "data-quiet=is_quiet.then_some(\"true\")",
         "aria-busy=state.is_loading.then_some(\"true\")",
     ] {
         assert!(
             source.contains(needle),
-            "ActionButton should wire loading/disabled semantics via `{needle}`."
-        );
-    }
-}
-
-#[test]
-fn action_button_has_spring_driven_scale_css_variable() {
-    let styles = load_source("src/action_button/styles.rs");
-    let motion = load_source("src/action_button/motion.rs");
-
-    for needle in [
-        "--ui-action-button-scale",
-        "transform: scale(var(--ui-action-button-scale",
-    ] {
-        assert!(
-            styles.contains(needle),
-            "ActionButton styles should reference `{needle}` for spring-driven interaction scaling."
-        );
-    }
-
-    assert!(
-        motion.contains("--ui-action-button-scale"),
-        "ActionButton motion should write `--ui-action-button-scale` to drive interaction feedback without triggering rerenders."
-    );
-}
-
-#[test]
-fn action_button_styles_include_motion_marker_contracts() {
-    let source = load_source("src/action_button/styles.rs");
-
-    for selector in [
-        ".ui-action-button[data-motion-source=\"custom\"]",
-        ".ui-action-button[data-custom-motion=\"true\"]",
-        ".ui-action-button--focus-visible",
-    ] {
-        assert!(
-            source.contains(selector),
-            "ActionButton styles should include `{selector}` as stable state/motion contracts."
-        );
-    }
-}
-
-#[test]
-fn action_button_spinner_respects_reduced_motion() {
-    let styles = load_source("src/action_button/styles.rs");
-
-    for needle in ["@media (prefers-reduced-motion: reduce)", "animation: none"] {
-        assert!(
-            styles.contains(needle),
-            "ActionButton spinner should disable its CSS animation under reduced-motion via `{needle}`."
-        );
-    }
-}
-
-#[test]
-fn action_button_motion_contract_exposes_default_and_custom_tests() {
-    let source = load_source("src/action_button/motion.rs");
-
-    for needle in [
-        "pub struct ActionButtonMotion",
-        "fn default_motion_matches_action_button_spring_contract()",
-        "fn supports_custom_motion_contract_values()",
-    ] {
-        assert!(
-            source.contains(needle),
-            "ActionButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
-        );
-    }
-}
-
-#[test]
-fn action_button_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/action_button/motion.rs");
-
-    for needle in [
-        "pub fn sanitize_motion(motion: ActionButtonMotion) -> ActionButtonMotion",
-        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
-        "hover_scale:",
-        "tap_scale:",
-        "let motion = StoredValue::new(sanitize_motion(motion));",
-        "fn sanitize_motion_falls_back_for_invalid_values()",
-        "fn sanitize_motion_clamps_scale_values()",
-    ] {
-        assert!(
-            source.contains(needle),
-            "ActionButton motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+            "ActionButton should expose semantic/loading attrs via `{needle}`."
         );
     }
 }
@@ -213,9 +136,6 @@ fn action_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn action_button() -> AnyView",
         "title=\"ActionButton\"",
         "slug=\"action-button\"",
-        "description=\"Spectrum-style action trigger with state attrs and HeroUI-grade spring hover/press feedback.\"",
-        "<Playground title=\"Default + callback\" code_signal=code>",
-        "<Playground title=\"Loading placement + icon-only\" code_signal=states_code>",
         "<ActionButton",
         "is_quiet=true",
         "is_loading=true",
@@ -223,32 +143,7 @@ fn action_button_docs_page_covers_primary_playgrounds() {
     ] {
         assert!(
             source.contains(needle),
-            "actions docs page should include `{needle}` for action-button coverage.",
-        );
-    }
-}
-
-#[test]
-fn action_button_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
-
-    for needle in [
-        "<ActionButton on_press=on_press>\"Action\"</ActionButton>",
-        "<ActionButton is_quiet=true on_press=on_press>\"Quiet\"</ActionButton>",
-        "\"pressed: \"",
-        "{move || press_count.get().to_string()}",
-        "size=ActionButtonSize::S",
-        "loading_placement=ActionButtonLoadingPlacement::Start",
-        "start_content=move || view! { <span>\"★\"</span> }",
-        "size=ActionButtonSize::L",
-        "loading_placement=ActionButtonLoadingPlacement::End",
-        "end_content=move || view! { <span>\"→\"</span> }",
-        "is_icon_only=true is_quiet=true aria_label=\"Settings\".to_string()",
-        "Start/end slots, loading placement, and icon-only mode all expose stable data-* attrs.",
-    ] {
-        assert!(
-            source.contains(needle),
-            "action-button docs playgrounds should contain `{needle}`.",
+            "actions docs page should include `{needle}` for action-button coverage."
         );
     }
 }

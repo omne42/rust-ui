@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn action_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/action_group/mod.rs");
+    let source = load_source("src/button/action/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn action_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn action_group_uses_logic_state_model() {
-    let logic_source = load_source("src/action_group/logic.rs");
-    let view_source = load_source("src/action_group/view.rs");
+    let logic_source = load_source("src/button/action/logic.rs");
+    let view_source = load_source("src/button/action/view.rs");
 
     for needle in [
         "pub enum ActionGroupTone",
@@ -46,13 +46,13 @@ fn action_group_uses_logic_state_model() {
     }
 
     for needle in [
-        "overlay_open::use_controllable_state(",
-        "logic::normalize_items(items)",
-        "logic::collect_item_ids(&items)",
-        "logic::sanitize_selected_ids(",
-        "logic::toggle_selected_id(",
-        "logic::resolve_state(ActionGroupStateInput {",
-        "logic::compose_class_name(class_name.get_value(), state.get())",
+        "use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_change)",
+        "action_logic::action_group_logic::normalize_items(items)",
+        "action_logic::action_group_logic::collect_item_ids(&items)",
+        "action_logic::action_group_logic::sanitize_selected_ids(",
+        "action_logic::action_group_logic::toggle_selected_id(",
+        "action_logic::action_group_logic::resolve_state(ActionGroupStateInput {",
+        "action_logic::action_group_logic::compose_class_name(class_name.get_value(), state.get())",
     ] {
         assert!(
             view_source.contains(needle),
@@ -62,8 +62,8 @@ fn action_group_uses_logic_state_model() {
 }
 
 #[test]
-fn action_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/action_group/view.rs");
+fn action_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/button/action/view.rs");
 
     for attr in [
         "data-slot=\"action-group\"",
@@ -84,14 +84,14 @@ fn action_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ActionGroup should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ActionGroup should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn action_group_styles_include_tone_mode_selection_and_markers() {
-    let source = load_source("src/action_group/styles.rs");
+    let source = load_source("src/button/action/styles.rs");
 
     for selector in [
         ".ui-action-group--tone-default",

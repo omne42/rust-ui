@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn tag_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/tag_group/mod.rs");
+    let source = load_source("src/tag/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn tag_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn tag_group_uses_logic_state_model() {
-    let view_source = load_source("src/tag_group/view.rs");
-    let logic_source = load_source("src/tag_group/logic.rs");
+    let view_source = load_source("src/tag/group/view.rs");
+    let logic_source = load_source("src/tag/group/logic.rs");
 
     for needle in [
         "pub struct TagGroupState",
@@ -52,8 +52,8 @@ fn tag_group_uses_logic_state_model() {
 }
 
 #[test]
-fn tag_group_supports_spectrum_aria_contract() {
-    let source = load_source("src/tag_group/view.rs");
+fn tag_group_supports_baseline_aria_contract() {
+    let source = load_source("src/tag/group/view.rs");
 
     for attr in [
         "aria-labelledby",
@@ -68,14 +68,14 @@ fn tag_group_supports_spectrum_aria_contract() {
     ] {
         assert!(
             source.contains(attr),
-            "TagGroup should provide `{attr}` for Spectrum-style semantics."
+            "TagGroup should provide `{attr}` for baseline-style semantics."
         );
     }
 }
 
 #[test]
 fn tag_group_emits_root_and_item_state_attrs() {
-    let source = load_source("src/tag_group/view.rs");
+    let source = load_source("src/tag/group/view.rs");
 
     for attr in [
         "data-empty=move || state.get().is_empty.then_some(\"true\")",
@@ -93,14 +93,14 @@ fn tag_group_emits_root_and_item_state_attrs() {
     ] {
         assert!(
             source.contains(attr),
-            "TagGroup should expose `{attr}` for Spectrum-style styling and regression checks."
+            "TagGroup should expose `{attr}` for baseline-style styling and regression checks."
         );
     }
 }
 
 #[test]
 fn tag_group_merges_external_and_internal_describedby_ids() {
-    let source = load_source("src/tag_group/view.rs");
+    let source = load_source("src/tag/group/view.rs");
     assert!(
         source.contains("merge_describedby_ids"),
         "TagGroup should merge external aria-describedby with description/error ids."
@@ -109,7 +109,7 @@ fn tag_group_merges_external_and_internal_describedby_ids() {
 
 #[test]
 fn tag_group_composes_tag_primitive_instead_of_chip() {
-    let source = load_source("src/tag_group/view.rs");
+    let source = load_source("src/tag/group/view.rs");
 
     for needle in [
         "tag::{Tag as TagPrimitive, TagSize, TagVariant}",
@@ -133,7 +133,7 @@ fn tag_group_composes_tag_primitive_instead_of_chip() {
 
 #[test]
 fn tag_group_styles_include_description_and_error_states() {
-    let source = load_source("src/tag_group/styles.rs");
+    let source = load_source("src/tag/group/styles.rs");
 
     for selector in [
         ".ui-tag-group__description",
@@ -155,7 +155,7 @@ fn tag_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn tag_group() -> AnyView",
         "title=\"TagGroup\"",
         "slug=\"tag-group\"",
-        "description=\"Tag list with removable chips, validation semantics, and Spectrum-style root state attrs.\"",
+        "description=\"Tag list with removable chips, validation semantics, and baseline-style root state attrs.\"",
         "<Playground title=\"Removable + State\" code_signal=code>",
         "<Playground title=\"Validation + Required\" code_signal=states_code>",
         "<Playground title=\"Disabled + Empty\" code_signal=disabled_empty_code>",
@@ -185,7 +185,7 @@ fn tag_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "\"count: \"",
         "\"has disabled tags: \"",
         "Tag::new(\"tag-required\", \"Required\")",
-        "Tag::new(\"tag-spectrum\", \"Spectrum\")",
+        "Tag::new(\"tag-baseline\", \"Baseline\")",
         "on_remove=on_remove_validation",
         "error=\"At least one tag is required\".to_string()",
         "required=validation_required",

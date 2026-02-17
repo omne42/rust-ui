@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_theme::{Theme, css};
+use ui_theme::{SemanticOverrides, Theme, css};
 
 use ui_headless::{UiI18n, provide_ui_i18n};
 
@@ -52,11 +52,13 @@ pub fn UiRoot(
     #[prop(into)] theme: Signal<Theme>,
     #[prop(optional)] inject_components_css: bool,
     #[prop(optional)] safe_area: bool,
+    #[prop(optional)] semantic_overrides: Option<SemanticOverrides>,
     #[prop(optional)] i18n: UiI18n,
 ) -> impl IntoView {
     provide_ui_i18n(i18n);
     let safe_area = StoredValue::new(safe_area);
     let inject_components_css = StoredValue::new(inject_components_css);
+    let semantic_overrides = StoredValue::new(semantic_overrides);
 
     let state = Memo::new(move |_| {
         resolve_state(UiRootStateInput {
@@ -71,6 +73,9 @@ pub fn UiRoot(
         let mut out = String::new();
         out.push_str(css::BASE_CSS);
         out.push_str(&theme.get().to_css_variables());
+        if let Some(overrides) = semantic_overrides.get_value() {
+            out.push_str(&overrides.to_css_block(":root"));
+        }
         if inject_components_css.get_value() {
             crate::css::push_components_css(&mut out);
         }
@@ -141,7 +146,7 @@ mod tests {
     fn resolve_theme_axes_are_stable_strings() {
         let theme = Theme::light();
         assert_eq!(resolve_theme_color(theme), "light");
-        assert_eq!(resolve_theme_system(theme), "spectrum-two");
+        assert_eq!(resolve_theme_system(theme), "baseline-two");
         assert_eq!(resolve_theme_scale(theme), "medium");
     }
 

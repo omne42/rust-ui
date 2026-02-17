@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_theme_toggle_module_reexports_component_motion_and_logic_contracts() {
-    let source = load_source("src/button_theme_toggle/mod.rs");
+    let source = load_source("src/button/theme_toggle/mod.rs");
 
     for needle in [
         "pub use logic::{ThemeMode, ThemeToggleViewState, resolve_view_state};",
@@ -28,8 +28,8 @@ fn crate_root_registers_button_theme_toggle_compatibility_exports() {
     let source = load_source("src/lib.rs");
 
     for needle in [
-        "pub mod button_theme_toggle;",
-        "pub use button_theme_toggle::{ThemeMode, ThemeToggleButton, ThemeToggleMotion};",
+        "pub mod button;",
+        "pub use button::theme_toggle::{ThemeMode, ThemeToggleButton, ThemeToggleMotion};",
     ] {
         assert!(
             source.contains(needle),
@@ -58,7 +58,7 @@ fn docs_actions_page_covers_theme_toggle_button_playgrounds() {
 
 #[test]
 fn button_theme_toggle_motion_contract_defaults_and_sanitization_are_locked() {
-    let source = load_source("src/button_theme_toggle/motion.rs");
+    let source = load_source("src/button/theme_toggle/motion.rs");
 
     for needle in [
         "pub struct ThemeToggleMotion",
@@ -75,15 +75,15 @@ fn button_theme_toggle_motion_contract_defaults_and_sanitization_are_locked() {
     ] {
         assert!(
             source.contains(needle),
-            "button_theme_toggle motion should include `{needle}` for HeroUI-level spring contract stability."
+            "button_theme_toggle motion should include `{needle}` for baseline-level spring contract stability."
         );
     }
 }
 
 #[test]
 fn button_theme_toggle_view_wires_motion_and_source_markers() {
-    let view_source = load_source("src/button_theme_toggle/view.rs");
-    let styles_source = load_source("src/button_theme_toggle/styles.rs");
+    let view_source = load_source("src/button/theme_toggle/view.rs");
+    let styles_source = load_source("src/button/theme_toggle/styles.rs");
 
     for needle in [
         "motion::attach_motion(icon_ref, mode.into(), motion)",
@@ -113,7 +113,7 @@ fn docs_actions_page_locks_theme_toggle_motion_narrative() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "description=\"Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs.\"",
+        "description=\"Icon-only theme toggle with baseline-level spring motion and baseline-style mode state attrs.\"",
         "title=\"Custom modes + disabled\"",
         "disabled toggle should remain inert",
     ] {

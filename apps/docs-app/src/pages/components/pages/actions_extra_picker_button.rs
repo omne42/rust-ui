@@ -83,7 +83,7 @@ pub(super) fn picker_button() -> AnyView {
             title="PickerButton"
             slug="picker-button"
             group="Actions"
-            description="Spectrum-compatible PickerButton alias for upstream naming parity, preserving FieldButton accessibility/state contracts and HeroUI-level press/focus interaction behavior."
+            description="baseline-compatible PickerButton alias for naming parity, preserving FieldButton accessibility/state contracts and baseline-level press/focus interaction behavior."
         >
             <Playground
                 title="Interactive"

@@ -199,7 +199,7 @@ fn picker_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn picker_button() -> AnyView",
         "title=\"PickerButton\"",
         "slug=\"picker-button\"",
-        "description=\"Spectrum-compatible PickerButton alias for upstream naming parity, preserving FieldButton accessibility/state contracts and HeroUI-level press/focus interaction behavior.\"",
+        "description=\"baseline-compatible PickerButton alias for naming parity, preserving FieldButton accessibility/state contracts and baseline-level press/focus interaction behavior.\"",
         "title=\"Interactive\"",
         "code_signal=code",
         "<Playground title=\"State Matrix\" code_signal=states_code>",

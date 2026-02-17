@@ -28,7 +28,7 @@ pub(super) fn field_label() -> AnyView {
             title="FieldLabel"
             slug="field-label"
             group="Forms"
-            description="Spectrum-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts."
+            description="baseline-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts."
         >
             <Playground title="Tone + Required" code_signal=tone_code>
                 <div class="docs-stack">

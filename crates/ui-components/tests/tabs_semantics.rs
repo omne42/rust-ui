@@ -44,12 +44,12 @@ fn tabs_attaches_indicator_motion_driver() {
 
     assert!(
         source.contains("motion::attach_motion"),
-        "Tabs should attach a motion driver for the selection indicator (HeroUI-style feel)."
+        "Tabs should attach a motion driver for the selection indicator (baseline-style feel)."
     );
 }
 
 #[test]
-fn tabs_emits_spectrum_style_state_data_attributes() {
+fn tabs_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/tabs/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn tabs_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Tabs should set `{attr}` to support Spectrum-style styling and state inspection."
+            "Tabs should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -171,7 +171,7 @@ fn tabs_docs_page_covers_primary_playgrounds() {
         "pub(super) fn tabs() -> AnyView",
         "title=\"Tabs\"",
         "slug=\"tabs\"",
-        "description=\"Tabs with roving tabindex, HeroUI-level indicator motion, and Spectrum-style root state attrs.\"",
+        "description=\"Tabs with roving tabindex, baseline-level indicator motion, and baseline-style root state attrs.\"",
         "<Playground title=\"Automatic + Controlled\" code_signal=code>",
         "<Playground title=\"Manual + Disabled\" code_signal=states_code>",
         "<Tabs",

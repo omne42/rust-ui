@@ -9,6 +9,7 @@
 - 每个 shard 允许执行：`rg`、`sed`、`apply_patch`、局部静态检查。
 - 每个 shard 禁止执行任何 cargo 命令（避免并发争用）。
 - 统一收敛后只执行一次：`cargo fmt --all`、`./scripts/check.sh`。
+- `provider/rac/s2/story_utils/style_macro_s1/test_utils/utils` 已迁移到 `crates/ui-compat/src/*.rs`，不属于 `ui-components` 分片范围。
 
 ## 子任务模板
 
@@ -99,7 +100,6 @@
 - `crates/ui-components/src/dialog`
 - `crates/ui-components/src/grid_list`
 - `crates/ui-components/src/list`
-- `crates/ui-components/src/provider`
 - `crates/ui-components/src/skeleton_group`
 - `crates/ui-components/src/theme_light`
 
@@ -110,7 +110,6 @@
 - `crates/ui-components/src/direction`
 - `crates/ui-components/src/gridlist`
 - `crates/ui-components/src/list_box`
-- `crates/ui-components/src/rac`
 - `crates/ui-components/src/slider`
 - `crates/ui-components/src/thumbnail`
 
@@ -165,7 +164,6 @@
 - `crates/ui-components/src/drag_and_drop`
 - `crates/ui-components/src/hidden_date_input`
 - `crates/ui-components/src/menu`
-- `crates/ui-components/src/s2`
 - `crates/ui-components/src/spinner`
 - `crates/ui-components/src/toggle_button`
 
@@ -210,7 +208,6 @@
 - `crates/ui-components/src/icons`
 - `crates/ui-components/src/menubar`
 - `crates/ui-components/src/search_field`
-- `crates/ui-components/src/story_utils`
 - `crates/ui-components/src/tooltip`
 
 ### shard-18
@@ -221,7 +218,6 @@
 - `crates/ui-components/src/icons_ui`
 - `crates/ui-components/src/meter`
 - `crates/ui-components/src/segmented_control`
-- `crates/ui-components/src/style_macro_s1`
 - `crates/ui-components/src/top_nav`
 
 ### shard-19
@@ -266,7 +262,6 @@
 - `crates/ui-components/src/number`
 - `crates/ui-components/src/shared_element_transition`
 - `crates/ui-components/src/switch_group`
-- `crates/ui-components/src/utils`
 
 ### shard-23
 
@@ -330,7 +325,6 @@
 - `crates/ui-components/src/item`
 - `crates/ui-components/src/picker`
 - `crates/ui-components/src/sidebar_header`
-- `crates/ui-components/src/test_utils`
 
 ### shard-29
 

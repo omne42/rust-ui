@@ -3,12 +3,178 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use std::sync::Arc;
-use ui_components::list::List;
 use ui_components::{
-    Accordion, AccordionSelectionMode, Autocomplete, BreadcrumbItem, Breadcrumbs, ComboBox,
-    Disclosure, DropdownMenu, ListBox, Menu, MenuItemKind, MenuTrigger, Pagination, Select, Tabs,
-    TabsKeyboardActivation, Tag, TagGroup,
+    Accordion, AccordionItem, AccordionSelectionMode, AccordionStreamingProjection,
+    AccordionVariant, AiOutputStatus, AiRenderMode, AiSpace, Autocomplete, BreadcrumbItem,
+    Breadcrumbs, ComboBox, Disclosure, DropdownMenu, List, Menu, MenuItemKind, MenuTrigger,
+    Pagination, Select, Tabs, TabsKeyboardActivation, Tag, TagGroup, open_set,
+    project_streaming_accordion_markup,
 };
+
+#[cfg(target_arch = "wasm32")]
+const ACCORDION_WORKBENCH_STORAGE_KEY: &str = "docs:accordion:workbench:open";
+
+#[cfg(target_arch = "wasm32")]
+fn encode_open_set(indices: &BTreeSet<usize>) -> String {
+    indices
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+#[cfg(target_arch = "wasm32")]
+fn decode_open_set(raw: &str) -> BTreeSet<usize> {
+    raw.split(',')
+        .filter_map(|part| part.trim().parse::<usize>().ok())
+        .collect()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn load_workbench_open() -> Option<BTreeSet<usize>> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(ACCORDION_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    Some(decode_open_set(&raw))
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_workbench_open() -> Option<BTreeSet<usize>> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_workbench_open(indices: &BTreeSet<usize>) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        let _ = storage.set_item(ACCORDION_WORKBENCH_STORAGE_KEY, &encode_open_set(indices));
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_workbench_open(_indices: &BTreeSet<usize>) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_workbench_open() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        let _ = storage.remove_item(ACCORDION_WORKBENCH_STORAGE_KEY);
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_workbench_open() {}
+
+const ACCORDION_STREAMING_ITEM_LABELS: [&str; 3] = ["Chunk #1", "Chunk #2", "Chunk #3"];
+const ACCORDION_STREAMING_TOTAL_ITEMS: usize = ACCORDION_STREAMING_ITEM_LABELS.len();
+const ACCORDION_STREAMING_FULL_CODE: &str = r#"<Accordion
+  id_base="docs-accordion-ai-stream".to_string()
+  selection_mode=AccordionSelectionMode::Multiple
+  variant=AccordionVariant::Splitted
+>
+    <AccordionItem label="Chunk #1">"First completed item from AI output."</AccordionItem>
+    <AccordionItem label="Chunk #2">"Second completed item, mounted incrementally."</AccordionItem>
+    <AccordionItem label="Chunk #3">"Final completed item."</AccordionItem>
+</Accordion>"#;
+const ACCORDION_STREAMING_MANUAL_STEP: usize = 20;
+const ACCORDION_STREAMING_AUTO_STEP: usize = 2;
+const ACCORDION_STREAMING_AUTO_INTERVAL_MS: u64 = 100;
+const ACCORDION_STREAMING_AUTO_RESET_DELAY_MS: u64 = 3000;
+
+fn count_chars(input: &str) -> usize {
+    input.chars().count()
+}
+
+fn take_chars(input: &str, count: usize) -> String {
+    input.chars().take(count).collect()
+}
+
+fn derive_item_open(open: ReadSignal<BTreeSet<usize>>, key: usize) -> Signal<bool> {
+    Signal::derive(move || open.get().contains(&key))
+}
+
+fn on_item_open_change(set_open: WriteSignal<BTreeSet<usize>>, key: usize) -> Callback<bool> {
+    Callback::new(move |is_open: bool| {
+        set_open.update(|open| {
+            if is_open {
+                open.insert(key);
+            } else {
+                open.remove(&key);
+            }
+        });
+    })
+}
+
+fn snapshot_open(indices: &BTreeSet<usize>, visible_items: usize) -> BTreeSet<usize> {
+    indices
+        .iter()
+        .copied()
+        .filter(|index| *index < visible_items)
+        .collect()
+}
+
+fn escape_rust_string_literal(input: &str) -> String {
+    input.replace('\\', "\\\\").replace('"', "\\\"")
+}
+
+fn build_streaming_snapshot_code(
+    projection: &AccordionStreamingProjection,
+    open: &BTreeSet<usize>,
+    _mode: AiRenderMode,
+    _status: AiOutputStatus,
+) -> String {
+    if !projection.has_root_open || projection.items.is_empty() {
+        return String::new();
+    }
+
+    let visible_items = projection.items.len().min(ACCORDION_STREAMING_TOTAL_ITEMS);
+    let open = snapshot_open(open, visible_items);
+    let mut out = String::new();
+
+    out.push_str("<Accordion\n");
+    out.push_str("  id_base=\"docs-accordion-ai-stream\".to_string()\n");
+    out.push_str("  selection_mode=AccordionSelectionMode::Multiple\n");
+    out.push_str("  variant=AccordionVariant::Splitted\n");
+    out.push_str(">\n");
+
+    for (key, item) in projection
+        .items
+        .iter()
+        .take(ACCORDION_STREAMING_TOTAL_ITEMS)
+        .enumerate()
+    {
+        let label = escape_rust_string_literal(&item.label);
+        let text = escape_rust_string_literal(&item.text);
+        let is_open = open.contains(&key);
+        out.push_str(&format!(
+            "  <AccordionItem key={key} label=\"{label}\".to_string() default_open={is_open}>\"{text}\"</AccordionItem>\n"
+        ));
+    }
+
+    out.push_str("</Accordion>");
+    out
+}
+
+fn compose_streaming_demo_code(
+    input_code: &str,
+    projection: &AccordionStreamingProjection,
+    open: &BTreeSet<usize>,
+    mode: AiRenderMode,
+    status: AiOutputStatus,
+) -> String {
+    let snapshot = build_streaming_snapshot_code(projection, open, mode, status);
+    if snapshot.is_empty() {
+        input_code.to_string()
+    } else if input_code.trim().is_empty() {
+        format!("SNAPSHOT\n{snapshot}")
+    } else {
+        format!("STREAMING_INPUT\n{input_code}\n\nSNAPSHOT\n{snapshot}")
+    }
+}
 
 pub(super) fn breadcrumbs() -> AnyView {
     let items = vec![
@@ -71,7 +237,7 @@ pub(super) fn breadcrumbs() -> AnyView {
             title="Breadcrumbs"
             slug="breadcrumbs"
             group="Collections"
-            description="Breadcrumb nav with current-page semantics and Spectrum-style root state attrs."
+            description="Breadcrumb nav with current-page semantics and baseline-style root state attrs."
         >
             <Playground title="Trail" code_signal=code>
                 <Breadcrumbs items=items />
@@ -95,54 +261,231 @@ pub(super) fn breadcrumbs() -> AnyView {
 }
 
 pub(super) fn accordion() -> AnyView {
-    let multi_labels = vec![
-        "First".to_string(),
-        "Second".to_string(),
-        "Third".to_string(),
-    ];
-    let single_labels = vec![
-        "Overview".to_string(),
-        "Details".to_string(),
-        "History".to_string(),
-    ];
+    let (open_multi, set_open_multi) = signal(open_set([0]));
+    let open_multi_0 = derive_item_open(open_multi, 0);
+    let open_multi_1 = derive_item_open(open_multi, 1);
+    let open_multi_2 = derive_item_open(open_multi, 2);
+    let on_multi_0_change = on_item_open_change(set_open_multi, 0);
+    let on_multi_1_change = on_item_open_change(set_open_multi, 1);
+    let on_multi_2_change = on_item_open_change(set_open_multi, 2);
 
-    let (open_multi, set_open_multi) = signal(BTreeSet::from([0_usize]));
-    let on_multi_change = Callback::new(move |next: BTreeSet<usize>| set_open_multi.set(next));
+    let (open_single, set_open_single) = signal(open_set([1]));
+    let open_single_0 = derive_item_open(open_single, 0);
+    let open_single_1 = derive_item_open(open_single, 1);
+    let open_single_2 = derive_item_open(open_single, 2);
+    let on_single_0_change = on_item_open_change(set_open_single, 0);
+    let on_single_1_change = on_item_open_change(set_open_single, 1);
+    let on_single_2_change = on_item_open_change(set_open_single, 2);
 
-    let (open_single, set_open_single) = signal(BTreeSet::from([1_usize]));
-    let on_single_change = Callback::new(move |next: BTreeSet<usize>| set_open_single.set(next));
+    let persisted_workbench_open = load_workbench_open();
+    let (workbench_open, set_workbench_open) = signal(
+        persisted_workbench_open
+            .clone()
+            .unwrap_or_else(|| open_set([0])),
+    );
+    let workbench_open_0 = derive_item_open(workbench_open, 0);
+    let workbench_open_1 = derive_item_open(workbench_open, 1);
+    let workbench_open_2 = derive_item_open(workbench_open, 2);
+    let on_workbench_0_change = on_item_open_change(set_workbench_open, 0);
+    let on_workbench_1_change = on_item_open_change(set_workbench_open, 1);
+    let on_workbench_2_change = on_item_open_change(set_workbench_open, 2);
+    let (workbench_multiple_mode, set_workbench_multiple_mode) = signal(true);
+    let (workbench_disable_second, set_workbench_disable_second) = signal(false);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(persisted_workbench_open.is_some());
+    let (workbench_radius_px, set_workbench_radius_px) = signal(12_u16);
+    let (workbench_hover_alpha, set_workbench_hover_alpha) = signal(10_u16);
+    let snapshot_mode = Signal::derive(|| AiRenderMode::Snapshot);
+    let verified_output = Signal::derive(|| AiOutputStatus::Verified);
+
+    let streaming_total_items = ACCORDION_STREAMING_TOTAL_ITEMS;
+    let streaming_total_chars = count_chars(ACCORDION_STREAMING_FULL_CODE);
+    let (streaming_chars, set_streaming_chars) = signal(0_usize);
+    let (streaming_auto, set_streaming_auto) = signal(false);
+    let (streaming_open_set, set_streaming_open_set) = signal(open_set([]));
+    let streaming_open_0 = derive_item_open(streaming_open_set, 0);
+    let streaming_open_1 = derive_item_open(streaming_open_set, 1);
+    let streaming_open_2 = derive_item_open(streaming_open_set, 2);
+    let on_streaming_0_change = on_item_open_change(set_streaming_open_set, 0);
+    let on_streaming_1_change = on_item_open_change(set_streaming_open_set, 1);
+    let on_streaming_2_change = on_item_open_change(set_streaming_open_set, 2);
+
+    let streaming_chars_clamped =
+        Signal::derive(move || streaming_chars.get().min(streaming_total_chars));
+    let streaming_input_code = Signal::derive(move || {
+        take_chars(ACCORDION_STREAMING_FULL_CODE, streaming_chars_clamped.get())
+    });
+    let streaming_projection =
+        Signal::derive(move || project_streaming_accordion_markup(&streaming_input_code.get()));
+    let streaming_is_complete = Signal::derive(move || streaming_projection.get().is_complete());
+    let streaming_mode = Signal::derive(move || {
+        if streaming_is_complete.get() {
+            AiRenderMode::Snapshot
+        } else {
+            AiRenderMode::Streaming
+        }
+    });
+    let streaming_output_status = Signal::derive(move || {
+        if streaming_is_complete.get() {
+            AiOutputStatus::Verified
+        } else {
+            AiOutputStatus::Draft
+        }
+    });
+    let streaming_has_root_open = Signal::derive(move || streaming_projection.get().has_root_open);
+    let streaming_rendered_items = Signal::derive(move || streaming_projection.get().items.len());
+    let streaming_visible_item_count = Signal::derive(move || {
+        streaming_rendered_items
+            .get()
+            .min(ACCORDION_STREAMING_TOTAL_ITEMS)
+    });
+    let streaming_item_1_text = Signal::derive(move || {
+        streaming_projection
+            .get()
+            .items
+            .first()
+            .map(|item| item.text.clone())
+            .unwrap_or_default()
+    });
+    let streaming_item_2_text = Signal::derive(move || {
+        streaming_projection
+            .get()
+            .items
+            .get(1)
+            .map(|item| item.text.clone())
+            .unwrap_or_default()
+    });
+    let streaming_item_3_text = Signal::derive(move || {
+        streaming_projection
+            .get()
+            .items
+            .get(2)
+            .map(|item| item.text.clone())
+            .unwrap_or_default()
+    });
+    let streaming_update_disabled =
+        Signal::derive(move || streaming_chars_clamped.get() >= streaming_total_chars);
+    let streaming_code = Signal::derive(move || {
+        compose_streaming_demo_code(
+            &streaming_input_code.get(),
+            &streaming_projection.get(),
+            &streaming_open_set.get(),
+            streaming_mode.get(),
+            streaming_output_status.get(),
+        )
+    });
+
+    Effect::new(move |_| {
+        let visible = streaming_visible_item_count.get();
+        set_streaming_open_set.update(|open_set| {
+            open_set.retain(|index| *index < visible);
+        });
+    });
+
+    let auto_timeout = StoredValue::new_local(None::<TimeoutHandle>);
+    Effect::new(move |_| {
+        if let Some(handle) = auto_timeout.get_value() {
+            handle.clear();
+        }
+        auto_timeout.set_value(None);
+
+        if !streaming_auto.get() {
+            return;
+        }
+
+        let current = streaming_chars_clamped.get();
+        let delay_ms = if current >= streaming_total_chars {
+            ACCORDION_STREAMING_AUTO_RESET_DELAY_MS
+        } else {
+            ACCORDION_STREAMING_AUTO_INTERVAL_MS
+        };
+
+        if let Ok(handle) = set_timeout_with_handle(
+            move || {
+                if current >= streaming_total_chars {
+                    set_streaming_chars.set(0);
+                    set_streaming_open_set.set(open_set([]));
+                } else {
+                    set_streaming_chars.update(|value| {
+                        *value = (*value + ACCORDION_STREAMING_AUTO_STEP).min(streaming_total_chars)
+                    });
+                }
+            },
+            std::time::Duration::from_millis(delay_ms),
+        ) {
+            auto_timeout.set_value(Some(handle));
+        }
+    });
+
+    on_cleanup(move || {
+        if let Some(handle) = auto_timeout.get_value() {
+            handle.clear();
+        }
+    });
+
+    Effect::new(move |_| {
+        let open = workbench_open.get();
+        if workbench_persist_state.get() {
+            save_workbench_open(&open);
+        } else {
+            clear_workbench_open();
+        }
+    });
+
+    let hello_code = Signal::derive(move || {
+        r#"<Accordion variant=AccordionVariant::Light>
+  <AccordionItem label="First">"Panel 1"</AccordionItem>
+  <AccordionItem label="Second">"Panel 2"</AccordionItem>
+</Accordion>"#
+            .to_string()
+    });
 
     let code = Signal::derive(move || {
-        r#"let (open, set_open) = signal(BTreeSet::from([0_usize]));
-let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(next));
+        r#"let (open, set_open) = signal(open_set([0]));
+let item_0_open = Signal::derive(move || open.get().contains(&0));
+let item_1_open = Signal::derive(move || open.get().contains(&1));
+let item_2_open = Signal::derive(move || open.get().contains(&2));
+
 <Accordion
-  labels=vec!["First".to_string(), "Second".to_string(), "Third".to_string()]
   id_base="accordion".to_string()
-  open_indices=open.into()
-  on_open_change=on_open_change
   selection_mode=AccordionSelectionMode::Multiple
+  variant=AccordionVariant::Shadow
 >
-  <div>"Panel 1"</div>
-  <div>"Panel 2"</div>
-  <div>"Panel 3"</div>
+  <AccordionItem key=0 label="First" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Panel 1"</div></AccordionItem>
+  <AccordionItem key=1 label="Second" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Panel 2"</div></AccordionItem>
+  <AccordionItem key=2 label="Third" open=item_2_open on_open_change=on_item_open_change(set_open, 2)><div>"Panel 3"</div></AccordionItem>
 </Accordion>"#
             .to_string()
     });
 
     let states_code = Signal::derive(move || {
-        r#"let (open, set_open) = signal(BTreeSet::from([1_usize]));
-let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(next));
+        r#"let (open, set_open) = signal(open_set([1]));
+let item_0_open = Signal::derive(move || open.get().contains(&0));
+let item_1_open = Signal::derive(move || open.get().contains(&1));
+let item_2_open = Signal::derive(move || open.get().contains(&2));
+
 <Accordion
-  labels=vec!["Overview".to_string(), "Details".to_string(), "History".to_string()]
   id_base="accordion-single".to_string()
-  open_indices=open.into()
-  on_open_change=on_open_change
   selection_mode=AccordionSelectionMode::Single
-  disabled_indices=vec![2]
+  variant=AccordionVariant::Bordered
+  disallow_empty_selection=true
 >
-  <div>"Overview"</div>
-  <div>"Details"</div>
-  <div>"History"</div>
+  <AccordionItem key=0 label="Overview" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Overview"</div></AccordionItem>
+  <AccordionItem key=1 label="Details" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Details"</div></AccordionItem>
+  <AccordionItem key=2 label="History" open=item_2_open on_open_change=on_item_open_change(set_open, 2) is_disabled=true><div>"History"</div></AccordionItem>
+</Accordion>"#
+            .to_string()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        r#"let saved = load_workbench_open();
+let (open, set_open) = signal(saved.unwrap_or_else(|| open_set([0])));
+let item_0_open = Signal::derive(move || open.get().contains(&0));
+let item_1_open = Signal::derive(move || open.get().contains(&1));
+// style knobs update CSS variables in-place (no wasm rebuild)
+<Accordion id_base="accordion-workbench".to_string()>
+  <AccordionItem key=0 label="Profile" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Profile panel"</div></AccordionItem>
+  <AccordionItem key=1 label="Security" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Security panel"</div></AccordionItem>
 </Accordion>"#
             .to_string()
     });
@@ -152,32 +495,54 @@ let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(nex
             title="Accordion"
             slug="accordion"
             group="Collections"
-            description="Multi-panel disclosure with roving tabindex, HeroUI-level spring motion, and Spectrum-style root state attrs."
+            description="Multi-panel disclosure with roving tabindex, baseline-level spring motion, and baseline-style root state attrs."
         >
+            <Playground
+                title="Hello World (Uncontrolled)"
+                description="Zero wiring path: no controlled state and no headless/state-primitives setup needed."
+                code_signal=hello_code
+                >
+                    <div class="docs-stack">
+                        <AiSpace mode=snapshot_mode output_status=verified_output>
+                            <Accordion variant=AccordionVariant::Light>
+                                <AccordionItem label="First">"Panel 1 content"</AccordionItem>
+                                <AccordionItem label="Second">"Panel 2 content"</AccordionItem>
+                            </Accordion>
+                        </AiSpace>
+                        <span class="ui-muted">"minimal default path"</span>
+                    </div>
+            </Playground>
+
             <Playground title="Multiple + Controlled" code_signal=code>
                 <div class="docs-stack">
-                    <Accordion
-                        labels=multi_labels
-                        id_base="docs-accordion".to_string()
-                        open_indices=open_multi.into()
-                        on_open_change=on_multi_change
-                        selection_mode=AccordionSelectionMode::Multiple
-                    >
-                        <div class="docs-stack">
-                            <div>"Panel 1 content"</div>
-                            <div class="ui-muted">"Press Enter/Space or click the triggers."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Panel 2 content"</div>
-                            <div class="ui-muted">"Arrow keys move focus between triggers."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Panel 3 content"</div>
-                            <div class="ui-muted">"Multiple mode allows multiple open panels."</div>
-                        </div>
-                    </Accordion>
+                    <AiSpace mode=snapshot_mode output_status=verified_output>
+                        <Accordion
+                            id_base="docs-accordion".to_string()
+                            selection_mode=AccordionSelectionMode::Multiple
+                            variant=AccordionVariant::Shadow
+                        >
+                            <AccordionItem key=0 label="First" open=open_multi_0 on_open_change=on_multi_0_change>
+                                <div class="docs-stack">
+                                    <div>"Panel 1 content"</div>
+                                    <div class="ui-muted">"Press Enter/Space or click the triggers."</div>
+                                </div>
+                            </AccordionItem>
+                            <AccordionItem key=1 label="Second" open=open_multi_1 on_open_change=on_multi_1_change>
+                                <div class="docs-stack">
+                                    <div>"Panel 2 content"</div>
+                                    <div class="ui-muted">"Arrow keys move focus between triggers."</div>
+                                </div>
+                            </AccordionItem>
+                            <AccordionItem key=2 label="Third" open=open_multi_2 on_open_change=on_multi_2_change>
+                                <div class="docs-stack">
+                                    <div>"Panel 3 content"</div>
+                                    <div class="ui-muted">"Multiple mode allows multiple open panels."</div>
+                                </div>
+                            </AccordionItem>
+                        </Accordion>
+                    </AiSpace>
                     <span class="ui-muted">
-                        "open indices: "
+                        "open: "
                         {move || {
                             let open = open_multi.get().iter().copied().collect::<Vec<_>>();
                             format!("{open:?}")
@@ -188,27 +553,33 @@ let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(nex
 
             <Playground title="Single + Disabled" code_signal=states_code>
                 <div class="docs-stack">
-                    <Accordion
-                        labels=single_labels
-                        id_base="docs-accordion-single".to_string()
-                        open_indices=open_single.into()
-                        on_open_change=on_single_change
-                        selection_mode=AccordionSelectionMode::Single
-                        disabled_indices=vec![2]
-                    >
-                        <div class="docs-stack">
-                            <div>"Overview content"</div>
-                            <div class="ui-muted">"Single mode keeps at most one panel open."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"Details content"</div>
-                            <div class="ui-muted">"Selection is fully controlled by open indices."</div>
-                        </div>
-                        <div class="docs-stack">
-                            <div>"History content"</div>
-                            <div class="ui-muted">"This trigger is disabled and skipped by roving focus."</div>
-                        </div>
-                    </Accordion>
+                    <AiSpace mode=snapshot_mode output_status=verified_output>
+                        <Accordion
+                            id_base="docs-accordion-single".to_string()
+                            selection_mode=AccordionSelectionMode::Single
+                            variant=AccordionVariant::Bordered
+                            disallow_empty_selection=true
+                        >
+                            <AccordionItem key=0 label="Overview" open=open_single_0 on_open_change=on_single_0_change>
+                                <div class="docs-stack">
+                                    <div>"Overview content"</div>
+                                    <div class="ui-muted">"Single mode keeps at most one panel open."</div>
+                                </div>
+                            </AccordionItem>
+                            <AccordionItem key=1 label="Details" open=open_single_1 on_open_change=on_single_1_change>
+                                <div class="docs-stack">
+                                    <div>"Details content"</div>
+                                    <div class="ui-muted">"Selection is fully controlled by `open`."</div>
+                                </div>
+                            </AccordionItem>
+                            <AccordionItem key=2 label="History" open=open_single_2 on_open_change=on_single_2_change is_disabled=true>
+                                <div class="docs-stack">
+                                    <div>"History content"</div>
+                                    <div class="ui-muted">"This trigger is disabled and skipped by roving focus."</div>
+                                </div>
+                            </AccordionItem>
+                        </Accordion>
+                    </AiSpace>
                     <span class="ui-muted">
                         "single open: "
                         {move || {
@@ -217,6 +588,274 @@ let on_open_change = Callback::new(move |next: BTreeSet<usize>| set_open.set(nex
                         }}
                     </span>
                     <span class="ui-muted">"disabled index: 2"</span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Streaming Output (AI Space)"
+                code_signal=streaming_code
+                description="Character streaming starts from <Accordion>. Update adds +20 chars each time; Auto adds +2 chars every 0.1s. After completion, wait 3s, reset, and loop."
+                code_imports=String::new()
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="accordion-streaming-controls">
+                        <div class="docs-row">
+                            <button
+                                type="button"
+                                on:click=move |_| {
+                                    set_streaming_chars.set(0);
+                                    set_streaming_open_set.set(open_set([]));
+                                }
+                            >
+                                "Reset"
+                            </button>
+                            <button
+                                type="button"
+                                prop:disabled=streaming_update_disabled
+                                on:click=move |_| {
+                                    set_streaming_chars.update(|value| {
+                                        *value = (*value + ACCORDION_STREAMING_MANUAL_STEP)
+                                            .min(streaming_total_chars)
+                                    });
+                                }
+                            >
+                                "Update"
+                            </button>
+                            <label class="docs-search__label">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || streaming_auto.get()
+                                    on:change=move |ev| set_streaming_auto.set(event_target_checked(&ev))
+                                />
+                                " Auto"
+                            </label>
+                        </div>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="accordion-streaming-demo">
+                    <span class="ui-muted">
+                        "mode: "
+                        {move || streaming_mode.get().as_str()}
+                        " | status: "
+                        {move || streaming_output_status.get().as_str()}
+                        " | chars: "
+                        {move || streaming_chars_clamped.get().to_string()}
+                        "/"
+                        {streaming_total_chars.to_string()}
+                        " | items rendered: "
+                        {move || streaming_rendered_items.get().to_string()}
+                        "/"
+                        {streaming_total_items.to_string()}
+                    </span>
+                    <AiSpace mode=streaming_mode output_status=streaming_output_status>
+                        <div class="docs-card" data-slot="accordion-streaming-canvas">
+                            <Show when=move || streaming_has_root_open.get()>
+                                <Show when=move || streaming_visible_item_count.get() == 1>
+                                    <Accordion
+                                        id_base="docs-accordion-ai-stream".to_string()
+                                        selection_mode=AccordionSelectionMode::Multiple
+                                        variant=AccordionVariant::Splitted
+                                    >
+                                        <AccordionItem
+                                            key=0
+                                            label=ACCORDION_STREAMING_ITEM_LABELS[0].to_string()
+                                            open=streaming_open_0
+                                            on_open_change=on_streaming_0_change
+                                        >
+                                            <div>{move || streaming_item_1_text.get()}</div>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </Show>
+                                <Show when=move || streaming_visible_item_count.get() == 2>
+                                    <Accordion
+                                        id_base="docs-accordion-ai-stream".to_string()
+                                        selection_mode=AccordionSelectionMode::Multiple
+                                        variant=AccordionVariant::Splitted
+                                    >
+                                        <AccordionItem
+                                            key=0
+                                            label=ACCORDION_STREAMING_ITEM_LABELS[0].to_string()
+                                            open=streaming_open_0
+                                            on_open_change=on_streaming_0_change
+                                        >
+                                            <div>{move || streaming_item_1_text.get()}</div>
+                                        </AccordionItem>
+                                        <AccordionItem
+                                            key=1
+                                            label=ACCORDION_STREAMING_ITEM_LABELS[1].to_string()
+                                            open=streaming_open_1
+                                            on_open_change=on_streaming_1_change
+                                        >
+                                            <div>{move || streaming_item_2_text.get()}</div>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </Show>
+                                <Show when=move || streaming_visible_item_count.get() == 3>
+                                    <Accordion
+                                        id_base="docs-accordion-ai-stream".to_string()
+                                        selection_mode=AccordionSelectionMode::Multiple
+                                        variant=AccordionVariant::Splitted
+                                    >
+                                        <AccordionItem
+                                            key=0
+                                            label=ACCORDION_STREAMING_ITEM_LABELS[0].to_string()
+                                            open=streaming_open_0
+                                            on_open_change=on_streaming_0_change
+                                        >
+                                            <div>{move || streaming_item_1_text.get()}</div>
+                                        </AccordionItem>
+                                        <AccordionItem
+                                            key=1
+                                            label=ACCORDION_STREAMING_ITEM_LABELS[1].to_string()
+                                            open=streaming_open_1
+                                            on_open_change=on_streaming_1_change
+                                        >
+                                            <div>{move || streaming_item_2_text.get()}</div>
+                                        </AccordionItem>
+                                        <AccordionItem
+                                            key=2
+                                            label=ACCORDION_STREAMING_ITEM_LABELS[2].to_string()
+                                            open=streaming_open_2
+                                            on_open_change=on_streaming_2_change
+                                        >
+                                            <div>{move || streaming_item_3_text.get()}</div>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </Show>
+                            </Show>
+                        </div>
+                    </AiSpace>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Isolated Canvas + Optional Persist)"
+                description="Tune CSS variables live, keep interaction context, and optionally persist open state."
+                code_signal=workbench_code
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="accordion-workbench-controls">
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_multiple_mode.get()
+                                on:change=move |ev| set_workbench_multiple_mode.set(event_target_checked(&ev))
+                            />
+                            " Multiple mode"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_disable_second.get()
+                                on:change=move |ev| set_workbench_disable_second.set(event_target_checked(&ev))
+                            />
+                            " Disable item #1"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_persist_state.get()
+                                on:change=move |ev| set_workbench_persist_state.set(event_target_checked(&ev))
+                            />
+                            " Persist open state (optional)"
+                        </label>
+                        <label class="docs-search__label">
+                            "Radius "
+                            <input
+                                type="range"
+                                min="8"
+                                max="24"
+                                prop:value=move || workbench_radius_px.get().to_string()
+                                on:input=move |ev| {
+                                    if let Ok(next) = event_target_value(&ev).parse::<u16>() {
+                                        set_workbench_radius_px.set(next.clamp(8, 24));
+                                    }
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "Hover alpha "
+                            <input
+                                type="range"
+                                min="5"
+                                max="30"
+                                prop:value=move || workbench_hover_alpha.get().to_string()
+                                on:input=move |ev| {
+                                    if let Ok(next) = event_target_value(&ev).parse::<u16>() {
+                                        set_workbench_hover_alpha.set(next.clamp(5, 30));
+                                    }
+                                }
+                            />
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="accordion-workbench">
+                    <span class="ui-muted">
+                        "persist: "
+                        {move || if workbench_persist_state.get() { "on" } else { "off" }}
+                        " | open: "
+                        {move || {
+                            let open = workbench_open.get().iter().copied().collect::<Vec<_>>();
+                            format!("{open:?}")
+                        }}
+                    </span>
+                    {move || {
+                        let selection_mode = if workbench_multiple_mode.get() {
+                            AccordionSelectionMode::Multiple
+                        } else {
+                            AccordionSelectionMode::Single
+                        };
+                        let disallow_empty_selection =
+                            selection_mode == AccordionSelectionMode::Single;
+                        let disable_security = workbench_disable_second.get();
+                        let radius = workbench_radius_px.get();
+                        let alpha = f32::from(workbench_hover_alpha.get()) / 100.0;
+                        let workbench_style = format!(
+                            "--ui-radius-md: {radius}px; --ui-accordion-trigger-hover-bg: rgba(0, 111, 238, {alpha});"
+                        );
+                        view! {
+                            <div
+                                class="docs-card"
+                                data-slot="accordion-workbench-canvas"
+                                style=workbench_style
+                            >
+                                <AiSpace mode=snapshot_mode output_status=verified_output>
+                                    <Accordion
+                                        id_base="docs-accordion-workbench".to_string()
+                                        selection_mode=selection_mode
+                                        variant=AccordionVariant::Splitted
+                                        disallow_empty_selection=disallow_empty_selection
+                                    >
+                                        <AccordionItem
+                                            key=0
+                                            label="Profile"
+                                            open=workbench_open_0
+                                            on_open_change=on_workbench_0_change
+                                        >
+                                            <div>"Profile panel content"</div>
+                                        </AccordionItem>
+                                        <AccordionItem
+                                            key=1
+                                            label="Security".to_string()
+                                            open=workbench_open_1
+                                            on_open_change=on_workbench_1_change
+                                            is_disabled=disable_security
+                                        >
+                                            <div>"Security panel content"</div>
+                                        </AccordionItem>
+                                        <AccordionItem
+                                            key=2
+                                            label="Notifications"
+                                            open=workbench_open_2
+                                            on_open_change=on_workbench_2_change
+                                        >
+                                            <div>"Notifications panel content"</div>
+                                        </AccordionItem>
+                                    </Accordion>
+                                </AiSpace>
+                            </div>
+                        }
+                    }}
                 </div>
             </Playground>
         </ComponentPage>
@@ -234,7 +873,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
 <Disclosure
   id_base="disc".to_string()
   label="Details".to_string()
-  open=open.into()
+  open=open
   on_open_change=on_open_change
 >
   <div>"Hidden content"</div>
@@ -259,7 +898,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
             title="Disclosure"
             slug="disclosure"
             group="Collections"
-            description="Single disclosure panel with HeroUI-level spring motion and Spectrum-style root state attrs."
+            description="Single disclosure panel with baseline-level spring motion and baseline-style root state attrs."
         >
             <Playground title="Controlled" code_signal=code>
                 <div class="docs-stack">
@@ -352,7 +991,7 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
             title="Tabs"
             slug="tabs"
             group="Collections"
-            description="Tabs with roving tabindex, HeroUI-level indicator motion, and Spectrum-style root state attrs."
+            description="Tabs with roving tabindex, baseline-level indicator motion, and baseline-style root state attrs."
         >
             <Playground title="Automatic + Controlled" code_signal=code>
                 <div class="docs-stack">
@@ -418,123 +1057,6 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
     .into_any()
 }
 
-pub(super) fn list_box() -> AnyView {
-    let items: Arc<[String]> = vec![
-        "Apple".to_string(),
-        "Banana".to_string(),
-        "Cherry".to_string(),
-        "Durian".to_string(),
-    ]
-    .into();
-    let disabled_items: Arc<[String]> = vec![
-        "London".to_string(),
-        "Paris".to_string(),
-        "Tokyo".to_string(),
-    ]
-    .into();
-    let empty_items: Arc<[String]> = Vec::<String>::new().into();
-
-    let (selected, set_selected) = signal(Some(1_usize));
-    let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
-    let (empty_selected, set_empty_selected) = signal(None::<usize>);
-
-    let code = Signal::derive(move || {
-        r#"let items: Arc<[String]> = vec!["Apple".to_string(), "Banana".to_string()].into();
-let (selected, set_selected) = signal(Some(1_usize));
-<ListBox
-  id_base="fruit".to_string()
-  items=items
-  selected_index=selected
-  set_selected_index=set_selected
-  aria_label="Fruit".to_string()
-  disabled_indices=vec![1]
-/>"#
-        .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
-        r#"let (disabled_selected, set_disabled_selected) = signal(Some(0_usize));
-let (empty_selected, set_empty_selected) = signal(None::<usize>);
-
-<ListBox
-  id_base="cities-disabled".to_string()
-  items=vec!["London".to_string(), "Paris".to_string(), "Tokyo".to_string()].into()
-  selected_index=disabled_selected
-  set_selected_index=set_disabled_selected
-  aria_label="Disabled list".to_string()
-  disabled=true
-/>
-<ListBox
-  id_base="cities-empty".to_string()
-  items=Vec::<String>::new().into()
-  selected_index=empty_selected
-  set_selected_index=set_empty_selected
-  aria_label="Empty list".to_string()
-/>"#
-        .to_string()
-    });
-
-    view! {
-        <ComponentPage
-            title="ListBox"
-            slug="listbox"
-            group="Collections"
-            description="Listbox with active highlight spring motion, typeahead, and Spectrum-style root state attrs."
-        >
-            <Playground title="Selection + Typeahead" code_signal=code>
-                <div class="docs-stack">
-                    <ListBox
-                        id_base="docs-listbox".to_string()
-                        items=items
-                        selected_index=selected
-                        set_selected_index=set_selected
-                        aria_label="Fruit".to_string()
-                        disabled_indices=vec![3]
-                    />
-                    <span class="ui-muted">
-                        "selected: "
-                        {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                    </span>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Empty" code_signal=states_code>
-                <div class="docs-row">
-                    <div class="docs-stack">
-                        <ListBox
-                            id_base="docs-listbox-disabled".to_string()
-                            items=disabled_items
-                            selected_index=disabled_selected
-                            set_selected_index=set_disabled_selected
-                            aria_label="Disabled city list".to_string()
-                            disabled=true
-                        />
-                        <span class="ui-muted">
-                            "disabled selected: "
-                            {move || disabled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-
-                    <div class="docs-stack">
-                        <ListBox
-                            id_base="docs-listbox-empty".to_string()
-                            items=empty_items
-                            selected_index=empty_selected
-                            set_selected_index=set_empty_selected
-                            aria_label="Empty city list".to_string()
-                        />
-                        <span class="ui-muted">
-                            "empty selected: "
-                            {move || empty_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
-                        </span>
-                    </div>
-                </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
-}
-
 pub(super) fn list() -> AnyView {
     let items: Arc<[String]> = vec![
         "Overview".to_string(),
@@ -593,7 +1115,7 @@ let (selected, set_selected) = signal(Some(0_usize));
             title="List"
             slug="list"
             group="Collections"
-            description="List primitive built on ListBox with centralized root-state markers and optional active-index sync controls."
+            description="List primitive with centralized root-state markers and optional active-index sync controls."
         >
             <Playground title="Selection + Disabled Item" code_signal=code>
                 <div class="docs-stack">
@@ -698,7 +1220,7 @@ pub(super) fn menu() -> AnyView {
             title="Menu"
             slug="menu"
             group="Collections"
-            description="ARIA menu with action / checkbox / radio roles, active-highlight motion, and Spectrum-style root state attrs."
+            description="ARIA menu with action / checkbox / radio roles, active-highlight motion, and baseline-style root state attrs."
         >
             <Playground title="Kinds + Selection" code_signal=code>
                 <div class="docs-stack">
@@ -832,7 +1354,7 @@ pub(super) fn menu_trigger() -> AnyView {
             title="MenuTrigger"
             slug="menu-trigger"
             group="Collections"
-            description="Button-triggered menu surface with Spectrum state attrs and controlled/uncontrolled close-strategy semantics."
+            description="Button-triggered menu surface with baseline state attrs and controlled/uncontrolled close-strategy semantics."
         >
             <Playground title="Default" code_signal=code>
                 <div class="docs-row">
@@ -939,7 +1461,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
   items=vec!["Apple".to_string(), "Banana".to_string(), "Cherry".to_string(), "Durian".to_string()]
   selected_index=selected
   set_selected_index=set_selected
-  open=open.into()
+  open=open
   on_open_change=on_open_change
   disabled_indices=vec![3]
 />"#
@@ -972,7 +1494,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             title="Select"
             slug="select"
             group="Collections"
-            description="Select with controlled open state, listbox semantics, and Spectrum-style root state attrs."
+            description="Select with controlled open state, listbox semantics, and baseline-style root state attrs."
         >
             <Playground title="Controlled Open + Selection" code_signal=code>
                 <div class="docs-stack">
@@ -1149,7 +1671,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             title="ComboBox"
             slug="combo-box"
             group="Collections"
-            description="Combobox with input + listbox + popover, Spectrum-style root attrs, and HeroUI-level panel/highlight motion."
+            description="Combobox with input + listbox + popover, baseline-style root attrs, and baseline-level panel/highlight motion."
         >
             <Playground title="Selection + Validation" code_signal=code>
                 <div class="docs-stack">
@@ -1347,7 +1869,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             title="Autocomplete"
             slug="autocomplete"
             group="Collections"
-            description="Combobox-like autocomplete with Spectrum-style root attrs, controlled/uncontrolled open state, and HeroUI-level active highlight motion."
+            description="Combobox-like autocomplete with baseline-style root attrs, controlled/uncontrolled open state, and baseline-level active highlight motion."
         >
             <Playground title="Selection + Validation" code_signal=code>
                 <div class="docs-stack">
@@ -1513,7 +2035,7 @@ pub(super) fn dropdown_menu() -> AnyView {
             title="DropdownMenu"
             slug="dropdown-menu"
             group="Collections"
-            description="Button trigger that opens a Menu in a Popover with Spectrum-style root attrs, controlled/uncontrolled state, and persistent-open action handling."
+            description="Button trigger that opens a Menu in a Popover with baseline-style root attrs, controlled/uncontrolled state, and persistent-open action handling."
         >
             <Playground title="Default" code_signal=code>
                 <div class="docs-row">
@@ -1612,7 +2134,7 @@ let on_change = Callback::new(move |next: usize| { /* ... */ });
             title="Pagination"
             slug="pagination"
             group="Collections"
-            description="Pagination control with sibling/boundary range logic and Spectrum-style state attrs."
+            description="Pagination control with sibling/boundary range logic and baseline-style state attrs."
         >
             <Playground title="Pages + on_change" code_signal=code>
                 <div class="docs-stack">
@@ -1681,7 +2203,7 @@ pub(super) fn tag_group() -> AnyView {
 
     let (validation_tags, set_validation_tags) = signal(vec![
         Tag::new("tag-required", "Required"),
-        Tag::new("tag-spectrum", "Spectrum"),
+        Tag::new("tag-baseline", "Baseline"),
     ]);
 
     let on_remove_validation = Callback::new(move |tag: Tag| {
@@ -1754,7 +2276,7 @@ let invalid = Signal::derive(move || tags.get().is_empty());
             title="TagGroup"
             slug="tag-group"
             group="Collections"
-            description="Tag list with removable chips, validation semantics, and Spectrum-style root state attrs."
+            description="Tag list with removable chips, validation semantics, and baseline-style root state attrs."
         >
             <Playground title="Removable + State" code_signal=code>
                 <div class="docs-stack">

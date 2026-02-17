@@ -8,33 +8,22 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn color_module_reexports_react_spectrum_color_family() {
-    let source = load_source("src/color/mod.rs");
-
-    for needle in [
-        "pub use crate::color_area::ColorArea;",
-        "pub use crate::color_wheel::ColorWheel;",
-        "pub use crate::color_slider::ColorSlider;",
-        "pub use crate::color_field::ColorField;",
-        "pub use crate::color_swatch::ColorSwatch;",
-        "pub use crate::color_picker::ColorPicker;",
-        "pub use crate::color_editor::ColorEditor;",
-        "pub use crate::color_swatch_picker::ColorSwatchPicker;",
-    ] {
-        assert!(
-            source.contains(needle),
-            "color module should expose `{needle}` for react-spectrum color compatibility."
-        );
-    }
+fn color_barrel_module_is_removed() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/color/mod.rs");
+    assert!(
+        !path.exists(),
+        "color barrel module `src/color/mod.rs` should not exist."
+    );
 }
 
 #[test]
-fn crate_root_registers_color_module() {
+fn crate_root_does_not_register_color_barrel_module() {
     let source = load_source("src/lib.rs");
 
     assert!(
-        source.contains("pub mod color;"),
-        "crate root should include `pub mod color;` for @react-spectrum/color compatibility."
+        !source.contains("pub mod color;"),
+        "crate root should not include `pub mod color;`."
     );
 }
 

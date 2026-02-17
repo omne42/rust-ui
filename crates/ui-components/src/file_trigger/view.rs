@@ -111,7 +111,7 @@ pub fn FileTrigger(
                 aria-hidden="true"
                 on:change=on_change
             />
-            <Button disabled=disabled motion=motion.trigger on_press=on_press>
+            <Button is_disabled=disabled motion=motion.trigger on_press=on_press>
                 {children()}
             </Button>
         </span>

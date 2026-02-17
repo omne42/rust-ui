@@ -58,7 +58,7 @@ fn help_text_uses_logic_state_model() {
 }
 
 #[test]
-fn help_text_emits_spectrum_style_state_data_attributes() {
+fn help_text_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/help_text/view.rs");
 
     for attr in [
@@ -78,7 +78,7 @@ fn help_text_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "HelpText should expose `{attr}` for Spectrum-style styling and state inspection."
+            "HelpText should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -114,7 +114,7 @@ fn help_text_docs_page_covers_primary_playgrounds() {
         "pub(super) fn help_text() -> AnyView",
         "title=\"HelpText\"",
         "slug=\"help-text\"",
-        "description=\"Spectrum-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts.\"",
+        "description=\"baseline-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts.\"",
         "<Playground title=\"Description (Neutral)\" code_signal=description_code>",
         "<Playground title=\"Invalid + Error Icon\" code_signal=error_code>",
         "<HelpText",

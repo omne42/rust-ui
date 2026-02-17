@@ -1,6 +1,6 @@
 # ui-headless
 
-`ui-headless` provides interaction + accessibility primitives (React Aria analogue).
+`ui-headless` provides interaction + accessibility primitives (无障碍基线 analogue).
 
 It outputs **handlers + attrs** structs, which `ui-components` (or your app) explicitly mounts onto DOM elements.
 

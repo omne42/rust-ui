@@ -8,95 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn dnd_module_reexports_drop_zone_and_file_trigger_contracts() {
-    let source = load_source("src/dnd/mod.rs");
-
-    for needle in [
-        "pub use crate::drop_zone::{DropZone, DropZoneMotion, DroppedFile};",
-        "pub use crate::file_trigger::{FileTrigger, FileTriggerFile, FileTriggerMotion};",
-    ] {
-        assert!(
-            source.contains(needle),
-            "dnd module should expose `{needle}` for react-spectrum dnd compatibility."
-        );
-    }
+fn dnd_compat_module_is_removed() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/dnd/mod.rs");
+    assert!(!path.exists(), "compat module  should not exist.",);
 }
 
 #[test]
-fn crate_root_registers_dnd_module() {
+fn crate_root_does_not_register_dnd_compat_module() {
     let source = load_source("src/lib.rs");
 
     assert!(
-        source.contains("pub mod dnd;"),
-        "crate root should include `pub mod dnd;` for @react-spectrum/dnd compatibility."
+        !source.contains("pub mod dnd;"),
+        "crate root should not include legacy.",
     );
-}
-
-#[test]
-fn dnd_compatibility_reuses_drop_zone_and_file_trigger_docs_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
-
-    for needle in [
-        "title=\"FileTrigger\"",
-        "slug=\"file-trigger\"",
-        "<FileTrigger",
-        "title=\"DropZone\"",
-        "slug=\"drop-zone\"",
-        "<DropZone",
-    ] {
-        assert!(
-            source.contains(needle),
-            "files docs should contain `{needle}` for dnd compatibility coverage."
-        );
-    }
-}
-
-#[test]
-fn dnd_module_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
-
-    for needle in [
-        "pub(super) fn file_trigger() -> AnyView",
-        "title=\"FileTrigger\"",
-        "slug=\"file-trigger\"",
-        "<Playground title=\"Pick files\" code_signal=code>",
-        "<Playground title=\"Pick files with custom motion\" code_signal=motion_code>",
-        "pub(super) fn drop_zone() -> AnyView",
-        "title=\"DropZone\"",
-        "slug=\"drop-zone\"",
-        "<Playground title=\"Drop / paste\" code_signal=code>",
-        "<Playground title=\"Drop / paste with custom motion\" code_signal=motion_code>",
-    ] {
-        assert!(
-            source.contains(needle),
-            "files docs page should include `{needle}` for dnd_module primary playground coverage.",
-        );
-    }
-}
-
-#[test]
-fn dnd_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/files.rs");
-
-    for needle in [
-        "multiple=true",
-        "on_files=on_files",
-        "motion=FileTriggerMotion {",
-        "hover_scale: 1.04",
-        "tap_scale: 0.94",
-        "on_files=on_custom_files",
-        "\"Pick files (custom motion)\"",
-        "label=\"Upload\".to_string()",
-        "on_drop_files=on_drop_files",
-        "motion=DropZoneMotion {",
-        "hover_scale: 1.015",
-        "drop_scale: 1.03",
-        "hover_highlight: 0.42",
-        "label=\"Upload (custom motion)\".to_string()",
-    ] {
-        assert!(
-            source.contains(needle),
-            "dnd_module docs playgrounds should contain `{needle}`.",
-        );
-    }
 }

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn search_input_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button_search_input/mod.rs");
+    let source = load_source("src/button/search_input/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn search_input_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn search_input_button_uses_logic_state_model() {
-    let view_source = load_source("src/button_search_input/view.rs");
-    let logic_source = load_source("src/button_search_input/logic.rs");
+    let view_source = load_source("src/button/search_input/view.rs");
+    let logic_source = load_source("src/button/search_input/logic.rs");
 
     for needle in [
         "pub struct SearchInputButtonStateInput",
@@ -55,7 +55,7 @@ fn search_input_button_uses_logic_state_model() {
 
 #[test]
 fn search_input_button_uses_headless_press_hover_and_focus_ring() {
-    let source = load_source("src/button_search_input/view.rs");
+    let source = load_source("src/button/search_input/view.rs");
 
     for needle in ["use_button", "use_focus_ring", "use_hover"] {
         assert!(
@@ -66,8 +66,8 @@ fn search_input_button_uses_headless_press_hover_and_focus_ring() {
 }
 
 #[test]
-fn search_input_button_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/button_search_input/view.rs");
+fn search_input_button_emits_baseline_style_data_attributes() {
+    let source = load_source("src/button/search_input/view.rs");
 
     for attr in [
         "data-slot=\"search-input-button\"",
@@ -89,14 +89,14 @@ fn search_input_button_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "SearchInputButton should set `{attr}` for Spectrum-style styling and state inspection."
+            "SearchInputButton should set `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn search_input_button_forwards_headless_button_semantics() {
-    let source = load_source("src/button_search_input/view.rs");
+    let source = load_source("src/button/search_input/view.rs");
 
     for attr in [
         "role=aria.attrs.role",
@@ -112,7 +112,7 @@ fn search_input_button_forwards_headless_button_semantics() {
 
 #[test]
 fn search_input_button_uses_fallback_aria_label_from_placeholder() {
-    let source = load_source("src/button_search_input/view.rs");
+    let source = load_source("src/button/search_input/view.rs");
 
     for needle in [
         "let aria_label = aria_label.unwrap_or_else(|| view_state.placeholder.clone());",
@@ -127,7 +127,7 @@ fn search_input_button_uses_fallback_aria_label_from_placeholder() {
 
 #[test]
 fn search_input_button_styles_include_state_marker_contracts() {
-    let styles = load_source("src/button_search_input/styles.rs");
+    let styles = load_source("src/button/search_input/styles.rs");
 
     for selector in [
         ".ui-search-input-button--enabled",
@@ -149,8 +149,8 @@ fn search_input_button_styles_include_state_marker_contracts() {
 
 #[test]
 fn search_input_button_has_spring_driven_scale_css_variable() {
-    let styles = load_source("src/button_search_input/styles.rs");
-    let motion = load_source("src/button_search_input/motion.rs");
+    let styles = load_source("src/button/search_input/styles.rs");
+    let motion = load_source("src/button/search_input/motion.rs");
 
     for needle in [
         "--ui-search-input-button-scale",
@@ -175,7 +175,7 @@ fn search_input_button_has_spring_driven_scale_css_variable() {
 
 #[test]
 fn search_input_button_motion_contract_exposes_default_and_custom_tests() {
-    let source = load_source("src/button_search_input/motion.rs");
+    let source = load_source("src/button/search_input/motion.rs");
 
     for needle in [
         "pub struct SearchInputButtonMotion",
@@ -184,14 +184,14 @@ fn search_input_button_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "SearchInputButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "SearchInputButton motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }
 
 #[test]
 fn search_input_button_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/button_search_input/motion.rs");
+    let source = load_source("src/button/search_input/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: SearchInputButtonMotion) -> SearchInputButtonMotion",
@@ -218,7 +218,7 @@ fn search_input_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn search_input_button() -> AnyView",
         "title=\"SearchInputButton\"",
         "slug=\"search-input-button\"",
-        "description=\"HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
+        "description=\"baseline-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
         "<Playground",
         "title=\"Interactive + shortcut\"",
         "code_signal=code",

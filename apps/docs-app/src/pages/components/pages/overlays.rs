@@ -262,7 +262,7 @@ let custom_motion = PopoverMotion {
             title="Popover"
             slug="popover"
             group="Overlays"
-            description="Positioned portal panel anchored to a trigger with Spectrum-style state markers and HeroUI-grade spring motion contract. Requires presence to unmount after exit."
+            description="Positioned portal panel anchored to a trigger with baseline-style state markers and baseline-level spring motion contract. Requires presence to unmount after exit."
         >
             <Playground title="Popover" code_signal=code>
                 <div class="docs-row">
@@ -796,10 +796,10 @@ pub(super) fn tooltip() -> AnyView {
 pub(super) fn preview_card() -> AnyView {
     let code = Signal::derive(move || {
         r##"<PreviewCard
-  title="React Spectrum".to_string()
+  title="UI Baseline".to_string()
   description="Design system and component architecture documentation.".to_string()
-  url="https://react-spectrum.adobe.com".to_string()
-  image_src="https://react-spectrum.adobe.com/static/logo.png".to_string()
+  url="https://ui-baseline.adobe.com".to_string()
+  image_src="https://ui-baseline.adobe.com/static/logo.png".to_string()
   trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
 />"##
             .to_string()
@@ -810,7 +810,7 @@ pub(super) fn preview_card() -> AnyView {
   id="docs-preview-card".to_string()
   title="Custom title".to_string()
   description="Custom description for source markers.".to_string()
-  url="https://github.com/adobe/react-spectrum".to_string()
+  url="https://github.com/adobe/ui-baseline".to_string()
   site_label="github.com".to_string()
   image_src="https://avatars.githubusercontent.com/u/476009?v=4".to_string()
   open_delay_ms=260
@@ -842,15 +842,15 @@ pub(super) fn preview_card() -> AnyView {
             title="PreviewCard"
             slug="preview-card"
             group="Overlays"
-            description="Spectrum-compatible link preview popover with hover/focus trigger semantics, source-state markers, and HeroUI-level spring motion."
+            description="baseline-compatible link preview popover with hover/focus trigger semantics, source-state markers, and baseline-level spring motion."
         >
             <Playground title="Basic Preview" code_signal=code>
                 <div class="docs-row">
                     <PreviewCard
-                        title="React Spectrum".to_string()
+                        title="UI Baseline".to_string()
                         description="Design system and component architecture documentation.".to_string()
-                        url="https://react-spectrum.adobe.com".to_string()
-                        image_src="https://react-spectrum.adobe.com/static/logo.png".to_string()
+                        url="https://ui-baseline.adobe.com".to_string()
+                        image_src="https://ui-baseline.adobe.com/static/logo.png".to_string()
                         trigger=move || {
                             view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
                         }
@@ -868,7 +868,7 @@ pub(super) fn preview_card() -> AnyView {
                         id="docs-preview-card".to_string()
                         title="Custom title".to_string()
                         description="Custom description for source markers.".to_string()
-                        url="https://github.com/adobe/react-spectrum".to_string()
+                        url="https://github.com/adobe/ui-baseline".to_string()
                         site_label="github.com".to_string()
                         image_src="https://avatars.githubusercontent.com/u/476009?v=4".to_string()
                         open_delay_ms=260
@@ -912,7 +912,7 @@ pub(super) fn preview_link_card() -> AnyView {
         r##"<PreviewLinkCard
   title="Rust UI docs"
   description="Preview component behavior and source markers."
-  url="https://github.com/adobe/react-spectrum"
+  url="https://github.com/adobe/ui-baseline"
   image_src="https://avatars.githubusercontent.com/u/476009?v=4"
   trigger=move || view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
 />"##
@@ -924,9 +924,9 @@ pub(super) fn preview_link_card() -> AnyView {
   id="docs-preview-link-card"
   title="Custom title"
   description="Custom description for source markers."
-  url="https://react-spectrum.adobe.com"
-  site_label="react-spectrum.adobe.com"
-  image_src="https://react-spectrum.adobe.com/static/logo.png"
+  url="https://ui-baseline.adobe.com"
+  site_label="ui-baseline.adobe.com"
+  image_src="https://ui-baseline.adobe.com/static/logo.png"
   open_delay_ms=260
   close_delay_ms=240
   class_name="docs-preview-link-card-state"
@@ -959,7 +959,7 @@ pub(super) fn preview_link_card() -> AnyView {
                     <PreviewLinkCard
                         title="Rust UI docs".to_string()
                         description="Preview component behavior and source markers.".to_string()
-                        url="https://github.com/adobe/react-spectrum".to_string()
+                        url="https://github.com/adobe/ui-baseline".to_string()
                         image_src="https://avatars.githubusercontent.com/u/476009?v=4".to_string()
                         trigger=move || {
                             view! { <Button variant=ButtonVariant::Secondary>"Open preview"</Button> }
@@ -978,9 +978,9 @@ pub(super) fn preview_link_card() -> AnyView {
                         id="docs-preview-link-card".to_string()
                         title="Custom title".to_string()
                         description="Custom description for source markers.".to_string()
-                        url="https://react-spectrum.adobe.com".to_string()
-                        site_label="react-spectrum.adobe.com".to_string()
-                        image_src="https://react-spectrum.adobe.com/static/logo.png".to_string()
+                        url="https://ui-baseline.adobe.com".to_string()
+                        site_label="ui-baseline.adobe.com".to_string()
+                        image_src="https://ui-baseline.adobe.com/static/logo.png".to_string()
                         open_delay_ms=260
                         close_delay_ms=240
                         class_name="docs-preview-link-card-state".to_string()
@@ -1154,7 +1154,7 @@ let motion = ToastMotion { initial_y_px: 18.0, initial_scale: 0.96, ..ToastMotio
             title="Toast"
             slug="toast"
             group="Overlays"
-            description="Single toast primitive with Spectrum-style aria contracts, explicit open state, and spring-based entry/exit motion."
+            description="Single toast primitive with baseline-style aria contracts, explicit open state, and spring-based entry/exit motion."
         >
             <Playground title="Basic Toast + Escape/Close" code_signal=code_basic>
                 <div class="docs-stack docs-stack--tight">

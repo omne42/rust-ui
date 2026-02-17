@@ -1,7 +1,7 @@
 //! `ui-compat` — compatibility shims and naming parity layers.
 //!
 //! This crate exists to keep `ui-components` focused on actual UI components while still
-//! supporting upstream naming patterns (React Spectrum / RAC / tooling).
+//! supporting upstream naming patterns (baseline / RAC / tooling).
 
 #[cfg(feature = "provider")]
 pub mod provider;

@@ -54,7 +54,7 @@ fn date_input_group_uses_logic_state_model() {
 }
 
 #[test]
-fn date_input_group_emits_spectrum_style_state_data_attributes() {
+fn date_input_group_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/date_input_group/view.rs");
 
     for attr in [
@@ -78,7 +78,7 @@ fn date_input_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "DateInputGroup should expose `{attr}` for Spectrum-style styling and state inspection."
+            "DateInputGroup should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -134,7 +134,7 @@ fn date_input_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn date_input_group() -> AnyView",
         "title=\"DateInputGroup\"",
         "slug=\"date-input-group\"",
-        "description=\"Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers.\"",
+        "description=\"baseline-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers.\"",
         "<Playground title=\"DateField + Prefix/Suffix\" code_signal=code>",
         "<Playground title=\"Secondary + Full Width + Invalid\" code_signal=states_code>",
         "<DateInputGroup",

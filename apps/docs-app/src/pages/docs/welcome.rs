@@ -14,7 +14,7 @@ pub fn Welcome() -> impl IntoView {
         <section class="docs-card docs-prose">
             <h2>"Welcome"</h2>
             <p>
-                "This repo builds a layered Leptos UI system (Spectrum-style): "
+                "This repo builds a layered Leptos UI system (baseline-style): "
                 <code>"ui-state-primitives"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", "
                 <code>"ui-motion"</code> ", " <code>"ui-components"</code> "."
             </p>

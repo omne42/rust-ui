@@ -35,7 +35,7 @@ pub(super) fn surface() -> AnyView {
             title="Surface"
             slug="surface"
             group="Layout"
-            description="Spectrum/HeroUI-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers."
+            description="baseline-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers."
         >
             <Playground title="Tone + Elevation + Frame" code_signal=tone_code>
                 <div class="docs-stack">

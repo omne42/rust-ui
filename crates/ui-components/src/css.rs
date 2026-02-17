@@ -8,7 +8,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-avatar")]
     out.push_str(crate::avatar::styles::CSS);
     #[cfg(feature = "component-avatar_group")]
-    out.push_str(crate::avatar_group::styles::CSS);
+    out.push_str(crate::avatar::group::styles::CSS);
     #[cfg(feature = "component-action_bar")]
     out.push_str(crate::action_bar::styles::CSS);
     #[cfg(feature = "component-button")]
@@ -19,36 +19,32 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::clear_button::styles::CSS);
     #[cfg(feature = "component-close_button")]
     out.push_str(crate::close_button::styles::CSS);
-    #[cfg(feature = "component-action_button")]
-    out.push_str(crate::action_button::styles::CSS);
     #[cfg(feature = "component-action_button_group")]
-    out.push_str(crate::action_button_group::styles::CSS);
+    out.push_str(crate::button::action::styles::ACTION_BUTTON_GROUP_CSS);
     #[cfg(feature = "component-action_group")]
-    out.push_str(crate::action_group::styles::CSS);
+    out.push_str(crate::button::action::styles::ACTION_GROUP_CSS);
     #[cfg(feature = "component-button_copy")]
-    out.push_str(crate::button_copy::styles::CSS);
+    out.push_str(crate::button::copy::styles::CSS);
     #[cfg(feature = "component-button_search_input")]
-    out.push_str(crate::button_search_input::styles::CSS);
+    out.push_str(crate::button::search_input::styles::CSS);
     #[cfg(feature = "component-button_flip")]
-    out.push_str(crate::button_flip::styles::CSS);
+    out.push_str(crate::button::flip::styles::CSS);
     #[cfg(feature = "component-button_share")]
-    out.push_str(crate::button_share::styles::CSS);
+    out.push_str(crate::button::share::styles::CSS);
     #[cfg(feature = "component-button_group")]
-    out.push_str(crate::button_group::styles::CSS);
+    out.push_str(crate::button::group::styles::CSS);
     #[cfg(feature = "component-button_theme_toggle")]
-    out.push_str(crate::button_theme_toggle::styles::CSS);
+    out.push_str(crate::button::theme_toggle::styles::CSS);
     #[cfg(feature = "component-ripple")]
     out.push_str(crate::ripple::styles::CSS);
     #[cfg(feature = "component-resizable")]
     out.push_str(crate::resizable::styles::CSS);
-    #[cfg(feature = "component-split_view")]
-    out.push_str(crate::split_view::styles::CSS);
     #[cfg(feature = "component-toggle_button")]
-    out.push_str(crate::toggle_button::styles::CSS);
+    out.push_str(crate::button::toggle_button::styles::CSS);
     #[cfg(feature = "component-toggle_button_group")]
-    out.push_str(crate::toggle_button_group::styles::CSS);
+    out.push_str(crate::button::toggle_button_group::styles::CSS);
     #[cfg(feature = "component-toggle_group")]
-    out.push_str(crate::toggle_group::styles::CSS);
+    out.push_str(crate::button::toggle_group::styles::CSS);
     #[cfg(feature = "component-badge")]
     out.push_str(crate::badge::styles::CSS);
     #[cfg(feature = "component-status_light")]
@@ -58,11 +54,11 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-checkbox_field")]
     out.push_str(crate::checkbox_field::styles::CSS);
     #[cfg(feature = "component-checkbox_group")]
-    out.push_str(crate::checkbox_group::styles::CSS);
+    out.push_str(crate::checkbox::group::styles::CSS);
     #[cfg(feature = "component-switch")]
     out.push_str(crate::switch::styles::CSS);
     #[cfg(feature = "component-switch_group")]
-    out.push_str(crate::switch_group::styles::CSS);
+    out.push_str(crate::switch::group::styles::CSS);
     #[cfg(feature = "component-surface")]
     out.push_str(crate::surface::styles::CSS);
     #[cfg(feature = "component-circular_progress")]
@@ -140,9 +136,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-infield_button")]
     out.push_str(crate::infield_button::styles::CSS);
     #[cfg(feature = "component-tag_group")]
-    out.push_str(crate::tag_group::styles::CSS);
-    #[cfg(feature = "component-tags")]
-    out.push_str(crate::tags::styles::CSS);
+    out.push_str(crate::tag::group::styles::CSS);
     #[cfg(feature = "component-table")]
     out.push_str(crate::table::styles::CSS);
     #[cfg(feature = "component-pagination")]
@@ -150,7 +144,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-skeleton")]
     out.push_str(crate::skeleton::styles::CSS);
     #[cfg(feature = "component-skeleton_group")]
-    out.push_str(crate::skeleton_group::styles::CSS);
+    out.push_str(crate::skeleton::group::styles::CSS);
     #[cfg(feature = "component-link")]
     out.push_str(crate::link::styles::CSS);
     #[cfg(feature = "component-legend")]
@@ -195,12 +189,8 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::autocomplete::styles::CSS);
     #[cfg(feature = "component-combo_box")]
     out.push_str(crate::combo_box::styles::CSS);
-    #[cfg(feature = "component-combobox")]
-    out.push_str(crate::combobox::styles::CSS);
     #[cfg(feature = "component-text_field")]
     out.push_str(crate::text_field::styles::CSS);
-    #[cfg(feature = "component-textfield")]
-    out.push_str(crate::textfield::styles::CSS);
     #[cfg(feature = "component-date_field")]
     out.push_str(crate::date_field::styles::CSS);
     #[cfg(feature = "component-date_input_group")]
@@ -213,8 +203,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::date_picker::styles::CSS);
     #[cfg(feature = "component-search_field")]
     out.push_str(crate::search_field::styles::CSS);
-    #[cfg(feature = "component-search")]
-    out.push_str(crate::search::styles::CSS);
     #[cfg(feature = "component-text_area")]
     out.push_str(crate::text_area::styles::CSS);
     #[cfg(feature = "component-textarea")]
@@ -228,7 +216,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-slider")]
     out.push_str(crate::slider::styles::CSS);
     #[cfg(feature = "component-input_group")]
-    out.push_str(crate::input_group::styles::CSS);
+    out.push_str(crate::input::group::styles::CSS);
     #[cfg(feature = "component-input")]
     out.push_str(crate::input::styles::CSS);
     #[cfg(feature = "component-input_otp")]
@@ -239,10 +227,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::flip_card::styles::CSS);
     #[cfg(feature = "component-drop_zone")]
     out.push_str(crate::drop_zone::styles::CSS);
-    #[cfg(feature = "component-drag_and_drop")]
-    out.push_str(crate::drag_and_drop::styles::CSS);
-    #[cfg(feature = "component-dropzone")]
-    out.push_str(crate::dropzone::styles::CSS);
     #[cfg(feature = "component-empty_state")]
     out.push_str(crate::empty_state::styles::CSS);
     #[cfg(feature = "component-empty")]
@@ -251,14 +235,14 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::error_view::styles::CSS);
     #[cfg(feature = "component-field")]
     out.push_str(crate::field::styles::CSS);
-    #[cfg(feature = "component-field_button")]
-    out.push_str(crate::field_button::styles::CSS);
+    #[cfg(feature = "component-button")]
+    out.push_str(crate::button::field::styles::CSS);
     #[cfg(feature = "component-picker_button")]
     out.push_str(crate::picker_button::styles::CSS);
     #[cfg(feature = "component-field_error")]
     out.push_str(crate::field_error::styles::CSS);
     #[cfg(feature = "component-field_group")]
-    out.push_str(crate::field_group::styles::CSS);
+    out.push_str(crate::field::group::styles::CSS);
     #[cfg(feature = "component-field_label")]
     out.push_str(crate::field_label::styles::CSS);
     #[cfg(feature = "component-error_message")]
@@ -286,7 +270,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-disclosure")]
     out.push_str(crate::disclosure::styles::CSS);
     #[cfg(feature = "component-disclosure_group")]
-    out.push_str(crate::disclosure_group::styles::CSS);
+    out.push_str(crate::disclosure::group::styles::CSS);
     #[cfg(feature = "component-overlay")]
     out.push_str(crate::overlay::styles::CSS);
     #[cfg(feature = "component-overlays")]
@@ -330,15 +314,13 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-sidebar_header")]
     out.push_str(crate::sidebar_header::styles::CSS);
     #[cfg(feature = "component-sidebar_group")]
-    out.push_str(crate::sidebar_group::styles::CSS);
+    out.push_str(crate::sidebar::group::styles::CSS);
     #[cfg(feature = "component-sidebar_menu")]
     out.push_str(crate::sidebar_menu::styles::CSS);
     #[cfg(feature = "component-sidebar_menu_action")]
     out.push_str(crate::sidebar_menu_action::styles::CSS);
     #[cfg(feature = "component-sidebar_menu_badge")]
     out.push_str(crate::sidebar_menu_badge::styles::CSS);
-    #[cfg(feature = "component-sidenav")]
-    out.push_str(crate::sidenav::styles::CSS);
     #[cfg(feature = "component-bottom_sheet")]
     out.push_str(crate::bottom_sheet::styles::CSS);
     #[cfg(feature = "component-tray")]
@@ -356,23 +338,21 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-toaster")]
     out.push_str(crate::toaster::styles::CSS);
     #[cfg(feature = "component-toggle")]
-    out.push_str(crate::toggle::styles::CSS);
-    #[cfg(feature = "component-listbox")]
-    out.push_str(crate::listbox::styles::CSS);
-    #[cfg(feature = "component-listbox_item")]
-    out.push_str(crate::listbox_item::styles::CSS);
-    #[cfg(feature = "component-listbox_section")]
-    out.push_str(crate::listbox_section::styles::CSS);
+    out.push_str(crate::button::toggle::styles::CSS);
+    #[cfg(feature = "component-list")]
+    {
+        out.push_str(crate::list::styles::CSS);
+        out.push_str(crate::list::styles::ITEM_CSS);
+        out.push_str(crate::list::styles::SECTION_CSS);
+    }
     #[cfg(feature = "component-menu")]
     out.push_str(crate::menu::styles::CSS);
     #[cfg(feature = "component-menu_item")]
-    out.push_str(crate::menu_item::styles::CSS);
+    out.push_str(crate::menu::item::styles::CSS);
     #[cfg(feature = "component-menu_section")]
-    out.push_str(crate::menu_section::styles::CSS);
+    out.push_str(crate::menu::section::styles::CSS);
     #[cfg(feature = "component-select")]
     out.push_str(crate::select::styles::CSS);
-    #[cfg(feature = "component-picker")]
-    out.push_str(crate::picker::styles::CSS);
     #[cfg(feature = "component-native_select")]
     out.push_str(crate::native_select::styles::CSS);
     #[cfg(feature = "component-dropdown")]
@@ -389,8 +369,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::menubar::styles::CSS);
     #[cfg(feature = "component-navigation_menu")]
     out.push_str(crate::navigation_menu::styles::CSS);
-    #[cfg(feature = "component-top_nav")]
-    out.push_str(crate::top_nav::styles::CSS);
     #[cfg(feature = "component-tree")]
     out.push_str(crate::tree::styles::CSS);
     #[cfg(feature = "component-grid")]

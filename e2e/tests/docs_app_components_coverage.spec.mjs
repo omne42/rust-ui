@@ -36,10 +36,11 @@ test("docs-app components pages render playgrounds (sample)", async ({ page }) =
     await expect(page.locator(".docs-page-title")).toBeVisible();
     await expect(page.locator("section.playground").first()).toBeVisible();
     await expect(page.locator(`[data-slot="${slug}"]`).first()).toBeVisible();
-    await expect(page.locator('[data-slot="ui-perf-probe"]').first()).toHaveAttribute(
-      "data-perf-mount-ms",
-      /[0-9]/
-    );
+    const perfProbe = page.locator('[data-slot="ui-perf-probe"]').first();
+    await expect(perfProbe).toHaveAttribute("data-perf-mount-ms", /[0-9]/);
+    await expect(perfProbe).toHaveAttribute("data-perf-budget-ms", /[0-9]/);
+    await expect(perfProbe).toHaveAttribute("data-perf-observability", /mount/);
+    await expect(perfProbe).not.toHaveAttribute("data-perf-violation", "true");
   }
 });
 
@@ -72,9 +73,10 @@ test("docs-app components pages render playgrounds (all)", async ({ page }) => {
     await expect(page.locator(".docs-page-title")).toBeVisible();
     await expect(page.locator("section.playground").first()).toBeVisible();
     await expect(page.locator(`[data-slot="${slug}"]`).first()).toBeVisible();
-    await expect(page.locator('[data-slot="ui-perf-probe"]').first()).toHaveAttribute(
-      "data-perf-mount-ms",
-      /[0-9]/
-    );
+    const perfProbe = page.locator('[data-slot="ui-perf-probe"]').first();
+    await expect(perfProbe).toHaveAttribute("data-perf-mount-ms", /[0-9]/);
+    await expect(perfProbe).toHaveAttribute("data-perf-budget-ms", /[0-9]/);
+    await expect(perfProbe).toHaveAttribute("data-perf-observability", /mount/);
+    await expect(perfProbe).not.toHaveAttribute("data-perf-violation", "true");
   }
 });

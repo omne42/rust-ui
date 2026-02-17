@@ -73,7 +73,7 @@ fn field_label_uses_logic_state_model() {
 }
 
 #[test]
-fn field_label_emits_spectrum_style_state_data_attributes() {
+fn field_label_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/field_label/view.rs");
 
     for attr in [
@@ -93,7 +93,7 @@ fn field_label_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "FieldLabel should expose `{attr}` for Spectrum-style styling and state inspection."
+            "FieldLabel should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -159,7 +159,7 @@ fn field_label_docs_page_covers_primary_playgrounds() {
         "pub(super) fn field_label() -> AnyView",
         "title=\"FieldLabel\"",
         "slug=\"field-label\"",
-        "description=\"Spectrum-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts.\"",
+        "description=\"baseline-compatible field label primitive with centralized tone/required/source-state modeling and stable data contracts.\"",
         "<Playground title=\"Tone + Required\" code_signal=tone_code>",
         "<Playground title=\"Custom Indicator + Aria + Class\" code_signal=custom_code>",
         "<FieldLabel",

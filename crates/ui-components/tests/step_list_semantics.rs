@@ -57,7 +57,7 @@ fn step_list_uses_logic_state_model() {
 }
 
 #[test]
-fn step_list_exposes_spectrum_style_data_markers() {
+fn step_list_exposes_baseline_style_data_markers() {
     let source = load_source("src/step_list/view.rs");
 
     for attr in [
@@ -77,7 +77,7 @@ fn step_list_exposes_spectrum_style_data_markers() {
     ] {
         assert!(
             source.contains(attr),
-            "StepList should expose `{attr}` for Spectrum-style styling and state inspection."
+            "StepList should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -116,7 +116,7 @@ fn step_list_docs_page_covers_primary_playgrounds() {
         "pub(super) fn step_list() -> AnyView",
         "title=\"StepList\"",
         "slug=\"step-list\"",
-        "description=\"Spectrum-compatible step progression primitive with centralized orientation/size/status normalization and stable slot + data-state contracts.\"",
+        "description=\"baseline-compatible step progression primitive with centralized orientation/size/status normalization and stable slot + data-state contracts.\"",
         "<Playground title=\"Controlled Selection\" code_signal=code>",
         "<Playground title=\"Vertical + Emphasized + Disabled\" code_signal=states_code>",
         "<StepList",

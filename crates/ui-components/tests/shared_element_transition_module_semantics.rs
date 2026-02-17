@@ -8,103 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn shared_element_transition_module_reexports_view_contracts() {
-    let source = load_source("src/shared_element_transition/mod.rs");
-
-    for needle in [
-        "pub use crate::view::View as SharedElementTransition;",
-        "pub use crate::view::ViewElement as SharedElementTransitionElement;",
-        "pub use crate::view::ViewRadius as SharedElementTransitionRadius;",
-    ] {
-        assert!(
-            source.contains(needle),
-            "shared_element_transition module should expose `{needle}` for react-aria-components SharedElementTransition compatibility.",
-        );
-    }
+fn shared_element_transition_compat_module_is_removed() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/shared_element_transition/mod.rs");
+    assert!(!path.exists(), "compat module  should not exist.",);
 }
 
 #[test]
-fn crate_root_registers_shared_element_transition_compatibility_exports() {
+fn crate_root_does_not_register_shared_element_transition_compat_module() {
     let source = load_source("src/lib.rs");
 
-    for needle in [
-        "pub mod shared_element_transition;",
-        "pub use shared_element_transition::{",
-        "SharedElementTransition, SharedElementTransitionElement, SharedElementTransitionRadius,",
-    ] {
-        assert!(
-            source.contains(needle),
-            "crate root should include `{needle}` for shared-element-transition compatibility.",
-        );
-    }
-}
-
-#[test]
-fn shared_element_transition_compatibility_reuses_view_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
-
-    for needle in ["title=\"View\"", "slug=\"view\"", "<View"] {
-        assert!(
-            source.contains(needle),
-            "layout docs should contain `{needle}` for shared-element-transition compatibility coverage.",
-        );
-    }
-}
-
-#[test]
-fn shared_element_transition_module_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
-    let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
-
-    for needle in [
-        "pub(super) fn view() -> AnyView",
-        "title=\"View\"",
-        "slug=\"view\"",
-        "description=\"General-purpose Spectrum-style container with centralized surface token state and stable data markers.\"",
-        "<Playground title=\"Surface Tokens\" code_signal=surface_code>",
-        "<Playground title=\"Element + Fluid + Custom Class\" code_signal=element_code>",
-        "<View",
-    ] {
-        assert!(
-            source.contains(needle),
-            "layout docs should include `{needle}` for shared_element_transition_module primary playground coverage.",
-        );
-    }
-
     assert!(
-        mod_source.contains("\"shared-element-transition\" => &[\"view\"]"),
-        "components mod mapping should keep `shared-element-transition` mapped to `view` slug.",
+        !source.contains("pub mod shared_element_transition;"),
+        "crate root should not include legacy.",
     );
-}
-
-#[test]
-fn shared_element_transition_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
-
-    for needle in [
-        "title=\"Surface Tokens\"",
-        "border=ViewBorder::Subtle",
-        "padding=ViewPadding::Md",
-        "radius=ViewRadius::Md",
-        "background=ViewBackground::Accent",
-        "border=ViewBorder::Strong",
-        "padding=ViewPadding::Lg",
-        "radius=ViewRadius::Lg",
-        "shadow=ViewShadow::Md",
-        "title=\"Element + Fluid + Custom Class\"",
-        "element=ViewElement::Section",
-        "background=ViewBackground::Subtle",
-        "padding=ViewPadding::Sm",
-        "radius=ViewRadius::Sm",
-        "fluid=true",
-        "class_name=\"docs-view-custom\".to_string()",
-        "aria_label=\"Release notes\".to_string()",
-        "element=ViewElement::Span",
-        "\"Inline view\"",
-    ] {
-        assert!(
-            source.contains(needle),
-            "layout docs playgrounds should contain `{needle}` for shared_element_transition_module contracts.",
-        );
-    }
 }

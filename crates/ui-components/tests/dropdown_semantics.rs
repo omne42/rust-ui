@@ -74,7 +74,7 @@ fn dropdown_supports_controlled_and_uncontrolled_open_state() {
 }
 
 #[test]
-fn dropdown_emits_spectrum_style_state_data_attributes() {
+fn dropdown_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/dropdown/view.rs");
 
     for attr in [
@@ -100,7 +100,7 @@ fn dropdown_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Dropdown should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Dropdown should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -160,7 +160,7 @@ fn dropdown_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "Dropdown motion contract should include `{needle}` for HeroUI-style spring customization."
+            "Dropdown motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -195,7 +195,7 @@ fn dropdown_docs_page_covers_primary_playgrounds() {
         "pub(super) fn dropdown() -> AnyView",
         "title=\"Dropdown\"",
         "slug=\"dropdown\"",
-        "description=\"Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion.\"",
+        "description=\"baseline-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion.\"",
         "<Playground title=\"Default\" code_signal=code>",
         "<Playground title=\"Controlled + Persistent + Motion\" code_signal=states_code>",
         "<Dropdown",

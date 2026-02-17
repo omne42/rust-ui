@@ -28,7 +28,7 @@ pub(super) fn sidebar_menu_badge() -> AnyView {
             title="SidebarMenuBadge"
             slug="sidebar-menu-badge"
             group="Layout"
-            description="Shadcn-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable data-marker contracts."
+            description="baseline-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable data-marker contracts."
         >
             <Playground title="Default Numeric Badge" code_signal=default_code>
                 <Sidebar

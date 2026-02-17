@@ -62,7 +62,7 @@ fn empty_state_uses_logic_state_model() {
 }
 
 #[test]
-fn empty_state_emits_spectrum_style_state_data_attributes() {
+fn empty_state_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/empty_state/view.rs");
 
     for attr in [
@@ -86,7 +86,7 @@ fn empty_state_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "EmptyState should expose `{attr}` for Spectrum-style styling and state inspection."
+            "EmptyState should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -128,7 +128,7 @@ fn empty_state_docs_page_covers_primary_playgrounds() {
         "pub(super) fn empty_state() -> AnyView",
         "title=\"EmptyState\"",
         "slug=\"empty-state\"",
-        "description=\"Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers.\"",
+        "description=\"baseline-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers.\"",
         "<Playground title=\"Tone + Alignment + Actions\" code_signal=tone_code>",
         "<Playground title=\"Compact + Bordered + Custom Class\" code_signal=state_code>",
         "<EmptyState",

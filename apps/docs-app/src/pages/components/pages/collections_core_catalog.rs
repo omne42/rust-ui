@@ -7,6 +7,13 @@ pub(super) const ACCORDION_DOC: ComponentDoc = ComponentDoc {
     page: super::collections::accordion,
 };
 
+pub(super) const AI_SPACE_DOC: ComponentDoc = ComponentDoc {
+    name: "AiSpace",
+    slug: "ai-space",
+    group: "Collections",
+    page: super::collections::accordion,
+};
+
 pub(super) const DISCLOSURE_DOC: ComponentDoc = ComponentDoc {
     name: "Disclosure",
     slug: "disclosure",

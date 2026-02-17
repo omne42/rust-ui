@@ -64,7 +64,7 @@ fn sidebar_inset_uses_logic_state_model() {
 }
 
 #[test]
-fn sidebar_inset_emits_spectrum_root_state_data_attributes() {
+fn sidebar_inset_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_inset/view.rs");
 
     for needle in [
@@ -141,7 +141,7 @@ fn sidebar_inset_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_inset() -> AnyView",
         "title=\"SidebarInset\"",
         "slug=\"sidebar-inset\"",
-        "description=\"Shadcn-compatible sidebar inset primitive with side/padding/surface contracts and Spectrum-style root data markers.\"",
+        "description=\"baseline-compatible sidebar inset primitive with side/padding/surface contracts and baseline-style root data markers.\"",
         "<Playground title=\"Default Inset Region\" code_signal=default_code>",
         "<Playground title=\"Compact + Plain + Disabled\" code_signal=compact_code>",
         "<SidebarInset",

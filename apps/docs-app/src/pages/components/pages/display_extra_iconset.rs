@@ -54,7 +54,7 @@ pub(super) fn iconset() -> AnyView {
             title="Iconset"
             slug="iconset"
             group="Display"
-            description="Spectrum-compatible Iconset registry wrapper for namespace + icon-name resolution, composed on Icon accessibility contracts with stable source markers."
+            description="baseline-compatible Iconset registry wrapper for namespace + icon-name resolution, composed on Icon accessibility contracts with stable source markers."
         >
             <Playground title="Registry Namespace Resolution" code_signal=registry_code>
                 <div class="docs-row">

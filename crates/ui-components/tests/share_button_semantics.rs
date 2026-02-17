@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn share_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button_share/mod.rs");
+    let source = load_source("src/button/share/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn share_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn share_button_uses_logic_state_model() {
-    let view_source = load_source("src/button_share/view.rs");
-    let logic_source = load_source("src/button_share/logic.rs");
+    let view_source = load_source("src/button/share/view.rs");
+    let logic_source = load_source("src/button/share/logic.rs");
 
     for needle in [
         "pub struct ShareButtonStateInput",
@@ -58,7 +58,7 @@ fn share_button_uses_logic_state_model() {
 
 #[test]
 fn share_button_uses_flip_button_and_button_group_composition() {
-    let source = load_source("src/button_share/view.rs");
+    let source = load_source("src/button/share/view.rs");
 
     for needle in [
         "<FlipButton",
@@ -78,8 +78,8 @@ fn share_button_uses_flip_button_and_button_group_composition() {
 }
 
 #[test]
-fn share_button_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/button_share/view.rs");
+fn share_button_emits_baseline_style_data_attributes() {
+    let source = load_source("src/button/share/view.rs");
 
     for needle in [
         "data-slot=\"share-button\"",
@@ -99,14 +99,14 @@ fn share_button_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "ShareButton should expose `{needle}` for Spectrum-style state inspection."
+            "ShareButton should expose `{needle}` for baseline-style state inspection."
         );
     }
 }
 
 #[test]
 fn share_button_maps_icon_button_size_and_platform_icons() {
-    let source = load_source("src/button_share/view.rs");
+    let source = load_source("src/button/share/view.rs");
 
     for needle in [
         "let icon_button_size = logic::resolve_icon_button_size(size);",
@@ -124,7 +124,7 @@ fn share_button_maps_icon_button_size_and_platform_icons() {
 
 #[test]
 fn share_button_preserves_optional_press_handler_without_markup_branching() {
-    let source = load_source("src/button_share/view.rs");
+    let source = load_source("src/button/share/view.rs");
 
     for needle in [
         "let on_icon_press = StoredValue::new(on_icon_press);",
@@ -145,7 +145,7 @@ fn share_button_preserves_optional_press_handler_without_markup_branching() {
 
 #[test]
 fn share_button_styles_include_state_marker_contracts() {
-    let source = load_source("src/button_share/styles.rs");
+    let source = load_source("src/button/share/styles.rs");
 
     for selector in [
         ".ui-share-button--state-ready",
@@ -167,7 +167,7 @@ fn share_button_styles_include_state_marker_contracts() {
 
 #[test]
 fn share_button_motion_contract_exposes_default_and_custom_tests() {
-    let source = load_source("src/button_share/motion.rs");
+    let source = load_source("src/button/share/motion.rs");
 
     for needle in [
         "pub struct ShareButtonMotion",
@@ -176,19 +176,19 @@ fn share_button_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "ShareButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "ShareButton motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }
 
 #[test]
 fn share_button_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/button_share/motion.rs");
-    let view_source = load_source("src/button_share/view.rs");
+    let motion_source = load_source("src/button/share/motion.rs");
+    let view_source = load_source("src/button/share/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ShareButtonMotion) -> ShareButtonMotion",
-        "flip: crate::button_flip::motion::sanitize_motion(motion.flip)",
+        "flip: super::super::flip::motion::sanitize_motion(motion.flip)",
         "fn sanitize_motion_delegates_to_flip_button_contract()",
     ] {
         assert!(
@@ -198,7 +198,7 @@ fn share_button_motion_sanitizes_custom_contract_values() {
     }
 
     assert!(
-        view_source.contains("let motion = crate::button_share::motion::sanitize_motion(motion);"),
+        view_source.contains("let motion = super::motion::sanitize_motion(motion);"),
         "ShareButton view should sanitize motion before forwarding to FlipButton.",
     );
 }
@@ -212,7 +212,7 @@ fn share_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn share_button() -> AnyView",
         "title=\"ShareButton\"",
         "slug=\"share-button\"",
-        "description=\"Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion.\"",
+        "description=\"Flip-based share surface with centralized item/icon/handler state attrs and baseline-level spring motion.\"",
         "<Playground title=\"Default + callback\" code_signal=code>",
         "<Playground title=\"Icon placement + custom items\" code_signal=states_code>",
         "<Playground title=\"Custom Class + Direction\" code_signal=custom_code>",

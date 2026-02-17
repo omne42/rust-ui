@@ -56,7 +56,7 @@ fn alert_banner_exposes_motion_source_markers() {
     ] {
         assert!(
             source.contains(needle),
-            "AlertBanner should expose `{needle}` for Spectrum/HeroUI motion inspection."
+            "AlertBanner should expose `{needle}` for baseline motion inspection."
         );
     }
 }
@@ -100,7 +100,7 @@ fn alert_banner_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "AlertBanner motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "AlertBanner motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }

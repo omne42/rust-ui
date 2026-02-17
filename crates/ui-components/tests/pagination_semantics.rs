@@ -35,7 +35,7 @@ fn pagination_uses_state_model_for_navigation_and_root_attrs() {
     ] {
         assert!(
             view_source.contains(needle),
-            "Pagination should wire `{needle}` to expose stable Spectrum-style root states."
+            "Pagination should wire `{needle}` to expose stable baseline-style root states."
         );
     }
 
@@ -74,7 +74,7 @@ fn pagination_prev_next_buttons_expose_slots_and_disabled_state() {
     ] {
         assert!(
             source.contains(needle),
-            "Pagination prev/next controls should keep `{needle}` for Spectrum-compatible semantics and styling."
+            "Pagination prev/next controls should keep `{needle}` for baseline-compatible semantics and styling."
         );
     }
 }
@@ -126,7 +126,7 @@ fn pagination_docs_page_covers_primary_playgrounds() {
         "pub(super) fn pagination() -> AnyView",
         "title=\"Pagination\"",
         "slug=\"pagination\"",
-        "description=\"Pagination control with sibling/boundary range logic and Spectrum-style state attrs.\"",
+        "description=\"Pagination control with sibling/boundary range logic and baseline-style state attrs.\"",
         "<Playground title=\"Pages + on_change\" code_signal=code>",
         "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<Pagination",

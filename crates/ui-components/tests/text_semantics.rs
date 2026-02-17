@@ -58,7 +58,7 @@ fn text_uses_logic_state_model() {
 }
 
 #[test]
-fn text_emits_spectrum_style_state_data_attributes() {
+fn text_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/text/view.rs");
 
     for attr in [
@@ -75,7 +75,7 @@ fn text_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Text should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Text should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -121,7 +121,7 @@ fn text_docs_page_covers_primary_playgrounds() {
         "pub(super) fn text() -> AnyView",
         "title=\"Text\"",
         "slug=\"text\"",
-        "description=\"Typography primitive with centralized tone/alignment/weight/source state contracts and Spectrum-style data markers.\"",
+        "description=\"Typography primitive with centralized tone/alignment/weight/source state contracts and baseline-style data markers.\"",
         "<Playground title=\"Tone + Weight Matrix\" code_signal=tone_code>",
         "<Playground title=\"Alignment + Truncate + Element\" code_signal=states_code>",
         "<Text",

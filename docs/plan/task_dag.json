@@ -12,7 +12,8 @@
     "wasm_check": [
       "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
       "cargo check -p ui-components --target wasm32-unknown-unknown",
-      "cargo check -p web-demo --target wasm32-unknown-unknown"
+      "cargo check -p web-demo --target wasm32-unknown-unknown",
+      "cargo check -p docs-app --target wasm32-unknown-unknown"
     ],
     "ssr_check": [
       "cargo check -p ui-headless --no-default-features --features ssr"
@@ -44,8 +45,11 @@
         "crates/ui-state-primitives/Cargo.toml",
         "crates/ui-headless/Cargo.toml",
         "crates/ui-theme/Cargo.toml",
+        "crates/ui-motion/Cargo.toml",
         "crates/ui-components/Cargo.toml",
-        "apps/web-demo/Cargo.toml"
+        "crates/ui-compat/Cargo.toml",
+        "apps/web-demo/Cargo.toml",
+        "apps/docs-app/Cargo.toml"
       ],
       "depends_on": ["t00"],
       "acceptance": ["cargo check --workspace passes"],
@@ -64,7 +68,8 @@
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "cargo check -p ui-components --target wasm32-unknown-unknown",
-        "cargo check -p web-demo --target wasm32-unknown-unknown"
+        "cargo check -p web-demo --target wasm32-unknown-unknown",
+        "cargo check -p docs-app --target wasm32-unknown-unknown"
       ]
     },
     {

@@ -231,7 +231,7 @@ fn tray_motion_contract_exposes_default_and_custom_sheet_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "Tray motion module should include `{needle}` for HeroUI-level contract coverage."
+            "Tray motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
 }

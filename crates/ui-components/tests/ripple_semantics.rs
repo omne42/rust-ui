@@ -59,7 +59,7 @@ fn ripple_uses_logic_state_model() {
 }
 
 #[test]
-fn ripple_emits_spectrum_style_state_data_attributes() {
+fn ripple_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/ripple/view.rs");
 
     for attr in [
@@ -78,7 +78,7 @@ fn ripple_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Ripple should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Ripple should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

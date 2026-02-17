@@ -38,7 +38,7 @@ fn inline_alert_exposes_motion_source_markers() {
     ] {
         assert!(
             source.contains(needle),
-            "InlineAlert should expose `{needle}` for Spectrum/HeroUI motion inspection."
+            "InlineAlert should expose `{needle}` for baseline motion inspection."
         );
     }
 }
@@ -82,7 +82,7 @@ fn inline_alert_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "InlineAlert motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "InlineAlert motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }

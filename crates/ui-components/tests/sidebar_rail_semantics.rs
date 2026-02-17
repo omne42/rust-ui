@@ -86,7 +86,7 @@ fn sidebar_rail_supports_controlled_and_uncontrolled_open_state() {
 }
 
 #[test]
-fn sidebar_rail_emits_spectrum_root_state_data_attributes() {
+fn sidebar_rail_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_rail/view.rs");
 
     for needle in [
@@ -163,7 +163,7 @@ fn sidebar_rail_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_rail() -> AnyView",
         r#"title="SidebarRail""#,
         r#"slug="sidebar-rail""#,
-        r#"description="Shadcn-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and Spectrum-style data markers.""#,
+        r#"description="baseline-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and baseline-style data markers.""#,
         r#"<Playground title="Default Rail" code_signal=default_code>"#,
         r#"<Playground title="Controlled Right Rail" code_signal=controlled_code>"#,
         "<SidebarRail",

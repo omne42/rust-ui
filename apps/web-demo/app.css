@@ -87,16 +87,27 @@ code {
   text-transform: uppercase;
 }
 
-.demo-nav a {
+.demo-nav-link {
   display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
   padding: 8px 10px;
   border-radius: var(--ui-radius-md);
   text-decoration: none;
   font-size: 13px;
 }
 
-.demo-nav a:hover {
+.demo-nav-link:hover {
   background: var(--ui-accent-soft);
+}
+
+.demo-nav-link--active {
+  background: var(--ui-accent-soft);
+  font-weight: 600;
 }
 
 .demo-main {
@@ -205,17 +216,17 @@ code {
   max-width: 320px;
 }
 
-.demo-hero {
+.demo-featured {
   background: linear-gradient(180deg, var(--ui-accent-soft), transparent),
     var(--ui-bg-muted);
 }
 
-.demo-hero ul {
+.demo-featured ul {
   margin: 0;
   padding-left: 18px;
 }
 
-.demo-hero li {
+.demo-featured li {
   margin: 6px 0;
   font-size: 13px;
   color: var(--ui-fg);

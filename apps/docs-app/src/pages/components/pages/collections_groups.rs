@@ -15,8 +15,8 @@ pub(super) fn tag() -> AnyView {
         [
             "<Tag variant=TagVariant::Default size=TagSize::Sm>\"Rust\"</Tag>".to_string(),
             "<Tag variant=TagVariant::Default>\"Leptos\"</Tag>".to_string(),
-            "<Tag variant=TagVariant::Surface>\"HeroUI parity\"</Tag>".to_string(),
-            "<Tag variant=TagVariant::Surface size=TagSize::Lg>\"Spectrum contracts\"</Tag>"
+            "<Tag variant=TagVariant::Surface>\"Naming parity\"</Tag>".to_string(),
+            "<Tag variant=TagVariant::Surface size=TagSize::Lg>\"baseline contracts\"</Tag>"
                 .to_string(),
         ]
         .join("\n")
@@ -52,7 +52,7 @@ pub(super) fn tag() -> AnyView {
             title="Tag"
             slug="tag"
             group="Collections"
-            description="Spectrum/HeroUI-style tag primitive with centralized variant/size/remove-action/source state contracts and stable slot/data markers."
+            description="baseline-style tag primitive with centralized variant/size/remove-action/source state contracts and stable slot/data markers."
         >
             <Playground title="Variant + Size Matrix" code_signal=matrix_code>
                 <div class="docs-row">
@@ -63,10 +63,10 @@ pub(super) fn tag() -> AnyView {
                         "Leptos"
                     </Tag>
                     <Tag variant=TagVariant::Surface size=TagSize::Md>
-                        "HeroUI parity"
+                        "Naming parity"
                     </Tag>
                     <Tag variant=TagVariant::Surface size=TagSize::Lg>
-                        "Spectrum contracts"
+                        "baseline contracts"
                     </Tag>
                 </div>
             </Playground>
@@ -181,7 +181,7 @@ pub(super) fn collapsible() -> AnyView {
             title="Collapsible"
             slug="collapsible"
             group="Collections"
-            description="Shadcn-compatible collapsible primitive built on Disclosure semantics with HeroUI-level spring panel motion and stable state/source contracts."
+            description="baseline-compatible collapsible primitive built on Disclosure semantics with baseline-level spring panel motion and stable state/source contracts."
         >
             <Playground title="Controlled Collapsible" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">

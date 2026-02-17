@@ -55,7 +55,7 @@ pub(super) fn switch_group() -> AnyView {
             title="SwitchGroup"
             slug="switch-group"
             group="Forms"
-            description="Spectrum/HeroUI-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers."
+            description="baseline-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers."
         >
             <Playground title="Required + Description" code_signal=base_code>
                 <div class="docs-stack">
@@ -159,7 +159,7 @@ pub(super) fn field_group() -> AnyView {
             title="FieldGroup"
             slug="field-group"
             group="Forms"
-            description="Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers."
+            description="baseline-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers."
         >
             <Playground title="Vertical + Label + Description" code_signal=base_code>
                 <FieldGroup
@@ -281,7 +281,7 @@ let on_ship_window_change = Callback::new(move |next: Option<String>| {
             title="DateInputGroup"
             slug="date-input-group"
             group="Forms"
-            description="Spectrum/HeroUI-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers."
+            description="baseline-style date-input grouping primitive with centralized variant/width/prefix-suffix state contracts and segmented slot markers."
         >
             <Playground title="DateField + Prefix/Suffix" code_signal=code>
                 <div class="docs-stack">

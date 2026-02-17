@@ -55,7 +55,7 @@ fn chip_uses_logic_state_model() {
 }
 
 #[test]
-fn chip_emits_spectrum_style_state_data_attributes() {
+fn chip_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/chip/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn chip_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Chip should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Chip should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

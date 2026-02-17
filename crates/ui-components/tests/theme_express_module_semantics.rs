@@ -18,7 +18,7 @@ fn theme_express_module_exports_express_theme_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "theme_express module should include `{needle}` for @react-spectrum/theme-express compatibility."
+            "theme_express module should include `{needle}` for @ui-baseline/theme-express compatibility."
         );
     }
 }
@@ -29,7 +29,7 @@ fn crate_root_registers_theme_express_module() {
 
     assert!(
         source.contains("pub mod theme_express;"),
-        "crate root should include `pub mod theme_express;` for @react-spectrum/theme-express compatibility."
+        "crate root should include `pub mod theme_express;` for @ui-baseline/theme-express compatibility."
     );
 }
 

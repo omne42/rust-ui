@@ -35,7 +35,7 @@ fn input_escape_clear_stops_propagation() {
 
     assert!(
         source.contains("stop_propagation()"),
-        "Input should stop Escape propagation when clearing (Spectrum parity: Escape clears without dismissing parent overlays)."
+        "Input should stop Escape propagation when clearing (baseline parity: Escape clears without dismissing parent overlays)."
     );
 }
 
@@ -113,7 +113,7 @@ fn input_motion_uses_spring_animator() {
 }
 
 #[test]
-fn input_emits_spectrum_style_state_data_attributes() {
+fn input_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/input/view.rs");
 
     for attr in [
@@ -128,7 +128,7 @@ fn input_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Input should set `{attr}` to support Spectrum-style styling and state inspection."
+            "Input should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -162,7 +162,7 @@ fn input_docs_page_covers_primary_playgrounds() {
         "pub(super) fn input() -> AnyView",
         "title=\"Input\"",
         "slug=\"input\"",
-        "description=\"Spectrum-style text input with label, description/error, and clear button.\"",
+        "description=\"baseline-style text input with label, description/error, and clear button.\"",
         "<Playground title=\"Clearable + validation\" code_signal=code>",
         "<Input",
     ] {

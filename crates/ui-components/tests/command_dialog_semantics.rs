@@ -314,7 +314,7 @@ fn command_dialog_docs_page_covers_primary_playgrounds() {
         "pub(super) fn command_dialog() -> AnyView",
         "title=\"CommandDialog\"",
         "slug=\"command-dialog\"",
-        "description=\"Shadcn-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits Spectrum data contracts, and reuses HeroUI-level overlay/active-highlight spring motion.\"",
+        "description=\"baseline-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits baseline data contracts, and reuses baseline-level overlay/active-highlight spring motion.\"",
         "<Playground title=\"Controlled Open + Action Close\" code_signal=code>",
         "<Playground title=\"State + Source Markers\" code_signal=marker_code>",
         "data-id-source",

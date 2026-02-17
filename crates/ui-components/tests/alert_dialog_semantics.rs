@@ -230,7 +230,7 @@ fn alert_dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "AlertDialog motion module should include `{needle}` for HeroUI-level contract coverage."
+            "AlertDialog motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
 }

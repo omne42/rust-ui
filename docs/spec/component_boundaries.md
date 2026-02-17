@@ -20,7 +20,7 @@
 
 ## 1. 分层归属（放错层就是 bug）
 
-依赖方向：`ui-state-primitives -> ui-headless -> ui-components -> apps/*`
+依赖方向（核心链路）：`ui-state-primitives -> ui-headless -> ui-components -> apps/*`；横向能力为 `ui-theme/ui-motion`（服务组件，不反向侵入状态与行为层）。
 
 - `ui-state-primitives`：纯状态原语与不变量建模（与语言/DOM/运行时无关）。
 - `ui-headless`：交互行为 + A11y 语义契约（输出 attrs/handlers/state），以及跨组件基础设施的**契约与注入点**（例如 i18n registry、trace/perf hooks）。
@@ -58,4 +58,3 @@
 - SSR/WASM 路径不 panic，motion 在非 wasm 下可降级。
 
 不适用的条目必须明确写清楚 “为什么不适用、用什么机制替代保证正确性”，否则就是偷懒。
-

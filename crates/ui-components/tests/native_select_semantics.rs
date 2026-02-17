@@ -85,7 +85,7 @@ fn native_select_supports_controlled_uncontrolled_and_placeholder_contracts() {
 }
 
 #[test]
-fn native_select_emits_spectrum_root_state_data_attributes() {
+fn native_select_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/native_select/view.rs");
 
     for needle in [
@@ -110,7 +110,7 @@ fn native_select_emits_spectrum_root_state_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "NativeSelect should set `{needle}` for Spectrum-compatible selectors and state inspection."
+            "NativeSelect should set `{needle}` for baseline-compatible selectors and state inspection."
         );
     }
 }
@@ -145,7 +145,7 @@ fn native_select_docs_page_covers_primary_playgrounds() {
         "pub(super) fn native_select() -> AnyView",
         "title=\"NativeSelect\"",
         "slug=\"native-select\"",
-        "description=\"Spectrum-style native `<select>` wrapper with controllable selection, root `data-*` contracts, and stable option normalization.\"",
+        "description=\"baseline-style native `<select>` wrapper with controllable selection, root `data-*` contracts, and stable option normalization.\"",
         "<Playground title=\"Controlled + Placeholder\" code_signal=code>",
         "<Playground title=\"Required + Invalid + Disabled\" code_signal=states_code>",
         "<NativeSelect",

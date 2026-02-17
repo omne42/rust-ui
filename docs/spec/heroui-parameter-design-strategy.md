@@ -105,6 +105,20 @@
 2. **Phase 2（试点）**：先改 `Button`、`Select`、`Modal` 三个代表组件并产出迁移示例。
 3. **Phase 3（推广）**：批量迁移其余组件，统一文档与 playground 用例矩阵。
 
+### Accordion 对齐记录（2026-02）
+
+- 参数命名保持统一契约：根级保留 `selection_mode`，item 级承载 `open` + `on_open_change` + `default_open`。
+- 默认调用路径保持 0 接线：`<Accordion labels=... id_base=...>` 即可运行。
+- 高级能力按需开启：`selection_mode`、`disabled_indices`、`motion`，不把内部状态对象暴露为必填参数。
+- docs 对齐入口：`apps/docs-app` 的 `#/components/accordion` 页面包含 Hello World、受控、多开/单开状态矩阵示例。
+
+### Button 同步记录（2026-02-16）
+
+- 参数模型同步：`Button` 参数已对齐到统一分层命名（视觉 `variant/color/radius/size`、状态 `is_disabled/is_loading/is_icon_only/is_full_width`、行为 `on_press`、A11y `aria_label`）。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Button", "button", "Actions", actions::button)` 暴露入口；`#/components/button` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/actions.rs` 包含 `Hello world`、`Variants & sizes`（含交互 workbench）、`Colors`、`Radius`、`Sizes`，与当前实现参数保持一致。
+- Copy-Paste Ready 同步：Button playground 代码快照由 `code_signal` 实时生成，并通过 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` 注入缺失 imports，避免示例漂移。
+
 ### Open Questions (max 2)
 
 1. 你希望“参数尽可能全”的优先级高于“API 精简稳定”吗？（这会决定是否把 Option A 的部分策略并入）

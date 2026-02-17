@@ -5,17 +5,13 @@ mod actions_extra_picker_button;
 mod collections;
 mod collections_breadcrumb;
 mod collections_breadcrumb_catalog;
-mod collections_breadcrumb_shadcn;
+mod collections_breadcrumb_primitives;
 mod collections_command;
 mod collections_core_catalog;
 mod collections_extra;
-mod collections_extra_combobox;
-mod collections_extra_picker;
-mod collections_extra_tags;
-mod collections_extra_top_nav;
 mod collections_groups;
 mod collections_item_catalog;
-mod collections_item_shadcn;
+mod collections_item_primitives;
 mod display;
 mod display_extra;
 mod display_extra_asset;
@@ -29,13 +25,10 @@ mod display_extra_iconset;
 mod display_extra_swatch;
 mod display_extra_thumbnail;
 mod files;
-mod files_extra_dropzone;
 mod forms;
 mod forms_color;
 mod forms_extra;
 mod forms_extra_field_label;
-mod forms_extra_search;
-mod forms_extra_textfield;
 mod forms_extra_visually_hidden;
 mod forms_groups;
 mod forms_groups_extra;
@@ -44,20 +37,16 @@ mod forms_text_field;
 mod layout;
 mod layout_extra;
 mod layout_extra_direction;
-mod layout_extra_sidenav;
-mod layout_extra_split_view;
 mod overlays;
 mod overlays_extra;
 mod overlays_extra_coachmark;
+mod theme_visual_baseline;
 mod ui_root;
 
 use self::{
     actions as a, actions_extra as ax, actions_extra_icon_button as axib,
-    actions_extra_picker_button as apb, collections_extra_combobox as cxb,
-    collections_extra_picker as cxp, collections_extra_tags as cxt,
-    collections_extra_top_nav as cxtn, files_extra_dropzone as fdz, forms_extra_field_label as fxl,
-    forms_extra_search as fxs, forms_extra_textfield as fxt, layout_extra as lx,
-    layout_extra_sidenav as lxs, layout_extra_split_view as lxv, overlays as ov,
+    actions_extra_picker_button as apb, forms_extra_field_label as fxl, layout_extra as lx,
+    overlays as ov,
 };
 use super::ComponentDoc;
 
@@ -219,11 +208,9 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Forms",
         forms_text_field::text_field
     ),
-    component_doc!("Textfield", "textfield", "Forms", fxt::textfield),
     component_doc!("TextArea", "text-area", "Forms", forms::text_area),
     component_doc!("Textarea", "textarea", "Forms", forms_extra::textarea),
     component_doc!("SearchField", "search-field", "Forms", forms::search_field),
-    component_doc!("Search", "search", "Forms", fxs::search),
     component_doc!(
         "ColorField",
         "color-field",
@@ -346,10 +333,8 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("Surface", "surface", "Layout", layout_extra::surface),
     layout_extra::SCROLL_AREA_DOC,
     component_doc!("Resizable", "resizable", "Layout", layout_extra::resizable),
-    component_doc!("SplitView", "split-view", "Layout", lxv::split_view),
     layout_extra_direction::DIRECTION_PROVIDER_DOC,
     component_doc!("Sidebar", "sidebar", "Layout", lx::sidebar),
-    component_doc!("Sidenav", "sidenav", "Layout", lxs::sidenav),
     component_doc!(
         "SidebarHeader",
         "sidebar-header",
@@ -398,6 +383,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("AutoHeight", "auto-height", "Layout", layout::auto_height),
     component_doc!("UiRoot", "ui-root", "Layout", ui_root::ui_root),
+    component_doc!(
+        "ThemeVisualBaseline",
+        "theme-visual-baseline",
+        "Layout",
+        theme_visual_baseline::theme_visual_baseline
+    ),
     component_doc!("Alert", "alert", "Display", display::alert),
     component_doc!(
         "AlertBanner",
@@ -545,7 +536,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     ),
     component_doc!("FileTrigger", "file-trigger", "Files", files::file_trigger),
     component_doc!("DropZone", "drop-zone", "Files", files::drop_zone),
-    component_doc!("Dropzone", "dropzone", "Files", fdz::dropzone),
     collections_breadcrumb_catalog::BREADCRUMB_DOC,
     collections_breadcrumb_catalog::BREADCRUMB_LIST_DOC,
     collections_breadcrumb_catalog::BREADCRUMB_ITEM_DOC,
@@ -570,6 +560,13 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         collections::breadcrumbs
     ),
     collections_core_catalog::ACCORDION_DOC,
+    component_doc!(
+        "AccordionItem",
+        "accordion-item",
+        "Collections",
+        collections::accordion
+    ),
+    collections_core_catalog::AI_SPACE_DOC,
     collections_core_catalog::DISCLOSURE_DOC,
     component_doc!(
         "Collapsible",
@@ -584,20 +581,19 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         collections_extra::disclosure_group
     ),
     collections_core_catalog::TABS_DOC,
-    component_doc!("ListBox", "listbox", "Collections", collections::list_box),
-    component_doc!(
-        "ListBoxItem",
-        "listbox-item",
-        "Collections",
-        collections_extra::listbox_item
-    ),
-    component_doc!(
-        "ListBoxSection",
-        "listbox-section",
-        "Collections",
-        collections_extra::listbox_section
-    ),
     component_doc!("List", "list", "Collections", collections::list),
+    component_doc!(
+        "ListItem",
+        "list-item",
+        "Collections",
+        collections_extra::list_item
+    ),
+    component_doc!(
+        "ListSection",
+        "list-section",
+        "Collections",
+        collections_extra::list_section
+    ),
     component_doc!("Menu", "menu", "Collections", collections::menu),
     component_doc!(
         "MenuItem",
@@ -635,7 +631,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Collections",
         collections_command::navigation_menu
     ),
-    component_doc!("TopNav", "top-nav", "Collections", cxtn::top_nav),
     component_doc!(
         "Dropdown",
         "dropdown",
@@ -643,14 +638,12 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         collections_extra::dropdown
     ),
     component_doc!("Select", "select", "Collections", collections::select),
-    component_doc!("Picker", "picker", "Collections", cxp::picker),
     component_doc!(
         "ComboBox",
         "combo-box",
         "Collections",
         collections::combo_box
     ),
-    component_doc!("Combobox", "combobox", "Collections", cxb::combobox),
     component_doc!(
         "Autocomplete",
         "autocomplete",
@@ -694,7 +687,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         "Collections",
         collections::tag_group
     ),
-    component_doc!("Tags", "tags", "Collections", cxt::tags),
     component_doc!(
         "StepList",
         "step-list",

@@ -1,6 +1,6 @@
 # ui-components
 
-`ui-components` is the final Leptos component layer (React Spectrum analogue).
+`ui-components` is the final Leptos component layer (设计基线 analogue).
 
 It composes:
 

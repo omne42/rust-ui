@@ -6,7 +6,7 @@
 ## 0. 总则（必须遵守）
 
 - **低耦合 / 高内聚**：每个 crate 只做一件事，并且边界清晰。
-- **分层不破**：状态（core）→ 行为与可访问性（headless）→ 组件（components）→ 应用（apps）。
+- **分层不破**：状态原语（state-primitives）→ 行为与可访问性（headless）→ 组件（components）→ 应用（apps）。
 - **不把实现细节透传到上层**：上层依赖稳定的“契约”（struct/enum/trait），而不是下层内部类型。
 - **动效优先物理（Spring Physics）**：交互反馈尽量使用弹簧驱动（非 CSS transition / 非纯 duration/easing）。
 - **默认可访问性（A11y）**：headless 输出语义、键盘与焦点行为；components 负责视觉表达。
@@ -16,23 +16,25 @@
 ```
 .
 ├── crates/
-│   ├── ui-state-primitives        # 纯状态（Stately）
-│   ├── ui-headless    # 行为 + A11y（Aria）
-│   ├── ui-theme       # 设计系统 tokens → CSS vars（OKLCH + OLED）
-│   ├── ui-motion      # 高级动效引擎/后端（WAAPI + Spring runtime）
-│   └── ui-components  # 最终组件（Spectrum）
+│   ├── ui-state-primitives  # 纯状态（Stately）
+│   ├── ui-headless          # 行为 + A11y（Aria）
+│   ├── ui-theme             # 设计系统 tokens → CSS vars（OKLCH + OLED）
+│   ├── ui-motion            # 高级动效引擎/后端（WAAPI + Spring runtime）
+│   ├── ui-components        # 最终组件（Spectrum）
+│   └── ui-compat            # 兼容层（provider/rac/s2/story/test/utils）
 ├── apps/
-│   ├── web-demo       # 可提交的 Web demo（Trunk CSR）
-│   └── tauri-demo     # 可提交的 Tauri 壳（桌面验证入口）
+│   ├── web-demo             # 可提交的 Web demo（Trunk CSR）
+│   ├── docs-app             # 文档与组件工作台入口
+│   └── tauri-demo           # 可提交的 Tauri 壳（桌面验证入口）
 ├── examples/          # 本地调研/参考（默认不提交，见 .gitignore）
 └── docs/
     ├── plan/          # 计划与 DAG
     ├── spec/          # 规格冻结（motion/mvp…）
-    └── research/      # 调研笔记（upstream 定位等）
+    └── research/      # 调研笔记（调研定位等）
 ```
 
 - **`apps/*`**：必须可运行、可展示真实交互与 A11y（用来验收）。
-- **`examples/_upstream/*`**：只用于本地 clone 上游仓库（React Spectrum / motion / heroui / shadcn / animate-ui 等）；**默认不进 git**（`.gitignore` 忽略 `examples/`）。
+- **`examples/_upstream/*`**：只用于本地 clone 调研仓库（React Spectrum / motion / heroui / shadcn / animate-ui 等）；**默认不进 git**（`.gitignore` 忽略 `examples/`）。
 
 ## 2. 分层与依赖规则（最重要）
 
@@ -43,6 +45,7 @@
 - `ui-headless`：可选依赖 `ui-state-primitives`；**禁止依赖** `ui-components` / `ui-theme`。
 - `ui-motion`：不依赖 `ui-components`（引擎不关心组件）。
 - `ui-components`：允许依赖 `ui-headless + ui-theme + ui-motion`（必要时才依赖 `ui-state-primitives`）。
+- `ui-compat`：兼容层可依赖 `ui-components/ui-headless`，但核心分层不得反向依赖 `ui-compat`。
 - `apps/*`：依赖 `ui-components`（上层不直接接触 `web-sys`）。
 
 ### 2.2 每层职责（对标 React Spectrum）
@@ -106,6 +109,11 @@ CSS 注入规则：
   - 如必须传递运行时数值（例如 popover 位置 / motion 数值），只允许设置 **CSS variables（custom properties，`--*`）**：
     - 推荐：`style:--x=...`（如果语法可用）
     - 允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值（禁止出现 `top/left/padding/background/...` 等普通属性）
+
+- **Inline CSS forbidden (component layer):**
+  - `ui-components` must not use `style="..."` / `style=...` inside `view!`
+  - Do not bind normal CSS properties via `style:<prop>=...`
+  - Only CSS variables (custom properties, `--*`) are allowed
 
 ## 4. 颜色与主题（OKLCH + OLED）
 

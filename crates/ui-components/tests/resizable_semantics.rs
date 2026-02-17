@@ -118,7 +118,7 @@ fn resizable_wires_pointer_drag_and_keyboard_contracts() {
 }
 
 #[test]
-fn resizable_emits_spectrum_root_state_data_attributes() {
+fn resizable_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/resizable/view.rs");
 
     for needle in [
@@ -187,7 +187,7 @@ fn resizable_docs_page_covers_primary_playgrounds() {
         "pub(super) fn resizable() -> AnyView",
         "title=\"Resizable\"",
         "slug=\"resizable\"",
-        "description=\"Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and Spectrum-style state data contracts.\"",
+        "description=\"baseline-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and baseline-style state data contracts.\"",
         "<Playground title=\"Horizontal + Handle Grip\" code_signal=horizontal_code>",
         "<Playground title=\"Controlled + Vertical Bounds\" code_signal=vertical_code>",
         "<Resizable",

@@ -200,7 +200,7 @@ fn drawer_motion_contract_exposes_default_and_custom_sheet_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "Drawer motion module should include `{needle}` for HeroUI-level contract coverage."
+            "Drawer motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
 }

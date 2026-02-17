@@ -1,7 +1,7 @@
 pub use ui_components::DirectionMode as Direction;
 pub use ui_components::DirectionProvider as I18nProvider;
 pub use ui_components::Item as Collection;
-pub use ui_components::ListBoxItem as ListBoxLoadMoreItem;
+pub use ui_components::ListItem as ListBoxLoadMoreItem;
 pub use ui_components::UiRoot as RouterProvider;
 
 pub type Key = String;

@@ -64,7 +64,7 @@ fn tree_uses_logic_state_model() {
 }
 
 #[test]
-fn tree_emits_spectrum_style_state_data_attributes() {
+fn tree_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/tree/view.rs");
 
     for attr in [
@@ -90,7 +90,7 @@ fn tree_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Tree should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Tree should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -135,7 +135,7 @@ fn tree_docs_page_covers_primary_playgrounds() {
         "pub(super) fn tree() -> AnyView",
         "title=\"Tree\"",
         "slug=\"tree\"",
-        "description=\"Hierarchical tree with controllable expand/selection state and Spectrum-style density/tone/state marker contracts.\"",
+        "description=\"Hierarchical tree with controllable expand/selection state and baseline-style density/tone/state marker contracts.\"",
         "<Playground title=\"Default + Expanded Root\" code_signal=code>",
         "<Playground title=\"Strong + Compact\" code_signal=states_code>",
         "<Tree",

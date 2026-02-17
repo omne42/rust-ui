@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn disclosure_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/disclosure_group/mod.rs");
+    let source = load_source("src/disclosure/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn disclosure_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn disclosure_group_uses_logic_state_model() {
-    let logic_source = load_source("src/disclosure_group/logic.rs");
-    let view_source = load_source("src/disclosure_group/view.rs");
+    let logic_source = load_source("src/disclosure/group/logic.rs");
+    let view_source = load_source("src/disclosure/group/view.rs");
 
     for needle in [
         "pub enum DisclosureGroupSelectionMode",
@@ -57,8 +57,8 @@ fn disclosure_group_uses_logic_state_model() {
 
 #[test]
 fn disclosure_group_composes_accordion_with_motion() {
-    let mod_source = load_source("src/disclosure_group/mod.rs");
-    let view_source = load_source("src/disclosure_group/view.rs");
+    let mod_source = load_source("src/disclosure/group/mod.rs");
+    let view_source = load_source("src/disclosure/group/view.rs");
 
     assert!(
         mod_source.contains("AccordionMotion as DisclosureGroupMotion"),
@@ -68,8 +68,9 @@ fn disclosure_group_composes_accordion_with_motion() {
     for needle in [
         "motion: DisclosureGroupMotion",
         "<Accordion",
-        "open_indices=expanded_signal",
-        "on_open_change=request_expanded_change",
+        "<AccordionItem",
+        "open=item_open",
+        "on_open_change=on_item_open_change",
         "selection_mode=accordion_selection_mode",
         "motion=motion",
     ] {
@@ -81,8 +82,8 @@ fn disclosure_group_composes_accordion_with_motion() {
 }
 
 #[test]
-fn disclosure_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/disclosure_group/view.rs");
+fn disclosure_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/disclosure/group/view.rs");
 
     for attr in [
         "data-slot=\"disclosure-group\"",
@@ -102,14 +103,14 @@ fn disclosure_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "DisclosureGroup should expose `{attr}` for Spectrum-style styling and state inspection."
+            "DisclosureGroup should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn disclosure_group_styles_include_state_markers() {
-    let source = load_source("src/disclosure_group/styles.rs");
+    let source = load_source("src/disclosure/group/styles.rs");
 
     for selector in [
         ".ui-disclosure-group--selection-single",
@@ -138,7 +139,7 @@ fn disclosure_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn disclosure_group() -> AnyView",
         "title=\"DisclosureGroup\"",
         "slug=\"disclosure-group\"",
-        "description=\"Spectrum/HeroUI-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals.\"",
+        "description=\"baseline-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals.\"",
         "<Playground title=\"Multiple + Controlled\" code_signal=code>",
         "<Playground title=\"Single + Disabled Item + Custom Class\" code_signal=states_code>",
         "<DisclosureGroup",
@@ -167,8 +168,8 @@ fn disclosure_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "\"Region routing\".to_string()",
         "\"Failover strategy\".to_string()",
         "\"Legacy endpoints\".to_string()",
-        "let (expanded_multi, set_expanded_multi) = signal(BTreeSet::from([0_usize]));",
-        "let (expanded_single, set_expanded_single) = signal(BTreeSet::from([1_usize]));",
+        "let (expanded_multi, set_expanded_multi) = signal(open_set([0]));",
+        "let (expanded_single, set_expanded_single) = signal(open_set([1]));",
         "id_base=\"docs-disclosure-group-multiple\".to_string()",
         "aria_label=\"Operational disclosure sections\".to_string()",
         "\"MFA, session policies, and login anomaly rules.\"",

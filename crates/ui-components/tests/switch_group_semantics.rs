@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn switch_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/switch_group/mod.rs");
+    let source = load_source("src/switch/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn switch_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn switch_group_uses_logic_state_model() {
-    let logic_source = load_source("src/switch_group/logic.rs");
-    let view_source = load_source("src/switch_group/view.rs");
+    let logic_source = load_source("src/switch/group/logic.rs");
+    let view_source = load_source("src/switch/group/view.rs");
 
     for needle in [
         "pub enum SwitchGroupOrientation",
@@ -65,8 +65,8 @@ fn switch_group_uses_logic_state_model() {
 }
 
 #[test]
-fn switch_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/switch_group/view.rs");
+fn switch_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/switch/group/view.rs");
 
     for attr in [
         "data-slot=\"switch-group\"",
@@ -94,14 +94,14 @@ fn switch_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "SwitchGroup should expose `{attr}` for Spectrum-style styling and state inspection."
+            "SwitchGroup should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn switch_group_styles_include_state_markers() {
-    let source = load_source("src/switch_group/styles.rs");
+    let source = load_source("src/switch/group/styles.rs");
 
     for selector in [
         ".ui-switch-group--orientation-vertical",
@@ -132,7 +132,7 @@ fn switch_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn switch_group() -> AnyView",
         "title=\"SwitchGroup\"",
         "slug=\"switch-group\"",
-        "description=\"Spectrum/HeroUI-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers.\"",
+        "description=\"baseline-style switch grouping primitive with centralized orientation/tone/validation/message-state contracts and stable data markers.\"",
         "<Playground title=\"Required + Description\" code_signal=base_code>",
         "<Playground title=\"Horizontal + Invalid + Disabled + Custom Class\" code_signal=states_code>",
         "<SwitchGroup",

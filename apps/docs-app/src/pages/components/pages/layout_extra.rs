@@ -73,7 +73,7 @@ pub(super) fn aspect_ratio() -> AnyView {
             title="AspectRatio"
             slug="aspect-ratio"
             group="Layout"
-            description="Shadcn/HeroUI-compatible media frame primitive with centralized ratio/radius/frame/source normalization and stable state-marker contracts."
+            description="baseline-compatible media frame primitive with centralized ratio/radius/frame/source normalization and stable state-marker contracts."
         >
             <Playground title="Ratio Presets" code_signal=preset_code>
                 <div class="docs-stack">
@@ -172,7 +172,7 @@ pub(super) fn grid() -> AnyView {
             title="Grid"
             slug="grid"
             group="Layout"
-            description="Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts."
+            description="baseline-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts."
         >
             <Playground title="Columns + Gap" code_signal=columns_code>
                 <Grid columns=GridColumns::Three gap=GridGap::Md aria_label="Overview cards grid".to_string()>
@@ -297,7 +297,7 @@ pub(super) fn scroll_area() -> AnyView {
             title="ScrollArea"
             slug="scroll-area"
             group="Layout"
-            description="Shadcn-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts."
+            description="baseline-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts."
         >
             <Playground title="Vertical + Max Height" code_signal=default_code>
                 <ScrollArea max_height_px=180>
@@ -397,7 +397,7 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
             title="Resizable"
             slug="resizable"
             group="Layout"
-            description="Shadcn-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and Spectrum-style state data contracts."
+            description="baseline-compatible panel splitter with controlled/uncontrolled split state, pointer + keyboard resize semantics, and baseline-style state data contracts."
         >
             <Playground title="Horizontal + Handle Grip" code_signal=horizontal_code>
                 <Resizable
@@ -536,7 +536,7 @@ let on_open_change = Callback::new(move |next| set_open_raw.set(next));
             title="Sidebar"
             slug="sidebar"
             group="Layout"
-            description="Shadcn-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and Spectrum-style data markers."
+            description="baseline-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and baseline-style data markers."
         >
             <Playground title="Offcanvas + Slot Markers" code_signal=basic_code>
                 <Sidebar
@@ -655,7 +655,7 @@ pub(super) fn sidebar_header() -> AnyView {
             title="SidebarHeader"
             slug="sidebar-header"
             group="Layout"
-            description="Shadcn-compatible sidebar header region primitive with centralized disabled/source-state contracts and Spectrum-style data markers."
+            description="baseline-compatible sidebar header region primitive with centralized disabled/source-state contracts and baseline-style data markers."
         >
             <Playground title="Default Header Region" code_signal=basic_code>
                 <Sidebar
@@ -914,7 +914,7 @@ let (last_item_action, set_last_item_action) = signal("none".to_string());
             title="SidebarMenu"
             slug="sidebar-menu"
             group="Layout"
-            description="Shadcn-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, Spectrum-style data contracts, and HeroUI-level active-highlight motion."
+            description="baseline-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, baseline-style data contracts, and baseline-level active-highlight motion."
         >
             <Playground title="Badge + Item Action" code_signal=badge_code>
                 <div class="docs-stack docs-stack--tight">

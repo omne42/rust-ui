@@ -258,7 +258,7 @@ fn context_menu_uses_dropdown_menu_motion_alias_contract() {
     ] {
         assert!(
             mod_source.contains(needle) || dropdown_motion_source.contains(needle),
-            "ContextMenu motion alias contract should include `{needle}` for HeroUI-style spring customization."
+            "ContextMenu motion alias contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -342,7 +342,7 @@ fn context_menu_docs_page_covers_primary_playgrounds() {
         "pub(super) fn context_menu() -> AnyView",
         "title=\"ContextMenu\"",
         "slug=\"context-menu\"",
-        "description=\"Shadcn-compatible context trigger menu with right-click + keyboard open semantics, Spectrum state/source attrs, and HeroUI-level popover spring motion reuse.\"",
+        "description=\"baseline-compatible context trigger menu with right-click + keyboard open semantics, baseline state/source attrs, and baseline-level popover spring motion reuse.\"",
         "<Playground title=\"Right Click + Keyboard Open\" code_signal=code>",
         "<Playground title=\"Persistent + Disabled + ItemKinds\" code_signal=states_code>",
         "<Playground title=\"State + Source Markers\" code_signal=marker_code>",

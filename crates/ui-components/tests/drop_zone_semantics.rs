@@ -33,7 +33,7 @@ fn drop_zone_uses_headless_hover_and_focus_ring() {
 }
 
 #[test]
-fn drop_zone_emits_spectrum_style_data_attributes() {
+fn drop_zone_emits_baseline_style_data_attributes() {
     let source = load_source("src/drop_zone/view.rs");
 
     for attr in [
@@ -48,7 +48,7 @@ fn drop_zone_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "DropZone should set `{attr}` to support Spectrum-style styling and state inspection."
+            "DropZone should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -104,7 +104,7 @@ fn drop_zone_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "DropZone motion module should include `{needle}` for HeroUI-level regression coverage."
+            "DropZone motion module should include `{needle}` for baseline-level regression coverage."
         );
     }
 }

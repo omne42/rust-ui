@@ -131,11 +131,11 @@ fn inline_style_contract_docs_page_covers_primary_playgrounds() {
     let rules_zh = load_source("../../docs/RULES_ZH.md");
 
     for needle in [
-        "## 规范（必须遵守）",
-        "- **组件禁止 inline CSS**：",
-        "ui-components` 中禁止写“普通属性”的 inline style",
-        "- **运行时数值只允许用 CSS variables（custom properties）**：",
-        "- 快速排查违规：在仓库中搜索 `style=` 与 `style:`",
+        "## Rules (Required)",
+        "- **Inline CSS is forbidden in components:**",
+        "`ui-components` must not use inline style for normal CSS properties",
+        "- **Runtime values must use CSS variables (custom properties) only:**",
+        "- Quick violation check: search the repo for `style=` and `style:`",
     ] {
         assert!(
             styling_spec.contains(needle),
@@ -144,10 +144,10 @@ fn inline_style_contract_docs_page_covers_primary_playgrounds() {
     }
 
     for needle in [
-        "- **禁止 inline CSS（组件层）**：",
-        "ui-components` 中禁止在 `view!` 里写 `style=\"...\"` / `style=...`",
-        "禁止使用 `style:<prop>=...` 绑定普通 CSS 属性",
-        "只允许设置 **CSS variables（custom properties，`--*`）**",
+        "- **Inline CSS forbidden (component layer):**",
+        "`ui-components` must not use `style=\"...\"` / `style=...` inside `view!`",
+        "Do not bind normal CSS properties via `style:<prop>=...`",
+        "Only CSS variables (custom properties, `--*`) are allowed",
     ] {
         assert!(
             rules_zh.contains(needle),
@@ -162,11 +162,11 @@ fn inline_style_contract_docs_playgrounds_lock_state_matrix_contract_values() {
     let rules_zh = load_source("../../docs/RULES_ZH.md");
 
     for needle in [
-        "允许传递运行时数值时使用 custom properties（`--*`）",
-        "推荐：`style:--x=...`",
-        "允许：`style=...` 但内容必须 **只包含** `--*` 变量赋值",
-        "禁止使用 `style:<prop>=...` 绑定普通 CSS 属性",
-        "样式切换通过 `class`/`data-*` + `styles.rs` 完成",
+        "When passing runtime values, use custom properties (`--*`)",
+        "Recommended: `style:--x=...`",
+        "Allowed: `style=...` only when it contains **only** `--*` variable assignments",
+        "Do not bind normal CSS properties via `style:<prop>=...`",
+        "Style switching must use `class`/`data-*` + `styles.rs`",
     ] {
         assert!(
             styling_spec.contains(needle) || rules_zh.contains(needle),

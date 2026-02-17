@@ -256,22 +256,20 @@ mod tests {
 
         assert_eq!(resolve_url(None), (DEFAULT_URL.to_string(), false));
         assert_eq!(
-            resolve_url(Some(
-                " https://github.com/adobe/react-spectrum ".to_string()
-            )),
-            ("https://github.com/adobe/react-spectrum".to_string(), true)
+            resolve_url(Some(" https://github.com/adobe/ui-baseline ".to_string())),
+            ("https://github.com/adobe/ui-baseline".to_string(), true)
         );
     }
 
     #[test]
     fn resolve_site_label_supports_custom_derived_and_default_paths() {
         assert_eq!(
-            resolve_site_label(Some(" Spectrum ".to_string()), "https://example.com"),
-            ("Spectrum".to_string(), "custom")
+            resolve_site_label(Some(" Baseline ".to_string()), "https://example.com"),
+            ("Baseline".to_string(), "custom")
         );
 
         assert_eq!(
-            resolve_site_label(None, "https://www.github.com/adobe/react-spectrum"),
+            resolve_site_label(None, "https://www.github.com/adobe/ui-baseline"),
             ("github.com".to_string(), "derived")
         );
 

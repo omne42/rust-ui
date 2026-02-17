@@ -48,3 +48,13 @@ If a smoke check fails, it prints the Trunk log path and keeps a screenshot for 
 ```bash
 ./scripts/check.sh
 ```
+
+## Production static builds (compressed + cache headers)
+
+```bash
+./scripts/release-web-demo.sh
+./scripts/release-docs-app.sh
+```
+
+These wrappers run `trunk build --release`, generate `.gz` (and `.br` if `brotli` is installed)
+for `wasm/js/css`, and write `dist/_headers` with immutable cache headers for hashed assets.

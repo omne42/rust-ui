@@ -25,7 +25,7 @@ pub(super) fn visually_hidden() -> AnyView {
             title="VisuallyHidden"
             slug="visually-hidden"
             group="Forms"
-            description="@react-aria/visually-hidden compatible utility for screen-reader-only content and focusable skip-link workflows."
+            description="@a11y-baseline/visually-hidden compatible utility for screen-reader-only content and focusable skip-link workflows."
         >
             <Playground title="Icon Button Accessible Label" code_signal=icon_code>
                 <div class="docs-stack">

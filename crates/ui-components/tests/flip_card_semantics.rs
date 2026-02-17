@@ -137,7 +137,7 @@ fn flip_card_motion_contract_exposes_default_and_customization_tests() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "FlipCard motion contract should include `{needle}` for HeroUI-style spring customization."
+            "FlipCard motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -254,7 +254,7 @@ fn flip_card_docs_page_covers_primary_playgrounds() {
         "pub(super) fn flip_card() -> AnyView",
         "title=\"FlipCard\"",
         "slug=\"flip-card\"",
-        "description=\"3D front/back card with Spectrum-style state/source markers and HeroUI-grade spring motion for flip/hover interactions.\"",
+        "description=\"3D front/back card with baseline-style state/source markers and baseline-level spring motion for flip/hover interactions.\"",
         "<Playground title=\"Click + Keyboard Flip\" code_signal=basic_code>",
         "title=\"State + Source Markers\"",
         "<Playground title=\"Disabled\" code_signal=disabled_code>",

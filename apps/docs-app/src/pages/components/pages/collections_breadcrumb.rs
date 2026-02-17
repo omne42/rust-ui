@@ -113,7 +113,7 @@ pub(super) fn breadcrumb() -> AnyView {
             title="Breadcrumb"
             slug="breadcrumb"
             group="Collections"
-            description="Shadcn-compatible breadcrumb navigation with current-page semantics and Spectrum-style root state attrs."
+            description="baseline-compatible breadcrumb navigation with current-page semantics and baseline-style root state attrs."
         >
             <Playground
                 title="Trail"

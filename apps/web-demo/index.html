@@ -10,72 +10,149 @@
     <link data-trunk rel="rust" data-wasm-opt="z" />
 
     <style>
+      body {
+        margin: 0;
+        color: #111827;
+        background: #f3f4f6;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      #ssg-shell {
+        padding: 24px;
+      }
+
+      .shell-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .shell-header {
+        margin-bottom: 16px;
+      }
+
+      .shell-title {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .shell-subtitle {
+        margin: 6px 0 0 0;
+        color: #4b5563;
+        font-size: 13px;
+      }
+
+      .shell-grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: 220px minmax(0, 1fr);
+      }
+
+      .shell-card {
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+
+      .shell-nav {
+        padding: 12px;
+      }
+
+      .shell-nav h2 {
+        margin: 0 0 8px 0;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #6b7280;
+      }
+
+      .shell-nav p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #374151;
+      }
+
+      .shell-main {
+        padding: 16px;
+      }
+
+      .shell-main h2 {
+        margin: 0 0 8px 0;
+        font-size: 15px;
+      }
+
+      .shell-main p {
+        margin: 0;
+        color: #4b5563;
+        line-height: 1.6;
+      }
+
       #boot {
         position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: #0b0b0b;
-        color: #f5f5f5;
-      }
-
-      #boot .boot-card {
-        width: min(520px, 100%);
-        padding: 16px 18px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.06);
-        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.55);
-      }
-
-      #boot .boot-title {
-        margin: 0 0 10px 0;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.2px;
-      }
-
-      #boot .boot-body {
-        margin: 0;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(17, 24, 39, 0.14);
+        background: rgba(255, 255, 255, 0.95);
+        color: #1f2937;
+        padding: 10px 12px;
         font-size: 12px;
-        line-height: 1.45;
-        opacity: 0.9;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
       }
 
       #boot pre {
-        margin: 12px 0 0 0;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        margin: 8px 0 0 0;
+        max-height: 30vh;
         overflow: auto;
-        max-height: 40vh;
         white-space: pre-wrap;
         word-break: break-word;
+      }
+
+      @media (max-width: 900px) {
+        .shell-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
   <body>
-    <div id="boot">
-      <div class="boot-card">
-        <p class="boot-title">Loading web-demo…</p>
-        <p class="boot-body">
-          This demo is CSR-only. If this takes too long or stays blank, check the browser console.
-        </p>
-        <pre data-boot-details hidden></pre>
-      </div>
+    <div id="ssg-shell" data-ssg-shell>
+      <main class="shell-wrap">
+        <header class="shell-header">
+          <h1 class="shell-title">rust-ui web demo</h1>
+          <p class="shell-subtitle">Static first-screen shell. Interactive content appears after WASM runtime is ready.</p>
+        </header>
+
+        <div class="shell-grid">
+          <aside class="shell-card shell-nav">
+            <h2>On this page</h2>
+            <p>Architecture, Ports, New components, Extras, and more demo sections.</p>
+          </aside>
+
+          <section class="shell-card shell-main" aria-live="polite">
+            <h2>Loading interactive demo</h2>
+            <p>
+              The first interactive section is mounted first to reduce startup work. Other sections are mounted on demand when selected.
+            </p>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div id="boot" aria-live="polite" aria-atomic="true">
+      Loading web-demo runtime...
+      <pre data-boot-details hidden></pre>
     </div>
 
     <script>
       (() => {
+        const shell = document.querySelector("[data-ssg-shell]");
         const boot = document.getElementById("boot");
-        if (!boot) return;
+        const details = boot?.querySelector("[data-boot-details]");
 
-        const details = boot.querySelector("[data-boot-details]");
-
-        const append_details = (label, value) => {
+        const appendDetails = (label, value) => {
           if (!details) return;
           details.hidden = false;
           const text =
@@ -84,27 +161,21 @@
               : value instanceof Error
                 ? value.stack || value.message
                 : JSON.stringify(value, null, 2);
-          const next = `${label}\n\n${text}`;
+          const line = `${label}\n\n${text}`;
           const prev = details.textContent?.trim();
-          if (!prev) {
-            details.textContent = next;
-            return;
-          }
-          if (prev.includes(next)) {
-            return;
-          }
-          details.textContent = `${prev}\n\n---\n\n${next}`;
+          details.textContent = prev ? `${prev}\n\n---\n\n${line}` : line;
         };
 
         window.addEventListener(
           "TrunkApplicationStarted",
           () => {
-            boot.remove();
+            shell?.remove();
+            boot?.remove();
           },
           { once: true }
         );
 
-        const original_console_error = console.error.bind(console);
+        const originalConsoleError = console.error.bind(console);
         console.error = (...args) => {
           try {
             const text = args
@@ -118,19 +189,19 @@
                 }
               })
               .join(" ");
-            append_details("Console error", text);
+            appendDetails("Console error", text);
           } catch {
             // ignore
           }
-          original_console_error(...args);
+          originalConsoleError(...args);
         };
 
         window.addEventListener("error", (ev) => {
-          append_details("Runtime error", ev?.error ?? ev?.message ?? ev);
+          appendDetails("Runtime error", ev?.error ?? ev?.message ?? ev);
         });
 
         window.addEventListener("unhandledrejection", (ev) => {
-          append_details("Unhandled promise rejection", ev?.reason ?? ev);
+          appendDetails("Unhandled promise rejection", ev?.reason ?? ev);
         });
       })();
     </script>

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn toggle_group_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/toggle_group/mod.rs");
+    let module_source = load_source("src/button/toggle_group/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -22,7 +22,7 @@ fn toggle_group_is_exported_from_module_and_crate_root() {
         "toggle_group module should export orientation and selection mode contracts."
     );
     assert!(
-        crate_source.contains("pub use toggle_group::{")
+        crate_source.contains("pub use button::toggle_group::{")
             && crate_source.contains("ToggleGroup")
             && crate_source.contains("ToggleGroupItem")
             && crate_source.contains("ToggleGroupOrientation")
@@ -33,8 +33,8 @@ fn toggle_group_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn toggle_group_uses_logic_state_model() {
-    let view_source = load_source("src/toggle_group/view.rs");
-    let logic_source = load_source("src/toggle_group/logic.rs");
+    let view_source = load_source("src/button/toggle_group/view.rs");
+    let logic_source = load_source("src/button/toggle_group/logic.rs");
 
     for needle in [
         "pub enum ToggleGroupOrientation",
@@ -69,7 +69,7 @@ fn toggle_group_uses_logic_state_model() {
 
 #[test]
 fn toggle_group_supports_controlled_and_uncontrolled_selection_contracts() {
-    let source = load_source("src/toggle_group/view.rs");
+    let source = load_source("src/button/toggle_group/view.rs");
 
     for needle in [
         "selected_ids: Option<Signal<BTreeSet<String>>>",
@@ -87,8 +87,8 @@ fn toggle_group_supports_controlled_and_uncontrolled_selection_contracts() {
 }
 
 #[test]
-fn toggle_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/toggle_group/view.rs");
+fn toggle_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/button/toggle_group/view.rs");
 
     for needle in [
         "data-slot=\"toggle-group\"",
@@ -107,14 +107,14 @@ fn toggle_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "ToggleGroup should set `{needle}` to support Spectrum-style styling and state inspection."
+            "ToggleGroup should set `{needle}` to support baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn toggle_group_styles_define_orientation_and_attached_layout_rules() {
-    let source = load_source("src/toggle_group/styles.rs");
+    let source = load_source("src/button/toggle_group/styles.rs");
 
     for needle in [
         ".ui-toggle-group {",
@@ -140,7 +140,7 @@ fn toggle_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn toggle_group() -> AnyView",
         "title=\"ToggleGroup\"",
         "slug=\"toggle-group\"",
-        "description=\"Shadcn-compatible grouped toggle primitive with controlled selection modes and Spectrum-style root state contracts.\"",
+        "description=\"baseline-compatible grouped toggle primitive with controlled selection modes and baseline-style root state contracts.\"",
         "<Playground title=\"Multiple + Attached\" code_signal=code>",
         "<Playground title=\"Single + Vertical + Disabled Item\" code_signal=states_code>",
         "<ToggleGroup",

@@ -140,7 +140,7 @@ pub(super) fn view() -> AnyView {
             title="View"
             slug="view"
             group="Layout"
-            description="General-purpose Spectrum-style container with centralized surface token state and stable data markers."
+            description="General-purpose baseline-style container with centralized surface token state and stable data markers."
         >
             <Playground title="Surface Tokens" code_signal=surface_code>
                 <div class="docs-stack">
@@ -232,7 +232,7 @@ pub(super) fn flex() -> AnyView {
             title="Flex"
             slug="flex"
             group="Layout"
-            description="Spectrum-style flex layout primitive with centralized direction/wrap/alignment/gap normalization and stable data-state contracts."
+            description="baseline-style flex layout primitive with centralized direction/wrap/alignment/gap normalization and stable data-state contracts."
         >
             <Playground title="Direction + Wrap + Gap" code_signal=matrix_code>
                 <div class="docs-stack">
@@ -383,7 +383,7 @@ pub(super) fn header() -> AnyView {
     <h3>"Settings"</h3>
   </Header>
   <Content padded=true>
-    <p>"Header above content, matching Spectrum container semantics."</p>
+    <p>"Header above content, matching baseline container semantics."</p>
   </Content>
 </View>"#
             .to_string()
@@ -420,7 +420,7 @@ pub(super) fn header() -> AnyView {
                         <h3>"Settings"</h3>
                     </Header>
                     <Content padded=true>
-                        <p>"Header above content, matching Spectrum container semantics."</p>
+                        <p>"Header above content, matching baseline container semantics."</p>
                     </Content>
                 </View>
             </Playground>
@@ -529,7 +529,7 @@ pub(super) fn heading() -> AnyView {
             title="Heading"
             slug="heading"
             group="Layout"
-            description="Spectrum-style semantic heading (`<h1>`..`<h6>`) with centralized level/tone/truncate contracts."
+            description="baseline-style semantic heading (`<h1>`..`<h6>`) with centralized level/tone/truncate contracts."
         >
             <Playground title="Heading Levels + Tone" code_signal=levels_code>
                 <div class="docs-stack">
@@ -580,7 +580,7 @@ pub(super) fn divider() -> AnyView {
             title="Divider"
             slug="divider"
             group="Layout"
-            description="A separator primitive with centralized orientation state attrs and Spectrum-style styling markers."
+            description="A separator primitive with centralized orientation state attrs and baseline-style styling markers."
         >
             <Playground title="Orientation" code_signal=orientations_code>
                 <div class="docs-stack">
@@ -714,7 +714,7 @@ pub(super) fn spacer() -> AnyView {
             title="Spacer"
             slug="spacer"
             group="Layout"
-            description="A pure spacing primitive with centralized axis/size state attrs for Spectrum-style styling contracts."
+            description="A pure spacing primitive with centralized axis/size state attrs for baseline-style styling contracts."
         >
             <Playground title="Axis + Size" code_signal=axis_and_size_code>
                 <div class="docs-stack">

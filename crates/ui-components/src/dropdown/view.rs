@@ -152,7 +152,7 @@ pub fn Dropdown(
                 id=trigger_id.get_value()
                 variant=crate::ButtonVariant::Secondary
                 size=crate::ButtonSize::Sm
-                disabled=state.is_disabled
+                is_disabled=state.is_disabled
                 aria_haspopup="menu"
                 aria_expanded=open
                 aria_controls_signal=aria_controls

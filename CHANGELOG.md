@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: completes button-family namespace consolidation under `button/*` (including `action`, `copy`, and toggle variants), aligns migrated semantics contracts (`search_input_button`, `tag_group`, `upstream_name_parity`), and hardens motion/style hygiene checks so full `./scripts/check.sh` passes end-to-end.
+
 - `ui-components`: adds `button_accordion_hygiene` contract tests and wires them into `scripts/check-ui-components-contract-hygiene.sh` to hard-block non-test `unwrap/expect` plus unintended `let _ = ...` result swallowing in button/accordion sources.
 
 - `ui-components`: adds per-component Cargo feature gates (`component-*`) plus `all-components` so downstream crates can tree-shake unused components (including CSS aggregation) while preserving default behavior.

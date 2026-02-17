@@ -45,7 +45,7 @@ let on_value_change = Callback::new(move |next: Option<String>| set_value.set(ne
             title="ColorField"
             slug="color-field"
             group="Forms"
-            description="Spectrum-compatible color text field with centralized label/placeholder/aria/state normalization, sanitized preview rendering, and stable slot/data contracts."
+            description="baseline-compatible color text field with centralized label/placeholder/aria/state normalization, sanitized preview rendering, and stable slot/data contracts."
         >
             <Playground title="Controlled Value" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -119,7 +119,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
             title="ColorArea"
             slug="color-area"
             group="Forms"
-            description="Spectrum-compatible two-axis color selection primitive with centralized step/grid normalization, keyboard navigation, and stable slot/data-state contracts."
+            description="baseline-compatible two-axis color selection primitive with centralized step/grid normalization, keyboard navigation, and stable slot/data-state contracts."
         >
             <Playground title="Controlled Grid Selection" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -208,7 +208,7 @@ let on_hue_change = Callback::new(move |next: f64| set_hue.set(next));
             title="ColorSlider"
             slug="color-slider"
             group="Forms"
-            description="Spectrum-compatible single-channel color slider with centralized channel/range/value normalization, spring motion integration, and stable slot/data-state contracts."
+            description="baseline-compatible single-channel color slider with centralized channel/range/value normalization, spring motion integration, and stable slot/data-state contracts."
         >
             <Playground title="Controlled Hue Channel" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -299,7 +299,7 @@ let on_value_change = Callback::new(move |next: f64| set_value.set(next));
             title="ColorWheel"
             slug="color-wheel"
             group="Forms"
-            description="Spectrum-compatible hue wheel with centralized value/step/wrap-around normalization, spring-driven thumb motion, and stable slot/data-state contracts."
+            description="baseline-compatible hue wheel with centralized value/step/wrap-around normalization, spring-driven thumb motion, and stable slot/data-state contracts."
         >
             <Playground title="Controlled Hue Wheel" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -416,7 +416,7 @@ let open_signal: Signal<bool> = open.into();
             title="ColorPicker"
             slug="color-picker"
             group="Forms"
-            description="Spectrum-compatible color picker primitive that composes swatch trigger + popover content with controllable color/open state and stable slot/data-state contracts."
+            description="baseline-compatible color picker primitive that composes swatch trigger + popover content with controllable color/open state and stable slot/data-state contracts."
         >
             <Playground title="Controlled Color + Controlled Open" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -528,7 +528,7 @@ pub(super) fn color_thumb() -> AnyView {
             title="ColorThumb"
             slug="color-thumb"
             group="Forms"
-            description="Spectrum-compatible draggable color thumb primitive with focus/drag/loupe state contracts, sanitized color source handling, and stable slot/data-state markers."
+            description="baseline-compatible draggable color thumb primitive with focus/drag/loupe state contracts, sanitized color source handling, and stable slot/data-state markers."
         >
             <Playground title="Focused + Dragging + Position" code_signal=basic_code>
                 <div style=board_style>
@@ -644,7 +644,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
             title="ColorEditor"
             slug="color-editor"
             group="Forms"
-            description="Spectrum-compatible color editor primitive that composes color area + sliders + field + format switching with controllable color/format state and stable slot/data-state contracts."
+            description="baseline-compatible color editor primitive that composes color area + sliders + field + format switching with controllable color/format state and stable slot/data-state contracts."
         >
             <Playground title="Controlled Color + Controlled Format" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -752,7 +752,7 @@ pub(super) fn color_handle() -> AnyView {
             title="ColorHandle"
             slug="color-handle"
             group="Forms"
-            description="Spectrum-compatible draggable color handle primitive with composed thumb/loupe behavior, centralized state derivation, and stable slot/data-state contracts."
+            description="baseline-compatible draggable color handle primitive with composed thumb/loupe behavior, centralized state derivation, and stable slot/data-state contracts."
         >
             <Playground title="Focused + Dragging + Position" code_signal=basic_code>
                 <div style=surface_style>
@@ -863,7 +863,7 @@ pub(super) fn color_loupe() -> AnyView {
             title="ColorLoupe"
             slug="color-loupe"
             group="Forms"
-            description="Spectrum-compatible color loupe overlay primitive with centralized open/disabled/position normalization, checkerboard alpha preview, and stable slot/data-state contracts."
+            description="baseline-compatible color loupe overlay primitive with centralized open/disabled/position normalization, checkerboard alpha preview, and stable slot/data-state contracts."
         >
             <Playground title="Open + Position Buckets" code_signal=basic_code>
                 <div style=surface_style>

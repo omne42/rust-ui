@@ -39,7 +39,7 @@ pub(super) fn icons_workflow() -> AnyView {
             title="IconsWorkflow"
             slug="icons-workflow"
             group="Display"
-            description="Spectrum-compatible icons-workflow wrapper with workflow namespace normalization, built-in workflow glyph defaults, and Iconset accessibility/source-state contracts."
+            description="baseline-compatible icons-workflow wrapper with workflow namespace normalization, built-in workflow glyph defaults, and Iconset accessibility/source-state contracts."
         >
             <Playground title="Built-in Workflow Glyphs" code_signal=defaults_code>
                 <div class="docs-row">

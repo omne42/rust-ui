@@ -153,7 +153,7 @@ pub fn MenuTrigger(
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
-                disabled=state.is_trigger_disabled
+                is_disabled=state.is_trigger_disabled
                 aria_label=aria_label.get_value()
                 aria_haspopup="menu"
                 aria_expanded=open

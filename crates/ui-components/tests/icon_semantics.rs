@@ -54,7 +54,7 @@ fn icon_uses_logic_state_model() {
 }
 
 #[test]
-fn icon_emits_spectrum_style_state_data_attributes() {
+fn icon_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/icon/view.rs");
 
     for attr in [
@@ -72,7 +72,7 @@ fn icon_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Icon should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Icon should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -111,7 +111,7 @@ fn icon_supports_accessibility_role_and_label_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "Icon should include `{needle}` for Spectrum-style accessibility contracts."
+            "Icon should include `{needle}` for baseline-style accessibility contracts."
         );
     }
 }
@@ -124,7 +124,7 @@ fn icon_docs_page_covers_primary_playgrounds() {
         "pub(super) fn icon() -> AnyView",
         "title=\"Icon\"",
         "slug=\"icon\"",
-        "description=\"Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers.\"",
+        "description=\"baseline-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers.\"",
         "<Playground title=\"Size + Tone Matrix\" code_signal=matrix_code>",
         "<Playground title=\"Accessible + Disabled + Custom Class\" code_signal=states_code>",
         "<Icon",

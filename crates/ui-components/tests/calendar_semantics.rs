@@ -62,7 +62,7 @@ fn calendar_uses_logic_state_model() {
 }
 
 #[test]
-fn calendar_emits_spectrum_style_state_data_attributes() {
+fn calendar_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/calendar/view.rs");
 
     for attr in [
@@ -88,7 +88,7 @@ fn calendar_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Calendar should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Calendar should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

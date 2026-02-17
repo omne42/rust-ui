@@ -82,8 +82,9 @@ fn item_group_and_item_keep_list_semantics() {
 
 #[test]
 fn item_docs_page_exists() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_item_primitives.rs",
+    );
 
     for needle in [
         "pub(super) fn item_primitives() -> AnyView",
@@ -93,15 +94,16 @@ fn item_docs_page_exists() {
     ] {
         assert!(
             source.contains(needle),
-            "collections_item_shadcn docs page should contain `{needle}`."
+            "collections_item_primitives docs page should contain `{needle}`."
         );
     }
 }
 
 #[test]
 fn item_docs_page_covers_primary_playgrounds() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_item_primitives.rs",
+    );
 
     for needle in [
         "pub(super) fn item_primitives() -> AnyView",
@@ -112,15 +114,16 @@ fn item_docs_page_covers_primary_playgrounds() {
     ] {
         assert!(
             source.contains(needle),
-            "collections_item_shadcn docs page should contain `{needle}` for Item.",
+            "collections_item_primitives docs page should contain `{needle}` for Item.",
         );
     }
 }
 
 #[test]
 fn item_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+    let source = load_source(
+        "../../apps/docs-app/src/pages/components/pages/collections_item_primitives.rs",
+    );
 
     for needle in [
         "title=\"Media + Content + Actions\"",

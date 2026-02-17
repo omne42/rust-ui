@@ -48,7 +48,7 @@ pub(super) fn empty() -> AnyView {
             title="Empty"
             slug="empty"
             group="Display"
-            description="Shadcn-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering."
+            description="baseline-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering."
         >
             <Playground title="Header + Icon Variant" code_signal=basic_code>
                 <Empty>

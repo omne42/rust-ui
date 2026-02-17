@@ -86,7 +86,7 @@ fn form_field_composes_switch_and_checkbox_indicators() {
 }
 
 #[test]
-fn form_field_emits_spectrum_style_state_data_attributes() {
+fn form_field_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/form_field/view.rs");
 
     for attr in [
@@ -108,7 +108,7 @@ fn form_field_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "FormField should expose `{attr}` for Spectrum-style state inspection and styling."
+            "FormField should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }
@@ -143,7 +143,7 @@ fn form_field_docs_page_covers_primary_playgrounds() {
         "pub(super) fn form_field() -> AnyView",
         "title=\"FormField\"",
         "slug=\"form-field\"",
-        "description=\"Spectrum/HeroUI-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers.\"",
+        "description=\"baseline-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers.\"",
         "<Playground title=\"Switch Indicator + Description\" code_signal=code>",
         "<Playground title=\"Checkbox Indicator + Quiet + Invalid/Disabled\" code_signal=states_code>",
         "<FormField",

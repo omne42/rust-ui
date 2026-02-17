@@ -30,7 +30,7 @@ pub(super) fn sidebar_footer() -> AnyView {
             title="SidebarFooter"
             slug="sidebar-footer"
             group="Layout"
-            description="Shadcn-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and Spectrum-style data markers."
+            description="baseline-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and baseline-style data markers."
         >
             <Playground title="Default Footer Region" code_signal=default_code>
                 <Sidebar

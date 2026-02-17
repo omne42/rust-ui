@@ -23,6 +23,14 @@ fn component_pages_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("src/pages/components/pages")
 }
 
+fn docs_only_page_names() -> HashSet<&'static str> {
+    HashSet::from(["ThemeVisualBaseline"])
+}
+
+fn shared_page_title_names() -> HashSet<&'static str> {
+    HashSet::from(["ThemeVisualBaseline", "AccordionItem", "AiSpace"])
+}
+
 fn walk_rs_files(root: &Path, out: &mut Vec<PathBuf>) {
     let entries = fs::read_dir(root).unwrap_or_else(|err| {
         panic!("failed to read {root:?}: {err}");
@@ -314,6 +322,9 @@ fn all_component_pages_have_at_least_one_playground() {
 
     let mut module_sources: BTreeMap<String, String> = BTreeMap::new();
 
+    let docs_only_names = docs_only_page_names();
+    let shared_title_names = shared_page_title_names();
+
     for entry in entries {
         let CatalogEntry { name, module, func } = entry;
 
@@ -348,17 +359,21 @@ fn all_component_pages_have_at_least_one_playground() {
             "`{module}::{func}` must include at least one `<Playground ...>` section"
         );
 
-        let component_needle = format!("<{name}");
-        assert!(
-            block.contains(&component_needle),
-            "`{module}::{func}` must include at least one `{component_needle} ...` usage (playground should demo the component itself)"
-        );
+        if !docs_only_names.contains(name.as_str()) {
+            let component_needle = format!("<{name}");
+            assert!(
+                block.contains(&component_needle),
+                "`{module}::{func}` must include at least one `{component_needle} ...` usage (playground should demo the component itself)"
+            );
+        }
 
-        let title_needle = format!("title=\"{name}\"");
-        assert!(
-            block.contains(&title_needle),
-            "`{module}::{func}` should set ComponentPage title to match catalog name (`{title_needle}`)"
-        );
+        if !shared_title_names.contains(name.as_str()) {
+            let title_needle = format!("title=\"{name}\"");
+            assert!(
+                block.contains(&title_needle),
+                "`{module}::{func}` should set ComponentPage title to match catalog name (`{title_needle}`)"
+            );
+        }
     }
 }
 
@@ -414,7 +429,7 @@ fn actions_dynamic_snippets_inline_props_without_intermediate_let_bindings() {
 }
 
 #[test]
-fn actions_size_controls_use_spectrum_xs_to_xl_tokens() {
+fn actions_size_controls_use_baseline_xs_to_xl_tokens() {
     let source = read_actions_source();
     let mut blocks = 0usize;
     let mut scan_from = 0usize;

@@ -57,7 +57,7 @@ fn grid_uses_logic_state_model() {
 }
 
 #[test]
-fn grid_emits_spectrum_style_state_data_attributes() {
+fn grid_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/grid/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn grid_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Grid should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Grid should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -118,7 +118,7 @@ fn grid_docs_page_covers_primary_playgrounds() {
         "pub(super) fn grid() -> AnyView",
         "title=\"Grid\"",
         "slug=\"grid\"",
-        "description=\"Spectrum-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts.\"",
+        "description=\"baseline-style grid layout primitive with centralized columns/rows/gap/alignment normalization and stable state-marker contracts.\"",
         "<Playground title=\"Columns + Gap\" code_signal=columns_code>",
         "<Playground title=\"AutoFit + Dense + Equal Rows\" code_signal=adaptive_code>",
         "<Grid",

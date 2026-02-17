@@ -86,7 +86,7 @@ fn sidebar_trigger_supports_controlled_and_uncontrolled_open_state() {
 }
 
 #[test]
-fn sidebar_trigger_emits_spectrum_root_state_data_attributes() {
+fn sidebar_trigger_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_trigger/view.rs");
 
     for needle in [
@@ -163,7 +163,7 @@ fn sidebar_trigger_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_trigger() -> AnyView",
         r#"title="SidebarTrigger""#,
         r#"slug="sidebar-trigger""#,
-        r#"description="Shadcn-compatible sidebar trigger primitive with controlled/uncontrolled open state, Spectrum-style data contracts, and motion-ready state transitions.""#,
+        r#"description="baseline-compatible sidebar trigger primitive with controlled/uncontrolled open state, baseline-style data contracts, and motion-ready state transitions.""#,
         r#"<Playground title="Default Trigger" code_signal=default_code>"#,
         r#"<Playground title="Controlled + Custom Label" code_signal=controlled_code>"#,
         "<SidebarTrigger",

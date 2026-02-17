@@ -174,12 +174,12 @@ fn popover_motion_contract_exposes_default_and_placement_offset_helpers() {
         "pub use motion::PopoverMotion;",
         "pub struct PopoverMotion",
         "fn placement_offset_y(placement: PopoverPlacement, base: f64) -> f64",
-        "fn default_motion_matches_heroui_style_spring_contract()",
+        "fn default_motion_matches_upstream_style_spring_contract()",
         "fn placement_offset_y_follows_vertical_direction_contract()",
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "Popover motion contract should include `{needle}` for HeroUI-level spring configuration and directional offsets."
+            "Popover motion contract should include `{needle}` for baseline-level spring configuration and directional offsets."
         );
     }
 }
@@ -235,7 +235,7 @@ fn popover_docs_page_covers_primary_playgrounds() {
         "pub(super) fn popover() -> AnyView",
         "title=\"Popover\"",
         "slug=\"popover\"",
-        "description=\"Positioned portal panel anchored to a trigger with Spectrum-style state markers and HeroUI-grade spring motion contract. Requires presence to unmount after exit.\"",
+        "description=\"Positioned portal panel anchored to a trigger with baseline-style state markers and baseline-level spring motion contract. Requires presence to unmount after exit.\"",
         "<Playground title=\"Popover\" code_signal=code>",
         "title=\"State + Source Markers\"",
         "code_signal=motion_code",

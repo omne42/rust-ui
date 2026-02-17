@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn toggle_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/toggle_button/mod.rs");
+    let source = load_source("src/button/toggle_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn toggle_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn toggle_button_uses_headless_hooks() {
-    let source = load_source("src/toggle_button/view.rs");
+    let source = load_source("src/button/toggle_button/view.rs");
 
     for needle in ["use_button", "use_focus_ring", "use_hover"] {
         assert!(
@@ -33,8 +33,8 @@ fn toggle_button_uses_headless_hooks() {
 
 #[test]
 fn toggle_button_uses_logic_state_model() {
-    let view_source = load_source("src/toggle_button/view.rs");
-    let logic_source = load_source("src/toggle_button/logic.rs");
+    let view_source = load_source("src/button/toggle_button/view.rs");
+    let logic_source = load_source("src/button/toggle_button/logic.rs");
 
     for needle in [
         "pub struct ToggleButtonState",
@@ -65,7 +65,7 @@ fn toggle_button_uses_logic_state_model() {
 
 #[test]
 fn toggle_button_attaches_motion_driver() {
-    let source = load_source("src/toggle_button/view.rs");
+    let source = load_source("src/button/toggle_button/view.rs");
 
     assert!(
         source.contains("motion::attach_motion"),
@@ -74,8 +74,8 @@ fn toggle_button_attaches_motion_driver() {
 }
 
 #[test]
-fn toggle_button_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/toggle_button/view.rs");
+fn toggle_button_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/button/toggle_button/view.rs");
 
     for attr in [
         "data-slot=\"toggle-button\"",
@@ -93,14 +93,14 @@ fn toggle_button_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ToggleButton should set `{attr}` to support Spectrum-style styling and state inspection."
+            "ToggleButton should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn toggle_button_styles_define_scale_css_var() {
-    let source = load_source("src/toggle_button/styles.rs");
+    let source = load_source("src/button/toggle_button/styles.rs");
 
     assert!(
         source.contains("--ui-toggle-button-scale"),
@@ -110,7 +110,7 @@ fn toggle_button_styles_define_scale_css_var() {
 
 #[test]
 fn toggle_button_styles_include_motion_marker_contracts() {
-    let source = load_source("src/toggle_button/styles.rs");
+    let source = load_source("src/button/toggle_button/styles.rs");
 
     for selector in [
         ".ui-toggle-button[data-motion-source=\"custom\"]",
@@ -125,7 +125,7 @@ fn toggle_button_styles_include_motion_marker_contracts() {
 
 #[test]
 fn toggle_button_motion_uses_spring_animator() {
-    let source = load_source("src/toggle_button/motion.rs");
+    let source = load_source("src/button/toggle_button/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -135,7 +135,7 @@ fn toggle_button_motion_uses_spring_animator() {
 
 #[test]
 fn toggle_button_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/toggle_button/motion.rs");
+    let source = load_source("src/button/toggle_button/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ToggleButtonMotion) -> ToggleButtonMotion",
@@ -161,7 +161,7 @@ fn toggle_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn toggle_button() -> AnyView",
         "title=\"ToggleButton\"",
         "slug=\"toggle-button\"",
-        "description=\"Pressable toggle state with HeroUI-level spring motion and Spectrum-style root state attrs.\"",
+        "description=\"Pressable toggle state with baseline-level spring motion and baseline-style root state attrs.\"",
         "title=\"Controlled + on_change\"",
         "code_signal=code",
         "title=\"Variant + size + disabled matrix\"",

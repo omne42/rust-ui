@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn sidebar_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sidebar_group/mod.rs");
+    let source = load_source("src/sidebar/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn sidebar_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sidebar_group_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/sidebar_group/mod.rs");
+    let module_source = load_source("src/sidebar/group/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -29,15 +29,15 @@ fn sidebar_group_is_exported_from_module_and_crate_root() {
         "sidebar_group module should export `SidebarGroup`.",
     );
     assert!(
-        crate_source.contains("pub use sidebar_group::SidebarGroup;"),
+        crate_source.contains("pub use sidebar::group::SidebarGroup;"),
         "crate root should re-export SidebarGroup contract.",
     );
 }
 
 #[test]
 fn sidebar_group_uses_logic_state_model() {
-    let logic_source = load_source("src/sidebar_group/logic.rs");
-    let view_source = load_source("src/sidebar_group/view.rs");
+    let logic_source = load_source("src/sidebar/group/logic.rs");
+    let view_source = load_source("src/sidebar/group/view.rs");
 
     for needle in [
         "pub struct SidebarGroupStateInput",
@@ -67,7 +67,7 @@ fn sidebar_group_uses_logic_state_model() {
 
 #[test]
 fn sidebar_group_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/sidebar_group/view.rs");
+    let source = load_source("src/sidebar/group/view.rs");
 
     for needle in [
         "open: Option<Signal<bool>>",
@@ -84,8 +84,8 @@ fn sidebar_group_supports_controlled_and_uncontrolled_open_state() {
 }
 
 #[test]
-fn sidebar_group_emits_spectrum_root_state_data_attributes() {
-    let source = load_source("src/sidebar_group/view.rs");
+fn sidebar_group_emits_baseline_root_state_data_attributes() {
+    let source = load_source("src/sidebar/group/view.rs");
 
     for needle in [
         "data-slot=\"sidebar-group\"",
@@ -108,7 +108,7 @@ fn sidebar_group_emits_spectrum_root_state_data_attributes() {
 
 #[test]
 fn sidebar_group_styles_include_header_content_and_state_markers() {
-    let source = load_source("src/sidebar_group/styles.rs");
+    let source = load_source("src/sidebar/group/styles.rs");
 
     for needle in [
         ".ui-sidebar-group {",
@@ -162,7 +162,7 @@ fn sidebar_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_group() -> AnyView",
         "title=\"SidebarGroup\"",
         "slug=\"sidebar-group\"",
-        "description=\"Shadcn-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, Spectrum-style data contracts, and motion-ready collapse behavior.\"",
+        "description=\"baseline-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, baseline-style data contracts, and motion-ready collapse behavior.\"",
         "<Playground title=\"Label + Group Action\" code_signal=base_code>",
         "<Playground title=\"Controlled + Collapsible Group\" code_signal=controlled_code>",
         "<SidebarGroup",

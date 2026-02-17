@@ -8,57 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn virtualizer_module_reexports_scroll_area_contracts() {
-    let source = load_source("src/virtualizer/mod.rs");
-
-    for needle in [
-        "pub use crate::scroll_area::ScrollArea as Virtualizer;",
-        "pub use crate::scroll_area::ScrollAreaOrientation as VirtualizerOrientation;",
-    ] {
-        assert!(
-            source.contains(needle),
-            "virtualizer module should expose `{needle}` for react-aria-components Virtualizer compatibility.",
-        );
-    }
+fn virtualizer_compat_module_is_removed() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/virtualizer/mod.rs");
+    assert!(!path.exists(), "compat module  should not exist.",);
 }
 
 #[test]
-fn crate_root_registers_virtualizer_compatibility_exports() {
+fn crate_root_does_not_register_virtualizer_compat_module() {
     let source = load_source("src/lib.rs");
 
-    for needle in [
-        "pub mod virtualizer;",
-        "pub use virtualizer::{Virtualizer, VirtualizerOrientation};",
-    ] {
-        assert!(
-            source.contains(needle),
-            "crate root should include `{needle}` for virtualizer compatibility.",
-        );
-    }
-}
-
-#[test]
-fn virtualizer_compatibility_reuses_scroll_area_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/layout_extra.rs");
-
-    for needle in [
-        "title=\"ScrollArea\"",
-        "slug=\"scroll-area\"",
-        "<ScrollArea",
-    ] {
-        assert!(
-            source.contains(needle),
-            "layout-extra docs should contain `{needle}` for virtualizer compatibility coverage.",
-        );
-    }
-}
-
-#[test]
-fn virtualizer_module_docs_page_covers_primary_playgrounds() {
-    virtualizer_compatibility_reuses_scroll_area_docs_playground();
-}
-
-#[test]
-fn virtualizer_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    virtualizer_compatibility_reuses_scroll_area_docs_playground();
+    assert!(
+        !source.contains("pub mod virtualizer;"),
+        "crate root should not include legacy.",
+    );
 }

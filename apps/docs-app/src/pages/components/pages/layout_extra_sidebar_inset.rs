@@ -33,7 +33,7 @@ pub(super) fn sidebar_inset() -> AnyView {
             title="SidebarInset"
             slug="sidebar-inset"
             group="Layout"
-            description="Shadcn-compatible sidebar inset primitive with side/padding/surface contracts and Spectrum-style root data markers."
+            description="baseline-compatible sidebar inset primitive with side/padding/surface contracts and baseline-style root data markers."
         >
             <Playground title="Default Inset Region" code_signal=default_code>
                 <Sidebar

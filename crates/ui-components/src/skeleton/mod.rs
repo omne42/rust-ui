@@ -1,3 +1,5 @@
+#[cfg(feature = "component-skeleton_group")]
+pub mod group;
 mod logic;
 pub mod styles;
 mod view;

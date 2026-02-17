@@ -75,7 +75,7 @@ fn contextual_help_uses_controllable_open_and_presence() {
 }
 
 #[test]
-fn contextual_help_emits_spectrum_style_state_data_attributes() {
+fn contextual_help_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/contextual_help/view.rs");
 
     for attr in [
@@ -97,7 +97,7 @@ fn contextual_help_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ContextualHelp should expose `{attr}` for Spectrum-style state inspection and styling."
+            "ContextualHelp should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }
@@ -158,7 +158,7 @@ fn contextual_help_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "ContextualHelp motion contract should include `{needle}` for HeroUI-style spring customization."
+            "ContextualHelp motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn flip_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button_flip/mod.rs");
+    let source = load_source("src/button/flip/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn flip_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn flip_button_uses_logic_state_model() {
-    let view_source = load_source("src/button_flip/view.rs");
-    let logic_source = load_source("src/button_flip/logic.rs");
+    let view_source = load_source("src/button/flip/view.rs");
+    let logic_source = load_source("src/button/flip/logic.rs");
 
     for needle in [
         "pub struct FlipButtonStateInput",
@@ -53,7 +53,7 @@ fn flip_button_uses_logic_state_model() {
 
 #[test]
 fn flip_button_uses_headless_hover_and_focus_within_hooks() {
-    let source = load_source("src/button_flip/view.rs");
+    let source = load_source("src/button/flip/view.rs");
 
     for needle in ["use_hover", "use_focus_within"] {
         assert!(
@@ -64,8 +64,8 @@ fn flip_button_uses_headless_hover_and_focus_within_hooks() {
 }
 
 #[test]
-fn flip_button_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/button_flip/view.rs");
+fn flip_button_emits_baseline_style_data_attributes() {
+    let source = load_source("src/button/flip/view.rs");
 
     for needle in [
         "data-slot=\"flip-button\"",
@@ -84,14 +84,14 @@ fn flip_button_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "FlipButton should expose `{needle}` for Spectrum-style state inspection."
+            "FlipButton should expose `{needle}` for baseline-style state inspection."
         );
     }
 }
 
 #[test]
 fn flip_button_styles_include_state_marker_contracts() {
-    let source = load_source("src/button_flip/styles.rs");
+    let source = load_source("src/button/flip/styles.rs");
 
     for selector in [
         ".ui-flip-button[data-class-source=\"custom\"]",
@@ -115,8 +115,8 @@ fn flip_button_styles_include_state_marker_contracts() {
 
 #[test]
 fn flip_button_attaches_motion_driver() {
-    let view_source = load_source("src/button_flip/view.rs");
-    let motion_source = load_source("src/button_flip/motion.rs");
+    let view_source = load_source("src/button/flip/view.rs");
+    let motion_source = load_source("src/button/flip/motion.rs");
 
     assert!(
         view_source.contains("motion::attach_motion(node_ref, is_active, from, motion);"),
@@ -137,7 +137,7 @@ fn flip_button_attaches_motion_driver() {
 
 #[test]
 fn flip_button_exposes_front_and_back_face_slots() {
-    let source = load_source("src/button_flip/view.rs");
+    let source = load_source("src/button/flip/view.rs");
 
     for needle in [
         "data-slot=\"flip-button-front\"",
@@ -152,7 +152,7 @@ fn flip_button_exposes_front_and_back_face_slots() {
 
 #[test]
 fn flip_button_motion_contract_exposes_default_and_custom_tests() {
-    let source = load_source("src/button_flip/motion.rs");
+    let source = load_source("src/button/flip/motion.rs");
 
     for needle in [
         "pub struct FlipButtonMotion",
@@ -161,15 +161,15 @@ fn flip_button_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "FlipButton motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "FlipButton motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }
 
 #[test]
 fn flip_button_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/button_flip/motion.rs");
-    let view_source = load_source("src/button_flip/view.rs");
+    let motion_source = load_source("src/button/flip/motion.rs");
+    let view_source = load_source("src/button/flip/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: FlipButtonMotion) -> FlipButtonMotion",
@@ -184,7 +184,7 @@ fn flip_button_motion_sanitizes_custom_contract_values() {
     }
 
     assert!(
-        view_source.contains("let motion = crate::button_flip::motion::sanitize_motion(motion);"),
+        view_source.contains("let motion = super::motion::sanitize_motion(motion);"),
         "FlipButton view should sanitize motion before attaching spring driver.",
     );
 }
@@ -197,7 +197,7 @@ fn flip_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn flip_button() -> AnyView",
         "title=\"FlipButton\"",
         "slug=\"flip-button\"",
-        "description=\"HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
+        "description=\"baseline-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
         "<Playground title=\"Top flip\" code_signal=code>",
         "<Playground title=\"Direction matrix\" code_signal=states_code>",
         "<Playground title=\"Custom Class\" code_signal=custom_code>",

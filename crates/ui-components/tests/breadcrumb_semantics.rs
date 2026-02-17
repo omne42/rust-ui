@@ -132,7 +132,7 @@ fn breadcrumb_css_is_aggregated_in_component_layer() {
 #[test]
 fn breadcrumb_docs_page_contains_state_source_playground() {
     let source = load_source(
-        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_primitives.rs",
     );
 
     for needle in [
@@ -144,7 +144,7 @@ fn breadcrumb_docs_page_contains_state_source_playground() {
     ] {
         assert!(
             source.contains(needle),
-            "collections_breadcrumb_shadcn docs page should contain `{needle}`.",
+            "collections_breadcrumb_primitives docs page should contain `{needle}`.",
         );
     }
 }
@@ -152,7 +152,7 @@ fn breadcrumb_docs_page_contains_state_source_playground() {
 #[test]
 fn breadcrumb_docs_overflow_playground_locks_contract_values() {
     let source = load_source(
-        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_primitives.rs",
     );
 
     for needle in [
@@ -172,7 +172,7 @@ fn breadcrumb_docs_overflow_playground_locks_contract_values() {
 #[test]
 fn breadcrumb_docs_state_source_playground_locks_contract_values() {
     let source = load_source(
-        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_primitives.rs",
     );
 
     for needle in [
@@ -183,7 +183,7 @@ fn breadcrumb_docs_state_source_playground_locks_contract_values() {
         "<BreadcrumbLink class_name=\"docs-breadcrumb-link\".to_string()>",
         "<BreadcrumbPage class_name=\"docs-breadcrumb-page\".to_string()>",
         "<span>\"→\"</span>",
-        "Inspect root/link/separator markers like `data-state`, `data-aria-source`, `data-class-source`, `data-href-state`, and `data-content-source` for Spectrum-compatible breadcrumb contracts.",
+        "Inspect root/link/separator markers like `data-state`, `data-aria-source`, `data-class-source`, `data-href-state`, and `data-content-source` for baseline-compatible breadcrumb contracts.",
     ] {
         assert!(
             source.contains(needle),
@@ -211,7 +211,7 @@ fn breadcrumb_docs_page_covers_primary_playgrounds() {
     }
 
     let primitives_source = load_source(
-        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_primitives.rs",
     );
 
     for needle in [
@@ -247,7 +247,7 @@ fn breadcrumb_docs_playgrounds_lock_state_matrix_contract_values() {
     }
 
     let primitives_source = load_source(
-        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_shadcn.rs",
+        "../../apps/docs-app/src/pages/components/pages/collections_breadcrumb_primitives.rs",
     );
 
     for needle in [

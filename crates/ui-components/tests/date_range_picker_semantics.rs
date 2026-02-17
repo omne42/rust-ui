@@ -60,7 +60,7 @@ fn date_range_picker_uses_logic_state_model() {
 }
 
 #[test]
-fn date_range_picker_emits_spectrum_style_state_data_attributes() {
+fn date_range_picker_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/date_range_picker/view.rs");
 
     for attr in [
@@ -86,7 +86,7 @@ fn date_range_picker_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "DateRangePicker should expose `{attr}` for Spectrum-style styling and state inspection."
+            "DateRangePicker should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -129,7 +129,7 @@ fn date_range_picker_docs_page_covers_primary_playgrounds() {
         "pub(super) fn date_range_picker() -> AnyView",
         "title=\"DateRangePicker\"",
         "slug=\"date-range-picker\"",
-        "description=\"Two DatePicker composition with centralized range validity/value-shape derivation and Spectrum-style state/source contracts.\"",
+        "description=\"Two DatePicker composition with centralized range validity/value-shape derivation and baseline-style state/source contracts.\"",
         "<Playground title=\"Controlled + Shared Month\" code_signal=code>",
         "<Playground title=\"Strong Tone + Invalid Range Hint\" code_signal=states_code>",
         "<DateRangePicker",

@@ -207,7 +207,7 @@ fn icons_workflow_docs_page_covers_primary_playgrounds() {
         "pub(super) fn icons_workflow() -> AnyView",
         "title=\"IconsWorkflow\"",
         "slug=\"icons-workflow\"",
-        "description=\"Spectrum-compatible icons-workflow wrapper with workflow namespace normalization, built-in workflow glyph defaults, and Iconset accessibility/source-state contracts.\"",
+        "description=\"baseline-compatible icons-workflow wrapper with workflow namespace normalization, built-in workflow glyph defaults, and Iconset accessibility/source-state contracts.\"",
         "<Playground title=\"Built-in Workflow Glyphs\" code_signal=defaults_code>",
         "<Playground title=\"Custom Workflow Extension\" code_signal=custom_code>",
         "title=\"State + Source Markers\"",

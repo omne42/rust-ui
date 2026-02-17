@@ -55,7 +55,7 @@ fn color_field_uses_logic_state_model() {
 }
 
 #[test]
-fn color_field_exposes_spectrum_style_data_markers() {
+fn color_field_exposes_baseline_style_data_markers() {
     let source = load_source("src/color_field/view.rs");
 
     for attr in [
@@ -73,7 +73,7 @@ fn color_field_exposes_spectrum_style_data_markers() {
     ] {
         assert!(
             source.contains(attr),
-            "ColorField should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ColorField should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

@@ -76,7 +76,7 @@ pub(super) fn tooltip() -> AnyView {
                         <Button variant=ButtonVariant::Secondary>"Hover me"</Button>
                     </Tooltip>
                     <Tooltip content=move || view! { "Disabled" } disabled=true>
-                        <Button variant=ButtonVariant::Secondary disabled=true>"Disabled"</Button>
+                        <Button variant=ButtonVariant::Secondary is_disabled=true>"Disabled"</Button>
                     </Tooltip>
                 </div>
             </Playground>

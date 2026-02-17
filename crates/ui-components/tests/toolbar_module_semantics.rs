@@ -8,58 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn toolbar_module_reexports_action_bar_contracts() {
-    let source = load_source("src/toolbar/mod.rs");
-
-    for needle in [
-        "pub use crate::action_bar::ActionBar as Toolbar;",
-        "pub use crate::action_bar::ActionBarMotion as ToolbarMotion;",
-    ] {
-        assert!(
-            source.contains(needle),
-            "toolbar module should expose `{needle}` for @react-spectrum/toolbar compatibility.",
-        );
-    }
+fn toolbar_compat_module_is_removed() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/toolbar/mod.rs");
+    assert!(!path.exists(), "compat module  should not exist.",);
 }
 
 #[test]
-fn crate_root_registers_toolbar_compatibility_exports() {
+fn crate_root_does_not_register_toolbar_compat_module() {
     let source = load_source("src/lib.rs");
 
-    for needle in [
-        "pub mod toolbar;",
-        "pub use toolbar::{Toolbar, ToolbarMotion};",
-    ] {
-        assert!(
-            source.contains(needle),
-            "crate root should include `{needle}` for toolbar compatibility.",
-        );
-    }
-}
-
-#[test]
-fn toolbar_compatibility_reuses_action_bar_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
-
-    for needle in [
-        "pub(super) fn action_bar() -> AnyView",
-        "title=\"ActionBar\"",
-        "slug=\"action-bar\"",
-        "<ActionBar",
-    ] {
-        assert!(
-            source.contains(needle),
-            "actions docs page should contain `{needle}` for toolbar compatibility coverage.",
-        );
-    }
-}
-
-#[test]
-fn toolbar_module_docs_page_covers_primary_playgrounds() {
-    toolbar_compatibility_reuses_action_bar_docs_playground();
-}
-
-#[test]
-fn toolbar_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    toolbar_compatibility_reuses_action_bar_docs_playground();
+    assert!(
+        !source.contains("pub mod toolbar;"),
+        "crate root should not include legacy.",
+    );
 }

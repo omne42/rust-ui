@@ -160,7 +160,7 @@ fn preview_link_card_motion_contract_exposes_default_and_customization_tests() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "PreviewLinkCard motion contract should include `{needle}` for HeroUI-style spring customization."
+            "PreviewLinkCard motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -233,7 +233,7 @@ fn preview_link_card_docs_custom_motion_playground_locks_contract_values() {
         "initial_scale: 0.95",
         "offset_y_px: 12.0",
         "..PreviewLinkCardMotion::default()",
-        "site_label=\"react-spectrum.adobe.com\".to_string()",
+        "site_label=\"ui-baseline.adobe.com\".to_string()",
     ] {
         assert!(
             source.contains(needle),
@@ -272,14 +272,14 @@ fn preview_link_card_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Preview Snapshot\"",
         "title=\"Rust UI docs\".to_string()",
         "description=\"Preview component behavior and source markers.\".to_string()",
-        "url=\"https://github.com/adobe/react-spectrum\".to_string()",
+        "url=\"https://github.com/adobe/ui-baseline\".to_string()",
         "image_src=\"https://avatars.githubusercontent.com/u/476009?v=4\".to_string()",
         "title=\"State + Source Markers\"",
         "id=\"docs-preview-link-card\".to_string()",
         "title=\"Custom title\".to_string()",
         "description=\"Custom description for source markers.\".to_string()",
-        "url=\"https://react-spectrum.adobe.com\".to_string()",
-        "site_label=\"react-spectrum.adobe.com\".to_string()",
+        "url=\"https://ui-baseline.adobe.com\".to_string()",
+        "site_label=\"ui-baseline.adobe.com\".to_string()",
         "open_delay_ms=260",
         "close_delay_ms=240",
         "class_name=\"docs-preview-link-card-state\".to_string()",

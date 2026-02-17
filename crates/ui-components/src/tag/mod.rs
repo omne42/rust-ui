@@ -1,3 +1,5 @@
+#[cfg(feature = "component-tag_group")]
+pub mod group;
 mod logic;
 pub mod styles;
 mod view;

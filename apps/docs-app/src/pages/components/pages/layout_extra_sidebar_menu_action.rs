@@ -50,7 +50,7 @@ pub(super) fn sidebar_menu_action() -> AnyView {
             title="SidebarMenuAction"
             slug="sidebar-menu-action"
             group="Layout"
-            description="Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts."
+            description="baseline-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts."
         >
             <Playground title="Default Hover-Only Action" code_signal=default_code>
                 <Sidebar

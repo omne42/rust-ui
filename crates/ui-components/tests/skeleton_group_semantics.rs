@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn skeleton_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/skeleton_group/mod.rs");
+    let source = load_source("src/skeleton/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,9 +21,9 @@ fn skeleton_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn skeleton_group_uses_logic_state_model() {
-    let mod_source = load_source("src/skeleton_group/mod.rs");
-    let logic_source = load_source("src/skeleton_group/logic.rs");
-    let view_source = load_source("src/skeleton_group/view.rs");
+    let mod_source = load_source("src/skeleton/group/mod.rs");
+    let logic_source = load_source("src/skeleton/group/logic.rs");
+    let view_source = load_source("src/skeleton/group/view.rs");
 
     for needle in [
         "pub struct SkeletonGroupStateInput",
@@ -64,8 +64,8 @@ fn skeleton_group_uses_logic_state_model() {
 }
 
 #[test]
-fn skeleton_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/skeleton_group/view.rs");
+fn skeleton_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/skeleton/group/view.rs");
 
     for attr in [
         "data-slot=\"skeleton-group\"",
@@ -81,14 +81,14 @@ fn skeleton_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "SkeletonGroup should expose `{attr}` for Spectrum-style state inspection and styling."
+            "SkeletonGroup should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }
 
 #[test]
 fn skeleton_group_supports_skeleton_only_hidden_contract() {
-    let source = load_source("src/skeleton_group/view.rs");
+    let source = load_source("src/skeleton/group/view.rs");
 
     for needle in ["state.should_hide_root", "hidden=state.should_hide_root"] {
         assert!(
@@ -100,7 +100,7 @@ fn skeleton_group_supports_skeleton_only_hidden_contract() {
 
 #[test]
 fn skeleton_group_styles_include_variant_and_layout_contracts() {
-    let source = load_source("src/skeleton_group/styles.rs");
+    let source = load_source("src/skeleton/group/styles.rs");
 
     for selector in [
         ".ui-skeleton-group",
@@ -126,7 +126,7 @@ fn skeleton_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn skeleton_group() -> AnyView",
         r#"title="SkeletonGroup""#,
         r#"slug="skeleton-group""#,
-        r#"description="Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers.""#,
+        r#"description="baseline-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers.""#,
         r#"<Playground title="Shimmer + Pulse Layout" code_signal=loading_code>"#,
         r#"<Playground title="Loaded + Skeleton Only" code_signal=state_code>"#,
         "<SkeletonGroup",

@@ -51,7 +51,7 @@ fn auto_height_uses_logic_state_model() {
 }
 
 #[test]
-fn auto_height_emits_spectrum_style_state_data_attributes() {
+fn auto_height_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/auto_height/view.rs");
 
     for attr in [
@@ -67,7 +67,7 @@ fn auto_height_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "AutoHeight should expose `{attr}` for Spectrum-style styling and state inspection."
+            "AutoHeight should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -132,7 +132,7 @@ fn auto_height_motion_contract_exposes_default_and_custom_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "AutoHeight motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "AutoHeight motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }

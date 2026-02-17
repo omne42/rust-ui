@@ -44,10 +44,6 @@ clone_sparse_depth1() {
   )
 }
 
-clone_depth1 https://github.com/adobe/react-spectrum.git adobe-react-spectrum
-clone_depth1 https://github.com/adobe/spectrum-css.git adobe-spectrum-css
-clone_depth1 https://github.com/adobe/spectrum-web-components.git adobe-spectrum-web-components
-
 clone_depth1 https://github.com/facebook/react.git facebook-react
 clone_depth1 https://github.com/vuejs/core.git vue-core
 
@@ -59,6 +55,4 @@ clone_depth1 https://github.com/w3c/aria-practices.git w3c-aria-practices
 
 # UI / Motion references (React ecosystem)
 clone_sparse_depth1 https://github.com/motiondivision/motion.git motion packages
-clone_depth1 https://github.com/heroui-inc/heroui.git heroui
-clone_depth1 https://github.com/shadcn-ui/ui.git shadcn-ui
 clone_depth1 https://github.com/imskyleen/animate-ui.git animate-ui

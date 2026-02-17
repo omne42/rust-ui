@@ -5,16 +5,16 @@
 ## 快速入口
 
 - 仓库总览：`README.md`
-- 硬规则（次优先级）：`docs/RULES_ZH.md`
 - 哲学总纲（最高优先级）：`docs/philosophy.md`
+- 硬规则（次优先级）：`docs/RULES_ZH.md`
 - 文档治理：`docs/DOCS_GOVERNANCE.md`
 - 全量 Markdown 索引：`docs/DOCS_INDEX.md`
 
 ## 文档分层
 
 1. 核心原则层
-- `docs/RULES_ZH.md`
 - `docs/philosophy.md`
+- `docs/RULES_ZH.md`
 
 2. 规格层（定义做什么）
 - `docs/spec/README.md`
@@ -33,14 +33,14 @@
 
 新贡献者：
 1. `README.md`
-2. `docs/RULES_ZH.md`
-3. `docs/philosophy.md`
+2. `docs/philosophy.md`
+3. `docs/RULES_ZH.md`
 4. `docs/plan/README.md`
 5. `docs/spec/README.md`
 
 功能实现者：
-1. `docs/RULES_ZH.md`
-2. `docs/philosophy.md`
+1. `docs/philosophy.md`
+2. `docs/RULES_ZH.md`
 3. 对应 `docs/spec/*`
 4. 对应 `docs/plan/TODO.md`
 
@@ -55,4 +55,4 @@
 
 - 本文档系统覆盖仓库自有 Markdown。
 - 第三方/外部文档会在索引中登记，但不受本仓库文档规则约束。
-- `examples/_upstream/` 下文档属于上游镜像调研资产，不纳入文档治理。
+- `examples/_upstream/` 下文档属于research mirror调研资产，不纳入文档治理。

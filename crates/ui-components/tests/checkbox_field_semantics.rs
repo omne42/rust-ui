@@ -84,7 +84,7 @@ fn checkbox_field_composes_checkbox_with_label_slot() {
 }
 
 #[test]
-fn checkbox_field_emits_spectrum_style_state_data_attributes() {
+fn checkbox_field_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/checkbox_field/view.rs");
 
     for attr in [
@@ -100,7 +100,7 @@ fn checkbox_field_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "CheckboxField should expose `{attr}` for Spectrum-style state inspection and styling."
+            "CheckboxField should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }

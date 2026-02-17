@@ -25,7 +25,7 @@ fn ui_root_defines_centralized_state_model() {
 }
 
 #[test]
-fn ui_root_derives_state_and_emits_spectrum_style_data_attributes() {
+fn ui_root_derives_state_and_emits_baseline_style_data_attributes() {
     let source = load_source("src/root.rs");
 
     for needle in [
@@ -38,7 +38,7 @@ fn ui_root_derives_state_and_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "UiRoot should expose `{needle}` for stable Spectrum-style state contracts."
+            "UiRoot should expose `{needle}` for stable baseline-style state contracts."
         );
     }
 }
@@ -66,12 +66,28 @@ fn ui_root_injects_theme_and_component_css_layers() {
     for needle in [
         "out.push_str(css::BASE_CSS);",
         "out.push_str(&theme.get().to_css_variables());",
+        "overrides.to_css_block(\":root\")",
         "crate::css::push_components_css(&mut out);",
         "out.push_str(css::SAFE_AREA_CSS);",
     ] {
         assert!(
             source.contains(needle),
             "UiRoot should keep `{needle}` to inject theme/component/safe-area CSS contracts."
+        );
+    }
+}
+
+#[test]
+fn ui_root_accepts_semantic_overrides_prop() {
+    let source = load_source("src/root.rs");
+
+    for needle in [
+        "use ui_theme::{SemanticOverrides, Theme, css};",
+        "#[prop(optional)] semantic_overrides: Option<SemanticOverrides>,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "UiRoot should keep `{needle}` so callers can override base semantic variables."
         );
     }
 }

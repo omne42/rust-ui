@@ -84,7 +84,7 @@ fn underlay_view_uses_logic_state_model() {
 }
 
 #[test]
-fn underlay_exposes_spectrum_style_state_and_source_markers() {
+fn underlay_exposes_baseline_style_state_and_source_markers() {
     let source = load_source("src/underlay/view.rs");
 
     for attr in [
@@ -107,7 +107,7 @@ fn underlay_exposes_spectrum_style_state_and_source_markers() {
     ] {
         assert!(
             source.contains(attr),
-            "Underlay should expose `{attr}` for Spectrum-style styling and source inspection."
+            "Underlay should expose `{attr}` for baseline-style styling and source inspection."
         );
     }
 }

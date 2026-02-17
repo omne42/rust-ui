@@ -23,7 +23,7 @@ fn image_requires_alt_text() {
 
     assert!(
         source.contains("alt: String"),
-        "Image should require `alt` text to align with Spectrum-style accessibility expectations."
+        "Image should require `alt` text to align with baseline-style accessibility expectations."
     );
 
     assert!(
@@ -46,7 +46,7 @@ fn image_emits_expected_data_slots_and_state_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Image should set `{attr}` for Spectrum-style styling and state inspection."
+            "Image should set `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

@@ -23,7 +23,7 @@
 
 ### 工程与门禁
 
-- [ ] Workspace 存在四个 crate：`ui-state-primitives/ui-headless/ui-theme/ui-components`
+- [ ] Workspace 至少包含核心五层 crate：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`（当前仓库另有 `ui-compat` 兼容层）
 - [ ] 存在可提交 demo：`apps/web-demo`
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --workspace --all-targets -- -D warnings`

@@ -68,12 +68,12 @@ fn segmented_control_attaches_indicator_motion_driver() {
 
     assert!(
         source.contains("attach_indicator_motion"),
-        "SegmentedControl should attach a motion driver for the selection indicator (HeroUI-style feel)."
+        "SegmentedControl should attach a motion driver for the selection indicator (baseline-style feel)."
     );
 }
 
 #[test]
-fn segmented_control_emits_spectrum_style_state_data_attributes() {
+fn segmented_control_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/segmented_control/view.rs");
 
     for attr in [
@@ -101,7 +101,7 @@ fn segmented_control_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "SegmentedControl should set `{attr}` to support Spectrum-style styling and state inspection."
+            "SegmentedControl should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -185,7 +185,7 @@ fn segmented_control_docs_page_covers_primary_playgrounds() {
         "pub(super) fn segmented_control() -> AnyView",
         "title=\"SegmentedControl\"",
         "slug=\"segmented-control\"",
-        "description=\"Segmented control with HeroUI-level indicator motion and Spectrum-style root state attrs.\"",
+        "description=\"Segmented control with baseline-level indicator motion and baseline-style root state attrs.\"",
         "<Playground title=\"Selection + Root State\" code_signal=code>",
         "<Playground title=\"Vertical + Disabled + Empty\" code_signal=states_code>",
         "<SegmentedControl",

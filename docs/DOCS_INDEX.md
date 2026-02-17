@@ -4,13 +4,15 @@
 
 范围说明：
 - 包含：仓库自有 docs、crate/app README、根目录 markdown
-- 不逐条展开：`examples/_upstream/**`（上游镜像文档）
+- 不逐条展开：`examples/_upstream/**`（research mirror文档）
+- 不逐条展开：`crates/ui-components/src/**/check2.md`（组件级执行清单）
 - 外部文档以 `External` 状态登记
 
 ## A. 根目录文档
 
 | Path | Category | Status | Purpose |
 | --- | --- | --- | --- |
+| `AGENTS.md` | Core | Active | 仓库级协作与执行约束 |
 | `README.md` | Core | Active | 仓库总览与快速开始 |
 | `CHANGELOG.md` | Core | Active | 发布与变更记录 |
 | `todo.md` | Core | Active | Playground TODO 迁移指针 |
@@ -46,6 +48,7 @@
 | --- | --- | --- | --- |
 | `docs/plan/README.md` | Plan | Active | 计划层导航 |
 | `docs/plan/IMPLEMENTATION_PLAN.md` | Plan | Active | 里程碑与执行主计划 |
+| `docs/plan/COMPONENT_LAYER_REFACTOR_SHARDS.md` | Plan | Draft | 组件分层整改分片计划 |
 | `docs/plan/TODO.md` | Plan | Active | 人类可执行任务与门禁 |
 | `docs/plan/PLAYGROUND_TODO.md` | Plan | Active | docs-app playground 任务追踪 |
 | `docs/plan/SUBAGENT_TASK_TEMPLATE.md` | Plan | Active | 子任务模板 |
@@ -83,7 +86,7 @@
 | Path | Category | Status | Purpose |
 | --- | --- | --- | --- |
 | `vendor/tachys/README.md` | External | External | vendored 第三方文档 |
-| `examples/_upstream/**/*.md` | External | External | 上游克隆仓库文档（本地调研用） |
+| `examples/_upstream/**/*.md` | External | External | research mirror文档（本地调研用） |
 
 ## 维护规则
 

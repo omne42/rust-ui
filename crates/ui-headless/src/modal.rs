@@ -1,17 +1,25 @@
-#[derive(Clone, Copy, Debug)]
+use leptos::prelude::*;
+
+#[derive(Clone, Copy)]
 pub struct ModalOptions {
-    pub is_enabled: bool,
+    pub is_enabled: Signal<bool>,
 }
 
 impl ModalOptions {
     pub fn enabled() -> Self {
-        Self { is_enabled: true }
+        Self {
+            is_enabled: Signal::derive(|| true),
+        }
+    }
+
+    pub fn from_signal(is_enabled: Signal<bool>) -> Self {
+        Self { is_enabled }
     }
 }
 
 impl Default for ModalOptions {
     fn default() -> Self {
-        Self { is_enabled: true }
+        Self::enabled()
     }
 }
 
@@ -23,10 +31,7 @@ impl Default for ModalOptions {
 pub fn use_modal(options: ModalOptions) {
     #[cfg(all(feature = "web", target_arch = "wasm32"))]
     {
-        if !options.is_enabled {
-            return;
-        }
-        setup_modal();
+        setup_modal(options.is_enabled);
     }
 
     #[cfg(not(all(feature = "web", target_arch = "wasm32")))]
@@ -36,9 +41,12 @@ pub fn use_modal(options: ModalOptions) {
 }
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
-fn setup_modal() {
-    use leptos::prelude::*;
+fn setup_modal(is_enabled: Signal<bool>) {
     use std::cell::RefCell;
+    use std::sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    };
     use wasm_bindgen::JsCast;
 
     const PORTAL_SELECTOR: &str = "[data-ui-overlay-portal]";
@@ -126,15 +134,17 @@ fn setup_modal() {
         }
     }
 
-    STATE.with(|state| {
-        let mut state = state.borrow_mut();
-        if state.count == 0 {
-            apply(&mut state);
-        }
-        state.count += 1;
-    });
+    fn acquire() {
+        STATE.with(|state| {
+            let mut state = state.borrow_mut();
+            if state.count == 0 {
+                apply(&mut state);
+            }
+            state.count += 1;
+        });
+    }
 
-    on_cleanup(move || {
+    fn release() {
         STATE.with(|state| {
             let mut state = state.borrow_mut();
             if state.count == 0 {
@@ -145,5 +155,29 @@ fn setup_modal() {
                 restore(&mut state);
             }
         });
+    }
+
+    let is_active = Arc::new(AtomicBool::new(false));
+
+    Effect::new({
+        let is_active = Arc::clone(&is_active);
+        move |_| {
+            let enabled = is_enabled.get();
+            let active = is_active.load(Ordering::Relaxed);
+
+            if enabled && !active {
+                acquire();
+                is_active.store(true, Ordering::Relaxed);
+            } else if !enabled && active {
+                release();
+                is_active.store(false, Ordering::Relaxed);
+            }
+        }
+    });
+
+    on_cleanup(move || {
+        if is_active.swap(false, Ordering::Relaxed) {
+            release();
+        }
     });
 }

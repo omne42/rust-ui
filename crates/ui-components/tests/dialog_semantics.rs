@@ -194,7 +194,7 @@ fn dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "Dialog motion module should include `{needle}` for HeroUI-level contract coverage."
+            "Dialog motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
 }

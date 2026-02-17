@@ -43,7 +43,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
 
 <Swatch
   color="#7c3aed".to_string()
-  label="Hero motion".to_string()
+  label="Featured motion".to_string()
   selected=Signal::derive(|| true)
   motion=custom_motion
 />
@@ -70,7 +70,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             title="Swatch"
             slug="swatch"
             group="Display"
-            description="Spectrum-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and HeroUI-grade spring selection motion."
+            description="baseline-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and baseline-level spring selection motion."
         >
             <Playground title="Size + Shape + Rounding" code_signal=size_code>
                 <div class="docs-row">
@@ -112,7 +112,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
                 <div class="docs-row">
                     <Swatch
                         color="#7c3aed".to_string()
-                        label="Hero motion".to_string()
+                        label="Featured motion".to_string()
                         selected=Signal::derive(|| true)
                         motion=custom_motion
                     />

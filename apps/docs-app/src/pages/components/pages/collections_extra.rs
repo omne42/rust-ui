@@ -3,11 +3,11 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
 use ui_components::{
-    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, DropdownMotion, ListBoxItem,
-    ListBoxSection, ListBoxSectionHeadingTone, MenuItem, MenuItemKind, MenuSection,
-    MenuSectionHeadingTone, PopoverMotion, StepList, StepListItem, StepListOrientation,
-    StepListSize, Table, TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow,
-    TableVariant, Tree, TreeDensity, TreeNode, TreeTone,
+    DisclosureGroup, DisclosureGroupSelectionMode, Dropdown, DropdownMotion, ListItem, ListSection,
+    ListSectionHeadingTone, MenuItem, MenuItemKind, MenuSection, MenuSectionHeadingTone,
+    PopoverMotion, StepList, StepListItem, StepListOrientation, StepListSize, Table,
+    TableCellAlign, TableColumn, TableDensity, TableLayout, TableRow, TableVariant, Tree,
+    TreeDensity, TreeNode, TreeTone, open_set,
 };
 
 pub(super) fn table() -> AnyView {
@@ -95,7 +95,7 @@ let rows = vec![
             title="Table"
             slug="table"
             group="Collections"
-            description="Data table primitive with centralized row/column normalization and Spectrum-style state markers for density/layout/variant contracts."
+            description="Data table primitive with centralized row/column normalization and baseline-style state markers for density/layout/variant contracts."
         >
             <Playground title="Default + Striped" code_signal=code>
                 <Table
@@ -185,7 +185,7 @@ let on_selected_change = Callback::new(move |next: Option<usize>| set_selected_i
             title="StepList"
             slug="step-list"
             group="Collections"
-            description="Spectrum-compatible step progression primitive with centralized orientation/size/status normalization and stable slot + data-state contracts."
+            description="baseline-compatible step progression primitive with centralized orientation/size/status normalization and stable slot + data-state contracts."
         >
             <Playground title="Controlled Selection" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
@@ -285,7 +285,7 @@ pub(super) fn tree() -> AnyView {
             title="Tree"
             slug="tree"
             group="Collections"
-            description="Hierarchical tree with controllable expand/selection state and Spectrum-style density/tone/state marker contracts."
+            description="Hierarchical tree with controllable expand/selection state and baseline-style density/tone/state marker contracts."
         >
             <Playground title="Default + Expanded Root" code_signal=code>
                 <Tree
@@ -325,15 +325,15 @@ pub(super) fn disclosure_group() -> AnyView {
         "Legacy endpoints".to_string(),
     ];
 
-    let (expanded_multi, set_expanded_multi) = signal(BTreeSet::from([0_usize]));
+    let (expanded_multi, set_expanded_multi) = signal(open_set([0]));
     let on_multi_change = Callback::new(move |next: BTreeSet<usize>| set_expanded_multi.set(next));
 
-    let (expanded_single, set_expanded_single) = signal(BTreeSet::from([1_usize]));
+    let (expanded_single, set_expanded_single) = signal(open_set([1]));
     let on_single_change =
         Callback::new(move |next: BTreeSet<usize>| set_expanded_single.set(next));
 
     let code = Signal::derive(move || {
-        r#"let (expanded, set_expanded) = signal(BTreeSet::from([0_usize]));
+        r#"let (expanded, set_expanded) = signal(open_set([0]));
 let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded.set(next));
 
 <DisclosureGroup
@@ -355,7 +355,7 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
     });
 
     let states_code = Signal::derive(move || {
-        r#"let (expanded, set_expanded) = signal(BTreeSet::from([1_usize]));
+        r#"let (expanded, set_expanded) = signal(open_set([1]));
 let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded.set(next));
 
 <DisclosureGroup
@@ -379,7 +379,7 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
             title="DisclosureGroup"
             slug="disclosure-group"
             group="Collections"
-            description="Spectrum/HeroUI-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals."
+            description="baseline-style disclosure grouping primitive with centralized expanded-state normalization, controlled/uncontrolled contracts, and spring motion delegated through Accordion internals."
         >
             <Playground title="Multiple + Controlled" code_signal=code>
                 <div class="docs-stack">
@@ -458,7 +458,7 @@ let on_expanded_change = Callback::new(move |next: BTreeSet<usize>| set_expanded
     .into_any()
 }
 
-pub(super) fn listbox_item() -> AnyView {
+pub(super) fn list_item() -> AnyView {
     let (selected_default, set_selected_default) = signal(true);
     let toggle_default = Callback::new(move |_| {
         set_selected_default.update(|value| *value = !*value);
@@ -472,21 +472,21 @@ pub(super) fn listbox_item() -> AnyView {
     let code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(true);
 
-<ListBoxItem
+<ListItem
   index=0
   selected=selected.get()
   show_selection_indicator=true
   on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
 >
   "San Francisco"
-</ListBoxItem>"#
+</ListItem>"#
             .to_string()
     });
 
     let states_code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(true);
 
-<ListBoxItem
+<ListItem
   id="docs-listbox-item-focused".to_string()
   index=1
   selected=selected.get()
@@ -497,31 +497,31 @@ pub(super) fn listbox_item() -> AnyView {
   on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
 >
   "Tokyo"
-</ListBoxItem>
+</ListItem>
 
-<ListBoxItem index=2 disabled=true>
+<ListItem index=2 disabled=true>
   "Disabled option"
-</ListBoxItem>"#
+</ListItem>"#
             .to_string()
     });
 
     view! {
         <ComponentPage
-            title="ListBoxItem"
-            slug="listbox-item"
+            title="ListItem"
+            slug="list-item"
             group="Collections"
-            description="Spectrum/HeroUI-style listbox option primitive with centralized selection/focus/divider/source normalization and stable `slot` + `data-*` state contracts."
+            description="baseline-style list option primitive with centralized selection/focus/divider/source normalization and stable `slot` + `data-*` state contracts."
         >
             <Playground title="Selectable Option" code_signal=code>
                 <div class="docs-stack">
-                    <ListBoxItem
+                    <ListItem
                         index=0
                         selected=selected_default.get()
                         show_selection_indicator=true
                         on_press=toggle_default
                     >
                         "San Francisco"
-                    </ListBoxItem>
+                    </ListItem>
                     <span class="ui-muted">
                         "selected: "
                         {move || selected_default.get().to_string()}
@@ -531,7 +531,7 @@ pub(super) fn listbox_item() -> AnyView {
 
             <Playground title="Focused + Divider + Disabled" code_signal=states_code>
                 <div class="docs-stack">
-                    <ListBoxItem
+                    <ListItem
                         id="docs-listbox-item-focused".to_string()
                         index=1
                         selected=selected_states.get()
@@ -542,11 +542,11 @@ pub(super) fn listbox_item() -> AnyView {
                         on_press=toggle_states
                     >
                         "Tokyo"
-                    </ListBoxItem>
+                    </ListItem>
 
-                    <ListBoxItem index=2 disabled=true>
+                    <ListItem index=2 disabled=true>
                         "Disabled option"
-                    </ListBoxItem>
+                    </ListItem>
 
                     <span class="ui-muted">
                         "focused item selected: "
@@ -559,7 +559,7 @@ pub(super) fn listbox_item() -> AnyView {
     .into_any()
 }
 
-pub(super) fn listbox_section() -> AnyView {
+pub(super) fn list_section() -> AnyView {
     let (selected_primary, set_selected_primary) = signal(true);
     let toggle_primary = Callback::new(move |_| {
         set_selected_primary.update(|value| *value = !*value);
@@ -571,30 +571,30 @@ pub(super) fn listbox_section() -> AnyView {
     });
 
     let code = Signal::derive(move || {
-        r#"<ListBoxSection
+        r#"<ListSection
   title="Preferred regions".to_string()
   item_count=3
   aria_label="Preferred regions section".to_string()
 >
-  <ListBoxItem index=0 selected=true show_selection_indicator=true>"US East"</ListBoxItem>
-  <ListBoxItem index=1>"EU West"</ListBoxItem>
-  <ListBoxItem index=2>"AP South"</ListBoxItem>
-</ListBoxSection>"#
+  <ListItem index=0 selected=true show_selection_indicator=true>"US East"</ListItem>
+  <ListItem index=1>"EU West"</ListItem>
+  <ListItem index=2>"AP South"</ListItem>
+</ListSection>"#
             .to_string()
     });
 
     let states_code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(true);
 
-<ListBoxSection
+<ListSection
   title="Advanced targets".to_string()
-  heading_tone=ListBoxSectionHeadingTone::Quiet
+  heading_tone=ListSectionHeadingTone::Quiet
   item_count=2
   sticky_heading=true
   show_divider=true
   class_name="docs-listbox-section-custom".to_string()
 >
-  <ListBoxItem
+  <ListItem
     index=0
     selected=selected.get()
     focused=true
@@ -602,52 +602,52 @@ pub(super) fn listbox_section() -> AnyView {
     on_press=Callback::new(move |_| set_selected.update(|value| *value = !*value))
   >
     "Primary target"
-  </ListBoxItem>
-  <ListBoxItem index=1 disabled=true>"Disabled fallback"</ListBoxItem>
-</ListBoxSection>
+  </ListItem>
+  <ListItem index=1 disabled=true>"Disabled fallback"</ListItem>
+</ListSection>
 
-<ListBoxSection title="Empty section".to_string() item_count=0 disabled=true>
+<ListSection title="Empty section".to_string() item_count=0 disabled=true>
   <span class="ui-muted">"No options available"</span>
-</ListBoxSection>"#
+</ListSection>"#
             .to_string()
     });
 
     view! {
         <ComponentPage
-            title="ListBoxSection"
-            slug="listbox-section"
+            title="ListSection"
+            slug="list-section"
             group="Collections"
-            description="Spectrum/HeroUI-style listbox section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
+            description="baseline-style list section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
         >
             <Playground title="Default Section" code_signal=code>
-                <ListBoxSection
+                <ListSection
                     title="Preferred regions".to_string()
                     item_count=3
                     aria_label="Preferred regions section".to_string()
                 >
-                    <ListBoxItem index=0 selected=true show_selection_indicator=true>
+                    <ListItem index=0 selected=true show_selection_indicator=true>
                         "US East"
-                    </ListBoxItem>
-                    <ListBoxItem index=1>
+                    </ListItem>
+                    <ListItem index=1>
                         "EU West"
-                    </ListBoxItem>
-                    <ListBoxItem index=2>
+                    </ListItem>
+                    <ListItem index=2>
                         "AP South"
-                    </ListBoxItem>
-                </ListBoxSection>
+                    </ListItem>
+                </ListSection>
             </Playground>
 
             <Playground title="Quiet + Sticky + Divider + Empty" code_signal=states_code>
                 <div class="docs-stack">
-                    <ListBoxSection
+                    <ListSection
                         title="Advanced targets".to_string()
-                        heading_tone=ListBoxSectionHeadingTone::Quiet
+                        heading_tone=ListSectionHeadingTone::Quiet
                         item_count=2
                         sticky_heading=true
                         show_divider=true
                         class_name="docs-listbox-section-custom".to_string()
                     >
-                        <ListBoxItem
+                        <ListItem
                             index=0
                             selected=selected_primary.get()
                             focused=true
@@ -655,8 +655,8 @@ pub(super) fn listbox_section() -> AnyView {
                             on_press=toggle_primary
                         >
                             "Primary target"
-                        </ListBoxItem>
-                        <ListBoxItem
+                        </ListItem>
+                        <ListItem
                             index=1
                             selected=selected_secondary.get()
                             has_divider=true
@@ -664,16 +664,16 @@ pub(super) fn listbox_section() -> AnyView {
                             on_press=toggle_secondary
                         >
                             "Secondary target"
-                        </ListBoxItem>
-                    </ListBoxSection>
+                        </ListItem>
+                    </ListSection>
 
-                    <ListBoxSection
+                    <ListSection
                         title="Empty section".to_string()
                         item_count=0
                         disabled=true
                     >
                         <span class="ui-muted">"No options available"</span>
-                    </ListBoxSection>
+                    </ListSection>
 
                     <span class="ui-muted">
                         "primary selected: "
@@ -760,7 +760,7 @@ let radio_kind = MenuItemKind::Radio {
             title="MenuItem"
             slug="menu-item"
             group="Collections"
-            description="Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts."
+            description="baseline-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts."
         >
             <Playground title="Action + Checkbox" code_signal=code>
                 <div class="docs-stack">
@@ -874,7 +874,7 @@ let radio_kind = MenuItemKind::Radio {
             title="MenuSection"
             slug="menu-section"
             group="Collections"
-            description="Spectrum/HeroUI-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
+            description="baseline-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts."
         >
             <Playground title="Default Section" code_signal=code>
                 <MenuSection
@@ -1012,7 +1012,7 @@ let on_action = Callback::new(move |index: usize| {
             title="Dropdown"
             slug="dropdown"
             group="Collections"
-            description="Spectrum/HeroUI-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion."
+            description="baseline-style dropdown trigger primitive with centralized state/source contracts, controllable open state, and spring-tuned popover motion."
         >
             <Playground title="Default" code_signal=code>
                 <div class="docs-row">

@@ -64,7 +64,7 @@ fn sidebar_header_uses_logic_state_model() {
 }
 
 #[test]
-fn sidebar_header_emits_spectrum_root_state_data_attributes() {
+fn sidebar_header_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_header/view.rs");
 
     for needle in [
@@ -126,7 +126,7 @@ fn sidebar_header_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_header() -> AnyView",
         "title=\"SidebarHeader\"",
         "slug=\"sidebar-header\"",
-        "description=\"Shadcn-compatible sidebar header region primitive with centralized disabled/source-state contracts and Spectrum-style data markers.\"",
+        "description=\"baseline-compatible sidebar header region primitive with centralized disabled/source-state contracts and baseline-style data markers.\"",
         "<Playground title=\"Default Header Region\" code_signal=basic_code>",
         "<Playground title=\"Disabled + Custom Class\" code_signal=disabled_code>",
         "<SidebarHeader",

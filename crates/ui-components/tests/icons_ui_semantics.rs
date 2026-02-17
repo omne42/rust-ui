@@ -201,7 +201,7 @@ fn icons_ui_docs_page_covers_primary_playgrounds() {
         "pub(super) fn icons_ui() -> AnyView",
         "title=\"IconsUi\"",
         "slug=\"icons-ui\"",
-        "description=\"Spectrum-compatible icons-ui wrapper with built-in UI icon registry defaults, namespace normalization, and Iconset accessibility/source-state contracts.\"",
+        "description=\"baseline-compatible icons-ui wrapper with built-in UI icon registry defaults, namespace normalization, and Iconset accessibility/source-state contracts.\"",
         "<Playground title=\"Built-in UI Glyphs\" code_signal=defaults_code>",
         "<Playground title=\"Custom Registry Extension\" code_signal=custom_code>",
         "title=\"State + Source Markers\"",

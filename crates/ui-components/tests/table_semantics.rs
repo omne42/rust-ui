@@ -60,7 +60,7 @@ fn table_uses_logic_state_model() {
 }
 
 #[test]
-fn table_emits_spectrum_style_state_data_attributes() {
+fn table_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/table/view.rs");
 
     for attr in [
@@ -87,7 +87,7 @@ fn table_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Table should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Table should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -135,7 +135,7 @@ fn table_docs_page_covers_primary_playgrounds() {
         "pub(super) fn table() -> AnyView",
         "title=\"Table\"",
         "slug=\"table\"",
-        "description=\"Data table primitive with centralized row/column normalization and Spectrum-style state markers for density/layout/variant contracts.\"",
+        "description=\"Data table primitive with centralized row/column normalization and baseline-style state markers for density/layout/variant contracts.\"",
         "<Playground title=\"Default + Striped\" code_signal=code>",
         "<Playground title=\"Compact + Fixed + Empty\" code_signal=states_code>",
         "<Table",

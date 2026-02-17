@@ -140,7 +140,7 @@ pub fn NumberField(
 
                 <div class="ui-number-field__stepper" data-slot="number-field-stepper">
                     <Button
-                        disabled=disabled
+                        is_disabled=disabled
                         variant=ButtonVariant::Ghost
                         size=ButtonSize::IconSm
                         aria_label=strings.decrement_aria_label.as_ref().to_string()
@@ -149,7 +149,7 @@ pub fn NumberField(
                         "−"
                     </Button>
                     <Button
-                        disabled=disabled
+                        is_disabled=disabled
                         variant=ButtonVariant::Ghost
                         size=ButtonSize::IconSm
                         aria_label=strings.increment_aria_label.as_ref().to_string()

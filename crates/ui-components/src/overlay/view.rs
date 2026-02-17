@@ -74,7 +74,7 @@ pub fn Overlay(
     let panel_class = StoredValue::new(panel_class);
 
     let registration = use_overlay_stack_registration();
-    use_modal(ModalOptions::enabled());
+    use_modal(ModalOptions::from_signal(open));
 
     let aria_labelledby: Signal<Option<String>> = aria_labelledby.into();
     let aria_describedby: Signal<Option<String>> = aria_describedby.into();

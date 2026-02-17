@@ -38,7 +38,7 @@ fn number_field_uses_headless_spinbutton_semantics() {
 }
 
 #[test]
-fn number_field_emits_spectrum_style_state_data_attributes() {
+fn number_field_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/number_field/view.rs");
 
     for attr in [
@@ -50,7 +50,7 @@ fn number_field_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "NumberField should set `{attr}` to support Spectrum-style styling and state inspection."
+            "NumberField should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }

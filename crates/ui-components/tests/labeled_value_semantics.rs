@@ -59,7 +59,7 @@ fn labeled_value_uses_logic_state_model() {
 }
 
 #[test]
-fn labeled_value_emits_spectrum_style_state_data_attributes() {
+fn labeled_value_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/labeled_value/view.rs");
 
     for attr in [
@@ -80,7 +80,7 @@ fn labeled_value_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "LabeledValue should expose `{attr}` for Spectrum-style styling and state inspection."
+            "LabeledValue should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -123,7 +123,7 @@ fn labeled_value_docs_page_covers_primary_playgrounds() {
         "pub(super) fn labeled_value() -> AnyView",
         "title=\"LabeledValue\"",
         "slug=\"labeled-value\"",
-        "description=\"Label-value pair primitive with centralized orientation/tone/source state contracts and Spectrum-style data markers.\"",
+        "description=\"Label-value pair primitive with centralized orientation/tone/source state contracts and baseline-style data markers.\"",
         "<Playground title=\"Orientation + Tone\" code_signal=orientation_code>",
         "<Playground title=\"Description + Custom Aria/Class\" code_signal=custom_code>",
         "<LabeledValue",

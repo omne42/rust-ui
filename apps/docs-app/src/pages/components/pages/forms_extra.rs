@@ -50,7 +50,7 @@ pub(super) fn field_error() -> AnyView {
             title="FieldError"
             slug="field-error"
             group="Forms"
-            description="Spectrum/HeroUI-style field error primitive with centralized visibility/tone/message normalization and stable data contracts."
+            description="baseline-style field error primitive with centralized visibility/tone/message normalization and stable data contracts."
         >
             <Playground title="Visible + Tone" code_signal=default_code>
                 <div class="docs-stack">
@@ -125,7 +125,7 @@ pub(super) fn error_message() -> AnyView {
             title="ErrorMessage"
             slug="error-message"
             group="Forms"
-            description="Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts."
+            description="baseline-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts."
         >
             <Playground title="Tone Variants" code_signal=tone_code>
                 <div class="docs-stack">
@@ -196,7 +196,7 @@ pub(super) fn description() -> AnyView {
             title="Description"
             slug="description"
             group="Forms"
-            description="Spectrum/HeroUI-style form description primitive with centralized tone/state/source contracts and stable slot semantics."
+            description="baseline-style form description primitive with centralized tone/state/source contracts and stable slot semantics."
         >
             <Playground title="Tone Variants" code_signal=tone_code>
                 <div class="docs-stack">
@@ -272,7 +272,7 @@ pub(super) fn fieldset() -> AnyView {
             title="Fieldset"
             slug="fieldset"
             group="Forms"
-            description="Spectrum/HeroUI-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts."
+            description="baseline-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts."
         >
             <Playground title="Legend + Description" code_signal=default_code>
                 <Fieldset
@@ -477,7 +477,7 @@ pub(super) fn help_text() -> AnyView {
             title="HelpText"
             slug="help-text"
             group="Forms"
-            description="Spectrum-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts."
+            description="baseline-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts."
         >
             <Playground title="Description (Neutral)" code_signal=description_code>
                 <div class="docs-stack">
@@ -552,7 +552,7 @@ let (invalid, set_invalid) = signal(false);
             title="Textarea"
             slug="textarea"
             group="Forms"
-            description="Shadcn/HeroUI-compatible textarea primitive with Spectrum-style text-field semantics and stable state/source markers."
+            description="baseline-compatible textarea primitive with baseline-style text-field semantics and stable state/source markers."
         >
             <Playground title="Basic Textarea" code_signal=basic_code>
                 <Textarea
@@ -654,7 +654,7 @@ let (fine_value, set_fine_value) = signal(0.35_f64);
             title="Slider"
             slug="slider"
             group="Forms"
-            description="Range slider with spring-driven fill/thumb motion and Spectrum-style state data contracts."
+            description="Range slider with spring-driven fill/thumb motion and baseline-style state data contracts."
         >
             <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
@@ -733,7 +733,7 @@ pub(super) fn calendar() -> AnyView {
             title="Calendar"
             slug="calendar"
             group="Forms"
-            description="Month-grid calendar with centralized date normalization and Spectrum-style tone/weekday/source state contracts."
+            description="Month-grid calendar with centralized date normalization and baseline-style tone/weekday/source state contracts."
         >
             <Playground title="Default + Outside Days" code_signal=code>
                 <Calendar
@@ -799,7 +799,7 @@ pub(super) fn date_picker() -> AnyView {
             title="DatePicker"
             slug="date-picker"
             group="Forms"
-            description="Date picker trigger + popover calendar with centralized open/value/source state contracts and HeroUI-grade popover motion handoff."
+            description="Date picker trigger + popover calendar with centralized open/value/source state contracts and baseline-level popover motion handoff."
         >
             <Playground title="Default + Outside Days" code_signal=code>
                 <DatePicker
@@ -878,7 +878,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             title="TimeField"
             slug="time-field"
             group="Forms"
-            description="Time entry field with centralized hour/minute normalization and Spectrum-style state/source data contracts."
+            description="Time entry field with centralized hour/minute normalization and baseline-style state/source data contracts."
         >
             <Playground title="Controlled + Step 15" code_signal=code>
                 <div class="docs-stack">
@@ -962,7 +962,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
             title="DateRangePicker"
             slug="date-range-picker"
             group="Forms"
-            description="Two DatePicker composition with centralized range validity/value-shape derivation and Spectrum-style state/source contracts."
+            description="Two DatePicker composition with centralized range validity/value-shape derivation and baseline-style state/source contracts."
         >
             <Playground title="Controlled + Shared Month" code_signal=code>
                 <div class="docs-stack">
@@ -1041,7 +1041,7 @@ let on_value_change = Callback::new(move |next: Option<String>| {
             title="DateField"
             slug="date-field"
             group="Forms"
-            description="Segmented date entry field with centralized year/month/day normalization and Spectrum-style state/source contracts."
+            description="Segmented date entry field with centralized year/month/day normalization and baseline-style state/source contracts."
         >
             <Playground title="Controlled Value" code_signal=code>
                 <div class="docs-stack">

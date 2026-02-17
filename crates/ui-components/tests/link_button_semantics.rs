@@ -101,7 +101,7 @@ fn link_button_composes_button_variant_and_size_classes() {
 }
 
 #[test]
-fn link_button_emits_spectrum_style_data_attributes() {
+fn link_button_emits_baseline_style_data_attributes() {
     let source = load_source("src/link_button/view.rs");
 
     for needle in [
@@ -114,7 +114,7 @@ fn link_button_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "LinkButton should include `{needle}` for Spectrum-style state inspection."
+            "LinkButton should include `{needle}` for baseline-style state inspection."
         );
     }
 }
@@ -127,7 +127,7 @@ fn link_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn link_button() -> AnyView",
         "title=\"LinkButton\"",
         "slug=\"link-button\"",
-        "description=\"Button styling on anchors with Spectrum-style disabled semantics and secure rel handling for external targets.\"",
+        "description=\"Button styling on anchors with baseline-style disabled semantics and secure rel handling for external targets.\"",
         "<Playground",
         "title=\"External target + rel hardening\"",
         "code_signal=code",

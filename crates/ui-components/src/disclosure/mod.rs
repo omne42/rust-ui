@@ -1,3 +1,5 @@
+#[cfg(feature = "component-disclosure_group")]
+pub mod group;
 mod logic;
 pub mod motion;
 pub mod styles;

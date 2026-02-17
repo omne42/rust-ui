@@ -54,7 +54,7 @@ fn color_loupe_uses_logic_state_model() {
 }
 
 #[test]
-fn color_loupe_exposes_spectrum_style_data_markers() {
+fn color_loupe_exposes_baseline_style_data_markers() {
     let source = load_source("src/color_loupe/view.rs");
 
     for attr in [
@@ -71,7 +71,7 @@ fn color_loupe_exposes_spectrum_style_data_markers() {
     ] {
         assert!(
             source.contains(attr),
-            "ColorLoupe should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ColorLoupe should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

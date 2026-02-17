@@ -65,7 +65,7 @@ fn progress_circle_uses_logic_state_model() {
 }
 
 #[test]
-fn progress_circle_emits_spectrum_style_state_data_attributes() {
+fn progress_circle_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/progress_circle/view.rs");
 
     for attr in [
@@ -91,7 +91,7 @@ fn progress_circle_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ProgressCircle should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ProgressCircle should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

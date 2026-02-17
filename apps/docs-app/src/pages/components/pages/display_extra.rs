@@ -67,7 +67,7 @@ pub(super) fn alert_banner() -> AnyView {
             title="AlertBanner"
             slug="alert-banner"
             group="Display"
-            description="Spectrum-compatible alert banner with centralized tone/fill/content contracts and HeroUI-grade spring reveal motion."
+            description="baseline-compatible alert banner with centralized tone/fill/content contracts and baseline-level spring reveal motion."
         >
             <Playground title="Tone + Fill" code_signal=tone_code>
                 <div class="docs-stack">
@@ -150,7 +150,7 @@ pub(super) fn labeled_value() -> AnyView {
             title="LabeledValue"
             slug="labeled-value"
             group="Display"
-            description="Label-value pair primitive with centralized orientation/tone/source state contracts and Spectrum-style data markers."
+            description="Label-value pair primitive with centralized orientation/tone/source state contracts and baseline-style data markers."
         >
             <Playground title="Orientation + Tone" code_signal=orientation_code>
                 <div class="docs-stack">
@@ -262,7 +262,7 @@ pub(super) fn text() -> AnyView {
             title="Text"
             slug="text"
             group="Display"
-            description="Typography primitive with centralized tone/alignment/weight/source state contracts and Spectrum-style data markers."
+            description="Typography primitive with centralized tone/alignment/weight/source state contracts and baseline-style data markers."
         >
             <Playground title="Tone + Weight Matrix" code_signal=tone_code>
                 <div class="docs-stack">
@@ -331,7 +331,7 @@ pub(super) fn icon() -> AnyView {
             title="Icon"
             slug="icon"
             group="Display"
-            description="Spectrum-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers."
+            description="baseline-style icon primitive with centralized size/tone/accessibility/source state contracts and stable slot/data markers."
         >
             <Playground title="Size + Tone Matrix" code_signal=matrix_code>
                 <div class="docs-row">
@@ -419,7 +419,7 @@ pub(super) fn empty_state() -> AnyView {
             title="EmptyState"
             slug="empty-state"
             group="Display"
-            description="Spectrum/HeroUI-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers."
+            description="baseline-style empty-state primitive with centralized tone/align/layout/source contracts and stable slot/data markers."
         >
             <Playground title="Tone + Alignment + Actions" code_signal=tone_code>
                 <div class="docs-stack">
@@ -513,7 +513,7 @@ pub(super) fn error_view() -> AnyView {
             title="ErrorView"
             slug="error-view"
             group="Display"
-            description="Spectrum/HeroUI-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers."
+            description="baseline-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers."
         >
             <Playground title="Invalid Visibility" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -613,7 +613,7 @@ pub(super) fn pressable_feedback() -> AnyView {
             title="PressableFeedback"
             slug="pressable-feedback"
             group="Display"
-            description="HeroUI-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition."
+            description="baseline-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition."
         >
             <Playground title="Scale + Highlight" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -701,7 +701,7 @@ pub(super) fn color_swatch() -> AnyView {
             title="ColorSwatch"
             slug="color-swatch"
             group="Display"
-            description="Spectrum-compatible color preview primitive with centralized size/rounding/shape/transparency/source contracts and stable slot/data markers."
+            description="baseline-compatible color preview primitive with centralized size/rounding/shape/transparency/source contracts and stable slot/data markers."
         >
             <Playground title="Size + Rounding" code_signal=size_code>
                 <div class="docs-row">
@@ -788,7 +788,7 @@ pub(super) fn color_swatch_picker() -> AnyView {
             title="ColorSwatchPicker"
             slug="color-swatch-picker"
             group="Display"
-            description="Spectrum-compatible selectable swatch group with centralized color normalization, single-selection state, keyboard roving, and stable slot/data state markers."
+            description="baseline-compatible selectable swatch group with centralized color normalization, single-selection state, keyboard roving, and stable slot/data state markers."
         >
             <Playground title="Basic Selection" code_signal=basic_code>
                 <ColorSwatchPicker
@@ -848,7 +848,7 @@ pub(super) fn skeleton_group() -> AnyView {
             title="SkeletonGroup"
             slug="skeleton-group"
             group="Display"
-            description="Spectrum/HeroUI-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers."
+            description="baseline-style skeleton coordination container with centralized loading/layout/variant visibility contracts and stable slot/data-state markers."
         >
             <Playground title="Shimmer + Pulse Layout" code_signal=loading_code>
                 <div class="docs-stack">
@@ -978,7 +978,7 @@ pub(super) fn flip_card() -> AnyView {
             title="FlipCard"
             slug="flip-card"
             group="Display"
-            description="3D front/back card with Spectrum-style state/source markers and HeroUI-grade spring motion for flip/hover interactions."
+            description="3D front/back card with baseline-style state/source markers and baseline-level spring motion for flip/hover interactions."
         >
             <Playground title="Click + Keyboard Flip" code_signal=basic_code>
                 <div class="docs-row">
@@ -1145,7 +1145,7 @@ pub(super) fn chart() -> AnyView {
             title="Chart"
             slug="chart"
             group="Display"
-            description="Shadcn-compatible chart primitive with bar/line modes, controlled active-index state, Spectrum-style data contracts, and HeroUI-level spring highlight motion for legends."
+            description="baseline-compatible chart primitive with bar/line modes, controlled active-index state, baseline-style data contracts, and baseline-level spring highlight motion for legends."
         >
             <Playground title="Bar + Hover/Keyboard + Action" code_signal=bar_code>
                 <div class="docs-stack docs-stack--tight">

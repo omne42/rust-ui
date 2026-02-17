@@ -18,7 +18,7 @@ let theme = Signal::derive(|| Theme::dark());
         r#"<UiRoot ...>
   // wrapper attrs:
   // data-slot="ui-root"
-  // data-theme-system="spectrum|express|spectrum-two"
+  // data-theme-system="baseline|express|baseline-two"
   // data-theme-color="light|dark|oled"
   // data-theme-scale="medium|large"
   // data-theme-scheme="light|dark" (CSS color-scheme)

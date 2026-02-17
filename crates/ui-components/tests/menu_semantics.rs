@@ -33,7 +33,7 @@ fn menu_supports_accessible_name_resolution() {
     ] {
         assert!(
             view_source.contains(needle),
-            "Menu should wire `{needle}` for Spectrum-style accessible naming."
+            "Menu should wire `{needle}` for baseline-style accessible naming."
         );
     }
 
@@ -63,7 +63,7 @@ fn menu_exposes_state_and_slot_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "Menu should expose `{needle}` for Spectrum-style styling and regression tests."
+            "Menu should expose `{needle}` for baseline-style styling and regression tests."
         );
     }
 }
@@ -153,7 +153,7 @@ fn menu_docs_page_covers_primary_playgrounds() {
         "pub(super) fn menu() -> AnyView",
         "title=\"Menu\"",
         "slug=\"menu\"",
-        "description=\"ARIA menu with action / checkbox / radio roles, active-highlight motion, and Spectrum-style root state attrs.\"",
+        "description=\"ARIA menu with action / checkbox / radio roles, active-highlight motion, and baseline-style root state attrs.\"",
         "<Playground title=\"Kinds + Selection\" code_signal=code>",
         "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<Menu",

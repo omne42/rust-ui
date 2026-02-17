@@ -166,7 +166,7 @@ fn command_uses_active_highlight_motion_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "Command should compose active-highlight motion via `{needle}` for HeroUI-level feedback continuity."
+            "Command should compose active-highlight motion via `{needle}` for baseline-level feedback continuity."
         );
     }
 }
@@ -292,7 +292,7 @@ fn command_docs_page_covers_primary_playgrounds() {
         "pub(super) fn command() -> AnyView",
         "title=\"Command\"",
         "slug=\"command\"",
-        "description=\"Shadcn-compatible command palette with grouped filtering, listbox keyboard semantics, Spectrum data contracts, and HeroUI-level spring active-highlight motion.\"",
+        "description=\"baseline-compatible command palette with grouped filtering, listbox keyboard semantics, baseline data contracts, and baseline-level spring active-highlight motion.\"",
         "<Playground title=\"Grouped Search + Keyboard Action\" code_signal=code>",
         "<Playground title=\"Custom Placeholder + Empty Label + Disabled Items\" code_signal=states_code>",
         "<Playground title=\"State + Source Markers\" code_signal=marker_code>",

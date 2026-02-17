@@ -197,7 +197,7 @@ fn navigation_menu_uses_active_highlight_motion_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "NavigationMenu should compose active highlight motion via `{needle}` for HeroUI-level feedback continuity."
+            "NavigationMenu should compose active highlight motion via `{needle}` for baseline-level feedback continuity."
         );
     }
 }

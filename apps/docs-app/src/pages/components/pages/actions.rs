@@ -3,29 +3,183 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
     ActionButton, ActionButtonGroup, ActionButtonGroupDensity, ActionButtonGroupOrientation,
-    ActionButtonLoadingPlacement, ActionButtonSize, ActionMenu, Button, ButtonCopy, ButtonGroup,
-    ButtonGroupOrientation, ButtonLoadingPlacement, ButtonSize, ButtonVariant, FlipButton,
-    FlipDirection, IconButton, LinkButton, MenuItemKind, OnPress, SearchInputButton,
-    SegmentedControl, SegmentedControlSize, ShareButton, ShareButtonIconPlacement, ShareButtonItem,
-    SharePlatform, Switch, ThemeMode, ThemeToggleButton, ToggleButton, ToggleButtonGroup,
-    ToggleButtonGroupOrientation, ToggleButtonSize, ToggleButtonVariant,
+    ActionButtonLoadingPlacement, ActionButtonSize, ActionMenu, Button, ButtonColor, ButtonCopy,
+    ButtonCopyMode, ButtonGroup, ButtonGroupOrientation, ButtonLoadingPlacement, ButtonRadius,
+    ButtonSize, ButtonVariant, FlipButton, FlipDirection, IconButton, LinkButton, MenuItemKind,
+    OnPress, SearchInputButton, SegmentedControl, SegmentedControlSize, ShareButton,
+    ShareButtonIconPlacement, ShareButtonItem, SharePlatform, Switch, ThemeMode, ThemeToggleButton,
+    ToggleButton, ToggleButtonGroup, ToggleButtonGroupOrientation, ToggleButtonSize,
+    ToggleButtonVariant,
 };
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct ButtonWorkbenchState {
+    variant_index: usize,
+    color_index: usize,
+    radius_index: usize,
+    size_index: usize,
+    loading_placement_index: usize,
+    is_disabled: bool,
+    is_loading: bool,
+    is_icon_only: bool,
+    is_full_width: bool,
+    show_start: bool,
+    show_end: bool,
+}
+
+#[cfg(target_arch = "wasm32")]
+impl ButtonWorkbenchState {
+    fn parse(raw: &str) -> Option<Self> {
+        let parts = raw.split(',').map(str::trim).collect::<Vec<_>>();
+        if parts.len() != 11 {
+            return None;
+        }
+
+        let parse_index = |at: usize, max: usize| {
+            parts
+                .get(at)?
+                .parse::<usize>()
+                .ok()
+                .map(|value| value.min(max))
+        };
+        let parse_bool = |at: usize| match *parts.get(at)? {
+            "1" => Some(true),
+            "0" => Some(false),
+            _ => None,
+        };
+
+        Some(Self {
+            variant_index: parse_index(0, 6)?,
+            color_index: parse_index(1, 5)?,
+            radius_index: parse_index(2, 4)?,
+            size_index: parse_index(3, 4)?,
+            loading_placement_index: parse_index(4, 2)?,
+            is_disabled: parse_bool(5)?,
+            is_loading: parse_bool(6)?,
+            is_icon_only: parse_bool(7)?,
+            is_full_width: parse_bool(8)?,
+            show_start: parse_bool(9)?,
+            show_end: parse_bool(10)?,
+        })
+    }
+
+    fn encode(self) -> String {
+        let bool_digit = |value: bool| if value { '1' } else { '0' };
+        format!(
+            "{},{},{},{},{},{},{},{},{},{},{}",
+            self.variant_index,
+            self.color_index,
+            self.radius_index,
+            self.size_index,
+            self.loading_placement_index,
+            bool_digit(self.is_disabled),
+            bool_digit(self.is_loading),
+            bool_digit(self.is_icon_only),
+            bool_digit(self.is_full_width),
+            bool_digit(self.show_start),
+            bool_digit(self.show_end),
+        )
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+const BUTTON_WORKBENCH_STORAGE_KEY: &str = "docs:button:workbench:state";
+
+#[cfg(target_arch = "wasm32")]
+fn load_button_workbench_state() -> Option<ButtonWorkbenchState> {
+    let storage = web_sys::window().and_then(|window| window.local_storage().ok().flatten())?;
+    let raw = storage
+        .get_item(BUTTON_WORKBENCH_STORAGE_KEY)
+        .ok()
+        .flatten()?;
+    ButtonWorkbenchState::parse(&raw)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn load_button_workbench_state() -> Option<ButtonWorkbenchState> {
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn save_button_workbench_state(state: ButtonWorkbenchState) {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        let _ = storage.set_item(BUTTON_WORKBENCH_STORAGE_KEY, &state.encode());
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn save_button_workbench_state(_state: ButtonWorkbenchState) {}
+
+#[cfg(target_arch = "wasm32")]
+fn clear_button_workbench_state() {
+    if let Some(storage) =
+        web_sys::window().and_then(|window| window.local_storage().ok().flatten())
+    {
+        let _ = storage.remove_item(BUTTON_WORKBENCH_STORAGE_KEY);
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn clear_button_workbench_state() {}
+
 pub(super) fn button() -> AnyView {
+    let persisted_workbench_state = load_button_workbench_state();
+    let has_persisted_workbench_state = persisted_workbench_state.is_some();
+    let initial_workbench_state = persisted_workbench_state.unwrap_or_default();
     let variant_options = vec![
-        "Primary".to_string(),
-        "Outline".to_string(),
-        "Ghost".to_string(),
-        "Danger".to_string(),
-        "Secondary".to_string(),
+        "solid".to_string(),
+        "faded".to_string(),
+        "bordered".to_string(),
+        "light".to_string(),
+        "flat".to_string(),
+        "ghost".to_string(),
+        "shadow".to_string(),
     ];
-    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (variant_index, set_variant_index) = signal(Some(initial_workbench_state.variant_index));
     let variant = Signal::derive(move || match variant_index.get().unwrap_or(0) {
-        1 => ButtonVariant::Outline,
-        2 => ButtonVariant::Ghost,
-        3 => ButtonVariant::Destructive,
-        4 => ButtonVariant::Secondary,
-        _ => ButtonVariant::Default,
+        1 => ButtonVariant::Faded,
+        2 => ButtonVariant::Bordered,
+        3 => ButtonVariant::Light,
+        4 => ButtonVariant::Flat,
+        5 => ButtonVariant::Ghost,
+        6 => ButtonVariant::Shadow,
+        _ => ButtonVariant::Solid,
+    });
+
+    let color_options = vec![
+        "default".to_string(),
+        "primary".to_string(),
+        "secondary".to_string(),
+        "success".to_string(),
+        "warning".to_string(),
+        "danger".to_string(),
+    ];
+    let (color_index, set_color_index) = signal(Some(initial_workbench_state.color_index));
+    let color = Signal::derive(move || match color_index.get().unwrap_or(1) {
+        0 => ButtonColor::Default,
+        2 => ButtonColor::Secondary,
+        3 => ButtonColor::Success,
+        4 => ButtonColor::Warning,
+        5 => ButtonColor::Danger,
+        _ => ButtonColor::Primary,
+    });
+
+    let radius_options = vec![
+        "full".to_string(),
+        "lg".to_string(),
+        "md".to_string(),
+        "sm".to_string(),
+        "none".to_string(),
+    ];
+    let (radius_index, set_radius_index) = signal(Some(initial_workbench_state.radius_index));
+    let radius = Signal::derive(move || match radius_index.get().unwrap_or(2) {
+        0 => ButtonRadius::Full,
+        1 => ButtonRadius::Lg,
+        3 => ButtonRadius::Sm,
+        4 => ButtonRadius::None,
+        _ => ButtonRadius::Md,
     });
 
     let size_options = vec![
@@ -35,7 +189,7 @@ pub(super) fn button() -> AnyView {
         "l".to_string(),
         "xl".to_string(),
     ];
-    let (size_index, set_size_index) = signal(Some(2_usize));
+    let (size_index, set_size_index) = signal(Some(initial_workbench_state.size_index));
     let size = Signal::derive(move || match size_index.get().unwrap_or(2) {
         0 => ButtonSize::Xs,
         1 => ButtonSize::S,
@@ -44,43 +198,76 @@ pub(super) fn button() -> AnyView {
         _ => ButtonSize::Xl,
     });
 
-    let (disabled, set_disabled) = signal(false);
-    let (loading, set_loading) = signal(false);
+    let (is_disabled, set_is_disabled) = signal(initial_workbench_state.is_disabled);
+    let (loading, set_loading) = signal(initial_workbench_state.is_loading);
     let loading_placement_options =
         vec!["Start".to_string(), "End".to_string(), "Center".to_string()];
-    let (loading_placement_index, set_loading_placement_index) = signal(Some(0_usize));
+    let (loading_placement_index, set_loading_placement_index) =
+        signal(Some(initial_workbench_state.loading_placement_index));
     let loading_placement =
         Signal::derive(move || match loading_placement_index.get().unwrap_or(0) {
             1 => ButtonLoadingPlacement::End,
             2 => ButtonLoadingPlacement::Center,
             _ => ButtonLoadingPlacement::Start,
         });
-    let (icon_only, set_icon_only) = signal(false);
-    let (full_width, set_full_width) = signal(false);
-    let (show_start, set_show_start) = signal(false);
-    let (show_end, set_show_end) = signal(false);
+    let (icon_only, set_icon_only) = signal(initial_workbench_state.is_icon_only);
+    let (is_full_width, set_is_full_width) = signal(initial_workbench_state.is_full_width);
+    let (show_start, set_show_start) = signal(initial_workbench_state.show_start);
+    let (show_end, set_show_end) = signal(initial_workbench_state.show_end);
+    let (workbench_persist_state, set_workbench_persist_state) =
+        signal(has_persisted_workbench_state);
+
+    Effect::new(move |_| {
+        if workbench_persist_state.get() {
+            save_button_workbench_state(ButtonWorkbenchState {
+                variant_index: variant_index.get().unwrap_or(0),
+                color_index: color_index.get().unwrap_or(1),
+                radius_index: radius_index.get().unwrap_or(2),
+                size_index: size_index.get().unwrap_or(2),
+                loading_placement_index: loading_placement_index.get().unwrap_or(0),
+                is_disabled: is_disabled.get(),
+                is_loading: loading.get(),
+                is_icon_only: icon_only.get(),
+                is_full_width: is_full_width.get(),
+                show_start: show_start.get(),
+                show_end: show_end.get(),
+            });
+        } else {
+            clear_button_workbench_state();
+        }
+    });
+
+    let hello_code = Signal::derive(move || r#"<Button>"Button"</Button>"#.to_string());
 
     let code = Signal::derive(move || {
         let variant = variant.get();
+        let color = color.get();
+        let radius = radius.get();
         let size = size.get();
-        let disabled = disabled.get();
+        let is_disabled = is_disabled.get();
         let loading = loading.get();
         let loading_placement = loading_placement.get();
         let icon_only = icon_only.get();
-        let full_width = full_width.get();
+        let is_full_width = is_full_width.get();
         let show_start = show_start.get();
         let show_end = show_end.get();
 
         let mut snippet = vec!["<Button".to_string()];
 
-        if variant != ButtonVariant::Default {
+        if color != ButtonColor::Primary {
+            snippet.push(format!("  color=ButtonColor::{color:?}"));
+        }
+        if variant != ButtonVariant::Solid {
             snippet.push(format!("  variant=ButtonVariant::{variant:?}"));
+        }
+        if radius != ButtonRadius::Md {
+            snippet.push(format!("  radius=ButtonRadius::{radius:?}"));
         }
         if size != ButtonSize::M {
             snippet.push(format!("  size=ButtonSize::{size:?}"));
         }
-        if disabled {
-            snippet.push("  disabled=true".to_string());
+        if is_disabled {
+            snippet.push("  is_disabled=true".to_string());
         }
         if loading {
             snippet.push("  is_loading=true".to_string());
@@ -94,8 +281,8 @@ pub(super) fn button() -> AnyView {
             snippet.push("  is_icon_only=true".to_string());
             snippet.push("  aria_label=\"Button\".to_string()".to_string());
         }
-        if full_width {
-            snippet.push("  full_width=true".to_string());
+        if is_full_width {
+            snippet.push("  is_full_width=true".to_string());
         }
         if show_start {
             snippet.push("  start_content=move || view! { <span>\"★\"</span> }".to_string());
@@ -117,6 +304,85 @@ pub(super) fn button() -> AnyView {
         snippet.join("\n")
     });
 
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/button/styles.rs */\n{}",
+            ui_components::button::styles::CSS
+        )
+    });
+
+    let actual_config = Signal::derive(move || {
+        let variant = variant.get();
+        let color = color.get();
+        let radius = radius.get();
+        let size = size.get();
+        let is_disabled = is_disabled.get();
+        let is_loading = loading.get();
+        let loading_placement = loading_placement.get();
+        let icon_only = icon_only.get();
+        let is_full_width = is_full_width.get();
+        let show_start = show_start.get();
+        let show_end = show_end.get();
+
+        let mut classes = vec![
+            "ui-button".to_string(),
+            variant.class_name().to_string(),
+            color.class_name().to_string(),
+            radius.class_name().to_string(),
+            size.class_name().to_string(),
+            format!("ui-button--loading-{}", loading_placement.as_attr()),
+        ];
+
+        if icon_only {
+            classes.push("ui-button--icon-only".to_string());
+        }
+        if is_full_width {
+            classes.push("ui-button--full-width".to_string());
+        }
+        if is_loading {
+            classes.push("ui-button--loading".to_string());
+        }
+        if show_start {
+            classes.push("ui-button--has-start".to_string());
+        }
+        if show_end {
+            classes.push("ui-button--has-end".to_string());
+        }
+
+        format!(
+            "ButtonActualConfig {{\n  color: {color:?},\n  variant: {variant:?},\n  radius: {radius:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_loading: {is_loading},\n  loading_placement: {loading_placement:?},\n  is_icon_only: {icon_only},\n  is_full_width: {is_full_width},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  class: \"{}\",\n}}",
+            classes.join(" ")
+        )
+    });
+
+    let colors_code = Signal::derive(move || {
+        r#"<Button color="default">"Default"</Button>
+<Button color="primary">"Primary"</Button>
+<Button color="secondary">"Secondary"</Button>
+<Button color="success">"Success"</Button>
+<Button color="warning">"Warning"</Button>
+<Button color="danger">"Danger"</Button>"#
+            .to_string()
+    });
+
+    let radius_code = Signal::derive(move || {
+        r#"<Button radius="full" color="default">"Full"</Button>
+<Button radius="lg" color="default">"Large"</Button>
+<Button radius="md" color="default">"Medium"</Button>
+<Button radius="sm" color="default">"Small"</Button>
+<Button radius="none" color="default">"None"</Button>"#
+            .to_string()
+    });
+
+    let sizes_code = Signal::derive(move || {
+        r#"<Button size="xs">"XS"</Button>
+<Button size="s">"S"</Button>
+<Button size="m">"M"</Button>
+<Button size="l">"L"</Button>
+<Button size="xl">"XL"</Button>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="Button"
@@ -124,9 +390,19 @@ pub(super) fn button() -> AnyView {
             group="Actions"
             description="Variants + sizes with spring hover/tap motion."
         >
+            <Playground title="Hello world" code_signal=hello_code>
+                <div class="docs-row">
+                    <Button>"Button"</Button>
+                </div>
+            </Playground>
+
             <Playground
                 title="Variants & sizes"
                 code_signal=code
+                test_css_source=test_css_source
+                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/button/styles.rs".to_string()
+                test_config_signal=actual_config
+                description="Workbench canvas: scoped CSS live-edit + optional state persistence across reload."
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Variant"</div>
@@ -139,6 +415,26 @@ pub(super) fn button() -> AnyView {
                             aria_label="Button variant".to_string()
                         />
 
+                        <div class="docs-search__label">"Color"</div>
+                        <SegmentedControl
+                            id_base="docs-button-color".to_string()
+                            options=color_options.clone()
+                            selected_index=color_index
+                            set_selected_index=set_color_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Button color".to_string()
+                        />
+
+                        <div class="docs-search__label">"Radius"</div>
+                        <SegmentedControl
+                            id_base="docs-button-radius".to_string()
+                            options=radius_options.clone()
+                            selected_index=radius_index
+                            set_selected_index=set_radius_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Button radius".to_string()
+                        />
+
                         <div class="docs-search__label">"Size"</div>
                         <SegmentedControl
                             id_base="docs-button-size".to_string()
@@ -149,7 +445,7 @@ pub(super) fn button() -> AnyView {
                             aria_label="Button size".to_string()
                         />
 
-                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=is_disabled set_checked=set_is_disabled>"Disabled"</Switch>
                         <Switch checked=loading set_checked=set_loading>"Loading"</Switch>
                         <div class="docs-search__label">"Loading placement"</div>
                         <SegmentedControl
@@ -161,101 +457,154 @@ pub(super) fn button() -> AnyView {
                             aria_label="Button loading placement".to_string()
                         />
                         <Switch checked=icon_only set_checked=set_icon_only>"Icon only"</Switch>
-                        <Switch checked=full_width set_checked=set_full_width>"Full width"</Switch>
+                        <Switch checked=is_full_width set_checked=set_is_full_width>"Full width"</Switch>
                         <Switch checked=show_start set_checked=set_show_start>"Start slot"</Switch>
                         <Switch checked=show_end set_checked=set_show_end>"End slot"</Switch>
+                        <Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>
+                            "Persist workbench state"
+                        </Switch>
                     </div>
                 }
             >
                 {move || {
                     let variant = variant.get();
+                    let color = color.get();
+                    let radius = radius.get();
                     let size = size.get();
-                    let disabled = disabled.get();
+                    let is_disabled = is_disabled.get();
                     let is_loading = loading.get();
                     let loading_placement = loading_placement.get();
                     let icon_only = icon_only.get();
-                    let full_width = full_width.get();
+                    let is_full_width = is_full_width.get();
                     let show_start = show_start.get();
                     let show_end = show_end.get();
+                    let persist = workbench_persist_state.get();
 
                     view! {
-                        <div class="docs-stack" style="width: min(100%, 360px);">
-                            <div class="docs-row" style="width: 100%;">
-                                {match (show_start, show_end) {
-                                    (true, true) => view! {
-                                        <Button
-                                            variant=variant
-                                            size=size
-                                            disabled=disabled
-                                            is_loading=is_loading
-                                            loading_placement=loading_placement
-                                            is_icon_only=icon_only
-                                            full_width=full_width
-                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                            start_content=move || view! { <span>"★"</span> }
-                                            end_content=move || view! { <span>"→"</span> }
-                                        >
-                                            {if icon_only { "★" } else { "Button" }}
-                                        </Button>
-                                    }
-                                        .into_any(),
-                                    (true, false) => view! {
-                                        <Button
-                                            variant=variant
-                                            size=size
-                                            disabled=disabled
-                                            is_loading=is_loading
-                                            loading_placement=loading_placement
-                                            is_icon_only=icon_only
-                                            full_width=full_width
-                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                            start_content=move || view! { <span>"★"</span> }
-                                        >
-                                            {if icon_only { "★" } else { "Button" }}
-                                        </Button>
-                                    }
-                                        .into_any(),
-                                    (false, true) => view! {
-                                        <Button
-                                            variant=variant
-                                            size=size
-                                            disabled=disabled
-                                            is_loading=is_loading
-                                            loading_placement=loading_placement
-                                            is_icon_only=icon_only
-                                            full_width=full_width
-                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                            end_content=move || view! { <span>"→"</span> }
-                                        >
-                                            {if icon_only { "★" } else { "Button" }}
-                                        </Button>
-                                    }
-                                        .into_any(),
-                                    (false, false) => view! {
-                                        <Button
-                                            variant=variant
-                                            size=size
-                                            disabled=disabled
-                                            is_loading=is_loading
-                                            loading_placement=loading_placement
-                                            is_icon_only=icon_only
-                                            full_width=full_width
-                                            aria_label=if icon_only { "Button".to_string() } else { String::new() }
-                                        >
-                                            {if icon_only { "★" } else { "Button" }}
-                                        </Button>
-                                    }
-                                        .into_any(),
-                                }}
-                            </div>
+                        <div class="docs-stack" data-slot="button-workbench" style="width: min(100%, 360px);">
                             <span class="ui-muted">
-                                {format!(
-                                    "{variant:?} · {size:?} · {loading_placement:?} · icon_only={icon_only} · full_width={full_width}"
-                                )}
+                                "persist: "
+                                {if persist { "on" } else { "off" }}
                             </span>
+                            <div class="docs-card" data-slot="button-workbench-canvas">
+                                <div
+                                    class="docs-row"
+                                    style=if is_full_width {
+                                        "width: 100%;"
+                                    } else {
+                                        "width: fit-content; margin-inline: auto;"
+                                    }
+                                >
+                                    {match (show_start, show_end) {
+                                        (true, true) => view! {
+                                            <Button
+                                                color=color
+                                                variant=variant
+                                                radius=radius
+                                                size=size
+                                                is_disabled=is_disabled
+                                                is_loading=is_loading
+                                                loading_placement=loading_placement
+                                                is_icon_only=icon_only
+                                                is_full_width=is_full_width
+                                                aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                                start_content=move || view! { <span>"★"</span> }
+                                                end_content=move || view! { <span>"→"</span> }
+                                            >
+                                                {if icon_only { "★" } else { "Button" }}
+                                            </Button>
+                                        }
+                                            .into_any(),
+                                        (true, false) => view! {
+                                            <Button
+                                                color=color
+                                                variant=variant
+                                                radius=radius
+                                                size=size
+                                                is_disabled=is_disabled
+                                                is_loading=is_loading
+                                                loading_placement=loading_placement
+                                                is_icon_only=icon_only
+                                                is_full_width=is_full_width
+                                                aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                                start_content=move || view! { <span>"★"</span> }
+                                            >
+                                                {if icon_only { "★" } else { "Button" }}
+                                            </Button>
+                                        }
+                                            .into_any(),
+                                        (false, true) => view! {
+                                            <Button
+                                                color=color
+                                                variant=variant
+                                                radius=radius
+                                                size=size
+                                                is_disabled=is_disabled
+                                                is_loading=is_loading
+                                                loading_placement=loading_placement
+                                                is_icon_only=icon_only
+                                                is_full_width=is_full_width
+                                                aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                                end_content=move || view! { <span>"→"</span> }
+                                            >
+                                                {if icon_only { "★" } else { "Button" }}
+                                            </Button>
+                                        }
+                                            .into_any(),
+                                        (false, false) => view! {
+                                            <Button
+                                                color=color
+                                                variant=variant
+                                                radius=radius
+                                                size=size
+                                                is_disabled=is_disabled
+                                                is_loading=is_loading
+                                                loading_placement=loading_placement
+                                                is_icon_only=icon_only
+                                                is_full_width=is_full_width
+                                                aria_label=if icon_only { "Button".to_string() } else { String::new() }
+                                            >
+                                                {if icon_only { "★" } else { "Button" }}
+                                            </Button>
+                                        }
+                                            .into_any(),
+                                    }}
+                                </div>
+                            </div>
                         </div>
                     }
                 }}
+            </Playground>
+
+            <Playground title="Colors" code_signal=colors_code>
+                <div class="docs-row">
+                    <Button color="default">"Default"</Button>
+                    <Button color="primary">"Primary"</Button>
+                    <Button color="secondary">"Secondary"</Button>
+                    <Button color="success">"Success"</Button>
+                    <Button color="warning">"Warning"</Button>
+                    <Button color="danger">"Danger"</Button>
+                </div>
+            </Playground>
+
+            <Playground title="Radius" code_signal=radius_code>
+                <div class="docs-row">
+                    <Button radius="full" color="default">"Full"</Button>
+                    <Button radius="lg" color="default">"Large"</Button>
+                    <Button radius="md" color="default">"Medium"</Button>
+                    <Button radius="sm" color="default">"Small"</Button>
+                    <Button radius="none" color="default">"None"</Button>
+                </div>
+            </Playground>
+
+            <Playground title="Sizes" code_signal=sizes_code>
+                <div class="docs-row">
+                    <Button size="xs">"XS"</Button>
+                    <Button size="s">"S"</Button>
+                    <Button size="m">"M"</Button>
+                    <Button size="l">"L"</Button>
+                    <Button size="xl">"XL"</Button>
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -300,7 +649,7 @@ pub(super) fn action_button() -> AnyView {
             title="ActionButton"
             slug="action-button"
             group="Actions"
-            description="Spectrum-style action trigger with state attrs and HeroUI-grade spring hover/press feedback."
+            description="baseline-style action trigger with state attrs and baseline-level spring hover/press feedback."
         >
             <Playground title="Default + callback" code_signal=code>
                 <div class="docs-row">
@@ -406,7 +755,7 @@ pub(super) fn action_button_group() -> AnyView {
             title="ActionButtonGroup"
             slug="action-button-group"
             group="Actions"
-            description="Toolbar-style action clusters with Spectrum state attrs for orientation, density, quiet/filled, and enablement."
+            description="Toolbar-style action clusters with baseline state attrs for orientation, density, quiet/filled, and enablement."
         >
             <Playground title="Default + compact" code_signal=code>
                 <div class="docs-stack">
@@ -452,7 +801,7 @@ pub(super) fn action_button_group() -> AnyView {
                         </ActionButtonGroup>
                     </div>
                     <span class="ui-muted">
-                        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for Spectrum-level styling contracts."
+                        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for baseline-level styling contracts."
                     </span>
                 </div>
             </Playground>
@@ -501,7 +850,7 @@ pub(super) fn button_group() -> AnyView {
   aria_label="Document actions".to_string()
 >
   <Button variant=ButtonVariant::Outline>"Top"</Button>
-  <Button variant=ButtonVariant::Outline disabled=true>"Disabled"</Button>
+  <Button variant=ButtonVariant::Outline is_disabled=true>"Disabled"</Button>
   <Button variant=ButtonVariant::Outline>"Bottom"</Button>
 </ButtonGroup>"#
             .to_string()
@@ -512,7 +861,7 @@ pub(super) fn button_group() -> AnyView {
             title="ButtonGroup"
             slug="button-group"
             group="Actions"
-            description="Groups Buttons with Spectrum-style root state attrs for orientation, attachment, and accessible labeling."
+            description="Groups Buttons with baseline-style root state attrs for orientation, attachment, and accessible labeling."
         >
             <Playground title="Attached horizontal" code_signal=code>
                 <div class="docs-stack">
@@ -549,7 +898,7 @@ pub(super) fn button_group() -> AnyView {
                         <Button variant=ButtonVariant::Outline on_press=on_top>
                             "Top"
                         </Button>
-                        <Button variant=ButtonVariant::Outline disabled=true>
+                        <Button variant=ButtonVariant::Outline is_disabled=true>
                             "Disabled"
                         </Button>
                         <Button variant=ButtonVariant::Outline on_press=on_bottom>
@@ -982,7 +1331,7 @@ pub(super) fn link_button() -> AnyView {
             title="LinkButton"
             slug="link-button"
             group="Actions"
-            description="Button styling on anchors with Spectrum-style disabled semantics and secure rel handling for external targets."
+            description="Button styling on anchors with baseline-style disabled semantics and secure rel handling for external targets."
         >
             <Playground
                 title="External target + rel hardening"
@@ -1230,7 +1579,7 @@ pub(super) fn toggle_button() -> AnyView {
             title="ToggleButton"
             slug="toggle-button"
             group="Actions"
-            description="Pressable toggle state with HeroUI-level spring motion and Spectrum-style root state attrs."
+            description="Pressable toggle state with baseline-level spring motion and baseline-style root state attrs."
         >
             <Playground
                 title="Controlled + on_change"
@@ -1451,7 +1800,7 @@ pub(super) fn toggle_button_group() -> AnyView {
             title="ToggleButtonGroup"
             slug="toggle-button-group"
             group="Actions"
-            description="Layout wrapper with Spectrum-style root state attrs for orientation, attachment, and accessible labeling."
+            description="Layout wrapper with baseline-style root state attrs for orientation, attachment, and accessible labeling."
         >
             <Playground
                 title="Attached horizontal"
@@ -1653,7 +2002,7 @@ let (mode, set_mode) = signal(ThemeMode::System);
             title="ThemeToggleButton"
             slug="theme-toggle-button"
             group="Actions"
-            description="Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs."
+            description="Icon-only theme toggle with baseline-level spring motion and baseline-style mode state attrs."
         >
             <Playground
                 title="Default cycle"
@@ -1856,7 +2205,7 @@ pub(super) fn search_input_button() -> AnyView {
             title="SearchInputButton"
             slug="search-input-button"
             group="Actions"
-            description="HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs."
+            description="baseline-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs."
         >
             <Playground
                 title="Interactive + shortcut"
@@ -1994,7 +2343,14 @@ pub(super) fn button_copy() -> AnyView {
     let states_code = Signal::derive(move || {
         r#"<ButtonCopy text="https://example.com/docs".to_string() variant=ButtonVariant::Outline />
 <ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
-<ButtonCopy text="token".to_string() disabled=true />"#
+<ButtonCopy text="token".to_string() is_disabled=true />"#
+            .to_string()
+    });
+
+    let modes_code = Signal::derive(move || {
+        r#"<ButtonCopy text="cargo add ui-components".to_string() mode=ButtonCopyMode::TextOnly />
+<ButtonCopy text="cargo add ui-components".to_string() mode=ButtonCopyMode::IconOnly />
+<ButtonCopy text="cargo add ui-components".to_string() mode=ButtonCopyMode::IconAndText />"#
             .to_string()
     });
 
@@ -2003,7 +2359,7 @@ pub(super) fn button_copy() -> AnyView {
             title="ButtonCopy"
             slug="button-copy"
             group="Actions"
-            description="Copy-to-clipboard button with Spectrum-style disabled/empty semantics and live copied announcements."
+            description="Copy-to-clipboard button with baseline-style disabled/empty semantics and live copied announcements."
         >
             <Playground title="Label + variant" code_signal=code>
                 <div class="docs-row">
@@ -2029,11 +2385,28 @@ pub(super) fn button_copy() -> AnyView {
                             variant=ButtonVariant::Outline
                         />
                         <ButtonCopy text="   ".to_string() label="Nothing to copy".to_string() />
-                        <ButtonCopy text="token".to_string() disabled=true />
+                        <ButtonCopy text="token".to_string() is_disabled=true />
                     </div>
                     <span class="ui-muted">
                         "Blank text and explicit disabled state both force non-copyable semantics."
                     </span>
+                </div>
+            </Playground>
+
+            <Playground title="Mode matrix" code_signal=modes_code>
+                <div class="docs-row">
+                    <ButtonCopy
+                        text="cargo add ui-components".to_string()
+                        mode=ButtonCopyMode::TextOnly
+                    />
+                    <ButtonCopy
+                        text="cargo add ui-components".to_string()
+                        mode=ButtonCopyMode::IconOnly
+                    />
+                    <ButtonCopy
+                        text="cargo add ui-components".to_string()
+                        mode=ButtonCopyMode::IconAndText
+                    />
                 </div>
             </Playground>
         </ComponentPage>
@@ -2073,7 +2446,7 @@ pub(super) fn flip_button() -> AnyView {
             title="FlipButton"
             slug="flip-button"
             group="Actions"
-            description="HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs."
+            description="baseline-level spring flip surface with centralized direction/interaction/class-source state attrs."
         >
             <Playground title="Top flip" code_signal=code>
                 <div class="docs-row">
@@ -2170,7 +2543,7 @@ pub(super) fn share_button() -> AnyView {
             title="ShareButton"
             slug="share-button"
             group="Actions"
-            description="Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion."
+            description="Flip-based share surface with centralized item/icon/handler state attrs and baseline-level spring motion."
         >
             <Playground title="Default + callback" code_signal=code>
                 <div class="docs-stack">
@@ -2371,7 +2744,7 @@ let open: Signal<bool> = Signal::derive(move || open_raw.get());
             title="ActionMenu"
             slug="action-menu"
             group="Actions"
-            description="ActionButton-triggered menu surface with Spectrum state/source data attrs and HeroUI-grade popover spring motion (controlled/uncontrolled + close strategy)."
+            description="ActionButton-triggered menu surface with baseline state/source data attrs and baseline-level popover spring motion (controlled/uncontrolled + close strategy)."
         >
             <Playground title="Default" code_signal=code>
                 <div class="docs-row">

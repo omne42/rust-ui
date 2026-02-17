@@ -53,7 +53,7 @@ pub(super) fn sidebar_trigger() -> AnyView {
             title="SidebarTrigger"
             slug="sidebar-trigger"
             group="Layout"
-            description="Shadcn-compatible sidebar trigger primitive with controlled/uncontrolled open state, Spectrum-style data contracts, and motion-ready state transitions."
+            description="baseline-compatible sidebar trigger primitive with controlled/uncontrolled open state, baseline-style data contracts, and motion-ready state transitions."
         >
             <Playground title="Default Trigger" code_signal=default_code>
                 <div class="docs-stack docs-stack--tight">

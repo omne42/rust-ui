@@ -53,7 +53,7 @@ fn keyboard_uses_logic_state_model() {
 }
 
 #[test]
-fn keyboard_emits_spectrum_style_state_data_attributes() {
+fn keyboard_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/keyboard/view.rs");
 
     for attr in [
@@ -67,7 +67,7 @@ fn keyboard_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Keyboard should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Keyboard should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

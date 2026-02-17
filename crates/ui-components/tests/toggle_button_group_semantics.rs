@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn toggle_button_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/toggle_button_group/mod.rs");
+    let source = load_source("src/button/toggle_button_group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn toggle_button_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn toggle_button_group_uses_logic_state_model() {
-    let view_source = load_source("src/toggle_button_group/view.rs");
-    let logic_source = load_source("src/toggle_button_group/logic.rs");
+    let view_source = load_source("src/button/toggle_button_group/view.rs");
+    let logic_source = load_source("src/button/toggle_button_group/logic.rs");
 
     for needle in [
         "pub struct ToggleButtonGroupState",
@@ -50,8 +50,8 @@ fn toggle_button_group_uses_logic_state_model() {
 }
 
 #[test]
-fn toggle_button_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/toggle_button_group/view.rs");
+fn toggle_button_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/button/toggle_button_group/view.rs");
 
     for attr in [
         "data-slot=\"toggle-button-group\"",
@@ -65,14 +65,14 @@ fn toggle_button_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ToggleButtonGroup should set `{attr}` to support Spectrum-style styling and state inspection."
+            "ToggleButtonGroup should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn toggle_button_group_defaults_accessible_group_label() {
-    let source = load_source("src/toggle_button_group/logic.rs");
+    let source = load_source("src/button/toggle_button_group/logic.rs");
 
     assert!(
         source.contains("\"Toggle group\".to_string()"),
@@ -82,7 +82,7 @@ fn toggle_button_group_defaults_accessible_group_label() {
 
 #[test]
 fn toggle_button_group_styles_define_attached_overlap_rule() {
-    let source = load_source("src/toggle_button_group/styles.rs");
+    let source = load_source("src/button/toggle_button_group/styles.rs");
 
     assert!(
         source.contains("--ui-toggle-button-group-border-overlap"),
@@ -98,7 +98,7 @@ fn toggle_button_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn toggle_button_group() -> AnyView",
         "title=\"ToggleButtonGroup\"",
         "slug=\"toggle-button-group\"",
-        "description=\"Layout wrapper with Spectrum-style root state attrs for orientation, attachment, and accessible labeling.\"",
+        "description=\"Layout wrapper with baseline-style root state attrs for orientation, attachment, and accessible labeling.\"",
         "<Playground",
         "title=\"Attached horizontal\"",
         "code_signal=code",

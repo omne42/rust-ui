@@ -165,7 +165,7 @@ fn action_menu_trigger_uses_action_button_with_overlay_aria_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "ActionMenu should wire its trigger via `{needle}` for Spectrum overlay semantics."
+            "ActionMenu should wire its trigger via `{needle}` for baseline overlay semantics."
         );
     }
 }
@@ -257,7 +257,7 @@ fn action_menu_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "ActionMenu motion contract should include `{needle}` for HeroUI-style spring customization."
+            "ActionMenu motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }

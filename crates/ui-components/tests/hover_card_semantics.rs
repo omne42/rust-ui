@@ -183,7 +183,7 @@ fn hover_card_motion_contract_exposes_default_and_customization_tests() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "HoverCard motion contract should include `{needle}` for HeroUI-style spring customization."
+            "HoverCard motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }

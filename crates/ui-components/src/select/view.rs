@@ -1,5 +1,5 @@
 use crate::select::{SelectMotion, logic};
-use crate::{Button, ListBox, OnPress, Popover};
+use crate::{OnPress, button::Button, list::List, popover::Popover};
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc, time::Duration};
 use ui_headless as overlay_open;
@@ -243,7 +243,7 @@ pub fn Select(
         >
             <Button
                 id=trigger_id.get_value()
-                disabled=trigger_disabled
+                is_disabled=trigger_disabled
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 aria_haspopup="listbox"
@@ -276,7 +276,7 @@ pub fn Select(
                                 matches!(focus, logic::SelectOpenFocusStrategy::Selected);
 
                             view! {
-                                <ListBox
+                                <List
                                     id_base=id_base.get_value()
                                     id=listbox_id.get_value()
                                     aria_labelledby=trigger_id.get_value()

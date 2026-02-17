@@ -18,7 +18,7 @@ fn theme_default_module_exports_default_theme_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "theme_default module should include `{needle}` for @react-spectrum/theme-default compatibility."
+            "theme_default module should include `{needle}` for @ui-baseline/theme-default compatibility."
         );
     }
 }
@@ -29,7 +29,7 @@ fn crate_root_registers_theme_default_module() {
 
     assert!(
         source.contains("pub mod theme_default;"),
-        "crate root should include `pub mod theme_default;` for @react-spectrum/theme-default compatibility."
+        "crate root should include `pub mod theme_default;` for @ui-baseline/theme-default compatibility."
     );
 }
 

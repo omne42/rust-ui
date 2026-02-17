@@ -46,7 +46,7 @@ pub(super) fn checkbox_field() -> AnyView {
             title="CheckboxField"
             slug="checkbox-field"
             group="Forms"
-            description="Spectrum/HeroUI-style checkbox field primitive with centralized tone/indicator/state derivation and stable slot/data-state markers."
+            description="baseline-style checkbox field primitive with centralized tone/indicator/state derivation and stable slot/data-state markers."
         >
             <Playground title="Controlled + Description" code_signal=code>
                 <div class="docs-stack">
@@ -142,7 +142,7 @@ pub(super) fn form_field() -> AnyView {
             title="FormField"
             slug="form-field"
             group="Forms"
-            description="Spectrum/HeroUI-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers."
+            description="baseline-style form field primitive that composes switch/checkbox indicators with centralized tone/placement/message state derivation and stable slot/data-state markers."
         >
             <Playground title="Switch Indicator + Description" code_signal=code>
                 <div class="docs-stack">
@@ -232,7 +232,7 @@ pub(super) fn legend() -> AnyView {
             title="Legend"
             slug="legend"
             group="Forms"
-            description="Spectrum/HeroUI-compatible fieldset legend primitive with centralized tone/required/disabled contracts and stable slot/data-state markers."
+            description="baseline-compatible fieldset legend primitive with centralized tone/required/disabled contracts and stable slot/data-state markers."
         >
             <Playground title="Required Legend" code_signal=required_code>
                 <fieldset class="docs-stack">

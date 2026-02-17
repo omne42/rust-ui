@@ -142,7 +142,7 @@ pub(super) fn sidebar_group() -> AnyView {
             title="SidebarGroup"
             slug="sidebar-group"
             group="Layout"
-            description="Shadcn-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, Spectrum-style data contracts, and motion-ready collapse behavior."
+            description="baseline-compatible sidebar group primitive with label/action header regions, controlled/uncontrolled collapsible state, baseline-style data contracts, and motion-ready collapse behavior."
         >
             <Playground title="Label + Group Action" code_signal=base_code>
                 <Sidebar

@@ -68,7 +68,7 @@ pub(super) fn sidebar_rail() -> AnyView {
             title="SidebarRail"
             slug="sidebar-rail"
             group="Layout"
-            description="Shadcn-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and Spectrum-style data markers."
+            description="baseline-compatible sidebar rail primitive with controlled/uncontrolled open state, side-aware contracts, and baseline-style data markers."
         >
             <Playground title="Default Rail" code_signal=default_code>
                 <div class="docs-stack docs-stack--tight">

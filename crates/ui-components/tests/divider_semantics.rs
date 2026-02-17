@@ -50,7 +50,7 @@ fn divider_uses_logic_state_model() {
 }
 
 #[test]
-fn divider_emits_spectrum_style_state_data_attributes() {
+fn divider_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/divider/view.rs");
 
     for attr in [
@@ -65,7 +65,7 @@ fn divider_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Divider should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Divider should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

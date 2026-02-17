@@ -81,7 +81,7 @@ fn radio_group_supports_accessible_name_resolution() {
     ] {
         assert!(
             view_source.contains(needle),
-            "RadioGroup should wire `{needle}` for Spectrum-style accessible naming."
+            "RadioGroup should wire `{needle}` for baseline-style accessible naming."
         );
     }
 
@@ -120,7 +120,7 @@ fn radio_group_exposes_state_and_orientation_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "RadioGroup should expose `{needle}` for Spectrum-style state styling and inspection."
+            "RadioGroup should expose `{needle}` for baseline-style state styling and inspection."
         );
     }
 }
@@ -203,7 +203,7 @@ fn radio_docs_page_covers_primary_playgrounds() {
         "pub(super) fn radio_group() -> AnyView",
         "title=\"RadioGroup\"",
         "slug=\"radio-group\"",
-        "description=\"Roving tabindex radiogroup with HeroUI-level spring motion and Spectrum-style root state attrs.\"",
+        "description=\"Roving tabindex radiogroup with baseline-level spring motion and baseline-style root state attrs.\"",
         "<Playground title=\"Selection + Root State\" code_signal=code>",
         "<Playground title=\"Horizontal + Disabled + Empty\" code_signal=states_code>",
         "pub(super) fn radio() -> AnyView",

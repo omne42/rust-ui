@@ -96,7 +96,7 @@ fn sidebar_menu_supports_controlled_and_uncontrolled_active_state() {
 }
 
 #[test]
-fn sidebar_menu_emits_spectrum_root_state_data_attributes() {
+fn sidebar_menu_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_menu/view.rs");
 
     for needle in [
@@ -166,7 +166,7 @@ fn sidebar_menu_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_menu() -> AnyView",
         "title=\"SidebarMenu\"",
         "slug=\"sidebar-menu\"",
-        "description=\"Shadcn-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, Spectrum-style data contracts, and HeroUI-level active-highlight motion.\"",
+        "description=\"baseline-compatible sidebar menu primitive with badges/actions/sub-items, controlled active-id flow, collapsible submenu behavior, baseline-style data contracts, and baseline-level active-highlight motion.\"",
         "<Playground title=\"Badge + Item Action\" code_signal=badge_code>",
         "<Playground title=\"Controlled + Collapsible Submenu\" code_signal=controlled_code>",
         "<SidebarMenu",

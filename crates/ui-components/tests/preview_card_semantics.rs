@@ -159,7 +159,7 @@ fn preview_card_motion_contract_exposes_default_and_customization_tests() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "PreviewCard motion contract should include `{needle}` for HeroUI-style spring customization."
+            "PreviewCard motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -249,7 +249,7 @@ fn preview_card_docs_page_covers_primary_playgrounds() {
         "pub(super) fn preview_card() -> AnyView",
         "title=\"PreviewCard\"",
         "slug=\"preview-card\"",
-        "description=\"Spectrum-compatible link preview popover with hover/focus trigger semantics, source-state markers, and HeroUI-level spring motion.\"",
+        "description=\"baseline-compatible link preview popover with hover/focus trigger semantics, source-state markers, and baseline-level spring motion.\"",
         "<Playground title=\"Basic Preview\" code_signal=code>",
         "title=\"State + Source Markers\"",
         "code_signal=markers_code",
@@ -269,15 +269,15 @@ fn preview_card_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Basic Preview\"",
-        "title=\"React Spectrum\".to_string()",
+        "title=\"UI Baseline\".to_string()",
         "description=\"Design system and component architecture documentation.\".to_string()",
-        "url=\"https://react-spectrum.adobe.com\".to_string()",
-        "image_src=\"https://react-spectrum.adobe.com/static/logo.png\".to_string()",
+        "url=\"https://ui-baseline.adobe.com\".to_string()",
+        "image_src=\"https://ui-baseline.adobe.com/static/logo.png\".to_string()",
         "title=\"State + Source Markers\"",
         "id=\"docs-preview-card\".to_string()",
         "title=\"Custom title\".to_string()",
         "description=\"Custom description for source markers.\".to_string()",
-        "url=\"https://github.com/adobe/react-spectrum\".to_string()",
+        "url=\"https://github.com/adobe/ui-baseline\".to_string()",
         "site_label=\"github.com\".to_string()",
         "open_delay_ms=260",
         "close_delay_ms=240",

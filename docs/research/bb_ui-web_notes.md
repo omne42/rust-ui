@@ -6,7 +6,7 @@
 - `/Users/zyp/code/personal/bb/packages/ui-web/COLORS.md`
 - `/Users/zyp/code/personal/bb/packages/ui-web/DOCS_EVOLUTION.md`
 
-> 这份笔记的目的：把“能落地的约束与接口”抽出来，映射到当前 `rust-ui` 的四层（core/headless/theme/components）上，避免空谈。
+> 这份笔记的目的：把“能落地的约束与接口”抽出来，映射到当前 `rust-ui` 的核心五层（state-primitives/headless/theme/motion/components）上，避免空谈。
 
 ## 1) ARCHITECTURE_ZH.md：对我们最重要的 5 件事
 
@@ -109,7 +109,7 @@
 
 对 `rust-ui` 的映射（Phase 3+）：
 
-- 新建 `apps/docs`（或 `apps/docs-site`）作为独立应用
+- 基于现有 `apps/docs-app` 继续演进独立文档应用能力
 - 文档的解析/渲染/props 表生成应在独立 crate/工具中完成
 
 ### 3.2 Example 沙盒隔离（避免污染）
@@ -143,6 +143,5 @@ P1（Phase 2+）：
 
 P2（Phase 3+）：
 
-5. 新建 docs app（`apps/docs`）与 example 沙盒隔离机制。
+5. 在 `apps/docs-app` 完成 example 沙盒隔离机制。
 6. 建立 props table 自动生成（脚本→JSON→渲染）链路。
-

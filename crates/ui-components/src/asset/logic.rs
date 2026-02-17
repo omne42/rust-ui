@@ -137,8 +137,11 @@ mod tests {
             DEFAULT_CUSTOM_LABEL
         );
         assert_eq!(
-            resolve_label(Some("  Hero Artwork  ".to_string()), AssetVariant::Custom),
-            "Hero Artwork"
+            resolve_label(
+                Some("  Featured Artwork  ".to_string()),
+                AssetVariant::Custom
+            ),
+            "Featured Artwork"
         );
     }
 

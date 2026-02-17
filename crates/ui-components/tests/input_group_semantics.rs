@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn input_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/input_group/mod.rs");
+    let source = load_source("src/input/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn input_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn input_group_uses_logic_state_model() {
-    let logic_source = load_source("src/input_group/logic.rs");
-    let view_source = load_source("src/input_group/view.rs");
+    let logic_source = load_source("src/input/group/logic.rs");
+    let view_source = load_source("src/input/group/view.rs");
 
     for needle in [
         "pub enum InputGroupPhase",
@@ -56,8 +56,8 @@ fn input_group_uses_logic_state_model() {
 }
 
 #[test]
-fn input_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/input_group/view.rs");
+fn input_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/input/group/view.rs");
 
     for attr in [
         "data-slot=\"input-group\"",
@@ -78,14 +78,14 @@ fn input_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "InputGroup should set `{attr}` to support Spectrum-style styling and state inspection."
+            "InputGroup should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn input_group_styles_define_attachment_and_state_contracts() {
-    let source = load_source("src/input_group/styles.rs");
+    let source = load_source("src/input/group/styles.rs");
 
     for selector in [
         ".ui-input-group--invalid .ui-input-group__control",
@@ -115,7 +115,7 @@ fn input_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn input_group() -> AnyView",
         "title=\"InputGroup\"",
         "slug=\"input-group\"",
-        "description=\"Composes one or more inputs with shared prefix/suffix addons and Spectrum-style state contracts.\"",
+        "description=\"Composes one or more inputs with shared prefix/suffix addons and baseline-style state contracts.\"",
         "<Playground title=\"Attached Addons\" code_signal=code>",
         "<Playground title=\"Detached + Disabled\" code_signal=states_code>",
         "<InputGroup",

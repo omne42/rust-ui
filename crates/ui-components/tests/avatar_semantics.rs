@@ -58,7 +58,7 @@ fn avatar_uses_logic_state_model() {
 }
 
 #[test]
-fn avatar_emits_spectrum_style_state_data_attributes() {
+fn avatar_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/avatar/view.rs");
 
     for attr in [
@@ -77,7 +77,7 @@ fn avatar_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Avatar should set `{attr}` to support Spectrum-style styling and state inspection."
+            "Avatar should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }

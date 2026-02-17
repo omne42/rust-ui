@@ -190,7 +190,7 @@ fn empty_docs_page_covers_primary_playgrounds() {
         "pub(super) fn empty() -> AnyView",
         "title=\"Empty\"",
         "slug=\"empty\"",
-        "description=\"Shadcn-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering.\"",
+        "description=\"baseline-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering.\"",
         "<Playground title=\"Header + Icon Variant\" code_signal=basic_code>",
         "<Playground title=\"Content Action Region\" code_signal=content_code>",
         "title=\"State + Source Markers\"",

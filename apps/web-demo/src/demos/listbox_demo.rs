@@ -1,15 +1,15 @@
 use leptos::prelude::*;
-use ui_components::ListBox;
+use ui_components::List;
 
 #[component]
 pub fn ListBoxDemo() -> impl IntoView {
     let (selected_index, set_selected_index) = signal(None::<usize>);
 
     view! {
-        <section id="listbox" class="demo-card">
-            <h2>"ListBox"</h2>
+        <section id="list" class="demo-card">
+            <h2>"List"</h2>
             <p>"Roving focus + aria-activedescendant semantics. Includes disabled item."</p>
-            <ListBox
+            <List
                 id_base="demo-listbox".to_string()
                 items=vec![
                     "First".to_string(),

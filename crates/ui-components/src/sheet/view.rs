@@ -22,7 +22,7 @@ pub fn Sheet(
     on_exit_complete: Option<Callback<()>>,
 ) -> impl IntoView {
     let registration = use_overlay_stack_registration();
-    use_modal(ModalOptions::enabled());
+    use_modal(ModalOptions::from_signal(open));
 
     let aria_labelledby = logic::normalize_optional_text(aria_labelledby);
     let aria_describedby = logic::normalize_optional_text(aria_describedby);

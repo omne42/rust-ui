@@ -56,7 +56,7 @@ fn swatch_motion_uses_spring_animator() {
 }
 
 #[test]
-fn swatch_motion_contract_defaults_match_heroui_level_expectations() {
+fn swatch_motion_contract_defaults_match_upstream_level_expectations() {
     let source = load_source("src/swatch/motion.rs");
 
     for needle in [
@@ -70,7 +70,7 @@ fn swatch_motion_contract_defaults_match_heroui_level_expectations() {
     ] {
         assert!(
             source.contains(needle),
-            "Swatch motion contract should include `{needle}` for HeroUI-level defaults and disabled-path stability."
+            "Swatch motion contract should include `{needle}` for baseline-level defaults and disabled-path stability."
         );
     }
 }
@@ -88,7 +88,7 @@ fn swatch_motion_sanitization_and_reduced_motion_paths_are_locked() {
     ] {
         assert!(
             source.contains(needle),
-            "Swatch motion implementation should include `{needle}` to avoid HeroUI-level motion regressions."
+            "Swatch motion implementation should include `{needle}` to avoid baseline-level motion regressions."
         );
     }
 }
@@ -185,7 +185,7 @@ fn swatch_docs_custom_motion_playground_locks_contract_values() {
         "..SwatchMotion::default()",
         "motion=custom_motion",
         "motion=SwatchMotion::disabled()",
-        "label=\"Hero motion\".to_string()",
+        "label=\"Featured motion\".to_string()",
         "label=\"Reduced motion\".to_string()",
     ] {
         assert!(
@@ -204,7 +204,7 @@ fn swatch_docs_page_covers_primary_playgrounds() {
         "pub(super) fn swatch() -> AnyView",
         "title=\"Swatch\"",
         "slug=\"swatch\"",
-        "description=\"Spectrum-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and HeroUI-grade spring selection motion.\"",
+        "description=\"baseline-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and baseline-level spring selection motion.\"",
         "<Playground title=\"Size + Shape + Rounding\" code_signal=size_code>",
         "<Playground title=\"Mixed + Nothing + Disabled + Controlled\" code_signal=state_code>",
         "<Playground title=\"Custom Motion Contract\" code_signal=motion_code>",

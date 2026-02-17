@@ -58,7 +58,7 @@ fn fieldset_uses_logic_state_model() {
 }
 
 #[test]
-fn fieldset_emits_spectrum_style_state_data_attributes() {
+fn fieldset_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/fieldset/view.rs");
 
     for attr in [
@@ -83,7 +83,7 @@ fn fieldset_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Fieldset should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Fieldset should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -121,7 +121,7 @@ fn fieldset_docs_page_covers_primary_playgrounds() {
         "pub(super) fn fieldset() -> AnyView",
         "title=\"Fieldset\"",
         "slug=\"fieldset\"",
-        "description=\"Spectrum/HeroUI-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts.\"",
+        "description=\"baseline-style fieldset primitive with centralized orientation/tone/validation/message/action-state modeling and stable data contracts.\"",
         "<Playground title=\"Legend + Description\" code_signal=default_code>",
         "<Playground title=\"Horizontal + Invalid + Actions\" code_signal=invalid_code>",
         "<Fieldset",

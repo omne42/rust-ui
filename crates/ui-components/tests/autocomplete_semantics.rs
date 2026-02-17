@@ -119,7 +119,7 @@ fn autocomplete_panel_is_portaled_and_uses_popover_positioning() {
     ] {
         assert!(
             source.contains(needle),
-            "Autocomplete panel should include `{needle}` for Spectrum-style popover behavior."
+            "Autocomplete panel should include `{needle}` for baseline-style popover behavior."
         );
     }
 }
@@ -137,7 +137,7 @@ fn autocomplete_panel_exposes_option_and_empty_state_slots() {
     ] {
         assert!(
             source.contains(needle),
-            "Autocomplete panel should expose `{needle}` for Spectrum-style state styling and deterministic tests."
+            "Autocomplete panel should expose `{needle}` for baseline-style state styling and deterministic tests."
         );
     }
 }
@@ -158,7 +158,7 @@ fn autocomplete_uses_presence_for_motion_safe_unmounting() {
 }
 
 #[test]
-fn autocomplete_emits_spectrum_style_state_data_attributes() {
+fn autocomplete_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/autocomplete/view.rs");
 
     for attr in [
@@ -203,7 +203,7 @@ fn autocomplete_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Autocomplete should set `{attr}` to support Spectrum-style styling and state inspection."
+            "Autocomplete should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -279,7 +279,7 @@ fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "Autocomplete motion contract should include `{needle}` for HeroUI-style spring customization."
+            "Autocomplete motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -315,7 +315,7 @@ fn autocomplete_docs_page_covers_primary_playgrounds() {
         "pub(super) fn autocomplete() -> AnyView",
         "title=\"Autocomplete\"",
         "slug=\"autocomplete\"",
-        "description=\"Combobox-like autocomplete with Spectrum-style root attrs, controlled/uncontrolled open state, and HeroUI-level active highlight motion.\"",
+        "description=\"Combobox-like autocomplete with baseline-style root attrs, controlled/uncontrolled open state, and baseline-level active highlight motion.\"",
         "<Playground title=\"Selection + Validation\" code_signal=code>",
         "<Playground title=\"Controlled Open State\" code_signal=controlled_code>",
         "<Playground title=\"Disabled + Empty\" code_signal=states_code>",

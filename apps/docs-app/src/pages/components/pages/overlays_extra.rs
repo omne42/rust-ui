@@ -108,7 +108,7 @@ pub(super) fn bottom_sheet() -> AnyView {
             title="BottomSheet"
             slug="bottom-sheet"
             group="Overlays"
-            description="Spectrum/HeroUI-style bottom sheet primitive composed from Sheet with centralized handle/description/footer/detached contracts and stable slot/data-state markers."
+            description="baseline-style bottom sheet primitive composed from Sheet with centralized handle/description/footer/detached contracts and stable slot/data-state markers."
         >
             <Playground title="Semantic Bottom Sheet" code_signal=semantic_code>
                 <div class="docs-row">
@@ -285,7 +285,7 @@ pub(super) fn tray() -> AnyView {
             title="Tray"
             slug="tray"
             group="Overlays"
-            description="Spectrum-compatible bottom tray primitive composed from Sheet with centralized description/footer/close/height contracts and stable slot/data-state markers."
+            description="baseline-compatible bottom tray primitive composed from Sheet with centralized description/footer/close/height contracts and stable slot/data-state markers."
         >
             <Playground title="Tray + Footer Actions" code_signal=semantic_code>
                 <div class="docs-row">
@@ -444,7 +444,7 @@ store.push_simple("Saved");"#
             title="Sonner"
             slug="sonner"
             group="Overlays"
-            description="Shadcn/HeroUI-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts."
+            description="baseline-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts."
         >
             <Playground title="Portal Queue + Variants" code_signal=basic_code>
                 <div class="docs-row">
@@ -594,7 +594,7 @@ store.push_simple("Synced");"#
             title="Toaster"
             slug="toaster"
             group="Overlays"
-            description="Shadcn-compatible toast host that composes Sonner/ToastViewport with centralized slot/queue/position/store source-state contracts and HeroUI-level spring motion handoff."
+            description="baseline-compatible toast host that composes Sonner/ToastViewport with centralized slot/queue/position/store source-state contracts and baseline-level spring motion handoff."
         >
             <Playground title="Portal Queue Host" code_signal=basic_code>
                 <div class="docs-row">
@@ -731,7 +731,7 @@ pub(super) fn underlay() -> AnyView {
             title="Underlay"
             slug="underlay"
             group="Overlays"
-            description="Spectrum-compatible full-viewport underlay primitive with centralized open/transparent/disabled/close source-state derivation and stable slot/data-state markers."
+            description="baseline-compatible full-viewport underlay primitive with centralized open/transparent/disabled/close source-state derivation and stable slot/data-state markers."
         >
             <Playground title="Scrim + Click To Close" code_signal=code>
                 <div class="docs-row">

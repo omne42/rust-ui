@@ -64,7 +64,7 @@ fn sidebar_footer_uses_logic_state_model() {
 }
 
 #[test]
-fn sidebar_footer_emits_spectrum_root_state_data_attributes() {
+fn sidebar_footer_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_footer/view.rs");
 
     for needle in [
@@ -142,7 +142,7 @@ fn sidebar_footer_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_footer() -> AnyView",
         "title=\"SidebarFooter\"",
         "slug=\"sidebar-footer\"",
-        "description=\"Shadcn-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and Spectrum-style data markers.\"",
+        "description=\"baseline-compatible sidebar footer region primitive with centralized border/disabled/source-state contracts and baseline-style data markers.\"",
         "<Playground title=\"Default Footer Region\" code_signal=default_code>",
         "<Playground title=\"Disabled + Custom Class\" code_signal=disabled_code>",
         "<SidebarFooter",

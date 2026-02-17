@@ -188,7 +188,7 @@ fn carousel_uses_active_highlight_motion_for_indicators() {
     ] {
         assert!(
             source.contains(needle),
-            "Carousel should compose indicator motion via `{needle}` for HeroUI-level feedback continuity."
+            "Carousel should compose indicator motion via `{needle}` for baseline-level feedback continuity."
         );
     }
 }

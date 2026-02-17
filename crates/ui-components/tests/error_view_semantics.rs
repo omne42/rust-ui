@@ -58,7 +58,7 @@ fn error_view_uses_logic_state_model() {
 }
 
 #[test]
-fn error_view_emits_spectrum_style_state_data_attributes() {
+fn error_view_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/error_view/view.rs");
 
     for attr in [
@@ -84,7 +84,7 @@ fn error_view_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ErrorView should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ErrorView should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -145,7 +145,7 @@ fn error_view_docs_page_covers_primary_playgrounds() {
         "pub(super) fn error_view() -> AnyView",
         "title=\"ErrorView\"",
         "slug=\"error-view\"",
-        "description=\"Spectrum/HeroUI-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers.\"",
+        "description=\"baseline-style validation error container with centralized visibility/content/source state contracts and spring-driven motion markers.\"",
         "<Playground title=\"Invalid Visibility\" code_signal=basic_code>",
         "<Playground title=\"Custom Content + Motion + Actions\" code_signal=state_code>",
         "<ErrorView",

@@ -3,8 +3,8 @@ use leptos::prelude::*;
 #[component]
 pub fn ArchitectureDemo() -> impl IntoView {
     view! {
-        <section id="architecture" class="demo-card demo-hero">
-            <h2>"Architecture (Spectrum-like layering)"</h2>
+        <section id="architecture" class="demo-card demo-featured">
+            <h2>"Architecture (token-layered layering)"</h2>
             <p>
                 "Rule of thumb: keep state pure, keep DOM behavior in headless hooks, keep visuals in components."
             </p>

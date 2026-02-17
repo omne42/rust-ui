@@ -212,7 +212,7 @@ fn icons_docs_page_covers_primary_playgrounds() {
         "pub(super) fn icons() -> AnyView",
         "title=\"Icons\"",
         "slug=\"icons\"",
-        "description=\"Spectrum-compatible `icons` package wrapper that maps medium/large scale and ui/workflow set selection onto IconsUi/IconsWorkflow with stable source-state contracts.\"",
+        "description=\"baseline-compatible `icons` package wrapper that maps medium/large scale and ui/workflow set selection onto IconsUi/IconsWorkflow with stable source-state contracts.\"",
         "<Playground title=\"Medium + Large Set Selection\" code_signal=default_code>",
         "<Playground title=\"Custom Workflow Glyph Extension\" code_signal=custom_code>",
         "title=\"State + Source Markers\"",

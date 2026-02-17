@@ -59,7 +59,7 @@ fn legend_uses_logic_state_model() {
 }
 
 #[test]
-fn legend_emits_spectrum_style_state_data_attributes() {
+fn legend_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/legend/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn legend_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Legend should expose `{attr}` for Spectrum-style state inspection and styling."
+            "Legend should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }

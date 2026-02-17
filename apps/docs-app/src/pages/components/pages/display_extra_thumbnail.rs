@@ -45,7 +45,7 @@ pub(super) fn thumbnail() -> AnyView {
   focused=true
   motion=custom_motion
 >
-  <img src="https://picsum.photos/480/320" alt="Hero motion contract" />
+  <img src="https://picsum.photos/480/320" alt="Featured motion contract" />
 </Thumbnail>
 <Thumbnail
   size=ThumbnailSize::Size600
@@ -69,7 +69,7 @@ pub(super) fn thumbnail() -> AnyView {
             title="Thumbnail"
             slug="thumbnail"
             group="Display"
-            description="Spectrum-compatible thumbnail primitive with size/background/cover/layer contracts and HeroUI-grade spring focus-selection motion."
+            description="baseline-compatible thumbnail primitive with size/background/cover/layer contracts and baseline-level spring focus-selection motion."
         >
             <Playground title="Sizes" code_signal=size_code>
                 <div class="docs-row">
@@ -107,7 +107,7 @@ pub(super) fn thumbnail() -> AnyView {
                         focused=true
                         motion=custom_motion
                     >
-                        <img src="https://picsum.photos/480/320" alt="Hero motion contract" />
+                        <img src="https://picsum.photos/480/320" alt="Featured motion contract" />
                     </Thumbnail>
                     <Thumbnail
                         size=ThumbnailSize::Size600

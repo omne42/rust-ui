@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_copy_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button_copy/mod.rs");
+    let source = load_source("src/button/copy/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn button_copy_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn button_copy_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/button_copy/mod.rs");
+    let module_source = load_source("src/button/copy/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -30,7 +30,7 @@ fn button_copy_is_exported_from_module_and_crate_root() {
         "button_copy module should export `ButtonCopy` and `ButtonCopyMotion`."
     );
     assert!(
-        crate_source.contains("pub use button_copy::{ButtonCopy, ButtonCopyMotion};"),
+        crate_source.contains("pub use button::copy::{ButtonCopy, ButtonCopyMotion};"),
         "crate root should re-export `ButtonCopy` and `ButtonCopyMotion` contracts."
     );
 }
@@ -40,7 +40,7 @@ fn button_copy_css_is_aggregated() {
     let source = load_source("src/css.rs");
 
     assert!(
-        source.contains("out.push_str(crate::button_copy::styles::CSS);"),
+        source.contains("out.push_str(crate::button::copy::styles::CSS);"),
         "ui-components css aggregator should include button_copy styles."
     );
 }
@@ -55,7 +55,8 @@ fn button_copy_docs_page_contains_playground_contracts() {
         "slug=\"button-copy\"",
         "Label + variant",
         "Disabled + empty matrix",
-        "Copy-to-clipboard button with Spectrum-style disabled/empty semantics and live copied announcements.",
+        "Mode matrix",
+        "Copy-to-clipboard button with baseline-style disabled/empty semantics and live copied announcements.",
         "<ButtonCopy",
     ] {
         assert!(
@@ -67,14 +68,17 @@ fn button_copy_docs_page_contains_playground_contracts() {
 
 #[test]
 fn button_copy_uses_logic_state_model() {
-    let view_source = load_source("src/button_copy/view.rs");
-    let logic_source = load_source("src/button_copy/logic.rs");
+    let view_source = load_source("src/button/copy/view.rs");
+    let logic_source = load_source("src/button/copy/logic.rs");
 
     for needle in [
         "pub struct ButtonCopyViewState",
+        "pub struct ButtonCopyTextContract",
+        "pub enum ButtonCopyMode",
         "pub is_copyable: bool",
         "pub has_custom_label: bool",
         "pub fn normalize_optional_text(",
+        "pub fn resolve_text_contract(",
         "pub fn resolve_view_state(",
         "pub fn compose_class_name(",
     ] {
@@ -85,8 +89,10 @@ fn button_copy_uses_logic_state_model() {
     }
 
     for needle in [
+        "#[prop(optional, default = logic::ButtonCopyMode::default())] mode: logic::ButtonCopyMode",
         "let label = logic::normalize_optional_text(label);",
         "let copied_label = logic::normalize_optional_text(copied_label);",
+        "logic::resolve_text_contract(label, copied_label, aria_label)",
         "let view_state = logic::resolve_view_state(",
         "let class = logic::compose_class_name(class_name, view_state);",
     ] {
@@ -99,7 +105,7 @@ fn button_copy_uses_logic_state_model() {
 
 #[test]
 fn button_copy_uses_snippet_logic_for_copy_behavior() {
-    let source = load_source("src/button_copy/view.rs");
+    let source = load_source("src/button/copy/view.rs");
 
     for needle in [
         "crate::snippet::logic::use_snippet_logic(text.clone())",
@@ -115,7 +121,7 @@ fn button_copy_uses_snippet_logic_for_copy_behavior() {
 
 #[test]
 fn button_copy_forwards_button_contract_and_disabled_semantics() {
-    let source = load_source("src/button_copy/view.rs");
+    let source = load_source("src/button/copy/view.rs");
 
     for needle in [
         "<Button",
@@ -123,7 +129,8 @@ fn button_copy_forwards_button_contract_and_disabled_semantics() {
         "size=size",
         "motion=motion.button",
         "aria_label=aria_label",
-        "disabled=!view_state.is_copyable",
+        "is_icon_only=view_state.is_icon_only",
+        "is_disabled=!view_state.is_copyable",
     ] {
         assert!(
             source.contains(needle),
@@ -133,12 +140,16 @@ fn button_copy_forwards_button_contract_and_disabled_semantics() {
 }
 
 #[test]
-fn button_copy_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/button_copy/view.rs");
+fn button_copy_emits_baseline_style_data_attributes() {
+    let source = load_source("src/button/copy/view.rs");
 
     for needle in [
         "data-slot=\"button-copy\"",
         "data-state=if view_state.is_copyable {",
+        "data-mode=view_state.mode_attr",
+        "data-icon-only=view_state.is_icon_only.then_some(\"true\")",
+        "data-with-icon=view_state.shows_icon.then_some(\"true\")",
+        "data-with-text=view_state.shows_text.then_some(\"true\")",
         "data-copyable=view_state.is_copyable.then_some(\"true\")",
         "data-disabled=view_state.is_disabled.then_some(\"true\")",
         "data-empty=(!view_state.has_text).then_some(\"true\")",
@@ -149,14 +160,14 @@ fn button_copy_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "ButtonCopy should expose `{needle}` for Spectrum-style state inspection."
+            "ButtonCopy should expose `{needle}` for baseline-style state inspection."
         );
     }
 }
 
 #[test]
 fn button_copy_announces_copy_result_for_assistive_tech() {
-    let source = load_source("src/button_copy/view.rs");
+    let source = load_source("src/button/copy/view.rs");
 
     for needle in [
         "data-slot=\"button-copy-status\"",
@@ -172,11 +183,13 @@ fn button_copy_announces_copy_result_for_assistive_tech() {
 
 #[test]
 fn button_copy_styles_include_motion_marker_contracts() {
-    let source = load_source("src/button_copy/styles.rs");
+    let source = load_source("src/button/copy/styles.rs");
 
     for selector in [
         ".ui-button-copy[data-motion-source=\"custom\"]",
         ".ui-button-copy[data-custom-motion=\"true\"]",
+        ".ui-button-copy[data-mode=\"icon-only\"] .ui-button-copy__button",
+        ".ui-button-copy[data-copied=\"true\"] .ui-button-copy__button",
     ] {
         assert!(
             source.contains(selector),
@@ -187,28 +200,31 @@ fn button_copy_styles_include_motion_marker_contracts() {
 
 #[test]
 fn button_copy_motion_contract_exposes_default_and_custom_tests() {
-    let source = load_source("src/button_copy/motion.rs");
+    let source = load_source("src/button/copy/motion.rs");
 
     for needle in [
         "pub struct ButtonCopyMotion",
+        "pub fn attach_motion(",
         "fn default_motion_matches_button_contract_defaults()",
         "fn supports_custom_button_motion_contract()",
     ] {
         assert!(
             source.contains(needle),
-            "ButtonCopy motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "ButtonCopy motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }
 
 #[test]
 fn button_copy_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/button_copy/motion.rs");
-    let view_source = load_source("src/button_copy/view.rs");
+    let motion_source = load_source("src/button/copy/motion.rs");
+    let view_source = load_source("src/button/copy/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ButtonCopyMotion) -> ButtonCopyMotion",
         "button: crate::button::motion::sanitize_motion(motion.button)",
+        "copied_feedback_spring: sanitize_spring(motion.copied_feedback_spring)",
+        "fn sanitize_motion_clamps_feedback_values()",
         "fn sanitize_motion_delegates_to_button_contract()",
     ] {
         assert!(
@@ -218,8 +234,12 @@ fn button_copy_motion_sanitizes_custom_contract_values() {
     }
 
     assert!(
-        view_source.contains("let motion = crate::button_copy::motion::sanitize_motion(motion);"),
+        view_source.contains("let motion = super::motion::sanitize_motion(motion);"),
         "ButtonCopy view should sanitize motion before forwarding to Button.",
+    );
+    assert!(
+        view_source.contains("super::motion::attach_motion(root_ref, logic.copied, motion);"),
+        "ButtonCopy should attach copied-feedback motion on wrapper state.",
     );
 }
 
@@ -256,7 +276,7 @@ fn button_copy_docs_state_matrix_playground_locks_contract_values() {
         "text=\"   \".to_string()",
         "label=\"Nothing to copy\".to_string()",
         "text=\"token\".to_string()",
-        "disabled=true",
+        "is_disabled=true",
         "Blank text and explicit disabled state both force non-copyable semantics.",
     ] {
         assert!(
@@ -276,6 +296,7 @@ fn button_copy_docs_page_covers_primary_playgrounds() {
         "slug=\"button-copy\"",
         "Label + variant",
         "Disabled + empty matrix",
+        "Mode matrix",
     ] {
         assert!(
             source.contains(needle),
@@ -294,9 +315,13 @@ fn button_copy_docs_playgrounds_lock_state_matrix_contract_values() {
         "label=\"Copy install command\".to_string()",
         "copied_label=\"Copied!\".to_string()",
         "<Playground title=\"Disabled + empty matrix\" code_signal=states_code>",
+        "<Playground title=\"Mode matrix\" code_signal=modes_code>",
         "text=\"   \".to_string()",
         "label=\"Nothing to copy\".to_string()",
-        "disabled=true",
+        "is_disabled=true",
+        "mode=ButtonCopyMode::TextOnly",
+        "mode=ButtonCopyMode::IconOnly",
+        "mode=ButtonCopyMode::IconAndText",
     ] {
         assert!(
             source.contains(needle),

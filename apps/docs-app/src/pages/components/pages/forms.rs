@@ -69,7 +69,7 @@ let (disabled_value, set_disabled_value) = signal(String::new());
             title="InputGroup"
             slug="input-group"
             group="Forms"
-            description="Composes one or more inputs with shared prefix/suffix addons and Spectrum-style state contracts."
+            description="Composes one or more inputs with shared prefix/suffix addons and baseline-style state contracts."
         >
             <Playground title="Attached Addons" code_signal=code>
                 <div class="docs-stack">
@@ -217,7 +217,7 @@ pub(super) fn input() -> AnyView {
             title="Input"
             slug="input"
             group="Forms"
-            description="Spectrum-style text input with label, description/error, and clear button."
+            description="baseline-style text input with label, description/error, and clear button."
         >
             <Playground title="Clearable + validation" code_signal=code>
                 <div class="docs-stack">
@@ -279,7 +279,7 @@ let (invalid, set_invalid) = signal(false);
             title="TextArea"
             slug="text-area"
             group="Forms"
-            description="Multiline text field with Spectrum-style semantics and explicit state/source marker contracts."
+            description="Multiline text field with baseline-style semantics and explicit state/source marker contracts."
         >
             <Playground
                 title="State + Source Markers"
@@ -403,7 +403,7 @@ pub(super) fn input_otp() -> AnyView {
             title="InputOtp"
             slug="input-otp"
             group="Forms"
-            description="HeroUI-style OTP input with a single hidden input and slot chrome."
+            description="baseline-style OTP input with a single hidden input and slot chrome."
         >
             <Playground title="OTP" code_signal=code>
                 <div class="docs-stack">
@@ -477,7 +477,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
             title="Checkbox"
             slug="checkbox"
             group="Forms"
-            description="Pressable checkbox with HeroUI-level spring indicator and Spectrum-style root state attrs."
+            description="Pressable checkbox with baseline-level spring indicator and baseline-style root state attrs."
         >
             <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
@@ -592,7 +592,7 @@ pub(super) fn checkbox_group() -> AnyView {
             title="CheckboxGroup"
             slug="checkbox-group"
             group="Forms"
-            description="Fieldset wrapper with normalized labels, validation semantics, and Spectrum-style root state attrs."
+            description="Fieldset wrapper with normalized labels, validation semantics, and baseline-style root state attrs."
         >
             <Playground title="Validation + Required" code_signal=code>
                 <div class="docs-stack">
@@ -740,7 +740,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
             title="Switch"
             slug="switch"
             group="Forms"
-            description="Switch toggle with HeroUI-level spring thumb motion and Spectrum-style root state attrs."
+            description="Switch toggle with baseline-level spring thumb motion and baseline-style root state attrs."
         >
             <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
@@ -854,7 +854,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             title="RadioGroup"
             slug="radio-group"
             group="Forms"
-            description="Roving tabindex radiogroup with HeroUI-level spring motion and Spectrum-style root state attrs."
+            description="Roving tabindex radiogroup with baseline-level spring motion and baseline-style root state attrs."
         >
             <Playground title="Selection + Root State" code_signal=code>
                 <div class="docs-stack">
@@ -1018,7 +1018,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             title="SegmentedControl"
             slug="segmented-control"
             group="Forms"
-            description="Segmented control with HeroUI-level indicator motion and Spectrum-style root state attrs."
+            description="Segmented control with baseline-level indicator motion and baseline-style root state attrs."
         >
             <Playground title="Selection + Root State" code_signal=code>
                 <div class="docs-stack">

@@ -25,7 +25,7 @@ fn text_field_supports_read_only() {
 
     assert!(
         source.contains("read_only: bool"),
-        "TextField should accept a `read_only` prop to match Spectrum-style text field contracts."
+        "TextField should accept a `read_only` prop to match baseline-style text field contracts."
     );
 
     assert!(
@@ -35,7 +35,7 @@ fn text_field_supports_read_only() {
 }
 
 #[test]
-fn text_field_emits_spectrum_style_state_data_attributes() {
+fn text_field_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/text_field/view.rs");
 
     for attr in [
@@ -58,7 +58,7 @@ fn text_field_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "TextField should set `{attr}` to support Spectrum-style styling and state inspection."
+            "TextField should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }

@@ -13,7 +13,7 @@ fn input_otp_uses_single_hidden_input_with_one_time_code_attributes() {
 
     assert!(
         source.contains("class=\"ui-input-otp__input\""),
-        "InputOtp should render a single hidden <input> (instead of N separate inputs) to match upstream OTP patterns."
+        "InputOtp should render a single hidden <input> (instead of N separate inputs) to match baseline OTP patterns."
     );
     assert!(
         source.contains("autocomplete=\"one-time-code\""),
@@ -43,7 +43,7 @@ fn input_otp_slots_are_hidden_from_screen_readers_and_track_active_state() {
     );
     assert!(
         source.contains("data-active"),
-        "InputOtp slots should expose `data-active` for active-slot styling (HeroUI parity)."
+        "InputOtp slots should expose `data-active` for active-slot styling (Upstream parity)."
     );
 }
 
@@ -57,7 +57,7 @@ fn input_otp_integrates_headless_hooks_for_behavior_and_field_semantics() {
     );
     assert!(
         source.contains("use_text_field"),
-        "InputOtp should integrate `use_text_field` to provide Spectrum-style aria-describedby/required/invalid wiring."
+        "InputOtp should integrate `use_text_field` to provide baseline-style aria-describedby/required/invalid wiring."
     );
     assert!(
         source.contains("use_focus_ring"),
@@ -75,7 +75,7 @@ fn input_otp_styles_define_caret_blink_and_focus_visible_outline() {
     );
     assert!(
         source.contains("@keyframes ui-input-otp-caret-blink"),
-        "InputOtp styles should define a caret blink animation (HeroUI parity)."
+        "InputOtp styles should define a caret blink animation (Upstream parity)."
     );
     assert!(
         source.contains("prefers-reduced-motion: reduce"),
@@ -99,7 +99,7 @@ fn input_otp_docs_page_covers_primary_playgrounds() {
         "pub(super) fn input_otp() -> AnyView",
         "title=\"InputOtp\"",
         "slug=\"input-otp\"",
-        "description=\"HeroUI-style OTP input with a single hidden input and slot chrome.\"",
+        "description=\"baseline-style OTP input with a single hidden input and slot chrome.\"",
         "<Playground title=\"OTP\" code_signal=code>",
         "<InputOtp",
     ] {

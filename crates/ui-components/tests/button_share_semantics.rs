@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_share_module_reexports_component_motion_and_types() {
-    let source = load_source("src/button_share/mod.rs");
+    let source = load_source("src/button/share/mod.rs");
 
     for needle in [
         "pub use logic::{ShareButtonIconPlacement, ShareButtonItem, SharePlatform};",
@@ -28,8 +28,8 @@ fn crate_root_registers_button_share_compatibility_exports() {
     let source = load_source("src/lib.rs");
 
     for needle in [
-        "pub mod button_share;",
-        "pub use button_share::{",
+        "pub mod button;",
+        "pub use button::share::{",
         "ShareButton, ShareButtonIconPlacement, ShareButtonItem, ShareButtonMotion, SharePlatform,",
     ] {
         assert!(
@@ -59,30 +59,30 @@ fn docs_actions_page_covers_share_button_playgrounds() {
 
 #[test]
 fn button_share_motion_contract_defaults_and_delegate_paths_are_locked() {
-    let source = load_source("src/button_share/motion.rs");
+    let source = load_source("src/button/share/motion.rs");
 
     for needle in [
         "pub struct ShareButtonMotion",
         "pub flip: FlipButtonMotion",
         "pub fn sanitize_motion(motion: ShareButtonMotion) -> ShareButtonMotion",
-        "flip: crate::button_flip::motion::sanitize_motion(motion.flip)",
+        "flip: super::super::flip::motion::sanitize_motion(motion.flip)",
         "fn default_motion_matches_flip_button_defaults()",
         "fn sanitize_motion_delegates_to_flip_button_contract()",
         "fn supports_custom_flip_motion_contract()",
     ] {
         assert!(
             source.contains(needle),
-            "share button motion should include `{needle}` for delegated HeroUI-grade flip contracts."
+            "share button motion should include `{needle}` for delegated baseline-level flip contracts."
         );
     }
 }
 
 #[test]
 fn button_share_view_wires_motion_sanitization_and_source_markers() {
-    let source = load_source("src/button_share/view.rs");
+    let source = load_source("src/button/share/view.rs");
 
     for needle in [
-        "let motion = crate::button_share::motion::sanitize_motion(motion);",
+        "let motion = super::motion::sanitize_motion(motion);",
         "motion=motion.flip",
         "data-motion-source=if motion == ShareButtonMotion::default()",
         "data-custom-motion=(motion != ShareButtonMotion::default()).then_some(\"true\")",
@@ -99,7 +99,7 @@ fn docs_actions_page_locks_share_button_motion_contract_narrative() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "description=\"Flip-based share surface with centralized item/icon/handler state attrs and HeroUI-grade spring motion.\"",
+        "description=\"Flip-based share surface with centralized item/icon/handler state attrs and baseline-level spring motion.\"",
         "from=FlipDirection::Left",
         "from=FlipDirection::Right",
     ] {

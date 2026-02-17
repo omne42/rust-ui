@@ -358,8 +358,8 @@ mod tests {
     #[test]
     fn id_base_and_aria_label_defaults_are_stable() {
         assert_eq!(
-            normalize_id_base("  hero-carousel  ".to_string()),
-            "hero-carousel"
+            normalize_id_base("  featured-carousel  ".to_string()),
+            "featured-carousel"
         );
         assert_eq!(normalize_id_base(" ".to_string()), DEFAULT_ID_BASE);
 
@@ -378,19 +378,19 @@ mod tests {
         let items = resolve_items(
             "docs-carousel",
             vec![
-                CarouselItem::new("Hero", "Hero"),
-                CarouselItem::new("Hero", " "),
+                CarouselItem::new("Featured", "Featured"),
+                CarouselItem::new("Featured", " "),
                 CarouselItem::new(" ", "Gallery"),
             ],
         );
 
         assert_eq!(items.len(), 3);
-        assert_eq!(items[0].id, "hero");
-        assert_eq!(items[1].id, "hero-2");
+        assert_eq!(items[0].id, "featured");
+        assert_eq!(items[1].id, "featured-2");
         assert_eq!(items[2].id, "slide-3");
         assert_eq!(items[1].title, "Slide 2");
-        assert_eq!(items[0].slide_dom_id, "docs-carousel-hero-slide");
-        assert_eq!(items[0].dot_dom_id, "docs-carousel-hero-dot");
+        assert_eq!(items[0].slide_dom_id, "docs-carousel-featured-slide");
+        assert_eq!(items[0].dot_dom_id, "docs-carousel-featured-dot");
     }
 
     #[test]

@@ -77,7 +77,7 @@ fn direction_docs_page_covers_primary_playgrounds() {
         "pub(super) fn direction_provider() -> AnyView",
         "title=\"DirectionProvider\"",
         "slug=\"direction-provider\"",
-        "description=\"Shadcn/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot + data-direction contracts.\"",
+        "description=\"baseline/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot + data-direction contracts.\"",
         "<Playground title=\"LTR Direction\" code_signal=ltr_code>",
         "<Playground title=\"RTL Direction + Class\" code_signal=rtl_code>",
         "<DirectionProvider",

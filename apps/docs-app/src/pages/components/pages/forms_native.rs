@@ -75,7 +75,7 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
             title="NativeSelect"
             slug="native-select"
             group="Forms"
-            description="Spectrum-style native `<select>` wrapper with controllable selection, root `data-*` contracts, and stable option normalization."
+            description="baseline-style native `<select>` wrapper with controllable selection, root `data-*` contracts, and stable option normalization."
         >
             <Playground title="Controlled + Placeholder" code_signal=code>
                 <div class="docs-stack docs-stack--tight">

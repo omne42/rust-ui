@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_search_input_module_reexports_component_and_motion() {
-    let source = load_source("src/button_search_input/mod.rs");
+    let source = load_source("src/button/search_input/mod.rs");
 
     for needle in [
         "pub use motion::SearchInputButtonMotion;",
@@ -27,8 +27,8 @@ fn crate_root_registers_button_search_input_compatibility_exports() {
     let source = load_source("src/lib.rs");
 
     for needle in [
-        "pub mod button_search_input;",
-        "pub use button_search_input::{SearchInputButton, SearchInputButtonMotion};",
+        "pub mod button;",
+        "pub use button::search_input::{SearchInputButton, SearchInputButtonMotion};",
     ] {
         assert!(
             source.contains(needle),
@@ -57,7 +57,7 @@ fn docs_actions_page_covers_search_input_button_playgrounds() {
 
 #[test]
 fn button_search_input_motion_contract_defaults_and_sanitize_paths_are_locked() {
-    let source = load_source("src/button_search_input/motion.rs");
+    let source = load_source("src/button/search_input/motion.rs");
 
     for needle in [
         "pub struct SearchInputButtonMotion",
@@ -74,14 +74,14 @@ fn button_search_input_motion_contract_defaults_and_sanitize_paths_are_locked() 
     ] {
         assert!(
             source.contains(needle),
-            "search input button motion should include `{needle}` for HeroUI-level spring contract stability."
+            "search input button motion should include `{needle}` for baseline-level spring contract stability."
         );
     }
 }
 
 #[test]
 fn button_search_input_view_wires_motion_and_source_markers() {
-    let source = load_source("src/button_search_input/view.rs");
+    let source = load_source("src/button/search_input/view.rs");
 
     for needle in [
         "motion::attach_motion(",
@@ -102,7 +102,7 @@ fn docs_actions_page_locks_search_input_motion_narrative() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "description=\"HeroUI-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
+        "description=\"baseline-level spring search trigger button with centralized placeholder/shortcut/aria-label state attrs.\"",
         "title=\"Interactive + shortcut\"",
         "title=\"Custom Class + Aria Label\"",
         "let meta_key_options = vec![",

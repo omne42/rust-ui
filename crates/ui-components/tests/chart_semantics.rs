@@ -110,7 +110,7 @@ fn chart_composes_active_highlight_motion_for_legend() {
 }
 
 #[test]
-fn chart_emits_spectrum_state_data_attributes() {
+fn chart_emits_baseline_state_data_attributes() {
     let source = load_source("src/chart/view.rs");
 
     for needle in [

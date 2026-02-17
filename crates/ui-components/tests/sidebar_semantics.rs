@@ -93,7 +93,7 @@ fn sidebar_supports_controlled_and_uncontrolled_open_state() {
 }
 
 #[test]
-fn sidebar_emits_spectrum_root_state_data_attributes() {
+fn sidebar_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar/view.rs");
 
     for needle in [
@@ -161,7 +161,7 @@ fn sidebar_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar() -> AnyView",
         r#"title="Sidebar""#,
         r#"slug="sidebar""#,
-        r#"description="Shadcn-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and Spectrum-style data markers.""#,
+        r#"description="baseline-compatible sidebar primitive with controlled/uncontrolled open state, side+variant+collapsible contracts, keyboard shortcut toggle, and baseline-style data markers.""#,
         r#"<Playground title="Offcanvas + Slot Markers" code_signal=basic_code>"#,
         r#"<Playground title="Controlled + Right Inset/Icon" code_signal=controlled_code>"#,
         "<Sidebar",

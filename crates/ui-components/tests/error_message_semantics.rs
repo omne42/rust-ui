@@ -58,7 +58,7 @@ fn error_message_uses_logic_state_model() {
 }
 
 #[test]
-fn error_message_emits_spectrum_style_state_data_attributes() {
+fn error_message_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/error_message/view.rs");
 
     for attr in [
@@ -75,7 +75,7 @@ fn error_message_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ErrorMessage should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ErrorMessage should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -113,7 +113,7 @@ fn error_message_docs_page_covers_primary_playgrounds() {
         "pub(super) fn error_message() -> AnyView",
         "title=\"ErrorMessage\"",
         "slug=\"error-message\"",
-        "description=\"Spectrum/HeroUI-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts.\"",
+        "description=\"baseline-style inline error primitive with centralized tone/disabled/truncate/source normalization and stable slot/data contracts.\"",
         "<Playground title=\"Tone Variants\" code_signal=tone_code>",
         "<Playground title=\"Truncate + Disabled + Element + Custom Class\" code_signal=state_code>",
         "<ErrorMessage",

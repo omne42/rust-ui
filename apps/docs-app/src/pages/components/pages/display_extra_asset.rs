@@ -20,7 +20,7 @@ pub(super) fn asset() -> AnyView {
         r#"<Asset
   variant=AssetVariant::Custom
   size=AssetSize::Size800
-  label=\"Hero Artwork\".to_string()
+  label=\"Featured Artwork\".to_string()
   selected=true
   focused=true
   class_name=\"docs-asset-state\".to_string()
@@ -35,7 +35,7 @@ pub(super) fn asset() -> AnyView {
             title="Asset"
             slug="asset"
             group="Display"
-            description="Spectrum-compatible Asset primitive for file/folder/custom media representation, composed on Thumbnail state contracts with HeroUI-level spring focus-selection motion reuse."
+            description="baseline-compatible Asset primitive for file/folder/custom media representation, composed on Thumbnail state contracts with baseline-level spring focus-selection motion reuse."
         >
             <Playground title="File + Folder Variants" code_signal=variant_code>
                 <div class="docs-row">
@@ -60,13 +60,13 @@ pub(super) fn asset() -> AnyView {
 
             <Playground
                 title="State + Source Markers"
-                description="Inspect `data-state`, `data-label-source`, `data-content-source`, and `data-class-source` on the Asset root for Spectrum-compatible style/source contracts."
+                description="Inspect `data-state`, `data-label-source`, `data-content-source`, and `data-class-source` on the Asset root for baseline-compatible style/source contracts."
                 code_signal=state_code
             >
                 <Asset
                     variant=AssetVariant::Custom
                     size=AssetSize::Size800
-                    label="Hero Artwork".to_string()
+                    label="Featured Artwork".to_string()
                     selected=true
                     focused=true
                     class_name="docs-asset-state".to_string()

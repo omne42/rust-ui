@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn toggle_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/toggle/mod.rs");
+    let source = load_source("src/button/toggle/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn toggle_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn toggle_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/toggle/mod.rs");
+    let module_source = load_source("src/button/toggle/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -33,14 +33,15 @@ fn toggle_is_exported_from_module_and_crate_root() {
         "toggle module should expose `ToggleStateInput` contract."
     );
     assert!(
-        crate_source.contains("pub use toggle::{Toggle, ToggleMotion, ToggleSize, ToggleVariant};"),
+        crate_source
+            .contains("pub use button::toggle::{Toggle, ToggleMotion, ToggleSize, ToggleVariant};"),
         "crate root should re-export toggle types."
     );
 }
 
 #[test]
 fn toggle_logic_exposes_state_helpers() {
-    let source = load_source("src/toggle/logic.rs");
+    let source = load_source("src/button/toggle/logic.rs");
 
     for needle in [
         "pub fn state_attr_for_selected(selected: bool)",
@@ -60,7 +61,7 @@ fn toggle_logic_exposes_state_helpers() {
 
 #[test]
 fn toggle_view_contains_press_and_state_contracts() {
-    let source = load_source("src/toggle/view.rs");
+    let source = load_source("src/button/toggle/view.rs");
 
     for needle in [
         "logic::normalize_optional_text(class_name)",
@@ -99,7 +100,7 @@ fn toggle_view_contains_press_and_state_contracts() {
 
 #[test]
 fn toggle_css_contains_expected_state_and_source_selectors() {
-    let css = load_source("src/toggle/styles.rs");
+    let css = load_source("src/button/toggle/styles.rs");
 
     for needle in [
         ".ui-toggle {",
@@ -129,7 +130,7 @@ fn toggle_css_is_aggregated() {
     let source = load_source("src/css.rs");
 
     assert!(
-        source.contains("out.push_str(crate::toggle::styles::CSS);"),
+        source.contains("out.push_str(crate::button::toggle::styles::CSS);"),
         "ui-components css aggregator should include toggle styles."
     );
 }

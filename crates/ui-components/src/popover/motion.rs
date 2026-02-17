@@ -214,7 +214,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_motion_matches_heroui_style_spring_contract() {
+    fn default_motion_matches_upstream_style_spring_contract() {
         let motion = PopoverMotion::default();
 
         assert_eq!(motion.spring.stiffness, 300.0);

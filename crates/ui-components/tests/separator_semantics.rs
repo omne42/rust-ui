@@ -50,7 +50,7 @@ fn separator_uses_logic_state_model() {
 }
 
 #[test]
-fn separator_emits_spectrum_style_state_data_attributes() {
+fn separator_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/separator/view.rs");
 
     for attr in [
@@ -68,7 +68,7 @@ fn separator_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Separator should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Separator should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

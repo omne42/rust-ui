@@ -173,8 +173,8 @@ mod tests {
             Some("docs-aspect-ratio".to_string())
         );
 
-        let (custom_label, is_custom) = normalize_aria_label(Some("  Hero  ".to_string()));
-        assert_eq!(custom_label, "Hero");
+        let (custom_label, is_custom) = normalize_aria_label(Some("  Featured  ".to_string()));
+        assert_eq!(custom_label, "Featured");
         assert!(is_custom);
 
         let (fallback_label, is_custom) = normalize_aria_label(Some(" ".to_string()));

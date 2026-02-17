@@ -4,7 +4,7 @@
 
 ## 优先级
 
-在文档系统中，规格层优先级低于 `docs/RULES_ZH.md`，高于调研层文档。
+在文档系统中，规格层优先级低于 `docs/philosophy.md` 与 `docs/RULES_ZH.md`，高于调研层文档。
 
 ## 当前文件
 

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button_group/mod.rs");
+    let source = load_source("src/button/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn button_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn button_group_uses_logic_state_model() {
-    let view_source = load_source("src/button_group/view.rs");
-    let logic_source = load_source("src/button_group/logic.rs");
+    let view_source = load_source("src/button/group/view.rs");
+    let logic_source = load_source("src/button/group/logic.rs");
 
     for needle in [
         "pub struct ButtonGroupState",
@@ -50,8 +50,8 @@ fn button_group_uses_logic_state_model() {
 }
 
 #[test]
-fn button_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/button_group/view.rs");
+fn button_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/button/group/view.rs");
 
     for attr in [
         "data-slot=\"button-group\"",
@@ -65,14 +65,14 @@ fn button_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ButtonGroup should set `{attr}` to support Spectrum-style styling and state inspection."
+            "ButtonGroup should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn button_group_defaults_accessible_group_label() {
-    let source = load_source("src/button_group/logic.rs");
+    let source = load_source("src/button/group/logic.rs");
 
     assert!(
         source.contains("\"Button group\".to_string()"),
@@ -82,7 +82,7 @@ fn button_group_defaults_accessible_group_label() {
 
 #[test]
 fn button_group_styles_define_attached_overlap_rule() {
-    let source = load_source("src/button_group/styles.rs");
+    let source = load_source("src/button/group/styles.rs");
 
     assert!(
         source.contains("--ui-button-group-border-overlap"),
@@ -98,7 +98,7 @@ fn button_group_docs_page_covers_playground_contracts() {
         "pub(super) fn button_group() -> AnyView",
         "title=\"ButtonGroup\"",
         "slug=\"button-group\"",
-        "description=\"Groups Buttons with Spectrum-style root state attrs for orientation, attachment, and accessible labeling.\"",
+        "description=\"Groups Buttons with baseline-style root state attrs for orientation, attachment, and accessible labeling.\"",
         "<Playground title=\"Attached horizontal\" code_signal=code>",
         "<Playground title=\"Vertical + detached\" code_signal=states_code>",
         "<ButtonGroup",
@@ -125,7 +125,7 @@ fn button_group_docs_attached_and_vertical_playgrounds_lock_contract_values() {
         "\"left/middle/right clicks: \"",
         "orientation=ButtonGroupOrientation::Horizontal",
         "aria_label=\"Document actions\".to_string()",
-        "<Button variant=ButtonVariant::Outline disabled=true>",
+        "<Button variant=ButtonVariant::Outline is_disabled=true>",
         "\"top/bottom clicks: \"",
         "{move || format!(\"{}/{}\", top_count.get(), bottom_count.get())}",
     ] {
@@ -166,7 +166,7 @@ fn button_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "attached=false",
         "orientation=ButtonGroupOrientation::Vertical",
         "aria_label=\"Document actions\".to_string()",
-        "<Button variant=ButtonVariant::Outline disabled=true>",
+        "<Button variant=ButtonVariant::Outline is_disabled=true>",
         "\"top/bottom clicks: \"",
     ] {
         assert!(

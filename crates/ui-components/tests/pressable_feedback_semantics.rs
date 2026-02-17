@@ -57,7 +57,7 @@ fn pressable_feedback_uses_logic_state_model() {
 }
 
 #[test]
-fn pressable_feedback_emits_spectrum_style_state_data_attributes() {
+fn pressable_feedback_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/pressable_feedback/view.rs");
 
     for attr in [
@@ -80,7 +80,7 @@ fn pressable_feedback_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "PressableFeedback should expose `{attr}` for Spectrum-style styling and state inspection."
+            "PressableFeedback should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -138,7 +138,7 @@ fn pressable_feedback_docs_page_covers_primary_playgrounds() {
         "pub(super) fn pressable_feedback() -> AnyView",
         "title=\"PressableFeedback\"",
         "slug=\"pressable-feedback\"",
-        "description=\"HeroUI-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition.\"",
+        "description=\"baseline-style press feedback container with centralized effect/tone/boundary/source contracts, spring-driven scale/highlight motion, and optional ripple composition.\"",
         "<Playground title=\"Scale + Highlight\" code_signal=basic_code>",
         "<Playground title=\"Highlight + Ripple + Custom Motion\" code_signal=custom_code>",
         "<PressableFeedback",

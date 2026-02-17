@@ -16,7 +16,7 @@ pub fn SelectDemo() -> impl IntoView {
     view! {
         <section id="select" class="demo-card">
             <h2>"Select"</h2>
-            <p>"Composition: Button → Popover → ListBox → select/close. Includes disabled item + typeahead."</p>
+            <p>"Composition: Button → Popover → List → select/close. Includes disabled item + typeahead."</p>
 
             <div class="demo-row">
                 <Select

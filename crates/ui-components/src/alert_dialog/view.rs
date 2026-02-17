@@ -391,7 +391,7 @@ pub fn AlertDialog(
                         >
                             <Button
                                 variant=ButtonVariant::Secondary
-                                disabled=false
+                                is_disabled=false
                                 node_ref=cancel_ref
                                 on_press=on_cancel_press
                             >
@@ -408,7 +408,7 @@ pub fn AlertDialog(
                         >
                             <Button
                                 variant=ButtonVariant::Secondary
-                                disabled=secondary_disabled
+                                is_disabled=secondary_disabled
                                 node_ref=secondary_ref
                                 on_press=on_secondary_press
                             >
@@ -424,7 +424,7 @@ pub fn AlertDialog(
                     >
                         <Button
                             variant=confirm_variant
-                            disabled=confirm_disabled
+                            is_disabled=confirm_disabled
                             node_ref=confirm_ref
                             on_press=on_confirm_press
                         >

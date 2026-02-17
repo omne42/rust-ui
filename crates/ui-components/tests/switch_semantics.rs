@@ -74,7 +74,7 @@ fn switch_attaches_thumb_motion_driver() {
 }
 
 #[test]
-fn switch_emits_spectrum_style_state_data_attributes() {
+fn switch_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/switch/view.rs");
 
     for attr in [
@@ -91,7 +91,7 @@ fn switch_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Switch should set `{attr}` to support Spectrum-style styling and state inspection."
+            "Switch should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -149,7 +149,7 @@ fn switch_docs_page_covers_primary_playgrounds() {
         "pub(super) fn switch() -> AnyView",
         "title=\"Switch\"",
         "slug=\"switch\"",
-        "description=\"Switch toggle with HeroUI-level spring thumb motion and Spectrum-style root state attrs.\"",
+        "description=\"Switch toggle with baseline-level spring thumb motion and baseline-style root state attrs.\"",
         "<Playground title=\"Controlled + on_change\" code_signal=code>",
         "<Playground title=\"State matrix\" code_signal=states_code>",
         "<Switch",

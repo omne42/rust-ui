@@ -86,7 +86,7 @@ fn link_supports_disabled_semantics_without_navigation() {
 }
 
 #[test]
-fn link_emits_spectrum_style_data_attributes() {
+fn link_emits_baseline_style_data_attributes() {
     let source = load_source("src/link/view.rs");
 
     for needle in [
@@ -102,7 +102,7 @@ fn link_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "Link should include `{needle}` for Spectrum-style state inspection."
+            "Link should include `{needle}` for baseline-style state inspection."
         );
     }
 }

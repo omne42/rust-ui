@@ -56,7 +56,7 @@ fn color_picker_uses_logic_state_model() {
 }
 
 #[test]
-fn color_picker_exposes_spectrum_style_data_markers() {
+fn color_picker_exposes_baseline_style_data_markers() {
     let source = load_source("src/color_picker/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn color_picker_exposes_spectrum_style_data_markers() {
     ] {
         assert!(
             source.contains(attr),
-            "ColorPicker should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ColorPicker should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -119,7 +119,7 @@ fn color_picker_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "ColorPicker motion contract should include `{needle}` for HeroUI-style spring customization."
+            "ColorPicker motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }

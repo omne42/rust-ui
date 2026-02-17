@@ -19,7 +19,7 @@ pub fn ButtonDemo() -> impl IntoView {
             <p>"Pointer + keyboard press handling, disabled semantics, focus-visible outline."</p>
             <div class="demo-row">
                 <Button on_press=on_press>"Press Me"</Button>
-                <Button disabled=true>"Disabled"</Button>
+                <Button is_disabled=true>"Disabled"</Button>
                 <span class="demo-kv">"count: " {count}</span>
             </div>
             <div class="demo-divider"></div>

@@ -82,13 +82,13 @@ fn dropdown_menu_trigger_wires_overlay_aria_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "DropdownMenu should wire `{needle}` to match Spectrum overlay trigger semantics."
+            "DropdownMenu should wire `{needle}` to match baseline overlay trigger semantics."
         );
     }
 }
 
 #[test]
-fn dropdown_menu_emits_spectrum_root_state_data_attributes() {
+fn dropdown_menu_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/dropdown_menu/view.rs");
 
     for needle in [
@@ -113,7 +113,7 @@ fn dropdown_menu_emits_spectrum_root_state_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "DropdownMenu should set `{needle}` so it can be styled/tested with Spectrum-compatible root state selectors."
+            "DropdownMenu should set `{needle}` so it can be styled/tested with baseline-compatible root state selectors."
         );
     }
 }
@@ -195,7 +195,7 @@ fn dropdown_menu_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "DropdownMenu motion contract should include `{needle}` for HeroUI-style spring customization."
+            "DropdownMenu motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -230,7 +230,7 @@ fn dropdown_menu_docs_page_covers_primary_playgrounds() {
         "pub(super) fn dropdown_menu() -> AnyView",
         "title=\"DropdownMenu\"",
         "slug=\"dropdown-menu\"",
-        "description=\"Button trigger that opens a Menu in a Popover with Spectrum-style root attrs, controlled/uncontrolled state, and persistent-open action handling.\"",
+        "description=\"Button trigger that opens a Menu in a Popover with baseline-style root attrs, controlled/uncontrolled state, and persistent-open action handling.\"",
         "<Playground title=\"Default\" code_signal=code>",
         "<Playground title=\"Controlled + Persistent Open\" code_signal=controlled_code>",
         "<Playground title=\"Disabled + Empty\" code_signal=disabled_code>",

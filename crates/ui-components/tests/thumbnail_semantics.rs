@@ -85,7 +85,7 @@ fn thumbnail_motion_uses_spring_animator() {
 }
 
 #[test]
-fn thumbnail_motion_contract_defaults_match_heroui_level_expectations() {
+fn thumbnail_motion_contract_defaults_match_upstream_level_expectations() {
     let source = load_source("src/thumbnail/motion.rs");
 
     for needle in [
@@ -99,7 +99,7 @@ fn thumbnail_motion_contract_defaults_match_heroui_level_expectations() {
     ] {
         assert!(
             source.contains(needle),
-            "Thumbnail motion contract should include `{needle}` for HeroUI-level defaults and disabled-path stability."
+            "Thumbnail motion contract should include `{needle}` for baseline-level defaults and disabled-path stability."
         );
     }
 }
@@ -117,7 +117,7 @@ fn thumbnail_motion_sanitization_and_reduced_motion_paths_are_locked() {
     ] {
         assert!(
             source.contains(needle),
-            "Thumbnail motion implementation should include `{needle}` to avoid HeroUI-level motion regressions."
+            "Thumbnail motion implementation should include `{needle}` to avoid baseline-level motion regressions."
         );
     }
 }
@@ -213,7 +213,7 @@ fn thumbnail_docs_custom_motion_playground_locks_contract_values() {
         "..ThumbnailMotion::default()",
         "motion=custom_motion",
         "motion=ThumbnailMotion::disabled()",
-        "alt=\"Hero motion contract\"",
+        "alt=\"Featured motion contract\"",
         "alt=\"Reduced motion contract\"",
     ] {
         assert!(

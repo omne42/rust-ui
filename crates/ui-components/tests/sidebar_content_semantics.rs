@@ -64,7 +64,7 @@ fn sidebar_content_uses_logic_state_model() {
 }
 
 #[test]
-fn sidebar_content_emits_spectrum_root_state_data_attributes() {
+fn sidebar_content_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_content/view.rs");
 
     for needle in [
@@ -147,7 +147,7 @@ fn sidebar_content_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_content() -> AnyView",
         "title=\"SidebarContent\"",
         "slug=\"sidebar-content\"",
-        "description=\"Shadcn-compatible sidebar content region primitive with centralized padding/scroll/state contracts and Spectrum-style data markers.\"",
+        "description=\"baseline-compatible sidebar content region primitive with centralized padding/scroll/state contracts and baseline-style data markers.\"",
         "<Playground title=\"Default Scrollable Content\" code_signal=default_code>",
         "<Playground title=\"Compact + Static + Custom\" code_signal=compact_code>",
         "<SidebarContent",

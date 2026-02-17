@@ -66,7 +66,7 @@ fn sidebar_menu_action_uses_logic_state_model() {
 }
 
 #[test]
-fn sidebar_menu_action_emits_spectrum_root_state_data_attributes() {
+fn sidebar_menu_action_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_menu_action/view.rs");
 
     for needle in [
@@ -142,7 +142,7 @@ fn sidebar_menu_action_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_menu_action() -> AnyView",
         "title=\"SidebarMenuAction\"",
         "slug=\"sidebar-menu-action\"",
-        "description=\"Shadcn-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts.\"",
+        "description=\"baseline-compatible sidebar menu action primitive with centralized visibility/disabled/source-state normalization and stable data-marker contracts.\"",
         "<Playground title=\"Default Hover-Only Action\" code_signal=default_code>",
         "<Playground title=\"Always Visible + Disabled + Custom\" code_signal=always_visible_code>",
         "<SidebarMenuAction",

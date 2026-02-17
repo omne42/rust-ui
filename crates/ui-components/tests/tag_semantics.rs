@@ -54,7 +54,7 @@ fn tag_uses_logic_state_model() {
 }
 
 #[test]
-fn tag_emits_spectrum_style_state_data_attributes() {
+fn tag_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/tag/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn tag_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Tag should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Tag should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

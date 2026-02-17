@@ -117,7 +117,7 @@ fn tooltip_uses_headless_trigger_and_position_hooks() {
     for needle in ["use_tooltip_trigger", "use_tooltip_position"] {
         assert!(
             source.contains(needle),
-            "Tooltip should use headless `{needle}` hooks for Spectrum-style behavior and positioning."
+            "Tooltip should use headless `{needle}` hooks for baseline-style behavior and positioning."
         );
     }
 }
@@ -149,7 +149,7 @@ fn tooltip_manages_aria_describedby_on_the_focused_element() {
     ] {
         assert!(
             source.contains(needle),
-            "Tooltip should manage `aria-describedby` on the focused element via `{needle}` (Spectrum parity)."
+            "Tooltip should manage `aria-describedby` on the focused element via `{needle}` (baseline parity)."
         );
     }
 }
@@ -227,7 +227,7 @@ fn tooltip_motion_contract_exposes_default_and_custom_test_coverage() {
     ] {
         assert!(
             source.contains(needle),
-            "Tooltip motion contract should include `{needle}` for HeroUI-style regression coverage."
+            "Tooltip motion contract should include `{needle}` for baseline-style regression coverage."
         );
     }
 }

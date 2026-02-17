@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn action_button_group_does_not_expose_logic_module() {
-    let source = load_source("src/action_button_group/mod.rs");
+    let source = load_source("src/button/action/mod.rs");
 
     assert!(
         !source.contains("pub mod logic"),
@@ -19,8 +19,8 @@ fn action_button_group_does_not_expose_logic_module() {
 
 #[test]
 fn action_button_group_uses_logic_state_model() {
-    let view_source = load_source("src/action_button_group/view.rs");
-    let logic_source = load_source("src/action_button_group/logic.rs");
+    let view_source = load_source("src/button/action/view.rs");
+    let logic_source = load_source("src/button/action/logic.rs");
 
     for needle in [
         "pub struct ActionButtonGroupState",
@@ -37,10 +37,11 @@ fn action_button_group_uses_logic_state_model() {
     }
 
     for needle in [
-        "let class_name = logic::normalize_optional_text(class_name);",
-        "let (aria_label, has_explicit_label) = logic::normalize_aria_label(aria_label);",
-        "let state = logic::resolve_state(",
-        "let class = logic::compose_class_name(class_name, state);",
+        "let class_name = action_logic::action_button_group_logic::normalize_optional_text(class_name);",
+        "let (aria_label, has_explicit_label) =",
+        "action_logic::action_button_group_logic::normalize_aria_label(aria_label);",
+        "let state = action_logic::action_button_group_logic::resolve_state(",
+        "let class = action_logic::action_button_group_logic::compose_class_name(class_name, state);",
     ] {
         assert!(
             view_source.contains(needle),
@@ -51,7 +52,7 @@ fn action_button_group_uses_logic_state_model() {
 
 #[test]
 fn action_button_group_provides_context_for_child_buttons() {
-    let source = load_source("src/action_button_group/view.rs");
+    let source = load_source("src/button/action/view.rs");
 
     for needle in ["provide_context", "ActionButtonGroupContextValue"] {
         assert!(
@@ -63,7 +64,7 @@ fn action_button_group_provides_context_for_child_buttons() {
 
 #[test]
 fn action_button_group_emits_toolbar_semantics_and_state_attributes() {
-    let source = load_source("src/action_button_group/view.rs");
+    let source = load_source("src/button/action/view.rs");
 
     for needle in [
         "data-slot=\"action-button-group\"",
@@ -88,14 +89,14 @@ fn action_button_group_emits_toolbar_semantics_and_state_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "ActionButtonGroup should set `{needle}` to align with Spectrum toolbar semantics and enable state-driven styling."
+            "ActionButtonGroup should set `{needle}` to align with baseline toolbar semantics and enable state-driven styling."
         );
     }
 }
 
 #[test]
 fn action_button_group_defaults_accessible_toolbar_label() {
-    let source = load_source("src/action_button_group/logic.rs");
+    let source = load_source("src/button/action/logic.rs");
 
     assert!(
         source.contains("\"Action button group\".to_string()"),
@@ -105,7 +106,7 @@ fn action_button_group_defaults_accessible_toolbar_label() {
 
 #[test]
 fn action_button_group_styles_include_density_and_disabled_markers() {
-    let source = load_source("src/action_button_group/styles.rs");
+    let source = load_source("src/button/action/styles.rs");
 
     for needle in [
         ".ui-action-button-group--density-regular",
@@ -127,7 +128,7 @@ fn action_button_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn action_button_group() -> AnyView",
         "title=\"ActionButtonGroup\"",
         "slug=\"action-button-group\"",
-        "description=\"Toolbar-style action clusters with Spectrum state attrs for orientation, density, quiet/filled, and enablement.\"",
+        "description=\"Toolbar-style action clusters with baseline state attrs for orientation, density, quiet/filled, and enablement.\"",
         "<Playground title=\"Default + compact\" code_signal=code>",
         "<Playground title=\"Vertical + justified + disabled\" code_signal=states_code>",
         "<ActionButtonGroup",
@@ -159,7 +160,7 @@ fn action_button_group_docs_playgrounds_lock_state_matrix_contract_values() {
         "aria_label=\"Vertical actions\".to_string()",
         "<ActionButton>\"Middle\"</ActionButton>",
         "aria_label=\"Disabled actions\".to_string()",
-        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for Spectrum-level styling contracts.",
+        "Vertical/compact/disabled/justified are all reflected via stable data-* attrs for baseline-level styling contracts.",
     ] {
         assert!(
             source.contains(needle),

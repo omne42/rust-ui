@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn menu_section_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/menu_section/mod.rs");
+    let source = load_source("src/menu/section/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn menu_section_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn menu_section_uses_logic_state_model() {
-    let logic_source = load_source("src/menu_section/logic.rs");
-    let view_source = load_source("src/menu_section/view.rs");
+    let logic_source = load_source("src/menu/section/logic.rs");
+    let view_source = load_source("src/menu/section/view.rs");
 
     for needle in [
         "pub enum MenuSectionHeadingTone",
@@ -54,8 +54,8 @@ fn menu_section_uses_logic_state_model() {
 }
 
 #[test]
-fn menu_section_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/menu_section/view.rs");
+fn menu_section_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/menu/section/view.rs");
 
     for attr in [
         "data-slot=\"menu-section\"",
@@ -78,14 +78,14 @@ fn menu_section_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "MenuSection should expose `{attr}` for Spectrum-style styling and state inspection."
+            "MenuSection should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn menu_section_styles_include_tone_and_state_markers() {
-    let source = load_source("src/menu_section/styles.rs");
+    let source = load_source("src/menu/section/styles.rs");
 
     for selector in [
         ".ui-menu-section--tone-default",
@@ -110,7 +110,7 @@ fn menu_section_styles_include_tone_and_state_markers() {
 
 #[test]
 fn menu_section_supports_group_accessibility_and_items_layout() {
-    let source = load_source("src/menu_section/view.rs");
+    let source = load_source("src/menu/section/view.rs");
 
     for needle in [
         "<section",
@@ -135,7 +135,7 @@ fn menu_section_docs_page_covers_primary_playgrounds() {
         "pub(super) fn menu_section() -> AnyView",
         "title=\"MenuSection\"",
         "slug=\"menu-section\"",
-        "description=\"Spectrum/HeroUI-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts.\"",
+        "description=\"baseline-style menu section primitive with centralized heading/item/source normalization and stable `slot` + `data-*` contracts.\"",
         "<Playground title=\"Default Section\" code_signal=code>",
         "<Playground title=\"Quiet + Sticky + Divider + Empty\" code_signal=states_code>",
         "<MenuSection",

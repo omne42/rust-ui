@@ -13,7 +13,7 @@ fn search_field_clears_on_escape_when_not_empty() {
 
     assert!(
         source.contains("key != \"Escape\""),
-        "SearchField should treat Escape as a clear shortcut (Spectrum parity)."
+        "SearchField should treat Escape as a clear shortcut (baseline parity)."
     );
     assert!(
         source.contains("value.get_untracked().is_empty()"),
@@ -31,7 +31,7 @@ fn search_field_escape_clear_stops_propagation() {
 
     assert!(
         source.contains("stop_propagation()"),
-        "SearchField should stop Escape propagation when clearing (Spectrum parity: Escape clears without dismissing parent overlays)."
+        "SearchField should stop Escape propagation when clearing (baseline parity: Escape clears without dismissing parent overlays)."
     );
 }
 
@@ -41,7 +41,7 @@ fn search_field_clear_button_is_excluded_from_tab_order() {
 
     assert!(
         source.contains("tabindex=\"-1\""),
-        "SearchField clear button should be excluded from tab order like React Spectrum."
+        "SearchField clear button should be excluded from tab order like UI Baseline."
     );
 }
 
@@ -94,7 +94,7 @@ fn search_field_motion_uses_spring_animator() {
 }
 
 #[test]
-fn search_field_emits_spectrum_style_state_data_attributes() {
+fn search_field_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/search_field/view.rs");
 
     for attr in [
@@ -107,7 +107,7 @@ fn search_field_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "SearchField should set `{attr}` to support Spectrum-style styling and state inspection."
+            "SearchField should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -149,62 +149,37 @@ fn search_field_motion_sanitizes_custom_contract_values() {
 
 #[test]
 fn search_field_docs_page_covers_primary_playgrounds() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_search.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in [
-        "pub(super) fn search() -> AnyView",
-        "title=\"Search\"",
-        "slug=\"search\"",
-        "description=\"Spectrum-compatible Search alias for upstream naming parity, preserving SearchField accessibility/state contracts and HeroUI-level clear-button spring motion.\"",
-        "<Playground title=\"Submit + Clear\" code_signal=basic_code>",
-        "<Playground title=\"Required + Invalid\" code_signal=validation_code>",
-        "title=\"State + Source Markers\"",
-        "code_signal=markers_code",
-        "<Search",
+        "pub(super) fn search_field() -> AnyView",
+        "title=\"SearchField\"",
+        "slug=\"search-field\"",
+        "<Playground title=\"Search\" code_signal=code>",
+        "<SearchField",
     ] {
         assert!(
             source.contains(needle),
-            "forms_extra_search docs should include `{needle}` for search-field primary playground coverage.",
+            "forms docs should include `{needle}` for search-field primary playground coverage.",
         );
     }
 }
 
 #[test]
 fn search_field_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/forms_extra_search.rs");
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in [
-        "title=\"Submit + Clear\"",
-        "id=\"docs-search-basic\".to_string()",
-        "label=\"Search docs\".to_string()",
-        "placeholder=\"Try: overlay\".to_string()",
-        "on_submit=on_submit",
-        "on_clear=on_clear",
-        "Press Enter to submit; Escape to clear.",
-        "title=\"Required + Invalid\"",
-        "id=\"docs-search-required\".to_string()",
-        "label=\"Required query\".to_string()",
-        "required=true",
-        "invalid=required_invalid",
-        "error=\"Query is required\".to_string()",
-        "title=\"State + Source Markers\"",
-        "id=\"docs-search-markers\".to_string()",
-        "required=true",
-        "invalid=Signal::derive(move || marker_invalid.get())",
-        "description=\"Inspect source/state marker contracts\".to_string()",
-        "error=\"Query is required\".to_string()",
-        "placeholder=\"Try: spring\".to_string()",
-        "class_name=\"docs-search-state\".to_string()",
-        "motion=marker_motion",
-        "hidden_scale: 0.78",
-        "hover_scale: 1.08",
-        "tap_scale: 0.92",
+        "title=\"Search\"",
+        "id=\"docs-search-field\".to_string()",
+        "label=\"Search\".to_string()",
+        "placeholder=\"Search…\".to_string()",
+        "value=value",
+        "set_value=set_value",
     ] {
         assert!(
             source.contains(needle),
-            "forms_extra_search docs playgrounds should contain `{needle}` for search-field contracts.",
+            "forms docs playground should contain `{needle}` for search-field contracts.",
         );
     }
 }

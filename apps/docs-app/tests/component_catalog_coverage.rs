@@ -75,9 +75,29 @@ fn ui_components_component_names() -> BTreeSet<String> {
     out
 }
 
+fn docs_only_component_entries() -> BTreeSet<String> {
+    BTreeSet::from([
+        "ListItem".to_string(),
+        "ListSection".to_string(),
+        "ThemeVisualBaseline".to_string(),
+    ])
+}
+
+fn internal_only_component_entries() -> BTreeSet<String> {
+    BTreeSet::from([
+        "ListBox".to_string(),
+        "ListBoxItem".to_string(),
+        "ListBoxSection".to_string(),
+    ])
+}
+
 #[test]
 fn docs_catalog_covers_all_ui_components_components() {
-    let expected = ui_components_component_names();
+    let mut expected = ui_components_component_names();
+    for internal_only in internal_only_component_entries() {
+        expected.remove(&internal_only);
+    }
+    expected.extend(docs_only_component_entries());
 
     let catalog = docs_app::pages::components::component_catalog();
     let actual: BTreeSet<String> = catalog.iter().map(|doc| doc.name.to_string()).collect();

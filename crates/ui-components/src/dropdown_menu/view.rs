@@ -150,7 +150,7 @@ pub fn DropdownMenu(
                 id=trigger_id.get_value()
                 variant=trigger_variant
                 size=trigger_size
-                disabled=state.is_trigger_disabled
+                is_disabled=state.is_trigger_disabled
                 aria_haspopup="menu"
                 aria_expanded=open
                 aria_controls_signal=aria_controls

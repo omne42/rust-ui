@@ -57,7 +57,7 @@ fn field_error_uses_logic_state_model() {
 }
 
 #[test]
-fn field_error_emits_spectrum_style_state_data_attributes() {
+fn field_error_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/field_error/view.rs");
 
     for attr in [
@@ -76,7 +76,7 @@ fn field_error_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "FieldError should expose `{attr}` for Spectrum-style styling and state inspection."
+            "FieldError should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -113,7 +113,7 @@ fn field_error_docs_page_covers_primary_playgrounds() {
         "pub(super) fn field_error() -> AnyView",
         "title=\"FieldError\"",
         "slug=\"field-error\"",
-        "description=\"Spectrum/HeroUI-style field error primitive with centralized visibility/tone/message normalization and stable data contracts.\"",
+        "description=\"baseline-style field error primitive with centralized visibility/tone/message normalization and stable data contracts.\"",
         "<Playground title=\"Visible + Tone\" code_signal=default_code>",
         "<Playground title=\"Hidden + Disabled + Custom Class\" code_signal=hidden_code>",
         "<FieldError",

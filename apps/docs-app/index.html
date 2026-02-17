@@ -10,72 +10,103 @@
     <link data-trunk rel="rust" data-wasm-opt="z" />
 
     <style>
+      body {
+        margin: 0;
+        color: #0f172a;
+        background: #f8fafc;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      }
+
+      #ssg-shell {
+        padding: 24px;
+      }
+
+      .shell-wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .shell-title {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .shell-subtitle {
+        margin: 6px 0 0 0;
+        font-size: 13px;
+        color: #475569;
+      }
+
+      .shell-main {
+        margin-top: 16px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+        padding: 16px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+      }
+
+      .shell-main h2 {
+        margin: 0 0 8px 0;
+        font-size: 15px;
+      }
+
+      .shell-main p {
+        margin: 0;
+        color: #475569;
+        line-height: 1.6;
+      }
+
       #boot {
         position: fixed;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        padding: 24px;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-        background: #0b0b0b;
-        color: #f5f5f5;
-      }
-
-      #boot .boot-card {
-        width: min(520px, 100%);
-        padding: 16px 18px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.06);
-        box-shadow: 0 16px 50px rgba(0, 0, 0, 0.55);
-      }
-
-      #boot .boot-title {
-        margin: 0 0 10px 0;
-        font-size: 14px;
-        font-weight: 700;
-        letter-spacing: 0.2px;
-      }
-
-      #boot .boot-body {
-        margin: 0;
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(15, 23, 42, 0.16);
+        background: rgba(255, 255, 255, 0.95);
+        color: #0f172a;
+        padding: 10px 12px;
         font-size: 12px;
-        line-height: 1.45;
-        opacity: 0.9;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
       }
 
       #boot pre {
-        margin: 12px 0 0 0;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        margin: 8px 0 0 0;
+        max-height: 30vh;
         overflow: auto;
-        max-height: 40vh;
         white-space: pre-wrap;
         word-break: break-word;
       }
     </style>
   </head>
   <body>
-    <div id="boot">
-      <div class="boot-card">
-        <p class="boot-title">Loading rust-ui docs…</p>
-        <p class="boot-body">
-          This site is CSR-only. If this takes too long or stays blank, check the browser console.
-        </p>
-        <pre data-boot-details hidden></pre>
-      </div>
+    <div id="ssg-shell" data-ssg-shell>
+      <main class="shell-wrap">
+        <h1 class="shell-title">rust-ui docs</h1>
+        <p class="shell-subtitle">Static first-screen shell. Interactive docs mount after the WASM runtime starts.</p>
+
+        <section class="shell-main" aria-live="polite">
+          <h2>Loading documentation pages</h2>
+          <p>
+            This docs site is rendered as CSR at runtime. The shell is pre-rendered to avoid blank first paint while assets load.
+          </p>
+        </section>
+      </main>
+    </div>
+
+    <div id="boot" aria-live="polite" aria-atomic="true">
+      Loading rust-ui docs runtime...
+      <pre data-boot-details hidden></pre>
     </div>
 
     <script>
       (() => {
+        const shell = document.querySelector("[data-ssg-shell]");
         const boot = document.getElementById("boot");
-        if (!boot) return;
+        const details = boot?.querySelector("[data-boot-details]");
 
-        const details = boot.querySelector("[data-boot-details]");
-
-        const append_details = (label, value) => {
+        const appendDetails = (label, value) => {
           if (!details) return;
           details.hidden = false;
           const text =
@@ -84,27 +115,21 @@
               : value instanceof Error
                 ? value.stack || value.message
                 : JSON.stringify(value, null, 2);
-          const next = `${label}\n\n${text}`;
+          const line = `${label}\n\n${text}`;
           const prev = details.textContent?.trim();
-          if (!prev) {
-            details.textContent = next;
-            return;
-          }
-          if (prev.includes(next)) {
-            return;
-          }
-          details.textContent = `${prev}\n\n---\n\n${next}`;
+          details.textContent = prev ? `${prev}\n\n---\n\n${line}` : line;
         };
 
         window.addEventListener(
           "TrunkApplicationStarted",
           () => {
-            boot.remove();
+            shell?.remove();
+            boot?.remove();
           },
           { once: true }
         );
 
-        const original_console_error = console.error.bind(console);
+        const originalConsoleError = console.error.bind(console);
         console.error = (...args) => {
           try {
             const text = args
@@ -118,19 +143,19 @@
                 }
               })
               .join(" ");
-            append_details("Console error", text);
+            appendDetails("Console error", text);
           } catch {
             // ignore
           }
-          original_console_error(...args);
+          originalConsoleError(...args);
         };
 
         window.addEventListener("error", (ev) => {
-          append_details("Runtime error", ev?.error ?? ev?.message ?? ev);
+          appendDetails("Runtime error", ev?.error ?? ev?.message ?? ev);
         });
 
         window.addEventListener("unhandledrejection", (ev) => {
-          append_details("Unhandled promise rejection", ev?.reason ?? ev);
+          appendDetails("Unhandled promise rejection", ev?.reason ?? ev);
         });
       })();
     </script>

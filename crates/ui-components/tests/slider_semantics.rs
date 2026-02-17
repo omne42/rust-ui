@@ -65,7 +65,7 @@ fn slider_uses_logic_state_model() {
 }
 
 #[test]
-fn slider_emits_spectrum_style_state_data_attributes() {
+fn slider_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/slider/view.rs");
 
     for attr in [
@@ -84,7 +84,7 @@ fn slider_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Slider should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Slider should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -138,7 +138,7 @@ fn slider_docs_page_covers_primary_playgrounds() {
         "pub(super) fn slider() -> AnyView",
         "title=\"Slider\"",
         "slug=\"slider\"",
-        "description=\"Range slider with spring-driven fill/thumb motion and Spectrum-style state data contracts.\"",
+        "description=\"Range slider with spring-driven fill/thumb motion and baseline-style state data contracts.\"",
         "<Playground title=\"Controlled + on_change\" code_signal=code>",
         "<Playground title=\"Disabled + Fine Step\" code_signal=states_code>",
         "<Slider",

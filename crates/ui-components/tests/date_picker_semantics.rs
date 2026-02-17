@@ -67,7 +67,7 @@ fn date_picker_uses_logic_state_model() {
 }
 
 #[test]
-fn date_picker_emits_spectrum_style_state_data_attributes() {
+fn date_picker_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/date_picker/view.rs");
 
     for attr in [
@@ -93,7 +93,7 @@ fn date_picker_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "DatePicker should expose `{attr}` for Spectrum-style styling and state inspection."
+            "DatePicker should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -143,7 +143,7 @@ fn date_picker_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "DatePicker motion contract should include `{needle}` for HeroUI-style spring customization."
+            "DatePicker motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -178,7 +178,7 @@ fn date_picker_docs_page_covers_primary_playgrounds() {
         "pub(super) fn date_picker() -> AnyView",
         "title=\"DatePicker\"",
         "slug=\"date-picker\"",
-        "description=\"Date picker trigger + popover calendar with centralized open/value/source state contracts and HeroUI-grade popover motion handoff.\"",
+        "description=\"Date picker trigger + popover calendar with centralized open/value/source state contracts and baseline-level popover motion handoff.\"",
         "<Playground title=\"Default + Outside Days\" code_signal=code>",
         "<Playground title=\"Monday First + Strong Tone\" code_signal=states_code>",
         "<DatePicker",

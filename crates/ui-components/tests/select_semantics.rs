@@ -82,7 +82,7 @@ fn select_trigger_is_labeled_and_owns_a_listbox() {
     ] {
         assert!(
             source.contains(needle),
-            "Select should wire `{needle}` for Spectrum-style listbox trigger semantics."
+            "Select should wire `{needle}` for baseline-style listbox trigger semantics."
         );
     }
 }
@@ -129,7 +129,7 @@ fn select_exposes_root_state_and_slot_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "Select should expose `{needle}` for Spectrum-style state styling and regression tests."
+            "Select should expose `{needle}` for baseline-style state styling and regression tests."
         );
     }
 }
@@ -188,7 +188,7 @@ fn select_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "Select motion contract should include `{needle}` for HeroUI-style spring customization."
+            "Select motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -223,7 +223,7 @@ fn select_docs_page_covers_primary_playgrounds() {
         "pub(super) fn select() -> AnyView",
         "title=\"Select\"",
         "slug=\"select\"",
-        "description=\"Select with controlled open state, listbox semantics, and Spectrum-style root state attrs.\"",
+        "description=\"Select with controlled open state, listbox semantics, and baseline-style root state attrs.\"",
         "<Playground title=\"Controlled Open + Selection\" code_signal=code>",
         "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<Select",

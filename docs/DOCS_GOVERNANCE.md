@@ -27,10 +27,10 @@
 
 当文档定义冲突时，按以下顺序执行：
 
-1. `docs/RULES_ZH.md`
-2. 对应 `docs/spec/*`
-3. 对应 `docs/plan/*`
-4. `docs/philosophy.md`
+1. `docs/philosophy.md`
+2. `docs/RULES_ZH.md`
+3. 对应 `docs/spec/*`
+4. 对应 `docs/plan/*`
 5. `docs/research/*`
 
 ## 4. 文档状态
@@ -77,7 +77,7 @@
 
 ## 9. 文档清点命令
 
-仅统计仓库自有 Markdown（排除 upstream/vendor）：
+仅统计仓库自有 Markdown（排除research mirror/vendor）：
 
 ```bash
 rg --files -g '*.md' \

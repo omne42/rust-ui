@@ -54,7 +54,7 @@ fn scroll_area_uses_logic_state_model() {
 }
 
 #[test]
-fn scroll_area_emits_spectrum_style_state_data_attributes() {
+fn scroll_area_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/scroll_area/view.rs");
 
     for attr in [
@@ -72,7 +72,7 @@ fn scroll_area_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ScrollArea should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ScrollArea should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -126,7 +126,7 @@ fn scroll_area_docs_page_covers_primary_playgrounds() {
         "pub(super) fn scroll_area() -> AnyView",
         "title=\"ScrollArea\"",
         "slug=\"scroll-area\"",
-        "description=\"Shadcn-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts.\"",
+        "description=\"baseline-compatible scroll container with centralized orientation/max-height/disabled normalization and stable state-marker data contracts.\"",
         "<Playground title=\"Vertical + Max Height\" code_signal=default_code>",
         "<Playground title=\"Horizontal + Both + Disabled\" code_signal=state_code>",
         "<ScrollArea",

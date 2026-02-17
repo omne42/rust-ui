@@ -84,7 +84,7 @@ fn bottom_sheet_composes_sheet_with_bottom_placement_and_motion_contract() {
 }
 
 #[test]
-fn bottom_sheet_emits_spectrum_style_state_data_attributes() {
+fn bottom_sheet_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/bottom_sheet/view.rs");
 
     for attr in [
@@ -107,7 +107,7 @@ fn bottom_sheet_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "BottomSheet should expose `{attr}` for Spectrum-style state inspection and styling."
+            "BottomSheet should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }
@@ -165,7 +165,7 @@ fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "BottomSheet motion module should include `{needle}` for HeroUI-level contract coverage."
+            "BottomSheet motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
 }

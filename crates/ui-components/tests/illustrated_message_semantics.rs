@@ -30,7 +30,7 @@ fn illustrated_message_emits_expected_data_slots() {
     ] {
         assert!(
             source.contains(attr),
-            "IllustratedMessage should set `{attr}` for Spectrum-style styling and inspection."
+            "IllustratedMessage should set `{attr}` for baseline-style styling and inspection."
         );
     }
 }

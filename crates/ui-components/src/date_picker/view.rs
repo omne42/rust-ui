@@ -152,7 +152,7 @@ pub fn DatePicker(
                     id=trigger_id.get_value()
                     node_ref=anchor_ref
                     on_press=on_trigger_press
-                    disabled=disabled
+                    is_disabled=disabled
                     aria_haspopup="dialog"
                     aria_expanded=open
                     aria_controls_signal=aria_controls

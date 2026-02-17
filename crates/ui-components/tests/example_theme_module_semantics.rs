@@ -18,7 +18,7 @@ fn example_theme_module_exports_compatibility_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "example_theme module should include `{needle}` for @react-aria/example-theme compatibility."
+            "example_theme module should include `{needle}` for @a11y-baseline/example-theme compatibility."
         );
     }
 }
@@ -29,7 +29,7 @@ fn crate_root_registers_example_theme_module() {
 
     assert!(
         source.contains("pub mod example_theme;"),
-        "crate root should include `pub mod example_theme;` for @react-aria/example-theme compatibility."
+        "crate root should include `pub mod example_theme;` for @a11y-baseline/example-theme compatibility."
     );
 }
 

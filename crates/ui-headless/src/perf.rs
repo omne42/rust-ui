@@ -3,6 +3,18 @@ use leptos::prelude::*;
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct UiPerfBudget {
     pub max_mount_ms: f64,
+    pub max_update_ms: Option<f64>,
+    pub max_heap_kb: Option<f64>,
+}
+
+impl UiPerfBudget {
+    pub const fn mount_only(max_mount_ms: f64) -> Self {
+        Self {
+            max_mount_ms,
+            max_update_ms: None,
+            max_heap_kb: None,
+        }
+    }
 }
 
 #[component]
@@ -44,7 +56,22 @@ pub fn UiPerfProbe(
             data-perf-name=name.get_value()
             data-perf-mount-ms=move || mount_ms.get().map(|v| format!("{v:.2}"))
             data-perf-budget-ms=budget.get_value().map(|b| format!("{:.2}", b.max_mount_ms))
+            data-perf-budget-update-ms=budget
+                .get_value()
+                .and_then(|b| b.max_update_ms.map(|v| format!("{v:.2}")))
+            data-perf-budget-heap-kb=budget
+                .get_value()
+                .and_then(|b| b.max_heap_kb.map(|v| format!("{v:.2}")))
             data-perf-violation=move || violation.get()
+            data-perf-observability=move || {
+                budget.get_value().map(|budget| {
+                    if budget.max_update_ms.is_some() || budget.max_heap_kb.is_some() {
+                        "mount-plus-budget"
+                    } else {
+                        "mount-only"
+                    }
+                })
+            }
         >
             {children()}
         </div>

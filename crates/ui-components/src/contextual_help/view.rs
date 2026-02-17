@@ -119,7 +119,7 @@ pub fn ContextualHelp(
                 aria_label=trigger_aria_label
                 variant=ButtonVariant::Ghost
                 size=ButtonSize::IconSm
-                disabled=disabled
+                is_disabled=disabled
                 aria_haspopup="dialog"
                 aria_expanded=open
                 aria_controls_signal=aria_controls

@@ -54,13 +54,13 @@ fn disclosure_attaches_motion_drivers() {
     for needle in ["attach_indicator_motion", "attach_panel_motion"] {
         assert!(
             source.contains(needle),
-            "Disclosure should attach `{needle}` for HeroUI-style spring motion."
+            "Disclosure should attach `{needle}` for baseline-style spring motion."
         );
     }
 }
 
 #[test]
-fn disclosure_emits_spectrum_style_data_attributes() {
+fn disclosure_emits_baseline_style_data_attributes() {
     let source = load_source("src/disclosure/view.rs");
 
     for attr in [
@@ -81,7 +81,7 @@ fn disclosure_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Disclosure should set `{attr}` to support Spectrum-style styling and regression testing."
+            "Disclosure should set `{attr}` to support baseline-style styling and regression testing."
         );
     }
 }
@@ -208,7 +208,7 @@ fn disclosure_docs_page_covers_primary_playgrounds() {
         "pub(super) fn disclosure() -> AnyView",
         "title=\"Disclosure\"",
         "slug=\"disclosure\"",
-        "description=\"Single disclosure panel with HeroUI-level spring motion and Spectrum-style root state attrs.\"",
+        "description=\"Single disclosure panel with baseline-level spring motion and baseline-style root state attrs.\"",
         "<Playground title=\"Controlled\" code_signal=code>",
         "<Playground title=\"Disabled\" code_signal=states_code>",
         "<Disclosure",

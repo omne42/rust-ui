@@ -54,7 +54,7 @@ fn surface_uses_logic_state_model() {
 }
 
 #[test]
-fn surface_emits_spectrum_style_state_data_attributes() {
+fn surface_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/surface/view.rs");
 
     for attr in [
@@ -71,7 +71,7 @@ fn surface_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Surface should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Surface should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -115,7 +115,7 @@ fn surface_docs_page_covers_primary_playgrounds() {
         "pub(super) fn surface() -> AnyView",
         "title=\"Surface\"",
         "slug=\"surface\"",
-        "description=\"Spectrum/HeroUI-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers.\"",
+        "description=\"baseline-style foundational container surface with centralized tone/elevation/frame/source contracts and stable data markers.\"",
         "<Playground title=\"Tone + Elevation + Frame\" code_signal=tone_code>",
         "<Playground title=\"Custom Aria + Class\" code_signal=custom_code>",
         "<Surface",

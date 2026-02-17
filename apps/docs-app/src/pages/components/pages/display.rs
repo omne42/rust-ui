@@ -1172,7 +1172,7 @@ pub(super) fn avatar() -> AnyView {
             title="Avatar"
             slug="avatar"
             group="Display"
-            description="Avatar with image/error fallback, normalized labels, and Spectrum-style root state attrs + custom-class contract."
+            description="Avatar with image/error fallback, normalized labels, and baseline-style root state attrs + custom-class contract."
         >
             <Playground title="Image + Fallback" code_signal=image_code>
                 <div class="docs-row">
@@ -1372,7 +1372,7 @@ pub(super) fn avatar_group() -> AnyView {
             title="AvatarGroup"
             slug="avatar-group"
             group="Display"
-            description="Stacked avatars with centralized overflow/empty/aria-label-source state attrs and Spectrum-style root contracts."
+            description="Stacked avatars with centralized overflow/empty/aria-label-source state attrs and baseline-style root contracts."
         >
             <Playground title="Overflow Stack" code_signal=overflow_code>
                 <div class="docs-row">

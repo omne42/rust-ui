@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn field_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/field_group/mod.rs");
+    let source = load_source("src/field/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,9 +21,9 @@ fn field_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn field_group_uses_logic_state_model() {
-    let mod_source = load_source("src/field_group/mod.rs");
-    let logic_source = load_source("src/field_group/logic.rs");
-    let view_source = load_source("src/field_group/view.rs");
+    let mod_source = load_source("src/field/group/mod.rs");
+    let logic_source = load_source("src/field/group/logic.rs");
+    let view_source = load_source("src/field/group/view.rs");
 
     for needle in [
         "pub struct FieldGroupStateInput",
@@ -63,8 +63,8 @@ fn field_group_uses_logic_state_model() {
 }
 
 #[test]
-fn field_group_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/field_group/view.rs");
+fn field_group_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/field/group/view.rs");
 
     for attr in [
         "data-slot=\"field-group\"",
@@ -81,14 +81,14 @@ fn field_group_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "FieldGroup should expose `{attr}` for Spectrum-style state inspection and styling."
+            "FieldGroup should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }
 
 #[test]
 fn field_group_aria_contracts_are_preserved() {
-    let source = load_source("src/field_group/view.rs");
+    let source = load_source("src/field/group/view.rs");
 
     for needle in [
         "aria-label=move || aria_label_value.get()",
@@ -104,7 +104,7 @@ fn field_group_aria_contracts_are_preserved() {
 
 #[test]
 fn field_group_styles_include_state_marker_contracts() {
-    let source = load_source("src/field_group/styles.rs");
+    let source = load_source("src/field/group/styles.rs");
 
     for selector in [
         ".ui-field-group--density-compact",
@@ -130,7 +130,7 @@ fn field_group_docs_page_covers_primary_playgrounds() {
         "pub(super) fn field_group() -> AnyView",
         "title=\"FieldGroup\"",
         "slug=\"field-group\"",
-        "description=\"Spectrum/HeroUI-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers.\"",
+        "description=\"baseline-compatible field clustering primitive with centralized orientation/density/aria/class-state contracts and stable slot + data markers.\"",
         "<Playground title=\"Vertical + Label + Description\" code_signal=base_code>",
         "<Playground title=\"Horizontal + Compact + Invalid + Disabled\" code_signal=states_code>",
         "<FieldGroup",

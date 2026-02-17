@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_flip_module_reexports_flip_button_contracts() {
-    let source = load_source("src/button_flip/mod.rs");
+    let source = load_source("src/button/flip/mod.rs");
 
     for needle in [
         "pub use logic::FlipDirection;",
@@ -28,8 +28,8 @@ fn crate_root_registers_button_flip_compatibility_exports() {
     let source = load_source("src/lib.rs");
 
     for needle in [
-        "pub mod button_flip;",
-        "pub use button_flip::{FlipButton, FlipButtonMotion, FlipDirection};",
+        "pub mod button;",
+        "pub use button::flip::{FlipButton, FlipButtonMotion, FlipDirection};",
     ] {
         assert!(
             source.contains(needle),
@@ -58,7 +58,7 @@ fn docs_actions_page_covers_flip_button_playgrounds() {
 
 #[test]
 fn button_flip_logic_tracks_class_and_motion_source_markers() {
-    let source = load_source("src/button_flip/logic.rs");
+    let source = load_source("src/button/flip/logic.rs");
 
     for needle in [
         "pub struct FlipButtonStateInput",
@@ -79,7 +79,7 @@ fn button_flip_logic_tracks_class_and_motion_source_markers() {
 
 #[test]
 fn button_flip_motion_contract_defaults_and_sanitize_paths_are_locked() {
-    let source = load_source("src/button_flip/motion.rs");
+    let source = load_source("src/button/flip/motion.rs");
 
     for needle in [
         "pub struct FlipButtonMotion",
@@ -92,17 +92,17 @@ fn button_flip_motion_contract_defaults_and_sanitize_paths_are_locked() {
     ] {
         assert!(
             source.contains(needle),
-            "flip button motion should include `{needle}` for HeroUI-level spring contract stability."
+            "flip button motion should include `{needle}` for baseline-level spring contract stability."
         );
     }
 }
 
 #[test]
 fn button_flip_view_wires_motion_and_source_markers() {
-    let source = load_source("src/button_flip/view.rs");
+    let source = load_source("src/button/flip/view.rs");
 
     for needle in [
-        "let motion = crate::button_flip::motion::sanitize_motion(motion);",
+        "let motion = super::motion::sanitize_motion(motion);",
         "let state = Signal::derive(move || {",
         "has_custom_motion,",
         "motion::attach_motion(node_ref, is_active, from, motion)",
@@ -122,7 +122,7 @@ fn button_flip_view_wires_motion_and_source_markers() {
 
 #[test]
 fn button_flip_styles_include_source_marker_selectors() {
-    let source = load_source("src/button_flip/styles.rs");
+    let source = load_source("src/button/flip/styles.rs");
 
     for needle in [
         ".ui-flip-button[data-class-source=\"custom\"]",
@@ -144,7 +144,7 @@ fn docs_actions_page_locks_flip_button_motion_narrative() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
     for needle in [
-        "description=\"HeroUI-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
+        "description=\"baseline-level spring flip surface with centralized direction/interaction/class-source state attrs.\"",
         "from=FlipDirection::Bottom",
         "from=FlipDirection::Left",
         "from=FlipDirection::Right",

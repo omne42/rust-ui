@@ -218,7 +218,7 @@ fn menubar_uses_dropdown_menu_motion_alias_contract() {
     ] {
         assert!(
             mod_source.contains(needle) || dropdown_motion_source.contains(needle),
-            "Menubar motion alias contract should include `{needle}` for HeroUI-style spring customization."
+            "Menubar motion alias contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -303,7 +303,7 @@ fn menubar_docs_page_covers_primary_playgrounds() {
         "pub(super) fn menubar() -> AnyView",
         "title=\"Menubar\"",
         "slug=\"menubar\"",
-        "description=\"Shadcn-compatible persistent menubar with horizontal trigger navigation, Spectrum-style state/source attrs, and HeroUI-level spring popover motion reuse.\"",
+        "description=\"baseline-compatible persistent menubar with horizontal trigger navigation, baseline-style state/source attrs, and baseline-level spring popover motion reuse.\"",
         "<Playground title=\"Desktop Menubar + Action Dispatch\" code_signal=code>",
         "<Playground title=\"Controlled Open + Persistent + Disabled Menu\" code_signal=states_code>",
         "<Playground title=\"State + Source Markers\" code_signal=marker_code>",

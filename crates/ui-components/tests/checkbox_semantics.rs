@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn checkbox_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/checkbox/mod.rs");
+    let source = load_source("src/checkbox_field/checkbox/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn checkbox_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn checkbox_uses_headless_hooks() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("src/checkbox_field/checkbox/view.rs");
 
     for needle in ["use_checkbox", "use_focus_ring", "use_hover"] {
         assert!(
@@ -33,8 +33,8 @@ fn checkbox_uses_headless_hooks() {
 
 #[test]
 fn checkbox_uses_logic_state_model() {
-    let view_source = load_source("src/checkbox/view.rs");
-    let logic_source = load_source("src/checkbox/logic.rs");
+    let view_source = load_source("src/checkbox_field/checkbox/view.rs");
+    let logic_source = load_source("src/checkbox_field/checkbox/logic.rs");
 
     for needle in [
         "pub struct CheckboxState",
@@ -65,7 +65,7 @@ fn checkbox_uses_logic_state_model() {
 
 #[test]
 fn checkbox_attaches_motion_drivers() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("src/checkbox_field/checkbox/view.rs");
 
     for needle in ["attach_root_motion", "attach_indicator_motion"] {
         assert!(
@@ -76,8 +76,8 @@ fn checkbox_attaches_motion_drivers() {
 }
 
 #[test]
-fn checkbox_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/checkbox/view.rs");
+fn checkbox_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/checkbox_field/checkbox/view.rs");
 
     for attr in [
         "data-slot=\"checkbox\"",
@@ -95,14 +95,14 @@ fn checkbox_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Checkbox should set `{attr}` to support Spectrum-style styling and state inspection."
+            "Checkbox should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn checkbox_motion_uses_spring_animator() {
-    let source = load_source("src/checkbox/motion.rs");
+    let source = load_source("src/checkbox_field/checkbox/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -112,7 +112,7 @@ fn checkbox_motion_uses_spring_animator() {
 
 #[test]
 fn checkbox_styles_respect_prefers_reduced_motion() {
-    let source = load_source("src/checkbox/styles.rs");
+    let source = load_source("src/checkbox_field/checkbox/styles.rs");
 
     assert!(
         source.contains("prefers-reduced-motion: reduce"),
@@ -126,7 +126,7 @@ fn checkbox_styles_respect_prefers_reduced_motion() {
 
 #[test]
 fn checkbox_styles_include_motion_marker_contracts() {
-    let source = load_source("src/checkbox/styles.rs");
+    let source = load_source("src/checkbox_field/checkbox/styles.rs");
 
     for selector in [
         ".ui-checkbox[data-motion-source=\"custom\"]",
@@ -141,7 +141,7 @@ fn checkbox_styles_include_motion_marker_contracts() {
 
 #[test]
 fn checkbox_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/checkbox/motion.rs");
+    let source = load_source("src/checkbox_field/checkbox/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: CheckboxMotion) -> CheckboxMotion",

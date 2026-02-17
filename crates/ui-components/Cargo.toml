@@ -11,11 +11,107 @@ path = "src/lib.rs"
 default = ["inject-css", "all-components"]
 
 inject-css = []
+accordion-wasm-debug = ["component-accordion", "dep:tracing"]
+button-wasm-debug = ["component-button", "dep:tracing"]
+web-demo-components = [
+    "component-active_highlight",
+    "component-accordion",
+    "component-action_button_group",
+    "component-action_menu",
+    "component-alert",
+    "component-alert_dialog",
+    "component-auto_height",
+    "component-autocomplete",
+    "component-avatar",
+    "component-avatar_group",
+    "component-badge",
+    "component-breadcrumbs",
+    "component-button",
+    "component-button_copy",
+    "component-button_flip",
+    "component-button_group",
+    "component-button_search_input",
+    "component-button_share",
+    "component-button_theme_toggle",
+    "component-card",
+    "component-checkbox",
+    "component-checkbox_group",
+    "component-chip",
+    "component-circular_progress",
+    "component-code",
+    "component-code_block",
+    "component-combo_box",
+    "component-contextual_help",
+    "component-dialog",
+    "component-disclosure",
+    "component-divider",
+    "component-drawer",
+    "component-drop_zone",
+    "component-dropdown_menu",
+    "component-error_message",
+    "component-field",
+    "component-field_error",
+    "component-field_group",
+    "component-field_label",
+    "component-file_trigger",
+    "component-form",
+    "component-form_field",
+    "component-help_text",
+    "component-hover_card",
+    "component-icon_button",
+    "component-illustrated_message",
+    "component-image",
+    "component-inline_alert",
+    "component-input",
+    "component-input_otp",
+    "component-kbd",
+    "component-label",
+    "component-link",
+    "component-link_button",
+    "component-list",
+    "component-menu",
+    "component-menu_item",
+    "component-menu_section",
+    "component-menu_trigger",
+    "component-meter",
+    "component-modal",
+    "component-number",
+    "component-number_field",
+    "component-overlay",
+    "component-pagination",
+    "component-popover",
+    "component-progress",
+    "component-progress_bar",
+    "component-progress_circle",
+    "component-radio",
+    "component-ripple",
+    "component-scroll_shadow",
+    "component-search_field",
+    "component-segmented_control",
+    "component-select",
+    "component-separator",
+    "component-sheet",
+    "component-skeleton",
+    "component-snippet",
+    "component-spacer",
+    "component-spinner",
+    "component-status_light",
+    "component-switch",
+    "component-tabs",
+    "component-tag",
+    "component-tag_group",
+    "component-text_area",
+    "component-text_field",
+    "component-toast",
+    "component-toggle_button",
+    "component-toggle_button_group",
+    "component-tooltip",
+    "component-underlay",
+]
 
 all-components = [
     "component-accordion",
     "component-action_bar",
-    "component-action_button",
     "component-action_button_group",
     "component-action_group",
     "component-action_menu",
@@ -55,8 +151,6 @@ all-components = [
     "component-code",
     "component-code_block",
     "component-collapsible",
-    "component-collection",
-    "component-color",
     "component-color_area",
     "component-color_editor",
     "component-color_field",
@@ -69,7 +163,6 @@ all-components = [
     "component-color_thumb",
     "component-color_wheel",
     "component-combo_box",
-    "component-combobox",
     "component-command",
     "component-command_dialog",
     "component-content",
@@ -85,20 +178,16 @@ all-components = [
     "component-disclosure",
     "component-disclosure_group",
     "component-divider",
-    "component-dnd",
-    "component-drag_and_drop",
     "component-drawer",
     "component-drop_zone",
     "component-dropdown",
     "component-dropdown_menu",
-    "component-dropzone",
     "component-empty",
     "component-empty_state",
     "component-error_message",
     "component-error_view",
     "component-example_theme",
     "component-field",
-    "component-field_button",
     "component-field_error",
     "component-field_group",
     "component-field_label",
@@ -110,13 +199,9 @@ all-components = [
     "component-form",
     "component-form_field",
     "component-grid",
-    "component-grid_list",
-    "component-gridlist",
-    "component-group",
     "component-header",
     "component-heading",
     "component-help_text",
-    "component-hidden_date_input",
     "component-hover_card",
     "component-icon",
     "component-icon_button",
@@ -136,15 +221,10 @@ all-components = [
     "component-keyboard",
     "component-label",
     "component-labeled_value",
-    "component-layout",
     "component-legend",
     "component-link",
     "component-link_button",
     "component-list",
-    "component-list_box",
-    "component-listbox",
-    "component-listbox_item",
-    "component-listbox_section",
     "component-logic_button",
     "component-menu",
     "component-menu_item",
@@ -158,10 +238,8 @@ all-components = [
     "component-number",
     "component-number_field",
     "component-overlay",
-    "component-overlay_arrow",
     "component-overlays",
     "component-pagination",
-    "component-picker",
     "component-picker_button",
     "component-popover",
     "component-pressable_feedback",
@@ -171,18 +249,14 @@ all-components = [
     "component-progress_bar",
     "component-progress_circle",
     "component-radio",
-    "component-radio_group",
     "component-resizable",
     "component-ripple",
     "component-scroll_area",
     "component-scroll_shadow",
-    "component-search",
     "component-search_field",
     "component-segmented_control",
     "component-select",
-    "component-selection_indicator",
     "component-separator",
-    "component-shared_element_transition",
     "component-sheet",
     "component-sidebar",
     "component-sidebar_content",
@@ -195,16 +269,13 @@ all-components = [
     "component-sidebar_menu_badge",
     "component-sidebar_rail",
     "component-sidebar_trigger",
-    "component-sidenav",
     "component-skeleton",
     "component-skeleton_group",
     "component-slider",
     "component-snippet",
     "component-sonner",
     "component-spacer",
-    "component-spinbutton",
     "component-spinner",
-    "component-split_view",
     "component-status_light",
     "component-step_list",
     "component-surface",
@@ -215,12 +286,10 @@ all-components = [
     "component-tabs",
     "component-tag",
     "component-tag_group",
-    "component-tags",
     "component-text",
     "component-text_area",
     "component-text_field",
     "component-textarea",
-    "component-textfield",
     "component-theme_dark",
     "component-theme_default",
     "component-theme_express",
@@ -233,24 +302,20 @@ all-components = [
     "component-toggle_button",
     "component-toggle_button_group",
     "component-toggle_group",
-    "component-toolbar",
     "component-tooltip",
-    "component-top_nav",
     "component-tray",
     "component-tree",
     "component-underlay",
     "component-view",
-    "component-virtualizer",
     "component-visually_hidden",
     "component-well",
 ]
 
-component-accordion = []
+component-accordion = ["dep:serde"]
 component-action_bar = []
-component-action_button = []
-component-action_button_group = []
-component-action_group = []
-component-action_menu = []
+component-action_button_group = ["component-button"]
+component-action_group = ["component-button"]
+component-action_menu = ["component-button", "component-menu", "component-popover"]
 component-active_highlight = []
 component-alert = []
 component-alert_banner = []
@@ -260,25 +325,29 @@ component-asset = []
 component-auto_height = []
 component-autocomplete = []
 component-avatar = []
-component-avatar_group = []
+component-avatar_group = ["component-avatar"]
 component-badge = []
 component-bottom_sheet = []
 component-breadcrumb = []
 component-breadcrumbs = []
-component-button = []
-component-button_copy = []
-component-button_flip = []
-component-button_group = []
-component-button_search_input = []
-component-button_share = []
-component-button_theme_toggle = []
+component-button = ["dep:serde", "dep:serde_json"]
+component-button_copy = ["component-button", "component-snippet"]
+component-button_flip = ["component-button"]
+component-button_group = ["component-button"]
+component-button_search_input = ["component-button"]
+component-button_share = [
+    "component-button",
+    "component-button_flip",
+    "component-button_group",
+]
+component-button_theme_toggle = ["component-button"]
 component-calendar = []
 component-card = []
 component-carousel = []
 component-chart = []
 component-checkbox = []
 component-checkbox_field = []
-component-checkbox_group = []
+component-checkbox_group = ["component-checkbox"]
 component-chip = []
 component-circular_progress = []
 component-clear_button = []
@@ -287,8 +356,6 @@ component-coachmark = []
 component-code = []
 component-code_block = []
 component-collapsible = []
-component-collection = []
-component-color = []
 component-color_area = []
 component-color_editor = []
 component-color_field = []
@@ -301,7 +368,6 @@ component-color_swatch_picker = []
 component-color_thumb = []
 component-color_wheel = []
 component-combo_box = []
-component-combobox = []
 component-command = []
 component-command_dialog = []
 component-content = []
@@ -315,24 +381,20 @@ component-description = []
 component-dialog = []
 component-direction = []
 component-disclosure = []
-component-disclosure_group = []
+component-disclosure_group = ["component-disclosure"]
 component-divider = []
-component-dnd = []
-component-drag_and_drop = []
 component-drawer = []
 component-drop_zone = []
 component-dropdown = []
 component-dropdown_menu = []
-component-dropzone = []
 component-empty = []
 component-empty_state = []
 component-error_message = []
 component-error_view = []
 component-example_theme = []
 component-field = []
-component-field_button = []
 component-field_error = []
-component-field_group = []
+component-field_group = ["component-field"]
 component-field_label = []
 component-fieldset = []
 component-file_trigger = []
@@ -342,13 +404,9 @@ component-footer = []
 component-form = []
 component-form_field = []
 component-grid = []
-component-grid_list = []
-component-gridlist = []
-component-group = []
 component-header = []
 component-heading = []
 component-help_text = []
-component-hidden_date_input = []
 component-hover_card = []
 component-icon = []
 component-icon_button = []
@@ -361,26 +419,21 @@ component-image = []
 component-infield_button = []
 component-inline_alert = []
 component-input = []
-component-input_group = []
+component-input_group = ["component-input"]
 component-input_otp = []
 component-item = []
 component-kbd = []
 component-keyboard = []
 component-label = []
 component-labeled_value = []
-component-layout = []
 component-legend = []
 component-link = []
 component-link_button = []
-component-list = []
-component-list_box = []
-component-listbox = []
-component-listbox_item = []
-component-listbox_section = []
+component-list = ["component-active_highlight", "component-illustrated_message"]
 component-logic_button = []
-component-menu = []
-component-menu_item = []
-component-menu_section = []
+component-menu = ["component-active_highlight"]
+component-menu_item = ["component-menu"]
+component-menu_section = ["component-menu"]
 component-menu_trigger = []
 component-menubar = []
 component-meter = []
@@ -390,11 +443,9 @@ component-navigation_menu = []
 component-number = []
 component-number_field = []
 component-overlay = []
-component-overlay_arrow = []
 component-overlays = []
 component-pagination = []
-component-picker = []
-component-picker_button = []
+component-picker_button = ["component-button"]
 component-popover = []
 component-pressable_feedback = []
 component-preview_card = []
@@ -403,23 +454,19 @@ component-progress = []
 component-progress_bar = []
 component-progress_circle = []
 component-radio = []
-component-radio_group = []
 component-resizable = []
 component-ripple = []
 component-scroll_area = []
 component-scroll_shadow = []
-component-search = []
 component-search_field = []
 component-segmented_control = []
-component-select = []
-component-selection_indicator = []
+component-select = ["component-button", "component-list", "component-popover"]
 component-separator = []
-component-shared_element_transition = []
 component-sheet = []
 component-sidebar = []
 component-sidebar_content = []
 component-sidebar_footer = []
-component-sidebar_group = []
+component-sidebar_group = ["component-sidebar"]
 component-sidebar_header = []
 component-sidebar_inset = []
 component-sidebar_menu = []
@@ -427,32 +474,27 @@ component-sidebar_menu_action = []
 component-sidebar_menu_badge = []
 component-sidebar_rail = []
 component-sidebar_trigger = []
-component-sidenav = []
 component-skeleton = []
-component-skeleton_group = []
+component-skeleton_group = ["component-skeleton"]
 component-slider = []
 component-snippet = []
 component-sonner = []
 component-spacer = []
-component-spinbutton = []
 component-spinner = []
-component-split_view = []
 component-status_light = []
 component-step_list = []
 component-surface = []
 component-swatch = []
 component-switch = []
-component-switch_group = []
+component-switch_group = ["component-switch"]
 component-table = []
 component-tabs = []
 component-tag = []
-component-tag_group = []
-component-tags = []
+component-tag_group = ["component-tag"]
 component-text = []
 component-text_area = []
 component-text_field = []
 component-textarea = []
-component-textfield = []
 component-theme_dark = []
 component-theme_default = []
 component-theme_express = []
@@ -461,18 +503,15 @@ component-thumbnail = []
 component-time_field = []
 component-toast = []
 component-toaster = []
-component-toggle = []
-component-toggle_button = []
-component-toggle_button_group = []
-component-toggle_group = []
-component-toolbar = []
+component-toggle = ["component-button", "component-toggle_button"]
+component-toggle_button = ["component-button"]
+component-toggle_button_group = ["component-button"]
+component-toggle_group = ["component-button", "component-toggle_button"]
 component-tooltip = []
-component-top_nav = []
 component-tray = []
 component-tree = []
 component-underlay = []
 component-view = []
-component-virtualizer = []
 component-visually_hidden = []
 component-well = []
 [dependencies]
@@ -481,6 +520,9 @@ ui-headless = { path = "../ui-headless" }
 ui-motion = { path = "../ui-motion" }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-theme = { path = "../ui-theme" }
+tracing = { version = "0.1", optional = true }
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_json = { version = "1.0", optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3.85"

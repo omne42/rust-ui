@@ -8,82 +8,18 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn spinbutton_module_reexports_number_field_contract() {
-    let source = load_source("src/spinbutton/mod.rs");
-
-    let needle = "pub use crate::number_field::NumberField as SpinButton;";
-    assert!(
-        source.contains(needle),
-        "spinbutton module should expose `{needle}` for @react-aria/spinbutton compatibility.",
-    );
+fn spinbutton_compat_module_is_removed() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/spinbutton/mod.rs");
+    assert!(!path.exists(), "compat module  should not exist.",);
 }
 
 #[test]
-fn crate_root_registers_spinbutton_compatibility_exports() {
+fn crate_root_does_not_register_spinbutton_compat_module() {
     let source = load_source("src/lib.rs");
 
-    for needle in ["pub mod spinbutton;", "pub use spinbutton::SpinButton;"] {
-        assert!(
-            source.contains(needle),
-            "crate root should include `{needle}` for spinbutton compatibility.",
-        );
-    }
-}
-
-#[test]
-fn spinbutton_compatibility_reuses_number_field_docs_playground() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
-
-    for needle in [
-        "pub(super) fn number_field() -> AnyView",
-        "title=\"NumberField\"",
-        "slug=\"number-field\"",
-        "<NumberField",
-    ] {
-        assert!(
-            source.contains(needle),
-            "forms docs should contain `{needle}` for spinbutton compatibility coverage.",
-        );
-    }
-}
-
-#[test]
-fn spinbutton_module_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
-
-    for needle in [
-        "pub(super) fn number_field() -> AnyView",
-        "title=\"NumberField\"",
-        "slug=\"number-field\"",
-        "description=\"Numeric input with steppers and keyboard control.\"",
-        "<Playground title=\"Stepper\" code_signal=code>",
-        "<NumberField",
-    ] {
-        assert!(
-            source.contains(needle),
-            "forms number_field docs should include `{needle}` for spinbutton_module primary playground coverage.",
-        );
-    }
-}
-
-#[test]
-fn spinbutton_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
-
-    for needle in [
-        "title=\"Stepper\"",
-        "id=\"docs-number-field\".to_string()",
-        "label=\"Quantity\".to_string()",
-        "value=value",
-        "set_value=set_value",
-        "min=0",
-        "max=100",
-        "\"value: \"",
-        "{move || value.get().to_string()}",
-    ] {
-        assert!(
-            source.contains(needle),
-            "forms number_field playground should contain `{needle}` for spinbutton_module contracts.",
-        );
-    }
+    assert!(
+        !source.contains("pub mod spinbutton;"),
+        "crate root should not include legacy.",
+    );
 }

@@ -2,5 +2,12 @@
 resolver = "2"
 members = ["crates/*", "apps/*"]
 
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "debuginfo"
+
 [patch.crates-io]
 tachys = { path = "vendor/tachys" }

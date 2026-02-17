@@ -151,7 +151,7 @@ fn toast_viewport_uses_logic_state_contracts() {
 }
 
 #[test]
-fn toast_has_spectrum_style_accessibility_semantics() {
+fn toast_has_baseline_style_accessibility_semantics() {
     let source = load_source("src/toast/view.rs");
 
     for needle in [
@@ -163,7 +163,7 @@ fn toast_has_spectrum_style_accessibility_semantics() {
     ] {
         assert!(
             source.contains(needle),
-            "Toast should include `{needle}` for Spectrum-style accessibility semantics."
+            "Toast should include `{needle}` for baseline-style accessibility semantics."
         );
     }
 }

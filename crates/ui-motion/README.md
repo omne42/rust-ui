@@ -1,6 +1,6 @@
 # ui-motion
 
-`ui-motion` provides native motion primitives (Framer/HeroUI direction), decoupled from components.
+`ui-motion` provides native motion primitives (Framer/baseline direction), decoupled from components.
 
 ## Goals
 

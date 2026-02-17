@@ -8,6 +8,20 @@ struct Oklch {
     alpha: f64,
 }
 
+#[derive(Clone, Copy, Debug)]
+struct Srgb {
+    r: f64,
+    g: f64,
+    b: f64,
+    alpha: f64,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum ParsedColor {
+    Oklch(Oklch),
+    Srgb(Srgb),
+}
+
 fn parse_oklch(input: &str) -> Oklch {
     let trimmed = input.trim();
     let raw = trimmed
@@ -58,6 +72,64 @@ fn parse_oklch(input: &str) -> Oklch {
     }
 }
 
+fn parse_srgb(input: &str) -> Srgb {
+    let trimmed = input.trim();
+
+    let (raw, has_alpha) = if let Some(raw) = trimmed
+        .strip_prefix("rgba(")
+        .and_then(|v| v.strip_suffix(')'))
+    {
+        (raw, true)
+    } else if let Some(raw) = trimmed
+        .strip_prefix("rgb(")
+        .and_then(|v| v.strip_suffix(')'))
+    {
+        (raw, false)
+    } else {
+        panic!("expected rgb(...) or rgba(...), got `{input}`");
+    };
+
+    let values = raw.split(',').map(str::trim).collect::<Vec<_>>();
+
+    let expected = if has_alpha { 4 } else { 3 };
+    assert_eq!(
+        values.len(),
+        expected,
+        "expected {expected} values in `{input}`, got {}",
+        values.len()
+    );
+
+    let r = values[0]
+        .parse::<f64>()
+        .unwrap_or_else(|e| panic!("parse R failed for `{input}`: {e}"));
+    let g = values[1]
+        .parse::<f64>()
+        .unwrap_or_else(|e| panic!("parse G failed for `{input}`: {e}"));
+    let b = values[2]
+        .parse::<f64>()
+        .unwrap_or_else(|e| panic!("parse B failed for `{input}`: {e}"));
+    let alpha = if has_alpha {
+        values[3]
+            .parse::<f64>()
+            .unwrap_or_else(|e| panic!("parse alpha failed for `{input}`: {e}"))
+    } else {
+        1.0
+    };
+
+    Srgb { r, g, b, alpha }
+}
+
+fn parse_color(input: &str) -> ParsedColor {
+    let trimmed = input.trim();
+    if trimmed.starts_with("oklch(") {
+        return ParsedColor::Oklch(parse_oklch(trimmed));
+    }
+    if trimmed.starts_with("rgb(") || trimmed.starts_with("rgba(") {
+        return ParsedColor::Srgb(parse_srgb(trimmed));
+    }
+    panic!("unsupported color format `{input}`");
+}
+
 fn oklab_to_linear_srgb(l: f64, a: f64, b: f64) -> (f64, f64, f64) {
     let l_ = l + 0.396_337_777_4 * a + 0.215_803_757_3 * b;
     let m_ = l - 0.105_561_345_8 * a - 0.063_854_172_8 * b;
@@ -88,22 +160,52 @@ fn relative_luminance_from_oklch(color: Oklch) -> f64 {
     0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 
+fn srgb_channel_to_linear(v: f64) -> f64 {
+    let value = (v / 255.0).clamp(0.0, 1.0);
+    if value <= 0.04045 {
+        value / 12.92
+    } else {
+        ((value + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+fn relative_luminance_from_srgb(color: Srgb) -> f64 {
+    let r = srgb_channel_to_linear(color.r);
+    let g = srgb_channel_to_linear(color.g);
+    let b = srgb_channel_to_linear(color.b);
+    0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+fn color_alpha(color: ParsedColor) -> f64 {
+    match color {
+        ParsedColor::Oklch(oklch) => oklch.alpha,
+        ParsedColor::Srgb(srgb) => srgb.alpha,
+    }
+}
+
+fn relative_luminance(color: ParsedColor) -> f64 {
+    match color {
+        ParsedColor::Oklch(oklch) => relative_luminance_from_oklch(oklch),
+        ParsedColor::Srgb(srgb) => relative_luminance_from_srgb(srgb),
+    }
+}
+
 fn contrast_ratio(l1: f64, l2: f64) -> f64 {
     let (a, b) = if l1 >= l2 { (l1, l2) } else { (l2, l1) };
     (a + 0.05) / (b + 0.05)
 }
 
 fn assert_wcag_aa_pair(label: &str, fg: &str, bg: &str) {
-    let fg = parse_oklch(fg);
-    let bg = parse_oklch(bg);
+    let fg = parse_color(fg);
+    let bg = parse_color(bg);
 
-    if fg.alpha < 1.0 || bg.alpha < 1.0 {
+    if color_alpha(fg) < 1.0 || color_alpha(bg) < 1.0 {
         // Alpha compositing depends on background stacks; keep AA checks on fully-opaque semantic pairs.
         return;
     }
 
-    let fg_l = relative_luminance_from_oklch(fg);
-    let bg_l = relative_luminance_from_oklch(bg);
+    let fg_l = relative_luminance(fg);
+    let bg_l = relative_luminance(bg);
     let ratio = contrast_ratio(fg_l, bg_l);
 
     assert!(
@@ -115,7 +217,7 @@ fn assert_wcag_aa_pair(label: &str, fg: &str, bg: &str) {
 #[test]
 fn semantic_colors_meet_wcag_21_aa_for_text_pairs() {
     for color in [ThemeColor::Light, ThemeColor::Dark, ThemeColor::Oled] {
-        let theme = Theme::spectrum_two(color, ThemeScale::Medium);
+        let theme = Theme::baseline_two(color, ThemeScale::Medium);
         let c = theme.tokens.semantic_colors;
         assert_wcag_aa_pair(&format!("{color:?} fg/bg"), c.fg, c.bg);
         assert_wcag_aa_pair(&format!("{color:?} fg_muted/bg"), c.fg_muted, c.bg);

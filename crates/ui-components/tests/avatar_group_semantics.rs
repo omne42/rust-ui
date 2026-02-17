@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn avatar_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/avatar_group/mod.rs");
+    let source = load_source("src/avatar/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn avatar_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn avatar_group_uses_logic_state_model() {
-    let view_source = load_source("src/avatar_group/view.rs");
-    let logic_source = load_source("src/avatar_group/logic.rs");
+    let view_source = load_source("src/avatar/group/view.rs");
+    let logic_source = load_source("src/avatar/group/logic.rs");
 
     for needle in [
         "pub struct AvatarGroupStateInput",
@@ -57,8 +57,8 @@ fn avatar_group_uses_logic_state_model() {
 }
 
 #[test]
-fn avatar_group_emits_spectrum_style_root_data_attributes() {
-    let source = load_source("src/avatar_group/view.rs");
+fn avatar_group_emits_baseline_style_root_data_attributes() {
+    let source = load_source("src/avatar/group/view.rs");
 
     for attr in [
         "data-slot=\"avatar-group\"",
@@ -78,14 +78,14 @@ fn avatar_group_emits_spectrum_style_root_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "AvatarGroup should set `{attr}` for Spectrum-style styling and state inspection."
+            "AvatarGroup should set `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn avatar_group_exposes_item_and_overflow_slots() {
-    let source = load_source("src/avatar_group/view.rs");
+    let source = load_source("src/avatar/group/view.rs");
 
     for attr in [
         "data-slot=\"avatar-group-item\"",
@@ -104,7 +104,7 @@ fn avatar_group_exposes_item_and_overflow_slots() {
 
 #[test]
 fn avatar_group_styles_include_state_source_and_marker_contracts() {
-    let source = load_source("src/avatar_group/styles.rs");
+    let source = load_source("src/avatar/group/styles.rs");
 
     for selector in [
         ".ui-avatar-group--size-sm",

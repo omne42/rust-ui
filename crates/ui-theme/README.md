@@ -1,6 +1,6 @@
 # ui-theme
 
-`ui-theme` is the design-token layer (Spectrum theme analogue).
+`ui-theme` is the design-token layer (Baseline theme analogue).
 
 It owns:
 
@@ -22,7 +22,7 @@ use ui_theme::{Theme, ThemeColor, ThemeScale};
 
 let css = Theme::oled().to_css_variables();
 
-let large_s2 = Theme::spectrum_two(ThemeColor::Dark, ThemeScale::Large);
+let large_s2 = Theme::baseline_two(ThemeColor::Dark, ThemeScale::Large);
 let large_css = large_s2.to_css_variables();
 ```
 

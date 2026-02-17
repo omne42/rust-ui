@@ -50,7 +50,7 @@ pub fn Popover(
 
     let registration = use_overlay_stack_registration();
     if is_modal {
-        use_modal(ModalOptions::enabled());
+        use_modal(ModalOptions::from_signal(open));
     }
 
     let panel_ref: NodeRef<html::Div> = NodeRef::new();

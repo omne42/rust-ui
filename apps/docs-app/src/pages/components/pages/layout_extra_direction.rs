@@ -29,7 +29,7 @@ pub(super) fn direction_provider() -> AnyView {
             title="DirectionProvider"
             slug="direction-provider"
             group="Layout"
-            description="Shadcn/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot + data-direction contracts."
+            description="baseline/Radix-compatible direction context wrapper with normalized `direction`/`dir` props and stable slot + data-direction contracts."
         >
             <Playground title="LTR Direction" code_signal=ltr_code>
                 <DirectionProvider direction=DirectionMode::Ltr>

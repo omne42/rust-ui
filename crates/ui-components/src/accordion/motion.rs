@@ -1,4 +1,5 @@
 use ui_motion::spring::SpringConfig;
+use ui_theme::default_accordion_motion_tokens;
 
 #[cfg(any(test, target_arch = "wasm32"))]
 use std::{cell::RefCell, rc::Rc};
@@ -13,16 +14,17 @@ pub struct AccordionMotion {
 
 impl Default for AccordionMotion {
     fn default() -> Self {
+        let tokens = default_accordion_motion_tokens();
         Self {
             spring: SpringConfig {
-                stiffness: 260.0,
-                damping: 18.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
-            indicator_closed_rotation_deg: 0.0,
-            indicator_open_rotation_deg: 90.0,
-            panel_offset_y_px: 4.0,
+            indicator_closed_rotation_deg: tokens.indicator_closed_rotation_deg,
+            indicator_open_rotation_deg: tokens.indicator_open_rotation_deg,
+            panel_offset_y_px: tokens.panel_offset_y_px,
         }
     }
 }
@@ -98,6 +100,7 @@ pub fn attach_indicator_motion(
     is_open: leptos::prelude::Signal<bool>,
     motion: AccordionMotion,
 ) {
+    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
@@ -115,8 +118,12 @@ pub fn attach_indicator_motion(
             } else {
                 motion.indicator_closed_rotation_deg
             };
-            let _ =
-                style.set_property("--ui-accordion-indicator-rotation", &format!("{target}deg"));
+            set_css_property_observed(
+                &style,
+                "--ui-accordion-indicator-rotation",
+                &format!("{target}deg"),
+                "accordion.motion.indicator.reduced",
+            );
         });
         return;
     }
@@ -135,10 +142,21 @@ pub fn attach_indicator_motion(
 
         let element: leptos::web_sys::HtmlElement = indicator.unchecked_into();
         let style = element.style();
-        let initial = motion.get_value().indicator_closed_rotation_deg;
+        let initial_open = is_open.get_untracked();
+        let initial = if initial_open {
+            motion.get_value().indicator_open_rotation_deg
+        } else {
+            motion.get_value().indicator_closed_rotation_deg
+        };
+        last_open.set_value(Some(initial_open));
 
         let animator = ui_motion::spring::SpringAnimator::new(initial, config, move |deg| {
-            let _ = style.set_property("--ui-accordion-indicator-rotation", &format!("{deg}deg"));
+            set_css_property_observed(
+                &style,
+                "--ui-accordion-indicator-rotation",
+                &format!("{deg}deg"),
+                "accordion.motion.indicator",
+            );
         });
 
         let spring_for_cleanup = spring;
@@ -178,7 +196,7 @@ pub fn attach_indicator_motion(
     _is_open: leptos::prelude::Signal<bool>,
     motion: AccordionMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    sanitize_motion(motion);
 }
 
 #[cfg(any(test, target_arch = "wasm32"))]
@@ -391,9 +409,9 @@ impl PanelMotionDriver {
             return;
         }
 
-        let Some(height) = self.height_spring.as_ref() else {
+        if self.height_spring.is_none() {
             return;
-        };
+        }
 
         let measured_height = (self.measure_height_px)().max(0.0);
         if let Some(prev_height) = self.last_measured_height_px
@@ -403,8 +421,22 @@ impl PanelMotionDriver {
         }
         self.last_measured_height_px = Some(measured_height);
 
-        height.clear_on_rest();
-        height.set_target(measured_height);
+        (self.set_height.borrow_mut())(measured_height);
+
+        if let Some(height) = self.height_spring.take() {
+            height.stop();
+        }
+
+        let set_height = Rc::clone(&self.set_height);
+        let height = ui_motion::spring::SpringAnimator::new(
+            measured_height,
+            self.motion.spring,
+            move |value| {
+                let value = value.clamp(0.0, 100000.0);
+                (set_height.borrow_mut())(value);
+            },
+        );
+        self.height_spring = Some(height);
     }
 }
 
@@ -416,6 +448,7 @@ pub fn attach_panel_motion(
     is_hidden: leptos::prelude::RwSignal<bool>,
     motion: AccordionMotion,
 ) {
+    use crate::observability::set_css_property_observed;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::{JsCast, closure::Closure};
 
@@ -435,15 +468,42 @@ pub fn attach_panel_motion(
             element.set_hidden(!open);
 
             if open {
-                let _ = style.set_property("--ui-accordion-panel-height", "auto");
-                let _ = style.set_property("--ui-accordion-panel-opacity", "1");
-                let _ = style.set_property("--ui-accordion-panel-y", "0px");
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-height",
+                    "auto",
+                    "accordion.motion.panel.reduced.height",
+                );
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-opacity",
+                    "1",
+                    "accordion.motion.panel.reduced.opacity",
+                );
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-y",
+                    "0px",
+                    "accordion.motion.panel.reduced.y",
+                );
             } else {
-                let _ = style.set_property("--ui-accordion-panel-height", "0px");
-                let _ = style.set_property("--ui-accordion-panel-opacity", "0");
-                let _ = style.set_property(
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-height",
+                    "0px",
+                    "accordion.motion.panel.reduced.height",
+                );
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-opacity",
+                    "0",
+                    "accordion.motion.panel.reduced.opacity",
+                );
+                set_css_property_observed(
+                    &style,
                     "--ui-accordion-panel-y",
                     &format!("{}px", motion.panel_offset_y_px),
+                    "accordion.motion.panel.reduced.y",
                 );
             }
         });
@@ -485,22 +545,36 @@ pub fn attach_panel_motion(
             let style = style.clone();
             move |height_px: f64| {
                 let height_px = height_px.clamp(0.0, 100000.0);
-                let _ =
-                    style.set_property("--ui-accordion-panel-height", &format!("{height_px}px"));
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-height",
+                    &format!("{height_px}px"),
+                    "accordion.motion.panel.height",
+                );
             }
         };
 
         let set_opacity = {
             let style = style.clone();
             move |opacity: f64| {
-                let _ = style.set_property("--ui-accordion-panel-opacity", &format!("{opacity}"));
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-opacity",
+                    &format!("{opacity}"),
+                    "accordion.motion.panel.opacity",
+                );
             }
         };
 
         let set_y = {
             let style = style.clone();
             move |y_px: f64| {
-                let _ = style.set_property("--ui-accordion-panel-y", &format!("{y_px}px"));
+                set_css_property_observed(
+                    &style,
+                    "--ui-accordion-panel-y",
+                    &format!("{y_px}px"),
+                    "accordion.motion.panel.y",
+                );
             }
         };
 
@@ -577,7 +651,7 @@ pub fn attach_panel_motion(
 ) {
     use leptos::prelude::*;
 
-    let _ = sanitize_motion(motion);
+    sanitize_motion(motion);
 
     Effect::new(move |_| {
         is_hidden.set(!is_open.get());

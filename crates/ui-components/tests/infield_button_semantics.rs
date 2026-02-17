@@ -79,7 +79,7 @@ fn infield_button_uses_headless_hooks() {
 }
 
 #[test]
-fn infield_button_emits_spectrum_style_state_data_attributes() {
+fn infield_button_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/infield_button/view.rs");
 
     for attr in [
@@ -102,7 +102,7 @@ fn infield_button_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "InfieldButton should expose `{attr}` for Spectrum-style styling and state inspection."
+            "InfieldButton should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -160,7 +160,7 @@ fn infield_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn infield_button() -> AnyView",
         "title=\"InfieldButton\"",
         "slug=\"infield-button\"",
-        "description=\"Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior.\"",
+        "description=\"baseline-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior.\"",
         "<Playground title=\"Default + Quiet\" code_signal=default_code>",
         "<Playground title=\"Invalid + Active + Disabled\" code_signal=state_code>",
         "<InfieldButton",

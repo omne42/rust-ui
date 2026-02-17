@@ -19,7 +19,7 @@ fn overlays_module_reexports_overlay_family_contracts() {
     ] {
         assert!(
             source.contains(needle),
-            "overlays module should expose `{needle}` for react-spectrum overlays compatibility."
+            "overlays module should expose `{needle}` for ui-baseline overlays compatibility."
         );
     }
 }
@@ -30,7 +30,7 @@ fn crate_root_registers_overlays_module() {
 
     assert!(
         source.contains("pub mod overlays;"),
-        "crate root should include `pub mod overlays;` for @react-spectrum/overlays compatibility."
+        "crate root should include `pub mod overlays;` for @ui-baseline/overlays compatibility."
     );
 }
 

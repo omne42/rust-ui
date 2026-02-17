@@ -56,7 +56,7 @@ fn description_uses_logic_state_model() {
 }
 
 #[test]
-fn description_emits_spectrum_style_state_data_attributes() {
+fn description_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/description/view.rs");
 
     for attr in [
@@ -72,7 +72,7 @@ fn description_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Description should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Description should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -110,7 +110,7 @@ fn description_docs_page_covers_primary_playgrounds() {
         "pub(super) fn description() -> AnyView",
         "title=\"Description\"",
         "slug=\"description\"",
-        "description=\"Spectrum/HeroUI-style form description primitive with centralized tone/state/source contracts and stable slot semantics.\"",
+        "description=\"baseline-style form description primitive with centralized tone/state/source contracts and stable slot semantics.\"",
         "<Playground title=\"Tone Variants\" code_signal=tone_code>",
         "<Playground title=\"Truncate + Element + Disabled\" code_signal=truncate_code>",
         "<Description",

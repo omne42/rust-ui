@@ -43,7 +43,7 @@ fn breadcrumbs_uses_logic_state_model() {
 }
 
 #[test]
-fn breadcrumbs_emits_spectrum_style_slots_and_root_attrs() {
+fn breadcrumbs_emits_baseline_style_slots_and_root_attrs() {
     let source = load_source("src/breadcrumbs/view.rs");
 
     for needle in [
@@ -65,7 +65,7 @@ fn breadcrumbs_emits_spectrum_style_slots_and_root_attrs() {
     ] {
         assert!(
             source.contains(needle),
-            "Breadcrumbs should expose `{needle}` for Spectrum-style styling and regression checks."
+            "Breadcrumbs should expose `{needle}` for baseline-style styling and regression checks."
         );
     }
 }
@@ -90,7 +90,7 @@ fn breadcrumbs_docs_page_covers_primary_playgrounds() {
         "pub(super) fn breadcrumbs() -> AnyView",
         "title=\"Breadcrumbs\"",
         "slug=\"breadcrumbs\"",
-        "description=\"Breadcrumb nav with current-page semantics and Spectrum-style root state attrs.\"",
+        "description=\"Breadcrumb nav with current-page semantics and baseline-style root state attrs.\"",
         "<Playground title=\"Trail\" code_signal=code>",
         "<Playground title=\"Label-Only + Empty\" code_signal=states_code>",
         "<Breadcrumbs items=items />",

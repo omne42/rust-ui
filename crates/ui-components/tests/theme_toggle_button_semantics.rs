@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn theme_toggle_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button_theme_toggle/mod.rs");
+    let source = load_source("src/button/theme_toggle/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn theme_toggle_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn theme_toggle_button_uses_logic_state_model() {
-    let view_source = load_source("src/button_theme_toggle/view.rs");
-    let logic_source = load_source("src/button_theme_toggle/logic.rs");
+    let view_source = load_source("src/button/theme_toggle/view.rs");
+    let logic_source = load_source("src/button/theme_toggle/logic.rs");
 
     for needle in [
         "pub struct ThemeToggleState",
@@ -56,7 +56,7 @@ fn theme_toggle_button_uses_logic_state_model() {
 
 #[test]
 fn theme_toggle_button_uses_button_wrapper_contract() {
-    let source = load_source("src/button_theme_toggle/view.rs");
+    let source = load_source("src/button/theme_toggle/view.rs");
 
     for needle in [
         "<Button",
@@ -75,8 +75,8 @@ fn theme_toggle_button_uses_button_wrapper_contract() {
 }
 
 #[test]
-fn theme_toggle_button_emits_spectrum_style_data_attributes() {
-    let source = load_source("src/button_theme_toggle/view.rs");
+fn theme_toggle_button_emits_baseline_style_data_attributes() {
+    let source = load_source("src/button/theme_toggle/view.rs");
 
     for needle in [
         "class=\"ui-theme-toggle-button-shell\"",
@@ -96,14 +96,14 @@ fn theme_toggle_button_emits_spectrum_style_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "ThemeToggleButton should expose `{needle}` for Spectrum-style state inspection."
+            "ThemeToggleButton should expose `{needle}` for baseline-style state inspection."
         );
     }
 }
 
 #[test]
 fn theme_toggle_button_does_not_ignore_motion_contract() {
-    let source = load_source("src/button_theme_toggle/view.rs");
+    let source = load_source("src/button/theme_toggle/view.rs");
 
     assert!(
         !source.contains("let _ = motion"),
@@ -113,7 +113,7 @@ fn theme_toggle_button_does_not_ignore_motion_contract() {
 
 #[test]
 fn theme_toggle_button_attaches_motion_driver() {
-    let source = load_source("src/button_theme_toggle/view.rs");
+    let source = load_source("src/button/theme_toggle/view.rs");
 
     assert!(
         source.contains("attach_motion"),
@@ -123,7 +123,7 @@ fn theme_toggle_button_attaches_motion_driver() {
 
 #[test]
 fn theme_toggle_button_styles_define_css_vars_for_motion() {
-    let source = load_source("src/button_theme_toggle/styles.rs");
+    let source = load_source("src/button/theme_toggle/styles.rs");
 
     for name in ["--ui-theme-toggle-rotate", "--ui-theme-toggle-scale"] {
         assert!(
@@ -135,7 +135,7 @@ fn theme_toggle_button_styles_define_css_vars_for_motion() {
 
 #[test]
 fn theme_toggle_motion_uses_spring_animator() {
-    let source = load_source("src/button_theme_toggle/motion.rs");
+    let source = load_source("src/button/theme_toggle/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -145,7 +145,7 @@ fn theme_toggle_motion_uses_spring_animator() {
 
 #[test]
 fn theme_toggle_button_styles_include_motion_marker_contracts() {
-    let source = load_source("src/button_theme_toggle/styles.rs");
+    let source = load_source("src/button/theme_toggle/styles.rs");
 
     for selector in [
         ".ui-theme-toggle-button-shell[data-motion-source=\"custom\"]",
@@ -162,7 +162,7 @@ fn theme_toggle_button_styles_include_motion_marker_contracts() {
 
 #[test]
 fn theme_toggle_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/button_theme_toggle/motion.rs");
+    let source = load_source("src/button/theme_toggle/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ThemeToggleMotion) -> ThemeToggleMotion",
@@ -189,7 +189,7 @@ fn theme_toggle_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn theme_toggle_button() -> AnyView",
         "title=\"ThemeToggleButton\"",
         "slug=\"theme-toggle-button\"",
-        "description=\"Icon-only theme toggle with HeroUI-level spring motion and Spectrum-style mode state attrs.\"",
+        "description=\"Icon-only theme toggle with baseline-level spring motion and baseline-style mode state attrs.\"",
         "<Playground",
         "title=\"Default cycle\"",
         "code_signal=code",

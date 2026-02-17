@@ -164,7 +164,7 @@ let (last_action, set_last_action) = signal("none".to_string());
             title="Command"
             slug="command"
             group="Collections"
-            description="Shadcn-compatible command palette with grouped filtering, listbox keyboard semantics, Spectrum data contracts, and HeroUI-level spring active-highlight motion."
+            description="baseline-compatible command palette with grouped filtering, listbox keyboard semantics, baseline data contracts, and baseline-level spring active-highlight motion."
         >
             <Playground title="Grouped Search + Keyboard Action" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
@@ -322,7 +322,7 @@ pub(super) fn context_menu() -> AnyView {
             title="ContextMenu"
             slug="context-menu"
             group="Collections"
-            description="Shadcn-compatible context trigger menu with right-click + keyboard open semantics, Spectrum state/source attrs, and HeroUI-level popover spring motion reuse."
+            description="baseline-compatible context trigger menu with right-click + keyboard open semantics, baseline state/source attrs, and baseline-level popover spring motion reuse."
         >
             <Playground title="Right Click + Keyboard Open" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
@@ -631,7 +631,7 @@ pub(super) fn menubar() -> AnyView {
             title="Menubar"
             slug="menubar"
             group="Collections"
-            description="Shadcn-compatible persistent menubar with horizontal trigger navigation, Spectrum-style state/source attrs, and HeroUI-level spring popover motion reuse."
+            description="baseline-compatible persistent menubar with horizontal trigger navigation, baseline-style state/source attrs, and baseline-level spring popover motion reuse."
         >
             <Playground title="Desktop Menubar + Action Dispatch" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
@@ -850,7 +850,7 @@ custom_motion.spring.damping = 24.0;
             title="NavigationMenu"
             slug="navigation-menu"
             group="Collections"
-            description="Shadcn-compatible horizontal navigation menu with roving keyboard focus, controllable selection state, Spectrum data contracts, and HeroUI-level active-highlight spring motion reuse."
+            description="baseline-compatible horizontal navigation menu with roving keyboard focus, controllable selection state, baseline data contracts, and baseline-level active-highlight spring motion reuse."
         >
             <Playground title="Default + Roving Focus + Selection" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
@@ -931,7 +931,7 @@ custom_motion.spring.damping = 24.0;
 pub(super) fn carousel() -> AnyView {
     let base_items = vec![
         CarouselItem::new("welcome", "Welcome")
-            .description("Build Spectrum-compatible surfaces with production-grade motion."),
+            .description("Build baseline-compatible surfaces with production-grade motion."),
         CarouselItem::new("tokens", "Theme Tokens")
             .description("Tune OKLCH and OLED tokens without breaking component contracts."),
         CarouselItem::new("shipping", "Shipping")
@@ -1043,7 +1043,7 @@ custom_motion.spring.damping = 22.0;
             title="Carousel"
             slug="carousel"
             group="Collections"
-            description="Shadcn-compatible carousel with controllable slide index, orientation-aware keyboard navigation, Spectrum data contracts, and HeroUI-level spring indicator-highlight motion reuse."
+            description="baseline-compatible carousel with controllable slide index, orientation-aware keyboard navigation, baseline data contracts, and baseline-level spring indicator-highlight motion reuse."
         >
             <Playground title="Default + Indicator Motion" code_signal=code>
                 <div class="docs-stack docs-stack--tight">
@@ -1254,7 +1254,7 @@ let (last_action, set_last_action) = signal("none".to_string());
             title="CommandDialog"
             slug="command-dialog"
             group="Collections"
-            description="Shadcn-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits Spectrum data contracts, and reuses HeroUI-level overlay/active-highlight spring motion."
+            description="baseline-compatible command dialog that composes Modal + Command, supports controlled/uncontrolled open state, emits baseline data contracts, and reuses baseline-level overlay/active-highlight spring motion."
         >
             <Playground title="Controlled Open + Action Close" code_signal=code>
                 <div class="docs-stack docs-stack--tight">

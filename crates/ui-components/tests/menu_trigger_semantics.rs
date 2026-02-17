@@ -84,7 +84,7 @@ fn menu_trigger_is_labeled_and_owns_a_menu() {
     ] {
         assert!(
             source.contains(needle),
-            "MenuTrigger should wire `{needle}` for Spectrum-style menu trigger semantics."
+            "MenuTrigger should wire `{needle}` for baseline-style menu trigger semantics."
         );
     }
 }
@@ -106,7 +106,7 @@ fn menu_trigger_uses_presence_to_allow_exit_motion() {
 }
 
 #[test]
-fn menu_trigger_emits_spectrum_style_root_data_attributes() {
+fn menu_trigger_emits_baseline_style_root_data_attributes() {
     let source = load_source("src/menu_trigger/view.rs");
 
     for attr in [
@@ -131,7 +131,7 @@ fn menu_trigger_emits_spectrum_style_root_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "MenuTrigger should set `{attr}` to support Spectrum-style styling and regression testing."
+            "MenuTrigger should set `{attr}` to support baseline-style styling and regression testing."
         );
     }
 }
@@ -210,7 +210,7 @@ fn menu_trigger_exposes_motion_contract_and_internal_module() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "MenuTrigger motion contract should include `{needle}` for HeroUI-style spring customization."
+            "MenuTrigger motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -245,7 +245,7 @@ fn menu_trigger_docs_page_covers_primary_playgrounds() {
         "pub(super) fn menu_trigger() -> AnyView",
         "title=\"MenuTrigger\"",
         "slug=\"menu-trigger\"",
-        "description=\"Button-triggered menu surface with Spectrum state attrs and controlled/uncontrolled close-strategy semantics.\"",
+        "description=\"Button-triggered menu surface with baseline state attrs and controlled/uncontrolled close-strategy semantics.\"",
         "<Playground title=\"Default\" code_signal=code>",
         "<Playground title=\"Controlled + persistent open\" code_signal=controlled_code>",
         "<Playground title=\"Disabled + Empty\" code_signal=disabled_code>",

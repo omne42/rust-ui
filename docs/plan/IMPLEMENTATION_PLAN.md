@@ -16,7 +16,7 @@
 ### 0.1 必要输入（未确认前，按默认值推进）
 
 - MVP 核心用户流程（默认）：`Button -> 打开 Popover -> 选择/关闭`（覆盖 Press/FocusVisible/Overlay v1）
-- Demo 位置（默认）：可提交 demo 放 `apps/`；`examples/` 仅放 upstream 参考（已被 `.gitignore` 忽略）
+- Demo 位置（默认）：可提交 demo 放 `apps/`；`examples/` 仅放 research mirror（已被 `.gitignore` 忽略）
 
 ### 0.1.1 先决条件（开发者环境）
 
@@ -36,12 +36,12 @@
 
 满足以下全部条件才算 Phase 1 完成：
 
-- Workspace 中存在 `ui-state-primitives/ui-headless/ui-theme/ui-components` 四个 crate，并且边界清晰
+- Workspace 中存在核心五层 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`，并且边界清晰（`ui-compat` 作为兼容层独立治理）
 - 存在可提交 demo（`apps/web-demo`），能展示：
   - Button 的 pressed/disabled/focus-visible 状态
   - Overlay v1（Popover 或 Modal）可被打开/关闭（Esc + 点击外部）
 - `cargo fmt --all -- --check`、`cargo clippy --workspace --all-targets -- -D warnings`、`cargo test --workspace` 全绿
-- `ui-headless/ui-components/web-demo` 至少能 `wasm32-unknown-unknown` 编译通过（不要求跑浏览器）
+- `ui-headless/ui-components/web-demo/docs-app` 至少能 `wasm32-unknown-unknown` 编译通过（不要求跑浏览器）
 
 ### 0.4 Stop Gates（每个里程碑必须过）
 
@@ -52,13 +52,14 @@
   - `cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
   - `cargo check -p ui-components --target wasm32-unknown-unknown`
   - `cargo check -p web-demo --target wasm32-unknown-unknown`
+  - `cargo check -p docs-app --target wasm32-unknown-unknown`
 - Gate E（SSR 编译验证）：
   - `cargo check -p ui-headless --no-default-features --features ssr`
 - Gate F（混合分发兼容验证）：
   - 在底层 package 版本矩阵下，抽样 source 组件可编译（至少 `Button` / `Select` / `Overlay`）
   - 若版本不兼容，CI 必须输出明确失败原因与迁移指引链接
 - Gate G（组件级裁剪验证）：
-  - `ui-components` 在最小特性集下可编译（示例：`button,input`）
+  - `ui-components` 在最小特性集下可编译（示例：`component-button,component-input`）
   - 组件 CSS 聚合结果只包含已启用特性的样式（无 `select/modal/chart` 泄漏）
 
 ## 1. 仓库结构（目标态）
@@ -70,9 +71,12 @@
 │   ├── ui-state-primitives
 │   ├── ui-headless
 │   ├── ui-theme
-│   └── ui-components
+│   ├── ui-motion
+│   ├── ui-components
+│   └── ui-compat
 ├── apps
 │   ├── web-demo
+│   ├── docs-app
 │   └── tauri-demo            # Phase 2+
 ├── docs
 │   ├── plan
@@ -86,7 +90,9 @@
 - `ui-state-primitives`：纯状态（禁止 `web-sys`、禁止 DOM 假设）
 - `ui-headless`：交互/A11y（允许 `web-sys`，但要有 feature gate）
 - `ui-theme`：tokens + CSS variables（不依赖 `ui-components`）
+- `ui-motion`：动效执行后端（web/ssr 分支都可编译）
 - `ui-components`：Leptos 组件（不直接使用 `web-sys`，通过 `ui-headless` 间接接触 DOM）
+- `ui-compat`：兼容命名与桥接层（不承载核心组件实现）
 
 ## 2. Feature 策略（先简单、可演进）
 
@@ -108,7 +114,7 @@
 
 采用混合分发（Hybrid Distribution）：
 
-- Package 分发：`ui-state-primitives` / `ui-headless` / `ui-theme` / `ui-motion`
+- Package 分发：`ui-state-primitives` / `ui-headless` / `ui-theme` / `ui-motion` / `ui-compat`
 - Source 分发：`ui-components`（按需拉取组件源码，shadcn-like）
 
 约束：
@@ -123,13 +129,13 @@
 
 要求：
 
-- 组件或组件族按 feature 切分（如 `button`、`input`、`overlay`）。
-- 提供 `full` 便利特性给 docs/demo，全量场景不破坏开发效率。
+- 组件或组件族按 feature 切分（如 `component-button`、`component-input`、`component-overlay`）。
+- 提供 `all-components` 便利特性给 docs/demo，全量场景不破坏开发效率。
 - `default-features = false` 时支持最小特性集编译（按需点菜）。
 - `inject-css` 只控制注入行为，不得等价于“全量组件样式注入”。
 - 禁止引入全组件中央注册表，避免破坏 DCE/LTO。
 
-## 3. 上游参考（只用于对齐概念）
+## 3. Concept Alignment Inputs (research-only)
 
 已整理于 `docs/research/README.md`，重点链路：
 
@@ -163,7 +169,7 @@
 
 ### t01 - Workspace 与 crate 壳
 
-- 目标：建立 Rust workspace + 4 个 crate + `apps/web-demo` 壳
+- 目标：建立 Rust workspace + 核心分层 crate（含 `ui-motion`）+ `apps/web-demo` 壳
 - 输出：
   - `Cargo.toml`（workspace）
   - `crates/*` 目录与最小 `lib.rs`
@@ -269,16 +275,16 @@
 
 ### t32 - ui-components：组件级 feature 裁剪（v0）
 
-- 目标：让 package 模式具备可验证的 Tree Shaking 能力
+- 目标：让 package 模式具备可验证的 Tree Shaking 能力（按现有特性命名与测试现状）
 - 输出：
-  - `ui-components` 的组件级 features（至少 `button`、`input`、`overlay/select` 样例）
+  - `ui-components` 的组件级 features（至少 `component-button`、`component-input`、`component-overlay/component-select` 样例）
   - 条件化 `lib.rs` 模块导出与 re-export
   - 条件化 CSS 聚合（仅拼接启用组件样式）
 - 依赖：t30（先有稳定 Button 再抽 feature 边界）
 - 验收：
-  - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features button,input,inject-css`
-  - `cargo test -p ui-components --test css_feature_slicing --no-default-features --features button,input,inject-css`
-  - `cargo check -p docs-app --target wasm32-unknown-unknown`（`full` 场景不回归）
+  - `cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,component-input,inject-css`
+  - `cargo test -p ui-components --test css`（当前仓库可执行的 CSS 聚合回归）
+  - `cargo check -p docs-app --target wasm32-unknown-unknown`（`all-components` 场景不回归）
 - 验证命令：同上
 
 ### t40 - Overlay v1（Popover 或 Modal）

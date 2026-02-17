@@ -22,7 +22,7 @@
 
 - Tree Shaking：构建产物中移除未使用能力的工程实践。
 - DCE（Dead Code Elimination）：编译器/链接器移除不可达代码。
-- 组件级 feature：以组件或组件族为粒度的 Cargo feature（例如 `button`、`input`、`overlay`）。
+- 组件级 feature：以组件或组件族为粒度的 Cargo feature（例如 `component-button`、`component-input`、`component-overlay`）。
 
 ## 3. 目标架构
 
@@ -43,12 +43,12 @@
 `ui-components` 必须支持以下能力：
 
 - `default-features = false` 时，不自动包含全部组件。
-- 支持显式组合特性：`features = ["button", "input"]`。
-- 提供 `full` 便利特性用于 docs/demo/全量场景。
+- 支持显式组合特性：`features = ["component-button", "component-input"]`。
+- 提供 `all-components` 便利特性用于 docs/demo/全量场景。
 
 兼容策略（建议）：
 
-- 为避免破坏现有调用，过渡期可保留 `default = ["full", "inject-css"]`。
+- 当前默认特性为 `default = ["inject-css", "all-components"]`。
 - 生产应用推荐显式关闭默认特性并按需启用组件特性。
 
 ## 3.3 CSS 裁剪契约
@@ -77,7 +77,7 @@
 
 ```toml
 [dependencies]
-ui-components = { path = "../../crates/ui-components", default-features = false, features = ["button", "input", "inject-css"] }
+ui-components = { path = "../../crates/ui-components", default-features = false, features = ["component-button", "component-input", "inject-css"] }
 ```
 
 ## 4.2 Source 用户（shadcn-like）
@@ -89,11 +89,11 @@ ui-components = { path = "../../crates/ui-components", default-features = false,
 最低验收：
 
 - 组件级 compile 验证：
-  - `--no-default-features --features "button,input,inject-css"` 能编译通过（wasm 目标）。
+  - `--no-default-features --features "component-button,component-input,inject-css"` 能编译通过（wasm 目标）。
 - 组件级 CSS 验证：
   - 生成 CSS 包含 `button/input` 选择器，不包含 `select/modal/chart` 选择器。
 - 兼容性验证：
-  - `full` 特性下 docs/demo 不回归。
+  - `all-components` 特性下 docs/demo 不回归。
 
 建议附加验证：
 

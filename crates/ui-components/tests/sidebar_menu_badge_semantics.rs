@@ -64,7 +64,7 @@ fn sidebar_menu_badge_uses_logic_state_model() {
 }
 
 #[test]
-fn sidebar_menu_badge_emits_spectrum_root_state_data_attributes() {
+fn sidebar_menu_badge_emits_baseline_root_state_data_attributes() {
     let source = load_source("src/sidebar_menu_badge/view.rs");
 
     for needle in [
@@ -140,7 +140,7 @@ fn sidebar_menu_badge_docs_page_covers_primary_playgrounds() {
         "pub(super) fn sidebar_menu_badge() -> AnyView",
         "title=\"SidebarMenuBadge\"",
         "slug=\"sidebar-menu-badge\"",
-        "description=\"Shadcn-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable data-marker contracts.\"",
+        "description=\"baseline-compatible sidebar menu badge primitive with centralized tone/disabled/source-state normalization and stable data-marker contracts.\"",
         "<Playground title=\"Default Numeric Badge\" code_signal=default_code>",
         "<Playground title=\"Muted + Disabled + Custom\" code_signal=muted_code>",
         "<SidebarMenuBadge",

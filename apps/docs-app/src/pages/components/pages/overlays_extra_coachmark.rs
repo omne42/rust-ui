@@ -71,7 +71,7 @@ pub(super) fn coachmark() -> AnyView {
             title="Coachmark"
             slug="coachmark"
             group="Overlays"
-            description="Spectrum-compatible Coachmark primitive for guided tours, composed on ContextualHelp/Popover contracts with HeroUI-level spring overlay motion and optional asset + CTA navigation semantics."
+            description="baseline-compatible Coachmark primitive for guided tours, composed on ContextualHelp/Popover contracts with baseline-level spring overlay motion and optional asset + CTA navigation semantics."
         >
             <Playground title="Step + CTA + Asset Variant" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -133,7 +133,7 @@ pub(super) fn coachmark() -> AnyView {
 
             <Playground
                 title="State + Source Markers"
-                description="Inspect root markers like `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, and content-level `data-asset-source` for Spectrum-compatible coachmark contracts."
+                description="Inspect root markers like `data-state`, `data-open-mode`, `data-label-source`, `data-class-source`, and content-level `data-asset-source` for baseline-compatible coachmark contracts."
                 code_signal=markers_code
             >
                 <Coachmark

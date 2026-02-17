@@ -53,7 +53,7 @@ fn header_uses_logic_state_model() {
 }
 
 #[test]
-fn header_emits_spectrum_style_state_data_attributes() {
+fn header_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/header/view.rs");
 
     for attr in [
@@ -67,7 +67,7 @@ fn header_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Header should expose `{attr}` for Spectrum-style styling and state inspection."
+            "Header should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -124,7 +124,7 @@ fn header_docs_playgrounds_lock_state_matrix_contract_values() {
         "bordered=true",
         "aria_label=\"Settings header\".to_string()",
         "class_name=\"docs-header-custom\".to_string()",
-        "Header above content, matching Spectrum container semantics.",
+        "Header above content, matching baseline container semantics.",
     ] {
         assert!(
             source.contains(needle),

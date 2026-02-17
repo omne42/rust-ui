@@ -14,6 +14,7 @@
 
 - 主题三轴上下文：`system/color/scale`（`spectrum|express|spectrum-two` × `light|dark|oled` × `medium|large`）。
 - Token 分类（可追溯、可审计）。
+- 组件视觉 token 分类（示例：Button 的 `layout` + `motion` token 在 `crates/ui-theme/src/tokens.rs` 定义，映射在 `theme.rs`，变量输出在 `css.rs`）。
 - 三轴到 token 的映射（集中在一个地方做决策）。
 - CSS 变量输出（组件只消费变量，不重建主题）。
 
@@ -120,6 +121,18 @@ ui-components = { path = "...", default-features = false }
 
 原则：`@layer ui` 只属于组件库；应用侧不要把自己的样式写进 `ui` layer（避免再次回到“比注入顺序/更高 specificity”来抢优先级）。
 
+## Rules (Required)
+
+- **Inline CSS is forbidden in components:**
+  - `ui-components` must not use inline style for normal CSS properties.
+  - Do not bind normal CSS properties via `style:<prop>=...`.
+  - Style switching must use `class`/`data-*` + `styles.rs`.
+- **Runtime values must use CSS variables (custom properties) only:**
+  - When passing runtime values, use custom properties (`--*`).
+  - Recommended: `style:--x=...`.
+  - Allowed: `style=...` only when it contains **only** `--*` variable assignments.
+- Quick violation check: search the repo for `style=` and `style:`.
+
 ## 规范（必须遵守）
 
 > 该部分与 `docs/RULES_ZH.md` 保持一致；这里给出更具体的落地约束与建议。
@@ -148,5 +161,5 @@ ui-components = { path = "...", default-features = false }
 
 补充（与 Tree Shaking 协同）：
 
-- 最小特性集（例如 `button,input`）下，聚合 CSS 不应出现 `select/modal/chart` 的选择器。
+- 最小特性集（例如 `component-button,component-input`）下，聚合 CSS 不应出现 `select/modal/chart` 的选择器。
 - `inject-css` 仅控制“是否注入”，不应被用作“全量样式开关”。

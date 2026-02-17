@@ -7,6 +7,9 @@
 - `docs/plan/IMPLEMENTATION_PLAN.md`
   - 实施里程碑与任务拆分主计划
 
+- `docs/plan/COMPONENT_LAYER_REFACTOR_SHARDS.md`
+  - 组件层重构并发分片草案（Draft）
+
 - `docs/plan/TODO.md`
   - 人类可执行任务列表与 Stop Gates
 

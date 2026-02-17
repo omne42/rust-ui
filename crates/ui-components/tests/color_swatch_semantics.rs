@@ -60,7 +60,7 @@ fn color_swatch_uses_logic_state_model() {
 }
 
 #[test]
-fn color_swatch_emits_spectrum_style_state_data_attributes() {
+fn color_swatch_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/color_swatch/view.rs");
 
     for attr in [
@@ -81,7 +81,7 @@ fn color_swatch_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ColorSwatch should expose `{attr}` for Spectrum-style styling and state inspection."
+            "ColorSwatch should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }

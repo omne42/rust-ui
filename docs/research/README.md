@@ -1,6 +1,6 @@
 # 调研笔记（v0）
 
-目标：用 Rust + Leptos 复刻 React Spectrum 的 3 层架构（Stately / Aria / Spectrum），并通过 Tauri 覆盖 Web、桌面（Win/Mac）与 Android(WebView)。
+目标：用 Rust + Leptos 复刻 React Spectrum 的分层思想（Stately / Aria / Spectrum），并落地到本仓库的 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`，通过 Tauri 覆盖 Web、桌面（Win/Mac）与 Android(WebView)。
 
 文档系统入口：`docs/README.md`  
 文档索引：`docs/DOCS_INDEX.md`
@@ -92,7 +92,7 @@
 
 ## 任务 DAG（v0，摘要）
 
-1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-components/ui-theme/demo-tauri` crate 壳（`cargo check -p ...` 全过）
+1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components/ui-compat` crate 壳 + `apps/tauri-demo`（`cargo check -p ...` 全过）
 2. `t2-headless-interaction`：最小交互系统（Press + FocusVisible）
 3. `t3-theme-tokens`：最小 tokens（颜色/圆角/间距…）
 4. `t4-components-button`：Button v0（组合 t2+t3）

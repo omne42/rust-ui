@@ -31,7 +31,7 @@ pub(super) fn sidebar_content() -> AnyView {
             title="SidebarContent"
             slug="sidebar-content"
             group="Layout"
-            description="Shadcn-compatible sidebar content region primitive with centralized padding/scroll/state contracts and Spectrum-style data markers."
+            description="baseline-compatible sidebar content region primitive with centralized padding/scroll/state contracts and baseline-style data markers."
         >
             <Playground title="Default Scrollable Content" code_signal=default_code>
                 <Sidebar

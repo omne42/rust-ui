@@ -82,7 +82,7 @@ fn file_trigger_emits_motion_source_markers() {
     ] {
         assert!(
             source.contains(needle),
-            "FileTrigger should expose `{needle}` for Spectrum/HeroUI motion inspection."
+            "FileTrigger should expose `{needle}` for baseline motion inspection."
         );
     }
 }
@@ -148,7 +148,7 @@ fn file_trigger_motion_contract_exposes_default_and_custom_trigger_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "FileTrigger motion module should include `{needle}` for HeroUI-level motion contract coverage."
+            "FileTrigger motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
 }

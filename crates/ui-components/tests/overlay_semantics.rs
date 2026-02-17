@@ -203,7 +203,7 @@ fn overlay_motion_contract_exposes_default_and_customization_tests() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "Overlay motion contract should include `{needle}` for HeroUI-style spring customization."
+            "Overlay motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }

@@ -65,7 +65,7 @@ fn logic_button_uses_headless_hooks() {
 }
 
 #[test]
-fn logic_button_emits_spectrum_style_state_data_attributes() {
+fn logic_button_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/logic_button/view.rs");
 
     for attr in [
@@ -82,7 +82,7 @@ fn logic_button_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "LogicButton should expose `{attr}` for Spectrum-style styling and state inspection."
+            "LogicButton should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -119,7 +119,7 @@ fn logic_button_docs_page_covers_primary_playgrounds() {
         "pub(super) fn logic_button() -> AnyView",
         "title=\"LogicButton\"",
         "slug=\"logic-button\"",
-        "description=\"Spectrum-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts.\"",
+        "description=\"baseline-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts.\"",
         "<Playground title=\"AND + OR variants\" code_signal=basic_code>",
         "<Playground title=\"Custom class + Disabled\" code_signal=state_code>",
         "<LogicButton",

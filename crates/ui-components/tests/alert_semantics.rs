@@ -52,7 +52,7 @@ fn alert_uses_logic_state_model() {
 }
 
 #[test]
-fn alert_emits_spectrum_style_state_data_attributes() {
+fn alert_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/alert/view.rs");
 
     for attr in [
@@ -71,7 +71,7 @@ fn alert_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "Alert should expose `{attr}` for Spectrum-style state inspection and styling."
+            "Alert should expose `{attr}` for baseline-style state inspection and styling."
         );
     }
 }

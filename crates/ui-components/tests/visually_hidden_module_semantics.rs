@@ -19,7 +19,7 @@ fn visually_hidden_module_exposes_component_and_css_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "visually_hidden module should include `{needle}` for @react-aria/visually-hidden compatibility.",
+            "visually_hidden module should include `{needle}` for @a11y-baseline/visually-hidden compatibility.",
         );
     }
 }

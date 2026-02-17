@@ -117,7 +117,7 @@ pub(super) fn icon_button() -> AnyView {
             title="IconButton"
             slug="icon-button"
             group="Actions"
-            description="Spectrum-compatible IconButton alias with centralized aria/size/handler source contracts and HeroUI-level motion behavior via Button composition."
+            description="baseline-compatible IconButton alias with centralized aria/size/handler source contracts and baseline-level motion behavior via Button composition."
         >
             <Playground
                 title="on_press + variants"

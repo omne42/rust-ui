@@ -18,7 +18,7 @@ fn theme_dark_module_exports_dark_theme_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "theme_dark module should include `{needle}` for @react-spectrum/theme-dark compatibility."
+            "theme_dark module should include `{needle}` for @ui-baseline/theme-dark compatibility."
         );
     }
 }
@@ -29,7 +29,7 @@ fn crate_root_registers_theme_dark_module() {
 
     assert!(
         source.contains("pub mod theme_dark;"),
-        "crate root should include `pub mod theme_dark;` for @react-spectrum/theme-dark compatibility."
+        "crate root should include `pub mod theme_dark;` for @ui-baseline/theme-dark compatibility."
     );
 }
 

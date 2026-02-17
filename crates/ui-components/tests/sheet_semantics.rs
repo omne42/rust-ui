@@ -177,7 +177,7 @@ fn sheet_motion_contract_exposes_default_custom_and_direction_tests() {
     ] {
         assert!(
             source.contains(needle),
-            "Sheet motion module should include `{needle}` for HeroUI-style regression coverage."
+            "Sheet motion module should include `{needle}` for baseline-style regression coverage."
         );
     }
 }

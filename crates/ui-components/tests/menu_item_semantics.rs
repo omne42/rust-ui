@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn menu_item_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/menu_item/mod.rs");
+    let source = load_source("src/menu/item/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn menu_item_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn menu_item_uses_logic_state_model() {
-    let logic_source = load_source("src/menu_item/logic.rs");
-    let view_source = load_source("src/menu_item/view.rs");
+    let logic_source = load_source("src/menu/item/logic.rs");
+    let view_source = load_source("src/menu/item/view.rs");
 
     for needle in [
         "pub enum MenuItemSelectionIndicator",
@@ -56,8 +56,8 @@ fn menu_item_uses_logic_state_model() {
 }
 
 #[test]
-fn menu_item_emits_spectrum_style_state_data_attributes() {
-    let source = load_source("src/menu_item/view.rs");
+fn menu_item_emits_baseline_style_state_data_attributes() {
+    let source = load_source("src/menu/item/view.rs");
 
     for attr in [
         "data-slot=\"menu-item\"",
@@ -80,14 +80,14 @@ fn menu_item_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "MenuItem should expose `{attr}` for Spectrum-style styling and state inspection."
+            "MenuItem should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
 
 #[test]
 fn menu_item_styles_include_kind_and_state_markers() {
-    let source = load_source("src/menu_item/styles.rs");
+    let source = load_source("src/menu/item/styles.rs");
 
     for selector in [
         ".ui-menu-item--kind-action",
@@ -114,7 +114,7 @@ fn menu_item_styles_include_kind_and_state_markers() {
 
 #[test]
 fn menu_item_supports_kind_based_aria_roles_and_checked_states() {
-    let source = load_source("src/menu_item/view.rs");
+    let source = load_source("src/menu/item/view.rs");
 
     for needle in [
         "role=move || state.get().role_attr",
@@ -136,7 +136,7 @@ fn menu_item_docs_page_covers_primary_playgrounds() {
         "pub(super) fn menu_item() -> AnyView",
         "title=\"MenuItem\"",
         "slug=\"menu-item\"",
-        "description=\"Spectrum/HeroUI-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts.\"",
+        "description=\"baseline-style menu row primitive with centralized kind/checked/focus/source normalization and stable `slot` + `data-*` contracts.\"",
         "<Playground title=\"Action + Checkbox\" code_signal=code>",
         "<Playground title=\"Radio + Submenu + Disabled\" code_signal=states_code>",
         "<MenuItem",

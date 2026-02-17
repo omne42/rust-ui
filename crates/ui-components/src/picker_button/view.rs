@@ -1,4 +1,4 @@
-use crate::FieldButton;
+use crate::button::field::FieldButton;
 use crate::picker_button::{PickerButtonStateInput, logic};
 use leptos::{html, prelude::*};
 use ui_headless::OnPress;
@@ -55,9 +55,9 @@ pub fn PickerButton(
                 data-custom-class=state.has_custom_class_name.then_some("true")
             >
                 <FieldButton
-                    quiet=quiet
-                    invalid=invalid
-                    disabled=disabled
+                    is_quiet=quiet
+                    is_invalid=invalid
+                    is_disabled=disabled
                     is_active=is_active
                     aria_label=aria_label
                     class_name=class_name_for_inner
@@ -91,9 +91,9 @@ pub fn PickerButton(
                 data-custom-class=state.has_custom_class_name.then_some("true")
             >
                 <FieldButton
-                    quiet=quiet
-                    invalid=invalid
-                    disabled=disabled
+                    is_quiet=quiet
+                    is_invalid=invalid
+                    is_disabled=disabled
                     is_active=is_active
                     aria_label=aria_label
                     class_name=class_name_for_inner

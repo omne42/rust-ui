@@ -1,4 +1,4 @@
-//! `ui-headless` — interaction & accessibility primitives (React Aria analogue).
+//! `ui-headless` — interaction & accessibility primitives (A11y Baseline analogue).
 
 #[cfg(all(feature = "web", feature = "ssr"))]
 compile_error!("features `web` and `ssr` are mutually exclusive; enable exactly one");
@@ -35,7 +35,11 @@ pub mod tooltip;
 pub mod tooltip_position;
 pub mod trace;
 
-pub use a11y::aria_controls_when_open;
+pub use a11y::{
+    A11yDirection, A11yLocaleAttrs, DisclosureTriggerA11yAttrs, PopupTriggerA11yAttrs,
+    aria_controls_when_open, aria_expanded, disclosure_trigger_attrs, locale_attrs,
+    popup_trigger_attrs,
+};
 pub use button::{
     ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions, use_button,
 };

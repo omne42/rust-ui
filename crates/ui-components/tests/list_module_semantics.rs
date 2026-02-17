@@ -8,143 +8,104 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn list_module_reexports_listview_and_item_contracts() {
+fn list_module_reexports_canonical_list_contracts() {
     let source = load_source("src/list/mod.rs");
 
     for needle in [
+        "pub use logic::{ListItemSelectionIndicator, ListSectionHeadingTone, ListState};",
+        "pub use motion::ListMotion;",
+        "pub use motion::ListSectionMotion;",
+        "pub use view::{List, ListItem, ListSection};",
+    ] {
+        assert!(
+            source.contains(needle),
+            "list module should expose canonical `{needle}`."
+        );
+    }
+
+    for removed in [
         "pub use crate::listbox::ListBox as ListView;",
         "pub use crate::item::Item;",
     ] {
         assert!(
-            source.contains(needle),
-            "list module should expose `{needle}` for @react-spectrum/list compatibility."
+            !source.contains(removed),
+            "list module should not keep removed alias `{removed}`."
         );
     }
 }
 
 #[test]
-fn crate_root_registers_list_module() {
+fn crate_root_registers_list_and_hides_listbox_module() {
     let source = load_source("src/lib.rs");
 
     assert!(
         source.contains("pub mod list;"),
-        "crate root should include `pub mod list;` for @react-spectrum/list compatibility."
+        "crate root should include `pub mod list;`."
+    );
+    assert!(
+        !source.contains("mod listbox;"),
+        "crate root should not keep legacy listbox module."
     );
 }
 
 #[test]
-fn list_compatibility_reuses_listbox_and_item_docs_playgrounds() {
+fn list_docs_use_list_family_slugs_and_components() {
+    let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let collections_source =
         load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
-    let item_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
-
-    for needle in ["title=\"ListBox\"", "slug=\"listbox\"", "<ListBox"] {
-        assert!(
-            collections_source.contains(needle),
-            "collections docs should contain `{needle}` for ListView compatibility coverage."
-        );
-    }
-
-    for needle in ["title=\"Item\"", "slug=\"item\"", "<Item"] {
-        assert!(
-            item_source.contains(needle),
-            "item docs should contain `{needle}` for Item compatibility coverage."
-        );
-    }
-}
-
-#[test]
-fn list_module_docs_page_covers_primary_playgrounds() {
-    let collections_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
-    let item_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
+    let collections_extra_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
     let mod_source = load_source("../../apps/docs-app/src/pages/components/mod.rs");
 
     for needle in [
-        "pub(super) fn list_box() -> AnyView",
-        "title=\"ListBox\"",
-        "slug=\"listbox\"",
-        "description=\"Listbox with active highlight spring motion, typeahead, and Spectrum-style root state attrs.\"",
-        "<Playground title=\"Selection + Typeahead\" code_signal=code>",
-        "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
-        "<ListBox",
+        "component_doc!(\"List\", \"list\", \"Collections\", collections::list)",
+        "\"ListItem\"",
+        "\"list-item\"",
+        "\"ListSection\"",
+        "\"list-section\"",
+        "collections_extra::list_item",
+        "collections_extra::list_section",
     ] {
         assert!(
-            collections_source.contains(needle),
-            "collections docs should include `{needle}` for list module ListView primary playground coverage.",
+            pages_source.contains(needle),
+            "components catalog should include `{needle}` for list family docs."
         );
     }
 
     for needle in [
-        "pub(super) fn item_primitives() -> AnyView",
-        "title=\"Item\"",
-        "slug=\"item\"",
-        "description=\"Shadcn-compatible item composition primitives (`Item*`) with stable slot/variant/size contracts for media-content-actions and header-footer layouts.\"",
-        "title=\"Media + Content + Actions\"",
-        "title=\"Header + Footer Layout\"",
-        "<Item",
+        "pub(super) fn list() -> AnyView",
+        "title=\"List\"",
+        "slug=\"list\"",
+        "<List",
     ] {
         assert!(
-            item_source.contains(needle),
-            "collections_item_shadcn docs should include `{needle}` for list module Item primary playground coverage.",
+            collections_source.contains(needle),
+            "collections docs should include `{needle}` for the canonical List page."
+        );
+    }
+
+    for needle in [
+        "pub(super) fn list_item() -> AnyView",
+        "title=\"ListItem\"",
+        "slug=\"list-item\"",
+        "<ListItem",
+        "pub(super) fn list_section() -> AnyView",
+        "title=\"ListSection\"",
+        "slug=\"list-section\"",
+        "<ListSection",
+    ] {
+        assert!(
+            collections_extra_source.contains(needle),
+            "collections-extra docs should include `{needle}` for list item/section pages."
         );
     }
 
     assert!(
-        mod_source.contains("\"list\" => &[\"listbox\", \"item\"]"),
-        "components mod mapping should keep `list` mapped to `listbox` and `item` slugs.",
+        mod_source.contains("\"list\" => &[\"list\", \"list-item\", \"list-section\"]"),
+        "components mapping should point `list` to list/list-item/list-section."
     );
-}
-
-#[test]
-fn list_module_docs_playgrounds_lock_state_matrix_contract_values() {
-    let collections_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
-    let item_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/collections_item_shadcn.rs");
-
-    for needle in [
-        "title=\"Selection + Typeahead\"",
-        "id_base=\"docs-listbox\".to_string()",
-        "aria_label=\"Fruit\".to_string()",
-        "disabled_indices=vec![3]",
-        "title=\"Disabled + Empty\"",
-        "id_base=\"docs-listbox-disabled\".to_string()",
-        "aria_label=\"Disabled city list\".to_string()",
-        "disabled=true",
-        "id_base=\"docs-listbox-empty\".to_string()",
-        "aria_label=\"Empty city list\".to_string()",
-    ] {
-        assert!(
-            collections_source.contains(needle),
-            "collections docs playgrounds should contain `{needle}` for list module ListView contracts.",
-        );
-    }
-
-    for needle in [
-        "title=\"Media + Content + Actions\"",
-        "<ItemGroup>",
-        "variant=variant",
-        "size=size",
-        "<ItemMedia variant=ItemMediaVariant::Icon>",
-        "\"Build Artifact\"",
-        "\"Generated from latest CI pipeline.\"",
-        "<ItemActions>",
-        "<ItemSeparator />",
-        "title=\"Header + Footer Layout\"",
-        "<ItemHeader>",
-        "variant=ItemVariant::Muted",
-        "size=ItemSize::Sm",
-        "\"Edge deployment\"",
-        "\"2 minutes ago · US-East\"",
-        "<ItemFooter>",
-        "\"Status: degraded\"",
-    ] {
-        assert!(
-            item_source.contains(needle),
-            "collections_item_shadcn docs playgrounds should contain `{needle}` for list module Item contracts.",
-        );
-    }
+    assert!(
+        !mod_source.contains("\"list-box\" =>"),
+        "components mapping should not contain the removed `list-box` alias."
+    );
 }

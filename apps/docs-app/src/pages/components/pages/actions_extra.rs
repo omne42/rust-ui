@@ -100,7 +100,7 @@ pub(super) fn action_bar() -> AnyView {
             title="ActionBar"
             slug="action-bar"
             group="Actions"
-            description="Bulk-action surface with Spectrum-style selection contracts and HeroUI-grade spring visibility motion."
+            description="Bulk-action surface with baseline-style selection contracts and baseline-level spring visibility motion."
         >
             <Playground title="Selection + clear action" code_signal=code>
                 <div class="docs-stack">
@@ -187,7 +187,7 @@ pub(super) fn field_button() -> AnyView {
         r#"<FieldButton aria_label="Open options".to_string()>
   "Options"
 </FieldButton>
-<FieldButton quiet=true aria_label="Open calendar".to_string()>
+<FieldButton is_quiet=true aria_label="Open calendar".to_string()>
   "📅"
 </FieldButton>"#
             .to_string()
@@ -195,14 +195,14 @@ pub(super) fn field_button() -> AnyView {
 
     let state_code = Signal::derive(move || {
         r#"<FieldButton
-  invalid=true
+  is_invalid=true
   is_active=true
   aria_label="Invalid trigger".to_string()
   class_name="docs-field-button-custom".to_string()
 >
   "Needs fix"
 </FieldButton>
-<FieldButton disabled=true aria_label="Disabled trigger".to_string()>
+<FieldButton is_disabled=true aria_label="Disabled trigger".to_string()>
   "Disabled"
 </FieldButton>"#
             .to_string()
@@ -213,14 +213,14 @@ pub(super) fn field_button() -> AnyView {
             title="FieldButton"
             slug="field-button"
             group="Actions"
-            description="Spectrum-style field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
+            description="baseline-style field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
         >
             <Playground title="Default + Quiet" code_signal=default_code>
                 <div class="docs-row">
                     <FieldButton aria_label="Open options".to_string()>
                         "Options"
                     </FieldButton>
-                    <FieldButton quiet=true aria_label="Open calendar".to_string()>
+                    <FieldButton is_quiet=true aria_label="Open calendar".to_string()>
                         "📅"
                     </FieldButton>
                 </div>
@@ -229,14 +229,14 @@ pub(super) fn field_button() -> AnyView {
             <Playground title="Invalid + Active + Disabled" code_signal=state_code>
                 <div class="docs-row">
                     <FieldButton
-                        invalid=true
+                        is_invalid=true
                         is_active=true
                         aria_label="Invalid trigger".to_string()
                         class_name="docs-field-button-custom".to_string()
                     >
                         "Needs fix"
                     </FieldButton>
-                    <FieldButton disabled=true aria_label="Disabled trigger".to_string()>
+                    <FieldButton is_disabled=true aria_label="Disabled trigger".to_string()>
                         "Disabled"
                     </FieldButton>
                 </div>
@@ -277,7 +277,7 @@ pub(super) fn infield_button() -> AnyView {
             title="InfieldButton"
             slug="infield-button"
             group="Actions"
-            description="Spectrum-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
+            description="baseline-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
         >
             <Playground title="Default + Quiet" code_signal=default_code>
                 <div class="docs-row">
@@ -341,7 +341,7 @@ pub(super) fn clear_button() -> AnyView {
             title="ClearButton"
             slug="clear-button"
             group="Actions"
-            description="Spectrum-style clear affordance with centralized variant/inset/focus-mode normalization and stable state/source data contracts."
+            description="baseline-style clear affordance with centralized variant/inset/focus-mode normalization and stable state/source data contracts."
         >
             <Playground title="Default + OverBackground" code_signal=basic_code>
                 <div class="docs-row">
@@ -404,7 +404,7 @@ pub(super) fn close_button() -> AnyView {
             title="CloseButton"
             slug="close-button"
             group="Actions"
-            description="Spectrum/HeroUI-style close affordance with default icon fallback, centralized variant+size contracts, and stable state/source data markers."
+            description="baseline-style close affordance with default icon fallback, centralized variant+size contracts, and stable state/source data markers."
         >
             <Playground title="Default + OverBackground + Custom Label" code_signal=basic_code>
                 <div class="docs-row">
@@ -459,7 +459,7 @@ pub(super) fn logic_button() -> AnyView {
             title="LogicButton"
             slug="logic-button"
             group="Actions"
-            description="Spectrum-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts."
+            description="baseline-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts."
         >
             <Playground title="AND + OR variants" code_signal=basic_code>
                 <div class="docs-row">
@@ -570,7 +570,7 @@ pub(super) fn action_group() -> AnyView {
             title="ActionGroup"
             slug="action-group"
             group="Actions"
-            description="Selectable action cluster with centralized selection normalization and Spectrum-style state/source data contracts."
+            description="Selectable action cluster with centralized selection normalization and baseline-style state/source data contracts."
         >
             <Playground title="Single Selection + Action Callback" code_signal=code>
                 <div class="docs-stack">
@@ -688,7 +688,7 @@ pub(super) fn toggle() -> AnyView {
             title="Toggle"
             slug="toggle"
             group="Actions"
-            description="Shadcn-compatible single toggle primitive with Spectrum-style press/focus contracts and HeroUI-grade spring press motion."
+            description="baseline-compatible single toggle primitive with baseline-style press/focus contracts and baseline-level spring press motion."
         >
             <Playground title="Controlled Toggle" code_signal=basic_code>
                 <div class="docs-stack docs-stack--tight">
@@ -839,7 +839,7 @@ pub(super) fn toggle_group() -> AnyView {
             title="ToggleGroup"
             slug="toggle-group"
             group="Actions"
-            description="Shadcn-compatible grouped toggle primitive with controlled selection modes and Spectrum-style root state contracts."
+            description="baseline-compatible grouped toggle primitive with controlled selection modes and baseline-style root state contracts."
         >
             <Playground title="Multiple + Attached" code_signal=code>
                 <div class="docs-stack docs-stack--tight">

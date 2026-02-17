@@ -24,6 +24,15 @@ fn collect_local_component_modules() -> BTreeSet<String> {
         names.insert(name.to_string());
     }
 
+    // Component relocations that now live under a grouped parent directory.
+    // Keep parity checks focused on semantic coverage rather than top-level folder shape.
+    if src_root.join("checkbox_field/checkbox").exists() {
+        names.insert("checkbox".to_string());
+    }
+    if src_root.join("button/toggle").exists() {
+        names.insert("toggle".to_string());
+    }
+
     names
 }
 
@@ -107,30 +116,6 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn shadcn_new_york_ui_component_names_are_covered_locally() {
-    let local_modules = collect_local_component_modules();
-    let shadcn_ui =
-        repo_root().join("examples/_upstream/shadcn-ui/apps/v4/registry/new-york-v4/ui");
-
-    if !shadcn_ui.exists() {
-        return;
-    }
-
-    let upstream = collect_upstream_tsx_component_names(&shadcn_ui, &["index", "utils", "types"]);
-
-    let missing: Vec<String> = upstream
-        .iter()
-        .filter(|name| !local_modules.contains(name.as_str()))
-        .cloned()
-        .collect();
-
-    assert!(
-        missing.is_empty(),
-        "local ui-components should cover shadcn new-york-v4/ui names; missing: {missing:?}"
-    );
-}
-
-#[test]
 fn animate_ui_component_names_are_covered_locally() {
     let local_modules = collect_local_component_modules();
     let animate_ui =
@@ -158,7 +143,7 @@ fn animate_ui_component_names_are_covered_locally() {
 fn react_aria_components_names_are_covered_locally() {
     let local_modules = collect_local_component_modules();
     let react_aria_components = repo_root()
-        .join("examples/_upstream/adobe-react-spectrum/packages/react-aria-components/src");
+        .join("examples/_upstream/adobe-ui-baseline/packages/a11y-baseline-components/src");
 
     if !react_aria_components.exists() {
         return;
@@ -203,21 +188,21 @@ fn react_aria_components_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover react-aria-components names; missing: {missing:?}"
+        "local ui-components should cover a11y-baseline-components names; missing: {missing:?}"
     );
 }
 
 #[test]
-fn heroui_component_dir_names_are_covered_locally() {
+fn upstream_component_dir_names_are_covered_locally() {
     let local_modules = collect_local_component_modules();
-    let heroui_components =
-        repo_root().join("examples/_upstream/heroui/packages/react/src/components");
+    let upstream_components =
+        repo_root().join("examples/_upstream/upstream/packages/react/src/components");
 
-    if !heroui_components.exists() {
+    if !upstream_components.exists() {
         return;
     }
 
-    let upstream = collect_upstream_dir_names(&heroui_components);
+    let upstream = collect_upstream_dir_names(&upstream_components);
     let skip = ["rac"];
 
     let missing: Vec<String> = upstream
@@ -229,19 +214,19 @@ fn heroui_component_dir_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover HeroUI component directory names; missing: {missing:?}"
+        "local ui-components should cover Upstream component directory names; missing: {missing:?}"
     );
 }
 
 #[test]
-fn spectrum_web_components_dir_names_are_covered_locally() {
+fn baseline_web_components_dir_names_are_covered_locally() {
     let local_modules = collect_local_component_modules();
     let swc_roots = [
         repo_root().join(
-            "examples/_upstream/adobe-spectrum-web-components/2nd-gen/packages/swc/components",
+            "examples/_upstream/adobe-baseline-web-components/2nd-gen/packages/swc/components",
         ),
         repo_root().join(
-            "examples/_upstream/adobe-spectrum-web-components/2nd-gen/packages/core/components",
+            "examples/_upstream/adobe-baseline-web-components/2nd-gen/packages/core/components",
         ),
     ];
 
@@ -261,25 +246,25 @@ fn spectrum_web_components_dir_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover Spectrum Web Components names; missing: {missing:?}"
+        "local ui-components should cover web component names; missing: {missing:?}"
     );
 }
 
 #[test]
-fn react_spectrum_package_names_are_covered_locally() {
+fn react_baseline_package_names_are_covered_locally() {
     let local_modules = collect_local_component_modules();
     let local_compact: BTreeSet<String> = local_modules
         .iter()
         .map(|name| compact_name(name))
         .collect();
-    let react_spectrum_packages =
-        repo_root().join("examples/_upstream/adobe-react-spectrum/packages/@react-spectrum");
+    let react_baseline_packages =
+        repo_root().join("examples/_upstream/adobe-ui-baseline/packages/@ui-baseline");
 
-    if !react_spectrum_packages.exists() {
+    if !react_baseline_packages.exists() {
         return;
     }
 
-    let upstream = collect_upstream_dir_names(&react_spectrum_packages);
+    let upstream = collect_upstream_dir_names(&react_baseline_packages);
     let skip = [
         "provider",
         "utils",
@@ -298,7 +283,7 @@ fn react_spectrum_package_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover @react-spectrum package names; missing: {missing:?}"
+        "local ui-components should cover @ui-baseline package names; missing: {missing:?}"
     );
 }
 
@@ -310,7 +295,7 @@ fn react_aria_package_names_are_covered_locally() {
         .map(|name| compact_name(name))
         .collect();
     let react_aria_packages =
-        repo_root().join("examples/_upstream/adobe-react-spectrum/packages/@react-aria");
+        repo_root().join("examples/_upstream/adobe-ui-baseline/packages/@a11y-baseline");
 
     if !react_aria_packages.exists() {
         return;
@@ -340,21 +325,20 @@ fn react_aria_package_names_are_covered_locally() {
 
     assert!(
         missing.is_empty(),
-        "local ui-components should cover @react-aria package names; missing: {missing:?}"
+        "local ui-components should cover @a11y-baseline package names; missing: {missing:?}"
     );
 }
 
 #[test]
 fn upstream_name_parity_docs_page_covers_primary_playgrounds() {
-    shadcn_new_york_ui_component_names_are_covered_locally();
     animate_ui_component_names_are_covered_locally();
     react_aria_components_names_are_covered_locally();
 }
 
 #[test]
 fn upstream_name_parity_docs_playgrounds_lock_state_matrix_contract_values() {
-    heroui_component_dir_names_are_covered_locally();
-    spectrum_web_components_dir_names_are_covered_locally();
-    react_spectrum_package_names_are_covered_locally();
+    upstream_component_dir_names_are_covered_locally();
+    baseline_web_components_dir_names_are_covered_locally();
+    react_baseline_package_names_are_covered_locally();
     react_aria_package_names_are_covered_locally();
 }

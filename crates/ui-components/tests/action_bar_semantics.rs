@@ -86,7 +86,7 @@ fn action_bar_emits_toolbar_semantics_and_state_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "ActionBar should emit `{needle}` for Spectrum-style contract and tooling."
+            "ActionBar should emit `{needle}` for baseline-style contract and tooling."
         );
     }
 }
@@ -133,7 +133,7 @@ fn action_bar_motion_contract_defaults_and_disabled_path_are_locked() {
     ] {
         assert!(
             source.contains(needle),
-            "ActionBar motion contract should include `{needle}` for HeroUI-level defaults/disabled stability."
+            "ActionBar motion contract should include `{needle}` for baseline-level defaults/disabled stability."
         );
     }
 }

@@ -120,7 +120,7 @@ fn combo_box_panel_is_portaled_and_uses_popover_positioning() {
     ] {
         assert!(
             source.contains(needle),
-            "ComboBox panel should include `{needle}` for Spectrum-style popover behavior."
+            "ComboBox panel should include `{needle}` for baseline-style popover behavior."
         );
     }
 }
@@ -159,7 +159,7 @@ fn combo_box_uses_presence_for_motion_safe_unmounting() {
 }
 
 #[test]
-fn combo_box_emits_spectrum_style_state_data_attributes() {
+fn combo_box_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/combo_box/view.rs");
 
     for attr in [
@@ -205,7 +205,7 @@ fn combo_box_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "ComboBox should set `{attr}` to support Spectrum-style styling and state inspection."
+            "ComboBox should set `{attr}` to support baseline-style styling and state inspection."
         );
     }
 }
@@ -283,7 +283,7 @@ fn combo_box_motion_contract_exposes_popover_and_highlight_customization() {
     ] {
         assert!(
             mod_source.contains(needle) || motion_source.contains(needle),
-            "ComboBox motion contract should include `{needle}` for HeroUI-style spring customization."
+            "ComboBox motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
 }
@@ -319,7 +319,7 @@ fn combo_box_docs_page_covers_primary_playgrounds() {
         "pub(super) fn combo_box() -> AnyView",
         "title=\"ComboBox\"",
         "slug=\"combo-box\"",
-        "description=\"Combobox with input + listbox + popover, Spectrum-style root attrs, and HeroUI-level panel/highlight motion.\"",
+        "description=\"Combobox with input + listbox + popover, baseline-style root attrs, and baseline-level panel/highlight motion.\"",
         "<Playground title=\"Selection + Validation\" code_signal=code>",
         "<Playground title=\"Controlled Open State\" code_signal=controlled_code>",
         "<Playground title=\"Disabled + Empty\" code_signal=states_code>",

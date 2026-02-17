@@ -107,7 +107,7 @@ fn number_motion_contract_defaults_and_reduced_motion_paths_are_locked() {
     ] {
         assert!(
             source.contains(needle),
-            "Number motion contract should include `{needle}` for HeroUI-level spring/reduced-motion stability.",
+            "Number motion contract should include `{needle}` for baseline-level spring/reduced-motion stability.",
         );
     }
 }

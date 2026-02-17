@@ -18,7 +18,7 @@ fn theme_light_module_exports_light_theme_contract() {
     ] {
         assert!(
             source.contains(needle),
-            "theme_light module should include `{needle}` for @react-spectrum/theme-light compatibility."
+            "theme_light module should include `{needle}` for @ui-baseline/theme-light compatibility."
         );
     }
 }
@@ -29,7 +29,7 @@ fn crate_root_registers_theme_light_module() {
 
     assert!(
         source.contains("pub mod theme_light;"),
-        "crate root should include `pub mod theme_light;` for @react-spectrum/theme-light compatibility."
+        "crate root should include `pub mod theme_light;` for @ui-baseline/theme-light compatibility."
     );
 }
 

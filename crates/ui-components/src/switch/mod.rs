@@ -1,3 +1,5 @@
+#[cfg(feature = "component-switch_group")]
+pub mod group;
 mod logic;
 pub mod motion;
 pub mod styles;

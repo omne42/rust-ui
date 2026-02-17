@@ -39,7 +39,7 @@ pub(super) fn icons_ui() -> AnyView {
             title="IconsUi"
             slug="icons-ui"
             group="Display"
-            description="Spectrum-compatible icons-ui wrapper with built-in UI icon registry defaults, namespace normalization, and Iconset accessibility/source-state contracts."
+            description="baseline-compatible icons-ui wrapper with built-in UI icon registry defaults, namespace normalization, and Iconset accessibility/source-state contracts."
         >
             <Playground title="Built-in UI Glyphs" code_signal=defaults_code>
                 <div class="docs-row">

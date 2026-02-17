@@ -5,8 +5,8 @@
 
 ## A. 全局规则（必须遵守，违反即返工）
 
-- [ ] 分层不破：`ui-state-primitives`（纯状态）→ `ui-headless`（交互/A11y）→ `ui-components`（组件）→ `apps/*`（应用）
-- [ ] 依赖单向：`ui-state-primitives` 不依赖任何其他 crate；`ui-theme` 不依赖 `ui-components`
+- [ ] 分层不破：`ui-state-primitives`（纯状态）→ `ui-headless`（交互/A11y）→ `ui-components`（组件）→ `apps/*`（应用）；`ui-theme/ui-motion` 作为组件横向服务层
+- [ ] 依赖单向：`ui-state-primitives/ui-theme/ui-motion` 不依赖上层；`ui-headless` 不依赖 `ui-components/ui-theme`
 - [ ] `ui-state-primitives` 禁止 `web-sys` / DOM / 平台能力（保持可移植、可单测）
 - [ ] `ui-components` 不直接碰 `web-sys`（一律通过 `ui-headless` 注入行为）
 - [ ] `ui-headless` 的 DOM 交互必须 feature-gated（至少 `web`/`ssr`），且能 `wasm32-unknown-unknown` 编译
@@ -22,16 +22,17 @@
 - [ ] Gate D（WASM 编译）：`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`
 - [ ] Gate E（WASM 编译）：`cargo check -p ui-components --target wasm32-unknown-unknown`
 - [ ] Gate F（WASM 编译）：`cargo check -p web-demo --target wasm32-unknown-unknown`
+- [ ] Gate F2（WASM 编译）：`cargo check -p docs-app --target wasm32-unknown-unknown`
 - [ ] Gate G（SSR 编译）：`cargo check -p ui-headless --no-default-features --features ssr`
-- [ ] Gate H（组件级裁剪）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features button,input,inject-css`
-- [ ] Gate I（CSS 裁剪）：`cargo test -p ui-components --test css_feature_slicing --no-default-features --features button,input,inject-css`
+- [ ] Gate H（组件级裁剪）：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,component-input,inject-css`
+- [ ] Gate I（CSS 聚合回归，当前实现）：`cargo test -p ui-components --test css`
 - [ ] 说明：WASM Gates 需要安装 `wasm32-unknown-unknown` target（推荐 `rustup target add wasm32-unknown-unknown`）；临时可用 `SKIP_WASM=1 ./scripts/check.sh`
 
 ## 0) 冻结输入（不做这个会反复返工）
 
 - [x] `t00` 复核并更新 `docs/spec/mvp.md`（把默认 Button→Popover 换成你的真实流程也行）
 - [x] 确认 demo 目录策略：
-  - [x] 默认：可提交 demo 放 `apps/`；upstream 参考放 `examples/_upstream/` 且不提交
+  - [x] 默认：可提交 demo 放 `apps/`；research mirror放 `examples/_upstream/` 且不提交
   - [ ] 若坚持 `examples/` 也要提交 demo：调整 `.gitignore` 仅忽略 `examples/_upstream/`
 - [x] `t03` 确保 `docs/plan/task_dag.json` 与 `docs/plan/TODO.md` 同步（计划变化必须同步）
 
@@ -44,8 +45,11 @@
   - [x] `crates/ui-state-primitives`
   - [x] `crates/ui-headless`
   - [x] `crates/ui-theme`
+  - [x] `crates/ui-motion`
   - [x] `crates/ui-components`
+  - [x] `crates/ui-compat`
   - [x] `apps/web-demo`
+  - [x] `apps/docs-app`
   - [x] `apps/tauri-demo`（Phase 2，可先占位）
 - [x] `t01` 为每个 crate 建立最小 `src/lib.rs`（只导出占位模块，先不实现逻辑）
 - [x] `t01` 统一 crate metadata（edition、license、repository、publish = false（先不开源发布））
@@ -59,7 +63,9 @@
   - [ ] `ui-state-primitives`：无内部依赖
   - [ ] `ui-theme`：无内部依赖
   - [ ] `ui-headless`：可依赖 `ui-state-primitives`（可选），不可依赖 `ui-components/ui-theme`
+  - [ ] `ui-motion`：无内部依赖
   - [ ] `ui-components`：仅依赖 `ui-headless` + `ui-theme`（必要时再依赖 `ui-state-primitives`，但优先不依赖）
+  - [ ] `ui-compat`：可依赖 `ui-headless/ui-components`，但核心分层不得反向依赖
   - [ ] `apps/*`：依赖 `ui-components`（可间接使用 headless/theme）
 
 **Stop Gate**
@@ -69,7 +75,7 @@
 
 - [x] `t02` 新增 `scripts/check.sh`：顺序跑 Gate A→B→C→D→E→F（失败即退出）
 - [ ] （可选）新增 `rust-toolchain.toml` 固定 toolchain（降低环境差异）
-- [ ] （可选）新增 `scripts/ci.sh`（CI 用；本地同样可跑）
+- [ ] （可选）新增 `scripts/ci.sh`（CI 用；本地同样可跑；当前仓库尚未提供该脚本）
 - [ ] （可选）添加 `.gitignore` 条目：`target/`（等 workspace 落地后再加）
 
 **Stop Gate**
@@ -219,11 +225,11 @@
 
 ### 7.1.1 组件级裁剪（Tree Shaking）v0
 
-- [ ] 新增 `ui-components` 组件级 features（至少 `button`、`input`、`select`、`overlay` 样例 + `full`）
+- [ ] 新增 `ui-components` 组件级 features（至少 `component-button`、`component-input`、`component-select`、`component-overlay` 样例 + `all-components`）
 - [ ] `lib.rs` 模块与 re-export 按 feature 条件编译
 - [ ] `css.rs` 聚合按 feature 条件拼接（只注入启用组件 CSS）
 - [ ] 反模式清理：禁止全组件中央注册表导致所有组件可达
-- [ ] 新增 `css_feature_slicing` 测试：最小特性集只包含目标组件选择器
+- [ ] 新增最小特性 CSS slicing 测试（当前仅有 `cargo test -p ui-components --test css` 的全量聚合回归）
 
 **Stop Gate**
 - [ ] Gate H
@@ -439,6 +445,7 @@
 - [ ] 明确 async runtime 解耦边界与 adapter
 - [ ] 定义测试金字塔落地清单与 E2E 选择器规范
 - [ ] 启动性能/内存 profiling workbench 与预算基线
+- [ ] 建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据
 - [ ] 定义 Agent Contract 版本策略与迁移流程
 - [ ] 起草贡献与治理文档（Contributing + RFC 模板）
 - [ ] 建立 ADR 模板与目录规范

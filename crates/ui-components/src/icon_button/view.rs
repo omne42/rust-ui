@@ -62,7 +62,7 @@ pub fn IconButton(
             data-custom-motion=state.has_custom_motion.then_some("true")
         >
             <Button
-                disabled=disabled
+                is_disabled=disabled
                 variant=variant
                 size=size
                 motion=motion

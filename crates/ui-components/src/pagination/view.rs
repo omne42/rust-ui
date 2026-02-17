@@ -100,7 +100,7 @@ pub fn Pagination(
                             data-disabled=is_prev_disabled.then_some("true")
                         >
                             <Button
-                                disabled=is_prev_disabled
+                                is_disabled=is_prev_disabled
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
                                 aria_label=prev_page_label.clone()
@@ -159,7 +159,7 @@ pub fn Pagination(
 
                                     view! {
                                         <Button
-                                            disabled=disabled
+                                            is_disabled=disabled
                                             variant=ButtonVariant::Ghost
                                             size=ButtonSize::Sm
                                             on_press=on_press
@@ -196,7 +196,7 @@ pub fn Pagination(
                             data-disabled=is_next_disabled.then_some("true")
                         >
                             <Button
-                                disabled=is_next_disabled
+                                is_disabled=is_next_disabled
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
                                 aria_label=next_page_label.clone()

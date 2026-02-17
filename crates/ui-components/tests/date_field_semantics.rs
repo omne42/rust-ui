@@ -72,7 +72,7 @@ fn date_field_uses_logic_state_model() {
 }
 
 #[test]
-fn date_field_emits_spectrum_style_state_data_attributes() {
+fn date_field_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/date_field/view.rs");
 
     for attr in [
@@ -97,7 +97,7 @@ fn date_field_emits_spectrum_style_state_data_attributes() {
     ] {
         assert!(
             source.contains(attr),
-            "DateField should expose `{attr}` for Spectrum-style styling and state inspection."
+            "DateField should expose `{attr}` for baseline-style styling and state inspection."
         );
     }
 }
@@ -136,7 +136,7 @@ fn date_field_docs_page_covers_primary_playgrounds() {
         "pub(super) fn date_field() -> AnyView",
         "title=\"DateField\"",
         "slug=\"date-field\"",
-        "description=\"Segmented date entry field with centralized year/month/day normalization and Spectrum-style state/source contracts.\"",
+        "description=\"Segmented date entry field with centralized year/month/day normalization and baseline-style state/source contracts.\"",
         "<Playground title=\"Controlled Value\" code_signal=code>",
         "<Playground title=\"Strong Tone + Custom Placeholder\" code_signal=states_code>",
         "<DateField",

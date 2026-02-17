@@ -10,7 +10,7 @@ path = "src/lib.rs"
 [features]
 default = ["spectrum"]
 
-# Compatibility shims for upstream ecosystems (React Spectrum / RAC naming parity).
+# Compatibility shims for external ecosystems (baseline / RAC naming parity).
 spectrum = [
     "provider",
     "rac",

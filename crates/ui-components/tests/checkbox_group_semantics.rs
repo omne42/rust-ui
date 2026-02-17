@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn checkbox_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/checkbox_group/mod.rs");
+    let source = load_source("src/checkbox_field/checkbox/group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn checkbox_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn checkbox_group_uses_logic_state_model() {
-    let view_source = load_source("src/checkbox_group/view.rs");
-    let logic_source = load_source("src/checkbox_group/logic.rs");
+    let view_source = load_source("src/checkbox_field/checkbox/group/view.rs");
+    let logic_source = load_source("src/checkbox_field/checkbox/group/logic.rs");
 
     for needle in [
         "pub struct CheckboxGroupState",
@@ -52,8 +52,8 @@ fn checkbox_group_uses_logic_state_model() {
 
 #[test]
 fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
-    let view_source = load_source("src/checkbox_group/view.rs");
-    let logic_source = load_source("src/checkbox_group/logic.rs");
+    let view_source = load_source("src/checkbox_field/checkbox/group/view.rs");
+    let logic_source = load_source("src/checkbox_field/checkbox/group/logic.rs");
 
     for needle in [
         "resolve_ids",
@@ -76,7 +76,7 @@ fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
 
 #[test]
 fn checkbox_group_uses_headless_text_field_contract() {
-    let source = load_source("src/checkbox_group/logic.rs");
+    let source = load_source("src/checkbox_field/checkbox/group/logic.rs");
 
     for needle in [
         "use_text_field",
@@ -91,8 +91,8 @@ fn checkbox_group_uses_headless_text_field_contract() {
 }
 
 #[test]
-fn checkbox_group_emits_spectrum_state_data_attributes() {
-    let source = load_source("src/checkbox_group/view.rs");
+fn checkbox_group_emits_baseline_state_data_attributes() {
+    let source = load_source("src/checkbox_field/checkbox/group/view.rs");
 
     for needle in [
         "data-slot=\"checkbox-group\"",
@@ -109,14 +109,14 @@ fn checkbox_group_emits_spectrum_state_data_attributes() {
     ] {
         assert!(
             source.contains(needle),
-            "CheckboxGroup should expose `{needle}` for Spectrum-style state styling and inspection."
+            "CheckboxGroup should expose `{needle}` for baseline-style state styling and inspection."
         );
     }
 }
 
 #[test]
 fn checkbox_group_only_renders_error_slot_when_invalid() {
-    let source = load_source("src/checkbox_group/view.rs");
+    let source = load_source("src/checkbox_field/checkbox/group/view.rs");
 
     for needle in [
         "<Show when=move || state.get().shows_error>",

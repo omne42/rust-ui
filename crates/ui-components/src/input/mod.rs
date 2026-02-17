@@ -1,3 +1,5 @@
+#[cfg(feature = "component-input_group")]
+pub mod group;
 mod logic;
 pub mod motion;
 pub mod styles;

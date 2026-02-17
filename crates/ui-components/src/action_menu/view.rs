@@ -1,7 +1,7 @@
-use crate::action_button::{ActionButton, ActionButtonSize};
 use crate::action_menu::{
     ActionMenuMotion, ActionMenuPartStateInput, ActionMenuSlot, MenuOpenFocusStrategy, logic,
 };
+use crate::button::action::{ActionButton, ActionButtonSize};
 use crate::{Menu, MenuItemKind, OnPress, Popover};
 use leptos::{ev, html, prelude::*};
 use ui_headless as overlay_open;
@@ -205,7 +205,7 @@ pub fn ActionMenu(
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
                 size=size
-                disabled=trigger_disabled
+                is_disabled=trigger_disabled
                 is_quiet=is_quiet
                 is_icon_only=true
                 aria_label=aria_label.get_value()
