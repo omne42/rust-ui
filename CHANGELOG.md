@@ -1623,6 +1623,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
+- `ui-components`: `SnippetLogic` now exposes explicit copy lifecycle state (`copied` / `is_copying` / `has_copy_error`), and `ButtonCopy` surfaces matching `data-copy-*` semantics, loading forwarding, and failure live-region feedback.
+
 - `ui-state-primitives` + `ui-components/accordion`: move accordion expansion invariants (toggle/normalize/summarize) into `ui-state-primitives::expansion`, and route accordion controlled/uncontrolled open-state through `ui-state-primitives::controlled::ControlledState` so components only assemble and map stable state primitives.
 
 - `ui-state-primitives`: renames the `ui-core` crate to reduce ambiguity and clarify its role as the platform-agnostic state-primitives layer.

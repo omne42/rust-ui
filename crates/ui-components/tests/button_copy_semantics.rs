@@ -130,6 +130,7 @@ fn button_copy_forwards_button_contract_and_disabled_semantics() {
         "motion=motion.button",
         "aria_label=aria_label",
         "is_icon_only=view_state.is_icon_only",
+        "is_loading=is_copying",
         "is_disabled=!view_state.is_copyable",
     ] {
         assert!(
@@ -155,6 +156,9 @@ fn button_copy_emits_baseline_style_data_attributes() {
         "data-empty=(!view_state.has_text).then_some(\"true\")",
         "data-label=if view_state.has_custom_label {",
         "data-copied-label=if view_state.has_custom_copied_label {",
+        "data-copying=move || logic.is_copying.get().then_some(\"true\")",
+        "data-copy-error=move || logic.has_copy_error.get().then_some(\"true\")",
+        "data-copy-status=move || {",
         "data-motion-source=if motion == ButtonCopyMotion::default()",
         "data-custom-motion=(motion != ButtonCopyMotion::default()).then_some(\"true\")",
     ] {
@@ -173,6 +177,7 @@ fn button_copy_announces_copy_result_for_assistive_tech() {
         "data-slot=\"button-copy-status\"",
         "aria-live=\"polite\"",
         "aria-atomic=\"true\"",
+        "DEFAULT_COPY_FAILED_STATUS",
     ] {
         assert!(
             source.contains(needle),

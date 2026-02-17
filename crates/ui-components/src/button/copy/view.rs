@@ -3,6 +3,8 @@ use crate::button::{Button, ButtonSize, ButtonVariant};
 use leptos::html;
 use leptos::prelude::*;
 
+const DEFAULT_COPY_FAILED_STATUS: &str = "Copy failed";
+
 fn icon_view(copied: bool) -> impl IntoView {
     if copied {
         view! {
@@ -97,6 +99,7 @@ pub fn ButtonCopy(
 
     let label = StoredValue::new(label);
     let copied_label = StoredValue::new(copied_label);
+    let aria_label = StoredValue::new(aria_label);
 
     let class = logic::compose_class_name(class_name, view_state);
 
@@ -130,6 +133,19 @@ pub fn ButtonCopy(
                 "default"
             }
             data-copied=move || logic.copied.get().then_some("true")
+            data-copying=move || logic.is_copying.get().then_some("true")
+            data-copy-error=move || logic.has_copy_error.get().then_some("true")
+            data-copy-status=move || {
+                if logic.is_copying.get() {
+                    "loading"
+                } else if logic.has_copy_error.get() {
+                    "error"
+                } else if logic.copied.get() {
+                    "copied"
+                } else {
+                    "idle"
+                }
+            }
             data-motion-source=if motion == ButtonCopyMotion::default() {
                 "default"
             } else {
@@ -137,52 +153,58 @@ pub fn ButtonCopy(
             }
             data-custom-motion=(motion != ButtonCopyMotion::default()).then_some("true")
         >
-            <Button
-                class_name="ui-button-copy__button".to_string()
-                variant=variant
-                size=size
-                motion=motion.button
-                is_icon_only=view_state.is_icon_only
-                aria_label=aria_label
-                is_disabled=!view_state.is_copyable
-                on_press=logic.copy
-            >
-                {move || {
-                    let copied = logic.copied.get();
-                    let text = if copied {
-                        copied_label.get_value()
-                    } else {
-                        label.get_value()
-                    };
-                    if view_state.shows_icon && view_state.shows_text {
-                        view! {
-                            <span class="ui-button-copy__content" data-slot="button-copy-content">
-                                <span class="ui-button-copy__icon" data-slot="button-copy-icon">
-                                    {icon_view(copied)}
-                                </span>
-                                <span class="ui-button-copy__text" data-slot="button-copy-text">
-                                    {text}
-                                </span>
-                            </span>
-                        }
-                        .into_any()
-                    } else if view_state.shows_icon {
-                        view! {
-                            <span class="ui-button-copy__icon" data-slot="button-copy-icon">
-                                {icon_view(copied)}
-                            </span>
-                        }
-                        .into_any()
-                    } else {
-                        view! {
-                            <span class="ui-button-copy__text" data-slot="button-copy-text">
-                                {text}
-                            </span>
-                        }
-                        .into_any()
-                    }
-                }}
-            </Button>
+            {move || {
+                let is_copying = logic.is_copying.get();
+                view! {
+                    <Button
+                        class_name="ui-button-copy__button".to_string()
+                        variant=variant
+                        size=size
+                        motion=motion.button
+                        is_icon_only=view_state.is_icon_only
+                        is_loading=is_copying
+                        aria_label=aria_label.get_value()
+                        is_disabled=!view_state.is_copyable
+                        on_press=logic.copy
+                    >
+                        {move || {
+                            let copied = logic.copied.get();
+                            let text = if copied {
+                                copied_label.get_value()
+                            } else {
+                                label.get_value()
+                            };
+                            if view_state.shows_icon && view_state.shows_text {
+                                view! {
+                                    <span class="ui-button-copy__content" data-slot="button-copy-content">
+                                        <span class="ui-button-copy__icon" data-slot="button-copy-icon">
+                                            {icon_view(copied)}
+                                        </span>
+                                        <span class="ui-button-copy__text" data-slot="button-copy-text">
+                                            {text}
+                                        </span>
+                                    </span>
+                                }
+                                .into_any()
+                            } else if view_state.shows_icon {
+                                view! {
+                                    <span class="ui-button-copy__icon" data-slot="button-copy-icon">
+                                        {icon_view(copied)}
+                                    </span>
+                                }
+                                .into_any()
+                            } else {
+                                view! {
+                                    <span class="ui-button-copy__text" data-slot="button-copy-text">
+                                        {text}
+                                    </span>
+                                }
+                                .into_any()
+                            }
+                        }}
+                    </Button>
+                }
+            }}
 
             <span
                 class="ui-button-copy__a11y-status"
@@ -191,7 +213,9 @@ pub fn ButtonCopy(
                 aria-atomic="true"
             >
                 {move || {
-                    if logic.copied.get() {
+                    if logic.has_copy_error.get() {
+                        DEFAULT_COPY_FAILED_STATUS.to_string()
+                    } else if logic.copied.get() {
                         copied_label.get_value()
                     } else {
                         String::new()

@@ -101,19 +101,30 @@ pub fn compose_class_name(base_class_name: Option<String>, state: SnippetViewSta
 #[derive(Clone)]
 pub struct SnippetLogic {
     pub copied: ReadSignal<bool>,
+    pub is_copying: ReadSignal<bool>,
+    pub has_copy_error: ReadSignal<bool>,
     pub copy: Callback<()>,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn use_snippet_logic(_text: String) -> SnippetLogic {
     let (copied, _set_copied) = signal(false);
+    let (is_copying, _set_is_copying) = signal(false);
+    let (has_copy_error, _set_has_copy_error) = signal(false);
     let copy = Callback::new(|_| {});
-    SnippetLogic { copied, copy }
+    SnippetLogic {
+        copied,
+        is_copying,
+        has_copy_error,
+        copy,
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
 pub fn use_snippet_logic(text: String) -> SnippetLogic {
     let (copied, set_copied) = signal(false);
+    let (is_copying, set_is_copying) = signal(false);
+    let (has_copy_error, set_has_copy_error) = signal(false);
 
     let copied_timeout = StoredValue::new_local(None::<TimeoutHandle>);
 
@@ -124,7 +135,7 @@ pub fn use_snippet_logic(text: String) -> SnippetLogic {
     });
 
     let copy = Callback::new(move |_| {
-        if copied.get_untracked() {
+        if copied.get_untracked() || is_copying.get_untracked() {
             return;
         }
 
@@ -132,15 +143,24 @@ pub fn use_snippet_logic(text: String) -> SnippetLogic {
             return;
         }
 
+        set_has_copy_error.set(false);
+        set_is_copying.set(true);
+
         let text = text.clone();
         let set_copied = set_copied.clone();
+        let set_is_copying = set_is_copying.clone();
+        let set_has_copy_error = set_has_copy_error.clone();
         let copied_timeout = copied_timeout;
         leptos::task::spawn_local(async move {
             if !write_to_clipboard(text).await {
+                set_is_copying.set(false);
+                set_has_copy_error.set(true);
                 return;
             }
 
             set_copied.set(true);
+            set_is_copying.set(false);
+            set_has_copy_error.set(false);
 
             if let Some(handle) = copied_timeout.get_value() {
                 handle.clear();
@@ -161,7 +181,12 @@ pub fn use_snippet_logic(text: String) -> SnippetLogic {
         });
     });
 
-    SnippetLogic { copied, copy }
+    SnippetLogic {
+        copied,
+        is_copying,
+        has_copy_error,
+        copy,
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
