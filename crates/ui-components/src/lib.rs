@@ -417,7 +417,7 @@ mod web_demo_components {
         ActionButtonGroupOrientation,
     };
     pub use button::copy::ButtonCopyMode;
-    pub use button::copy::{ButtonCopy, ButtonCopyMotion};
+    pub use button::copy::{ButtonCopy, ButtonCopyMotion, ButtonCopyStrings};
     pub use button::flip::{FlipButton, FlipButtonMotion, FlipDirection};
     pub use button::group::{ButtonGroup, ButtonGroupOrientation};
     pub use button::search_input::{SearchInputButton, SearchInputButtonMotion};
@@ -544,7 +544,7 @@ mod all_components {
         ActionGroup, ActionGroupItem, ActionGroupSelectionMode, ActionGroupTone,
     };
     pub use button::copy::ButtonCopyMode;
-    pub use button::copy::{ButtonCopy, ButtonCopyMotion};
+    pub use button::copy::{ButtonCopy, ButtonCopyMotion, ButtonCopyStrings};
     pub use button::field::FieldButton;
     pub use button::flip::{FlipButton, FlipButtonMotion, FlipDirection};
     pub use button::group::{ButtonGroup, ButtonGroupOrientation};

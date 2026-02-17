@@ -1624,6 +1624,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Changed
 
 - `ui-components`: `SnippetLogic` now exposes explicit copy lifecycle state (`copied` / `is_copying` / `has_copy_error`), and `ButtonCopy` surfaces matching `data-copy-*` semantics, loading forwarding, and failure live-region feedback.
+- `ui-components/button-copy`: adds `i18n.rs` string contract scaffold (`copy_button_label` / `copied_status_text` / `copy_failed_status_text`) and syncs `check2.md` checklist marks with the migrated composition contract.
 
 - `ui-state-primitives` + `ui-components/accordion`: move accordion expansion invariants (toggle/normalize/summarize) into `ui-state-primitives::expansion`, and route accordion controlled/uncontrolled open-state through `ui-state-primitives::controlled::ControlledState` so components only assemble and map stable state primitives.
 

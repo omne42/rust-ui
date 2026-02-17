@@ -2,8 +2,8 @@ use super::{ButtonCopyMotion, logic};
 use crate::button::{Button, ButtonSize, ButtonVariant};
 use leptos::html;
 use leptos::prelude::*;
-
-const DEFAULT_COPY_FAILED_STATUS: &str = "Copy failed";
+use ui_headless::A11yDirection;
+use ui_headless::i18n;
 
 fn icon_view(copied: bool) -> impl IntoView {
     if copied {
@@ -67,13 +67,34 @@ pub fn ButtonCopy(
     #[prop(optional, default = ButtonSize::Sm)] size: ButtonSize,
     #[prop(optional)] motion: ButtonCopyMotion,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<super::i18n::ButtonCopyStrings>();
     let motion = super::motion::sanitize_motion(motion);
     let root_ref = NodeRef::<html::Span>::new();
     let label = logic::normalize_optional_text(label);
     let copied_label = logic::normalize_optional_text(copied_label);
     let aria_label = logic::normalize_optional_text(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
+    let lang = logic::normalize_optional_text(lang);
+    let locale = ui_headless::a11y::locale_attrs(lang, dir);
+    let default_label =
+        logic::normalize_optional_text(Some(strings.copy_button_label.as_ref().to_string()));
+    let default_copied_label =
+        logic::normalize_optional_text(Some(strings.copied_status_text.as_ref().to_string()));
+    let copy_failed_status_text =
+        logic::normalize_optional_text(Some(strings.copy_failed_status_text.as_ref().to_string()))
+            .or_else(|| {
+                logic::normalize_optional_text(Some(
+                    super::i18n::ButtonCopyStrings::default()
+                        .copy_failed_status_text
+                        .as_ref()
+                        .to_string(),
+                ))
+            })
+            .unwrap_or_default();
     let has_custom_label = label.is_some();
     let has_custom_copied_label = copied_label.is_some();
     let has_custom_aria_label = aria_label.is_some();
@@ -95,11 +116,16 @@ pub fn ButtonCopy(
         label,
         copied_label,
         aria_label,
-    } = logic::resolve_text_contract(label, copied_label, aria_label);
+    } = logic::resolve_text_contract(
+        label.or(default_label),
+        copied_label.or(default_copied_label),
+        aria_label,
+    );
 
     let label = StoredValue::new(label);
     let copied_label = StoredValue::new(copied_label);
     let aria_label = StoredValue::new(aria_label);
+    let copy_failed_status_text = StoredValue::new(copy_failed_status_text);
 
     let class = logic::compose_class_name(class_name, view_state);
 
@@ -107,6 +133,8 @@ pub fn ButtonCopy(
         <span
             node_ref=root_ref
             class=class
+            lang=locale.lang.clone()
+            dir=locale.dir
             data-slot="button-copy"
             data-state=if view_state.is_copyable {
                 "copyable"
@@ -214,7 +242,7 @@ pub fn ButtonCopy(
             >
                 {move || {
                     if logic.has_copy_error.get() {
-                        DEFAULT_COPY_FAILED_STATUS.to_string()
+                        copy_failed_status_text.get_value()
                     } else if logic.copied.get() {
                         copied_label.get_value()
                     } else {

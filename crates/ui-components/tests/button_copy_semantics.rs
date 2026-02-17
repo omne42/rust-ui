@@ -26,12 +26,14 @@ fn button_copy_is_exported_from_module_and_crate_root() {
 
     assert!(
         module_source.contains("pub use view::ButtonCopy;")
-            && module_source.contains("pub use motion::ButtonCopyMotion;"),
-        "button_copy module should export `ButtonCopy` and `ButtonCopyMotion`."
+            && module_source.contains("pub use motion::ButtonCopyMotion;")
+            && module_source.contains("pub use i18n::ButtonCopyStrings;"),
+        "button_copy module should export `ButtonCopy`, `ButtonCopyMotion`, and `ButtonCopyStrings`."
     );
     assert!(
-        crate_source.contains("pub use button::copy::{ButtonCopy, ButtonCopyMotion};"),
-        "crate root should re-export `ButtonCopy` and `ButtonCopyMotion` contracts."
+        crate_source
+            .contains("pub use button::copy::{ButtonCopy, ButtonCopyMotion, ButtonCopyStrings};"),
+        "crate root should re-export `ButtonCopy`, `ButtonCopyMotion`, and `ButtonCopyStrings` contracts."
     );
 }
 
@@ -92,7 +94,9 @@ fn button_copy_uses_logic_state_model() {
         "#[prop(optional, default = logic::ButtonCopyMode::default())] mode: logic::ButtonCopyMode",
         "let label = logic::normalize_optional_text(label);",
         "let copied_label = logic::normalize_optional_text(copied_label);",
-        "logic::resolve_text_contract(label, copied_label, aria_label)",
+        "logic::resolve_text_contract(",
+        "label.or(default_label)",
+        "copied_label.or(default_copied_label)",
         "let view_state = logic::resolve_view_state(",
         "let class = logic::compose_class_name(class_name, view_state);",
     ] {
@@ -120,6 +124,29 @@ fn button_copy_uses_snippet_logic_for_copy_behavior() {
 }
 
 #[test]
+fn button_copy_supports_i18n_and_locale_passthrough() {
+    let source = load_source("src/button/copy/view.rs");
+
+    for needle in [
+        "let i18n = i18n::use_ui_i18n();",
+        "strings::<super::i18n::ButtonCopyStrings>()",
+        "copy_button_label",
+        "copied_status_text",
+        "copy_failed_status_text",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = ui_headless::a11y::locale_attrs(lang, dir);",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ButtonCopy should include i18n/locale support via `{needle}`.",
+        );
+    }
+}
+
+#[test]
 fn button_copy_forwards_button_contract_and_disabled_semantics() {
     let source = load_source("src/button/copy/view.rs");
 
@@ -128,7 +155,7 @@ fn button_copy_forwards_button_contract_and_disabled_semantics() {
         "variant=variant",
         "size=size",
         "motion=motion.button",
-        "aria_label=aria_label",
+        "aria_label=aria_label.get_value()",
         "is_icon_only=view_state.is_icon_only",
         "is_loading=is_copying",
         "is_disabled=!view_state.is_copyable",
@@ -177,7 +204,7 @@ fn button_copy_announces_copy_result_for_assistive_tech() {
         "data-slot=\"button-copy-status\"",
         "aria-live=\"polite\"",
         "aria-atomic=\"true\"",
-        "DEFAULT_COPY_FAILED_STATUS",
+        "copy_failed_status_text.get_value()",
     ] {
         assert!(
             source.contains(needle),
