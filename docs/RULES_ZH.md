@@ -212,7 +212,7 @@ CSS 注入规则：
 - `commit-msg`：Conventional Commits
 - `pre-commit`：
   - **必须同时提交 `CHANGELOG.md`**（只允许改 `[Unreleased]`）
-  - 限制单个 `.rs` 文件行数（默认 1000，可用 `RUST_UI_MAX_RS_LINES=<N>` 临时放宽）
+  - 限制单个 `.rs` 文件行数（必须 **小于 1000**，不可放宽）
   - 自动跑 `scripts/gate.sh`（进而跑 `scripts/check.sh`）
 
 ### 8.2 质量门禁（Stop Gates）

@@ -1626,6 +1626,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 ### Changed
 
 - `ui-components` + `ui-state-primitives` + `apps/docs-app`: fixes gate regressions across clippy and semantics suites (combo-box closure hygiene, action/button docs defaults, avatar-group label-source contract, breadcrumb/coacmark/collapsible primitive re-export contracts, carousel helper routing, and share-button macro split), restoring green `./scripts/check.sh` (fmt/clippy/test/ssr/wasm).
+- Dev tooling: `pre-commit` now enforces strict Rust file length `< 1000` (no environment-variable override).
 
 - `ui-components`: `SnippetLogic` now exposes explicit copy lifecycle state (`copied` / `is_copying` / `has_copy_error`), and `ButtonCopy` surfaces matching `data-copy-*` semantics, loading forwarding, and failure live-region feedback.
 - `ui-components/button-copy`: adds `i18n.rs` string contract scaffold (`copy_button_label` / `copied_status_text` / `copy_failed_status_text`) and syncs `check2.md` checklist marks with the migrated composition contract.
@@ -1792,7 +1793,7 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `ui-components`: `InlineAlert` now spring-animates reveal motion via CSS variables (`--ui-inline-alert-opacity`, `--ui-inline-alert-translate-y`, `--ui-inline-alert-scale`).
 - `ui-theme`: adds `--ui-accent-fg` token to avoid hard-coded foreground colors in components.
 - Dev tooling: `scripts/gate.sh` now runs WASM checks by default when the wasm target is installed (still auto-skips when missing).
-- Dev tooling: pre-commit now refuses oversized Rust files (default 1000 lines; override via `RUST_UI_MAX_RS_LINES=<N>`).
+- Dev tooling: pre-commit now refuses oversized Rust files (strictly `< 1000` lines).
 - Dev tooling: `scripts/check.sh` now also checks `docs-app` for `wasm32-unknown-unknown`.
 - Dev tooling: gate scripts are now invoked via `bash` to avoid executable-bit issues on some checkouts.
 - `ui-components`: adds Spectrum-compat regression coverage for `Button` (semantics, state normalization, motion defaults).

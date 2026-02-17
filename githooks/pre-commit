@@ -74,7 +74,7 @@ EOF
   fi
 fi
 
-max_rs_lines="${RUST_UI_MAX_RS_LINES:-1000}"
+max_rs_lines=1000
 offenders=()
 
 # Only enforce the line limit on staged Rust changes, so the repository can
@@ -84,7 +84,7 @@ while IFS= read -r path; do
   [[ -z "$path" ]] && continue
   [[ "$path" == *.rs ]] || continue
   lines="$(git show ":$path" 2>/dev/null | awk 'END{print NR}')"
-  if [[ "${lines:-0}" -gt "$max_rs_lines" ]]; then
+  if [[ "${lines:-0}" -ge "$max_rs_lines" ]]; then
     offenders+=("$path ($lines)")
   fi
 done <<<"$staged_rs_files"
@@ -93,13 +93,10 @@ if [[ "${#offenders[@]}" -gt 0 ]]; then
   cat >&2 <<EOF
 pre-commit: refusing to commit oversized Rust files.
 
-一个良好的代码仓库不应该有超过 ${max_rs_lines} 行的 Rust 文件，这意味着复杂度过度或没有良好的领域分割；请拆分模块，否则禁止提交。
+一个良好的代码仓库不应该有达到或超过 ${max_rs_lines} 行的 Rust 文件，这意味着复杂度过度或没有良好的领域分割；请拆分模块，否则禁止提交。
 
-以下 Rust 文件超过 ${max_rs_lines} 行：
+以下 Rust 文件达到或超过 ${max_rs_lines} 行：
 $(printf '  - %s\n' "${offenders[@]}")
-
-如果你确实需要临时放宽限制，可设置：
-  RUST_UI_MAX_RS_LINES=<N> git commit ...
 EOF
   exit 1
 fi
