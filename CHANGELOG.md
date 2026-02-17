@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-components`: adds `button_accordion_hygiene` contract tests and wires them into `scripts/check-ui-components-contract-hygiene.sh` to hard-block non-test `unwrap/expect` plus unintended `let _ = ...` result swallowing in button/accordion sources.
+
 - `ui-components`: adds per-component Cargo feature gates (`component-*`) plus `all-components` so downstream crates can tree-shake unused components (including CSS aggregation) while preserving default behavior.
 
 - `check2`: keeps per-component `check2.md` as a human-owned checklist (manual verification + manual ticking; no automation scripts mutate Markdown).

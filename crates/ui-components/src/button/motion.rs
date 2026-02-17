@@ -1,3 +1,5 @@
+use ui_theme::default_button_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ButtonMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -7,22 +9,26 @@ pub struct ButtonMotion {
 
 impl Default for ButtonMotion {
     fn default() -> Self {
+        let tokens = default_button_motion_tokens();
         Self {
-            // Match bb `packages/ui` defaults.
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 260.0,
-                damping: 16.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
-            hover_scale: 1.05,
-            tap_scale: 0.95,
+            hover_scale: tokens.hover_scale,
+            tap_scale: tokens.tap_scale,
         }
     }
 }
 
 fn sanitize_number(value: f64, fallback: f64) -> f64 {
-    if value.is_finite() { value } else { fallback }
+    if value.is_finite() {
+        value
+    } else {
+        fallback
+    }
 }
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
@@ -70,6 +76,7 @@ pub fn attach_motion(
     is_disabled: bool,
     motion: ButtonMotion,
 ) {
+    use crate::observability::warn_js_error;
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
@@ -97,7 +104,9 @@ pub fn attach_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |scale| {
             let scale = scale.clamp(0.0, 10.0);
-            let _ = style.set_property("--ui-button-scale", &format!("{scale}"));
+            if let Err(error) = style.set_property("--ui-button-scale", &format!("{scale}")) {
+                warn_js_error("button.motion.scale", &error);
+            }
         });
 
         let spring_for_cleanup = spring;
@@ -156,17 +165,18 @@ mod tests {
     #[test]
     fn default_motion_matches_bb_params() {
         let motion = ButtonMotion::default();
+        let tokens = default_button_motion_tokens();
         assert_eq!(
             motion.spring,
             ui_motion::spring::SpringConfig {
-                stiffness: 260.0,
-                damping: 16.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             }
         );
-        assert_eq!(motion.hover_scale, 1.05);
-        assert_eq!(motion.tap_scale, 0.95);
+        assert_eq!(motion.hover_scale, tokens.hover_scale);
+        assert_eq!(motion.tap_scale, tokens.tap_scale);
     }
 
     #[test]
