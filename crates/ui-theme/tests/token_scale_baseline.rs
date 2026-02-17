@@ -7,14 +7,26 @@ use ui_theme::{
 #[test]
 fn token_scale_baselines_are_regression_testable() {
     let medium = Theme::baseline_two(ThemeColor::Light, ThemeScale::Medium);
+    assert_eq!(medium.tokens.typography.font_size_100_px, 12);
+    assert_eq!(medium.tokens.typography.font_size_150_px, 14);
     assert_eq!(medium.tokens.typography.font_size_200_px, 16);
     assert_eq!(medium.tokens.component_layout.component_height_100_px, 32);
+    assert_eq!(medium.tokens.overlay_layout.panel_min_width_px, 240);
+    assert_eq!(medium.tokens.overlay_layout.viewport_inset_px, 16);
+    assert_eq!(medium.tokens.overlay_layout.enter_offset_y_px, 6);
+    assert_eq!(medium.tokens.overlay_layout.enter_scale, 0.98);
     assert_eq!(medium.tokens.icons.size_100_px, 20);
     assert_eq!(medium.tokens.icons.size_200_px, 22);
 
     let large = Theme::baseline_two(ThemeColor::Light, ThemeScale::Large);
+    assert_eq!(large.tokens.typography.font_size_100_px, 14);
+    assert_eq!(large.tokens.typography.font_size_150_px, 16);
     assert_eq!(large.tokens.typography.font_size_200_px, 19);
     assert_eq!(large.tokens.component_layout.component_height_100_px, 40);
+    assert_eq!(large.tokens.overlay_layout.panel_min_width_px, 280);
+    assert_eq!(large.tokens.overlay_layout.viewport_inset_px, 20);
+    assert_eq!(large.tokens.overlay_layout.enter_offset_y_px, 8);
+    assert_eq!(large.tokens.overlay_layout.enter_scale, 0.98);
     assert_eq!(large.tokens.icons.size_100_px, 24);
     assert_eq!(large.tokens.icons.size_200_px, 28);
 }
@@ -25,6 +37,8 @@ fn css_variables_emit_theme_axes() {
     assert!(css.contains("--ui-system: baseline-two;"));
     assert!(css.contains("--ui-color: dark;"));
     assert!(css.contains("--ui-scale: large;"));
+    assert!(css.contains("--ui-space-3xs: 2px;"));
+    assert!(css.contains("--ui-space-2xs: 4px;"));
 }
 
 #[test]

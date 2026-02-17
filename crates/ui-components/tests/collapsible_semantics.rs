@@ -43,11 +43,12 @@ fn collapsible_logic_exposes_state_helpers() {
     let source = load_source("src/collapsible/logic.rs");
 
     for needle in [
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_id_base(",
-        "pub fn resolve_title(",
-        "pub fn resolve_aria_label(",
-        "pub fn resolve_state(input: CollapsibleStateInput)",
+        "pub use ui_state_primitives::collapsible::{",
+        "normalize_optional_text",
+        "normalize_id_base",
+        "resolve_title",
+        "resolve_aria_label",
+        "resolve_state",
         "pub fn compose_class_name(class_name: Option<String>, state: CollapsibleState)",
         "DEFAULT_ID_BASE",
         "DEFAULT_TITLE",
@@ -57,6 +58,11 @@ fn collapsible_logic_exposes_state_helpers() {
             "Collapsible logic should include `{needle}` for centralized normalization/state contracts.",
         );
     }
+
+    assert!(
+        !source.contains("pub fn resolve_state(input: CollapsibleStateInput)"),
+        "Collapsible state primitive implementation should live in ui-state-primitives.",
+    );
 }
 
 #[test]

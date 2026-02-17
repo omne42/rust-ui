@@ -23,20 +23,33 @@ fn code_block_does_not_expose_logic_or_view_modules() {
 fn code_block_uses_logic_state_model() {
     let view_source = load_source("src/code_block/view.rs");
     let logic_source = load_source("src/code_block/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/code_block.rs");
 
     for needle in [
+        "pub use crate::button::normalize_optional_text;",
         "pub struct CodeBlockStateInput",
         "pub struct CodeBlockViewState",
-        "pub fn normalize_optional_text(",
         "pub fn resolve_state(input: CodeBlockStateInput)",
         "pub fn resolve_view_state(",
-        "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "CodeBlock logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "CodeBlock state primitive should include `{needle}` in ui-state-primitives."
         );
     }
+
+    assert!(
+        logic_source.contains("pub use ui_state_primitives::code_block::{"),
+        "CodeBlock logic should consume state primitives from ui-state-primitives."
+    );
+    assert!(
+        !logic_source.contains("pub struct CodeBlockStateInput"),
+        "CodeBlock logic should not re-define primitive structs."
+    );
+    assert!(
+        logic_source.contains("pub fn compose_class_name("),
+        "CodeBlock logic should keep component assembly helpers such as class composition."
+    );
 
     for needle in [
         "logic::normalize_optional_text(label)",

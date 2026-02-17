@@ -647,7 +647,7 @@ fn render_end_slot(state: logic::ButtonState, end_content: Option<StoredValue<Vi
     .into_any()
 }
 
-fn render_button_content(
+pub(crate) fn render_button_content(
     state: logic::ButtonState,
     render: logic::ButtonRenderState,
     start_content: Option<StoredValue<ViewFn>>,

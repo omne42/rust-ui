@@ -1,8 +1,9 @@
 use crate::input::{InputLabelPlacement, InputMotion, InputSize, InputVariant, logic, motion};
 use leptos::{children::ViewFn, ev, html, prelude::*};
 use ui_headless::{
-    FocusWithinOptions, PressOptions, TextFieldOptions, use_focus_visible, use_focus_within,
-    use_hover, use_press, use_text_field,
+    A11yDirection, ClearableTextFieldOptions, FocusWithinOptions, PressOptions, TextFieldOptions,
+    locale_attrs, use_clearable_text_field, use_focus_visible, use_focus_within, use_hover,
+    use_press, use_text_field,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -42,6 +43,8 @@ pub fn Input(
     #[prop(optional)] variant: InputVariant,
     #[prop(optional)] motion: InputMotion,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
     let focus_within = use_focus_within(FocusWithinOptions {
@@ -115,6 +118,7 @@ pub fn Input(
 
     let input_type = input_type.unwrap_or("text");
     let clear_button_ref: NodeRef<html::Button> = NodeRef::new();
+    let locale = locale_attrs(lang, dir);
 
     let clear_press = use_press(PressOptions {
         is_disabled: disabled || read_only,
@@ -134,26 +138,19 @@ pub fn Input(
         motion,
     );
 
-    let on_input_key_down = move |ev: ev::KeyboardEvent| {
-        let key = ev.key();
-        if key != "Escape" {
-            return;
-        }
-        if disabled || read_only || !is_clearable {
-            return;
-        }
-        if is_empty.get_untracked() {
-            return;
-        }
-
-        ev.stop_propagation();
-        ev.prevent_default();
-        set_value.set(String::new());
-    };
+    let clearable = use_clearable_text_field(ClearableTextFieldOptions {
+        is_disabled: disabled,
+        is_read_only: read_only,
+        is_clearable,
+        is_empty: Signal::derive(move || is_empty.get()),
+        on_clear: Some(Callback::new(move |_| set_value.set(String::new()))),
+    });
 
     view! {
         <div
             class=class
+            lang=locale.lang.clone()
+            dir=locale.dir
             class:ui-input--focus-visible=move || is_focus_visible.get()
             class:ui-input--invalid=move || invalid.get()
             class:ui-input--disabled=disabled
@@ -210,8 +207,14 @@ pub fn Input(
                     aria-describedby=move || aria.input.aria_describedby.get()
                     aria-invalid=move || aria.input.aria_invalid.get()
                     aria-required=move || aria.input.aria_required.get()
+                    aria-keyshortcuts=move || clearable.attrs.aria_keyshortcuts.get()
                     on:input=move |ev| set_value.set(event_target_value(&ev))
-                    on:keydown=on_input_key_down
+                    on:keydown=move |ev: ev::KeyboardEvent| {
+                        if clearable.handlers.on_key_down.run(ev.key()) {
+                            ev.stop_propagation();
+                            ev.prevent_default();
+                        }
+                    }
                 />
 
                 <button

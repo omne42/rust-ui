@@ -98,12 +98,12 @@ pub const CSS: &str = r#"
   opacity: 0.88;
 }
 
-.ui-avatar-group--aria-label-default,
+.ui-avatar-group--label-source-default,
 .ui-avatar-group[data-aria-label-source="default"] {
   --ui-avatar-group-aria-label-source: 0;
 }
 
-.ui-avatar-group--aria-label-custom,
+.ui-avatar-group--label-source-custom,
 .ui-avatar-group[data-custom-aria-label="true"],
 .ui-avatar-group[data-aria-label-source="custom"] {
   --ui-avatar-group-aria-label-source: 1;

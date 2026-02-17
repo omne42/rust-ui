@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Autocomplete` 通过 `logic.rs` 的 `pub use ui_state_primitives::autocomplete::{...}` 统一消费原语，组件层不重写状态机；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_uses_logic_state_model` 与 `autocomplete_logic_does_not_reimplement_reusable_state_primitives`，以及 `crates/ui-state-primitives/src/autocomplete.rs` 单测。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`Autocomplete` 使用 `use_combo_box/use_text_field/use_focus_ring/use_popover_position/use_presence` 输出语义契约并在 `view.rs` 挂载；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_passes_lang_dir_and_headless_aria_controls_contract`、`autocomplete_escape_stops_propagation_when_open`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`AutocompleteMotion` 仅映射 `PopoverMotion + ActiveHighlightMotion`，并经 `sanitize_motion` 后挂载；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_motion_contract_exposes_popover_and_highlight_customization`、`autocomplete_motion_sanitizes_custom_contract_values`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`Autocomplete` 样式在 `styles.rs` 仅消费 `var(--ui-*)` token，并通过 `data-*` 语义标记驱动状态样式；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_styles_include_controlled_and_disabled_option_markers` 与 `autocomplete_panel_styles_use_fixed_positioning_and_transform_origin_by_placement`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,37 +46,37 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`Autocomplete` 目录保持 `logic/view/styles/motion` 分层：`logic.rs` 归一化、`view.rs` 渲染+headless 挂载、`styles.rs` token-first CSS、`motion.rs` 动效契约；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_does_not_expose_logic_or_view_modules` 与 `autocomplete_uses_logic_state_model`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Autocomplete` 公开 `is_disabled/is_required/is_invalid/is_open` 并兼容 legacy 别名 `disabled/required/invalid/open`，优先级在 `logic.rs` 统一归一；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_supports_is_prefixed_boolean_props_with_legacy_aliases`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`Autocomplete` 的 open 轴由 `is_open/open + on_open_change + default_open` 组成，统一接入 `ui_headless::use_controllable_open_state_traced`；受控模式只发出变更请求不写内部状态，非受控模式由默认值初始化并由原语托管。回归：`crates/ui-headless/src/controllable_state.rs` 与 `crates/ui-components/tests/autocomplete_semantics.rs` 中的 open-triplet 契约测试。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`Autocomplete` 新增 `normalize_accessibility_state` 与 `normalize_open_state`，将 `is_*` vs 旧别名优先级、`required/invalid` 默认 false、open 轴归一全部集中在 `logic.rs`；`view.rs` 仅消费归一化结果并传给 headless。回归：`crates/ui-components/src/autocomplete/logic.rs` 单测 + `crates/ui-components/tests/autocomplete_semantics.rs` 的 no-inline-fallback 断言。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`Autocomplete` 新增 `RootStateInput/RootState + normalize_root_state`，把 id/label/placeholder/description/error/class/disabled-index + `resolve_state` 统一收敛到 `logic.rs`；`view.rs` 只消费 `root_state` 输出并挂载事件。回归：`crates/ui-components/src/autocomplete/logic.rs` 的 `normalize_root_state_centralizes_normalization_and_state_derivation` + `crates/ui-components/tests/autocomplete_semantics.rs` 的 no-inline-state-derivation 断言。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`Autocomplete` 将根离散状态 `data-state` 从 `view.rs` 字符串分支下沉为 `logic.rs` 的 `RootDataState`（`Open/Disabled/Closed`）+ `resolve_root_data_state`，`view.rs` 仅消费 `.as_attr()` 输出，避免互斥状态用裸字符串拼装。回归：`crates/ui-components/src/autocomplete/logic.rs` 的 enum 单测 + `crates/ui-components/tests/autocomplete_semantics.rs` 的 enum 合同断言。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`Autocomplete` 继续通过 `logic.rs` 的 `pub use ui_state_primitives::autocomplete::{...}` 消费原语，未在组件层重写 `normalize_disabled_indices/filter/map/resolve_state`；组件语义测试新增“禁止重写原语函数”和“禁止业务 store 类型直绑”断言，确保只存在适配边界。回归：`crates/ui-components/tests/autocomplete_semantics.rs`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Autocomplete` 当前仅同步本地筛选与 `on_action` 选择提交，无远程请求与异步状态；契约回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_has_no_async_loading_protocol_and_keeps_sync_input_contract`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
@@ -92,12 +92,12 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`Autocomplete` 通过 `lang/dir` 与 headless 语义契约挂载输入/列表角色；空态文案接入 `UiI18n(CommonStrings)` 并允许 `empty_message` props 覆盖，`view.rs` 不再硬编码 `"No matches"`；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_has_a11y_i18n_and_locale_entrypoints_via_headless_contracts`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`Autocomplete` 暴露 `data-state/open/disabled/controlled/source/count` 等封闭语义标记，配合 `aria-*` 输出可检索状态；回归：`crates/ui-components/tests/autocomplete_semantics.rs` 的 `autocomplete_emits_baseline_style_state_data_attributes`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。

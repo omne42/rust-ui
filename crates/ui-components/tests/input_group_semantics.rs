@@ -23,15 +23,14 @@ fn input_group_does_not_expose_logic_or_view_modules() {
 fn input_group_uses_logic_state_model() {
     let logic_source = load_source("src/input/group/logic.rs");
     let view_source = load_source("src/input/group/view.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/input_group.rs");
 
     for needle in [
-        "pub enum InputGroupPhase",
-        "pub enum InputGroupAttachment",
-        "pub struct InputGroupStateInput",
-        "pub struct InputGroupState",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_aria_label(",
-        "pub fn resolve_state(",
+        "pub use ui_state_primitives::input_group::{",
+        "InputGroupStateInput",
+        "normalize_aria_label",
+        "normalize_optional_text",
+        "resolve_state",
         "pub fn compose_class_name(",
         "label_source_attr",
         "class_source_attr",
@@ -39,6 +38,20 @@ fn input_group_uses_logic_state_model() {
         assert!(
             logic_source.contains(needle),
             "InputGroup logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "pub enum InputGroupPhase",
+        "pub enum InputGroupAttachment",
+        "pub struct InputGroupStateInput",
+        "pub struct InputGroupState",
+        "pub fn normalize_aria_label(",
+        "pub fn resolve_state(",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "InputGroup state primitive should define `{needle}` in ui-state-primitives."
         );
     }
 
@@ -79,6 +92,25 @@ fn input_group_emits_baseline_style_state_data_attributes() {
         assert!(
             source.contains(attr),
             "InputGroup should set `{attr}` to support baseline-style styling and state inspection."
+        );
+    }
+}
+
+#[test]
+fn input_group_mounts_locale_attrs_from_headless_a11y_helpers() {
+    let source = load_source("src/input/group/view.rs");
+
+    for needle in [
+        "A11yDirection",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = locale_attrs(lang, dir);",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "InputGroup should include `{needle}` to expose lang/dir locale semantics."
         );
     }
 }

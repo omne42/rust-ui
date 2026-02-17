@@ -7,60 +7,11 @@ pub use view::{
     BreadcrumbSeparator,
 };
 
-pub const DEFAULT_ARIA_LABEL: &str = "breadcrumb";
+pub use ui_state_primitives::breadcrumb::{
+    BreadcrumbLinkState, BreadcrumbLinkStateInput, BreadcrumbRootState, BreadcrumbRootStateInput,
+    BreadcrumbSeparatorState, BreadcrumbSeparatorStateInput, BreadcrumbSlotState,
+    BreadcrumbSlotStateInput,
+};
+
+pub const DEFAULT_ARIA_LABEL: &str = ui_state_primitives::breadcrumb::DEFAULT_ARIA_LABEL;
 pub const DEFAULT_ELLIPSIS_LABEL: &str = "More";
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbRootStateInput {
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbRootState {
-    pub state_attr: &'static str,
-    pub aria_source_attr: &'static str,
-    pub class_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbSlotStateInput {
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbSlotState {
-    pub state_attr: &'static str,
-    pub class_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbLinkStateInput {
-    pub has_href: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbLinkState {
-    pub state_attr: &'static str,
-    pub href_state_attr: &'static str,
-    pub class_source_attr: &'static str,
-    pub interactive: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbSeparatorStateInput {
-    pub has_custom_content: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct BreadcrumbSeparatorState {
-    pub state_attr: &'static str,
-    pub content_source_attr: &'static str,
-    pub class_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-}

@@ -1,5 +1,5 @@
 use super::super::{
-    ButtonColor, ButtonRadius, ButtonVariant, logic as button_logic, motion as button_motion,
+    ButtonColor, ButtonRadius, logic as button_logic, motion as button_motion, view as button_view,
 };
 use super::logic as action_logic;
 #[cfg(feature = "component-action_button_group")]
@@ -20,47 +20,22 @@ use ui_headless::{
     use_button, use_focus_ring, use_hover, use_ui_i18n,
 };
 
-fn render_action_start_slot(
-    start_content: Option<StoredValue<ViewFn>>,
-    is_loading: bool,
-    loading_placement: ActionButtonLoadingPlacement,
-) -> AnyView {
-    let Some(start_content) = start_content else {
-        return ().into_any();
-    };
+#[cfg(feature = "component-action_group")]
+const ACTION_GROUP_ITEM_CLASS_BASE: &str = "ui-action-group__item";
+#[cfg(feature = "component-action_group")]
+const ACTION_GROUP_ITEM_CLASS_SELECTED: &str = " ui-action-group__item--selected";
+#[cfg(feature = "component-action_group")]
+const ACTION_GROUP_ITEM_CLASS_DISABLED: &str = " ui-action-group__item--disabled";
 
-    view! {
-        <span
-            class="ui-button__start"
-            data-slot="button-start"
-            data-loading-start=(is_loading
-                && matches!(loading_placement, ActionButtonLoadingPlacement::Start))
-                .then_some("true")
-        >
-            <span class="ui-button__start-content" data-slot="button-start-content">
-                {start_content.get_value().run()}
-            </span>
-            <Show when=move || {
-                is_loading && matches!(loading_placement, ActionButtonLoadingPlacement::Start)
-            }>
-                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
-            </Show>
-        </span>
-    }
-    .into_any()
-}
-
-fn render_action_end_slot(end_content: Option<StoredValue<ViewFn>>) -> AnyView {
-    let Some(end_content) = end_content else {
-        return ().into_any();
-    };
-
-    view! {
-        <span class="ui-button__end" data-slot="button-end">
-            {end_content.get_value().run()}
-        </span>
-    }
-    .into_any()
+#[cfg(feature = "component-action_group")]
+#[derive(Clone, Copy)]
+struct ActionGroupRenderContext {
+    id_base: StoredValue<String>,
+    selection_mode: ActionGroupSelectionMode,
+    selected_ids: Signal<BTreeSet<String>>,
+    item_ids: StoredValue<BTreeSet<String>>,
+    request_selected_change: Callback<BTreeSet<String>>,
+    on_action: StoredValue<Option<Callback<String>>>,
 }
 
 #[component]
@@ -106,40 +81,50 @@ pub fn ActionButton(
     #[cfg(not(feature = "component-action_button_group"))]
     let inherited_quiet: Option<bool> = None;
 
-    let is_disabled = is_disabled.or(inherited_disabled).unwrap_or(false);
-    let size = size.or(inherited_size).unwrap_or_default();
-    let is_quiet = is_quiet.or(inherited_quiet).unwrap_or(false);
-    let variant = if is_quiet {
-        ButtonVariant::Ghost
-    } else {
-        ButtonVariant::Default
-    };
-
-    let class_name = button_logic::normalize_optional_text(class_name);
-    let (aria_label, aria_label_source) = button_logic::resolve_aria_label(
-        aria_label,
-        is_icon_only,
-        Some(common_strings.icon_button_aria_label.to_string()),
+    let resolved = action_logic::action_button_logic::resolve_input(
+        action_logic::action_button_logic::ActionButtonInputResolutionInput {
+            is_disabled,
+            inherited_disabled,
+            size,
+            inherited_size,
+            is_quiet,
+            inherited_quiet,
+        },
     );
+    let is_quiet = resolved.is_quiet;
+    let variant = resolved.variant;
+
+    let normalized = button_logic::normalize_input(button_logic::ButtonInputNormalizationInput {
+        is_disabled: resolved.is_disabled,
+        is_full_width: false,
+        class_name,
+        aria_label,
+        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string()),
+        is_icon_only,
+        button_type: button_type.unwrap_or_default(),
+    });
+    let aria_label = normalized.aria_label.clone();
+    let aria_label_source = normalized.aria_label_source;
     let has_start_content = start_content.is_some();
     let has_end_content = end_content.is_some();
     let has_custom_motion = motion != ActionButtonMotion::default();
+    let button_type = normalized.button_type;
 
-    let state = button_logic::resolve_state(button_logic::ButtonStateInput {
-        is_disabled,
+    let view_state = button_logic::resolve_view_state(button_logic::ButtonLogicInput {
+        normalized,
         is_loading,
         variant,
         color: ButtonColor::default(),
         radius: ButtonRadius::default(),
-        size,
+        size: resolved.size,
         loading_placement,
         is_icon_only,
-        is_full_width: false,
         has_start_content,
         has_end_content,
-        has_custom_class_name: class_name.is_some(),
         has_custom_motion,
     });
+    let state = view_state.state;
+    let render = view_state.render;
 
     let aria = use_button(ButtonOptions {
         is_disabled: state.is_disabled,
@@ -163,8 +148,7 @@ pub fn ActionButton(
         motion,
     );
 
-    let class = button_logic::compose_class_name(class_name, state);
-    let button_type = button_type.unwrap_or_default();
+    let class = view_state.class_name;
     let start_content = start_content.map(StoredValue::new);
     let end_content = end_content.map(StoredValue::new);
     let popup_a11y = popup_trigger_attrs(
@@ -232,34 +216,7 @@ pub fn ActionButton(
                 focus_ring.handlers.on_blur.run(());
             }
         >
-            <Show when=move || {
-                state.is_loading
-                    && matches!(loading_placement, ActionButtonLoadingPlacement::Start)
-                    && !has_start_content
-            }>
-                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
-            </Show>
-
-            {render_action_start_slot(start_content, state.is_loading, loading_placement)}
-
-            <span class="ui-button__label" data-slot="button-label">
-                {children()}
-            </span>
-
-            {render_action_end_slot(end_content)}
-
-            <Show when=move || {
-                state.is_loading && matches!(loading_placement, ActionButtonLoadingPlacement::End)
-            }>
-                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
-            </Show>
-
-            <Show when=move || {
-                state.is_loading
-                    && matches!(loading_placement, ActionButtonLoadingPlacement::Center)
-            }>
-                <span class="ui-button__spinner" data-slot="button-spinner" aria-hidden="true"></span>
-            </Show>
+            {button_view::render_button_content(state, render, start_content, end_content, children)}
         </button>
     }
 }
@@ -273,21 +230,25 @@ pub fn ActionButtonGroup(
     #[prop(optional)] orientation: ActionButtonGroupOrientation,
     #[prop(optional)] is_justified: bool,
     #[prop(optional)] is_quiet: bool,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] motion: ActionButtonGroupMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let i18n = use_ui_i18n();
+    let common_strings = i18n.strings::<CommonStrings>();
+    let _aria_label_fallback = common_strings.action_button_group_aria_label.as_ref();
     let class_name = action_logic::action_button_group_logic::normalize_optional_text(class_name);
-    let (aria_label, has_explicit_label) =
+    let normalized_aria_label =
         action_logic::action_button_group_logic::normalize_aria_label(aria_label);
+    let (aria_label, has_explicit_label) = normalized_aria_label;
 
     let state = action_logic::action_button_group_logic::resolve_state(
         orientation,
         density,
         is_justified,
         is_quiet,
-        disabled,
+        is_disabled,
         has_explicit_label,
         class_name.is_some(),
     );
@@ -347,7 +308,7 @@ pub fn ActionGroup(
     items: Vec<ActionGroupItem>,
     #[prop(optional)] tone: ActionGroupTone,
     #[prop(optional)] selection_mode: ActionGroupSelectionMode,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional, into)] selected_ids: Option<Signal<BTreeSet<String>>>,
     #[prop(optional)] default_selected_ids: Option<BTreeSet<String>>,
     #[prop(optional)] on_selected_ids_change: Option<Callback<BTreeSet<String>>>,
@@ -356,6 +317,8 @@ pub fn ActionGroup(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
+    let i18n = use_ui_i18n();
+    let common_strings = i18n.strings::<CommonStrings>();
     let items = action_logic::action_group_logic::normalize_items(items);
     let item_ids = action_logic::action_group_logic::collect_item_ids(&items);
 
@@ -364,6 +327,7 @@ pub fn ActionGroup(
         &item_ids,
         selection_mode,
     );
+    let is_selection_controlled = selected_ids.is_some();
 
     let on_selected_change = on_selected_ids_change.or(on_selected_change);
     let selected_state =
@@ -372,7 +336,10 @@ pub fn ActionGroup(
     let request_selected_change = selected_state.request_change;
 
     let (aria_label, has_custom_aria_label) =
-        action_logic::action_group_logic::normalize_aria_label(aria_label);
+        action_logic::action_group_logic::normalize_aria_label(
+            aria_label,
+            common_strings.action_group_aria_label.as_ref(),
+        );
 
     let class_name = action_logic::action_group_logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
@@ -382,6 +349,14 @@ pub fn ActionGroup(
     let items = StoredValue::new(items);
     let item_ids = StoredValue::new(item_ids);
     let on_action = StoredValue::new(on_action);
+    let render_context = ActionGroupRenderContext {
+        id_base,
+        selection_mode,
+        selected_ids,
+        item_ids,
+        request_selected_change,
+        on_action,
+    };
 
     let resolved_selected_ids = Memo::new(move |_| {
         action_logic::action_group_logic::sanitize_selected_ids(
@@ -395,7 +370,8 @@ pub fn ActionGroup(
         action_logic::action_group_logic::resolve_state(ActionGroupStateInput {
             tone,
             selection_mode,
-            disabled,
+            is_disabled,
+            is_selection_controlled,
             item_count: items.get_value().len(),
             selected_count: resolved_selected_ids.get().len(),
             has_custom_aria_label,
@@ -416,6 +392,7 @@ pub fn ActionGroup(
             data-selection-mode=move || state.get().selection_mode_attr
             data-state=move || state.get().data_state_attr
             data-disabled=move || state.get().is_disabled.then_some("true")
+            data-selection-source=move || state.get().selection_source_attr
             data-has-selection=move || state.get().has_selection.then_some("true")
             data-item-count=move || state.get().item_count.to_string()
             data-selected-count=move || state.get().selected_count.to_string()
@@ -427,78 +404,100 @@ pub fn ActionGroup(
         >
             <ul class="ui-action-group__list" data-slot="action-group-list">
                 {move || {
-                    let resolved_selected_ids = resolved_selected_ids.get();
-                    items
-                        .get_value()
-                        .into_iter()
-                        .enumerate()
-                        .map(|(index, item)| {
-                            let item_id_for_action = item.id.clone();
-                            let item_id_for_selection = item.id.clone();
-                            let is_item_disabled = disabled || item.disabled;
-                            let is_selected = resolved_selected_ids.contains(&item.id);
-                            let item_node_id =
-                                format!("{}-item-{}", id_base.get_value(), index + 1);
-
-                            let on_click = move |_| {
-                                if is_item_disabled {
-                                    return;
-                                }
-
-                                if let Some(on_action) = on_action.get_value() {
-                                    on_action.run(item_id_for_action.clone());
-                                }
-
-                                let selected_ids = action_logic::action_group_logic::sanitize_selected_ids(
-                                    selected_ids.get_untracked(),
-                                    &item_ids.get_value(),
-                                    selection_mode,
-                                );
-                                let next = action_logic::action_group_logic::toggle_selected_id(
-                                    selected_ids,
-                                    &item_id_for_selection,
-                                    &item_ids.get_value(),
-                                    selection_mode,
-                                );
-                                request_selected_change.run(next);
-                            };
-
-                            let item_class = format!(
-                                "ui-action-group__item{}{}",
-                                if is_selected {
-                                    " ui-action-group__item--selected"
-                                } else {
-                                    ""
-                                },
-                                if is_item_disabled {
-                                    " ui-action-group__item--disabled"
-                                } else {
-                                    ""
-                                }
-                            );
-
-                            view! {
-                                <li class="ui-action-group__node" data-slot="action-group-node" data-index=index>
-                                    <button
-                                        id=item_node_id
-                                        type="button"
-                                        class=item_class
-                                        data-slot="action-group-item"
-                                        data-id=item.id.clone()
-                                        data-selected=is_selected.then_some("true")
-                                        data-disabled=is_item_disabled.then_some("true")
-                                        disabled=is_item_disabled
-                                        aria-pressed=if is_selected { Some("true") } else { Some("false") }
-                                        on:click=on_click
-                                    >
-                                        {item.label}
-                                    </button>
-                                </li>
-                            }
-                        })
-                        .collect_view()
+                    render_action_group_items(
+                        render_context,
+                        items.get_value(),
+                        resolved_selected_ids.get(),
+                        is_disabled,
+                    )
                 }}
             </ul>
         </div>
+    }
+}
+
+#[cfg(feature = "component-action_group")]
+fn render_action_group_items(
+    render_context: ActionGroupRenderContext,
+    items: Vec<ActionGroupItem>,
+    resolved_selected_ids: BTreeSet<String>,
+    is_disabled: bool,
+) -> impl IntoView {
+    items
+        .into_iter()
+        .enumerate()
+        .map(|(index, item)| {
+            let is_item_disabled = is_disabled || item.disabled;
+            let is_selected = resolved_selected_ids.contains(&item.id);
+            render_action_group_item(render_context, index, item, is_item_disabled, is_selected)
+        })
+        .collect_view()
+}
+
+#[cfg(feature = "component-action_group")]
+fn render_action_group_item(
+    render_context: ActionGroupRenderContext,
+    index: usize,
+    item: ActionGroupItem,
+    is_item_disabled: bool,
+    is_selected: bool,
+) -> impl IntoView {
+    let item_id_for_action = item.id.clone();
+    let item_id_for_selection = item.id.clone();
+    let item_node_id = format!("{}-item-{}", render_context.id_base.get_value(), index + 1);
+    let item_class = format!(
+        "{ACTION_GROUP_ITEM_CLASS_BASE}{}{}",
+        if is_selected {
+            ACTION_GROUP_ITEM_CLASS_SELECTED
+        } else {
+            ""
+        },
+        if is_item_disabled {
+            ACTION_GROUP_ITEM_CLASS_DISABLED
+        } else {
+            ""
+        }
+    );
+
+    let on_click = move |_| {
+        if is_item_disabled {
+            return;
+        }
+
+        if let Some(on_action) = render_context.on_action.get_value() {
+            on_action.run(item_id_for_action.clone());
+        }
+
+        let selected_ids = action_logic::action_group_logic::sanitize_selected_ids(
+            render_context.selected_ids.get_untracked(),
+            &render_context.item_ids.get_value(),
+            render_context.selection_mode,
+        );
+        let next = action_logic::action_group_logic::toggle_selected_id(
+            selected_ids,
+            &item_id_for_selection,
+            &render_context.item_ids.get_value(),
+            render_context.selection_mode,
+        );
+        render_context.request_selected_change.run(next);
+    };
+
+    view! {
+        <li class="ui-action-group__node" data-slot="action-group-node" data-index=index>
+            <button
+                id=item_node_id
+                type="button"
+                class=item_class
+                data-slot="action-group-item"
+                data-id=item.id
+                data-selected=is_selected.then_some("true")
+                data-disabled=is_item_disabled.then_some("true")
+                disabled=is_item_disabled
+                aria-pressed=if is_selected { Some("true") } else { Some("false") }
+                on:click=on_click
+            >
+                {item.label}
+            </button>
+        </li>
     }
 }

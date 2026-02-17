@@ -10,6 +10,9 @@ cargo check -p ui-components
 echo "[platform] compile-only: minimal native path"
 cargo check -p ui-components --no-default-features --features component-button,inject-css
 
+echo "[platform] compile-only: action-bar native path"
+cargo check -p ui-components --no-default-features --features component-action_bar,inject-css
+
 echo "[platform] compile-only: ui-motion native path"
 cargo check -p ui-motion
 
@@ -24,6 +27,9 @@ cargo check -p ui-motion --target wasm32-unknown-unknown
 
 echo "[platform] compile-only: web wasm path"
 cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-button,inject-css
+
+echo "[platform] compile-only: action-bar wasm path"
+cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css
 
 echo "[platform] compile guard: ui-headless web+ssr must fail"
 MUTEX_LOG="$(mktemp)"
@@ -44,6 +50,9 @@ rm -f "$MUTEX_LOG"
 echo "[platform] ui-motion non-wasm stub tests"
 cargo test -p ui-motion --test non_wasm_stub
 
+echo "[platform] button-copy reduced-motion/ssr/wasm inheritance contract"
+cargo test -p ui-components --test button_copy_semantics button_copy_reduced_motion_ssr_wasm_branches_are_covered_via_button_contract
+
 echo "[platform] source guard: non-wasm button files must not reference web_sys"
 for file in \
   crates/ui-components/src/button/mod.rs \
@@ -51,6 +60,20 @@ for file in \
   crates/ui-components/src/button/spec.rs \
   crates/ui-components/src/button/styles.rs \
   crates/ui-components/src/button/view.rs
+do
+  if rg -n "web_sys" "$file" >/dev/null; then
+    echo "[platform] forbidden web_sys reference in non-wasm path file: $file" >&2
+    exit 1
+  fi
+done
+
+echo "[platform] source guard: non-wasm action-bar files must not reference web_sys"
+for file in \
+  crates/ui-components/src/action_bar/mod.rs \
+  crates/ui-components/src/action_bar/i18n.rs \
+  crates/ui-components/src/action_bar/logic.rs \
+  crates/ui-components/src/action_bar/styles.rs \
+  crates/ui-components/src/action_bar/view.rs
 do
   if rg -n "web_sys" "$file" >/dev/null; then
     echo "[platform] forbidden web_sys reference in non-wasm path file: $file" >&2
@@ -66,6 +89,17 @@ fi
 
 if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' crates/ui-components/src/button/motion.rs >/dev/null; then
   echo "[platform] missing non-wasm cfg branch in button motion" >&2
+  exit 1
+fi
+
+echo "[platform] source guard: action-bar motion must keep explicit wasm/non-wasm branches"
+if ! rg -n -F '#[cfg(target_arch = "wasm32")]' crates/ui-components/src/action_bar/motion.rs >/dev/null; then
+  echo "[platform] missing wasm cfg branch in action-bar motion" >&2
+  exit 1
+fi
+
+if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' crates/ui-components/src/action_bar/motion.rs >/dev/null; then
+  echo "[platform] missing non-wasm cfg branch in action-bar motion" >&2
   exit 1
 fi
 

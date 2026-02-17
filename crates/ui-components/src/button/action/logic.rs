@@ -1,3 +1,86 @@
+pub(crate) mod action_button_logic {
+    use super::super::ActionButtonSize;
+    use crate::button::ButtonVariant;
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct ActionButtonInputResolutionInput {
+        pub is_disabled: Option<bool>,
+        pub inherited_disabled: Option<bool>,
+        pub size: Option<ActionButtonSize>,
+        pub inherited_size: Option<ActionButtonSize>,
+        pub is_quiet: Option<bool>,
+        pub inherited_quiet: Option<bool>,
+    }
+
+    #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+    pub struct ActionButtonResolvedInput {
+        pub is_disabled: bool,
+        pub size: ActionButtonSize,
+        pub is_quiet: bool,
+        pub variant: ButtonVariant,
+    }
+
+    pub fn resolve_input(input: ActionButtonInputResolutionInput) -> ActionButtonResolvedInput {
+        let is_disabled = input
+            .is_disabled
+            .or(input.inherited_disabled)
+            .unwrap_or(false);
+        let size = input.size.or(input.inherited_size).unwrap_or_default();
+        let is_quiet = input.is_quiet.or(input.inherited_quiet).unwrap_or(false);
+        let variant = if is_quiet {
+            ButtonVariant::Ghost
+        } else {
+            ButtonVariant::Default
+        };
+
+        ActionButtonResolvedInput {
+            is_disabled,
+            size,
+            is_quiet,
+            variant,
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn resolve_input_prefers_explicit_props_over_inherited_values() {
+            let resolved = resolve_input(ActionButtonInputResolutionInput {
+                is_disabled: Some(false),
+                inherited_disabled: Some(true),
+                size: Some(ActionButtonSize::L),
+                inherited_size: Some(ActionButtonSize::S),
+                is_quiet: Some(true),
+                inherited_quiet: Some(false),
+            });
+
+            assert!(!resolved.is_disabled);
+            assert_eq!(resolved.size, ActionButtonSize::L);
+            assert!(resolved.is_quiet);
+            assert_eq!(resolved.variant, ButtonVariant::Ghost);
+        }
+
+        #[test]
+        fn resolve_input_falls_back_to_inherited_or_defaults() {
+            let resolved = resolve_input(ActionButtonInputResolutionInput {
+                is_disabled: None,
+                inherited_disabled: Some(true),
+                size: None,
+                inherited_size: None,
+                is_quiet: None,
+                inherited_quiet: None,
+            });
+
+            assert!(resolved.is_disabled);
+            assert_eq!(resolved.size, ActionButtonSize::default());
+            assert!(!resolved.is_quiet);
+            assert_eq!(resolved.variant, ButtonVariant::Default);
+        }
+    }
+}
+
 #[cfg(feature = "component-action_button_group")]
 pub(crate) mod action_button_group_logic {
     use crate::button::action::ActionButtonSize;
@@ -108,7 +191,7 @@ pub(crate) mod action_button_group_logic {
         density: ActionButtonGroupDensity,
         is_justified: bool,
         is_quiet: bool,
-        disabled: bool,
+        is_disabled: bool,
         has_explicit_label: bool,
         has_custom_class_name: bool,
     ) -> ActionButtonGroupState {
@@ -125,8 +208,8 @@ pub(crate) mod action_button_group_logic {
             is_not_justified: !is_justified,
             is_quiet,
             is_filled: !is_quiet,
-            is_disabled: disabled,
-            is_enabled: !disabled,
+            is_disabled,
+            is_enabled: !is_disabled,
             has_explicit_label,
             has_fallback_label: !has_explicit_label,
             has_custom_class_name,
@@ -288,6 +371,7 @@ pub(crate) mod action_button_group_logic {
 pub(crate) mod action_group_logic {
     use super::super::{ActionGroupItem, ActionGroupState, ActionGroupStateInput};
     use std::collections::BTreeSet;
+    use ui_state_primitives::action_group as action_group_state;
 
     pub const DEFAULT_ARIA_LABEL: &str = "Action group";
 
@@ -341,6 +425,20 @@ pub(crate) mod action_group_logic {
                 ActionGroupSelectionMode::None => "none",
             }
         }
+
+        fn as_state_primitive(self) -> action_group_state::ActionGroupSelectionMode {
+            match self {
+                ActionGroupSelectionMode::Single => {
+                    action_group_state::ActionGroupSelectionMode::Single
+                }
+                ActionGroupSelectionMode::Multiple => {
+                    action_group_state::ActionGroupSelectionMode::Multiple
+                }
+                ActionGroupSelectionMode::None => {
+                    action_group_state::ActionGroupSelectionMode::None
+                }
+            }
+        }
     }
 
     pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
@@ -350,12 +448,15 @@ pub(crate) mod action_group_logic {
         })
     }
 
-    pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
+    pub fn normalize_aria_label(
+        value: Option<String>,
+        fallback_aria_label: &str,
+    ) -> (String, bool) {
         if let Some(label) = normalize_optional_text(value) {
             return (label, true);
         }
 
-        (DEFAULT_ARIA_LABEL.to_string(), false)
+        (fallback_aria_label.to_string(), false)
     }
 
     fn normalize_item(mut item: ActionGroupItem, index: usize) -> ActionGroupItem {
@@ -374,7 +475,7 @@ pub(crate) mod action_group_logic {
     }
 
     pub fn collect_item_ids(items: &[ActionGroupItem]) -> BTreeSet<String> {
-        items.iter().map(|item| item.id.clone()).collect()
+        action_group_state::collect_item_ids(items.iter().map(|item| item.id.as_str()))
     }
 
     pub fn sanitize_selected_ids(
@@ -382,27 +483,11 @@ pub(crate) mod action_group_logic {
         item_ids: &BTreeSet<String>,
         selection_mode: ActionGroupSelectionMode,
     ) -> BTreeSet<String> {
-        let mut selected_ids: BTreeSet<String> = selected_ids
-            .into_iter()
-            .filter(|id| item_ids.contains(id))
-            .collect();
-
-        match selection_mode {
-            ActionGroupSelectionMode::None => BTreeSet::new(),
-            ActionGroupSelectionMode::Single => {
-                if selected_ids.len() <= 1 {
-                    return selected_ids;
-                }
-
-                let first = selected_ids.iter().next().cloned();
-                selected_ids.clear();
-                if let Some(first) = first {
-                    selected_ids.insert(first);
-                }
-                selected_ids
-            }
-            ActionGroupSelectionMode::Multiple => selected_ids,
-        }
+        action_group_state::sanitize_selected_ids(
+            selected_ids,
+            item_ids,
+            selection_mode.as_state_primitive(),
+        )
     }
 
     pub fn toggle_selected_id(
@@ -411,30 +496,20 @@ pub(crate) mod action_group_logic {
         item_ids: &BTreeSet<String>,
         selection_mode: ActionGroupSelectionMode,
     ) -> BTreeSet<String> {
-        if !item_ids.contains(id) {
-            return selected_ids;
-        }
-
-        match selection_mode {
-            ActionGroupSelectionMode::None => BTreeSet::new(),
-            ActionGroupSelectionMode::Single => {
-                let mut next = BTreeSet::new();
-                if !selected_ids.contains(id) {
-                    next.insert(id.to_string());
-                }
-                next
-            }
-            ActionGroupSelectionMode::Multiple => {
-                let mut next = selected_ids;
-                if !next.insert(id.to_string()) {
-                    next.remove(id);
-                }
-                next
-            }
-        }
+        action_group_state::toggle_selected_id(
+            selected_ids,
+            id,
+            item_ids,
+            selection_mode.as_state_primitive(),
+        )
     }
 
     pub fn resolve_state(input: ActionGroupStateInput) -> ActionGroupState {
+        let selection_source_attr = if input.is_selection_controlled {
+            "controlled"
+        } else {
+            "uncontrolled"
+        };
         let aria_source_attr = if input.has_custom_aria_label {
             "custom"
         } else {
@@ -449,7 +524,7 @@ pub(crate) mod action_group_logic {
         let is_empty = input.item_count == 0;
         let has_selection = input.selected_count > 0;
 
-        let data_state_attr = if input.disabled {
+        let data_state_attr = if input.is_disabled {
             "disabled"
         } else if is_empty {
             "empty"
@@ -466,12 +541,13 @@ pub(crate) mod action_group_logic {
             selection_mode: input.selection_mode,
             selection_mode_class: input.selection_mode.class_name(),
             selection_mode_attr: input.selection_mode.as_attr(),
-            is_disabled: input.disabled,
+            is_disabled: input.is_disabled,
             item_count: input.item_count,
             selected_count: input.selected_count,
             has_selection,
             is_empty,
             data_state_attr,
+            selection_source_attr,
             aria_source_attr,
             class_source_attr,
             has_custom_class_name: input.has_custom_class_name,
@@ -561,6 +637,22 @@ pub(crate) mod action_group_logic {
         }
 
         #[test]
+        fn normalize_aria_label_uses_trimmed_label_or_i18n_fallback() {
+            let (label, explicit) =
+                normalize_aria_label(Some("  Align controls  ".to_string()), "Action group");
+            assert_eq!(label, "Align controls");
+            assert!(explicit);
+
+            let (label, explicit) = normalize_aria_label(Some("   ".to_string()), "Action group");
+            assert_eq!(label, "Action group");
+            assert!(!explicit);
+
+            let (label, explicit) = normalize_aria_label(None, "Action group");
+            assert_eq!(label, "Action group");
+            assert!(!explicit);
+        }
+
+        #[test]
         fn toggle_selected_id_respects_selection_mode() {
             let item_ids = BTreeSet::from(["a".to_string(), "b".to_string()]);
 
@@ -590,7 +682,8 @@ pub(crate) mod action_group_logic {
             let state = resolve_state(ActionGroupStateInput {
                 tone: ActionGroupTone::Strong,
                 selection_mode: ActionGroupSelectionMode::Multiple,
-                disabled: false,
+                is_disabled: false,
+                is_selection_controlled: true,
                 item_count: 3,
                 selected_count: 2,
                 has_custom_aria_label: true,
@@ -600,6 +693,7 @@ pub(crate) mod action_group_logic {
             assert_eq!(state.tone_attr, "strong");
             assert_eq!(state.selection_mode_attr, "multiple");
             assert_eq!(state.data_state_attr, "selected");
+            assert_eq!(state.selection_source_attr, "controlled");
             assert_eq!(state.aria_source_attr, "custom");
             assert_eq!(state.class_source_attr, "custom");
 

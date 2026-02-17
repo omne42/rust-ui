@@ -2,7 +2,6 @@ pub const CSS: &str = r#"
 .ui-button-copy {
   display: inline-flex;
   align-items: center;
-  gap: var(--ui-space-xs);
   position: relative;
   --ui-button-copy-burst: 0;
   --ui-button-copy-feedback-scale: 0.08;

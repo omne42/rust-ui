@@ -29,6 +29,8 @@ fn combobox_opens_on_arrow_down_and_commits_selection() {
         selected_index: selected.into(),
         on_action: Some(on_action),
         is_item_disabled: None,
+        lang: None,
+        dir: None,
     });
 
     assert!(!open.get_untracked());
@@ -36,7 +38,12 @@ fn combobox_opens_on_arrow_down_and_commits_selection() {
     assert_eq!(aria.input.aria_activedescendant.get_untracked(), None);
 
     // ArrowDown opens and focuses the first option.
-    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
     assert!(open.get_untracked());
     assert_eq!(aria.input.aria_expanded.get_untracked(), Some("true"));
     assert_eq!(
@@ -45,8 +52,18 @@ fn combobox_opens_on_arrow_down_and_commits_selection() {
     );
 
     // Move active index and commit via Enter.
-    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
-    assert!(aria.handlers.on_input_key_down.run("Enter".to_string()));
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("Enter".to_string())
+            .handled
+    );
 
     assert_eq!(last_action.get_value(), Some(1));
     assert!(!open.get_untracked());
@@ -74,12 +91,19 @@ fn combobox_opens_on_arrow_up_and_focuses_last_enabled_option() {
         selected_index: selected.into(),
         on_action: None,
         is_item_disabled: Some(Callback::new(|index: usize| index == 2)),
+        lang: None,
+        dir: None,
     });
 
     poll_effects();
     assert!(!open.get_untracked());
 
-    assert!(aria.handlers.on_input_key_down.run("ArrowUp".to_string()));
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowUp".to_string())
+            .handled
+    );
     assert!(open.get_untracked());
 
     // Option 2 is disabled, so ArrowUp should focus option 1.
@@ -107,9 +131,17 @@ fn combobox_home_does_not_interfere_with_text_editing_when_closed() {
         selected_index: selected.into(),
         on_action: None,
         is_item_disabled: None,
+        lang: None,
+        dir: None,
     });
 
-    assert!(!aria.handlers.on_input_key_down.run("Home".to_string()));
+    assert!(
+        !aria
+            .handlers
+            .on_input_key_down
+            .run("Home".to_string())
+            .handled
+    );
     assert!(!open.get_untracked());
 }
 
@@ -133,16 +165,39 @@ fn combobox_tab_commits_active_option_and_allows_focus_to_move() {
         selected_index: selected.into(),
         on_action: Some(on_action),
         is_item_disabled: None,
+        lang: None,
+        dir: None,
     });
 
     // Open, then move active to index 2.
-    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
-    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
-    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
     assert_eq!(aria.active_index.get_untracked(), 2);
 
     // Tab should commit but not request preventDefault.
-    assert!(!aria.handlers.on_input_key_down.run("Tab".to_string()));
+    assert!(
+        !aria
+            .handlers
+            .on_input_key_down
+            .run("Tab".to_string())
+            .handled
+    );
     assert_eq!(last_action.get_value(), Some(2));
     assert!(!open.get_untracked());
 }
@@ -167,6 +222,8 @@ fn combobox_option_click_calls_on_action_and_closes() {
         selected_index: selected.into(),
         on_action: Some(on_action),
         is_item_disabled: None,
+        lang: None,
+        dir: None,
     });
 
     aria.handlers.on_option_click.run(2);
@@ -191,9 +248,17 @@ fn disabled_combobox_ignores_input_events() {
         selected_index: selected.into(),
         on_action: None,
         is_item_disabled: None,
+        lang: None,
+        dir: None,
     });
 
-    assert!(!aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(
+        !aria
+            .handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
     assert!(!open.get_untracked());
 }
 
@@ -217,10 +282,17 @@ fn controlled_combobox_requests_open_change_without_mutating_open_signal() {
         selected_index: selected.into(),
         on_action: None,
         is_item_disabled: None,
+        lang: None,
+        dir: None,
     });
 
     assert!(!open.get_untracked());
-    assert!(aria.handlers.on_input_key_down.run("ArrowDown".to_string()));
+    assert!(
+        aria.handlers
+            .on_input_key_down
+            .run("ArrowDown".to_string())
+            .handled
+    );
     assert_eq!(requested.get_value(), vec![true]);
     assert!(!open.get_untracked());
 }

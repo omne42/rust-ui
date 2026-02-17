@@ -46,6 +46,41 @@ fn find_typeahead_match(
 
 pub type MenuOnAction = Callback<usize>;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum MenuOpenFocusStrategy {
+    #[default]
+    First,
+    Last,
+}
+
+impl MenuOpenFocusStrategy {
+    pub const fn default_index(self, item_count: usize) -> usize {
+        match self {
+            Self::First => 0,
+            Self::Last => item_count.saturating_sub(1),
+        }
+    }
+}
+
+pub fn menu_trigger_open_focus_strategy_for_key(key: &str) -> Option<MenuOpenFocusStrategy> {
+    match key {
+        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
+        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
+        _ => None,
+    }
+}
+
+pub fn menu_trigger_open_focus_strategy(
+    key: &str,
+    is_disabled: bool,
+    is_open: bool,
+) -> Option<MenuOpenFocusStrategy> {
+    if is_disabled || is_open {
+        return None;
+    }
+    menu_trigger_open_focus_strategy_for_key(key)
+}
+
 #[derive(Clone)]
 pub struct MenuAttrs {
     pub role: &'static str,
@@ -247,5 +282,47 @@ pub fn use_menu(options: MenuOptions) -> MenuAria {
             on_item_pointer_move,
             on_item_click,
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn menu_trigger_open_focus_strategy_for_key_maps_arrow_keys_only() {
+        assert_eq!(
+            menu_trigger_open_focus_strategy_for_key("ArrowDown"),
+            Some(MenuOpenFocusStrategy::First)
+        );
+        assert_eq!(
+            menu_trigger_open_focus_strategy_for_key("ArrowUp"),
+            Some(MenuOpenFocusStrategy::Last)
+        );
+        assert_eq!(menu_trigger_open_focus_strategy_for_key("Enter"), None);
+    }
+
+    #[test]
+    fn menu_trigger_open_focus_strategy_respects_disabled_and_open_guards() {
+        assert_eq!(
+            menu_trigger_open_focus_strategy("ArrowDown", false, false),
+            Some(MenuOpenFocusStrategy::First)
+        );
+        assert_eq!(
+            menu_trigger_open_focus_strategy("ArrowDown", true, false),
+            None
+        );
+        assert_eq!(
+            menu_trigger_open_focus_strategy("ArrowDown", false, true),
+            None
+        );
+    }
+
+    #[test]
+    fn menu_open_focus_strategy_default_index_handles_empty_and_populated_lists() {
+        assert_eq!(MenuOpenFocusStrategy::First.default_index(0), 0);
+        assert_eq!(MenuOpenFocusStrategy::First.default_index(4), 0);
+        assert_eq!(MenuOpenFocusStrategy::Last.default_index(0), 0);
+        assert_eq!(MenuOpenFocusStrategy::Last.default_index(4), 3);
     }
 }

@@ -29,6 +29,7 @@ pub fn Carousel(
     let items = logic::resolve_items(&id_base.get_value(), items);
     let items: StoredValue<Arc<[CarouselItemResolved]>> = StoredValue::new(Arc::from(items));
     let item_count = items.get_value().len();
+    let has_disabled_items = items.get_value().iter().any(|item| item.disabled);
 
     let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
     let aria_label = StoredValue::new(aria_label);
@@ -77,7 +78,7 @@ pub fn Carousel(
             item_count,
             selected_index: selected_index.get(),
             focused_index: focused_index.get(),
-            has_disabled_items: items.get_value().iter().any(|item| item.disabled),
+            has_disabled_items,
             orientation,
             loop_navigation,
             is_controlled,
@@ -172,31 +173,39 @@ pub fn Carousel(
     };
 
     let can_prev = Signal::derive(move || {
-        let items_ref = items.get_value();
         let current_index = selected_index
             .get()
-            .or_else(|| logic::first_enabled_index(items_ref.as_ref()));
+            .or_else(|| logic::first_enabled_index(items.get_value().as_ref()));
 
         let Some(current_index) = current_index else {
             return false;
         };
 
-        logic::adjacent_enabled_index(items_ref.as_ref(), current_index, -1, loop_navigation)
-            .is_some()
+        logic::adjacent_enabled_index(
+            items.get_value().as_ref(),
+            current_index,
+            -1,
+            loop_navigation,
+        )
+        .is_some()
     });
 
     let can_next = Signal::derive(move || {
-        let items_ref = items.get_value();
         let current_index = selected_index
             .get()
-            .or_else(|| logic::first_enabled_index(items_ref.as_ref()));
+            .or_else(|| logic::first_enabled_index(items.get_value().as_ref()));
 
         let Some(current_index) = current_index else {
             return false;
         };
 
-        logic::adjacent_enabled_index(items_ref.as_ref(), current_index, 1, loop_navigation)
-            .is_some()
+        logic::adjacent_enabled_index(
+            items.get_value().as_ref(),
+            current_index,
+            1,
+            loop_navigation,
+        )
+        .is_some()
     });
 
     let on_prev = move |_| step_selection.run(-1);

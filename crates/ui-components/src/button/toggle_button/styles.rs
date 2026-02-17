@@ -1,5 +1,7 @@
 pub const CSS: &str = r#"
 .ui-toggle-button {
+  --ui-toggle-button-scale: var(--ui-button-scale, 1);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;

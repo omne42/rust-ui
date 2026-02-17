@@ -1,3 +1,4 @@
+mod i18n;
 mod logic;
 pub mod styles;
 mod view;

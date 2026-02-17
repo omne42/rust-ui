@@ -151,6 +151,7 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     let semantic_scales = &theme.tokens.semantic_scales;
     let typography = &theme.tokens.typography;
     let component_layout = &theme.tokens.component_layout;
+    let overlay_layout = &theme.tokens.overlay_layout;
     let button_layout = &theme.tokens.button_layout;
     let mut css = String::new();
 
@@ -361,6 +362,8 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     let _ = writeln!(css, "  --ui-radius-lg: {}px;", layout.radius.lg_px);
     let _ = writeln!(css);
 
+    let _ = writeln!(css, "  --ui-space-3xs: {}px;", layout.space.space_3xs_px);
+    let _ = writeln!(css, "  --ui-space-2xs: {}px;", layout.space.space_2xs_px);
     let _ = writeln!(css, "  --ui-space-xs: {}px;", layout.space.xs_px);
     let _ = writeln!(css, "  --ui-space-sm: {}px;", layout.space.sm_px);
     let _ = writeln!(css, "  --ui-space-md: {}px;", layout.space.md_px);
@@ -373,6 +376,16 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
 
     let _ = writeln!(
         css,
+        "  --ui-font-size-100: {}px;",
+        typography.font_size_100_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-font-size-150: {}px;",
+        typography.font_size_150_px
+    );
+    let _ = writeln!(
+        css,
         "  --ui-font-size-200: {}px;",
         typography.font_size_200_px
     );
@@ -380,6 +393,27 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         css,
         "  --ui-component-height-100: {}px;",
         component_layout.component_height_100_px
+    );
+    let _ = writeln!(css, "  --ui-overlay-z-index: {};", overlay_layout.z_index);
+    let _ = writeln!(
+        css,
+        "  --ui-overlay-panel-min-width: {}px;",
+        overlay_layout.panel_min_width_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-overlay-viewport-inset: {}px;",
+        overlay_layout.viewport_inset_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-overlay-enter-offset-y: {}px;",
+        overlay_layout.enter_offset_y_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-overlay-enter-scale: {};",
+        overlay_layout.enter_scale
     );
     let _ = writeln!(css);
 

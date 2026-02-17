@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ActionBar` 状态原语已下沉至 `crates/ui-state-primitives/src/action_bar.rs`，组件侧 `logic.rs` 通过 `pub use ui_state_primitives::action_bar::{...}` 只做消费；回归覆盖：`crates/ui-state-primitives/src/action_bar.rs` 单元测试与 `crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_status_primitives_are_sourced_from_ui_state_primitives`）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`ActionBar` 在 `view.rs` 挂载 `use_button/use_focus_ring/use_hover`，消费 typed `attrs + handlers + state` 并映射到 clear 按钮；`logic.rs` 不承载 headless hook 编排。文案通过 `i18n::use_ui_i18n().strings::<ActionBarStrings>()` 注入。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_mounts_headless_contract_in_view_not_logic_layer` 与 `action_bar_uses_logic_state_model`）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ActionBar` 的 `motion.rs` 仅保留 `ActionBar` 语义状态到 `ui_motion` contract 的映射与 `attach_motion` 绑定，驱动复用 `ui_motion::spring::SpringAnimator`，未在组件层重写 spring/driver；同时保留 `#[cfg(not(target_arch = "wasm32"))]` no-op 分支。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_motion_uses_spring_driver`、`action_bar_motion_stays_as_mapping_and_attach_layer` 与 `action_bar_motion_sanitization_and_reduced_motion_paths_are_locked`）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`ActionBar` 的 `styles.rs` 仅消费 `var(--ui-*)` 变量（如 `--ui-space-*`、`--ui-border`、`--ui-fg`、`--ui-radius-*`、`--ui-shadow-md`），不重建主题；主题三轴与 token 出口保持在 `crates/ui-theme/src/theme.rs` + `crates/ui-theme/src/tokens.rs` + `crates/ui-theme/src/css.rs`。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_theme_contract_is_token_first_and_ui_theme_owned`，以及 `crates/ui-theme/tests/token_scale_baseline.rs`）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,91 +46,91 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ActionBar` 保持装配层分工：`logic.rs` 仅做归一/派生并消费 `ui_state_primitives`；`view.rs` 负责 Leptos 结构渲染与 `ui_headless` 契约挂载；`styles.rs` 为 token-first 静态 CSS；`motion.rs` 负责动效 contract attach。`mod.rs` 维持最小导出面，`src/lib.rs` 通过 `component-action_bar` feature gate 暴露稳定 API，未在公共边界暴露 `web-sys`/DOM 细节。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_stable`，并结合 `action_bar_status_primitives_are_sourced_from_ui_state_primitives`、`action_bar_mounts_headless_contract_in_view_not_logic_layer`、`action_bar_motion_stays_as_mapping_and_attach_layer`、`action_bar_theme_contract_is_token_first_and_ui_theme_owned`）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ActionBar` 公共布尔 props 已从 `force_visible` 统一迁移为 `is_force_visible`；事件回调保持 `on_clear_selection` 命名。迁移策略：在本次组件契约收敛中一次性重命名并同步 docs 示例，避免长期双命名别名漂移。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_api_naming_uses_is_on_default_prefix_contract`、`action_bar_docs_default_and_state_playgrounds_lock_contract_values` 与 `action_bar_docs_playgrounds_lock_state_matrix_contract_values`）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（`ActionBar` 的 `selected_count` 轴已收敛为三元组：`selected_count: Option<Signal<usize>>`（受控值）、`on_selected_count_change: Option<Callback<usize>>`（变更请求）、`default_selected_count: Option<usize>`（非受控初始化）；`view.rs` 通过 `ui_headless::use_controllable_state` 统一执行受控/非受控语义，并在 clear 操作时走 `request_selected_count_change.run(0)`，确保受控模式不隐式写本地状态、非受控模式仅由默认值初始化。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_selected_count_supports_controlled_and_uncontrolled_contract`，以及 docs 契约测试 `action_bar_docs_default_and_state_playgrounds_lock_contract_values`、`action_bar_docs_playgrounds_lock_state_matrix_contract_values`）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ActionBar` 已将 `default_selected_count` 的默认值归一集中到 `crates/ui-components/src/action_bar/logic.rs` 的 `normalize_default_selected_count`；`view.rs` 仅调用该函数后把归一结果传给 `use_controllable_state`，不再在视图层做 `unwrap_or*` 兜底。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_default_values_have_single_logic_source`、`action_bar_uses_logic_state_model`，以及 `crates/ui-components/src/action_bar/logic.rs` 单测 `normalize_default_selected_count_falls_back_to_zero`）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ActionBar` 已在 `logic.rs` 新增 `ActionBarViewStateInput` 与 `resolve_view_state`，由 `view.rs` 统一通过 typed input 调用该派生入口，不再在视图层直接拼装 `ActionBarStateInput`；事件回调仅请求状态变更（`request_selected_count_change.run(0)` + 用户回调），不重建状态机；`styles.rs` 仅消费 `data-*`/class 语义标记。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_state_normalization_is_centralized_in_logic`、`action_bar_uses_logic_state_model`、`action_bar_emits_toolbar_semantics_and_state_attributes`、`action_bar_styles_include_position_state_and_source_contracts`，以及 `crates/ui-components/src/action_bar/logic.rs` 单测 `resolve_view_state_maps_typed_input_into_state_primitive_input`）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ActionBar` 的互斥离散轴已由枚举建模：`ActionBarPosition`（Top/Bottom）、`ActionBarPhase`（Visible/Hidden）、`ActionBarSelectionKind`（Empty/Single/Multiple），并由 `view.rs` 通过 `position: ActionBarPosition` 与 `logic::resolve_view_state` 统一消费；docs 示例也使用 `ActionBarPosition::Top`。组件输入层未引入 `position/status/mode` 的字符串协议，也未用 `is_top/is_bottom` 等互斥布尔组合表达离散状态。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_discrete_state_axes_are_enum_typed`，并结合 `action_bar_status_primitives_are_sourced_from_ui_state_primitives`）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ActionBar` 的状态原语仍由 `ui-state-primitives` 提供并在 `logic.rs` 通过 `pub use ui_state_primitives::action_bar::{...}` 消费；`logic.rs` 仅保留装配/映射入口 `resolve_view_state`，未在组件层重写 `resolve_state/resolve_selection_kind/ActionBarStateInput` 等状态机原语定义；组件侧状态写入通过 `ui_headless::use_controllable_state` 桥接，未直接依赖业务 store 类型。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_status_primitives_are_sourced_from_ui_state_primitives` 与 `action_bar_status_primitive_boundary_avoids_local_state_machine_and_business_store_coupling`）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`ActionBar` 当前仅包含同步状态交互（`selected_count` 可控状态请求 + `on_clear_selection` 同步回调），无远程请求与异步状态协议；组件未引入 `use_async_action` / `is_loading` / `aria-busy` / `retry`。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_has_no_async_loading_protocol_and_keeps_sync_clear_contract`）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`ActionBar` docs 已新增零接线最小路径 `Hello World` playground：`<ActionBar default_selected_count=1><ActionButton>"Archive"</ActionButton></ActionBar>`，不要求用户显式接线 `ui-state-primitives`/`ui-headless` 或传内部 `state` 对象；复杂能力继续通过受控 `selected_count/on_selected_count_change`、位置、文本、motion 等扩展参数按需开启。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_docs_expose_hello_world_path_without_state_machine_wiring` 与 `action_bar_docs_page_covers_primary_playgrounds`）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`ActionBar` 主 API 维持显式组合：父级 `<ActionBar ...>` 通过 `children: Option<Children>` 承载 `<ActionButton ... />` 项语义，docs 默认与状态示例均采用 `<ActionBar><ActionButton ... /></ActionBar>` 结构；未引入 `labels/titles/panels` 并行数组或 `ItemSpec` 语法糖。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_composition_api_prefers_explicit_parent_item_structure`，并结合 `action_bar_docs_expose_hello_world_path_without_state_machine_wiring`）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ActionBar` 在 `view.rs` 通过 `ui_headless` typed press/focus/hover 契约挂载 `role/aria-*` 与键盘路径；文案来源走 `props -> i18n 注入 -> 默认 strings`（`i18n::use_ui_i18n().strings::<ActionBarStrings>()` + `normalize_*_label` + `ActionBarStrings::default`），未在 `view.rs` 硬编码用户可见兜底文案；组件新增 `lang: Option<String>` 与 `dir: Option<A11yDirection>` 并通过 `ui_headless::locale_attrs` 接入 locale 语义。共享 A11y 工具复用 `crates/ui-headless/src/a11y.rs`，组件层未重复发明。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_a11y_i18n_and_locale_contract_is_wired`，并结合 `action_bar_mounts_headless_contract_in_view_not_logic_layer`、`action_bar_emits_toolbar_semantics_and_state_attributes`）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`ActionBar` 在 `view.rs` 根节点输出稳定语义标记：状态轴（`data-state/data-position/data-selection`）、可见性与方位（`data-visible/data-hidden/data-top/data-bottom`）、受控来源与默认来源（`data-controlled/data-uncontrolled/data-control-mode/data-selected-count-source/data-default-selected-count-source/data-selected-count-change-source/data-clear-action-source`），并保留 `role=\"toolbar\" + aria-hidden`。标记值由 `ui-state-primitives` 的 `ActionBarState` 派生字段提供，不在 `view.rs` 硬编码自由文本。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_emits_toolbar_semantics_and_state_attributes` 与 `action_bar_state_markers_are_observable_and_closed_set_contracts`；封闭集合来源由 `crates/ui-state-primitives/src/action_bar.rs` 中 `ActionBarPhase/ActionBarPosition/ActionBarSelectionKind` 的 `as_attr` 映射与 source attr 受控枚举值约束。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`ActionBar` 的状态样式分支由稳定 marker 驱动：`data-position/data-state/data-hidden/data-selection/data-has-clear/data-label-source/data-selection-source/data-clear-label-source/data-motion-source/data-custom-class`，对应 `styles.rs` 显式选择器消费；未使用 `:nth-child/:nth-of-type/:first-child/:last-child` 这类结构猜测选择器。运行时样式更新限定在 `motion.rs` 的 CSS 变量 `--ui-action-bar-translate-y` 与 `--ui-action-bar-opacity`，`view.rs` 不内联业务样式。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_styles_depend_on_explicit_state_markers_not_dom_guessing`，并结合 `action_bar_styles_include_position_state_and_source_contracts`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`ActionBar` 语义测试已覆盖核心状态与交互路径：`role/aria/data-*` 与来源 marker（`action_bar_emits_toolbar_semantics_and_state_attributes`、`action_bar_state_markers_are_observable_and_closed_set_contracts`）、显式状态样式契约（`action_bar_styles_depend_on_explicit_state_markers_not_dom_guessing`）、受控/非受控轴（`action_bar_selected_count_supports_controlled_and_uncontrolled_contract`）、键盘/指针输入归一（`action_bar_mounts_headless_contract_in_view_not_logic_layer`）、wasm/non-wasm 分支（`action_bar_motion_stays_as_mapping_and_attach_layer`）。同时新增 `action_bar_semantics_suite_prioritizes_contract_assertions_over_snapshots` 显式禁止 `assert_snapshot!/insta/to_match_snapshot` 依赖，确保快照不替代语义契约断言。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`ActionBar` 已通过职责分层契约回归 `action_bar_component_files_follow_layered_responsibilities`：`mod.rs` 仅维持最小导出与 feature 边界；`logic.rs` 只做状态输入归一与来源标记派生并消费 `ui-state-primitives`；`styles.rs` 仅保留 token-first 静态 CSS；`view.rs` 负责 Leptos 结构与 `ui_headless` 语义挂载并调用 `motion::attach_motion`；`motion.rs` 仅保留语义到动效 contract 的 sanitize + attach，未承载视图/A11y/业务状态机。对应回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_component_files_follow_layered_responsibilities`，并结合 `action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_stable` 与 `action_bar_motion_stays_as_mapping_and_attach_layer`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`ActionBar` 目录未引入 `spec.rs`，`action_bar/mod.rs` 保持轻量导出，不声明 `mod spec`/`pub mod spec`，也不暴露 `ActionBarSpec/ActionBarSchema`。复杂 schema 规范边界继续集中在 `button/spec.rs` 并由 `button/mod.rs` 统一导出。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_spec_boundary_reuses_button_spec_without_local_spec_file`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`ActionBar` 样式集中在 `crates/ui-components/src/action_bar/styles.rs`，以 `var(--ui-*)` token 消费为主；`crates/ui-components/src/css.rs` 在 `component-action_bar` feature 下统一聚合 `out.push_str(crate::action_bar::styles::CSS);`，并通过 `crates/ui-components/src/root.rs` 的 `inject_components_css + crate::css::push_components_css(&mut out)` 注入链路生效。运行时样式仅由 `motion.rs` 写入必要 CSS 变量（`--ui-action-bar-translate-y`、`--ui-action-bar-opacity`），`view.rs` 不承载业务 inline style。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_token_first_styles_are_static_and_aggregated_via_ui_root`，并结合 `action_bar_styles_depend_on_explicit_state_markers_not_dom_guessing` 与 `action_bar_theme_contract_is_token_first_and_ui_theme_owned`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`ActionBar` 复用 docs-app 的全局默认主题基线闸门 `theme-visual-baseline`：页面同时覆盖 Button/Input/Overlay 的层级、对比与交互反馈，并由 `e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 锁定截图基线（page/button/input/overlay 四张快照）。`ActionBar` docs 入口继续保持默认主题下的简单路径与进阶能力分层，不走“可访问但粗糙”的降级风格。HeroUI 对齐策略沿用 `docs/spec/heroui-parameter-design-strategy.md` 中“对齐体验质量而非 API 完全同构复制”的约束。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_visual_desire_reuses_theme_visual_baseline_gate` 与 `action_bar_visual_desire_heroui_alignment_targets_experience_not_api_copy`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ui-components` 已保持组件级 feature 边界：`component-action_bar` 独立特性、`lib.rs` 按 feature 导出、`css.rs` 按 feature 聚合 `action_bar::styles::CSS`；`web-demo` 使用 `default-features = false + web-demo-components`（不拉 `all-components`），`docs-app` 显式启用 `all-components` 作为全集验收面。Tree Shaking 检查脚本 `scripts/check-ui-components-tree-shaking.sh` 已覆盖：最小特性树、反向依赖树、wasm 最小特性编译、release 产物体积预算（`scripts/tree_shaking_budget.env`）。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_tree_shaking_keeps_component_feature_and_css_boundaries` 与 `action_bar_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -139,30 +139,30 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`ActionBar` 关键离散输入与状态轴由类型系统约束：`ActionBarPosition/ActionBarPhase/ActionBarSelectionKind` + `ActionBarStateInput/ActionBarState/ActionBarViewStateInput`，对外输入保持 `position: ActionBarPosition` 与受控三元组（`selected_count/default_selected_count/on_selected_count_change`）。无效状态归一统一通过 `resolve_selection_kind` 与 `normalize_default_selected_count`；关键状态通过稳定 `data-*`（`data-state/data-position/data-selection/data-control-mode/...`）对外暴露，供自动化与 Agent 消费。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_machine_readable_contract_uses_typed_inputs_and_semantic_markers`，并结合 `action_bar_discrete_state_axes_are_enum_typed`、`action_bar_state_markers_are_observable_and_closed_set_contracts`、`action_bar_state_normalization_is_centralized_in_logic`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`ActionBar` 平台分支由 `motion.rs` 显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 管理；non-wasm 路径（`mod.rs/i18n.rs/logic.rs/styles.rs/view.rs`）不引用 `web-sys`。平台 compile-only 证据链已补齐：默认 native（`cargo check -p ui-components`）、SSR native（`cargo check -p ui-headless --no-default-features --features ssr`）、web wasm（`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css`），并通过 `scripts/check-ui-components-platforms.sh` 固化为门禁。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free` 与 `action_bar_platform_check_script_covers_default_ssr_wasm_compile_paths`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`crates/ui-headless/src/lib.rs` 已通过 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)` 固化互斥约束；`ActionBar` 侧依赖路径继续遵守该约束，并在 `scripts/check-ui-components-platforms.sh` 中以 `cargo check -p ui-headless --no-default-features --features web,ssr` 的“必须失败”guard + `ssr`/`web` 两条独立 compile-only 路径持续回归。契约测试：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_ui_headless_feature_mutex_contract_is_guarded`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`crates/ui-motion/src/lib.rs` 已在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(..)` no-op stub；`ActionBar` 的 `motion.rs` 保留 non-wasm `attach_motion` 空实现用于安全降级，不依赖动画句柄存在。tooling 证据链由 `scripts/check-ui-components-platforms.sh` 固化（`cargo check -p ui-motion` + `cargo test -p ui-motion --test non_wasm_stub`），契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_ui_motion_non_wasm_noop_stub_contract_is_guarded`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`ActionBar` 在 `crates/ui-components/src/action_bar/motion.rs` 中已实现 `!motion.enabled || ui_motion::web::prefers_reduced_motion()` 分支，降级为可预测的最小必要反馈；平台分支通过 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]` 显式拆分，SSR/non-wasm 走 no-op attach，wasm 仅增强 CSS 变量驱动。`view.rs` 的 `role/aria/data-*` 语义标记统一来自 `state`，不按平台分裂，满足 SSR 输出与 hydration 语义一致性。编译证据链继续由 `scripts/check-ui-components-platforms.sh` 固化（SSR native + web wasm compile-only）。契约回归：`crates/ui-components/tests/action_bar_semantics.rs` 的 `action_bar_reduced_motion_ssr_wasm_branches_keep_semantics_consistent`，并结合 `action_bar_platform_check_script_covers_default_ssr_wasm_compile_paths` 与 `action_bar_motion_sanitization_and_reduced_motion_paths_are_locked`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`ActionBar` 已纳入 docs perf 预算基线：`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` 新增 `"action-bar" => UiPerfBudget { max_mount_ms: 34.0, max_update_ms: Some(12.0), max_heap_kb: Some(640.0) }`；`UiPerfProbe` 持续暴露 `data-perf-*` 与 violation marker，`e2e/tests/docs_app_components_coverage.spec.mjs` 对预算属性做可重复断言。归因面通过 `ActionBar` 稳定语义/来源标记（`data-state/data-control-mode/data-selection-source/data-motion-source`）+ `apps/docs-app/src/debug_overlay.rs` trace 事件实现“状态/渲染/样式/动效”路径定位。阻断门禁新增 `scripts/check-ui-components-performance.sh` 的 `action_bar_performance_governance_budget_is_defined_and_blocking`；契约回归位于 `crates/ui-components/tests/action_bar_semantics.rs` 同名测试。`render_count` 精确自动化在当前框架下仍按等价证据执行，并保持 `docs/plan/TODO.md` 的 Button/Input/Accordion 跟踪项，避免静默丢失后续补齐路径。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。

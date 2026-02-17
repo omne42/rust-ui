@@ -1,6 +1,9 @@
 use crate::action_bar::ActionBarStrings;
-use crate::action_bar::{
+
+pub use ui_state_primitives::action_bar::{
     ActionBarPhase, ActionBarPosition, ActionBarSelectionKind, ActionBarState, ActionBarStateInput,
+    normalize_aria_label, normalize_clear_label, normalize_optional_text, normalize_selection_text,
+    resolve_state,
 };
 
 pub const DEFAULT_ARIA_LABEL: &str = "Actions";
@@ -9,41 +12,41 @@ pub const DEFAULT_SELECTION_EMPTY_LABEL: &str = "No items selected";
 pub const DEFAULT_SELECTION_SINGLE_LABEL: &str = "1 item selected";
 pub const DEFAULT_SELECTION_MULTIPLE_SUFFIX: &str = "items selected";
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ActionBarViewStateInput {
+    pub selected_count: usize,
+    pub position: ActionBarPosition,
+    pub is_force_visible: bool,
+    pub is_controlled_selected_count: bool,
+    pub has_default_selected_count: bool,
+    pub has_selected_count_change_handler: bool,
+    pub has_clear_action: bool,
+    pub has_custom_label: bool,
+    pub has_custom_class_name: bool,
+    pub has_custom_selection_text: bool,
+    pub has_custom_clear_label: bool,
+    pub has_custom_motion: bool,
+}
+
+pub fn normalize_default_selected_count(value: Option<usize>) -> usize {
+    value.unwrap_or_default()
+}
+
+pub fn resolve_view_state(input: ActionBarViewStateInput) -> ActionBarState {
+    resolve_state(ActionBarStateInput {
+        selected_count: input.selected_count,
+        position: input.position,
+        force_visible: input.is_force_visible,
+        is_controlled_selected_count: input.is_controlled_selected_count,
+        has_default_selected_count: input.has_default_selected_count,
+        has_selected_count_change_handler: input.has_selected_count_change_handler,
+        has_clear_action: input.has_clear_action,
+        has_custom_label: input.has_custom_label,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_selection_text: input.has_custom_selection_text,
+        has_custom_clear_label: input.has_custom_clear_label,
+        has_custom_motion: input.has_custom_motion,
     })
-}
-
-pub fn normalize_aria_label(value: Option<String>, fallback: &str) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (fallback.to_string(), false)
-}
-
-pub fn normalize_clear_label(value: Option<String>, fallback: &str) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (fallback.to_string(), false)
-}
-
-pub fn normalize_selection_text(value: Option<String>) -> (Option<String>, bool) {
-    let custom = normalize_optional_text(value);
-    let has_custom = custom.is_some();
-    (custom, has_custom)
-}
-
-pub fn resolve_selection_kind(selected_count: usize) -> ActionBarSelectionKind {
-    match selected_count {
-        0 => ActionBarSelectionKind::Empty,
-        1 => ActionBarSelectionKind::Single,
-        _ => ActionBarSelectionKind::Multiple,
-    }
 }
 
 pub fn resolve_selection_text(
@@ -56,70 +59,6 @@ pub fn resolve_selection_text(
     }
 
     strings.selection_label(selected_count)
-}
-
-pub fn resolve_state(input: ActionBarStateInput) -> ActionBarState {
-    let phase = if input.force_visible || input.selected_count > 0 {
-        ActionBarPhase::Visible
-    } else {
-        ActionBarPhase::Hidden
-    };
-
-    let selection_kind = resolve_selection_kind(input.selected_count);
-
-    let label_source_attr = if input.has_custom_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-    let selection_source_attr = if input.has_custom_selection_text {
-        "custom"
-    } else {
-        "default"
-    };
-    let clear_label_source_attr = if input.has_custom_clear_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let motion_source_attr = if input.has_custom_motion {
-        "custom"
-    } else {
-        "default"
-    };
-
-    ActionBarState {
-        position: input.position,
-        position_class: input.position.class_name(),
-        position_attr: input.position.as_attr(),
-        phase,
-        phase_class: phase.class_name(),
-        phase_attr: phase.as_attr(),
-        selection_kind,
-        selection_class: selection_kind.class_name(),
-        selection_attr: selection_kind.as_attr(),
-        selected_count: input.selected_count,
-        is_visible: matches!(phase, ActionBarPhase::Visible),
-        is_hidden: matches!(phase, ActionBarPhase::Hidden),
-        is_top: matches!(input.position, ActionBarPosition::Top),
-        is_bottom: matches!(input.position, ActionBarPosition::Bottom),
-        has_clear_action: input.has_clear_action,
-        has_custom_label: input.has_custom_label,
-        has_custom_class_name: input.has_custom_class_name,
-        has_custom_selection_text: input.has_custom_selection_text,
-        has_custom_clear_label: input.has_custom_clear_label,
-        has_custom_motion: input.has_custom_motion,
-        label_source_attr,
-        class_source_attr,
-        selection_source_attr,
-        clear_label_source_attr,
-        motion_source_attr,
-    }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ActionBarState) -> String {
@@ -213,11 +152,44 @@ mod tests {
     }
 
     #[test]
+    fn normalize_default_selected_count_falls_back_to_zero() {
+        assert_eq!(normalize_default_selected_count(None), 0);
+        assert_eq!(normalize_default_selected_count(Some(7)), 7);
+    }
+
+    #[test]
+    fn resolve_view_state_maps_typed_input_into_state_primitive_input() {
+        let state = resolve_view_state(ActionBarViewStateInput {
+            selected_count: 2,
+            position: ActionBarPosition::Top,
+            is_force_visible: true,
+            is_controlled_selected_count: true,
+            has_default_selected_count: true,
+            has_selected_count_change_handler: true,
+            has_clear_action: true,
+            has_custom_label: false,
+            has_custom_class_name: true,
+            has_custom_selection_text: false,
+            has_custom_clear_label: true,
+            has_custom_motion: false,
+        });
+
+        assert!(state.is_visible);
+        assert_eq!(state.position_attr, "top");
+        assert_eq!(state.selection_attr, "multiple");
+        assert_eq!(state.class_source_attr, "custom");
+        assert_eq!(state.clear_label_source_attr, "custom");
+    }
+
+    #[test]
     fn resolve_state_tracks_phase_position_and_source_markers() {
         let state = resolve_state(ActionBarStateInput {
             selected_count: 2,
             position: ActionBarPosition::Top,
             force_visible: false,
+            is_controlled_selected_count: true,
+            has_default_selected_count: true,
+            has_selected_count_change_handler: true,
             has_clear_action: true,
             has_custom_label: true,
             has_custom_class_name: false,
@@ -232,6 +204,11 @@ mod tests {
         assert_eq!(state.phase_attr, "visible");
         assert_eq!(state.position_attr, "top");
         assert_eq!(state.selection_attr, "multiple");
+        assert_eq!(state.control_mode_attr, "controlled");
+        assert_eq!(state.selected_count_source_attr, "external");
+        assert_eq!(state.default_selected_count_source_attr, "provided");
+        assert_eq!(state.selected_count_change_source_attr, "provided");
+        assert_eq!(state.clear_action_source_attr, "provided");
         assert_eq!(state.label_source_attr, "custom");
         assert_eq!(state.class_source_attr, "default");
         assert_eq!(state.selection_source_attr, "custom");
@@ -245,6 +222,9 @@ mod tests {
             selected_count: 0,
             position: ActionBarPosition::Bottom,
             force_visible: false,
+            is_controlled_selected_count: false,
+            has_default_selected_count: false,
+            has_selected_count_change_handler: false,
             has_clear_action: false,
             has_custom_label: false,
             has_custom_class_name: true,

@@ -1,3 +1,6 @@
+use super::motion::{self, FlipButtonMotion};
+use ui_state_primitives::button_flip::{FlipButtonStateCoreInput, resolve_state_core};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum FlipDirection {
     #[default]
@@ -27,12 +30,27 @@ impl FlipDirection {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct FlipButtonInputNormalizationInput {
+    pub from: Option<FlipDirection>,
+    pub motion: Option<FlipButtonMotion>,
+    pub class_name: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct FlipButtonInputNormalization {
+    pub direction: FlipDirection,
+    pub motion: FlipButtonMotion,
+    pub class_name: Option<String>,
+    pub has_custom_class_name: bool,
+    pub has_custom_motion: bool,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct FlipButtonStateInput {
     pub direction: FlipDirection,
     pub is_hovered: bool,
     pub is_focus_within: bool,
-    pub is_active: bool,
     pub has_custom_class_name: bool,
     pub has_custom_motion: bool,
 }
@@ -58,56 +76,65 @@ pub struct FlipButtonState {
     pub has_custom_motion: bool,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+pub fn normalize_input(input: FlipButtonInputNormalizationInput) -> FlipButtonInputNormalization {
+    let direction = input.from.unwrap_or_default();
+    let motion = input
+        .motion
+        .map(motion::sanitize_motion)
+        .unwrap_or_default();
+    let class_name = super::super::logic::normalize_optional_text(input.class_name);
+
+    FlipButtonInputNormalization {
+        direction,
+        motion,
+        has_custom_motion: motion != FlipButtonMotion::default(),
+        has_custom_class_name: class_name.is_some(),
+        class_name,
+    }
 }
 
 pub fn resolve_state(input: FlipButtonStateInput) -> FlipButtonState {
-    let (state_attr, state_class) = if input.is_active {
-        ("active", "ui-flip-button--state-active")
+    let core = resolve_state_core(FlipButtonStateCoreInput {
+        is_hovered: input.is_hovered,
+        is_focus_within: input.is_focus_within,
+        has_custom_class_name: input.has_custom_class_name,
+        has_custom_motion: input.has_custom_motion,
+    });
+
+    let state_class = if core.is_active {
+        "ui-flip-button--state-active"
     } else {
-        ("inactive", "ui-flip-button--state-inactive")
+        "ui-flip-button--state-inactive"
     };
 
-    let (hover_attr, hover_class) = if input.is_hovered {
-        ("hovered", "ui-flip-button--hovered")
+    let hover_class = if input.is_hovered {
+        "ui-flip-button--hovered"
     } else {
-        ("resting", "ui-flip-button--not-hovered")
+        "ui-flip-button--not-hovered"
     };
 
-    let (focus_within_attr, focus_within_class) = if input.is_focus_within {
-        ("active", "ui-flip-button--focus-within")
+    let focus_within_class = if input.is_focus_within {
+        "ui-flip-button--focus-within"
     } else {
-        ("inactive", "ui-flip-button--no-focus-within")
+        "ui-flip-button--no-focus-within"
     };
 
     FlipButtonState {
         direction: input.direction,
         direction_attr: input.direction.as_attr(),
         direction_class: input.direction.class_name(),
-        is_active: input.is_active,
-        is_inactive: !input.is_active,
-        state_attr,
+        is_active: core.is_active,
+        is_inactive: core.is_inactive,
+        state_attr: core.state_attr,
         state_class,
         is_hovered: input.is_hovered,
-        hover_attr,
+        hover_attr: core.hover_attr,
         hover_class,
         is_focus_within: input.is_focus_within,
-        focus_within_attr,
+        focus_within_attr: core.focus_within_attr,
         focus_within_class,
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        motion_source_attr: if input.has_custom_motion {
-            "custom"
-        } else {
-            "default"
-        },
+        class_source_attr: core.class_source_attr,
+        motion_source_attr: core.motion_source_attr,
         has_custom_class_name: input.has_custom_class_name,
         has_custom_motion: input.has_custom_motion,
     }
@@ -139,6 +166,15 @@ pub fn compose_class_name(base_class_name: Option<String>, state: FlipButtonStat
     classes.join(" ")
 }
 
+pub fn resolve_agent_contract(state: FlipButtonState) -> super::super::logic::ButtonAgentContract {
+    debug_assert_eq!(state.is_active, state.state_attr == "active");
+    debug_assert_eq!(state.is_inactive, !state.is_active);
+    super::super::logic::resolve_agent_contract_for_state_axis(
+        super::super::logic::ButtonAgentStateAxis::Ready,
+        false,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -166,13 +202,36 @@ mod tests {
     }
 
     #[test]
-    fn normalize_optional_text_trims_and_filters_blank_values() {
-        assert_eq!(
-            normalize_optional_text(Some("  custom  ".to_string())),
-            Some("custom".to_string())
-        );
-        assert_eq!(normalize_optional_text(Some("  ".to_string())), None);
-        assert_eq!(normalize_optional_text(None), None);
+    fn normalize_input_centralizes_defaults_and_sources() {
+        let normalized = normalize_input(FlipButtonInputNormalizationInput {
+            from: None,
+            motion: None,
+            class_name: Some("  ".to_string()),
+        });
+
+        assert_eq!(normalized.direction, FlipDirection::Top);
+        assert_eq!(normalized.motion, FlipButtonMotion::default());
+        assert!(!normalized.has_custom_motion);
+        assert!(!normalized.has_custom_class_name);
+        assert_eq!(normalized.class_name, None);
+
+        let custom = normalize_input(FlipButtonInputNormalizationInput {
+            from: Some(FlipDirection::Right),
+            motion: Some(FlipButtonMotion {
+                spring: ui_motion::spring::SpringConfig {
+                    stiffness: 320.0,
+                    damping: 18.0,
+                    mass: 1.0,
+                    precision: 0.001,
+                },
+            }),
+            class_name: Some(" custom ".to_string()),
+        });
+
+        assert_eq!(custom.direction, FlipDirection::Right);
+        assert!(custom.has_custom_motion);
+        assert!(custom.has_custom_class_name);
+        assert_eq!(custom.class_name, Some("custom".to_string()));
     }
 
     #[test]
@@ -181,7 +240,6 @@ mod tests {
             direction: FlipDirection::Left,
             is_hovered: true,
             is_focus_within: false,
-            is_active: true,
             has_custom_class_name: true,
             has_custom_motion: true,
         });
@@ -207,8 +265,7 @@ mod tests {
         let inactive = resolve_state(FlipButtonStateInput {
             direction: FlipDirection::Bottom,
             is_hovered: false,
-            is_focus_within: true,
-            is_active: false,
+            is_focus_within: false,
             has_custom_class_name: false,
             has_custom_motion: false,
         });
@@ -216,11 +273,11 @@ mod tests {
         assert!(!inactive.is_active);
         assert!(inactive.is_inactive);
         assert!(!inactive.is_hovered);
-        assert!(inactive.is_focus_within);
+        assert!(!inactive.is_focus_within);
         assert_eq!(inactive.direction_attr, "bottom");
         assert_eq!(inactive.state_attr, "inactive");
         assert_eq!(inactive.hover_attr, "resting");
-        assert_eq!(inactive.focus_within_attr, "active");
+        assert_eq!(inactive.focus_within_attr, "inactive");
         assert_eq!(inactive.class_source_attr, "default");
         assert_eq!(inactive.motion_source_attr, "default");
         assert!(!inactive.has_custom_class_name);
@@ -235,7 +292,6 @@ mod tests {
                 direction: FlipDirection::Right,
                 is_hovered: true,
                 is_focus_within: true,
-                is_active: true,
                 has_custom_class_name: true,
                 has_custom_motion: true,
             }),
@@ -256,5 +312,25 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn resolve_agent_contract_reuses_button_agent_schema_contract() {
+        let contract = resolve_agent_contract(resolve_state(FlipButtonStateInput {
+            direction: FlipDirection::Top,
+            is_hovered: false,
+            is_focus_within: false,
+            has_custom_class_name: false,
+            has_custom_motion: false,
+        }));
+
+        assert_eq!(contract.schema_name, "ui.button.agent-contract");
+        assert_eq!(contract.schema_version.as_str(), "1");
+        assert_eq!(contract.intent.as_str(), "trigger");
+        assert_eq!(contract.state.as_str(), "ready");
+        assert!(contract.capabilities.can_press);
+        assert!(contract.capabilities.can_focus);
+        assert!(contract.capabilities.can_hover);
+        assert!(!contract.capabilities.can_popup_trigger);
     }
 }

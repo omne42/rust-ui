@@ -1,108 +1,94 @@
-use crate::avatar::AvatarSize;
+#[cfg(test)]
+use ui_state_primitives::avatar_group::{
+    AvatarGroupAriaLabelSource, AvatarGroupClassSource, AvatarGroupVisualState, resolve_state,
+};
+pub use ui_state_primitives::avatar_group::{
+    AvatarGroupRenderState, AvatarGroupStateInput, normalize_max_visible, normalize_optional_text,
+    resolve_aria_label, resolve_render_state,
+};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AvatarGroupStateInput {
-    pub total_count: usize,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AvatarGroupNormalizedInput {
     pub max_visible: usize,
-    pub size: AvatarSize,
+    pub aria_label: String,
     pub has_custom_aria_label: bool,
+    pub class_name: Option<String>,
     pub has_custom_class_name: bool,
+    pub lang: Option<String>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AvatarGroupState {
-    pub total_count: usize,
-    pub visible_count: usize,
-    pub overflow_count: usize,
-    pub max_visible: usize,
-    pub size: AvatarSize,
-    pub size_attr: &'static str,
-    pub state_class: &'static str,
-    pub state_attr: &'static str,
-    pub is_empty: bool,
-    pub has_items: bool,
-    pub has_overflow: bool,
-    pub has_custom_aria_label: bool,
-    pub aria_label_source_class: &'static str,
-    pub aria_label_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-    pub class_source_attr: &'static str,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AvatarGroupItemFields {
+    pub name: String,
+    pub src: String,
+    pub alt: String,
+    pub has_name: bool,
+    pub has_src: bool,
+    pub has_alt: bool,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
+pub fn normalize_group_input(
+    max: Option<usize>,
+    aria_label: Option<String>,
+    class_name: Option<String>,
+    lang: Option<String>,
+    default_aria_label: &str,
+) -> AvatarGroupNormalizedInput {
+    let max_visible = normalize_max_visible(max);
+    let (aria_label, has_custom_aria_label) =
+        resolve_aria_label_with_fallback(aria_label, default_aria_label);
+    let class_name = normalize_optional_text(class_name);
 
-pub fn normalize_max_visible(value: Option<usize>) -> usize {
-    value.unwrap_or(4)
-}
-
-pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    ("Avatar group".to_string(), false)
-}
-
-pub fn resolve_state(input: AvatarGroupStateInput) -> AvatarGroupState {
-    let visible_count = input.total_count.min(input.max_visible);
-    let overflow_count = input.total_count.saturating_sub(visible_count);
-    let is_empty = input.total_count == 0;
-    let has_overflow = overflow_count > 0;
-
-    let (state_class, state_attr) = if has_overflow {
-        ("ui-avatar-group--overflow", "overflow")
-    } else if is_empty {
-        ("ui-avatar-group--empty", "empty")
-    } else {
-        ("ui-avatar-group--stable", "stable")
-    };
-
-    let (aria_label_source_class, aria_label_source_attr) = if input.has_custom_aria_label {
-        ("ui-avatar-group--aria-label-custom", "custom")
-    } else {
-        ("ui-avatar-group--aria-label-default", "default")
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    AvatarGroupState {
-        total_count: input.total_count,
-        visible_count,
-        overflow_count,
-        max_visible: input.max_visible,
-        size: input.size,
-        size_attr: input.size.as_str(),
-        state_class,
-        state_attr,
-        is_empty,
-        has_items: input.total_count > 0,
-        has_overflow,
-        has_custom_aria_label: input.has_custom_aria_label,
-        aria_label_source_class,
-        aria_label_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
-        class_source_attr,
+    AvatarGroupNormalizedInput {
+        max_visible,
+        aria_label,
+        has_custom_aria_label,
+        has_custom_class_name: class_name.is_some(),
+        class_name,
+        lang: normalize_optional_text(lang),
     }
 }
 
-pub fn compose_class_name(base_class_name: Option<String>, state: AvatarGroupState) -> String {
+pub fn resolve_aria_label_with_fallback(value: Option<String>, fallback: &str) -> (String, bool) {
+    let (label, explicit) = resolve_aria_label(value);
+    if explicit {
+        (label, true)
+    } else {
+        (fallback.to_string(), false)
+    }
+}
+
+pub fn normalize_item_fields(
+    name: Option<String>,
+    src: Option<String>,
+    alt: Option<String>,
+) -> AvatarGroupItemFields {
+    let name = normalize_optional_text(name);
+    let src = normalize_optional_text(src);
+    let alt = normalize_optional_text(alt);
+
+    AvatarGroupItemFields {
+        has_name: name.is_some(),
+        has_src: src.is_some(),
+        has_alt: alt.is_some(),
+        name: name.unwrap_or_default(),
+        src: src.unwrap_or_default(),
+        alt: alt.unwrap_or_default(),
+    }
+}
+
+pub fn compose_class_name(
+    base_class_name: Option<String>,
+    state: AvatarGroupRenderState,
+) -> String {
     let mut classes = vec![
         "ui-avatar-group".to_string(),
         format!("ui-avatar-group--size-{}", state.size_attr),
-        state.state_class.to_string(),
-        state.aria_label_source_class.to_string(),
+        state.visual_state.class_name().to_string(),
+        state.aria_label_source.class_name().to_string(),
     ];
 
-    if state.has_custom_class_name {
+    if state.class_source.is_custom() {
         classes.push("ui-avatar-group--custom-class".to_string());
         if let Some(base_class_name) = base_class_name {
             classes.push(base_class_name);
@@ -115,6 +101,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: AvatarGroupSta
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::avatar::AvatarSize;
 
     #[test]
     fn normalize_optional_text_filters_blank_values() {
@@ -169,7 +156,7 @@ mod tests {
         assert!(state.has_custom_aria_label);
         assert_eq!(
             state.aria_label_source_class,
-            "ui-avatar-group--aria-label-custom"
+            "ui-avatar-group--label-source-custom"
         );
         assert_eq!(state.aria_label_source_attr, "custom");
         assert!(state.has_custom_class_name);
@@ -180,7 +167,7 @@ mod tests {
     fn compose_class_name_includes_state_markers() {
         let class_name = compose_class_name(
             Some("custom".to_string()),
-            resolve_state(AvatarGroupStateInput {
+            resolve_render_state(AvatarGroupStateInput {
                 total_count: 2,
                 max_visible: 4,
                 size: AvatarSize::Sm,
@@ -193,7 +180,7 @@ mod tests {
             "ui-avatar-group",
             "ui-avatar-group--size-sm",
             "ui-avatar-group--stable",
-            "ui-avatar-group--aria-label-custom",
+            "ui-avatar-group--label-source-custom",
             "ui-avatar-group--custom-class",
             "custom",
         ] {
@@ -202,5 +189,92 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn resolve_aria_label_with_fallback_prefers_explicit_label() {
+        assert_eq!(
+            resolve_aria_label_with_fallback(Some(" Team ".to_string()), "Fallback"),
+            ("Team".to_string(), true)
+        );
+        assert_eq!(
+            resolve_aria_label_with_fallback(Some("  ".to_string()), "Fallback"),
+            ("Fallback".to_string(), false)
+        );
+    }
+
+    #[test]
+    fn normalize_group_input_centralizes_defaults() {
+        let normalized = normalize_group_input(
+            None,
+            Some("  ".to_string()),
+            Some(" custom ".to_string()),
+            Some(" en-US ".to_string()),
+            "Avatar group",
+        );
+
+        assert_eq!(normalized.max_visible, 4);
+        assert_eq!(normalized.aria_label, "Avatar group");
+        assert!(!normalized.has_custom_aria_label);
+        assert_eq!(normalized.class_name.as_deref(), Some("custom"));
+        assert!(normalized.has_custom_class_name);
+        assert_eq!(normalized.lang.as_deref(), Some("en-US"));
+    }
+
+    #[test]
+    fn normalize_item_fields_centralizes_string_defaults() {
+        let fields =
+            normalize_item_fields(Some(" Ada ".to_string()), Some("   ".to_string()), None);
+        assert!(fields.has_name);
+        assert!(!fields.has_src);
+        assert!(!fields.has_alt);
+        assert_eq!(fields.name, "Ada");
+        assert_eq!(fields.src, "");
+        assert_eq!(fields.alt, "");
+    }
+
+    #[test]
+    fn resolve_render_state_maps_discrete_status_and_sources_to_enums() {
+        let overflow = resolve_render_state(AvatarGroupStateInput {
+            total_count: 5,
+            max_visible: 3,
+            size: AvatarSize::Md,
+            has_custom_aria_label: true,
+            has_custom_class_name: false,
+        });
+        assert_eq!(overflow.visual_state, AvatarGroupVisualState::Overflow);
+        assert_eq!(
+            overflow.aria_label_source,
+            AvatarGroupAriaLabelSource::Custom
+        );
+        assert_eq!(overflow.class_source, AvatarGroupClassSource::Default);
+        assert_eq!(overflow.visual_state.as_str(), "overflow");
+        assert_eq!(overflow.aria_label_source.as_str(), "custom");
+        assert_eq!(overflow.class_source.as_str(), "default");
+
+        let stable = resolve_render_state(AvatarGroupStateInput {
+            total_count: 1,
+            max_visible: 3,
+            size: AvatarSize::Sm,
+            has_custom_aria_label: false,
+            has_custom_class_name: true,
+        });
+        assert_eq!(stable.visual_state, AvatarGroupVisualState::Stable);
+        assert_eq!(
+            stable.aria_label_source,
+            AvatarGroupAriaLabelSource::Default
+        );
+        assert_eq!(stable.class_source, AvatarGroupClassSource::Custom);
+        assert!(stable.has_items());
+
+        let empty = resolve_render_state(AvatarGroupStateInput {
+            total_count: 0,
+            max_visible: 3,
+            size: AvatarSize::Lg,
+            has_custom_aria_label: false,
+            has_custom_class_name: false,
+        });
+        assert_eq!(empty.visual_state, AvatarGroupVisualState::Empty);
+        assert!(!empty.has_items());
     }
 }

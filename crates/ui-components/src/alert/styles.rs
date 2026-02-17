@@ -11,6 +11,16 @@ pub const CSS: &str = r#"
   box-shadow: var(--ui-shadow-sm);
   padding: var(--ui-space-lg);
   color: var(--ui-fg);
+
+  opacity: var(--ui-alert-opacity, 1);
+  transform: translateY(var(--ui-alert-translate-y, 0px))
+    scale(var(--ui-alert-scale, 1));
+  will-change: transform, opacity;
+}
+
+.ui-alert[data-motion-source="custom"],
+.ui-alert[data-custom-motion="true"] {
+  --ui-alert-custom-motion: 1;
 }
 
 .ui-alert--detailed,
@@ -20,7 +30,7 @@ pub const CSS: &str = r#"
 
 .ui-alert--compact,
 .ui-alert[data-state="compact"] {
-  gap: var(--ui-space-2xs, 4px);
+  gap: var(--ui-space-2xs);
 }
 
 .ui-alert--custom-class,

@@ -429,11 +429,11 @@ pub fn resolve_agent_state_axis(state: ButtonState) -> ButtonAgentStateAxis {
     }
 }
 
-pub fn resolve_agent_capabilities(
-    state: ButtonState,
+pub fn resolve_agent_capabilities_for_state_axis(
+    state: ButtonAgentStateAxis,
     has_popup_trigger: bool,
 ) -> ButtonAgentCapabilities {
-    let can_interact = !state.is_disabled;
+    let can_interact = !matches!(state, ButtonAgentStateAxis::Disabled);
     ButtonAgentCapabilities {
         can_press: can_interact,
         can_focus: can_interact,
@@ -443,12 +443,19 @@ pub fn resolve_agent_capabilities(
 }
 
 pub fn resolve_agent_contract(state: ButtonState, has_popup_trigger: bool) -> ButtonAgentContract {
+    resolve_agent_contract_for_state_axis(resolve_agent_state_axis(state), has_popup_trigger)
+}
+
+pub fn resolve_agent_contract_for_state_axis(
+    state: ButtonAgentStateAxis,
+    has_popup_trigger: bool,
+) -> ButtonAgentContract {
     ButtonAgentContract {
         schema_name: "ui.button.agent-contract",
         schema_version: ButtonAgentSchemaVersion::V1,
         intent: ButtonAgentIntent::Trigger,
-        state: resolve_agent_state_axis(state),
-        capabilities: resolve_agent_capabilities(state, has_popup_trigger),
+        state,
+        capabilities: resolve_agent_capabilities_for_state_axis(state, has_popup_trigger),
     }
 }
 

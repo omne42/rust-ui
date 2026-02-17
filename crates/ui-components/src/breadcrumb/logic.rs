@@ -1,18 +1,19 @@
-use crate::breadcrumb::{
+use ui_state_primitives::breadcrumb as breadcrumb_state;
+
+pub use ui_state_primitives::breadcrumb::{
     BreadcrumbLinkState, BreadcrumbLinkStateInput, BreadcrumbRootState, BreadcrumbRootStateInput,
     BreadcrumbSeparatorState, BreadcrumbSeparatorStateInput, BreadcrumbSlotState,
-    BreadcrumbSlotStateInput, DEFAULT_ARIA_LABEL,
+    BreadcrumbSlotStateInput,
 };
+pub const DEFAULT_ARIA_LABEL: &str = breadcrumb_state::DEFAULT_ARIA_LABEL;
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+    breadcrumb_state::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
+    let (label, custom) = breadcrumb_state::normalize_aria_label(value);
+    if custom {
         return (label, true);
     }
 
@@ -20,85 +21,23 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
 }
 
 pub fn normalize_href(value: Option<String>) -> Option<String> {
-    normalize_optional_text(value)
+    breadcrumb_state::normalize_href(value)
 }
 
 pub fn resolve_root_state(input: BreadcrumbRootStateInput) -> BreadcrumbRootState {
-    BreadcrumbRootState {
-        state_attr: if input.has_custom_aria_label || input.has_custom_class_name {
-            "customized"
-        } else {
-            "default"
-        },
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
-    }
+    breadcrumb_state::resolve_root_state(input)
 }
 
 pub fn resolve_slot_state(input: BreadcrumbSlotStateInput) -> BreadcrumbSlotState {
-    BreadcrumbSlotState {
-        state_attr: if input.has_custom_class_name {
-            "customized"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
-    }
+    breadcrumb_state::resolve_slot_state(input)
 }
 
 pub fn resolve_link_state(input: BreadcrumbLinkStateInput) -> BreadcrumbLinkState {
-    BreadcrumbLinkState {
-        state_attr: match (input.has_href, input.has_custom_class_name) {
-            (true, true) => "interactive-customized",
-            (true, false) => "interactive",
-            (false, true) => "placeholder-customized",
-            (false, false) => "placeholder",
-        },
-        href_state_attr: if input.has_href { "present" } else { "absent" },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        interactive: input.has_href,
-        has_custom_class_name: input.has_custom_class_name,
-    }
+    breadcrumb_state::resolve_link_state(input)
 }
 
 pub fn resolve_separator_state(input: BreadcrumbSeparatorStateInput) -> BreadcrumbSeparatorState {
-    BreadcrumbSeparatorState {
-        state_attr: match (input.has_custom_content, input.has_custom_class_name) {
-            (true, true) => "customized",
-            (true, false) => "custom-content",
-            (false, true) => "custom-class",
-            (false, false) => "default",
-        },
-        content_source_attr: if input.has_custom_content {
-            "custom"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
-    }
+    breadcrumb_state::resolve_separator_state(input)
 }
 
 pub fn compose_class_name(

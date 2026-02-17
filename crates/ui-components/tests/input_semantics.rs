@@ -12,20 +12,24 @@ fn input_clears_on_escape_when_clearable_and_not_empty() {
     let source = load_source("src/input/view.rs");
 
     assert!(
-        source.contains("key != \"Escape\""),
-        "Input should treat Escape as a clear shortcut when `is_clearable` is enabled."
+        source.contains("use_clearable_text_field"),
+        "Input should consume a headless clearable text-field contract for Escape semantics."
     );
     assert!(
-        source.contains("!is_clearable"),
-        "Input Escape handling should gate on `is_clearable` to avoid surprising clears."
+        source.contains("ClearableTextFieldOptions"),
+        "Input should configure clearable text-field semantics through typed headless options."
     );
     assert!(
-        source.contains("is_empty.get_untracked()"),
-        "Input should only clear on Escape when a value is present (otherwise let Escape propagate)."
+        source.contains("is_clearable,"),
+        "Input should forward `is_clearable` into the headless keyboard contract."
     );
     assert!(
-        source.contains("set_value.set(String::new())"),
-        "Input should clear its value on Escape."
+        source.contains("is_empty: Signal::derive(move || is_empty.get())"),
+        "Input should forward emptiness state into the headless clearability contract."
+    );
+    assert!(
+        source.contains("clearable.handlers.on_key_down.run(ev.key())"),
+        "Input should delegate Escape key handling to the headless handler."
     );
 }
 
@@ -37,6 +41,25 @@ fn input_escape_clear_stops_propagation() {
         source.contains("stop_propagation()"),
         "Input should stop Escape propagation when clearing (baseline parity: Escape clears without dismissing parent overlays)."
     );
+}
+
+#[test]
+fn input_mounts_locale_attrs_from_headless_a11y_helpers() {
+    let source = load_source("src/input/view.rs");
+
+    for needle in [
+        "A11yDirection",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = locale_attrs(lang, dir);",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Input should include `{needle}` to expose lang/dir via headless a11y locale attrs."
+        );
+    }
 }
 
 #[test]
@@ -150,6 +173,23 @@ fn input_motion_sanitizes_custom_contract_values() {
         assert!(
             source.contains(needle),
             "Input motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
+        );
+    }
+}
+
+#[test]
+fn input_state_primitives_are_sourced_from_ui_state_primitives() {
+    let logic_source = load_source("src/input/logic.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::input::{",
+        "InputLogicState",
+        "resolve_clear_aria_label",
+        "resolve_view_state",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Input logic should consume `{needle}` from ui-state-primitives instead of reimplementing a local state primitive."
         );
     }
 }

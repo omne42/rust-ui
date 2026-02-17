@@ -4,6 +4,7 @@ use crate::carousel::{
     CarouselItem, CarouselItemResolved, CarouselOrientation, CarouselPartState,
     CarouselPartStateInput, CarouselSlot,
 };
+use ui_state_primitives::carousel as carousel_primitives;
 
 pub const DEFAULT_ID_BASE: &str = "carousel";
 pub const DEFAULT_ARIA_LABEL: &str = "Carousel";
@@ -131,31 +132,37 @@ pub fn resolve_items(id_base: &str, items: Vec<CarouselItem>) -> Vec<CarouselIte
 }
 
 pub fn sanitize_index(index: Option<usize>, item_count: usize) -> Option<usize> {
-    index.filter(|index| *index < item_count)
+    carousel_primitives::sanitize_index(index, item_count)
+}
+
+fn disabled_flags(items: &[CarouselItemResolved]) -> Vec<bool> {
+    items.iter().map(|item| item.disabled).collect()
 }
 
 pub fn sanitize_selected_index(
     selected_index: Option<usize>,
     items: &[CarouselItemResolved],
 ) -> Option<usize> {
-    let index = sanitize_index(selected_index, items.len())?;
-    (!items[index].disabled).then_some(index)
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::sanitize_enabled_index(selected_index, &disabled_flags)
 }
 
 pub fn sanitize_focused_index(
     focused_index: Option<usize>,
     items: &[CarouselItemResolved],
 ) -> Option<usize> {
-    let index = sanitize_index(focused_index, items.len())?;
-    (!items[index].disabled).then_some(index)
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::sanitize_enabled_index(focused_index, &disabled_flags)
 }
 
 pub fn first_enabled_index(items: &[CarouselItemResolved]) -> Option<usize> {
-    items.iter().position(|item| !item.disabled)
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::first_enabled_index(&disabled_flags)
 }
 
 pub fn last_enabled_index(items: &[CarouselItemResolved]) -> Option<usize> {
-    items.iter().rposition(|item| !item.disabled)
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::last_enabled_index(&disabled_flags)
 }
 
 pub fn adjacent_enabled_index(
@@ -164,51 +171,24 @@ pub fn adjacent_enabled_index(
     step: isize,
     should_loop: bool,
 ) -> Option<usize> {
-    if items.is_empty() || step == 0 {
-        return None;
-    }
-
-    if should_loop {
-        let len = items.len() as isize;
-        let mut cursor = current_index as isize;
-
-        for _ in 0..items.len().saturating_sub(1) {
-            cursor = (cursor + step).rem_euclid(len);
-            let index = cursor as usize;
-            if !items[index].disabled {
-                return Some(index);
-            }
-        }
-
-        return None;
-    }
-
-    let mut cursor = current_index as isize;
-    loop {
-        cursor += step;
-        if cursor < 0 || cursor >= items.len() as isize {
-            return None;
-        }
-
-        let index = cursor as usize;
-        if !items[index].disabled {
-            return Some(index);
-        }
-    }
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::adjacent_enabled_index(&disabled_flags, current_index, step, should_loop)
 }
 
 pub fn resolve_initial_selected_index(
     items: &[CarouselItemResolved],
     selected_index: Option<usize>,
 ) -> Option<usize> {
-    sanitize_selected_index(selected_index, items).or_else(|| first_enabled_index(items))
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::resolve_initial_selected_index(&disabled_flags, selected_index)
 }
 
 pub fn resolve_initial_focused_index(
     items: &[CarouselItemResolved],
     selected_index: Option<usize>,
 ) -> Option<usize> {
-    sanitize_selected_index(selected_index, items).or_else(|| first_enabled_index(items))
+    let disabled_flags = disabled_flags(items);
+    carousel_primitives::resolve_initial_focused_index(&disabled_flags, selected_index)
 }
 
 fn source_attr(is_custom: bool) -> &'static str {
@@ -355,6 +335,10 @@ mod tests {
     use super::*;
     use crate::carousel::{CarouselPartStateInput, CarouselSlot};
 
+    fn disabled_flags(items: &[CarouselItemResolved]) -> Vec<bool> {
+        items.iter().map(|item| item.disabled).collect()
+    }
+
     #[test]
     fn id_base_and_aria_label_defaults_are_stable() {
         assert_eq!(
@@ -403,11 +387,24 @@ mod tests {
                 CarouselItem::new("c", "C"),
             ],
         );
+        let disabled_flags = disabled_flags(&items);
 
-        assert_eq!(adjacent_enabled_index(&items, 0, 1, true), Some(2));
-        assert_eq!(adjacent_enabled_index(&items, 2, 1, true), Some(0));
-        assert_eq!(adjacent_enabled_index(&items, 2, 1, false), None);
-        assert_eq!(adjacent_enabled_index(&items, 2, -1, false), Some(0));
+        assert_eq!(
+            carousel_primitives::adjacent_enabled_index(&disabled_flags, 0, 1, true),
+            Some(2)
+        );
+        assert_eq!(
+            carousel_primitives::adjacent_enabled_index(&disabled_flags, 2, 1, true),
+            Some(0)
+        );
+        assert_eq!(
+            carousel_primitives::adjacent_enabled_index(&disabled_flags, 2, 1, false),
+            None
+        );
+        assert_eq!(
+            carousel_primitives::adjacent_enabled_index(&disabled_flags, 2, -1, false),
+            Some(0)
+        );
     }
 
     #[test]
@@ -419,12 +416,28 @@ mod tests {
                 CarouselItem::new("b", "B"),
             ],
         );
+        let disabled_flags = disabled_flags(&items);
 
-        assert_eq!(sanitize_selected_index(Some(0), &items), None);
-        assert_eq!(sanitize_selected_index(Some(1), &items), Some(1));
-        assert_eq!(sanitize_focused_index(Some(1), &items), Some(1));
-        assert_eq!(resolve_initial_selected_index(&items, Some(0)), Some(1));
-        assert_eq!(resolve_initial_focused_index(&items, Some(0)), Some(1));
+        assert_eq!(
+            carousel_primitives::sanitize_enabled_index(Some(0), &disabled_flags),
+            None
+        );
+        assert_eq!(
+            carousel_primitives::sanitize_enabled_index(Some(1), &disabled_flags),
+            Some(1)
+        );
+        assert_eq!(
+            carousel_primitives::sanitize_enabled_index(Some(1), &disabled_flags),
+            Some(1)
+        );
+        assert_eq!(
+            carousel_primitives::resolve_initial_selected_index(&disabled_flags, Some(0)),
+            Some(1)
+        );
+        assert_eq!(
+            carousel_primitives::resolve_initial_focused_index(&disabled_flags, Some(0)),
+            Some(1)
+        );
     }
 
     #[test]

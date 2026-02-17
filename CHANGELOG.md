@@ -1625,6 +1625,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 ### Changed
 
+- `ui-components` + `ui-state-primitives` + `apps/docs-app`: fixes gate regressions across clippy and semantics suites (combo-box closure hygiene, action/button docs defaults, avatar-group label-source contract, breadcrumb/coacmark/collapsible primitive re-export contracts, carousel helper routing, and share-button macro split), restoring green `./scripts/check.sh` (fmt/clippy/test/ssr/wasm).
+
 - `ui-components`: `SnippetLogic` now exposes explicit copy lifecycle state (`copied` / `is_copying` / `has_copy_error`), and `ButtonCopy` surfaces matching `data-copy-*` semantics, loading forwarding, and failure live-region feedback.
 - `ui-components/button-copy`: adds `i18n.rs` string contract scaffold (`copy_button_label` / `copied_status_text` / `copy_failed_status_text`) and syncs `check2.md` checklist marks with the migrated composition contract.
 - `ui-components/button-copy`: syncs additional `check2.md` gates for i18n/A11y/state-observability/component-file responsibilities after the i18n + lifecycle-state landing.

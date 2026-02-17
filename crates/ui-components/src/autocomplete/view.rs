@@ -1,12 +1,13 @@
-use crate::ActiveHighlightMotion;
+use crate::active_highlight::ActiveHighlightMotion;
 use crate::autocomplete::{AutocompleteMotion, logic};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless as overlay_open;
 use ui_headless::use_presence;
 use ui_headless::{
-    ComboBoxOptions, FocusRingOptions, PopoverPlacement, PopoverPositionOptions, TextFieldOptions,
-    use_combo_box, use_focus_ring, use_popover_position, use_text_field,
+    A11yDirection, ComboBoxOptions, CommonStrings, FocusRingOptions, PopoverPlacement,
+    PopoverPositionOptions, TextFieldOptions, use_combo_box, use_focus_ring, use_popover_position,
+    use_text_field, use_ui_i18n,
 };
 
 #[component]
@@ -19,6 +20,7 @@ fn AutocompletePanel(
     items: StoredValue<Arc<[String]>>,
     disabled_indices: Arc<HashSet<usize>>,
     selected_index: ReadSignal<Option<usize>>,
+    empty_message: StoredValue<String>,
     motion: ActiveHighlightMotion,
     popover_motion: crate::popover::PopoverMotion,
     on_exit_complete: Callback<()>,
@@ -79,6 +81,8 @@ fn AutocompletePanel(
                     role=aria.listbox.role
                     aria-disabled=aria.listbox.aria_disabled
                     aria-labelledby=aria_labelledby.clone()
+                    lang=aria.listbox.lang.clone()
+                    dir=aria.listbox.dir
                     data-slot="autocomplete-listbox"
                     data-empty=move || filtered_indices.get().is_empty().then_some("true")
                 >
@@ -127,7 +131,7 @@ fn AutocompletePanel(
                         }}
                         <Show when=move || filtered_indices.get().is_empty()>
                             <div class="ui-autocomplete__empty" data-slot="autocomplete-empty">
-                                "No matches"
+                                {move || empty_message.get_value()}
                             </div>
                         </Show>
                     </div>
@@ -144,64 +148,81 @@ pub fn Autocomplete(
     items: Vec<String>,
     selected_index: ReadSignal<Option<usize>>,
     set_selected_index: WriteSignal<Option<usize>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
-    #[prop(optional, into)] required: Signal<bool>,
-    #[prop(optional, into)] invalid: Signal<bool>,
+    #[prop(optional, into)] is_required: Option<Signal<bool>>,
+    #[prop(optional, into)] required: Option<Signal<bool>>,
+    #[prop(optional, into)] is_invalid: Option<Signal<bool>>,
+    #[prop(optional, into)] invalid: Option<Signal<bool>>,
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
     #[prop(optional, into)] placeholder: Option<String>,
+    #[prop(optional, into)] empty_message: Option<String>,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: AutocompleteMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let has_custom_id_base = logic::normalize_optional_text(Some(id_base.clone())).is_some();
-    let id_base = logic::normalize_id_base(id_base);
-    let id_base = StoredValue::new(id_base);
+    let accessibility_state =
+        logic::normalize_accessibility_state(logic::AccessibilityStateInput {
+            is_disabled,
+            disabled,
+            is_required,
+            required,
+            is_invalid,
+            invalid,
+        });
+    let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {
+        is_open,
+        open,
+        default_open,
+        on_open_change,
+    });
+    let is_disabled = accessibility_state.is_disabled;
+    let required = accessibility_state.required;
+    let invalid = accessibility_state.invalid;
+    let open = normalized_open_state.open;
+    let default_open = normalized_open_state.default_open;
+    let on_open_change = normalized_open_state.on_open_change;
 
     let items: StoredValue<Arc<[String]>> = StoredValue::new(items.into());
     let item_count = items.get_value().len();
-
-    let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);
-    let disabled_option_count = disabled_indices.len();
-    let disabled_indices: Arc<HashSet<usize>> = Arc::new(disabled_indices.into_iter().collect());
-
-    let has_custom_label = !label.trim().is_empty();
-    let label = StoredValue::new(logic::normalize_label(label));
-
-    let has_custom_placeholder = logic::normalize_optional_text(placeholder.clone()).is_some();
-    let placeholder = StoredValue::new(logic::resolve_placeholder(placeholder));
-
-    let description = logic::normalize_optional_text(description);
-    let error = logic::normalize_optional_text(error);
-    let has_custom_description = description.is_some();
-    let has_custom_error = error.is_some();
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
+    let i18n = use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
 
     let motion = crate::autocomplete::motion::sanitize_motion(motion);
     let has_custom_motion = motion != AutocompleteMotion::default();
-    let is_controlled = open.is_some();
-
-    let state = logic::resolve_state(logic::AutocompleteStateInput {
+    let root_state = logic::normalize_root_state(logic::RootStateInput {
+        id_base,
+        label,
+        placeholder,
+        empty_message: empty_message
+            .or_else(|| Some(common.autocomplete_empty_message.to_string())),
+        description,
+        error,
+        class_name,
         item_count,
-        disabled_option_count,
-        is_disabled: disabled,
-        has_custom_label,
-        has_custom_description,
-        has_custom_error,
-        has_custom_placeholder,
-        has_custom_id_base,
-        has_custom_class_name,
+        disabled_indices,
+        is_disabled,
+        is_controlled: normalized_open_state.is_controlled,
         has_custom_motion,
-        is_controlled,
     });
-
-    let class = logic::compose_class_name(class_name, state);
+    let id_base = StoredValue::new(root_state.id_base);
+    let label = StoredValue::new(root_state.label);
+    let placeholder = StoredValue::new(root_state.placeholder);
+    let empty_message = StoredValue::new(root_state.empty_message);
+    let description = root_state.description;
+    let error = root_state.error;
+    let disabled_indices: Arc<HashSet<usize>> =
+        Arc::new(root_state.disabled_indices.into_iter().collect());
+    let state = root_state.state;
+    let class = root_state.class_name;
 
     let open_state = overlay_open::use_controllable_open_state_traced(
         "autocomplete",
@@ -293,26 +314,24 @@ pub fn Autocomplete(
         selected_index: selected_filtered_index.into(),
         on_action: Some(on_action),
         is_item_disabled,
+        lang,
+        dir,
     });
-
-    let aria_controls = aria.input.aria_controls.clone();
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
         let key = ev.key();
-        let was_open = is_open.get_untracked();
-        if aria.handlers.on_input_key_down.run(key.clone()) {
+        let key_result = aria.handlers.on_input_key_down.run(key);
+        if key_result.handled {
             ev.prevent_default();
-            if key == "Escape" && was_open {
-                ev.stop_propagation();
-            }
+        }
+        if key_result.stop_propagation {
+            ev.stop_propagation();
         }
     };
 
     let on_focus = move |_| {
         focus_ring.handlers.on_focus.run(());
-        if state.is_enabled {
-            aria.handlers.open.run(());
-        }
+        aria.handlers.open.run(());
     };
 
     let on_blur = move |_| {
@@ -340,13 +359,7 @@ pub fn Autocomplete(
             class:ui-autocomplete--disabled=state.is_disabled
             data-slot="autocomplete"
             data-state=move || {
-                if is_open.get() {
-                    "open"
-                } else if state.is_disabled {
-                    "disabled"
-                } else {
-                    "closed"
-                }
+                logic::resolve_root_data_state(is_open.get(), state.is_disabled).as_attr()
             }
             data-open=move || is_open.get().then_some("true")
             data-closed=move || (!is_open.get()).then_some("true")
@@ -414,13 +427,15 @@ pub fn Autocomplete(
                     required=move || required.get()
                     role=aria.input.role
                     aria-autocomplete=aria.input.aria_autocomplete
-                    aria-controls=move || is_open.get().then(|| aria_controls.clone())
+                    aria-controls=move || aria.input.aria_controls.get()
                     aria-expanded=move || aria.input.aria_expanded.get()
                     aria-activedescendant=move || aria.input.aria_activedescendant.get()
                     aria-describedby=move || text_field.input.aria_describedby.get()
                     aria-invalid=move || text_field.input.aria_invalid.get()
                     aria-required=move || text_field.input.aria_required.get()
                     aria-disabled=aria.input.aria_disabled
+                    lang=aria.input.lang.clone()
+                    dir=aria.input.dir
                     on:input=on_input
                     on:keydown=on_key_down
                     on:focus=on_focus
@@ -437,6 +452,7 @@ pub fn Autocomplete(
                         items=items
                         disabled_indices=disabled_indices.clone()
                         selected_index=selected_index
+                        empty_message=empty_message
                         motion=motion.highlight
                         popover_motion=motion.popover
                         on_exit_complete=presence.finish_exit

@@ -1,168 +1,50 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum AvatarSize {
-    Sm,
-    #[default]
-    Md,
-    Lg,
-}
-
-impl AvatarSize {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            AvatarSize::Sm => "ui-avatar--sm",
-            AvatarSize::Md => "ui-avatar--md",
-            AvatarSize::Lg => "ui-avatar--lg",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            AvatarSize::Sm => "sm",
-            AvatarSize::Md => "md",
-            AvatarSize::Lg => "lg",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AvatarLabelSource {
-    Alt,
-    Name,
-    Fallback,
-}
-
-impl AvatarLabelSource {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            Self::Alt => "ui-avatar--label-alt",
-            Self::Name => "ui-avatar--label-name",
-            Self::Fallback => "ui-avatar--label-fallback",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::Alt => "alt",
-            Self::Name => "name",
-            Self::Fallback => "fallback",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AvatarStateInput {
-    pub size: AvatarSize,
-    pub has_name: bool,
-    pub has_src: bool,
-    pub has_alt: bool,
-    pub has_custom_class_name: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AvatarState {
-    pub size: AvatarSize,
-    pub size_class: &'static str,
-    pub size_attr: &'static str,
-    pub has_name: bool,
-    pub has_src: bool,
-    pub has_alt: bool,
-    pub has_custom_class_name: bool,
-    pub label_source: AvatarLabelSource,
-    pub label_source_class: &'static str,
-    pub label_source_attr: &'static str,
-}
+#[cfg(test)]
+use ui_state_primitives::avatar::AvatarRenderMode;
+pub use ui_state_primitives::avatar::{
+    AvatarImageRenderInput, AvatarLabelSource, AvatarSize, AvatarState, AvatarStateInput,
+    normalize_optional_text, resolve_accessibility, resolve_image_render_state, resolve_initials,
+    resolve_state,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AvatarAccessibility {
-    pub aria_label: String,
-    pub img_alt: String,
-    pub title: Option<String>,
-    pub label_source: AvatarLabelSource,
+pub struct AvatarNormalizedInput {
+    pub name: Option<String>,
+    pub src: Option<String>,
+    pub alt: Option<String>,
+    pub class_name: Option<String>,
+    pub has_name: bool,
+    pub has_src: bool,
+    pub has_alt: bool,
+    pub has_custom_class_name: bool,
+    pub image_src: String,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+pub fn normalize_lang(value: Option<String>) -> Option<String> {
+    normalize_optional_text(value)
 }
 
-pub(super) fn initials_from_name(name: &str) -> Option<String> {
-    let name = name.trim();
-    if name.is_empty() {
-        return None;
-    }
+pub fn normalize_input(
+    name: Option<String>,
+    src: Option<String>,
+    alt: Option<String>,
+    class_name: Option<String>,
+) -> AvatarNormalizedInput {
+    let name = normalize_optional_text(name);
+    let src = normalize_optional_text(src);
+    let alt = normalize_optional_text(alt);
+    let class_name = normalize_optional_text(class_name);
+    let image_src = src.clone().unwrap_or_default();
 
-    let mut words = name.split_whitespace().filter(|w| !w.is_empty());
-    let first = words.next()?;
-    let last = words.next_back().unwrap_or(first);
-
-    let first_char = first.chars().next()?;
-    let last_char = (last != first).then(|| last.chars().next()).flatten();
-
-    let mut initials = String::new();
-    initials.push(first_char);
-    if let Some(last_char) = last_char {
-        initials.push(last_char);
-    }
-
-    Some(initials.to_uppercase())
-}
-
-pub fn resolve_initials(name: Option<&str>) -> String {
-    name.and_then(initials_from_name)
-        .unwrap_or_else(|| "?".to_string())
-}
-
-pub fn resolve_accessibility(name: Option<&str>, alt: Option<&str>) -> AvatarAccessibility {
-    let title = name.map(|value| value.to_string());
-
-    if let Some(alt) = alt {
-        return AvatarAccessibility {
-            aria_label: alt.to_string(),
-            img_alt: alt.to_string(),
-            title,
-            label_source: AvatarLabelSource::Alt,
-        };
-    }
-
-    if let Some(name) = name {
-        return AvatarAccessibility {
-            aria_label: name.to_string(),
-            img_alt: name.to_string(),
-            title,
-            label_source: AvatarLabelSource::Name,
-        };
-    }
-
-    AvatarAccessibility {
-        aria_label: "Avatar".to_string(),
-        img_alt: String::new(),
-        title,
-        label_source: AvatarLabelSource::Fallback,
-    }
-}
-
-pub fn resolve_state(input: AvatarStateInput) -> AvatarState {
-    let label_source = if input.has_alt {
-        AvatarLabelSource::Alt
-    } else if input.has_name {
-        AvatarLabelSource::Name
-    } else {
-        AvatarLabelSource::Fallback
-    };
-
-    AvatarState {
-        size: input.size,
-        size_class: input.size.class_name(),
-        size_attr: input.size.as_str(),
-        has_name: input.has_name,
-        has_src: input.has_src,
-        has_alt: input.has_alt,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source,
-        label_source_class: label_source.class_name(),
-        label_source_attr: label_source.as_str(),
+    AvatarNormalizedInput {
+        has_name: name.is_some(),
+        has_src: src.is_some(),
+        has_alt: alt.is_some(),
+        has_custom_class_name: class_name.is_some(),
+        name,
+        src,
+        alt,
+        class_name,
+        image_src,
     }
 }
 
@@ -198,30 +80,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn size_class_names_are_stable() {
-        assert_eq!(AvatarSize::Sm.class_name(), "ui-avatar--sm");
-        assert_eq!(AvatarSize::Md.class_name(), "ui-avatar--md");
-        assert_eq!(AvatarSize::Lg.class_name(), "ui-avatar--lg");
-    }
-
-    #[test]
-    fn label_source_classes_and_attrs_are_stable() {
-        assert_eq!(AvatarLabelSource::Alt.class_name(), "ui-avatar--label-alt");
-        assert_eq!(
-            AvatarLabelSource::Name.class_name(),
-            "ui-avatar--label-name"
-        );
-        assert_eq!(
-            AvatarLabelSource::Fallback.class_name(),
-            "ui-avatar--label-fallback"
-        );
-
-        assert_eq!(AvatarLabelSource::Alt.as_str(), "alt");
-        assert_eq!(AvatarLabelSource::Name.as_str(), "name");
-        assert_eq!(AvatarLabelSource::Fallback.as_str(), "fallback");
-    }
-
-    #[test]
     fn normalize_optional_text_filters_blank_values() {
         assert_eq!(normalize_optional_text(None), None);
         assert_eq!(normalize_optional_text(Some("   ".to_string())), None);
@@ -229,13 +87,6 @@ mod tests {
             normalize_optional_text(Some("  Ada Lovelace  ".to_string())),
             Some("Ada Lovelace".to_string())
         );
-    }
-
-    #[test]
-    fn initials_from_name_uses_first_and_last_words() {
-        assert_eq!(initials_from_name("Ada Lovelace"), Some("AL".to_string()));
-        assert_eq!(initials_from_name("grace"), Some("G".to_string()));
-        assert_eq!(initials_from_name("   "), None);
     }
 
     #[test]
@@ -306,5 +157,58 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn normalize_input_centralizes_optional_defaults() {
+        let normalized = normalize_input(
+            Some("  Ada Lovelace ".to_string()),
+            Some("   ".to_string()),
+            Some(" profile ".to_string()),
+            Some(" custom ".to_string()),
+        );
+
+        assert_eq!(normalized.name.as_deref(), Some("Ada Lovelace"));
+        assert_eq!(normalized.src, None);
+        assert_eq!(normalized.alt.as_deref(), Some("profile"));
+        assert_eq!(normalized.class_name.as_deref(), Some("custom"));
+        assert!(normalized.has_name);
+        assert!(!normalized.has_src);
+        assert!(normalized.has_alt);
+        assert!(normalized.has_custom_class_name);
+        assert_eq!(normalized.image_src, "");
+    }
+
+    #[test]
+    fn normalize_lang_filters_blank_value() {
+        assert_eq!(
+            normalize_lang(Some("  zh-CN ".to_string())),
+            Some("zh-CN".to_string())
+        );
+        assert_eq!(normalize_lang(Some("   ".to_string())), None);
+        assert_eq!(normalize_lang(None), None);
+    }
+
+    #[test]
+    fn resolve_image_render_state_tracks_image_and_fallback_markers() {
+        let image = resolve_image_render_state(AvatarImageRenderInput {
+            has_src: true,
+            has_img_error: false,
+        });
+        assert_eq!(image.mode, AvatarRenderMode::Image);
+        assert!(image.mode.shows_image());
+        assert_eq!(image.mode.as_str(), "image");
+        assert_eq!(image.mode.image_attr(), Some("true"));
+        assert_eq!(image.mode.fallback_attr(), None);
+
+        let fallback = resolve_image_render_state(AvatarImageRenderInput {
+            has_src: true,
+            has_img_error: true,
+        });
+        assert_eq!(fallback.mode, AvatarRenderMode::Fallback);
+        assert!(!fallback.mode.shows_image());
+        assert_eq!(fallback.mode.as_str(), "fallback");
+        assert_eq!(fallback.mode.image_attr(), None);
+        assert_eq!(fallback.mode.fallback_attr(), Some("true"));
     }
 }

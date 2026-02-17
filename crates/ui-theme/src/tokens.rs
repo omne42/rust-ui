@@ -148,6 +148,8 @@ pub struct RadiusTokens {
 
 #[derive(Clone, Copy)]
 pub struct SpaceTokens {
+    pub space_3xs_px: u16,
+    pub space_2xs_px: u16,
     pub xs_px: u16,
     pub sm_px: u16,
     pub md_px: u16,
@@ -169,7 +171,18 @@ pub struct ComponentLayoutTokens {
 #[derive(Clone, Copy)]
 pub struct TypographyTokens {
     // Baseline examples (must be regression-testable):
+    pub font_size_100_px: u16,
+    pub font_size_150_px: u16,
     pub font_size_200_px: u16,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct OverlayLayoutTokens {
+    pub z_index: u16,
+    pub panel_min_width_px: u16,
+    pub viewport_inset_px: u16,
+    pub enter_offset_y_px: u16,
+    pub enter_scale: f64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -361,6 +374,7 @@ pub struct ThemeTokens {
     pub icons: IconTokens,
     pub layout: LayoutTokens,
     pub component_layout: ComponentLayoutTokens,
+    pub overlay_layout: OverlayLayoutTokens,
     pub typography: TypographyTokens,
     pub button_layout: ButtonLayoutTokens,
 }

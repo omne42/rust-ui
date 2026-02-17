@@ -1,7 +1,7 @@
 pub const CSS: &str = r#"
 .ui-field-button {
-  min-width: 2rem;
-  min-height: 2rem;
+  min-width: var(--ui-button-size-s-icon);
+  min-height: var(--ui-button-size-s-height);
 }
 
 .ui-field-button--quiet,
@@ -24,29 +24,31 @@ pub const CSS: &str = r#"
 .ui-field-button.is-active,
 .ui-field-button[data-active="true"],
 .ui-field-button[data-pressed="true"] {
-  transform: scale(0.98);
+  transform: scale(var(--ui-button-active-scale, 0.98));
 }
 
 .ui-field-button--disabled,
 .ui-field-button[data-disabled="true"] {
-  opacity: 0.56;
+  opacity: var(--ui-button-disabled-opacity, 0.5);
   cursor: not-allowed;
 }
 
-.ui-field-button--focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--ui-accent) 45%, transparent);
-  outline-offset: 2px;
+.ui-field-button--focus-visible,
+.ui-field-button.ui-button--focus-visible {
+  outline: var(--ui-button-focus-outline-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-button-focus-outline-offset);
 }
 
 .ui-field-button[data-focus-visible="true"] {
-  outline: 2px solid color-mix(in oklab, var(--ui-accent) 45%, transparent);
-  outline-offset: 2px;
+  outline: var(--ui-button-focus-outline-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-button-focus-outline-offset);
 }
 
-.ui-field-button__label {
+.ui-field-button__label,
+.ui-field-button .ui-button__label {
   min-width: 0;
   white-space: nowrap;
-  font-size: 0.875rem;
+  font-size: var(--ui-button-font-size);
   line-height: 1;
 }
 

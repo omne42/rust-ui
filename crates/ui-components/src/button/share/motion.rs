@@ -36,8 +36,8 @@ mod tests {
         let expected = crate::button::flip::motion::sanitize_motion(input);
 
         assert_eq!(motion.flip, expected);
-        assert_eq!(motion.flip.spring.stiffness, 260.0);
-        assert_eq!(motion.flip.spring.damping, 18.0);
+        assert_eq!(motion.flip.spring.stiffness, expected.spring.stiffness);
+        assert_eq!(motion.flip.spring.damping, expected.spring.damping);
     }
 
     #[test]

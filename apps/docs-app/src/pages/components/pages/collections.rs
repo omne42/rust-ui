@@ -1615,7 +1615,7 @@ let (invalid, set_invalid) = signal(false);
   disabled_indices=vec![4]
   description="Pick one runtime language".to_string()
   error="Language is required".to_string()
-  invalid=Signal::derive(move || invalid.get())
+  is_invalid=Signal::derive(move || invalid.get())
 />"#
         .to_string()
     });
@@ -1636,7 +1636,7 @@ let (open, set_open) = signal(false);
   ]
   selected_index=selected
   set_selected_index=set_selected
-  open=Signal::derive(move || open.get())
+  is_open=Signal::derive(move || open.get())
   on_open_change=Callback::new(move |next| set_open.set(next))
   disabled_indices=vec![4]
 />"#
@@ -1653,7 +1653,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
   items=vec!["Alpha".to_string(), "Beta".to_string(), "Gamma".to_string()]
   selected_index=selected
   set_selected_index=set_selected
-  disabled=true
+  is_disabled=true
 />
 <ComboBox
   id_base="lang-empty".to_string()
@@ -1684,7 +1684,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         disabled_indices=vec![4]
                         description="Pick one runtime language".to_string()
                         error="Language is required".to_string()
-                        invalid=Signal::derive(move || invalid.get())
+                        is_invalid=Signal::derive(move || invalid.get())
                     />
                     <div class="docs-row">
                         <ui_components::Button
@@ -1709,7 +1709,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         items=controlled_items
                         selected_index=controlled_selected
                         set_selected_index=set_controlled_selected
-                        open=controlled_open
+                        is_open=controlled_open
                         on_open_change=on_open_change
                         disabled_indices=vec![4]
                         description="Open state is externally controlled".to_string()
@@ -1734,7 +1734,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                             items=disabled_items
                             selected_index=disabled_selected
                             set_selected_index=set_disabled_selected
-                            disabled=true
+                            is_disabled=true
                         />
                         <span class="ui-muted">
                             "disabled selected: "
@@ -1814,7 +1814,7 @@ let (invalid, set_invalid) = signal(false);
   disabled_indices=vec![3]
   description="Search and pick one city".to_string()
   error="City is required".to_string()
-  invalid=Signal::derive(move || invalid.get())
+  is_invalid=Signal::derive(move || invalid.get())
 />"#
         .to_string()
     });
@@ -1834,7 +1834,7 @@ let (open, set_open) = signal(false);
   ]
   selected_index=selected
   set_selected_index=set_selected
-  open=Signal::derive(move || open.get())
+  is_open=Signal::derive(move || open.get())
   on_open_change=Callback::new(move |next| set_open.set(next))
   disabled_indices=vec![3]
 />"#
@@ -1851,7 +1851,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
   items=vec!["Sydney".to_string(), "Melbourne".to_string(), "Perth".to_string()]
   selected_index=selected
   set_selected_index=set_selected
-  disabled=true
+  is_disabled=true
 />
 <Autocomplete
   id_base="city-empty".to_string()
@@ -1882,7 +1882,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         disabled_indices=vec![3]
                         description="Search and pick one city".to_string()
                         error="City is required".to_string()
-                        invalid=Signal::derive(move || invalid.get())
+                        is_invalid=Signal::derive(move || invalid.get())
                         placeholder="Type…".to_string()
                     />
                     <div class="docs-row">
@@ -1908,7 +1908,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         items=controlled_items
                         selected_index=controlled_selected
                         set_selected_index=set_controlled_selected
-                        open=controlled_open
+                        is_open=controlled_open
                         on_open_change=on_open_change
                         disabled_indices=vec![3]
                         description="Open state is externally controlled".to_string()
@@ -1933,7 +1933,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                             items=disabled_items
                             selected_index=disabled_selected
                             set_selected_index=set_disabled_selected
-                            disabled=true
+                            is_disabled=true
                         />
                         <span class="ui-muted">
                             "disabled selected: "

@@ -25,6 +25,32 @@ impl Default for SpringConfig {
     }
 }
 
+/// Normalizes a spring config to finite positive values, falling back field-by-field.
+pub fn sanitize_config(value: SpringConfig, fallback: SpringConfig) -> SpringConfig {
+    SpringConfig {
+        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
+            value.stiffness
+        } else {
+            fallback.stiffness
+        },
+        damping: if value.damping.is_finite() && value.damping > 0.0 {
+            value.damping
+        } else {
+            fallback.damping
+        },
+        mass: if value.mass.is_finite() && value.mass > 0.0 {
+            value.mass
+        } else {
+            fallback.mass
+        },
+        precision: if value.precision.is_finite() && value.precision > 0.0 {
+            value.precision
+        } else {
+            fallback.precision
+        },
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 struct SpringState {
     value: f64,
@@ -204,5 +230,48 @@ impl SpringAnimator {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_config_falls_back_for_non_finite_or_non_positive_values() {
+        let fallback = SpringConfig::default();
+        let sanitized = sanitize_config(
+            SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            fallback,
+        );
+
+        assert_eq!(sanitized.stiffness, fallback.stiffness);
+        assert_eq!(sanitized.damping, fallback.damping);
+        assert_eq!(sanitized.mass, fallback.mass);
+        assert_eq!(sanitized.precision, fallback.precision);
+    }
+
+    #[test]
+    fn sanitize_config_keeps_valid_values() {
+        let fallback = SpringConfig::default();
+        let sanitized = sanitize_config(
+            SpringConfig {
+                stiffness: 240.0,
+                damping: 22.0,
+                mass: 1.1,
+                precision: 0.002,
+            },
+            fallback,
+        );
+
+        assert_eq!(sanitized.stiffness, 240.0);
+        assert_eq!(sanitized.damping, 22.0);
+        assert_eq!(sanitized.mass, 1.1);
+        assert_eq!(sanitized.precision, 0.002);
     }
 }

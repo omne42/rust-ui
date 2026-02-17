@@ -6,6 +6,7 @@ compile_error!("features `web` and `ssr` are mutually exclusive; enable exactly 
 pub mod a11y;
 pub mod button;
 pub mod checkbox;
+pub mod clearable_text_field;
 pub mod combo_box;
 pub mod controllable_state;
 pub mod focus_ring;
@@ -36,17 +37,22 @@ pub mod tooltip_position;
 pub mod trace;
 
 pub use a11y::{
-    A11yDirection, A11yLocaleAttrs, DisclosureTriggerA11yAttrs, PopupTriggerA11yAttrs,
-    aria_controls_when_open, aria_expanded, disclosure_trigger_attrs, locale_attrs,
-    popup_trigger_attrs,
+    A11yDirection, A11yLocaleAttrs, DisclosureTriggerA11yAttrs, ImageFallbackA11yAttrs,
+    LabeledGroupA11yAttrs, LiveRegionA11yAttrs, LiveRegionPriority, PopupTriggerA11yAttrs,
+    aria_controls_when_open, aria_expanded, disclosure_trigger_attrs, image_fallback_attrs,
+    labeled_group_attrs, live_region_attrs, locale_attrs, popup_trigger_attrs,
 };
 pub use button::{
     ButtonAria, ButtonAttrs, ButtonElement, ButtonHandlers, ButtonOptions, use_button,
 };
 pub use checkbox::{CheckboxAria, CheckboxAttrs, CheckboxHandlers, CheckboxOptions, use_checkbox};
+pub use clearable_text_field::{
+    ClearableTextField, ClearableTextFieldAttrs, ClearableTextFieldHandlers,
+    ClearableTextFieldOptions, ClearableTextFieldState, use_clearable_text_field,
+};
 pub use combo_box::{
-    ComboBoxAria, ComboBoxHandlers, ComboBoxInputAttrs, ComboBoxListBoxAttrs, ComboBoxOptions,
-    use_combo_box,
+    ComboBoxAria, ComboBoxHandlers, ComboBoxInputAttrs, ComboBoxKeyDownResult,
+    ComboBoxListBoxAttrs, ComboBoxOptions, use_combo_box,
 };
 pub use controllable_state::{
     ControllableOpenState, ControllableState, use_controllable_open_state_traced,
@@ -66,7 +72,10 @@ pub use hover_card::{
 pub use i18n::{CommonStrings, UiI18n, provide_ui_i18n, use_ui_i18n};
 pub use input_otp::{InputOtpAria, InputOtpHandlers, InputOtpOptions, use_input_otp};
 pub use listbox::{ListBoxAria, ListBoxAttrs, ListBoxHandlers, ListBoxOptions, use_listbox};
-pub use menu::{MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOptions, use_menu};
+pub use menu::{
+    MenuAria, MenuAttrs, MenuHandlers, MenuOnAction, MenuOpenFocusStrategy, MenuOptions,
+    menu_trigger_open_focus_strategy, menu_trigger_open_focus_strategy_for_key, use_menu,
+};
 pub use menu_item::{
     MenuItemAria, MenuItemAttrs, MenuItemHandlers, MenuItemKind, MenuItemOptions, use_menu_item,
 };

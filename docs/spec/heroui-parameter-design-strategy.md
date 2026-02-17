@@ -119,6 +119,28 @@
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/actions.rs` 包含 `Hello world`、`Variants & sizes`（含交互 workbench）、`Colors`、`Radius`、`Sizes`，与当前实现参数保持一致。
 - Copy-Paste Ready 同步：Button playground 代码快照由 `code_signal` 实时生成，并通过 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` 注入缺失 imports，避免示例漂移。
 
+### ButtonCopy 同步记录（2026-02-17）
+
+- 参数模型同步：`ButtonCopy` 维持 `Button` 特化定位，主能力复用 `Button`（`variant/size/is_icon_only/is_loading/on_press`），组件特化参数聚焦复制语义（`text`、`label`、`copied_label`、`aria_label`、`mode`、`is_disabled`、`motion`、`lang/dir`）。
+- 模式语义同步：`mode` 统一为 `TextOnly` / `IconOnly` / `IconAndText` 三态，默认走 `IconAndText`，与文档矩阵示例一致。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("ButtonCopy", "button-copy", "Actions", actions::button_copy)` 暴露入口；`#/components/button-copy` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/actions.rs` 包含 `Hello World`、`Label + variant`、`Disabled + empty matrix`、`Mode matrix`、`Workbench (Isolated Canvas + Optional Persist)`，与当前参数模型保持一致。
+- Copy-Paste Ready 同步：`button-copy` 各 playground 代码通过 `code_signal` 进入 `Playground`，并由 `apps/docs-app/src/playground.rs` 的 `compose_copy_ready_code` 自动补齐 imports，避免示例漂移。
+
+### FieldButton 同步记录（2026-02-17）
+
+- 参数模型同步：`FieldButton` 保持 `Button` 语义薄封装定位，复用 `Button` 的交互/A11y/motion 能力；组件特化参数收敛为 `is_quiet/is_invalid/is_active/is_disabled` 与 `on_press`、`aria_label`、`class_name`。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("FieldButton", "field-button", "Actions", actions_extra::field_button)` 暴露入口；`#/components/field-button` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/actions_extra.rs` 提供 `Default + Quiet` 与 `Invalid + Active + Disabled` 两组示例，覆盖默认路径与状态矩阵，参数命名与实现保持一致。
+- HeroUI 对齐结论：保持统一 `is_*` 状态前缀与 `on_press/aria_label` 行为/A11y 命名，避免平行别名与组件特化参数扩散。
+
+### FlipButton 同步记录（2026-02-17）
+
+- 参数模型同步：`FlipButton` 作为 `Button` 扩展能力，参数收敛为 `from`、`motion`、`class_name` 与显式 `front/back` 槽位；默认路径无需接线底层状态对象。
+- docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("FlipButton", "flip-button", "Actions", actions::flip_button)` 暴露入口；`#/components/flip-button` 可索引访问。
+- 示例矩阵同步：`apps/docs-app/src/pages/components/pages/actions.rs` 提供 `Top flip`、`Direction matrix`、`Custom Class`、`Interactive Playground`，并显式标注 `Streaming Optional; fallback=snapshot.`。
+- HeroUI 对齐结论：保持简洁参数面与显式槽位组合，避免并行数组式隐式约定；动效与交互语义优先复用 `Button/ui-motion/ui-headless` 既有契约。
+
 ### Open Questions (max 2)
 
 1. 你希望“参数尽可能全”的优先级高于“API 精简稳定”吗？（这会决定是否把 Option A 的部分策略并入）

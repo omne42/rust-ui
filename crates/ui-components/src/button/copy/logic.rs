@@ -37,6 +37,98 @@ impl ButtonCopyMode {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonCopyAgentSchemaVersion {
+    V1,
+}
+
+impl ButtonCopyAgentSchemaVersion {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::V1 => "1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonCopyAgentIntent {
+    ClipboardCopy,
+}
+
+impl ButtonCopyAgentIntent {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::ClipboardCopy => "clipboard-copy",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonCopyAgentAction {
+    Copy,
+}
+
+impl ButtonCopyAgentAction {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Copy => "copy",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonCopyAgentStateAxis {
+    Ready,
+    Disabled,
+    Empty,
+}
+
+impl ButtonCopyAgentStateAxis {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Ready => "ready",
+            Self::Disabled => "disabled",
+            Self::Empty => "empty",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ButtonCopyAgentOutputStatus {
+    Idle,
+    Loading,
+    Copied,
+    Error,
+}
+
+impl ButtonCopyAgentOutputStatus {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Idle => "idle",
+            Self::Loading => "loading",
+            Self::Copied => "copied",
+            Self::Error => "error",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ButtonCopyAgentCapabilities {
+    pub can_copy: bool,
+    pub can_visual_feedback: bool,
+    pub can_announce_feedback: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ButtonCopyAgentContract {
+    pub schema_name: &'static str,
+    pub schema_version: ButtonCopyAgentSchemaVersion,
+    pub intent: ButtonCopyAgentIntent,
+    pub action: ButtonCopyAgentAction,
+    pub state: ButtonCopyAgentStateAxis,
+    pub capabilities: ButtonCopyAgentCapabilities,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ButtonCopyViewState {
     pub is_copyable: bool,
     pub is_disabled: bool,
@@ -109,6 +201,47 @@ pub fn resolve_view_state(
         has_custom_copied_label,
         has_custom_aria_label,
         has_custom_class_name,
+    }
+}
+
+pub fn resolve_agent_state_axis(view_state: ButtonCopyViewState) -> ButtonCopyAgentStateAxis {
+    if view_state.is_disabled {
+        ButtonCopyAgentStateAxis::Disabled
+    } else if !view_state.has_text {
+        ButtonCopyAgentStateAxis::Empty
+    } else {
+        ButtonCopyAgentStateAxis::Ready
+    }
+}
+
+pub fn resolve_agent_contract(view_state: ButtonCopyViewState) -> ButtonCopyAgentContract {
+    ButtonCopyAgentContract {
+        schema_name: "ui.button-copy.agent-contract",
+        schema_version: ButtonCopyAgentSchemaVersion::V1,
+        intent: ButtonCopyAgentIntent::ClipboardCopy,
+        action: ButtonCopyAgentAction::Copy,
+        state: resolve_agent_state_axis(view_state),
+        capabilities: ButtonCopyAgentCapabilities {
+            can_copy: view_state.is_copyable,
+            can_visual_feedback: view_state.is_copyable,
+            can_announce_feedback: view_state.is_copyable,
+        },
+    }
+}
+
+pub fn resolve_agent_output_status(
+    is_copying: bool,
+    has_copy_error: bool,
+    copied: bool,
+) -> ButtonCopyAgentOutputStatus {
+    if is_copying {
+        ButtonCopyAgentOutputStatus::Loading
+    } else if has_copy_error {
+        ButtonCopyAgentOutputStatus::Error
+    } else if copied {
+        ButtonCopyAgentOutputStatus::Copied
+    } else {
+        ButtonCopyAgentOutputStatus::Idle
     }
 }
 
@@ -334,5 +467,73 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn button_copy_agent_contract_is_schema_typed_and_stateful() {
+        let ready_state = resolve_view_state(
+            "copy me",
+            false,
+            ButtonCopyMode::IconAndText,
+            false,
+            false,
+            false,
+            false,
+        );
+        let contract = resolve_agent_contract(ready_state);
+
+        assert_eq!(contract.schema_name, "ui.button-copy.agent-contract");
+        assert_eq!(contract.schema_version.as_str(), "1");
+        assert_eq!(contract.intent.as_str(), "clipboard-copy");
+        assert_eq!(contract.action.as_str(), "copy");
+        assert_eq!(contract.state.as_str(), "ready");
+        assert!(contract.capabilities.can_copy);
+        assert!(contract.capabilities.can_visual_feedback);
+        assert!(contract.capabilities.can_announce_feedback);
+
+        let disabled_state = resolve_view_state(
+            "copy me",
+            true,
+            ButtonCopyMode::IconAndText,
+            false,
+            false,
+            false,
+            false,
+        );
+        assert_eq!(
+            resolve_agent_contract(disabled_state).state.as_str(),
+            "disabled"
+        );
+
+        let empty_state = resolve_view_state(
+            "   ",
+            false,
+            ButtonCopyMode::IconAndText,
+            false,
+            false,
+            false,
+            false,
+        );
+        assert_eq!(resolve_agent_contract(empty_state).state.as_str(), "empty");
+    }
+
+    #[test]
+    fn button_copy_agent_output_status_prioritizes_loading_then_error_then_copied() {
+        assert_eq!(
+            resolve_agent_output_status(true, true, true).as_str(),
+            "loading"
+        );
+        assert_eq!(
+            resolve_agent_output_status(false, true, true).as_str(),
+            "error"
+        );
+        assert_eq!(
+            resolve_agent_output_status(false, false, true).as_str(),
+            "copied"
+        );
+        assert_eq!(
+            resolve_agent_output_status(false, false, false).as_str(),
+            "idle"
+        );
     }
 }

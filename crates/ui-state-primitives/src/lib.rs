@@ -1,11 +1,32 @@
 //! `ui-state-primitives` — platform-agnostic UI state primitives (React Stately analogue).
 
+pub mod action_bar;
+pub mod action_group;
+pub mod action_menu;
+pub mod alert;
+pub mod alert_banner;
+pub mod autocomplete;
+pub mod avatar;
+pub mod avatar_group;
+pub mod badge;
+pub mod breadcrumb;
 pub mod button;
 pub mod button_copy;
+pub mod button_flip;
+pub mod calendar;
+pub mod carousel;
+pub mod chip;
+pub mod coachmark;
+pub mod code_block;
+pub mod collapsible;
+pub mod combo_box;
 pub mod controlled;
 pub mod expansion;
+pub mod input;
+pub mod input_group;
 pub mod list;
 pub mod overlay_trigger;
 pub mod selection;
+pub mod share_button;
 pub mod stream;
 pub mod toggle;

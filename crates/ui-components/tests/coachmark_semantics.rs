@@ -61,8 +61,32 @@ fn coachmark_wraps_contextual_help_contract() {
 }
 
 #[test]
-fn coachmark_logic_tracks_heading_steps_and_source_contracts() {
+fn coachmark_logic_reexports_state_primitives_contract() {
     let source = load_source("src/coachmark/logic.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::coachmark::{",
+        "CoachmarkState",
+        "CoachmarkStateInput",
+        "DEFAULT_ASSET_LABEL",
+        "DEFAULT_TITLE",
+        "compose_class_name",
+        "compose_heading",
+        "compose_step_label",
+        "normalize_modifier_keys",
+        "normalize_optional_text",
+        "resolve_state",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Coachmark logic should re-export `{needle}` from ui-state-primitives."
+        );
+    }
+}
+
+#[test]
+fn coachmark_state_primitives_track_heading_steps_and_source_contracts() {
+    let source = load_source("../../crates/ui-state-primitives/src/coachmark.rs");
 
     for needle in [
         "pub const DEFAULT_TITLE: &str = \"Coachmark\";",
@@ -73,13 +97,15 @@ fn coachmark_logic_tracks_heading_steps_and_source_contracts() {
         "pub fn compose_step_label(",
         "pub fn resolve_state(input: CoachmarkStateInput) -> CoachmarkState",
         "pub fn compose_class_name(base_class_name: Option<String>, state: CoachmarkState)",
+        "variant_attr",
+        "placement_attr",
         "asset_source_attr",
         "label_source_attr",
         "class_source_attr",
     ] {
         assert!(
             source.contains(needle),
-            "Coachmark logic should include `{needle}` for centralized state/source normalization."
+            "Coachmark state primitive should include `{needle}` for centralized state/source normalization."
         );
     }
 }

@@ -44,7 +44,8 @@ impl ActionGroupItem {
 pub struct ActionGroupStateInput {
     pub tone: ActionGroupTone,
     pub selection_mode: ActionGroupSelectionMode,
-    pub disabled: bool,
+    pub is_disabled: bool,
+    pub is_selection_controlled: bool,
     pub item_count: usize,
     pub selected_count: usize,
     pub has_custom_aria_label: bool,
@@ -66,6 +67,7 @@ pub struct ActionGroupState {
     pub has_selection: bool,
     pub is_empty: bool,
     pub data_state_attr: &'static str,
+    pub selection_source_attr: &'static str,
     pub aria_source_attr: &'static str,
     pub class_source_attr: &'static str,
     pub has_custom_class_name: bool,

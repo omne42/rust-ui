@@ -127,10 +127,16 @@ fn toggle_button_styles_include_motion_marker_contracts() {
 fn toggle_button_motion_uses_spring_animator() {
     let source = load_source("src/button/toggle_button/motion.rs");
 
-    assert!(
-        source.contains("SpringAnimator"),
-        "ToggleButton motion should be spring-driven to match the repo's motion spec."
-    );
+    for needle in [
+        "crate::button::motion::attach_motion",
+        "as_button_motion(",
+        "ButtonMotion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ToggleButton motion should delegate spring runtime to Button motion; missing `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -139,10 +145,12 @@ fn toggle_button_motion_sanitizes_custom_contract_values() {
 
     for needle in [
         "pub fn sanitize_motion(motion: ToggleButtonMotion) -> ToggleButtonMotion",
+        "crate::button::motion::sanitize_motion",
         "fn sanitize_spring(",
+        "fn as_button_motion(",
         "hover_scale:",
         "tap_scale:",
-        "let motion = StoredValue::new(sanitize_motion(motion));",
+        "let motion = as_button_motion(sanitize_motion(motion));",
         "fn sanitize_motion_falls_back_for_invalid_values()",
         "fn sanitize_motion_clamps_scale_values()",
     ] {

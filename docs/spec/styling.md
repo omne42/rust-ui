@@ -14,6 +14,8 @@
 
 - 主题三轴上下文：`system/color/scale`（`spectrum|express|spectrum-two` × `light|dark|oled` × `medium|large`）。
 - Token 分类（可追溯、可审计）。
+- 间距基线（`space-3xs/2xs/xs/sm/md/lg`）由 `ui-theme` 统一定义并输出 CSS 变量，组件只消费。
+- 排版与 Overlay 基线（如 `--ui-font-size-100/150/200`、`--ui-overlay-panel-min-width`、`--ui-overlay-viewport-inset`、`--ui-overlay-enter-offset-y`）必须在 `ui-theme` 定义并输出变量。
 - 组件视觉 token 分类（示例：Button 的 `layout` + `motion` token 在 `crates/ui-theme/src/tokens.rs` 定义，映射在 `theme.rs`，变量输出在 `css.rs`）。
 - 三轴到 token 的映射（集中在一个地方做决策）。
 - CSS 变量输出（组件只消费变量，不重建主题）。

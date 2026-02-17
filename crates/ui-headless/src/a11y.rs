@@ -21,6 +21,18 @@ pub struct A11yLocaleAttrs {
     pub dir: Option<&'static str>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LiveRegionPriority {
+    Polite,
+    Assertive,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LiveRegionA11yAttrs {
+    pub role: &'static str,
+    pub aria_live: &'static str,
+}
+
 #[derive(Clone)]
 pub struct DisclosureTriggerA11yAttrs {
     pub aria_expanded: Signal<&'static str>,
@@ -38,6 +50,20 @@ pub struct PopupTriggerA11yAttrs {
     pub dir: Option<&'static str>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ImageFallbackA11yAttrs {
+    pub role: Option<&'static str>,
+    pub aria_label: Option<String>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LabeledGroupA11yAttrs {
+    pub role: &'static str,
+    pub aria_label: String,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
 pub fn locale_attrs(lang: Option<String>, dir: Option<A11yDirection>) -> A11yLocaleAttrs {
     let lang = lang.and_then(|value| {
         let trimmed = value.trim();
@@ -47,6 +73,51 @@ pub fn locale_attrs(lang: Option<String>, dir: Option<A11yDirection>) -> A11yLoc
     A11yLocaleAttrs {
         lang,
         dir: dir.map(A11yDirection::as_attr),
+    }
+}
+
+pub fn live_region_attrs(priority: LiveRegionPriority) -> LiveRegionA11yAttrs {
+    match priority {
+        LiveRegionPriority::Polite => LiveRegionA11yAttrs {
+            role: "status",
+            aria_live: "polite",
+        },
+        LiveRegionPriority::Assertive => LiveRegionA11yAttrs {
+            role: "alert",
+            aria_live: "assertive",
+        },
+    }
+}
+
+pub fn image_fallback_attrs(
+    show_image: bool,
+    fallback_aria_label: String,
+) -> ImageFallbackA11yAttrs {
+    if show_image {
+        return ImageFallbackA11yAttrs {
+            role: None,
+            aria_label: None,
+        };
+    }
+
+    ImageFallbackA11yAttrs {
+        role: Some("img"),
+        aria_label: Some(fallback_aria_label),
+    }
+}
+
+pub fn labeled_group_attrs(
+    aria_label: String,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> LabeledGroupA11yAttrs {
+    let locale = locale_attrs(lang, dir);
+
+    LabeledGroupA11yAttrs {
+        role: "group",
+        aria_label,
+        lang: locale.lang,
+        dir: locale.dir,
     }
 }
 
@@ -132,6 +203,17 @@ mod tests {
     }
 
     #[test]
+    fn live_region_attrs_maps_priority_to_role_and_aria_live() {
+        let polite = live_region_attrs(LiveRegionPriority::Polite);
+        assert_eq!(polite.role, "status");
+        assert_eq!(polite.aria_live, "polite");
+
+        let assertive = live_region_attrs(LiveRegionPriority::Assertive);
+        assert_eq!(assertive.role, "alert");
+        assert_eq!(assertive.aria_live, "assertive");
+    }
+
+    #[test]
     fn disclosure_trigger_attrs_exposes_typed_aria_and_locale_fields() {
         let (open, set_open) = signal(false);
         let attrs = disclosure_trigger_attrs(
@@ -209,5 +291,29 @@ mod tests {
             attrs.aria_controls.get_untracked(),
             Some("next-controls".to_string())
         );
+    }
+
+    #[test]
+    fn image_fallback_attrs_only_applies_when_image_is_hidden() {
+        let hidden = image_fallback_attrs(false, "Avatar".to_string());
+        assert_eq!(hidden.role, Some("img"));
+        assert_eq!(hidden.aria_label.as_deref(), Some("Avatar"));
+
+        let shown = image_fallback_attrs(true, "Avatar".to_string());
+        assert_eq!(shown.role, None);
+        assert_eq!(shown.aria_label, None);
+    }
+
+    #[test]
+    fn labeled_group_attrs_exposes_typed_group_role_label_and_locale() {
+        let attrs = labeled_group_attrs(
+            "Collaborators".to_string(),
+            Some(" en-US ".to_string()),
+            Some(A11yDirection::Rtl),
+        );
+        assert_eq!(attrs.role, "group");
+        assert_eq!(attrs.aria_label, "Collaborators");
+        assert_eq!(attrs.lang.as_deref(), Some("en-US"));
+        assert_eq!(attrs.dir, Some("rtl"));
     }
 }

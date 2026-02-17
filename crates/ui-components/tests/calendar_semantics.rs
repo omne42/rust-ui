@@ -20,29 +20,47 @@ fn calendar_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
-fn calendar_uses_logic_state_model() {
+fn calendar_logic_delegates_state_primitives() {
     let logic_source = load_source("src/calendar/logic.rs");
     let view_source = load_source("src/calendar/view.rs");
 
     for needle in [
-        "pub enum CalendarTone",
-        "pub enum CalendarFirstWeekday",
-        "pub struct CalendarGridCell",
-        "pub fn normalize_optional_text(",
+        "pub use ui_state_primitives::calendar::{",
+        "CalendarFirstWeekday",
+        "CalendarGridCell",
+        "CalendarState",
+        "CalendarStateInput",
+        "CalendarTone",
+        "DEFAULT_ARIA_LABEL",
+        "build_month_grid",
+        "normalize_month",
+        "normalize_selected_day",
+        "resolve_state",
+        "weekday_labels",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Calendar logic should include `{needle}` for state-primitive delegation."
+        );
+    }
+
+    for forbidden in [
+        "pub enum CalendarTone {",
+        "pub enum CalendarFirstWeekday {",
+        "pub struct CalendarGridCell {",
+        "pub struct CalendarStateInput {",
+        "pub struct CalendarState {",
         "pub fn normalize_aria_label(",
         "pub fn normalize_month(",
         "pub fn normalize_selected_day(",
         "pub fn weekday_index(",
         "pub fn build_month_grid(",
         "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "aria_source_attr",
-        "class_source_attr",
-        "data_state_attr",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "Calendar logic should include `{needle}` for centralized state derivation."
+            !logic_source.contains(forbidden),
+            "Calendar logic should not reimplement state primitives after migration: `{forbidden}`."
         );
     }
 

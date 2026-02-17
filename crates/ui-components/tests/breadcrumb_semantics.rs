@@ -59,6 +59,39 @@ fn breadcrumb_logic_exposes_state_helpers() {
 }
 
 #[test]
+fn breadcrumb_state_primitives_are_sourced_from_ui_state_primitives() {
+    let source = load_source("src/breadcrumb/logic.rs");
+
+    for needle in [
+        "use ui_state_primitives::breadcrumb as breadcrumb_state;",
+        "pub const DEFAULT_ARIA_LABEL: &str = breadcrumb_state::DEFAULT_ARIA_LABEL;",
+        "breadcrumb_state::normalize_optional_text(",
+        "breadcrumb_state::normalize_aria_label(",
+        "breadcrumb_state::normalize_href(",
+        "breadcrumb_state::resolve_root_state(",
+        "breadcrumb_state::resolve_slot_state(",
+        "breadcrumb_state::resolve_link_state(",
+        "breadcrumb_state::resolve_separator_state(",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Breadcrumb state primitives should delegate to ui-state-primitives via `{needle}`.",
+        );
+    }
+
+    for forbidden in [
+        "if let Some(label) = normalize_optional_text(value) {",
+        "state_attr: match (input.has_href, input.has_custom_class_name) {",
+        "state_attr: match (input.has_custom_content, input.has_custom_class_name) {",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "Breadcrumb should not reimplement state primitive logic in ui-components: `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
 fn breadcrumb_view_uses_logic_state_contracts() {
     let source = load_source("src/breadcrumb/view.rs");
 

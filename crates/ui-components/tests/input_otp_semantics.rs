@@ -63,6 +63,40 @@ fn input_otp_integrates_headless_hooks_for_behavior_and_field_semantics() {
         source.contains("use_focus_ring"),
         "InputOtp should use focus ring handling so focus-visible styling matches the rest of the system."
     );
+    assert!(
+        source.contains("locale_attrs"),
+        "InputOtp should wire locale attrs through ui-headless a11y helpers."
+    );
+}
+
+#[test]
+fn input_otp_mounts_locale_and_i18n_default_label_contracts() {
+    let source = load_source("src/input_otp/view.rs");
+    let i18n_source = load_source("src/input_otp/i18n.rs");
+
+    for needle in [
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = locale_attrs(lang, dir);",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
+        "i18n::use_ui_i18n()",
+        "strings::<super::i18n::InputOtpStrings>()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "InputOtp should include `{needle}` for locale + i18n contract wiring."
+        );
+    }
+
+    assert!(
+        i18n_source.contains("pub struct InputOtpStrings"),
+        "InputOtp should source default copy from a dedicated i18n bundle struct."
+    );
+    assert!(
+        i18n_source.contains("aria_label: \"One-time code\".into()"),
+        "InputOtp default aria-label fallback should be defined in i18n bundle defaults."
+    );
 }
 
 #[test]

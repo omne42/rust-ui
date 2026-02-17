@@ -1,5 +1,6 @@
 pub const CSS: &str = r#"
 .ui-search-input-button {
+  --ui-search-input-button-scale: var(--ui-button-scale, 1);
   --ui-search-input-button-placeholder-color: var(--ui-fg-muted);
 
   display: inline-flex;

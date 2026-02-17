@@ -1,7 +1,4 @@
-use crate::calendar::{
-    CalendarStateInput,
-    logic::{self, CalendarFirstWeekday, CalendarTone},
-};
+use crate::calendar::logic::{self, CalendarFirstWeekday, CalendarStateInput, CalendarTone};
 use leptos::prelude::*;
 
 #[component]

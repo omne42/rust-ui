@@ -23,21 +23,49 @@ fn chip_does_not_expose_logic_or_view_modules() {
 fn chip_uses_logic_state_model() {
     let view_source = load_source("src/chip/view.rs");
     let logic_source = load_source("src/chip/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/chip.rs");
 
     for needle in [
-        "pub struct ChipStateInput",
-        "pub struct ChipState",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_dismiss_aria_label(",
-        "pub fn resolve_state(",
+        "pub use ui_state_primitives::chip::{",
+        "ChipStateInput",
+        "ChipState",
+        "normalize_optional_text",
+        "resolve_dismiss_aria_label",
+        "resolve_state",
         "pub fn compose_class_name(",
-        "state_class",
-        "dismiss_label_source_class",
-        "class_source_attr",
+        "ui-chip--custom-class",
     ] {
         assert!(
             logic_source.contains(needle),
-            "Chip logic should include `{needle}` for centralized state derivation."
+            "Chip logic should consume state primitives and keep assembly helpers; missing `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "pub struct ChipStateInput {",
+        "pub struct ChipState {",
+        "pub enum ChipVariant {",
+        "pub enum ChipSize {",
+        "pub fn resolve_dismiss_aria_label(",
+        "pub fn resolve_state(",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden),
+            "Chip logic must not reimplement state primitives; found `{forbidden}`."
+        );
+    }
+
+    for needle in [
+        "pub enum ChipVariant",
+        "pub enum ChipSize",
+        "pub struct ChipStateInput",
+        "pub struct ChipState",
+        "pub fn resolve_dismiss_aria_label(",
+        "pub fn resolve_state(",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "Chip state primitive layer should include `{needle}`."
         );
     }
 

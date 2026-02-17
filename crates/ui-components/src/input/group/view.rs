@@ -1,5 +1,6 @@
 use super::logic::{self, InputGroupStateInput};
 use leptos::{children::ViewFn, prelude::*};
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn InputGroup(
@@ -10,6 +11,8 @@ pub fn InputGroup(
     #[prop(optional, into)] start_content: Option<ViewFn>,
     #[prop(optional, into)] end_content: Option<ViewFn>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
@@ -34,10 +37,13 @@ pub fn InputGroup(
 
     let class =
         Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
+    let locale = locale_attrs(lang, dir);
 
     view! {
         <div
             class=move || class.get()
+            lang=locale.lang.clone()
+            dir=locale.dir
             data-slot="input-group"
             data-state=move || state.get().phase_attr
             data-attachment=move || state.get().attachment_attr

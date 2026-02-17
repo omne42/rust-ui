@@ -20,20 +20,32 @@ fn badge_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
-fn badge_uses_logic_state_model() {
+fn badge_consumes_state_primitives_and_keeps_component_assembly_local() {
     let view_source = load_source("src/badge/view.rs");
     let logic_source = load_source("src/badge/logic.rs");
+    let primitives_source = load_source("../../crates/ui-state-primitives/src/badge.rs");
 
     for needle in [
-        "pub struct BadgeStateInput",
-        "pub struct BadgeState",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_state(input: BadgeStateInput)",
+        "pub use ui_state_primitives::badge::{",
+        "BadgeState, BadgeStateInput, BadgeVariant, normalize_optional_text, resolve_state,",
         "pub fn compose_class_name(",
     ] {
         assert!(
             logic_source.contains(needle),
-            "Badge logic should include `{needle}` for centralized state derivation."
+            "Badge logic should include `{needle}` to consume ui-state-primitives and keep only assembly logic."
+        );
+    }
+
+    for needle in [
+        "pub enum BadgeVariant",
+        "pub struct BadgeStateInput",
+        "pub struct BadgeState",
+        "pub fn normalize_optional_text(",
+        "pub fn resolve_state(input: BadgeStateInput) -> BadgeState",
+    ] {
+        assert!(
+            primitives_source.contains(needle),
+            "badge primitive module should define `{needle}`."
         );
     }
 

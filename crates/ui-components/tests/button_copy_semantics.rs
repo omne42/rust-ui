@@ -20,6 +20,49 @@ fn button_copy_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn button_copy_agent_contract_is_schema_typed_and_mounted() {
+    let view_source = load_source("src/button/copy/view.rs");
+    let logic_source = load_source("src/button/copy/logic.rs");
+
+    for needle in [
+        "pub enum ButtonCopyAgentSchemaVersion",
+        "pub enum ButtonCopyAgentIntent",
+        "pub enum ButtonCopyAgentAction",
+        "pub enum ButtonCopyAgentStateAxis",
+        "pub enum ButtonCopyAgentOutputStatus",
+        "pub struct ButtonCopyAgentCapabilities",
+        "pub struct ButtonCopyAgentContract",
+        "pub fn resolve_agent_contract(",
+        "pub fn resolve_agent_output_status(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ButtonCopy agent contract typing should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let agent_contract = logic::resolve_agent_contract(view_state);",
+        "data-ui-schema=agent_contract.schema_name",
+        "data-ui-schema-version=agent_contract.schema_version.as_str()",
+        "data-ui-agent-schema=agent_contract.schema_name",
+        "data-ui-agent-schema-version=agent_contract.schema_version.as_str()",
+        "data-ui-intent=agent_contract.intent.as_str()",
+        "data-ui-action=agent_contract.action.as_str()",
+        "data-ui-state=agent_contract.state.as_str()",
+        "data-ui-output-status=move || {",
+        "data-ui-capability-copy=agent_contract.capabilities.can_copy.then_some(\"true\")",
+        "data-ui-capability-visual-feedback=agent_contract",
+        "data-ui-capability-announce-feedback=agent_contract",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ButtonCopy view should mount schemaized agent contract field `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn button_copy_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/button/copy/mod.rs");
     let crate_source = load_source("src/lib.rs");
@@ -168,6 +211,21 @@ fn button_copy_forwards_button_contract_and_disabled_semantics() {
 }
 
 #[test]
+fn button_copy_defaults_align_with_base_button_contract() {
+    let source = load_source("src/button/copy/view.rs");
+
+    for needle in [
+        "#[prop(optional, default = ButtonVariant::default())] variant: ButtonVariant",
+        "#[prop(optional, default = ButtonSize::default())] size: ButtonSize",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ButtonCopy should keep `{needle}` so default visual contract matches Button."
+        );
+    }
+}
+
+#[test]
 fn button_copy_emits_baseline_style_data_attributes() {
     let source = load_source("src/button/copy/view.rs");
 
@@ -276,6 +334,68 @@ fn button_copy_motion_sanitizes_custom_contract_values() {
 }
 
 #[test]
+fn button_copy_reduced_motion_ssr_wasm_branches_are_covered_via_button_contract() {
+    let copy_styles_source = load_source("src/button/copy/styles.rs");
+    let button_styles_source = load_source("src/button/styles.rs");
+    let copy_motion_source = load_source("src/button/copy/motion.rs");
+    let button_motion_source = load_source("src/button/motion.rs");
+    let copy_view_source = load_source("src/button/copy/view.rs");
+
+    for needle in [
+        "@media (prefers-reduced-motion: reduce)",
+        ".ui-button-copy {",
+        "transform: none;",
+        ".ui-button-copy__icon {",
+        "transition: none;",
+    ] {
+        assert!(
+            copy_styles_source.contains(needle),
+            "button_copy reduced-motion path should include `{needle}`."
+        );
+    }
+
+    assert!(
+        button_styles_source.contains("@media (prefers-reduced-motion: reduce)"),
+        "base Button reduced-motion contract should stay present for ButtonCopy reuse."
+    );
+
+    for needle in [
+        "#[cfg(target_arch = \"wasm32\")]",
+        "#[cfg(not(target_arch = \"wasm32\"))]",
+        "pub fn attach_motion(",
+        "button: crate::button::motion::sanitize_motion(motion.button)",
+    ] {
+        assert!(
+            copy_motion_source.contains(needle),
+            "button_copy motion should keep platform split/reuse marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "#[cfg(target_arch = \"wasm32\")]",
+        "#[cfg(not(target_arch = \"wasm32\"))]",
+        "pub fn attach_motion(",
+    ] {
+        assert!(
+            button_motion_source.contains(needle),
+            "base Button motion should keep wasm/non-wasm marker `{needle}` for ButtonCopy inheritance."
+        );
+    }
+
+    for needle in [
+        "<Button",
+        "motion=motion.button",
+        "data-copy-status=move || {",
+        "data-ui-output-status=move || {",
+    ] {
+        assert!(
+            copy_view_source.contains(needle),
+            "button_copy view should keep SSR/hydration-stable semantic marker `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn button_copy_docs_default_playground_locks_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
@@ -295,6 +415,34 @@ fn button_copy_docs_default_playground_locks_contract_values() {
             "button_copy docs default playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn button_copy_docs_entry_is_beginner_friendly_with_hello_world_first() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "<Playground title=\"Hello World\" code_signal=hello_world_code>",
+        "let hello_world_code = Signal::derive(move || {",
+        "<ButtonCopy text=\"cargo add ui-components\".to_string() />",
+        "Start simple, then move to advanced controls.",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy docs beginner-friendly entry should include `{needle}`."
+        );
+    }
+
+    let hello_world_pos = source
+        .find("<Playground title=\"Hello World\" code_signal=hello_world_code>")
+        .expect("button_copy docs should include Hello World playground");
+    let workbench_pos = source
+        .find("title=\"Workbench (Isolated Canvas + Optional Persist)\"")
+        .expect("button_copy docs should include Workbench playground");
+    assert!(
+        hello_world_pos < workbench_pos,
+        "button_copy docs should place beginner hello-world path before advanced workbench."
+    );
 }
 
 #[test]
@@ -358,6 +506,394 @@ fn button_copy_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "button_copy docs playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn button_copy_performance_governance_budget_is_defined_and_blocking() {
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+    let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
+    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+
+    for needle in [
+        "\"button-copy\" => UiPerfBudget {",
+        "max_mount_ms: 26.0,",
+        "max_update_ms: Some(9.0),",
+        "max_heap_kb: Some(448.0),",
+    ] {
+        assert!(
+            shell_source.contains(needle),
+            "button-copy page should keep performance budget contract `{needle}`."
+        );
+    }
+
+    for needle in [
+        "toHaveAttribute(\"data-perf-mount-ms\", /[0-9]/);",
+        "toHaveAttribute(\"data-perf-budget-ms\", /[0-9]/);",
+        "toHaveAttribute(\"data-perf-observability\", /mount/);",
+        "not.toHaveAttribute(\"data-perf-violation\", \"true\");",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "docs e2e should keep perf guard `{needle}` for component pages including button-copy."
+        );
+    }
+
+    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_performance_governance_budget_is_defined_and_blocking";
+    assert!(
+        script_source.contains(needle),
+        "performance gate script should include `{needle}`."
+    );
+}
+
+#[test]
+fn button_copy_view_macro_complexity_is_split_into_semantic_subrenders() {
+    let source = load_source("src/button/copy/view.rs");
+
+    for needle in [
+        "fn render_copy_content(",
+        "fn render_copy_button(",
+        "fn render_copy_status(",
+        "{render_copy_button(",
+        "{render_copy_status(status_logic, copied_label, copy_failed_status_text)}",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy view should keep semantic macro split marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_copy_static_icon_fragments_are_constantized() {
+    let source = load_source("src/button/copy/view.rs");
+
+    for needle in [
+        "const ICON_VIEWBOX: &str = \"0 0 16 16\";",
+        "const ICON_COPIED_PATH_D: &str = \"M3 8.5L6.25 11.5L13 4.5\";",
+        "const ICON_IDLE_OFFSET_PATH_D: &str = \"M3 11V5.5C3 4.67 3.67 4 4.5 4H10\";",
+        "fn render_icon_shape(copied: bool) -> AnyView",
+        "let icon_shape = render_icon_shape(copied);",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button_copy icon template should keep static fragment marker `{needle}`."
+        );
+    }
+
+    let svg_occurrences = source.matches("class=\"ui-button-copy__icon-svg\"").count();
+    assert_eq!(
+        svg_occurrences, 1,
+        "button_copy should keep a single svg shell template to reduce repeated view! static fragments."
+    );
+}
+
+#[test]
+fn button_copy_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
+    let view_source = load_source("src/button/copy/view.rs");
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    assert!(
+        !view_source.contains("inner_html"),
+        "ButtonCopy component should not use `inner_html`; keep text/icon rendering explicit and safe."
+    );
+    assert!(
+        !docs_source.contains("inner_html"),
+        "ButtonCopy docs examples should not demonstrate `inner_html` injection."
+    );
+}
+
+#[test]
+fn button_copy_wasm_debug_contract_reuses_button_debug_and_keeps_feature_isolated() {
+    let copy_view_source = load_source("src/button/copy/view.rs");
+    let button_view_source = load_source("src/button/view.rs");
+    let cargo_source = load_source("Cargo.toml");
+    let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
+
+    for needle in ["<Button", "on_press=logic.copy", "motion=motion.button"] {
+        assert!(
+            copy_view_source.contains(needle),
+            "ButtonCopy should keep delegating debug-capable interaction path via `{needle}`."
+        );
+    }
+
+    for needle in [
+        "feature = \"button-wasm-debug\"",
+        "debug_assertions",
+        "data-debug-source=",
+        "data-debug-before=",
+        "data-debug-after=",
+        "data-debug-timestamp-ms=",
+        "data-slot=\"button-debug-replay\"",
+    ] {
+        assert!(
+            button_view_source.contains(needle),
+            "Button wasm debug contract should keep `{needle}` for source/time/before/after and replay."
+        );
+    }
+
+    for needle in [
+        "default = [\"inject-css\", \"all-components\"]",
+        "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
+    ] {
+        assert!(
+            cargo_source.contains(needle),
+            "ui-components feature contract should keep `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let debug_overlay_enabled = cfg!(debug_assertions);",
+        "provide_ui_trace(debug_overlay_enabled);",
+        "<Show when=move || debug_overlay_enabled>",
+        "<debug_overlay::UiDebugOverlay enabled=true />",
+    ] {
+        assert!(
+            docs_app_source.contains(needle),
+            "docs visual debug entry should keep `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_canvas() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "BUTTON_COPY_WORKBENCH_STORAGE_KEY",
+        "fn load_button_copy_workbench_state() -> Option<ButtonCopyWorkbenchState>",
+        "fn save_button_copy_workbench_state(state: ButtonCopyWorkbenchState)",
+        "fn clear_button_copy_workbench_state()",
+        "title=\"Workbench (Isolated Canvas + Optional Persist)\"",
+        "description=\"Workbench canvas: scoped CSS live-edit + optional state persistence across reload.\"",
+        "test_css_source=workbench_test_css_source",
+        "test_config_signal=workbench_actual_config",
+        "<Switch checked=workbench_persist_state set_checked=set_workbench_persist_state>",
+        "\"Persist workbench state\"",
+        "Effect::new(move |_| {",
+        "save_button_copy_workbench_state(ButtonCopyWorkbenchState {",
+        "clear_button_copy_workbench_state();",
+        "data-slot=\"button-copy-workbench\"",
+        "data-slot=\"button-copy-workbench-canvas\"",
+        "data-slot=\"button-copy-workbench-controls\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ButtonCopy workbench should keep DX marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "#[cfg(target_arch = \"wasm32\")]",
+        "#[cfg(not(target_arch = \"wasm32\"))]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ButtonCopy workbench persistence should keep platform guard `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_copy_dx_check_script_covers_workbench_contract() {
+    let script_source = load_source("../../scripts/check-ui-components-dx.sh");
+
+    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_dx_workbench_supports_optional_state_persistence_and_isolated_canvas";
+    assert!(
+        script_source.contains(needle),
+        "DX check script should enforce `{needle}`."
+    );
+}
+
+#[test]
+fn button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks() {
+    let cargo_source = load_source("Cargo.toml");
+    let copy_mod_source = load_source("src/button/copy/mod.rs");
+    let copy_view_source = load_source("src/button/copy/view.rs");
+    let copy_logic_source = load_source("src/button/copy/logic.rs");
+    let copy_motion_source = load_source("src/button/copy/motion.rs");
+    let button_view_source = load_source("src/button/view.rs");
+
+    for needle in [
+        "default = [\"inject-css\", \"all-components\"]",
+        "button-wasm-debug = [\"component-button\", \"dep:tracing\"]",
+    ] {
+        assert!(
+            cargo_source.contains(needle),
+            "button_copy engineering contract should keep feature boundary marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "<Button",
+        "motion=motion.button",
+        "on_press=logic.copy",
+        "crate::button::motion::sanitize_motion(motion.button)",
+    ] {
+        assert!(
+            copy_view_source.contains(needle) || copy_motion_source.contains(needle),
+            "button_copy should reuse Button capability marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "target: \"ui_components::button::state_change\"",
+        "data-debug-source=",
+        "data-debug-before=",
+        "data-debug-after=",
+        "data-debug-timestamp-ms=",
+    ] {
+        assert!(
+            button_view_source.contains(needle),
+            "button tracing/debug contract should provide `{needle}` for reused ButtonCopy interaction path."
+        );
+    }
+
+    for needle in [
+        "button.copy.motion.burst",
+        "button.copy.motion.scale",
+        "button.copy.motion.glow",
+    ] {
+        assert!(
+            copy_motion_source.contains(needle),
+            "button_copy motion observability contract should include `{needle}`."
+        );
+    }
+
+    for source in [
+        &copy_mod_source,
+        &copy_view_source,
+        &copy_logic_source,
+        &copy_motion_source,
+    ] {
+        for forbidden in ["tokio", "tokio::", "async_std", "async-std", "async_std::"] {
+            assert!(
+                !source.contains(forbidden),
+                "button_copy engineering contract should not leak runtime marker `{forbidden}`."
+            );
+        }
+    }
+
+    assert!(
+        !copy_mod_source.contains("web_sys"),
+        "button_copy public module boundary should not leak web_sys types."
+    );
+}
+
+#[test]
+fn button_copy_engineering_check_script_covers_tracing_and_runtime_boundaries() {
+    let script_source = load_source("../../scripts/check-ui-components-engineering.sh");
+
+    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_engineering_contract_reuses_button_tracing_and_avoids_runtime_leaks";
+    assert!(
+        script_source.contains(needle),
+        "engineering check script should enforce `{needle}`."
+    );
+}
+
+#[test]
+fn button_copy_e2e_flow_is_in_repeatable_regression_set() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_button_copy_contract.spec.mjs");
+
+    for needle in [
+        "docs-app button-copy flow uses semantic selectors with settled async copy states",
+        "body:not(:has(#boot))",
+        "section.playground",
+        "[data-slot=\"button-copy\"]",
+        "[data-slot=\"button\"]",
+        "[data-slot=\"button-copy-status\"]",
+        "toHaveAttribute(\"data-copy-status\", \"copied\")",
+        "toHaveAttribute(\"data-copy-status\", \"idle\", { timeout: 3500 })",
+        "poll(() => page.evaluate(() => window.__copiedText))",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "button-copy e2e flow contract should include `{needle}`."
+        );
+    }
+
+    for forbidden in ["waitForTimeout(", "sleep("] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "button-copy e2e flow contract should avoid unstable fixed-delay wait `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn button_copy_e2e_check_script_covers_repeatable_flow_contract() {
+    let script_source = load_source("../../scripts/check-ui-components-e2e-button.sh");
+
+    let needle = "cargo test -p ui-components --test button_copy_semantics button_copy_e2e_flow_is_in_repeatable_regression_set";
+    assert!(
+        script_source.contains(needle),
+        "button-copy e2e check script should enforce `{needle}`."
+    );
+}
+
+#[test]
+fn button_copy_heroui_strategy_doc_sync_tracks_params_and_docs_entrypoint() {
+    let strategy_source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+    let docs_registry_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
+    let docs_actions_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+
+    for needle in [
+        "### ButtonCopy 同步记录（2026-02-17）",
+        "Button` 特化定位",
+        "text`、`label`、`copied_label`、`aria_label`、`mode`、`is_disabled`、`motion`、`lang/dir",
+        "TextOnly` / `IconOnly` / `IconAndText",
+        "apps/docs-app/src/pages/components/pages.rs",
+        "apps/docs-app/src/pages/components/pages/actions.rs",
+        "compose_copy_ready_code",
+    ] {
+        assert!(
+            strategy_source.contains(needle),
+            "HeroUI strategy document should include button-copy sync marker `{needle}`."
+        );
+    }
+
+    assert!(
+        docs_registry_source.contains(
+            "component_doc!(\"ButtonCopy\", \"button-copy\", \"Actions\", actions::button_copy)"
+        ),
+        "docs component registry should expose button-copy entrypoint.",
+    );
+
+    for needle in [
+        "title=\"ButtonCopy\"",
+        "slug=\"button-copy\"",
+        "title=\"Hello World\"",
+        "title=\"Label + variant\"",
+        "title=\"Disabled + empty matrix\"",
+        "title=\"Mode matrix\"",
+    ] {
+        assert!(
+            docs_actions_source.contains(needle),
+            "docs button-copy page should keep synced example marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_copy_directory_layout_matches_component_contract() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let dir = manifest_dir.join("src/button/copy");
+
+    for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
+        let path = dir.join(required);
+        assert!(
+            path.exists(),
+            "button_copy directory contract should include `{required}`."
+        );
+    }
+
+    for forbidden in ["spec.rs", "render.rs"] {
+        let path = dir.join(forbidden);
+        assert!(
+            !path.exists(),
+            "button_copy directory contract should not include `{forbidden}`."
         );
     }
 }

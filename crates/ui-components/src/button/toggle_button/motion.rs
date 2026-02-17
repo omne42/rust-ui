@@ -1,3 +1,5 @@
+use crate::button::motion::ButtonMotion;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ToggleButtonMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -7,61 +9,42 @@ pub struct ToggleButtonMotion {
 
 impl Default for ToggleButtonMotion {
     fn default() -> Self {
+        let button_motion = ButtonMotion::default();
         Self {
-            spring: ui_motion::spring::SpringConfig {
-                stiffness: 260.0,
-                damping: 16.0,
-                mass: 1.0,
-                ..Default::default()
-            },
-            hover_scale: 1.05,
-            tap_scale: 0.95,
+            spring: button_motion.spring,
+            hover_scale: button_motion.hover_scale,
+            tap_scale: button_motion.tap_scale,
         }
     }
 }
 
-fn sanitize_number(value: f64, fallback: f64) -> f64 {
-    if value.is_finite() { value } else { fallback }
-}
-
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = ToggleButtonMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    crate::button::motion::sanitize_spring_with_fallback(value, ButtonMotion::default().spring)
 }
 
 pub fn sanitize_motion(motion: ToggleButtonMotion) -> ToggleButtonMotion {
-    let default = ToggleButtonMotion::default();
+    let defaults = ButtonMotion::default();
+    let sanitized_scales = crate::button::motion::sanitize_motion(ButtonMotion {
+        spring: defaults.spring,
+        hover_scale: motion.hover_scale,
+        tap_scale: motion.tap_scale,
+    });
 
     ToggleButtonMotion {
         spring: sanitize_spring(motion.spring),
-        hover_scale: sanitize_number(motion.hover_scale, default.hover_scale).clamp(0.5, 2.0),
-        tap_scale: sanitize_number(motion.tap_scale, default.tap_scale).clamp(0.5, 1.5),
+        hover_scale: sanitized_scales.hover_scale,
+        tap_scale: sanitized_scales.tap_scale,
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+fn as_button_motion(motion: ToggleButtonMotion) -> ButtonMotion {
+    ButtonMotion {
+        spring: motion.spring,
+        hover_scale: motion.hover_scale,
+        tap_scale: motion.tap_scale,
+    }
+}
+
 pub fn attach_motion(
     node_ref: leptos::prelude::NodeRef<leptos::html::Button>,
     is_hovered: leptos::prelude::ReadSignal<bool>,
@@ -69,89 +52,8 @@ pub fn attach_motion(
     is_disabled: bool,
     motion: ToggleButtonMotion,
 ) {
-    use crate::observability::set_css_property_observed;
-    use leptos::prelude::*;
-    use leptos::wasm_bindgen::JsCast;
-
-    if is_disabled {
-        return;
-    }
-
-    let motion = StoredValue::new(sanitize_motion(motion));
-    let last_state = StoredValue::new(None::<(bool, bool)>);
-    let spring = StoredValue::new_local(None::<ui_motion::spring::SpringAnimator>);
-
-    Effect::new(move |_| {
-        let config = motion.get_value().spring;
-
-        let Some(button) = node_ref.get() else {
-            return;
-        };
-
-        if spring.get_value().is_some() {
-            return;
-        }
-
-        let element: leptos::web_sys::HtmlElement = button.unchecked_into();
-        let style = element.style();
-
-        let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |scale| {
-            let scale = scale.clamp(0.0, 10.0);
-            set_css_property_observed(
-                &style,
-                "--ui-toggle-button-scale",
-                &format!("{scale}"),
-                "button.toggle_button.motion.scale",
-            );
-        });
-
-        let spring_for_cleanup = spring;
-        on_cleanup(move || {
-            if let Some(animator) = spring_for_cleanup.get_value() {
-                animator.stop();
-            }
-        });
-
-        spring.set_value(Some(animator));
-    });
-
-    Effect::new(move |_| {
-        let hovered = is_hovered.get();
-        let pressed = is_pressed.get();
-        let Some(prev) = last_state.get_value() else {
-            last_state.set_value(Some((hovered, pressed)));
-            return;
-        };
-        if prev == (hovered, pressed) {
-            return;
-        }
-        last_state.set_value(Some((hovered, pressed)));
-
-        let motion = motion.get_value();
-        let target = if pressed {
-            motion.tap_scale
-        } else if hovered {
-            motion.hover_scale
-        } else {
-            1.0
-        };
-
-        let Some(spring) = spring.get_value() else {
-            return;
-        };
-        spring.set_target(target);
-    });
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn attach_motion(
-    _node_ref: leptos::prelude::NodeRef<leptos::html::Button>,
-    _is_hovered: leptos::prelude::ReadSignal<bool>,
-    _is_pressed: leptos::prelude::ReadSignal<bool>,
-    _is_disabled: bool,
-    motion: ToggleButtonMotion,
-) {
-    sanitize_motion(motion);
+    let motion = as_button_motion(sanitize_motion(motion));
+    crate::button::motion::attach_motion(node_ref, is_hovered, is_pressed, is_disabled, motion);
 }
 
 #[cfg(test)]
@@ -161,12 +63,10 @@ mod tests {
     #[test]
     fn default_motion_has_reasonable_params() {
         let motion = ToggleButtonMotion::default();
-        assert!(motion.spring.stiffness > 0.0);
-        assert!(motion.spring.damping > 0.0);
-        assert!(motion.spring.mass > 0.0);
-        assert!(motion.hover_scale >= 1.0);
-        assert!(motion.tap_scale > 0.0);
-        assert!(motion.tap_scale <= 1.0);
+        let button_motion = ButtonMotion::default();
+        assert_eq!(motion.spring, button_motion.spring);
+        assert_eq!(motion.hover_scale, button_motion.hover_scale);
+        assert_eq!(motion.tap_scale, button_motion.tap_scale);
     }
 
     #[test]

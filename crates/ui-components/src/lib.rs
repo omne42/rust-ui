@@ -396,9 +396,9 @@ mod web_demo_components {
         Accordion, AccordionItem, AccordionMotion, AccordionSelectionMode, AccordionVariant,
         open_set,
     };
-    pub use action_menu::{ActionMenu, ActionMenuMotion};
+    pub use action_menu::{ActionMenu, ActionMenuItemSpec, ActionMenuMotion};
     pub use active_highlight::ActiveHighlightMotion;
-    pub use alert::{Alert, AlertVariant};
+    pub use alert::{Alert, AlertMotion, AlertVariant};
     pub use alert_dialog::{
         AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant,
     };
@@ -515,9 +515,9 @@ mod all_components {
         open_set,
     };
     pub use action_bar::{ActionBar, ActionBarMotion, ActionBarPosition};
-    pub use action_menu::{ActionMenu, ActionMenuMotion};
+    pub use action_menu::{ActionMenu, ActionMenuItemSpec, ActionMenuMotion};
     pub use active_highlight::ActiveHighlightMotion;
-    pub use alert::{Alert, AlertVariant};
+    pub use alert::{Alert, AlertMotion, AlertVariant};
     pub use alert_banner::{AlertBanner, AlertBannerFill, AlertBannerMotion, AlertBannerTone};
     pub use alert_dialog::{
         AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant,

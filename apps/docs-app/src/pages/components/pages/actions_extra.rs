@@ -14,8 +14,16 @@ pub(super) fn action_bar() -> AnyView {
     // Keep the first playground visible by default so docs + E2E coverage can assert presence.
     let (selected_count, set_selected_count) = signal(2_usize);
     let selected_count_signal = Signal::derive(move || selected_count.get());
+    let on_selected_count_change = Callback::new(move |next: usize| set_selected_count.set(next));
 
     let clear_selection = Callback::new(move |_| set_selected_count.set(0));
+
+    let hello_code = Signal::derive(move || {
+        r#"<ActionBar default_selected_count=1>
+  <ActionButton>"Archive"</ActionButton>
+</ActionBar>"#
+            .to_string()
+    });
 
     let code = Signal::derive(move || {
         let selected_count = selected_count.get();
@@ -23,6 +31,8 @@ pub(super) fn action_bar() -> AnyView {
         vec![
             "<ActionBar".to_string(),
             format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
+            "  on_selected_count_change=Callback::new(move |next: usize| { let _ = next; })"
+                .to_string(),
             "  on_clear_selection=Callback::new(move |_| {})".to_string(),
             "  aria_label=\"Bulk actions\".to_string()".to_string(),
             "  class_name=\"docs-action-bar\".to_string()".to_string(),
@@ -35,13 +45,11 @@ pub(super) fn action_bar() -> AnyView {
     });
 
     let state_code = Signal::derive(move || {
-        let selected_count = selected_count.get();
-
         vec![
             "<ActionBar".to_string(),
-            format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
+            "  default_selected_count=5".to_string(),
             "  position=ActionBarPosition::Top".to_string(),
-            "  force_visible=true".to_string(),
+            "  is_force_visible=true".to_string(),
             "  selection_text=\"Rows selected\".to_string()".to_string(),
             "  clear_label=\"Clear all\".to_string()".to_string(),
             "  motion=ActionBarMotion::disabled()".to_string(),
@@ -62,7 +70,7 @@ pub(super) fn action_bar() -> AnyView {
         vec![
             "<ActionBar".to_string(),
             format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
-            "  force_visible=true".to_string(),
+            "  is_force_visible=true".to_string(),
             "  motion=ActionBarMotion {".to_string(),
             "    hidden_translate_px: 44.0,".to_string(),
             "    hidden_opacity: 0.22,".to_string(),
@@ -74,7 +82,7 @@ pub(super) fn action_bar() -> AnyView {
             "</ActionBar>".to_string(),
             "<ActionBar".to_string(),
             format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
-            "  force_visible=true".to_string(),
+            "  is_force_visible=true".to_string(),
             "  motion=ActionBarMotion::disabled()".to_string(),
             ">".to_string(),
             "  <ActionButton is_quiet=true>\"Sync\"</ActionButton>".to_string(),
@@ -102,6 +110,12 @@ pub(super) fn action_bar() -> AnyView {
             group="Actions"
             description="Bulk-action surface with baseline-style selection contracts and baseline-level spring visibility motion."
         >
+            <Playground title="Hello World" code_signal=hello_code>
+                <ActionBar default_selected_count=1>
+                    <ActionButton>"Archive"</ActionButton>
+                </ActionBar>
+            </Playground>
+
             <Playground title="Selection + clear action" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
@@ -128,6 +142,7 @@ pub(super) fn action_bar() -> AnyView {
 
                     <ActionBar
                         selected_count=selected_count_signal
+                        on_selected_count_change=on_selected_count_change
                         on_clear_selection=clear_selection
                         aria_label="Bulk actions".to_string()
                         class_name="docs-action-bar".to_string()
@@ -141,9 +156,9 @@ pub(super) fn action_bar() -> AnyView {
             <Playground title="Top placement + custom text + reduced motion" code_signal=state_code>
                 <div class="docs-stack">
                     <ActionBar
-                        selected_count=selected_count_signal
+                        default_selected_count=5
                         position=ActionBarPosition::Top
-                        force_visible=true
+                        is_force_visible=true
                         selection_text="Rows selected".to_string()
                         clear_label="Clear all".to_string()
                         motion=ActionBarMotion::disabled()
@@ -161,7 +176,7 @@ pub(super) fn action_bar() -> AnyView {
                 <div class="docs-stack">
                     <ActionBar
                         selected_count=selected_count_signal
-                        force_visible=true
+                        is_force_visible=true
                         motion=custom_motion
                     >
                         <ActionButton is_quiet=true>"Sync"</ActionButton>
@@ -169,7 +184,7 @@ pub(super) fn action_bar() -> AnyView {
                     </ActionBar>
                     <ActionBar
                         selected_count=selected_count_signal
-                        force_visible=true
+                        is_force_visible=true
                         motion=ActionBarMotion::disabled()
                     >
                         <ActionButton is_quiet=true>"Sync"</ActionButton>

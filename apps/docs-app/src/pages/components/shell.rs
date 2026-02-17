@@ -30,6 +30,41 @@ fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget {
             max_update_ms: Some(12.0),
             max_heap_kb: Some(768.0),
         },
+        "button-copy" => UiPerfBudget {
+            max_mount_ms: 26.0,
+            max_update_ms: Some(9.0),
+            max_heap_kb: Some(448.0),
+        },
+        "action-button" => UiPerfBudget {
+            max_mount_ms: 28.0,
+            max_update_ms: Some(9.0),
+            max_heap_kb: Some(448.0),
+        },
+        "action-button-group" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "action-group" => UiPerfBudget {
+            max_mount_ms: 38.0,
+            max_update_ms: Some(14.0),
+            max_heap_kb: Some(768.0),
+        },
+        "action-bar" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "flip-button" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "share-button" => UiPerfBudget {
+            max_mount_ms: 32.0,
+            max_update_ms: Some(11.0),
+            max_heap_kb: Some(576.0),
+        },
         _ => UiPerfBudget::mount_only(120.0),
     }
 }

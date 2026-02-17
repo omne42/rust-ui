@@ -64,6 +64,7 @@ fn theme_toggle_button_uses_button_wrapper_contract() {
         "class_name=class",
         "variant=variant",
         "size=size",
+        "is_icon_only=true",
         "disabled=disabled",
         "on_press=on_press",
     ] {

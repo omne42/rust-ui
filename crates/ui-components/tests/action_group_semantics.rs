@@ -35,6 +35,7 @@ fn action_group_uses_logic_state_model() {
         "pub fn toggle_selected_id(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "selection_source_attr",
         "aria_source_attr",
         "class_source_attr",
         "data_state_attr",
@@ -62,6 +63,133 @@ fn action_group_uses_logic_state_model() {
 }
 
 #[test]
+fn action_group_controlled_uncontrolled_contract_is_complete() {
+    let view_source = load_source("src/button/action/view.rs");
+
+    for needle in [
+        "#[prop(optional, into)] selected_ids: Option<Signal<BTreeSet<String>>>",
+        "#[prop(optional)] default_selected_ids: Option<BTreeSet<String>>",
+        "#[prop(optional)] on_selected_ids_change: Option<Callback<BTreeSet<String>>>",
+        "let is_selection_controlled = selected_ids.is_some();",
+        "let on_selected_change = on_selected_ids_change.or(on_selected_change);",
+        "use_controllable_state(selected_ids, Some(default_selected_ids), on_selected_change)",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ActionGroup controlled/uncontrolled contract should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_composite_apis_use_explicit_children_or_typed_item_specs() {
+    let view_source = load_source("src/button/action/view.rs");
+    let mod_source = load_source("src/button/action/mod.rs");
+    let action_docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
+    let action_extra_docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
+
+    for needle in [
+        "pub fn ActionButtonGroup(",
+        "children: Children,",
+        "{children()}",
+        "pub fn ActionGroup(",
+        "items: Vec<ActionGroupItem>,",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Action composite API should expose explicit composition/type contracts via `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct ActionGroupItem",
+        "pub id: String,",
+        "pub label: String,",
+        "pub disabled: bool,",
+        "pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self",
+    ] {
+        assert!(
+            mod_source.contains(needle),
+            "ActionGroup typed item spec should stay explicit via `{needle}`."
+        );
+    }
+
+    for needle in [
+        "<ActionButtonGroup",
+        "<ActionButton on_press=on_press>\"One\"</ActionButton>",
+        "<ActionButton on_press=on_press>\"Two\"</ActionButton>",
+        "<ActionButton on_press=on_press>\"Three\"</ActionButton>",
+    ] {
+        assert!(
+            action_docs_source.contains(needle),
+            "ActionButtonGroup docs should prefer explicit parent-child composition via `{needle}`."
+        );
+    }
+
+    for needle in [
+        "items=vec![",
+        "ActionGroupItem::new(\"align-left\", \"Align Left\")",
+        "ActionGroupItem::new(\"align-center\", \"Align Center\")",
+        "ActionGroupItem::new(\"align-right\", \"Align Right\")",
+        "ActionGroupItem::new(\"align-justify\", \"Justify\").disabled(true)",
+    ] {
+        assert!(
+            action_extra_docs_source.contains(needle),
+            "ActionGroup docs should prefer typed item specs via `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "labels: Vec<String>",
+        "titles: Vec<String>",
+        "panels: Vec<",
+        "labels=vec![",
+        "titles=vec![",
+        "panels=vec![",
+    ] {
+        assert!(
+            !view_source.contains(forbidden)
+                && !action_docs_source.contains(forbidden)
+                && !action_extra_docs_source.contains(forbidden),
+            "Action composite API should not regress to implicit parallel-array contract `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn action_group_selection_primitive_is_sourced_from_state_primitives() {
+    let logic_source = load_source("src/button/action/logic.rs");
+
+    for needle in [
+        "use ui_state_primitives::action_group as action_group_state;",
+        "fn as_state_primitive(self) -> action_group_state::ActionGroupSelectionMode",
+        "action_group_state::collect_item_ids(",
+        "action_group_state::sanitize_selected_ids(",
+        "action_group_state::toggle_selected_id(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ActionGroup selection primitive should delegate to ui-state-primitives via `{needle}`."
+        );
+    }
+
+    for forbidden in [
+        "if !item_ids.contains(id) {",
+        "ActionGroupSelectionMode::None => BTreeSet::new(),",
+        "if selected_ids.len() <= 1 {",
+        "selected_ids.insert(first);",
+        "if !next.insert(id.to_string()) {",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden),
+            "ActionGroup selection state machine should not be reimplemented in ui-components: `{forbidden}`."
+        );
+    }
+}
+
+#[test]
 fn action_group_emits_baseline_style_state_data_attributes() {
     let source = load_source("src/button/action/view.rs");
 
@@ -71,6 +199,7 @@ fn action_group_emits_baseline_style_state_data_attributes() {
         "data-selection-mode=move || state.get().selection_mode_attr",
         "data-state=move || state.get().data_state_attr",
         "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
+        "data-selection-source=move || state.get().selection_source_attr",
         "data-has-selection=move || state.get().has_selection.then_some(\"true\")",
         "data-item-count=move || state.get().item_count.to_string()",
         "data-selected-count=move || state.get().selected_count.to_string()",
@@ -112,6 +241,34 @@ fn action_group_styles_include_tone_mode_selection_and_markers() {
         assert!(
             source.contains(selector),
             "ActionGroup styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
+fn action_button_family_styles_use_explicit_state_markers_not_fragile_structure() {
+    let source = load_source("src/button/action/styles.rs");
+
+    for selector in [
+        ".ui-action-button-group--justified > .ui-button",
+        ".ui-action-button-group--quiet > .ui-button",
+        ".ui-action-group[data-tone=\"default\"]",
+        ".ui-action-group[data-disabled=\"true\"]",
+        ".ui-action-group[data-has-selection=\"true\"]",
+        ".ui-action-group[data-selection-mode=\"single\"] .ui-action-group__item",
+        ".ui-action-group__item[data-selected=\"true\"]",
+        ".ui-action-group__item[data-disabled=\"true\"]",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Action button-family styles should anchor on explicit class/data markers via `{selector}`."
+        );
+    }
+
+    for fragile in [":nth-child(", ":nth-of-type(", ":only-child", ":has("] {
+        assert!(
+            !source.contains(fragile),
+            "Action button-family styles should avoid fragile DOM-guessing selector `{fragile}`."
         );
     }
 }

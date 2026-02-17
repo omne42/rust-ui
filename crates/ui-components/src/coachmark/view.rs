@@ -58,8 +58,8 @@ pub fn Coachmark(
         || has_actions_slot;
 
     let state = logic::resolve_state(logic::CoachmarkStateInput {
-        variant,
-        placement,
+        variant_attr: variant.as_attr(),
+        placement_attr: placement.as_str(),
         disabled,
         is_controlled: open.is_some(),
         has_footer,

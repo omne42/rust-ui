@@ -12,6 +12,13 @@ use ui_components::{
 };
 
 pub(super) fn alert() -> AnyView {
+    let hello_world_code = Signal::derive(move || {
+        r#"<Alert title="Notice".to_string()>
+  <Button variant=ButtonVariant::Secondary>"Dismiss"</Button>
+</Alert>"#
+            .to_string()
+    });
+
     let variants_code = Signal::derive(move || {
         r#"<Alert variant=AlertVariant::Default title="Notice".to_string() description="Something happened.".to_string()>
   <Button variant=ButtonVariant::Secondary>"Undo"</Button>
@@ -45,6 +52,16 @@ pub(super) fn alert() -> AnyView {
             group="Display"
             description="Inline alert surface with centralized variant/content state attrs and action slot semantics."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <div class="docs-stack">
+                    <Alert title="Notice".to_string()>
+                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
+                            "Dismiss"
+                        </ui_components::Button>
+                    </Alert>
+                </div>
+            </Playground>
+
             <Playground title="Variants + Live Region" code_signal=variants_code>
                 <div class="docs-stack">
                     <Alert
@@ -1141,6 +1158,8 @@ pub(super) fn link() -> AnyView {
 pub(super) fn avatar() -> AnyView {
     let src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2764%27%20height%3D%2764%27%20viewBox%3D%270%200%2064%2064%27%3E%3Cdefs%3E%3CradialGradient%20id%3D%27g%27%20cx%3D%2732%27%20cy%3D%2732%27%20r%3D%2732%27%3E%3Cstop%20offset%3D%270%27%20stop-color%3D%27%23ff4bd8%27/%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%232b5cff%27/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect%20width%3D%2764%27%20height%3D%2764%27%20rx%3D%2732%27%20fill%3D%27url(%23g)%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2752%25%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%20font-size%3D%2724%27%20font-family%3D%27system-ui%27%20fill%3D%27white%27%3EA%3C/text%3E%3C/svg%3E";
 
+    let hello_code = Signal::derive(move || r#"<Avatar />"#.to_string());
+
     let image_code = Signal::derive(move || {
         r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#.to_string()
     });
@@ -1174,6 +1193,12 @@ pub(super) fn avatar() -> AnyView {
             group="Display"
             description="Avatar with image/error fallback, normalized labels, and baseline-style root state attrs + custom-class contract."
         >
+            <Playground title="Hello World" code_signal=hello_code>
+                <div class="docs-row">
+                    <Avatar />
+                </div>
+            </Playground>
+
             <Playground title="Image + Fallback" code_signal=image_code>
                 <div class="docs-row">
                     <Avatar name="Ada Lovelace".to_string() src=src.to_string() size=AvatarSize::Md />
@@ -1249,9 +1274,14 @@ pub(super) fn avatar_group() -> AnyView {
     ];
 
     let empty_items: Vec<AvatarGroupItem> = Vec::new();
+    let empty_items_custom: Vec<AvatarGroupItem> = Vec::new();
     let overflow_items = items.clone();
     let size_items = items.clone();
     let custom_items = items.clone();
+
+    let hello_code = Signal::derive(move || {
+        r#"<AvatarGroup items=Vec::<AvatarGroupItem>::new() />"#.to_string()
+    });
 
     let overflow_code = Signal::derive(move || {
         r#"<AvatarGroup
@@ -1374,6 +1404,12 @@ pub(super) fn avatar_group() -> AnyView {
             group="Display"
             description="Stacked avatars with centralized overflow/empty/aria-label-source state attrs and baseline-style root contracts."
         >
+            <Playground title="Hello World" code_signal=hello_code>
+                <div class="docs-row">
+                    <AvatarGroup items=empty_items.clone() />
+                </div>
+            </Playground>
+
             <Playground title="Overflow Stack" code_signal=overflow_code>
                 <div class="docs-row">
                     <AvatarGroup items=overflow_items.clone() max=3 size=AvatarSize::Md />
@@ -1397,7 +1433,7 @@ pub(super) fn avatar_group() -> AnyView {
             <Playground title="Custom Aria + Class" code_signal=custom_code>
                 <div class="docs-row">
                     <AvatarGroup
-                        items=empty_items.clone()
+                        items=empty_items_custom
                         max=4
                         size=AvatarSize::Md
                         aria_label="No collaborators".to_string()

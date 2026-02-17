@@ -10,29 +10,81 @@ pub use logic::{
 pub use motion::ActionMenuMotion;
 pub use view::ActionMenu;
 
+use crate::MenuItemKind;
 use ui_headless::PopoverPlacement;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum MenuOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
+pub type MenuOpenFocusStrategy = ui_headless::MenuOpenFocusStrategy;
+
+pub fn focus_strategy_for_open_key(key: &str) -> Option<MenuOpenFocusStrategy> {
+    ui_headless::menu_trigger_open_focus_strategy_for_key(key)
 }
 
-impl MenuOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ActionMenuDisabledState {
+    #[default]
+    Enabled,
+    Disabled,
+}
+
+impl ActionMenuDisabledState {
+    pub fn from_bool(is_disabled: bool) -> Self {
+        if is_disabled {
+            Self::Disabled
+        } else {
+            Self::Enabled
         }
+    }
+
+    pub fn is_disabled(self) -> bool {
+        matches!(self, Self::Disabled)
     }
 }
 
-pub fn focus_strategy_for_open_key(key: &str) -> Option<MenuOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(MenuOpenFocusStrategy::First),
-        "ArrowUp" => Some(MenuOpenFocusStrategy::Last),
-        _ => None,
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum ActionMenuActionMode {
+    #[default]
+    CloseOnAction,
+    KeepOpenOnAction,
+}
+
+impl ActionMenuActionMode {
+    pub fn from_bool(is_close_on_action: bool) -> Self {
+        if is_close_on_action {
+            Self::CloseOnAction
+        } else {
+            Self::KeepOpenOnAction
+        }
+    }
+
+    pub fn is_close_on_action(self) -> bool {
+        matches!(self, Self::CloseOnAction)
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ActionMenuItemSpec {
+    pub label: String,
+    pub kind: MenuItemKind,
+    pub is_disabled: bool,
+}
+
+impl ActionMenuItemSpec {
+    pub fn action(label: impl Into<String>) -> Self {
+        Self {
+            label: label.into(),
+            kind: MenuItemKind::Action,
+            is_disabled: false,
+        }
+    }
+
+    pub fn with_kind(mut self, kind: MenuItemKind) -> Self {
+        self.kind = kind;
+        self
+    }
+
+    pub fn with_disabled(mut self, is_disabled: bool) -> Self {
+        self.is_disabled = is_disabled;
+        self
     }
 }
 
@@ -161,5 +213,24 @@ mod tests {
         assert_eq!(MenuOpenFocusStrategy::First.default_index(4), 0);
         assert_eq!(MenuOpenFocusStrategy::Last.default_index(0), 0);
         assert_eq!(MenuOpenFocusStrategy::Last.default_index(4), 3);
+    }
+
+    #[test]
+    fn discrete_axes_map_to_bool_consistently() {
+        assert!(ActionMenuDisabledState::from_bool(true).is_disabled());
+        assert!(!ActionMenuDisabledState::from_bool(false).is_disabled());
+        assert!(ActionMenuActionMode::from_bool(true).is_close_on_action());
+        assert!(!ActionMenuActionMode::from_bool(false).is_close_on_action());
+    }
+
+    #[test]
+    fn item_spec_builders_keep_item_metadata_in_one_structure() {
+        let spec = ActionMenuItemSpec::action("Profile")
+            .with_kind(MenuItemKind::Action)
+            .with_disabled(true);
+
+        assert_eq!(spec.label, "Profile");
+        assert_eq!(spec.kind, MenuItemKind::Action);
+        assert!(spec.is_disabled);
     }
 }

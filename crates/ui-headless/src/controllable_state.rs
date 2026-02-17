@@ -144,6 +144,36 @@ mod tests {
     }
 
     #[test]
+    fn controlled_open_ignores_default_open_value() {
+        let (controlled, _set_controlled) = signal(false);
+
+        let state = use_controllable_open_state_traced(
+            "tests",
+            Some(controlled.into()),
+            Some(true),
+            Some(Callback::new(|_: bool| {})),
+        );
+
+        assert!(
+            !state.open.get_untracked(),
+            "controlled value must stay the single source of truth, default_open must not override it"
+        );
+    }
+
+    #[test]
+    fn controlled_state_without_on_change_is_read_only() {
+        let (controlled, _set_controlled) = signal(false);
+
+        let state = use_controllable_state(Some(controlled.into()), Some(true), None);
+        state.request_change.run(true);
+
+        assert!(
+            !state.value.get_untracked(),
+            "controlled state without callback must not mutate internal value implicitly"
+        );
+    }
+
+    #[test]
     fn uncontrolled_state_supports_non_copy_values() {
         let called = Arc::new(AtomicUsize::new(0));
         let called2 = Arc::clone(&called);

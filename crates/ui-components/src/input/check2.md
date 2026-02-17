@@ -8,9 +8,10 @@
 本清单仅评估“一个组件”的改动结果，不替代仓库级治理。
 先过第 1-2 节（骨架）再进入第 3-6 节（实现细节）。
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
+[x] 本轮推进结论：`Input/InputGroup/InputOtp` 语义测试与 docs 覆盖已落实；当前缺口集中在 API 命名统一、受控/非受控成对、Input 专项 E2E、`reduced-motion` 与渲染预算回归。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Input` 状态原语下沉至 `crates/ui-state-primitives/src/input.rs`，`InputGroup` 状态原语下沉至 `crates/ui-state-primitives/src/input_group.rs`，组件侧 `logic.rs` 改为消费 `ui_state_primitives::*` 并只保留装配逻辑）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +21,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（已完成：`Input` Escape 清空键盘模型下沉到 `crates/ui-headless/src/clearable_text_field.rs`，`Input/InputGroup/InputOtp` 接入 `lang/dir` locale attrs，新增 `e2e/tests/docs_app_input_contract.spec.mjs` 并实跑通过）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。

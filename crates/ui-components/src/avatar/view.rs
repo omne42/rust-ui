@@ -1,5 +1,8 @@
 use crate::avatar::logic::{self, AvatarSize};
 use leptos::prelude::*;
+use ui_headless::i18n;
+use ui_headless::i18n::CommonStrings;
+use ui_headless::{A11yDirection, image_fallback_attrs, locale_attrs};
 
 #[component]
 pub fn Avatar(
@@ -8,55 +11,68 @@ pub fn Avatar(
     #[prop(optional)] size: AvatarSize,
     #[prop(optional, into)] alt: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let name = logic::normalize_optional_text(name);
-    let src = logic::normalize_optional_text(src);
-    let alt = logic::normalize_optional_text(alt);
-    let class_name = logic::normalize_optional_text(class_name);
+    let i18n = i18n::use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
+    let normalized = logic::normalize_input(name, src, alt, class_name);
+    let locale = locale_attrs(logic::normalize_lang(lang), dir);
 
-    let accessibility = logic::resolve_accessibility(name.as_deref(), alt.as_deref());
-    let aria_label = StoredValue::new(accessibility.aria_label);
+    let accessibility =
+        logic::resolve_accessibility(normalized.name.as_deref(), normalized.alt.as_deref());
+    let aria_label_value = if accessibility.label_source == logic::AvatarLabelSource::Fallback {
+        common.avatar_fallback_aria_label.as_ref().to_string()
+    } else {
+        accessibility.aria_label
+    };
+    let aria_label = StoredValue::new(aria_label_value);
     let img_alt = StoredValue::new(accessibility.img_alt);
     let title = StoredValue::new(accessibility.title);
 
     let state = logic::resolve_state(logic::AvatarStateInput {
         size,
-        has_name: name.is_some(),
-        has_src: src.is_some(),
-        has_alt: alt.is_some(),
-        has_custom_class_name: class_name.is_some(),
+        has_name: normalized.has_name,
+        has_src: normalized.has_src,
+        has_alt: normalized.has_alt,
+        has_custom_class_name: normalized.has_custom_class_name,
     });
 
-    let class = logic::compose_class_name(class_name, state);
-    let initials = StoredValue::new(logic::resolve_initials(name.as_deref()));
+    let class = logic::compose_class_name(normalized.class_name, state);
+    let initials = StoredValue::new(logic::resolve_initials(normalized.name.as_deref()));
 
-    let image_src = StoredValue::new(src.unwrap_or_default());
-    let has_src = state.has_src;
-
+    let image_src = StoredValue::new(normalized.image_src);
     let img_error = RwSignal::new(false);
-    let show_image = Signal::derive(move || has_src && !img_error.get());
+    let render_state = Signal::derive(move || {
+        logic::resolve_image_render_state(logic::AvatarImageRenderInput {
+            has_src: state.has_src,
+            has_img_error: img_error.get(),
+        })
+    });
 
     view! {
         <span
             class=class
-            class:ui-avatar--image=move || show_image.get()
-            class:ui-avatar--fallback=move || !show_image.get()
+            class:ui-avatar--image=move || render_state.get().mode.shows_image()
+            class:ui-avatar--fallback=move || !render_state.get().mode.shows_image()
             data-slot="avatar"
             data-size=state.size_attr
-            data-state=move || if show_image.get() { "image" } else { "fallback" }
-            data-image=move || show_image.get().then_some("true")
-            data-fallback=move || (!show_image.get()).then_some("true")
+            data-state=move || render_state.get().mode.as_str()
+            data-image=move || render_state.get().mode.image_attr()
+            data-fallback=move || render_state.get().mode.fallback_attr()
             data-has-name=state.has_name.then_some("true")
             data-has-src=state.has_src.then_some("true")
             data-has-alt=state.has_alt.then_some("true")
-            data-label-source=state.label_source_attr
+            data-label-source=state.label_source.as_str()
             data-custom-class=state.has_custom_class_name.then_some("true")
+            lang=locale.lang.clone()
+            dir=locale.dir
             title=move || title.get_value()
-            role=move || (!show_image.get()).then_some("img".to_string())
-            aria-label=move || (!show_image.get()).then_some(aria_label.get_value())
+            role=move || image_fallback_attrs(render_state.get().mode.shows_image(), aria_label.get_value()).role
+            aria-label=move || image_fallback_attrs(render_state.get().mode.shows_image(), aria_label.get_value()).aria_label
         >
             <Show
-                when=move || show_image.get()
+                when=move || render_state.get().mode.shows_image()
                 fallback=move || {
                     view! {
                         <span

@@ -27,31 +27,44 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
     if value.is_finite() { value } else { fallback }
 }
 
-fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = ButtonMotion::default().spring;
+pub fn sanitize_hover_scale_with_fallback(value: f64, fallback: f64) -> f64 {
+    sanitize_number(value, fallback).clamp(0.5, 2.0)
+}
 
+pub fn sanitize_tap_scale_with_fallback(value: f64, fallback: f64) -> f64 {
+    sanitize_number(value, fallback).clamp(0.5, 1.5)
+}
+
+pub fn sanitize_spring_with_fallback(
+    value: ui_motion::spring::SpringConfig,
+    fallback: ui_motion::spring::SpringConfig,
+) -> ui_motion::spring::SpringConfig {
     ui_motion::spring::SpringConfig {
         stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
             value.stiffness
         } else {
-            default.stiffness
+            fallback.stiffness
         },
         damping: if value.damping.is_finite() && value.damping > 0.0 {
             value.damping
         } else {
-            default.damping
+            fallback.damping
         },
         mass: if value.mass.is_finite() && value.mass > 0.0 {
             value.mass
         } else {
-            default.mass
+            fallback.mass
         },
         precision: if value.precision.is_finite() && value.precision > 0.0 {
             value.precision
         } else {
-            default.precision
+            fallback.precision
         },
     }
+}
+
+fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
+    sanitize_spring_with_fallback(value, ButtonMotion::default().spring)
 }
 
 pub fn sanitize_motion(motion: ButtonMotion) -> ButtonMotion {
@@ -59,8 +72,8 @@ pub fn sanitize_motion(motion: ButtonMotion) -> ButtonMotion {
 
     ButtonMotion {
         spring: sanitize_spring(motion.spring),
-        hover_scale: sanitize_number(motion.hover_scale, default.hover_scale).clamp(0.5, 2.0),
-        tap_scale: sanitize_number(motion.tap_scale, default.tap_scale).clamp(0.5, 1.5),
+        hover_scale: sanitize_hover_scale_with_fallback(motion.hover_scale, default.hover_scale),
+        tap_scale: sanitize_tap_scale_with_fallback(motion.tap_scale, default.tap_scale),
     }
 }
 

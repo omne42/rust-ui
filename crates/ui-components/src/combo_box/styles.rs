@@ -67,7 +67,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__label {
-  font-size: 14px;
+  font-size: var(--ui-font-size-150);
   line-height: 1.2;
   font-weight: 500;
   color: var(--ui-fg);
@@ -99,7 +99,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__trigger {
-  width: 40px;
+  width: var(--ui-component-height-100);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -142,7 +142,7 @@ pub const CSS: &str = r#"
 
 .ui-combo-box__description,
 .ui-combo-box__error {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100);
   line-height: 1.3;
 }
 
@@ -158,9 +158,9 @@ pub const CSS: &str = r#"
   position: fixed;
   top: var(--ui-popover-top, 0px);
   left: var(--ui-popover-left, 0px);
-  width: var(--ui-popover-anchor-width, 240px);
-  max-width: calc(100vw - 16px);
-  z-index: 1000;
+  width: var(--ui-popover-anchor-width, var(--ui-overlay-panel-min-width, 240px));
+  max-width: calc(100vw - var(--ui-overlay-viewport-inset, 16px));
+  z-index: var(--ui-overlay-z-index, 1000);
 
   padding: 0;
   background: var(--ui-bg);
@@ -170,8 +170,8 @@ pub const CSS: &str = r#"
   box-shadow: var(--ui-shadow-md);
 
   --ui-popover-opacity: 0;
-  --ui-popover-scale: 0.98;
-  --ui-popover-y: 6px;
+  --ui-popover-scale: var(--ui-overlay-enter-scale, 0.98);
+  --ui-popover-y: var(--ui-overlay-enter-offset-y, 6px);
 
   opacity: var(--ui-popover-opacity);
   transform: translateY(var(--ui-popover-y)) scale(var(--ui-popover-scale));
@@ -195,7 +195,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__listbox {
-  padding: 4px;
+  padding: var(--ui-space-xs);
 }
 
 .ui-combo-box__options {

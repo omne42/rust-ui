@@ -1,7 +1,8 @@
+use super::super::{ButtonType, logic as button_logic};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SearchInputButtonStateInput {
     pub is_disabled: bool,
-    pub disabled: bool,
     pub has_shortcut: bool,
     pub has_custom_placeholder: bool,
     pub has_custom_compact_placeholder: bool,
@@ -39,15 +40,38 @@ pub struct SearchInputButtonViewState {
     pub show_shortcut: bool,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SearchInputButtonAriaLabelResolution {
+    pub aria_label: String,
+    pub has_custom_aria_label: bool,
+}
+
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+    button_logic::normalize_optional_text(value)
+}
+
+pub fn resolve_button_type(button_type: Option<ButtonType>) -> ButtonType {
+    button_type.unwrap_or_default()
+}
+
+pub fn resolve_effective_aria_label(
+    aria_label: Option<String>,
+    placeholder: &str,
+) -> SearchInputButtonAriaLabelResolution {
+    match normalize_optional_text(aria_label) {
+        Some(aria_label) => SearchInputButtonAriaLabelResolution {
+            aria_label,
+            has_custom_aria_label: true,
+        },
+        None => SearchInputButtonAriaLabelResolution {
+            aria_label: placeholder.to_string(),
+            has_custom_aria_label: false,
+        },
+    }
 }
 
 pub fn resolve_state(input: SearchInputButtonStateInput) -> SearchInputButtonState {
-    let is_disabled = input.is_disabled || input.disabled;
+    let is_disabled = input.is_disabled;
 
     let (state_attr, state_class) = if is_disabled {
         ("disabled", "ui-search-input-button--disabled")
@@ -115,11 +139,12 @@ pub fn resolve_view_state(
     compact_placeholder: Option<&str>,
     meta_key_label: Option<&str>,
     key_label: Option<&str>,
+    fallback_placeholder: &str,
 ) -> SearchInputButtonViewState {
     let placeholder = placeholder
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .unwrap_or("Search")
+        .unwrap_or(fallback_placeholder)
         .to_string();
 
     let compact_placeholder = compact_placeholder
@@ -190,10 +215,37 @@ mod tests {
     }
 
     #[test]
+    fn resolve_button_type_defaults_to_button() {
+        assert_eq!(resolve_button_type(None), ButtonType::Button);
+        assert_eq!(
+            resolve_button_type(Some(ButtonType::Button)),
+            ButtonType::Button
+        );
+        assert_eq!(
+            resolve_button_type(Some(ButtonType::Submit)),
+            ButtonType::Submit
+        );
+        assert_eq!(
+            resolve_button_type(Some(ButtonType::Reset)),
+            ButtonType::Reset
+        );
+    }
+
+    #[test]
+    fn resolve_effective_aria_label_prefers_explicit_and_falls_back_to_placeholder() {
+        let custom = resolve_effective_aria_label(Some("  Open search  ".to_string()), "Search");
+        assert_eq!(custom.aria_label, "Open search");
+        assert!(custom.has_custom_aria_label);
+
+        let fallback = resolve_effective_aria_label(Some("   ".to_string()), "Search docs");
+        assert_eq!(fallback.aria_label, "Search docs");
+        assert!(!fallback.has_custom_aria_label);
+    }
+
+    #[test]
     fn resolve_state_tracks_enablement_and_metadata_flags() {
         let enabled_state = resolve_state(SearchInputButtonStateInput {
             is_disabled: false,
-            disabled: false,
             has_shortcut: true,
             has_custom_placeholder: true,
             has_custom_compact_placeholder: true,
@@ -211,7 +263,6 @@ mod tests {
 
         let disabled_state = resolve_state(SearchInputButtonStateInput {
             is_disabled: true,
-            disabled: false,
             has_shortcut: false,
             has_custom_placeholder: false,
             has_custom_compact_placeholder: false,
@@ -229,12 +280,18 @@ mod tests {
 
     #[test]
     fn view_state_defaults_and_trims_with_blank_fallbacks() {
-        let state = resolve_view_state(Some("  Search docs... "), None, None, None);
+        let state = resolve_view_state(Some("  Search docs... "), None, None, None, "Search");
         assert_eq!(state.placeholder, "Search docs...");
         assert_eq!(state.compact_placeholder, "Search docs...");
         assert!(!state.show_shortcut);
 
-        let state = resolve_view_state(Some("   "), Some("  Go "), Some(" ⌘ "), Some(" K "));
+        let state = resolve_view_state(
+            Some("   "),
+            Some("  Go "),
+            Some(" ⌘ "),
+            Some(" K "),
+            "Search",
+        );
         assert_eq!(state.placeholder, "Search");
         assert_eq!(state.compact_placeholder, "Go");
         assert_eq!(state.meta_key_label.as_deref(), Some("⌘"));
@@ -244,10 +301,10 @@ mod tests {
 
     #[test]
     fn shortcut_requires_both_keys() {
-        let state = resolve_view_state(Some("Search"), None, Some("⌘"), None);
+        let state = resolve_view_state(Some("Search"), None, Some("⌘"), None, "Search");
         assert!(!state.show_shortcut);
 
-        let state = resolve_view_state(Some("Search"), None, None, Some("K"));
+        let state = resolve_view_state(Some("Search"), None, None, Some("K"), "Search");
         assert!(!state.show_shortcut);
     }
 
@@ -257,7 +314,6 @@ mod tests {
             Some("custom".to_string()),
             resolve_state(SearchInputButtonStateInput {
                 is_disabled: false,
-                disabled: false,
                 has_shortcut: true,
                 has_custom_placeholder: true,
                 has_custom_compact_placeholder: true,

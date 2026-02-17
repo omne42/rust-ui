@@ -1,7 +1,7 @@
 use leptos::{ev, html, prelude::*};
 use ui_headless::{
-    FocusRingOptions, InputOtpOptions, TextFieldOptions, use_focus_ring, use_input_otp,
-    use_text_field,
+    A11yDirection, FocusRingOptions, InputOtpOptions, TextFieldOptions, i18n, locale_attrs,
+    use_focus_ring, use_input_otp, use_text_field,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -59,14 +59,23 @@ pub fn InputOtp(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] node_ref: NodeRef<html::Input>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let strings = i18n.strings::<super::i18n::InputOtpStrings>();
     let length = length.clamp(1, 12);
     let on_change = StoredValue::new(on_change);
+    let locale = locale_attrs(lang, dir);
 
     let label = label.filter(|value| !value.trim().is_empty());
     let aria_label = aria_label.filter(|value| !value.trim().is_empty());
-    let aria_label = aria_label.or_else(|| label.is_none().then_some("One-time code".to_string()));
+    let aria_label = aria_label.or_else(|| {
+        label
+            .is_none()
+            .then_some(strings.aria_label.as_ref().to_string())
+    });
     let aria_label = StoredValue::new(aria_label);
 
     let label = StoredValue::new(label);
@@ -226,6 +235,8 @@ pub fn InputOtp(
     view! {
         <div
             class=class
+            lang=locale.lang.clone()
+            dir=locale.dir
             class:ui-input-otp--focus-visible=move || focus_ring.is_focus_visible.get()
             class:ui-input-otp--invalid=move || invalid.get()
             data-slot="input-otp"

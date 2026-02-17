@@ -1,3 +1,8 @@
+use ui_headless::{LiveRegionPriority, live_region_attrs};
+use ui_state_primitives::alert::{AlertStateCoreInput, resolve_state_core};
+
+pub use ui_state_primitives::alert::normalize_optional_text;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum AlertVariant {
     #[default]
@@ -22,6 +27,10 @@ impl AlertVariant {
             AlertVariant::Danger => "danger",
         }
     }
+}
+
+pub fn normalize_variant(variant: Option<AlertVariant>) -> AlertVariant {
+    variant.unwrap_or_default()
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -54,72 +63,59 @@ pub struct AlertState {
     pub has_custom_class_name: bool,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
 pub fn resolve_state(input: AlertStateInput) -> AlertState {
-    let title_class = if input.has_title {
+    let core = resolve_state_core(AlertStateCoreInput {
+        has_title: input.has_title,
+        has_description: input.has_description,
+        has_actions: input.has_actions,
+    });
+    let live_region = if input.variant == AlertVariant::Danger {
+        live_region_attrs(LiveRegionPriority::Assertive)
+    } else {
+        live_region_attrs(LiveRegionPriority::Polite)
+    };
+
+    let title_class = if core.has_title {
         "ui-alert--with-title"
     } else {
         "ui-alert--no-title"
     };
-    let title_attr = if input.has_title { "present" } else { "absent" };
 
-    let description_class = if input.has_description {
+    let description_class = if core.has_description {
         "ui-alert--with-description"
     } else {
         "ui-alert--no-description"
     };
-    let description_attr = if input.has_description {
-        "present"
-    } else {
-        "absent"
-    };
 
-    let actions_class = if input.has_actions {
+    let actions_class = if core.has_actions {
         "ui-alert--with-actions"
     } else {
         "ui-alert--no-actions"
     };
-    let actions_attr = if input.has_actions {
-        "present"
-    } else {
-        "absent"
-    };
 
-    let (state_class, state_attr) = if input.has_title && input.has_description {
-        ("ui-alert--detailed", "detailed")
+    let state_class = if core.state_attr == "detailed" {
+        "ui-alert--detailed"
     } else {
-        ("ui-alert--compact", "compact")
-    };
-
-    let (role_attr, live_attr) = if input.variant == AlertVariant::Danger {
-        ("alert", "assertive")
-    } else {
-        ("status", "polite")
+        "ui-alert--compact"
     };
 
     AlertState {
         variant: input.variant,
         variant_class: input.variant.class_name(),
         variant_attr: input.variant.as_attr(),
-        has_title: input.has_title,
+        has_title: core.has_title,
         title_class,
-        title_attr,
-        has_description: input.has_description,
+        title_attr: core.title_attr,
+        has_description: core.has_description,
         description_class,
-        description_attr,
-        has_actions: input.has_actions,
+        description_attr: core.description_attr,
+        has_actions: core.has_actions,
         actions_class,
-        actions_attr,
+        actions_attr: core.actions_attr,
         state_class,
-        state_attr,
-        role_attr,
-        live_attr,
+        state_attr: core.state_attr,
+        role_attr: live_region.role,
+        live_attr: live_region.aria_live,
         has_custom_class_name: input.has_custom_class_name,
     }
 }
@@ -178,6 +174,19 @@ mod tests {
         assert_eq!(
             normalize_optional_text(Some(" docs-alert ".to_string())),
             Some("docs-alert".to_string())
+        );
+    }
+
+    #[test]
+    fn normalize_variant_uses_default_when_unspecified() {
+        assert_eq!(normalize_variant(None), AlertVariant::Default);
+        assert_eq!(
+            normalize_variant(Some(AlertVariant::Accent)),
+            AlertVariant::Accent
+        );
+        assert_eq!(
+            normalize_variant(Some(AlertVariant::Danger)),
+            AlertVariant::Danger
         );
     }
 

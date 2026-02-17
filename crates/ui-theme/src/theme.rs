@@ -3,9 +3,9 @@ use crate::tokens::{
     BUTTON_LAYOUT_TOKENS_LARGE, BUTTON_LAYOUT_TOKENS_MEDIUM, BUTTON_MOTION_TOKENS_LARGE,
     BUTTON_MOTION_TOKENS_MEDIUM, ButtonLayoutTokens, ButtonMotionTokens, ColorAliasTokens,
     ColorPaletteTokens, ColorScaleTokens, CommonColorScales, ComponentColorTokens,
-    ComponentLayoutTokens, IconTokens, LayoutSemanticTokens, LayoutTokens, RadiusTokens,
-    SemanticColorTokens, SemanticRoleTokens, SemanticScaleTokens, ShadowTokens, SpaceTokens,
-    ThemeTokens, TokenScale, TypographyTokens,
+    ComponentLayoutTokens, IconTokens, LayoutSemanticTokens, LayoutTokens, OverlayLayoutTokens,
+    RadiusTokens, SemanticColorTokens, SemanticRoleTokens, SemanticScaleTokens, ShadowTokens,
+    SpaceTokens, ThemeTokens, TokenScale, TypographyTokens,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -475,6 +475,8 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
             lg_px: radius_base_px + (radius_base_px / 2),
         },
         space: SpaceTokens {
+            space_3xs_px: 2,
+            space_2xs_px: 4,
             xs_px: 4,
             sm_px: 8,
             md_px: 12,
@@ -500,9 +502,13 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         },
     };
 
-    let (typography, component_layout) = match ctx.scale.token_scale() {
+    let (typography, component_layout, overlay_layout) = match ctx.scale.token_scale() {
         TokenScale::Medium => (
             TypographyTokens {
+                // Baseline: 12px for font-size-100 at medium scale.
+                font_size_100_px: 12,
+                // Baseline: 14px for font-size-150 at medium scale.
+                font_size_150_px: 14,
                 // Baseline: 16px for font-size-200 at medium scale.
                 font_size_200_px: 16,
             },
@@ -510,15 +516,33 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
                 // Baseline: 32px for component-height-100 at medium scale.
                 component_height_100_px: 32,
             },
+            OverlayLayoutTokens {
+                z_index: 1000,
+                panel_min_width_px: 240,
+                viewport_inset_px: 16,
+                enter_offset_y_px: 6,
+                enter_scale: 0.98,
+            },
         ),
         TokenScale::Large => (
             TypographyTokens {
+                // Baseline: 14px for font-size-100 at large scale.
+                font_size_100_px: 14,
+                // Baseline: 16px for font-size-150 at large scale.
+                font_size_150_px: 16,
                 // Baseline: 19px for font-size-200 at large scale.
                 font_size_200_px: 19,
             },
             ComponentLayoutTokens {
                 // Baseline: 40px for component-height-100 at large scale.
                 component_height_100_px: 40,
+            },
+            OverlayLayoutTokens {
+                z_index: 1000,
+                panel_min_width_px: 280,
+                viewport_inset_px: 20,
+                enter_offset_y_px: 8,
+                enter_scale: 0.98,
             },
         ),
     };
@@ -574,6 +598,7 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         icons,
         layout,
         component_layout,
+        overlay_layout,
         typography,
         button_layout: button_layout_tokens(ctx),
     }
@@ -609,9 +634,15 @@ mod tests {
         assert!(css.contains("--ui-accent-fg:"));
         assert!(css.contains("--ui-danger:"));
         assert!(css.contains("--ui-radius-md:"));
+        assert!(css.contains("--ui-space-3xs:"));
+        assert!(css.contains("--ui-space-2xs:"));
         assert!(css.contains("--ui-shadow-md:"));
         assert!(css.contains("--ui-font-size-200:"));
+        assert!(css.contains("--ui-font-size-150:"));
+        assert!(css.contains("--ui-font-size-100:"));
         assert!(css.contains("--ui-component-height-100:"));
+        assert!(css.contains("--ui-overlay-panel-min-width:"));
+        assert!(css.contains("--ui-overlay-z-index:"));
         assert!(css.contains("--ui-button-min-width:"));
         assert!(css.contains("--ui-button-spinner-size:"));
         assert!(css.contains("--ui-button-size-m-height:"));

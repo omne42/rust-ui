@@ -10,4 +10,7 @@ cargo test -p ui-components --test button_semantics button_e2e_selector_contract
 echo "[e2e-button] contract: keyboard flow + code snapshot sync"
 cargo test -p ui-components --test button_semantics button_e2e_key_flow_covers_keyboard_and_code_sync_path
 
+echo "[e2e-button] contract: button-copy repeatable key flow"
+cargo test -p ui-components --test button_copy_semantics button_copy_e2e_flow_is_in_repeatable_regression_set
+
 echo "[e2e-button] OK"

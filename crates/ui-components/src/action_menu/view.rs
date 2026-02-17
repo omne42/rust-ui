@@ -1,22 +1,29 @@
 use crate::action_menu::{
-    ActionMenuMotion, ActionMenuPartStateInput, ActionMenuSlot, MenuOpenFocusStrategy, logic,
+    ActionMenuActionMode, ActionMenuDisabledState, ActionMenuItemSpec, ActionMenuMotion,
+    ActionMenuPartStateInput, ActionMenuSlot, MenuOpenFocusStrategy, logic,
 };
 use crate::button::action::{ActionButton, ActionButtonSize};
 use crate::{Menu, MenuItemKind, OnPress, Popover};
 use leptos::{ev, html, prelude::*};
 use ui_headless as overlay_open;
-use ui_headless::PopoverPlacement;
-use ui_headless::use_presence;
+use ui_headless::{
+    A11yDirection, CommonStrings, PopoverPlacement, locale_attrs, use_presence, use_ui_i18n,
+};
 
 #[component]
 pub fn ActionMenu(
     id_base: String,
-    items: Vec<String>,
+    #[prop(optional)] items: Vec<String>,
     on_action: Callback<usize>,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] item_specs: Vec<ActionMenuItemSpec>,
+    #[prop(optional)] disabled_state: Option<ActionMenuDisabledState>,
+    #[prop(optional)] is_disabled: Option<bool>,
+    #[prop(optional)] disabled: Option<bool>,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
-    #[prop(default = true)] close_on_action: bool,
+    #[prop(optional)] action_mode: Option<ActionMenuActionMode>,
+    #[prop(optional)] is_close_on_action: Option<bool>,
+    #[prop(optional)] close_on_action: Option<bool>,
     #[prop(optional)] placement: PopoverPlacement,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
@@ -24,44 +31,82 @@ pub fn ActionMenu(
     #[prop(optional)] size: ActionButtonSize,
     #[prop(optional)] is_quiet: bool,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: ActionMenuMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let id_base = logic::normalize_id_base(id_base);
-    let has_custom_id_base = id_base != logic::DEFAULT_ID_BASE;
-    let id_base = StoredValue::new(id_base);
+    let i18n = use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
+    let locale = locale_attrs(lang, dir);
 
-    let items: StoredValue<std::sync::Arc<[String]>> = StoredValue::new(items.into());
-    let item_count = items.get_value().len();
+    let normalized_items = logic::normalize_menu_items(logic::ActionMenuItemsInput {
+        item_specs,
+        items,
+        item_kinds,
+        disabled_indices,
+    });
+    let item_count = normalized_items.item_count;
+    let item_kinds_len = normalized_items.item_kinds.len();
+    let items: StoredValue<std::sync::Arc<[String]>> =
+        StoredValue::new(normalized_items.items.into());
 
-    let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);
-    let has_disabled_items = !disabled_indices.is_empty();
-    let has_custom_disabled_indices = has_disabled_items;
-    let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
-
-    let has_item_kinds = !item_kinds.is_empty();
-    let has_custom_item_kinds = has_item_kinds;
-    let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(item_kinds);
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
-
-    let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
-    let aria_label = StoredValue::new(aria_label);
-
-    let has_custom_disabled = disabled != logic::DEFAULT_DISABLED;
-    let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
-    let has_custom_placement = placement != logic::DEFAULT_PLACEMENT;
     let has_custom_open = open.is_some();
     let has_custom_default_open = default_open.is_some();
     let has_custom_on_open_change = on_open_change.is_some();
     let motion = crate::action_menu::motion::sanitize_motion(motion);
     let has_custom_motion = motion != ActionMenuMotion::default();
 
-    let trigger_disabled = logic::resolve_trigger_disabled(disabled, item_count);
+    let logic::ActionMenuNormalizedProps {
+        id_base,
+        has_custom_id_base,
+        disabled_indices,
+        has_disabled_items,
+        has_custom_disabled_indices,
+        has_item_kinds,
+        has_custom_item_kinds,
+        class_name,
+        has_custom_class_name,
+        aria_label,
+        has_custom_aria_label,
+        disabled_state: _,
+        action_mode,
+        has_custom_disabled,
+        has_custom_close_on_action,
+        has_custom_placement,
+        trigger_disabled,
+        is_controlled,
+        has_custom_open: _,
+        has_custom_default_open: _,
+        has_custom_on_open_change: _,
+        has_custom_motion: _,
+    } = logic::normalize_props(logic::ActionMenuNormalizeInput {
+        id_base,
+        item_count,
+        disabled_indices: normalized_items.disabled_indices,
+        item_kinds_len,
+        class_name,
+        aria_label,
+        fallback_aria_label: common.action_menu_trigger_aria_label.to_string(),
+        disabled_state,
+        is_disabled,
+        disabled,
+        action_mode,
+        is_close_on_action,
+        close_on_action,
+        placement,
+        has_custom_open,
+        has_custom_default_open,
+        has_custom_on_open_change,
+        has_custom_motion,
+    });
 
-    let is_controlled = has_custom_open;
+    let id_base = StoredValue::new(id_base);
+    let disabled_indices: StoredValue<Vec<usize>> = StoredValue::new(disabled_indices);
+    let item_kinds: StoredValue<Vec<MenuItemKind>> = StoredValue::new(normalized_items.item_kinds);
+    let class_name = StoredValue::new(class_name);
+    let aria_label = StoredValue::new(aria_label);
+
     let open_state = overlay_open::use_controllable_open_state_traced(
         "action-menu",
         open,
@@ -77,7 +122,7 @@ pub fn ActionMenu(
             is_open: open.get(),
             item_count,
             trigger_disabled,
-            close_on_action,
+            close_on_action: action_mode.is_close_on_action(),
             has_disabled_items,
             has_item_kinds,
             is_controlled,
@@ -108,22 +153,19 @@ pub fn ActionMenu(
     let item_count = StoredValue::new(item_count);
 
     let on_trigger_press: OnPress = Callback::new(move |_| {
-        if trigger_disabled {
-            return;
+        if let Some(result) = logic::resolve_trigger_press(trigger_disabled, open.get_untracked()) {
+            if let Some(strategy) = result.open_focus {
+                set_open_focus.set(strategy);
+            }
+            request_open_change.run(result.next_open);
         }
-
-        let next_open = !open.get_untracked();
-        if next_open {
-            set_open_focus.set(MenuOpenFocusStrategy::First);
-        }
-        request_open_change.run(next_open);
     });
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
     let on_action_wrapped = Callback::new(move |index: usize| {
         on_action.run(index);
-        if close_on_action {
-            request_open_change.run(false);
+        if let Some(next_open) = logic::resolve_action_open_change(action_mode) {
+            request_open_change.run(next_open);
         }
     });
 
@@ -134,15 +176,11 @@ pub fn ActionMenu(
     let presence = use_presence(open);
 
     let on_key_down = move |ev: ev::KeyboardEvent| {
-        if trigger_disabled {
-            return;
-        }
-        if open.get_untracked() {
-            return;
-        }
-
-        let key = ev.key();
-        if let Some(strategy) = crate::action_menu::focus_strategy_for_open_key(&key) {
+        if let Some(strategy) = ui_headless::menu_trigger_open_focus_strategy(
+            &ev.key(),
+            trigger_disabled,
+            open.get_untracked(),
+        ) {
             set_open_focus.set(strategy);
             request_open_change.run(true);
             ev.prevent_default();
@@ -198,6 +236,8 @@ pub fn ActionMenu(
             data-custom-default-open=move || root_state.get().has_custom_default_open.then_some("true")
             data-custom-open-change=move || root_state.get().has_custom_on_open_change.then_some("true")
             data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
+            lang=locale.lang.clone()
+            dir=locale.dir
             on:keydown=on_key_down
         >
             <ActionButton

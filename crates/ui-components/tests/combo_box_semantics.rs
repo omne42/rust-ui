@@ -23,6 +23,25 @@ fn combo_box_does_not_expose_logic_or_view_modules() {
 fn combo_box_uses_logic_state_model() {
     let view_source = load_source("src/combo_box/view.rs");
     let logic_source = load_source("src/combo_box/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/combo_box.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::combo_box::{",
+        "ComboBoxStateInput",
+        "ComboBoxState",
+        "RootDataState",
+        "resolve_root_data_state",
+        "normalize_optional_text",
+        "normalize_id_base",
+        "normalize_disabled_indices",
+        "resolve_state",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ComboBox logic should include `{needle}` while consuming centralized ui-state-primitives."
+        );
+    }
 
     for needle in [
         "pub struct ComboBoxStateInput",
@@ -30,20 +49,25 @@ fn combo_box_uses_logic_state_model() {
         "pub fn normalize_optional_text(",
         "pub fn normalize_id_base(",
         "pub fn normalize_disabled_indices(",
+        "pub fn filter_indices(",
+        "pub fn map_selected_to_filtered(",
+        "pub fn map_filtered_to_original(",
         "pub fn resolve_state(",
-        "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ComboBox logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "ComboBox primitive source should define `{needle}`."
         );
     }
 
     for needle in [
-        "let id_base = logic::normalize_id_base(id_base);",
-        "let disabled_indices = logic::normalize_disabled_indices(disabled_indices, item_count);",
-        "let state = logic::resolve_state(logic::ComboBoxStateInput {",
-        "let class = logic::compose_class_name(class_name, state);",
+        "let root_state = logic::normalize_root_state(logic::RootStateInput {",
+        "logic::filter_indices(items.as_ref(), &query.get(), has_typed.get())",
+        "logic::map_selected_to_filtered(selected_index.get(), &filtered_indices.get())",
+        "logic::map_filtered_to_original(filtered_index, &indices)",
+        "logic::resolve_root_data_state(is_open.get(), state.is_disabled).as_attr()",
+        "let state = root_state.state;",
+        "let class = root_state.class_name;",
     ] {
         assert!(
             view_source.contains(needle),
@@ -53,17 +77,165 @@ fn combo_box_uses_logic_state_model() {
 }
 
 #[test]
-fn combo_box_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/combo_box/view.rs");
+fn combo_box_logic_does_not_reimplement_reusable_state_primitives() {
+    let logic_source = load_source("src/combo_box/logic.rs");
+
+    for forbidden in [
+        "pub fn normalize_disabled_indices(",
+        "pub fn filter_indices(",
+        "pub fn map_selected_to_filtered(",
+        "pub fn map_filtered_to_original(",
+        "pub fn resolve_state(",
+    ] {
+        assert!(
+            !logic_source.contains(forbidden),
+            "ComboBox logic should not reimplement reusable primitive `{forbidden}`; it must consume ui-state-primitives instead.",
+        );
+    }
+}
+
+#[test]
+fn combo_box_component_has_store_adapter_boundary() {
+    let view_source = load_source("src/combo_box/view.rs");
+    let logic_source = load_source("src/combo_box/logic.rs");
+
+    for forbidden in ["GlobalState", "AppState", "Store<", "SignalStore", "apps::"] {
+        assert!(
+            !view_source.contains(forbidden) && !logic_source.contains(forbidden),
+            "ComboBox should not bind app/business store type `{forbidden}` directly.",
+        );
+    }
+}
+
+#[test]
+fn combo_box_discrete_data_state_is_enum_backed() {
+    let view_source = load_source("src/combo_box/view.rs");
+    let logic_source = load_source("src/combo_box/logic.rs");
 
     for needle in [
+        "pub enum RootDataState",
+        "Open,",
+        "Disabled,",
+        "Closed,",
+        "pub fn resolve_root_data_state(",
+        "pub const fn as_attr(self) -> &'static str",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ComboBox logic should model discrete data-state with `{needle}`."
+        );
+    }
+
+    assert!(
+        view_source
+            .contains("logic::resolve_root_data_state(is_open.get(), state.is_disabled).as_attr()"),
+        "ComboBox view should map data-state via typed enum contract instead of inline string branching."
+    );
+}
+
+#[test]
+fn combo_box_supports_controlled_and_uncontrolled_open_state() {
+    let source = load_source("src/combo_box/view.rs");
+    let logic_source = load_source("src/combo_box/logic.rs");
+
+    for needle in [
+        "is_open: Option<Signal<bool>>",
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "pub struct OpenStateInput",
+        "pub struct OpenState",
+        "pub fn normalize_open_state(",
+    ] {
+        assert!(
+            source.contains(needle) || logic_source.contains(needle),
+            "ComboBox should accept `{needle}` for controlled/uncontrolled open state."
+        );
+    }
+}
+
+#[test]
+fn combo_box_wires_open_value_change_default_triplet_into_headless_state() {
+    let source = load_source("src/combo_box/view.rs");
+
+    for needle in [
+        "let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {",
+        "let open_state = overlay_open::use_controllable_open_state_traced(",
+        "\"combo-box\",",
+        "open,",
+        "default_open,",
+        "on_open_change,",
+        "let is_open = open_state.open;",
+        "let set_open = open_state.request_open_change;",
     ] {
         assert!(
             source.contains(needle),
-            "ComboBox should accept `{needle}` for controlled/uncontrolled open state."
+            "ComboBox open axis should wire `{needle}` for stable controlled/uncontrolled semantics.",
+        );
+    }
+}
+
+#[test]
+fn combo_box_supports_is_prefixed_boolean_props_with_legacy_aliases() {
+    let source = load_source("src/combo_box/view.rs");
+    let logic_source = load_source("src/combo_box/logic.rs");
+
+    for needle in [
+        "is_disabled: Option<bool>",
+        "disabled: bool",
+        "is_required: Option<Signal<bool>>",
+        "required: Option<Signal<bool>>",
+        "is_invalid: Option<Signal<bool>>",
+        "invalid: Option<Signal<bool>>",
+        "pub struct AccessibilityStateInput",
+        "pub struct AccessibilityState",
+        "pub fn normalize_accessibility_state(",
+        "is_disabled: input.is_disabled.unwrap_or(input.disabled)",
+        "let required = input",
+        ".is_required",
+        ".or(input.required)",
+        "let invalid = input",
+        ".is_invalid",
+        ".or(input.invalid)",
+    ] {
+        assert!(
+            source.contains(needle) || logic_source.contains(needle),
+            "ComboBox API naming contract should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let accessibility_state =",
+        "logic::normalize_accessibility_state(logic::AccessibilityStateInput {",
+        "let is_disabled = accessibility_state.is_disabled;",
+        "let required = accessibility_state.required;",
+        "let invalid = accessibility_state.invalid;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ComboBox view should consume normalized accessibility state via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn combo_box_view_does_not_inline_default_fallback_rules() {
+    let source = load_source("src/combo_box/view.rs");
+
+    for forbidden in [
+        "is_disabled.unwrap_or(disabled)",
+        "is_required.or(required)",
+        "is_invalid.or(invalid)",
+        "is_open.or(open)",
+        "unwrap_or_else(|| Signal::derive(|| false))",
+        "logic::normalize_id_base(",
+        "logic::normalize_label(",
+        "logic::resolve_placeholder(",
+        "logic::resolve_state(",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "ComboBox view.rs should not own fallback/priority rule `{forbidden}`; keep it in logic.rs.",
         );
     }
 }
@@ -72,17 +244,23 @@ fn combo_box_supports_controlled_and_uncontrolled_open_state() {
 fn combo_box_normalizes_label_placeholder_and_id_base() {
     let view_source = load_source("src/combo_box/view.rs");
     let logic_source = load_source("src/combo_box/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/combo_box.rs");
 
     for needle in [
-        "logic::normalize_label",
-        "logic::resolve_placeholder",
-        "logic::normalize_id_base",
+        "normalize_label(",
+        "resolve_placeholder(",
+        "normalize_id_base(",
     ] {
         assert!(
-            view_source.contains(needle),
-            "ComboBox view should use `{needle}` to keep text and id semantics stable."
+            logic_source.contains(needle),
+            "ComboBox logic should use `{needle}` to keep text and id semantics stable."
         );
     }
+
+    assert!(
+        view_source.contains("logic::normalize_root_state(logic::RootStateInput {"),
+        "ComboBox view should delegate normalization to logic::normalize_root_state."
+    );
 
     for needle in [
         "pub const DEFAULT_LABEL: &str = \"Options\"",
@@ -90,8 +268,8 @@ fn combo_box_normalizes_label_placeholder_and_id_base() {
         "pub const DEFAULT_PLACEHOLDER: &str = \"Select…\"",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ComboBox logic should provide fallback semantics via `{needle}`."
+            primitive_source.contains(needle),
+            "ComboBox primitives should provide fallback semantics via `{needle}`."
         );
     }
 }
@@ -100,10 +278,36 @@ fn combo_box_normalizes_label_placeholder_and_id_base() {
 fn combo_box_escape_stops_propagation_when_open() {
     let source = load_source("src/combo_box/view.rs");
 
-    for needle in ["stop_propagation()", "key == \"Escape\"", "was_open"] {
+    for needle in [
+        "let key_result = aria.handlers.on_input_key_down.run(key);",
+        "if key_result.handled {",
+        "if key_result.stop_propagation {",
+    ] {
         assert!(
             source.contains(needle),
-            "ComboBox should handle Escape bubbling with `{needle}` to avoid closing parent overlays unexpectedly."
+            "ComboBox should consume typed headless keydown outcomes via `{needle}` to keep keyboard semantics out of view.rs."
+        );
+    }
+}
+
+#[test]
+fn combo_box_passes_lang_dir_and_headless_aria_controls_contract() {
+    let source = load_source("src/combo_box/view.rs");
+
+    for needle in [
+        "lang: Option<String>",
+        "dir: Option<A11yDirection>",
+        "lang,",
+        "dir,",
+        "aria-controls=move || aria.input.aria_controls.get()",
+        "lang=aria.input.lang.clone()",
+        "dir=aria.input.dir",
+        "lang=aria.listbox.lang.clone()",
+        "dir=aria.listbox.dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ComboBox should wire `{needle}` so locale + aria-controls semantics come from ui-headless contract."
         );
     }
 }
@@ -324,8 +528,8 @@ fn combo_box_docs_page_covers_primary_playgrounds() {
         "<Playground title=\"Controlled Open State\" code_signal=controlled_code>",
         "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
         "<ComboBox",
-        "open=controlled_open",
-        "disabled=true",
+        "is_open=controlled_open",
+        "is_disabled=true",
     ] {
         assert!(
             source.contains(needle),

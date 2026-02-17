@@ -134,7 +134,7 @@ fn action_button_group_docs_page_covers_primary_playgrounds() {
         "<ActionButtonGroup",
         "density=ActionButtonGroupDensity::Compact",
         "orientation=ActionButtonGroupOrientation::Vertical",
-        "disabled=true",
+        "is_disabled=true",
     ] {
         assert!(
             source.contains(needle),
