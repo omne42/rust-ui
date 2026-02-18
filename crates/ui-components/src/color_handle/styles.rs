@@ -14,6 +14,9 @@ pub const CSS: &str = r#"
     linear-gradient(135deg, color-mix(in oklch, var(--ui-accent), transparent 82%), transparent),
     color-mix(in oklch, var(--ui-bg), var(--ui-fg) 2%);
   overflow: hidden;
+  transition:
+    border-color var(--ui-color-handle-motion-duration, 140ms) ease,
+    box-shadow var(--ui-color-handle-motion-duration, 140ms) ease;
 }
 
 .ui-color-handle__thumb.ui-color-thumb {

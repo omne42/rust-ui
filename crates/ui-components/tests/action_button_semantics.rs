@@ -1406,3 +1406,29 @@ fn action_button_performance_governance_budget_is_defined_and_blocking() {
         "performance gate script should include `{needle}`."
     );
 }
+
+#[test]
+fn action_button_check2_is_marked_complete() {
+    let source = load_source("src/button/action/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "button/action/check2.md should not keep unchecked checklist items after completion."
+    );
+}
+
+#[test]
+fn action_button_check2_explicitly_records_button_based_design() {
+    let source = load_source("src/button/action/check2.md");
+
+    for needle in [
+        "button组件的扩展组件",
+        "它应该使用button组件的能力而非重新实现",
+        "button_logic::resolve_view_state",
+        "pub type ActionButtonMotion = ButtonMotion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "button/action/check2.md should include button-based contract marker `{needle}`."
+        );
+    }
+}

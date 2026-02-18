@@ -64,6 +64,22 @@ pub struct LabeledGroupA11yAttrs {
     pub dir: Option<&'static str>,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
+pub struct OverlayDialogA11yAttrs {
+    pub aria_labelledby: Option<String>,
+    pub aria_describedby: Option<String>,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RegionA11yAttrs {
+    pub role: &'static str,
+    pub aria_label: String,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
 pub fn locale_attrs(lang: Option<String>, dir: Option<A11yDirection>) -> A11yLocaleAttrs {
     let lang = lang.and_then(|value| {
         let trimmed = value.trim();
@@ -115,6 +131,44 @@ pub fn labeled_group_attrs(
 
     LabeledGroupA11yAttrs {
         role: "group",
+        aria_label,
+        lang: locale.lang,
+        dir: locale.dir,
+    }
+}
+
+pub fn overlay_dialog_attrs(
+    aria_labelledby: Option<String>,
+    aria_describedby: Option<String>,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> OverlayDialogA11yAttrs {
+    fn normalize_optional_text(value: Option<String>) -> Option<String> {
+        value.and_then(|value| {
+            let trimmed = value.trim();
+            (!trimmed.is_empty()).then(|| trimmed.to_string())
+        })
+    }
+
+    let locale = locale_attrs(lang, dir);
+
+    OverlayDialogA11yAttrs {
+        aria_labelledby: normalize_optional_text(aria_labelledby),
+        aria_describedby: normalize_optional_text(aria_describedby),
+        lang: locale.lang,
+        dir: locale.dir,
+    }
+}
+
+pub fn region_attrs(
+    aria_label: String,
+    lang: Option<String>,
+    dir: Option<A11yDirection>,
+) -> RegionA11yAttrs {
+    let locale = locale_attrs(lang, dir);
+
+    RegionA11yAttrs {
+        role: "region",
         aria_label,
         lang: locale.lang,
         dir: locale.dir,
@@ -211,6 +265,20 @@ mod tests {
         let assertive = live_region_attrs(LiveRegionPriority::Assertive);
         assert_eq!(assertive.role, "alert");
         assert_eq!(assertive.aria_live, "assertive");
+    }
+
+    #[test]
+    fn region_attrs_maps_role_label_and_locale() {
+        let attrs = region_attrs(
+            "Notifications".to_string(),
+            Some("  en-US ".to_string()),
+            Some(A11yDirection::Rtl),
+        );
+
+        assert_eq!(attrs.role, "region");
+        assert_eq!(attrs.aria_label, "Notifications");
+        assert_eq!(attrs.lang.as_deref(), Some("en-US"));
+        assert_eq!(attrs.dir, Some("rtl"));
     }
 
     #[test]
@@ -315,5 +383,38 @@ mod tests {
         assert_eq!(attrs.aria_label, "Collaborators");
         assert_eq!(attrs.lang.as_deref(), Some("en-US"));
         assert_eq!(attrs.dir, Some("rtl"));
+    }
+
+    #[test]
+    fn overlay_dialog_attrs_trims_ids_and_maps_locale() {
+        let attrs = overlay_dialog_attrs(
+            Some(" dialog-title ".to_string()),
+            Some(" dialog-description ".to_string()),
+            Some(" zh-CN ".to_string()),
+            Some(A11yDirection::Rtl),
+        );
+
+        assert_eq!(attrs.aria_labelledby.as_deref(), Some("dialog-title"));
+        assert_eq!(
+            attrs.aria_describedby.as_deref(),
+            Some("dialog-description")
+        );
+        assert_eq!(attrs.lang.as_deref(), Some("zh-CN"));
+        assert_eq!(attrs.dir, Some("rtl"));
+    }
+
+    #[test]
+    fn overlay_dialog_attrs_drops_blank_optional_ids() {
+        let attrs = overlay_dialog_attrs(
+            Some("   ".to_string()),
+            Some("\n\t".to_string()),
+            None,
+            None,
+        );
+
+        assert_eq!(attrs.aria_labelledby, None);
+        assert_eq!(attrs.aria_describedby, None);
+        assert_eq!(attrs.lang, None);
+        assert_eq!(attrs.dir, None);
     }
 }

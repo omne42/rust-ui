@@ -1,9 +1,13 @@
 use crate::{
-    ButtonSize, ButtonVariant, IconButton, OnPress, Sheet, SheetPlacement,
+    OnPress,
+    button::{ButtonSize, ButtonVariant},
+    icon_button::IconButton,
+    sheet::{Sheet, SheetPlacement},
     tray::{TrayMotion, TrayPartStateInput, TraySlot, logic},
 };
 use leptos::children::ViewFn;
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, overlay_dialog_attrs};
 
 #[component]
 pub fn Tray(
@@ -21,6 +25,8 @@ pub fn Tray(
     #[prop(optional, default = logic::DEFAULT_DISMISSABLE)] is_dismissable: bool,
     #[prop(optional, default = logic::DEFAULT_KEYBOARD_DISMISS_DISABLED)]
     is_keyboard_dismiss_disabled: bool,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     /// Called after the close animation finishes (useful for presence/unmount).
     #[prop(optional)]
     on_exit_complete: Option<Callback<()>>,
@@ -176,6 +182,18 @@ pub fn Tray(
     let description_id = format!("{id_base}-description");
     let title_id_attr: Signal<String> = title_id.clone().into();
     let description_id_attr: Signal<String> = description_id.clone().into();
+    let panel_a11y = overlay_dialog_attrs(
+        Some(title_id.clone()),
+        root_state
+            .show_description
+            .then_some(description_id.clone()),
+        lang,
+        dir,
+    );
+    let panel_aria_labelledby = StoredValue::new(panel_a11y.aria_labelledby);
+    let panel_aria_describedby = StoredValue::new(panel_a11y.aria_describedby);
+    let panel_lang = StoredValue::new(panel_a11y.lang);
+    let panel_dir = panel_a11y.dir;
 
     let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
 
@@ -185,8 +203,8 @@ pub fn Tray(
                 open=open
                 on_close=on_close
                 placement=SheetPlacement::Bottom
-                aria_labelledby=title_id.clone()
-                aria_describedby=description_id.clone()
+                aria_labelledby=panel_aria_labelledby.get_value().unwrap_or_default()
+                aria_describedby=panel_aria_describedby.get_value().unwrap_or_default()
                 is_dismissable=is_dismissable
                 is_keyboard_dismiss_disabled=is_keyboard_dismiss_disabled
                 motion=motion.sheet
@@ -233,6 +251,8 @@ pub fn Tray(
                             data-class-source=root_state.class_source_attr
                             data-motion-source=root_state.motion_source_attr
                             data-exit-source=root_state.exit_source_attr
+                            lang=panel_lang.get_value()
+                            dir=panel_dir
                         >
                             <Show when=move || root_state.show_close_button>
                                 <span
@@ -324,7 +344,8 @@ pub fn Tray(
                 open=open
                 on_close=on_close
                 placement=SheetPlacement::Bottom
-                aria_labelledby=title_id.clone()
+                aria_labelledby=panel_aria_labelledby.get_value().unwrap_or_default()
+                aria_describedby=panel_aria_describedby.get_value().unwrap_or_default()
                 is_dismissable=is_dismissable
                 is_keyboard_dismiss_disabled=is_keyboard_dismiss_disabled
                 motion=motion.sheet
@@ -371,6 +392,8 @@ pub fn Tray(
                             data-class-source=root_state.class_source_attr
                             data-motion-source=root_state.motion_source_attr
                             data-exit-source=root_state.exit_source_attr
+                            lang=panel_lang.get_value()
+                            dir=panel_dir
                         >
                             <Show when=move || root_state.show_close_button>
                                 <span

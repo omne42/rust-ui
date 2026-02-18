@@ -1,5 +1,8 @@
 use super::{CoachmarkAssetVariant, CoachmarkMotion, CoachmarkVariant, logic};
-use crate::{Asset, AssetSize, Button, ButtonVariant, ContextualHelp, OnPress};
+use crate::OnPress;
+use crate::asset::{Asset, AssetSize};
+use crate::button::{Button, ButtonVariant};
+use crate::contextual_help::ContextualHelp;
 use leptos::children::ViewFn;
 use leptos::prelude::*;
 use ui_headless::PopoverPlacement;
@@ -74,6 +77,17 @@ pub fn Coachmark(
         has_asset_variant,
         has_asset_src,
     });
+    let ui_action_attr = if has_footer {
+        "navigate-step"
+    } else {
+        "read-guidance"
+    };
+    let ui_source_attr = if state.open_mode_attr == "controlled" {
+        "external"
+    } else {
+        "internal"
+    };
+    let output_status_attr = if disabled { "draft" } else { "verified" };
 
     let class_name = logic::compose_class_name(normalized_class_name, state);
     let trigger_label =
@@ -175,6 +189,19 @@ pub fn Coachmark(
                 data-asset-source=state.asset_source_attr
                 data-has-asset=state.has_asset.then_some("true")
                 data-custom-class=state.has_custom_class_name.then_some("true")
+                data-ui-schema="ui.coachmark.agent-contract.v1"
+                data-ui-schema-version="1"
+                data-ui-intent="guided-tour"
+                data-ui-action=ui_action_attr
+                data-ui-state=state.state_attr
+                data-ui-source=ui_source_attr
+                data-ui-stream-support="optional"
+                data-ui-stream-fallback="snapshot"
+                data-ui-stream-mode="snapshot"
+                data-ui-output-status=output_status_attr
+                data-stream-mode="snapshot"
+                data-stream-fallback="snapshot"
+                data-output-status=output_status_attr
             >
                 {move || {
                     if let Some(asset_src) = asset_src.get_value() {

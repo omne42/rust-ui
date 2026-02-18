@@ -23,10 +23,38 @@ fn empty_state_does_not_expose_logic_or_view_modules() {
 fn empty_state_uses_logic_state_model() {
     let logic_source = load_source("src/empty_state/logic.rs");
     let view_source = load_source("src/empty_state/view.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/empty_state.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::empty_state::{",
+        "DEFAULT_ARIA_LABEL",
+        "DEFAULT_DESCRIPTION",
+        "DEFAULT_TITLE",
+        "EmptyStateAlign",
+        "EmptyStateState",
+        "EmptyStateStateInput",
+        "EmptyStateTone",
+        "compose_class_name",
+        "normalize_aria_label",
+        "normalize_description",
+        "normalize_optional_text",
+        "normalize_title",
+        "resolve_state",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "EmptyState logic should re-export primitive contract `{needle}`."
+        );
+    }
 
     for needle in [
         "pub enum EmptyStateTone",
         "pub enum EmptyStateAlign",
+        "pub struct EmptyStateStateInput",
+        "pub struct EmptyStateState",
+        "pub const DEFAULT_TITLE: &str = \"Nothing to show\";",
+        "pub const DEFAULT_DESCRIPTION: &str = \"Try adjusting filters or refreshing data.\";",
+        "pub const DEFAULT_ARIA_LABEL: &str = \"Empty state\";",
         "pub fn normalize_optional_text(",
         "pub fn normalize_title(",
         "pub fn normalize_description(",
@@ -40,8 +68,8 @@ fn empty_state_uses_logic_state_model() {
         "data_state_attr",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "EmptyState logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "EmptyState primitives should include `{needle}` for centralized state derivation."
         );
     }
 
@@ -51,8 +79,11 @@ fn empty_state_uses_logic_state_model() {
         "logic::normalize_title(title, strings.default_title.as_ref())",
         "logic::normalize_description(description, strings.default_description.as_ref())",
         "logic::normalize_aria_label(aria_label, strings.default_aria_label.as_ref())",
+        "let locale = locale_attrs(logic::normalize_optional_text(lang), dir);",
         "logic::resolve_state(EmptyStateStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
+        "let motion = motion::sanitize_motion(motion);",
+        "motion::attach_motion(root_ref, motion);",
     ] {
         assert!(
             view_source.contains(needle),
@@ -83,6 +114,10 @@ fn empty_state_emits_baseline_style_state_data_attributes() {
         "data-aria-source=move || state.get().aria_source_attr",
         "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
         "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=motion_source",
+        "data-custom-motion=(motion_source == \"custom\").then_some(\"true\")",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -112,6 +147,10 @@ fn empty_state_styles_include_tone_align_and_markers() {
         ".ui-empty-state[data-bordered=\"true\"]",
         ".ui-empty-state--custom-class",
         ".ui-empty-state[data-custom-class=\"true\"]",
+        ".ui-empty-state[data-motion-source=\"custom\"]",
+        ".ui-empty-state[data-custom-motion=\"true\"]",
+        "--ui-empty-state-enter",
+        "prefers-reduced-motion: reduce",
     ] {
         assert!(
             source.contains(selector),

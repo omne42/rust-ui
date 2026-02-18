@@ -145,10 +145,10 @@ fn chip_docs_page_covers_primary_playgrounds() {
         "pub(super) fn chip() -> AnyView",
         "title=\"Chip\"",
         "slug=\"chip\"",
-        "Playground title=\"Removable\"",
-        "Playground title=\"Variants + Sizes\"",
-        "Playground title=\"Custom Label + Class\"",
-        "Playground title=\"Disabled + Static\"",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "title=\"Comparison Matrix (Variant / Size / Disabled / Custom)\"",
+        "test_css_source=chip_test_css_source",
+        "test_config_signal=workbench_config",
     ] {
         assert!(
             source.contains(needle),
@@ -162,18 +162,18 @@ fn chip_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
-        "title=\"Removable\"",
+        "id_base=\"docs-chip-variant\".to_string()",
+        "id_base=\"docs-chip-size\".to_string()",
+        "\"is_disabled\"",
+        "\"Dismiss action\"",
+        "\"Custom dismiss aria label\"",
+        "\"Custom class_name\"",
+        "title=\"Comparison Matrix (Variant / Size / Disabled / Custom)\"",
         "dismiss_aria_label=\"Remove reviewer\".to_string()",
-        "title=\"Variants + Sizes\"",
-        "<Chip variant=ChipVariant::Default size=ChipSize::Sm>\"Default\"</Chip>",
-        "<Chip variant=ChipVariant::Accent size=ChipSize::Md>\"Accent\"</Chip>",
-        "<Chip variant=ChipVariant::Danger size=ChipSize::Lg>\"Danger\"</Chip>",
-        "title=\"Custom Label + Class\"",
-        "dismiss_aria_label=\"  Remove reviewer  \".to_string()",
         "class_name=\"docs-chip-custom\".to_string()",
-        "title=\"Disabled + Static\"",
-        "<Chip disabled=true variant=ChipVariant::Outline>",
-        "<Chip variant=ChipVariant::Default size=ChipSize::Sm>",
+        "variant=ChipVariant::Danger",
+        "size=ChipSize::Lg",
+        "is_disabled=true",
     ] {
         assert!(
             source.contains(needle),

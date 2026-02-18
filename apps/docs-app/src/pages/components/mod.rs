@@ -258,13 +258,10 @@ mod tests {
     #[test]
     fn every_component_doc_page_renders_at_least_one_playground() {
         let _ = any_spawner::Executor::init_futures_executor();
-        Owner::new().with(|| {
-            let toc = crate::toc::provide_docs_toc();
-            let registry = crate::playground::provide_playground_registry();
-
-            for doc in component_catalog().iter().copied() {
-                toc.clear();
-                registry.clear();
+        for doc in component_catalog().iter().copied() {
+            Owner::new().with(|| {
+                let _toc = crate::toc::provide_docs_toc();
+                let registry = crate::playground::provide_playground_registry();
 
                 let _ = (doc.page)();
 
@@ -274,7 +271,7 @@ mod tests {
                     "component page `{}` is missing a <Playground>",
                     doc.slug
                 );
-            }
-        });
+            });
+        }
     }
 }

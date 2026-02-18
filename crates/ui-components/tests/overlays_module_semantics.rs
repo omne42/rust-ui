@@ -173,3 +173,13 @@ fn overlays_module_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn overlays_check2_has_no_unchecked_items_after_verification() {
+    let source = load_source("src/overlays/check2.md");
+
+    assert!(
+        !source.contains("- [ ]"),
+        "overlays/check2.md should not keep unchecked checklist items after completion."
+    );
+}

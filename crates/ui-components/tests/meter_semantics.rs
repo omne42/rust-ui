@@ -25,15 +25,13 @@ fn meter_uses_logic_state_model() {
     let logic_source = load_source("src/meter/logic.rs");
 
     for needle in [
-        "pub struct MeterStateInput",
-        "pub struct MeterState",
-        "pub enum MeterPhase",
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_aria_label(",
-        "pub fn resolve_value_label(",
-        "pub fn resolve_phase(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
+        "pub use ui_state_primitives::meter::{",
+        "normalize_optional_text,",
+        "resolve_aria_label,",
+        "resolve_value_label,",
+        "resolve_phase,",
+        "resolve_state,",
+        "compose_class_name,",
         "label_source_attr",
         "value_label_source_attr",
         "motion_source_attr",
@@ -164,6 +162,9 @@ fn meter_docs_page_covers_primary_playgrounds() {
         "slug=\"meter\"",
         "Playground title=\"Variant + Size Matrix\"",
         "Playground title=\"Custom Label + Motion + Class\"",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "test_css_source=test_css_source",
+        "test_config_signal=actual_config",
     ] {
         assert!(
             source.contains(needle),
@@ -195,6 +196,10 @@ fn meter_docs_playgrounds_lock_state_matrix_contract_values() {
         "id=\"docs-meter-indeterminate\".to_string()",
         "value=Signal::derive(|| None)",
         "class_name=\"docs-meter-custom\".to_string()",
+        "id=\"docs-meter-workbench\".to_string()",
+        "id=\"docs-meter-workbench-contrast\".to_string()",
+        "id=\"docs-meter-workbench-indeterminate\".to_string()",
+        "data-slot=\"meter-workbench-controls\"",
     ] {
         assert!(
             source.contains(needle),

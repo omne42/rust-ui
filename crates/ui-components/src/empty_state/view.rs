@@ -1,10 +1,12 @@
 use crate::empty_state::{
-    EmptyStateStateInput, EmptyStateStrings,
+    EmptyStateMotion, EmptyStateStateInput, EmptyStateStrings,
     logic::{self, EmptyStateAlign, EmptyStateTone},
+    motion,
 };
 use leptos::children::ViewFn;
 use leptos::prelude::*;
 use ui_headless::i18n;
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn EmptyState(
@@ -16,6 +18,9 @@ pub fn EmptyState(
     #[prop(optional)] bordered: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: EmptyStateMotion,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] icon: Option<ViewFn>,
     #[prop(optional, into)] actions: Option<ViewFn>,
 ) -> impl IntoView {
@@ -30,6 +35,7 @@ pub fn EmptyState(
 
     let (aria_label, has_custom_aria_label) =
         logic::normalize_aria_label(aria_label, strings.default_aria_label.as_ref());
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
 
     let has_icon = icon.is_some();
     let has_actions = actions.is_some();
@@ -57,9 +63,18 @@ pub fn EmptyState(
     });
 
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let motion = motion::sanitize_motion(motion);
+    let motion_source = if motion == EmptyStateMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let root_ref = NodeRef::new();
+    motion::attach_motion(root_ref, motion);
 
     view! {
         <section
+            node_ref=root_ref
             class=move || class.get()
             data-slot="empty-state"
             data-tone=move || state.get().tone_attr
@@ -74,8 +89,12 @@ pub fn EmptyState(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=motion_source
+            data-custom-motion=(motion_source == "custom").then_some("true")
             role="status"
             aria-label=aria_label
+            lang=locale.lang.clone()
+            dir=locale.dir
         >
             {state.get().has_icon.then(|| {
                 let icon = icon.expect("checked has_icon");

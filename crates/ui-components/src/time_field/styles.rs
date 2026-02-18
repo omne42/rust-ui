@@ -1,5 +1,7 @@
 pub const CSS: &str = r#"
 .ui-time-field {
+  --ui-time-field-clear-opacity: 1;
+  --ui-time-field-clear-scale: 1;
   display: grid;
   gap: var(--ui-space-2xs);
   width: min(100%, 16rem);
@@ -35,8 +37,16 @@ pub const CSS: &str = r#"
   outline: 1px solid color-mix(in oklab, var(--ui-accent) 20%, transparent);
 }
 
+.ui-time-field[data-motion-source="custom"] .ui-time-field__clear {
+  will-change: opacity, transform;
+}
+
+.ui-time-field[data-custom-motion="true"] .ui-time-field__clear {
+  will-change: opacity, transform;
+}
+
 .ui-time-field__label {
-  font-size: 0.82rem;
+  font-size: var(--ui-font-size-100);
   font-weight: 600;
 }
 
@@ -52,7 +62,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-time-field__input {
-  width: 3.4rem;
+  width: calc(var(--ui-component-height-100) * 1.7);
   padding: var(--ui-space-3xs);
   border: 1px solid var(--ui-border);
   border-radius: var(--ui-radius-xs);
@@ -78,7 +88,19 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-radius-xs);
   background: transparent;
   color: var(--ui-fg-muted);
+  opacity: var(--ui-time-field-clear-opacity);
+  transform: scale(var(--ui-time-field-clear-scale));
   cursor: pointer;
+}
+
+.ui-time-field__clear[data-visible="true"] {
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.ui-time-field__clear:not([data-visible="true"]) {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .ui-time-field__clear:hover,

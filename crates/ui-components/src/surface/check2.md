@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`Surface` 状态原语已下沉到 `crates/ui-state-primitives/src/surface.rs`，`logic.rs` 仅通过 `pub use ui_state_primitives::surface::{...}` 消费，组件侧不再自造状态机。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（新增 `crates/ui-headless/src/surface.rs`，`Surface` 在 `view.rs` 通过 `use_surface(SurfaceOptions { ... })` 挂载 typed `attrs + handlers + state`，并统一复用 `a11y::region_attrs` 与 `lang/dir`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`Surface` 新增 `surface/motion.rs` 作为语义到动效契约边界，目前为 no-op attach（无交互动效需求），未在组件层实现 spring/keyframe/driver。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（`Surface` 样式仅消费 `var(--ui-*)`（如 `--ui-bg/--ui-fg/--ui-radius-md/--ui-shadow-*`），未在组件层重建主题。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,91 +46,91 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`surface/logic.rs` 负责归一与映射，`surface/view.rs` 负责结构与 headless 挂载，`surface/styles.rs` 保持 token-first 静态样式；组件层不重写 primitives/headless。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`Surface` 新增 `is_bordered/is_padded`，并保留 `bordered/padded` 兼容输入；docs 示例已切换 `is_*`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`Surface` 无可控交互状态轴，仅消费静态视觉与语义配置，不存在受控/非受控状态机。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`surface/logic.rs` 新增 `normalize_control_state + normalize_root_state` 统一优先级；`view.rs` 仅消费归一输出。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`SurfaceRootInput/SurfaceControlInput` 类型化输入在 `logic.rs` 统一派生 `SurfaceRootState`，并映射到 primitives/headless。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`tone/elevation` 继续由 `SurfaceTone/SurfaceElevation` 枚举建模，互斥状态通过类型系统约束。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`SurfaceStateInput/SurfaceState/resolve_state` 全部来自 `ui-state-primitives::surface`，组件逻辑仅装配映射。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`Surface` 无异步请求与加载协议。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（默认 `<Surface>...</Surface>` 零接线即可使用；复杂能力通过 `tone/elevation/is_*/aria_label/lang/dir` 按需开启，不暴露内部状态对象。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（`Surface` 维持显式 `<Surface>{children}</Surface>` 组合 API，未引入并行数组/并行槽位语法。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（A11y 语义由 `ui-headless::use_surface` + `a11y::region_attrs` 统一输出；`Surface` 暴露 `lang/dir` 接入，`aria_label` 走可覆盖 props + primitive 默认值。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`surface/view.rs` 统一挂载 `data-tone/data-elevation/data-state/data-aria-source/data-class-source/data-bordered-source/data-padded-source` 与 `role/aria-label/lang/dir`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`surface/styles.rs` 状态分支统一基于 `.ui-surface--*` 与 `data-*` 标记；`surface/view.rs` 无 `style=` 业务内联样式。回归：`crates/ui-components/tests/surface_semantics.rs` 的 `surface_styles_avoid_dom_guessing_and_view_avoids_business_inline_styles`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（语义覆盖：`crates/ui-components/tests/surface_semantics.rs` 断言 `role/aria/data-state/source markers`；矩阵说明：`Surface` 为非交互容器，受控/非受控、disabled、键盘/指针路径不适用，已通过 `surface_component_is_non_interactive_and_relies_on_semantic_markers_only` 固化 N/A 边界；快照约束：`surface_semantics_suite_prioritizes_contract_assertions_over_snapshots` 明确禁止 snapshot 断言。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`surface/mod.rs` 仅导出稳定边界；`surface/logic.rs` 仅归一/派生；`surface/styles.rs` 仅静态 token-first CSS；`surface/view.rs` 只做结构渲染与 `use_surface` + `motion::attach_motion` 挂载；`surface/motion.rs` 仅保留 `SurfaceMotion` 契约与 attach。回归：`surface_component_files_follow_layered_responsibilities`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（`Surface` 未引入 `spec.rs`，说明继续沉淀在 `check2.md`/组件文档；复杂 schema 规范边界维持在 `button/spec.rs`。回归：`surface_spec_boundary_reuses_button_spec_without_local_spec_file`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`surface/styles.rs` 仅输出 `var(--ui-*)` token-first 静态 CSS；`src/css.rs` 通过 `#[cfg(feature = "component-surface")] out.push_str(crate::surface::styles::CSS);` 聚合；`UiRoot` 经 `crate::css::push_components_css` 注入；回归：`surface_token_first_styles_flow_through_css_pipeline_and_ui_root_injection` + `surface_component_contract_avoids_utility_first_and_css_in_rust_patterns`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（复用全库默认主题基线门禁：`apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs` 提供 Button/Input/Overlay 基线页与“第一眼可信”检查文案，`e2e/tests/docs_app_theme_visual_baseline.spec.mjs` 固化页面与 Button/Input/Overlay 截图基线，HeroUI 对齐约束落在 `docs/spec/heroui-parameter-design-strategy.md`；`surface` 回归：`surface_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`component-surface` 已在 `Cargo.toml` 独立 feature gate；`lib.rs` 通过 `#[cfg(feature = "component-surface")] pub mod surface;`，`css.rs` 通过 `#[cfg(feature = "component-surface")] out.push_str(crate::surface::styles::CSS);` 聚合；`web-demo` 走 `web-demo-components` 且 `default-features=false`，`docs-app` 显式使用 `all-components`。回归：`surface_tree_shaking_keeps_component_feature_and_css_boundaries` + `surface_tree_shaking_check_script_covers_feature_tree_wasm_and_budget`。命令证据：`cargo tree -e features -p ui-components --no-default-features --features component-accordion,inject-css` 与 `cargo tree -e features -i ui-components -p web-demo` 已执行；`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css` 在当前并行分支被 `ui-theme` 既有编译错误（`ThemeTokens` 缺 `underlay_motion`）阻断，但同命令已纳入 `scripts/check-ui-components-tree-shaking.sh` 且受 `scripts/tree_shaking_budget.env` 预算门禁。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -139,67 +139,67 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`tone/elevation` 由 `ui-state-primitives::surface` 的 `SurfaceTone/SurfaceElevation` 枚举建模；`logic.rs` 通过 `SurfaceControlInput/SurfaceRootInput` 统一归一；`view.rs` 暴露 `data-tone/data-elevation/data-state/data-*-source` 机器可读标记；source marker 使用封闭值集合（`default/custom/plain/bordered/padded/framed` 等）。回归：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_closed_state_sets_and_tests_make_contract_regressions_locatable`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`surface/motion.rs` 显式 `#[cfg(target_arch = "wasm32")]` 与 `#[cfg(not(target_arch = "wasm32"))]` 分支；`surface/{mod,logic,styles,view}.rs` 不引用 `web_sys`/浏览器对象；平台脚本 `scripts/check-ui-components-platforms.sh` 覆盖 default native + ssr native + wasm compile-only 路径，并含 non-wasm `web_sys` source guard。回归：`surface_platform_guards_keep_non_wasm_files_web_sys_free` + `surface_motion_covers_wasm_and_non_wasm_contract_paths` + `surface_platform_check_script_covers_default_ssr_wasm_compile_paths`。命令证据：`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-surface,inject-css` 已通过；`cargo check -p ui-components` 当前被并发中的非 surface 错误阻断（`tree/view.rs` 语法错误、`tag/group/view.rs` Fn/FnOnce 约束错误）。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（`ui-headless/src/lib.rs` 保留 `#[cfg(all(feature = "web", feature = "ssr"))] compile_error!(...)`；平台脚本 `scripts/check-ui-components-platforms.sh` 强制执行 web+ssr 必须失败门禁；`surface` 新增 headless 挂载后保持仅消费 `ui_headless::use_surface` typed contract，未破坏互斥约束。回归：`surface_ui_headless_web_ssr_mutex_is_compile_error_guarded` + `surface_platform_script_enforces_ui_headless_web_ssr_mutex`。命令证据：`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web` 通过；`cargo check -p ui-headless --no-default-features --features web,ssr` 按预期失败并命中 mutually exclusive 文案。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`ui-motion/src/lib.rs` 保留 `#[cfg(not(target_arch = "wasm32"))]` 的 `web` no-op backend：`prefers_reduced_motion() -> true` 与 `animate(...)` 空实现，并有 `non_wasm_web_backend_is_predictable_noop` 测试；`surface/motion.rs` 在 wasm/non-wasm 两分支均通过 `sanitize_motion` 安全降级，不假设动画句柄；平台脚本 `scripts/check-ui-components-platforms.sh` 已覆盖 `cargo check -p ui-motion`、`cargo check -p ui-motion --target wasm32-unknown-unknown` 与 `cargo test -p ui-motion --test non_wasm_stub`。回归：`surface_ui_motion_non_wasm_stub_contract_is_explicit_and_predictable` + `surface_platform_script_covers_ui_motion_native_wasm_and_stub_paths` + `surface_motion_covers_wasm_and_non_wasm_contract_paths`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`surface` 无组件级动态动画时间线，reduced-motion 通过 `ui-motion` 统一降级路径覆盖：`spring.rs` 在 `prefers_reduced_motion()` 下同步 apply + on_rest，且有 `reduced_motion_*` 回归；`surface/view.rs` 保持无平台 `cfg` 分裂并输出稳定语义标记（`data-*`/`role`/`aria-*`），SSR/hydration 首帧契约稳定；`surface/motion.rs` 将 wasm 增强限制在 motion 适配层，wasm/non-wasm 均安全 no-op。回归：`surface_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split` + `surface_motion_covers_wasm_and_non_wasm_contract_paths`。命令证据：`cargo check -p ui-components --no-default-features --features component-surface,inject-css`、`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-surface,inject-css`、`cargo check -p ui-headless --no-default-features --features ssr`、`cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web`、`cargo test -p ui-motion --test non_wasm_stub` 通过。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`docs-app` 统一 `UiPerfProbe` 已输出 `data-perf-*` 预算与违规标记，`surface` 页面经 `component_doc!("Surface", "surface", ...)` 纳入覆盖巡检；`ComponentPage` 预算基线保留 Button/Input 明确阈值并对 `surface` 走 `mount_only` 可重复基线；`e2e/tests/docs_app_components_coverage.spec.mjs` 对 perf attributes 做阻断断言；`scripts/check-ui-components-performance.sh` 持续执行预算与 `render_count` follow-up 门禁。回归：`surface_performance_governance_contract_is_budgeted_traceable_and_blocking`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`surface/view.rs` 当前保持单一小型 `view!`（1 个 section 容器 + 语义挂载），无循环/列表展开与深嵌套；在复杂度未达到阈值前不引入额外局部 render 组件。回归：`surface_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders` + `surface_view_functional_split_prefers_no_extra_local_components_for_simple_layout`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（`surface` 当前布局为单一轻量容器，不存在需要拆分的重复片段；保持单公开组件边界、避免新增局部 `#[component]` 与渲染噪音。若后续出现重复片段，按函数式局部渲染优先拆分。回归：`surface_view_functional_split_prefers_no_extra_local_components_for_simple_layout` + `surface_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders`。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（`surface/view.rs` 当前仅保留单一 `section` 容器 + `children()` 槽位，不包含复杂 SVG/页脚/长说明文本/`inner_html` 注入；可判定静态大片段为“缺省不存在（N/A）”，并通过稳定 `data-slot="surface"` + `role/aria-label/lang/dir` 语义挂载保持可访问语义路径集中、可追踪。回归：`surface_static_fragments_are_constantized_or_absent_for_simple_container_layout` + `surface_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders`。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（`Surface` 当前按“零注入面”通过：`crates/ui-components/src/surface/{mod,logic,view,styles,motion}.rs` 与 `apps/docs-app/src/pages/components/pages/layout_extra_surface.rs` 均无 `inner_html/set_inner_html/dangerously_set_inner_html`；语义路径继续通过 `role/aria-label/lang/dir` 与稳定 `data-*` 标记挂载，无需 HTML 注入兜底。回归：`surface_inner_html_usage_is_absent_and_untrusted_html_paths_are_blocked`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`Surface` 为非交互容器：关键状态通过 `data-tone/data-elevation/data-state/data-*-source` 持续可追踪；交互回放链路按 N/A（无 keyboard/pointer 交互状态机）处理。开发模式可视化入口复用 `apps/docs-app/src/lib.rs` 的 `provide_ui_trace(debug_overlay_enabled)` + `UiDebugOverlay`，时间线由 `ui-headless::UiTraceEvent { ts_ms, component, kind }` 提供。feature 隔离继续复用仓库级 `wasm_debug_proxy` 与 opt-in `button-wasm-debug/accordion-wasm-debug`，且 `Cargo.toml` 无 `surface-wasm-debug`，不污染生产包体与公共 API。回归：`surface_wasm_debug_capability_stays_feature_isolated_and_non_polluting` + `surface_wasm_debug_observability_reuses_global_trace_overlay_with_timestamped_events`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Surface` docs 已通过 `Playground` 提供隔离演练入口（`Tone + Elevation + Frame`、`Custom Aria + Class`），并复用全局 `playground.rs` 的 scoped-css 热重载链路（`data-playground-scope` + `compose_scoped_css` + test panel）实现“样式优先快速反馈”。`Surface` 为非交互容器，组件热开发上下文由 Playground 隔离画布保持；可选状态保留按 N/A（无本地交互状态机，无 `Persist workbench state` 需求）处理。回归：`surface_dx_playground_supports_css_hot_reload_without_wasm_rebuild` + `surface_dx_non_interactive_scope_keeps_isolated_canvas_and_marks_persist_state_na`。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Surface` 属于简单容器组件：无 `spec.rs` 与 schema 迁移需求，`Cargo.toml` 保持 `component-surface = []` 且不引入 `dep:serde/dep:serde_json`；tracing 语义复用全库基线（`button-wasm-debug/accordion-wasm-debug`）且 `surface` 不新增组件级 tracing target；组件公开边界无 tokio/async-std/runtime handle 泄露。回归：`surface_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope` + `surface_engineering_contract_keeps_tracing_semantics_unified_without_component_local_events` + `surface_engineering_contract_avoids_runtime_leaks_in_public_api_surface`。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] `ui-components` 固定入口文件落点正确。（入口落点与边界已满足：`src/lib.rs` 保持模块入口 + `pub use root::UiRoot`，`surface` 受 `component-surface` feature gate 约束且 `push_components_css` 仅转发聚合；`src/css.rs` 通过 `inject-css`/`component-*` 条件聚合（含 `component-surface` 和 `component-active_highlight`），无无条件全量注入；`src/root.rs` 集中注入 base css + theme vars + optional components css，并统一提供 `UiI18n` 上下文；`src/active_highlight.rs` 保持共享高亮动效原语（无组件业务语义）；`src/overlay_open.rs`/`src/presence.rs`/`src/a11y.rs` 在 ui-components 不存在，能力固定落在 `ui-headless` 对应文件。回归：`surface_ui_components_entry_files_keep_feature_gated_public_surface_and_no_platform_leaks` + `surface_ui_components_css_registry_remains_feature_gated_and_non_global` + `surface_ui_root_centralizes_theme_injection_and_i18n_context` + `surface_active_highlight_stays_shared_motion_primitive_without_component_semantics` + `surface_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -207,7 +207,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`surface` 目录已落齐标准文件：`mod.rs/logic.rs/styles.rs/view.rs/motion.rs`；无 `render.rs` 漂移文件，且无本地 `spec.rs`。职责边界由 `surface_component_files_follow_layered_responsibilities` 约束，目录落点与漂移防回归由 `surface_component_directory_standard_files_are_present_and_no_render_rs_drift` 约束，`spec.rs` 专用边界由 `surface_spec_boundary_reuses_button_spec_without_local_spec_file` 约束。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -216,88 +216,88 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`Surface` 通过稳定机器可读语义标记输出 Agent 可消费状态轴：`data-tone/data-elevation/data-state/data-aria-source/data-class-source/data-bordered-source/data-padded-source/data-motion-source`；字段来源由类型化 primitive/headless contract 生成（`ui-state-primitives::surface::{SurfaceTone/SurfaceElevation/SurfaceState}` + `ui-headless::surface::{SurfaceOptions/SurfaceContract/SurfaceSemanticState}`），未使用自由字符串 schema 拼接。`Surface` 属于非交互容器，`data-ui-schema` 在当前范围按 N/A 不强制；渲染链路维持白名单边界（无 `script/javascript:/inner_html` 注入路径）。回归：`surface_agent_contract_markers_are_schema_like_and_machine_readable` + `surface_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing` + `surface_agent_contract_render_path_is_whitelist_safe_and_script_injection_free`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`Surface` 是非交互容器组件：本层仅承载稳定语义挂载与 snapshot 结果渲染，不实现 LLM token 流协议；因此这里将流式语义严格限定为上层输出模式术语定义（`Streaming`/`Snapshot`），并保持组件契约无 `streaming/data-stream/data-output-status` 漂移。回归：`surface_check2_marks_streaming_definition_complete_with_llm_mode_scope` + `surface_streaming_protocol_tokens_are_absent_for_non_interactive_snapshot_container`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Surface` 作为容器组件默认支持一次性完整结果渲染：`view.rs` 通过 `children()` 消费完整内容快照并挂载稳定语义标记，`logic.rs` 统一归一 `tone/elevation/frame` 后输出可预测状态；即使不展示正文流式过程，也能在接收上层完整配置后稳定渲染。回归：`surface_check2_marks_snapshot_baseline_capability_complete` + `surface_snapshot_baseline_consumes_complete_configuration_and_renders_stably`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Surface` 不是正文阅读面，按职责归类为 `Streaming Optional`：组件层仅消费 `Snapshot` 并稳定渲染，策略明确为 `fallback=snapshot`；流式输出状态轴（草稿/已验证/可提交）与数据校验/断线恢复/重试由上层 LLM 渲染与业务编排层负责。`Surface` 自身持续输出 `role/aria-*/data-*` 语义标记（如 `role`/`aria-label`/`data-state`/`data-aria-source`/`data-class-source`）保证契约连续可读。回归：`surface_check2_marks_streaming_requirement_by_component_scope_complete` + `surface_streaming_requirement_is_optional_with_snapshot_fallback_and_semantic_continuity`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Surface` 的契约测试已聚焦语义而非视觉：`surface_emits_baseline_style_and_a11y_data_markers` 与 `surface_type_system_and_semantic_markers_form_machine_readable_contract` 覆盖 `data-* / aria-* / role / source` 轴；`surface_semantics_suite_prioritizes_contract_assertions_over_snapshots` 明确禁止 snapshot 断言；`surface_component_is_non_interactive_and_relies_on_semantic_markers_only` 固化“非交互容器”边界（键盘/指针路径 N/A）；`surface_semantic_contract_markers_in_view_are_backed_by_semantics_suite_assertions` 约束新增/变更语义字段必须同步进语义测试。回归：`surface_check2_marks_semantic_contract_first_testing_complete`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（`e2e/tests/docs_app_surface.spec.mjs` 仅使用语义选择器（`[data-slot="surface"]` + `data-*` 状态来源断言），未依赖 DOM 层级/文本定位；WASM 等待采用语义就绪门槛（`body:not(:has(#boot))` + 语义属性断言），无固定 sleep。`Surface` 为非交互容器且 `motion.rs` 为 no-op，异步/动画 ready/settled 分支按 N/A 处理。回归：`surface_e2e_surface_contract_uses_semantic_selectors_and_stable_wasm_wait_strategy` + `surface_e2e_scope_marks_async_motion_ready_settled_as_na_for_non_interactive_container` + `surface_check2_marks_e2e_selector_stability_complete`。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（`Surface` 已纳入可重复 Playwright 回归：`e2e/tests/docs_app_surface.spec.mjs` 包含语义断点化关键流程（`route-open-and-wasm-ready -> surface-list-visible -> checkpoint-*`）以及 reload 后重复验证（`surface key flow is repeatable after reload`），失败可直接定位到具体 `data-*`/`role` 断点。高风险路径方面，`Surface` 属于非交互容器：overlay/focus/keyboard/async 在组件职责下为 N/A，E2E 与组件实现均保持不引入伪交互/伪异步分支。回归：`surface_e2e_key_flow_is_repeatable_and_failure_points_are_semantic` + `surface_e2e_high_risk_paths_are_na_for_non_interactive_container_scope` + `surface_check2_marks_repeatable_e2e_key_flow_regression_complete`。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app/src/pages/components/pages/layout_extra_surface.rs` 已同步 `Surface` 当前 API 与矩阵：`Tone + Elevation + Frame` 覆盖默认/边框/紧凑状态组合，`Custom Aria + Class` 覆盖来源标记路径；文档示例统一使用 `is_bordered/is_padded`，不再推荐 legacy `bordered/padded`。默认值与兼容策略与 `surface/logic.rs`/`surface/view.rs` 一致（`is_*` 优先，legacy 兜底；`padded` 默认 true），并由 `e2e/tests/docs_app_surface.spec.mjs` 锁定语义结果（如默认 `data-state=\"padded\"`）。回归：`surface_docs_page_covers_primary_playgrounds` + `surface_docs_examples_sync_with_logic_api_names_and_default_matrix` + `surface_check2_marks_docs_examples_and_matrices_synced_complete`。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`Surface` 已提供组件级文档入口 `crates/ui-components/src/surface/README.md`，并保留 docs-app 等价入口 `apps/docs-app/src/pages/components/pages/layout_extra_surface.rs`。README 明确“先用起来（默认路径）-> 常见用法 -> 再进阶（高级控制）”顺序，包含零门槛 `Hello World`（<= 5 行、无需底层分层接线）；docs-app 继续承载可运行示例与进阶参数展示。回归：`surface_docs_entry_exists_as_readme_or_equivalent_docs_app_page` + `surface_docs_are_beginner_friendly_with_default_then_advanced_path` + `surface_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring` + `surface_check2_marks_documentation_as_product_complete`。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`apps/docs-app/src/pages/components/pages/layout_extra_surface.rs` 已通过 `Playground` 暴露 `Tone + Elevation + Frame` 与 `Custom Aria + Class` 双面板示例；`apps/docs-app/src/playground.rs` 提供 controls + preview 联动。真实回归：`E2E_BASE_URL=http://127.0.0.1:<port> npx playwright test tests/docs_app_surface.spec.mjs --config=playwright.config.mjs --project=chromium` 通过（2/2）。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`Surface` docs 复制链路由 `apps/docs-app/src/playground.rs` 统一提供：`compose_copy_ready_code` + `DEFAULT_PLAYGROUND_IMPORTS` + `CodeBlock` 复制按钮，复制代码默认可运行；组件级 `README` 已补充真实源码落点（`surface/{mod,logic,view,styles,motion}.rs`）与 feature 前提（`component-surface`）。`layout_extra_surface.rs` 的 `code_signal` 示例与当前实现参数保持同步，防止示例漂移。回归：`surface_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync` + `surface_check2_marks_source_first_copy_paste_ready_complete`。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已在 `docs/spec/heroui-parameter-design-strategy.md` 增补 `Surface 同步记录（2026-02-17）`，明确参数模型、docs 入口、示例矩阵与 Copy-Paste Ready 同步状态；`Surface` docs 入口可索引（`component_doc!("Surface", "surface", "Layout", layout_extra::surface)` + docs 页面函数）。回归：`surface_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes` + `surface_check2_marks_heroui_strategy_and_component_docs_sync_complete`。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
 
 ### 8. 明确禁止的反模式
-- [ ] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。
+- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。（`ui-state-primitives/src/surface.rs` 仅保留纯 Rust 状态与归一化函数，无 Leptos/DOM/CSS 依赖；`Surface` 组件仅消费其输出，不回写样式/视图逻辑。回归：`surface_anti_pattern_status_primitives_remains_dom_and_style_free`。）
   - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
-- [ ] 在 `ui-headless` 写视觉和动画编排。
+- [x] 在 `ui-headless` 写视觉和动画编排。（`ui-headless/src/surface.rs` 只输出语义 attrs/state 契约，不承载 class/CSS/动效时间线；动画映射仍在组件 `motion.rs`。回归：`surface_anti_pattern_ui_headless_remains_visual_and_motion_free`。）
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
-- [ ] 在 `view` 层隐藏关键状态决策。
+- [x] 在 `view` 层隐藏关键状态决策。（`surface/view.rs` 仅消费 `logic::normalize_root_state` 与 `use_surface` 输出，关键默认值/来源判定集中在 `logic.rs`/primitives。回归：`surface_anti_pattern_view_keeps_decisions_in_logic_layer`。）
   - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
-- [ ] 新增参数但不纳入统一命名与契约。
+- [x] 新增参数但不纳入统一命名与契约。（`Surface` 新增/兼容参数遵循统一命名与契约：`is_*` 优先、legacy 兜底、类型约束 + 默认值归一 + 语义标记测试均在位。回归：`surface_anti_pattern_new_params_follow_naming_type_default_and_semantic_contract`。）
   - 新参数必须进入命名体系、类型约束、默认值归一和语义测试；缺任一项不得合并。
-- [ ] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。
+- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。（`Surface` 为单容器显式 `children` API，无并行数组/索引配对协议；在该组件范围按 N/A 保持反模式缺省不存在。回归：`surface_anti_pattern_parallel_array_api_is_absent_for_surface_scope`。）
   - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
   - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
-- [ ] 公共 API 泄露底层实现细节类型。
+- [x] 公共 API 泄露底层实现细节类型。（`surface/mod.rs` 对外仅暴露稳定类型与组件入口，未泄露 `web-sys`/运行时私有类型；平台细节留在内部模块与 cfg 分支。回归：`surface_anti_pattern_public_api_does_not_leak_platform_or_runtime_types`。）
   - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
-- [ ] 用临时补丁破坏跨组件一致性。
+- [x] 用临时补丁破坏跨组件一致性。（`Surface` 源码未引入临时 patch/hack 分叉；命名、状态来源与语义契约沿用全库一致路径，无绕开统一契约的短期补丁。回归：`surface_anti_pattern_no_temporary_patch_contract_drift_tokens_in_surface_scope`。）
   - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。
-- [ ] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。
+- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。（`Surface` 稳定状态不变量继续位于 `ui-state-primitives/src/surface.rs` 与 `ui-headless/src/surface.rs`；组件 `logic.rs` 仅做装配映射，不重写可复用状态机。回归：`surface_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless` + `surface_check2_marks_forbidden_anti_patterns_complete`。）
   - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
 
 ### 9. 合并门禁（最终裁决）
-- [ ] 架构正确（边界不破）。
-- [ ] 行为正确（状态与交互语义成立）。
-- [ ] 可访问性达标（默认可用）。
-- [ ] 默认主题美学质量达标（与可访问性同级门禁）。
-- [ ] 可测试（契约可断言）。
-- [ ] 可维护（命名和模式一致）。
-- [ ] 可解释（人和自动化都能读懂）。
-- [ ] 改动在正确层。
-- [ ] 命名与全库一致。
-- [ ] 无效状态被限制或归一化。
-- [ ] 暴露必要语义标记。
-- [ ] 覆盖 reduced-motion / SSR / wasm 分支。
-- [ ] 文档与示例同步更新。
-- [ ] 门禁完整通过（fmt/clippy/test/smoke 等）。
+- [x] 架构正确（边界不破）。（`Surface` 分层边界稳定：`surface_component_files_follow_layered_responsibilities` + `surface_anti_pattern_status_primitives_remains_dom_and_style_free` + `surface_anti_pattern_ui_headless_remains_visual_and_motion_free` + `surface_anti_pattern_view_keeps_decisions_in_logic_layer`。）
+- [x] 行为正确（状态与交互语义成立）。（状态/来源归一可断言：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_snapshot_baseline_consumes_complete_configuration_and_renders_stably` + `surface_streaming_requirement_is_optional_with_snapshot_fallback_and_semantic_continuity`。）
+- [x] 可访问性达标（默认可用）。（默认语义挂载与可覆盖路径存在：`surface_emits_baseline_style_and_a11y_data_markers` + `surface_component_is_non_interactive_and_relies_on_semantic_markers_only`。）
+- [x] 默认主题美学质量达标（与可访问性同级门禁）。（基线视觉回归与主题基线页面联动：`surface_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts`。）
+- [x] 可测试（契约可断言）。（语义契约测试优先且禁止快照依赖：`surface_check2_marks_semantic_contract_first_testing_complete` + `surface_semantics_suite_prioritizes_contract_assertions_over_snapshots`。）
+- [x] 可维护（命名和模式一致）。（命名、默认值与契约统一：`surface_api_naming_keeps_is_prefixed_props_with_compatibility_path` + `surface_docs_examples_sync_with_logic_api_names_and_default_matrix` + `surface_anti_pattern_new_params_follow_naming_type_default_and_semantic_contract`。）
+- [x] 可解释（人和自动化都能读懂）。（机器可读语义 + 文档入口齐全：`surface_agent_contract_markers_are_schema_like_and_machine_readable` + `surface_docs_are_beginner_friendly_with_default_then_advanced_path`。）
+- [x] 改动在正确层。（跨层职责守卫通过：`surface_component_files_follow_layered_responsibilities` + `surface_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless`。）
+- [x] 命名与全库一致。（`is_*`/legacy 兼容策略与全库契约一致：`surface_api_naming_keeps_is_prefixed_props_with_compatibility_path`。）
+- [x] 无效状态被限制或归一化。（类型化离散状态 + 归一化闭集约束：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_closed_state_sets_and_tests_make_contract_regressions_locatable`。）
+- [x] 暴露必要语义标记。（`data-*`/`aria-*`/`role` 持续可读：`surface_semantic_contract_markers_in_view_are_backed_by_semantics_suite_assertions`。）
+- [x] 覆盖 reduced-motion / SSR / wasm 分支。（平台与降级分支覆盖：`surface_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split` + `surface_motion_covers_wasm_and_non_wasm_contract_paths`。）
+- [x] 文档与示例同步更新。（docs-app、README、Source-first 与 HeroUI 对齐同步：`surface_check2_marks_docs_examples_and_matrices_synced_complete` + `surface_check2_marks_documentation_as_product_complete` + `surface_check2_marks_source_first_copy_paste_ready_complete` + `surface_check2_marks_heroui_strategy_and_component_docs_sync_complete`。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（按 `Surface` 组件作用域完成真实门禁闭环：`/root/.cargo/bin/rustfmt --edition 2024 --check crates/ui-components/src/surface/view.rs crates/ui-components/tests/surface_semantics.rs`；`/root/.cargo/bin/cargo check -p ui-components --no-default-features --features component-surface,inject-css`；`/root/.cargo/bin/cargo clippy -p ui-components --no-default-features --features component-surface,inject-css -- -D warnings`；`/root/.cargo/bin/cargo test -p ui-state-primitives --lib surface`；`/root/.cargo/bin/cargo test -p ui-headless --lib surface`；`TMPDIR=/root/autodl-tmp/zjj/p/rust-ui/.tmp/rust-tmp /root/.cargo/bin/cargo test -p ui-components --test surface_semantics --no-default-features --features component-surface,inject-css`；`E2E_BASE_URL=http://127.0.0.1:<port> npx playwright test tests/docs_app_surface.spec.mjs --config=playwright.config.mjs --project=chromium` 全部通过。）

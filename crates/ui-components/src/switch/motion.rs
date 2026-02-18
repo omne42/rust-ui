@@ -1,9 +1,6 @@
 #[cfg(target_arch = "wasm32")]
 use crate::switch::logic::{THUMB_WIDTH_PX, checked_thumb_x_px};
-
-const DEFAULT_PRESSED_WIDTH_PX: f64 = 19.0;
-const MIN_PRESSED_WIDTH_PX: f64 = 16.0;
-const MAX_PRESSED_WIDTH_PX: f64 = 64.0;
+use ui_theme::default_switch_motion_tokens;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SwitchMotion {
@@ -12,16 +9,20 @@ pub struct SwitchMotion {
 
 impl Default for SwitchMotion {
     fn default() -> Self {
+        let tokens = default_switch_motion_tokens();
         Self {
-            // Match bb `packages/ui` general feel (fast + springy).
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 260.0,
-                damping: 16.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
         }
     }
+}
+
+pub fn default_pressed_width_px() -> f64 {
+    default_switch_motion_tokens().pressed_width_default_px
 }
 
 fn sanitize_number(value: f64, fallback: f64) -> f64 {
@@ -29,30 +30,7 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
 }
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = SwitchMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    ui_motion::spring::sanitize_config(value, SwitchMotion::default().spring)
 }
 
 pub fn sanitize_motion(motion: SwitchMotion) -> SwitchMotion {
@@ -62,8 +40,9 @@ pub fn sanitize_motion(motion: SwitchMotion) -> SwitchMotion {
 }
 
 fn sanitize_pressed_width_px(value: f64) -> f64 {
-    sanitize_number(value, DEFAULT_PRESSED_WIDTH_PX)
-        .clamp(MIN_PRESSED_WIDTH_PX, MAX_PRESSED_WIDTH_PX)
+    let tokens = default_switch_motion_tokens();
+    sanitize_number(value, tokens.pressed_width_default_px)
+        .clamp(tokens.pressed_width_min_px, tokens.pressed_width_max_px)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -192,9 +171,16 @@ mod tests {
     #[test]
     fn default_motion_has_reasonable_params() {
         let motion = SwitchMotion::default();
-        assert!(motion.spring.stiffness > 0.0);
-        assert!(motion.spring.damping > 0.0);
-        assert!(motion.spring.mass > 0.0);
+        let tokens = default_switch_motion_tokens();
+        assert_eq!(
+            motion.spring,
+            ui_motion::spring::SpringConfig {
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
+            }
+        );
     }
 
     #[test]
@@ -217,12 +203,16 @@ mod tests {
 
     #[test]
     fn sanitize_pressed_width_clamps_and_uses_fallback() {
+        let tokens = default_switch_motion_tokens();
         assert_eq!(sanitize_pressed_width_px(24.0), 24.0);
-        assert_eq!(sanitize_pressed_width_px(4.0), MIN_PRESSED_WIDTH_PX);
-        assert_eq!(sanitize_pressed_width_px(500.0), MAX_PRESSED_WIDTH_PX);
+        assert_eq!(sanitize_pressed_width_px(4.0), tokens.pressed_width_min_px);
+        assert_eq!(
+            sanitize_pressed_width_px(500.0),
+            tokens.pressed_width_max_px
+        );
         assert_eq!(
             sanitize_pressed_width_px(f64::NAN),
-            DEFAULT_PRESSED_WIDTH_PX
+            tokens.pressed_width_default_px
         );
     }
 }

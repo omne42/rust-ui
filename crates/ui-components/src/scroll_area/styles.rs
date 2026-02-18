@@ -1,10 +1,10 @@
 pub const CSS: &str = r#"
 .ui-scroll-area {
-  --ui-scroll-area-motion-duration: 160ms;
+  --ui-scroll-area-motion-duration: var(--ui-text-field-motion-duration);
 
   position: relative;
   border-radius: inherit;
-  transition: opacity var(--ui-scroll-area-motion-duration) ease;
+  transition: opacity var(--ui-scroll-area-motion-duration) var(--ui-text-field-motion-easing);
 }
 
 .ui-scroll-area__viewport {
@@ -69,6 +69,10 @@ pub const CSS: &str = r#"
 
 .ui-scroll-area__viewport::-webkit-scrollbar-thumb:hover {
   background: color-mix(in oklch, var(--ui-fg) 40%, transparent);
+}
+
+.ui-scroll-area__viewport::-webkit-scrollbar-thumb:active {
+  background: color-mix(in oklch, var(--ui-fg) 52%, transparent);
 }
 
 .ui-scroll-area__viewport:focus-visible {

@@ -7,6 +7,11 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn path_exists(rel_path: &str) -> bool {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir.join(rel_path).exists()
+}
+
 #[test]
 fn pagination_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/pagination/mod.rs");
@@ -126,11 +131,20 @@ fn pagination_docs_page_covers_primary_playgrounds() {
         "pub(super) fn pagination() -> AnyView",
         "title=\"Pagination\"",
         "slug=\"pagination\"",
-        "description=\"Pagination control with sibling/boundary range logic and baseline-style state attrs.\"",
-        "<Playground title=\"Pages + on_change\" code_signal=code>",
-        "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
+        "description=\"Pagination control with display/config/code/css-test/state-matrix playgrounds and baseline-style state attrs.\"",
+        "<Playground title=\"展示 Display\" code_signal=display_code>",
+        "<Playground title=\"Config 配置对比\" code_signal=config_code>",
+        "<Playground title=\"Code 代码示例\" code_signal=code_example>",
+        "<Playground title=\"CSS Test\" code_signal=css_test_code>",
+        "<Playground title=\"状态对比 State Matrix\" code_signal=states_code>",
+        "data-slot=\"pagination-display-playground\"",
+        "data-slot=\"pagination-config-playground\"",
+        "data-slot=\"pagination-code-playground\"",
+        "data-slot=\"pagination-css-test-playground\"",
+        "data-slot=\"pagination-states-playground\"",
         "<Pagination",
         "on_change=on_change",
+        "class_name=\"docs-pagination-custom\".to_string()",
         "disabled=true",
         "total_pages=0",
     ] {
@@ -149,11 +163,25 @@ fn pagination_docs_playgrounds_lock_state_matrix_contract_values() {
         "let (page, set_page) = signal(1_usize);",
         "let (last_change, set_last_change) = signal(None::<usize>);",
         "let on_change = Callback::new(move |next: usize| set_last_change.set(Some(next)));",
+        "let (compact_page, set_compact_page) = signal(8_usize);",
+        "let (wide_page, set_wide_page) = signal(8_usize);",
+        "let (code_page, set_code_page) = signal(3_usize);",
+        "let (css_page, set_css_page) = signal(5_usize);",
+        "let (first_page, set_first_page) = signal(1_usize);",
+        "let (middle_page, set_middle_page) = signal(6_usize);",
+        "let (last_page, set_last_page) = signal(12_usize);",
         "total_pages=12",
         "siblings=1",
         "boundaries=1",
         "\"page: \"",
         "\"last change: \"",
+        "\"compact config (siblings=0 boundaries=1): \"",
+        "\"wide config (siblings=2 boundaries=2): \"",
+        "\"code sample page: \"",
+        "\"custom class: docs-pagination-custom\"",
+        "\"first page: \"",
+        "\"middle page: \"",
+        "\"last page: \"",
         "let (disabled_page, set_disabled_page) = signal(1_usize);",
         "let (empty_page, set_empty_page) = signal(1_usize);",
         "total_pages=1",
@@ -170,4 +198,69 @@ fn pagination_docs_playgrounds_lock_state_matrix_contract_values() {
             "pagination docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn pagination_docs_include_readme_or_equivalent_entry() {
+    let has_readme = path_exists("src/pagination/README.md");
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    assert!(
+        has_readme || docs_source.contains("pub(super) fn pagination() -> AnyView"),
+        "Pagination should provide README or equivalent docs-app page."
+    );
+}
+
+#[test]
+fn pagination_readme_covers_display_config_code_css_and_state_comparison_sections() {
+    let source = load_source("src/pagination/README.md");
+
+    for needle in [
+        "## 展示区（docs-app）",
+        "展示 Display",
+        "Config 配置对比",
+        "Code 代码示例",
+        "CSS Test",
+        "状态对比 State Matrix",
+    ] {
+        assert!(
+            source.contains(needle),
+            "pagination README should include `{needle}` section for docs-playground parity."
+        );
+    }
+}
+
+#[test]
+fn pagination_e2e_contract_uses_semantic_selectors_and_stable_waits() {
+    let source = load_source("../../e2e/tests/docs_app_pagination_contract.spec.mjs");
+
+    for needle in [
+        "body:not(:has(#boot))",
+        "data-slot=\"pagination-display-playground\"",
+        "data-slot=\"pagination-state-disabled\"",
+        "data-slot=\"pagination-state-empty\"",
+        "data-slot=\"pagination-css-test-custom\"",
+        "data-slot=\"pagination\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "pagination e2e contract should include semantic marker `{needle}`."
+        );
+    }
+
+    for forbidden in ["waitForTimeout", "setTimeout", "nth-child("] {
+        assert!(
+            !source.contains(forbidden),
+            "pagination e2e contract should avoid unstable token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn pagination_check2_is_marked_complete() {
+    let source = load_source("src/pagination/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "pagination/check2.md should not keep unchecked checklist items after completion."
+    );
 }

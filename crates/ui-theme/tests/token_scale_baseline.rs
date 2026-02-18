@@ -1,7 +1,11 @@
 use ui_theme::{
     Theme, ThemeColor, ThemeContext, ThemeScale, ThemeSystem, accordion_motion_tokens,
     button_layout_tokens, button_motion_tokens, default_accordion_motion_tokens,
-    default_button_layout_tokens, default_button_motion_tokens,
+    default_button_layout_tokens, default_button_motion_tokens, default_overlay_layout_tokens,
+    default_slider_layout_tokens, default_slider_motion_tokens, default_swatch_motion_tokens,
+    default_switch_motion_tokens, default_text_field_motion_tokens, default_textarea_motion_tokens,
+    overlay_layout_tokens, slider_layout_tokens, slider_motion_tokens, swatch_motion_tokens,
+    switch_motion_tokens, text_field_motion_tokens, textarea_motion_tokens,
 };
 
 #[test]
@@ -11,10 +15,24 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(medium.tokens.typography.font_size_150_px, 14);
     assert_eq!(medium.tokens.typography.font_size_200_px, 16);
     assert_eq!(medium.tokens.component_layout.component_height_100_px, 32);
+    assert_eq!(
+        medium
+            .tokens
+            .component_layout
+            .separator_decorative_opacity_percent,
+        72
+    );
     assert_eq!(medium.tokens.overlay_layout.panel_min_width_px, 240);
     assert_eq!(medium.tokens.overlay_layout.viewport_inset_px, 16);
     assert_eq!(medium.tokens.overlay_layout.enter_offset_y_px, 6);
     assert_eq!(medium.tokens.overlay_layout.enter_scale, 0.98);
+    assert_eq!(medium.tokens.slider_layout.max_width_px, 352);
+    assert_eq!(medium.tokens.slider_layout.thumb_border_width_px, 2);
+    assert_eq!(medium.tokens.slider_layout.focus_ring_width_px, 2);
+    assert_eq!(medium.tokens.underlay_motion.transition_duration_ms, 220);
+    assert_eq!(medium.tokens.underlay_motion.visibility_duration_ms, 220);
+    assert_eq!(medium.tokens.underlay_motion.backdrop_blur_px, 1);
+    assert_eq!(medium.tokens.underlay_motion.scrim_alpha_percent, 56);
     assert_eq!(medium.tokens.icons.size_100_px, 20);
     assert_eq!(medium.tokens.icons.size_200_px, 22);
 
@@ -23,10 +41,24 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(large.tokens.typography.font_size_150_px, 16);
     assert_eq!(large.tokens.typography.font_size_200_px, 19);
     assert_eq!(large.tokens.component_layout.component_height_100_px, 40);
+    assert_eq!(
+        large
+            .tokens
+            .component_layout
+            .separator_decorative_opacity_percent,
+        72
+    );
     assert_eq!(large.tokens.overlay_layout.panel_min_width_px, 280);
     assert_eq!(large.tokens.overlay_layout.viewport_inset_px, 20);
     assert_eq!(large.tokens.overlay_layout.enter_offset_y_px, 8);
     assert_eq!(large.tokens.overlay_layout.enter_scale, 0.98);
+    assert_eq!(large.tokens.slider_layout.max_width_px, 400);
+    assert_eq!(large.tokens.slider_layout.thumb_border_width_px, 2);
+    assert_eq!(large.tokens.slider_layout.focus_ring_width_px, 2);
+    assert_eq!(large.tokens.underlay_motion.transition_duration_ms, 240);
+    assert_eq!(large.tokens.underlay_motion.visibility_duration_ms, 240);
+    assert_eq!(large.tokens.underlay_motion.backdrop_blur_px, 1);
+    assert_eq!(large.tokens.underlay_motion.scrim_alpha_percent, 56);
     assert_eq!(large.tokens.icons.size_100_px, 24);
     assert_eq!(large.tokens.icons.size_200_px, 28);
 }
@@ -39,6 +71,12 @@ fn css_variables_emit_theme_axes() {
     assert!(css.contains("--ui-scale: large;"));
     assert!(css.contains("--ui-space-3xs: 2px;"));
     assert!(css.contains("--ui-space-2xs: 4px;"));
+    assert!(css.contains("--ui-slider-max-width:"));
+    assert!(css.contains("--ui-slider-thumb-border-width:"));
+    assert!(css.contains("--ui-slider-focus-ring-width:"));
+    assert!(css.contains("--ui-underlay-transition-duration:"));
+    assert!(css.contains("--ui-underlay-transition-easing:"));
+    assert!(css.contains("--ui-separator-decorative-opacity:"));
 }
 
 #[test]
@@ -129,6 +167,28 @@ fn button_motion_tokens_follow_scale_baseline() {
 }
 
 #[test]
+fn swatch_motion_tokens_follow_scale_baseline() {
+    let medium = swatch_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = swatch_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.spring.stiffness, 280.0);
+    assert_eq!(medium.spring.damping, 20.0);
+    assert_eq!(medium.spring.mass, 1.0);
+    assert_eq!(medium.selected_scale, 1.06);
+    assert_eq!(medium.selected_ring_opacity, 1.0);
+    assert_eq!(large, medium);
+    assert_eq!(default_swatch_motion_tokens(), medium);
+}
+
+#[test]
 fn button_layout_tokens_follow_theme_token_baseline() {
     let medium = button_layout_tokens(ThemeContext {
         system: ThemeSystem::BaselineTwo,
@@ -156,6 +216,135 @@ fn button_layout_tokens_follow_theme_token_baseline() {
 
     assert_eq!(large, medium);
     assert_eq!(default_button_layout_tokens(), medium);
+}
+
+#[test]
+fn switch_motion_tokens_follow_scale_baseline() {
+    let medium = switch_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = switch_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.spring.stiffness, 260.0);
+    assert_eq!(medium.spring.damping, 16.0);
+    assert_eq!(medium.pressed_width_default_px, 19.0);
+    assert_eq!(medium.pressed_width_min_px, 16.0);
+    assert_eq!(medium.pressed_width_max_px, 64.0);
+    assert_eq!(large, medium);
+    assert_eq!(default_switch_motion_tokens(), medium);
+}
+
+#[test]
+fn slider_motion_tokens_follow_scale_baseline() {
+    let medium = slider_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = slider_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.spring.stiffness, 340.0);
+    assert_eq!(medium.spring.damping, 28.0);
+    assert_eq!(medium.spring.mass, 0.9);
+    assert_eq!(medium.spring.precision, 0.001);
+    assert_eq!(large, medium);
+    assert_eq!(default_slider_motion_tokens(), medium);
+}
+
+#[test]
+fn slider_layout_tokens_follow_scale_baseline() {
+    let medium = slider_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = slider_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.max_width_px, 352);
+    assert_eq!(medium.thumb_border_width_px, 2);
+    assert_eq!(medium.focus_ring_width_px, 2);
+    assert_eq!(large.max_width_px, 400);
+    assert_eq!(large.thumb_border_width_px, 2);
+    assert_eq!(large.focus_ring_width_px, 2);
+    assert_eq!(default_slider_layout_tokens(), medium);
+}
+
+#[test]
+fn textarea_motion_tokens_follow_scale_baseline() {
+    let medium = textarea_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = textarea_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.duration_ms, 180);
+    assert_eq!(large.duration_ms, 200);
+    assert_eq!(default_textarea_motion_tokens(), medium);
+}
+
+#[test]
+fn text_field_motion_tokens_follow_scale_baseline() {
+    let medium = text_field_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = text_field_motion_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.duration_ms, 180);
+    assert_eq!(medium.easing, "cubic-bezier(0.2, 0, 0, 1)");
+    assert_eq!(large.duration_ms, 200);
+    assert_eq!(large.easing, "cubic-bezier(0.2, 0, 0, 1)");
+    assert_eq!(default_text_field_motion_tokens(), medium);
+}
+
+#[test]
+fn overlay_layout_tokens_follow_scale_baseline() {
+    let medium = overlay_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Medium,
+    });
+    let large = overlay_layout_tokens(ThemeContext {
+        system: ThemeSystem::BaselineTwo,
+        color: ThemeColor::Light,
+        scale: ThemeScale::Large,
+    });
+
+    assert_eq!(medium.z_index, 1000);
+    assert_eq!(medium.panel_min_width_px, 240);
+    assert_eq!(medium.viewport_inset_px, 16);
+    assert_eq!(medium.enter_offset_y_px, 6);
+    assert_eq!(medium.enter_scale, 0.98);
+    assert_eq!(large.z_index, 1000);
+    assert_eq!(large.panel_min_width_px, 280);
+    assert_eq!(large.viewport_inset_px, 20);
+    assert_eq!(large.enter_offset_y_px, 8);
+    assert_eq!(large.enter_scale, 0.98);
+    assert_eq!(default_overlay_layout_tokens(), medium);
 }
 
 #[test]

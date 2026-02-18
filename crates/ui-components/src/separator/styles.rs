@@ -48,6 +48,6 @@ pub const CSS: &str = r#"
 .ui-separator--decorative,
 .ui-separator[data-state="decorative"],
 .ui-separator[data-decorative="true"] {
-  opacity: var(--ui-separator-decorative-opacity, 0.72);
+  opacity: var(--ui-separator-decorative-opacity);
 }
 "#;

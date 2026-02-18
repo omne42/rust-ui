@@ -1,5 +1,6 @@
 pub const CSS: &str = r#"
 .ui-snippet {
+  --ui-snippet-scale: 1;
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-sm);
@@ -14,9 +15,10 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
   box-shadow: var(--ui-shadow-sm);
   box-sizing: border-box;
+  transform: scale(var(--ui-snippet-scale));
+  transform-origin: center;
 
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  font-family: var(--ui-font-family-mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace);
 }
 
 .ui-snippet--state-multiline,
@@ -79,7 +81,7 @@ pub const CSS: &str = r#"
   flex-shrink: 0;
 
   padding: 0 var(--ui-space-xs);
-  min-height: 20px;
+  min-height: var(--ui-component-height-100);
 
   border-radius: var(--ui-radius-sm);
   border: 1px solid var(--ui-border);
@@ -88,7 +90,7 @@ pub const CSS: &str = r#"
   box-sizing: border-box;
 
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--ui-font-size-100);
   line-height: 1;
   user-select: none;
 }
@@ -101,7 +103,7 @@ pub const CSS: &str = r#"
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 
-  font-size: 13px;
+  font-size: var(--ui-font-size-100);
   line-height: 1.4;
   user-select: text;
 }
@@ -113,7 +115,7 @@ pub const CSS: &str = r#"
   flex-shrink: 0;
 
   padding: calc(var(--ui-space-xs) / 2) var(--ui-space-sm);
-  min-height: 28px;
+  min-height: var(--ui-component-height-100);
 
   border-radius: var(--ui-radius-sm);
   border: 1px solid transparent;
@@ -139,6 +141,21 @@ pub const CSS: &str = r#"
   outline-offset: 2px;
 }
 
+.ui-snippet[data-copy-status="idle"] .ui-snippet__copy-button {
+  color: var(--ui-fg-muted);
+}
+
+.ui-snippet[data-copy-status="loading"] .ui-snippet__copy-button,
+.ui-snippet__copy-button[data-copying="true"] {
+  opacity: 0.72;
+}
+
+.ui-snippet[data-copy-status="error"] .ui-snippet__copy-button,
+.ui-snippet__copy-button[data-copy-error="true"] {
+  color: var(--ui-fg);
+}
+
+.ui-snippet[data-copy-status="copied"] .ui-snippet__copy-button,
 .ui-snippet__copy-button[data-copied="true"] {
   color: var(--ui-accent);
 }

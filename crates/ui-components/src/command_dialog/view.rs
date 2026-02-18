@@ -1,6 +1,8 @@
+use crate::OnPress;
 use crate::command::{Command, CommandGroup, CommandMotion};
-use crate::command_dialog::{CommandDialogPartStateInput, CommandDialogSlot, logic};
-use crate::{Modal, OnPress, OverlayMotion};
+use crate::command_dialog::{CommandDialogPartStateInput, CommandDialogSlot, logic, motion};
+use crate::modal::Modal;
+use crate::overlay::OverlayMotion;
 use leptos::prelude::*;
 use std::sync::Arc;
 use ui_headless as overlay_open;
@@ -52,6 +54,10 @@ pub fn CommandDialog(
     let has_custom_default_open = default_open.is_some();
     let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
     let has_custom_disabled = disabled != logic::DEFAULT_DISABLED;
+
+    let motion = motion::attach_motion(command_motion, overlay_motion);
+    let command_motion = motion.command;
+    let overlay_motion = motion.overlay;
 
     let has_custom_command_motion = command_motion != CommandMotion::default();
     let has_custom_overlay_motion = overlay_motion != OverlayMotion::default();
@@ -183,6 +189,21 @@ pub fn CommandDialog(
                     class=move || root_class.get()
                     data-slot=move || root_state.get().slot_attr
                     data-state=move || root_state.get().state_attr
+                    data-ui-schema="command-dialog"
+                    data-ui-schema-version="1"
+                    data-ui-intent="command-discovery"
+                    data-ui-action=move || {
+                        if root_state.get().close_on_action {
+                            "close-on-action"
+                        } else {
+                            "keep-open"
+                        }
+                    }
+                    data-ui-state=move || root_state.get().state_attr
+                    data-ui-source=move || root_state.get().open_mode_attr
+                    data-stream-mode="snapshot"
+                    data-stream-fallback="snapshot"
+                    data-output-status="verified"
                     data-open=move || root_state.get().open_attr
                     data-closed=move || (!root_state.get().is_open).then_some("true")
                     data-description=move || root_state.get().description_attr

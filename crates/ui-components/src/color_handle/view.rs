@@ -1,8 +1,9 @@
-use crate::ColorThumb;
 use crate::color_handle::{
     ColorHandleStateInput,
     logic::{self},
+    motion::{self, ColorHandleMotion},
 };
+use crate::color_thumb::ColorThumb;
 use leptos::prelude::*;
 
 #[component]
@@ -17,6 +18,7 @@ pub fn ColorHandle(
     #[prop(optional, default = 50.0)] y_percent: f32,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, default = ColorHandleMotion::default())] motion: ColorHandleMotion,
 ) -> impl IntoView {
     let color = logic::sanitize_color(color);
     let has_color = color.is_some();
@@ -28,6 +30,8 @@ pub fn ColorHandle(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+    let motion_source_attr = motion::source_attr(motion);
+    let style = StoredValue::new(motion::attach_motion(None, motion));
 
     let state = Memo::new(move |_| {
         logic::resolve_state(ColorHandleStateInput {
@@ -49,6 +53,7 @@ pub fn ColorHandle(
         <div
             id=id_base
             class=move || class.get()
+            style=move || style.get_value()
             role="group"
             aria-label=move || aria_label.get_value()
             data-slot="color-handle"
@@ -61,6 +66,7 @@ pub fn ColorHandle(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=motion_source_attr
         >
             <div class="ui-color-handle__surface" data-slot="color-handle-surface" aria-hidden="true">
                 <ColorThumb

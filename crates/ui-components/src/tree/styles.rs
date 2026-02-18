@@ -8,6 +8,13 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-radius-md);
   background: var(--ui-bg);
   color: var(--ui-fg);
+  transform: scale(var(--ui-tree-motion-scale, 1));
+  opacity: var(--ui-tree-motion-opacity, 1);
+}
+
+.ui-tree[data-motion-source="custom"],
+.ui-tree[data-custom-motion="true"] {
+  --ui-tree-custom-motion: 1;
 }
 
 .ui-tree--tone-default,

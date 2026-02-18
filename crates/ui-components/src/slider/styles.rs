@@ -2,20 +2,20 @@ pub const CSS: &str = r#"
 .ui-slider {
   --ui-slider-percent: 0;
   --ui-slider-visual-percent: var(--ui-slider-percent);
-  --ui-slider-track-height: 0.5rem;
-  --ui-slider-thumb-size: 1.1rem;
+  --ui-slider-track-height: var(--ui-space-2xs, 4px);
+  --ui-slider-thumb-size: var(--ui-icon-size-100, 20px);
   --ui-slider-track-bg: color-mix(in oklch, var(--ui-border), var(--ui-bg) 28%);
   --ui-slider-fill-bg: var(--ui-accent);
   --ui-slider-thumb-bg: var(--ui-bg);
   --ui-slider-thumb-border: color-mix(in oklch, var(--ui-accent), var(--ui-border) 24%);
   display: grid;
-  gap: 0.5rem;
-  width: min(100%, 22rem);
+  gap: var(--ui-space-xs, 6px);
+  width: min(100%, var(--ui-slider-max-width, 352px));
   color: var(--ui-fg);
 }
 
 .ui-slider__label {
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-100, 12px);
   font-weight: 600;
 }
 
@@ -65,7 +65,7 @@ pub const CSS: &str = r#"
   width: var(--ui-slider-thumb-size);
   height: var(--ui-slider-thumb-size);
   border-radius: 999px;
-  border: 2px solid var(--ui-slider-thumb-border);
+  border: var(--ui-slider-thumb-border-width, 2px) solid var(--ui-slider-thumb-border);
   background: var(--ui-slider-thumb-bg);
   transform: translate(-50%, -50%);
   box-shadow: var(--ui-shadow-sm);
@@ -77,7 +77,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-slider__input:focus-visible + .ui-slider__track {
-  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ui-accent), transparent 68%);
+  box-shadow: 0 0 0 var(--ui-slider-focus-ring-width, 2px) color-mix(in oklch, var(--ui-focus-ring), transparent 68%);
 }
 
 .ui-slider--state-disabled,

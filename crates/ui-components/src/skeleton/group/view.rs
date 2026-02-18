@@ -1,15 +1,13 @@
-use super::{
-    SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupStateInput, SkeletonGroupVariant, logic,
-};
+use super::{SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant, logic};
 use leptos::prelude::*;
 
 #[component]
 pub fn SkeletonGroup(
-    #[prop(optional, default = true)] is_loading: bool,
-    #[prop(optional)] is_skeleton_only: bool,
-    #[prop(optional)] variant: SkeletonGroupVariant,
-    #[prop(optional)] layout: SkeletonGroupLayout,
-    #[prop(optional)] density: SkeletonGroupDensity,
+    #[prop(optional)] is_loading: Option<bool>,
+    #[prop(optional)] is_skeleton_only: Option<bool>,
+    #[prop(optional)] variant: Option<SkeletonGroupVariant>,
+    #[prop(optional)] layout: Option<SkeletonGroupLayout>,
+    #[prop(optional)] density: Option<SkeletonGroupDensity>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -17,7 +15,7 @@ pub fn SkeletonGroup(
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
     let class_name = logic::normalize_optional_text(class_name);
 
-    let state = logic::resolve_state(SkeletonGroupStateInput {
+    let state_input = logic::normalize_state_input(logic::SkeletonGroupViewInput {
         is_loading,
         is_skeleton_only,
         variant,
@@ -26,6 +24,7 @@ pub fn SkeletonGroup(
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
     });
+    let state = logic::resolve_state(state_input);
 
     let class = logic::compose_class_name(class_name, state);
 

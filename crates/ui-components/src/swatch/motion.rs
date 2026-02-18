@@ -1,3 +1,5 @@
+use ui_theme::default_swatch_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SwatchMotion {
     pub enabled: bool,
@@ -8,16 +10,17 @@ pub struct SwatchMotion {
 
 impl Default for SwatchMotion {
     fn default() -> Self {
+        let tokens = default_swatch_motion_tokens();
         Self {
             enabled: true,
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 280.0,
-                damping: 20.0,
-                mass: 1.0,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
-            selected_scale: 1.06,
-            selected_ring_opacity: 1.0,
+            selected_scale: tokens.selected_scale,
+            selected_ring_opacity: tokens.selected_ring_opacity,
         }
     }
 }
@@ -196,8 +199,9 @@ pub fn attach_motion(
 pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     _selected: leptos::prelude::Signal<bool>,
-    _motion: SwatchMotion,
+    motion: SwatchMotion,
 ) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]
@@ -225,6 +229,24 @@ mod tests {
         assert_eq!(motion.spring.precision, default.spring.precision);
         assert_eq!(motion.selected_scale, default.selected_scale);
         assert_eq!(motion.selected_ring_opacity, 1.0);
+    }
+
+    #[test]
+    fn default_motion_reads_theme_tokens() {
+        let motion = SwatchMotion::default();
+        let tokens = default_swatch_motion_tokens();
+
+        assert_eq!(
+            motion.spring,
+            ui_motion::spring::SpringConfig {
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
+            }
+        );
+        assert_eq!(motion.selected_scale, tokens.selected_scale);
+        assert_eq!(motion.selected_ring_opacity, tokens.selected_ring_opacity);
     }
 
     #[test]

@@ -14,6 +14,7 @@ ssr = ["leptos/ssr"]
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false }
+ui-state-primitives = { path = "../ui-state-primitives" }
 
 [dev-dependencies]
 any_spawner = { version = "0.3", features = ["futures-executor"] }

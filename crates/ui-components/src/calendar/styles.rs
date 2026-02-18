@@ -1,5 +1,6 @@
 pub const CSS: &str = r#"
 .ui-calendar {
+  --ui-calendar-motion-duration: 180ms;
   display: grid;
   gap: var(--ui-space-xs);
   width: min(100%, 22rem);
@@ -88,6 +89,11 @@ pub const CSS: &str = r#"
   justify-content: center;
   background: var(--ui-bg);
   color: var(--ui-fg);
+  transition:
+    background-color var(--ui-calendar-motion-duration) ease,
+    border-color var(--ui-calendar-motion-duration) ease,
+    color var(--ui-calendar-motion-duration) ease,
+    transform var(--ui-calendar-motion-duration) ease;
 }
 
 .ui-calendar__day--selected,
@@ -100,6 +106,10 @@ pub const CSS: &str = r#"
 .ui-calendar__day--outside,
 .ui-calendar__day[data-month-source="outside"] {
   opacity: 0.78;
+}
+
+.ui-calendar__day:active {
+  transform: scale(0.98);
 }
 
 .ui-calendar__day-empty {

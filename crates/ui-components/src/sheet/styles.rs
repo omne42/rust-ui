@@ -2,7 +2,7 @@ pub const CSS: &str = r#"
 .ui-sheet {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--ui-overlay-z-index);
 }
 
 .ui-sheet[data-motion-source="custom"],
@@ -89,10 +89,10 @@ pub const CSS: &str = r#"
 }
 
 .ui-sheet--placement-bottom .ui-sheet__panel {
-  left: 0;
-  right: 0;
-  bottom: 0;
-  max-height: 90vh;
+  left: var(--ui-overlay-viewport-inset);
+  right: var(--ui-overlay-viewport-inset);
+  bottom: var(--ui-overlay-viewport-inset);
+  max-height: calc(100vh - var(--ui-overlay-viewport-inset) * 2);
   border-top-left-radius: var(--ui-radius-lg);
   border-top-right-radius: var(--ui-radius-lg);
   padding: var(--ui-space-lg);
@@ -100,9 +100,12 @@ pub const CSS: &str = r#"
 
 .ui-sheet--placement-left .ui-sheet__panel,
 .ui-sheet--placement-right .ui-sheet__panel {
-  top: 0;
-  bottom: 0;
-  width: min(420px, 92vw);
+  top: var(--ui-overlay-viewport-inset);
+  bottom: var(--ui-overlay-viewport-inset);
+  width: min(
+    calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 8),
+    calc(100vw - var(--ui-overlay-viewport-inset) * 2)
+  );
   padding: var(--ui-space-lg);
 }
 

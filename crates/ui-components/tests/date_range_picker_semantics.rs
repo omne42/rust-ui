@@ -25,7 +25,7 @@ fn date_range_picker_uses_logic_state_model() {
     let view_source = load_source("src/date_range_picker/view.rs");
 
     for needle in [
-        "pub enum DateRangePickerTone",
+        "pub use ui_state_primitives::date_range_picker::{",
         "pub fn normalize_optional_text(",
         "pub fn normalize_aria_label(",
         "pub fn normalize_month(",
@@ -34,6 +34,8 @@ fn date_range_picker_uses_logic_state_model() {
         "pub fn is_range_invalid(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
+        "pub fn resolve_text_state(",
+        "DateRangePickerTextInput",
         "aria_source_attr",
         "class_source_attr",
         "data_state_attr",
@@ -50,6 +52,9 @@ fn date_range_picker_uses_logic_state_model() {
         "logic::is_range_invalid(",
         "logic::resolve_state(DateRangePickerStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
+        "logic::resolve_text_state(DateRangePickerTextInput {",
+        "text_state.get_value().start_label",
+        "text_state.get_value().invalid_range_message",
         "<DatePicker",
     ] {
         assert!(
@@ -132,6 +137,9 @@ fn date_range_picker_docs_page_covers_primary_playgrounds() {
         "description=\"Two DatePicker composition with centralized range validity/value-shape derivation and baseline-style state/source contracts.\"",
         "<Playground title=\"Controlled + Shared Month\" code_signal=code>",
         "<Playground title=\"Strong Tone + Invalid Range Hint\" code_signal=states_code>",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "test_css_source=test_css_source",
+        "test_config_signal=actual_config",
         "<DateRangePicker",
         "tone=DateRangePickerTone::Strong",
         "default_start_day=20",
@@ -169,6 +177,10 @@ fn date_range_picker_docs_playgrounds_lock_state_matrix_contract_values() {
         "default_end_day=12",
         "tone=DateRangePickerTone::Strong",
         "class_name=\"docs-date-range-picker-custom\".to_string()",
+        "id_base=\"docs-date-range-picker-workbench\".to_string()",
+        "id_base=\"docs-date-range-picker-compare-valid\".to_string()",
+        "id_base=\"docs-date-range-picker-compare-invalid\".to_string()",
+        "data-slot=\"date-range-picker-workbench-controls\"",
     ] {
         assert!(
             source.contains(needle),

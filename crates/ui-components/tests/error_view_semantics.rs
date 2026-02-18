@@ -7,6 +7,11 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn path_exists(rel_path: &str) -> bool {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir.join(rel_path).exists()
+}
+
 #[test]
 fn error_view_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/error_view/mod.rs");
@@ -23,19 +28,17 @@ fn error_view_does_not_expose_logic_or_view_modules() {
 fn error_view_uses_logic_state_model() {
     let logic_source = load_source("src/error_view/logic.rs");
     let view_source = load_source("src/error_view/view.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/error_view.rs");
 
     for needle in [
-        "pub enum ErrorViewTone",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_message(",
-        "pub fn normalize_aria_label(",
+        "pub use ui_state_primitives::error_view::{",
+        "pub struct ErrorViewNormalizeInput",
+        "pub struct ErrorViewNormalizedProps",
+        "pub fn normalize_props(",
         "pub fn resolve_state(",
         "pub fn compose_class_name(",
-        "message_source_attr",
-        "aria_source_attr",
-        "class_source_attr",
-        "motion_source_attr",
-        "content_attr",
+        "compact_source_attr",
+        "bordered_source_attr",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -44,15 +47,26 @@ fn error_view_uses_logic_state_model() {
     }
 
     for needle in [
-        "logic::normalize_message(message)",
-        "logic::normalize_aria_label(aria_label)",
-        "logic::resolve_state(ErrorViewStateInput {",
+        "logic::normalize_props(logic::ErrorViewNormalizeInput {",
+        "logic::resolve_state(state_input.get_value())",
         "logic::compose_class_name(class_name.get_value(), state.get())",
+        "locale_attrs(lang, dir)",
         "motion::attach_motion(root_ref, visible, motion)",
     ] {
         assert!(
             view_source.contains(needle),
             "ErrorView view should derive state via logic/motion helpers; missing `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum ErrorViewTone",
+        "pub struct ErrorViewStateInput",
+        "pub struct ErrorViewState",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "ErrorView primitives should include `{needle}` in ui-state-primitives."
         );
     }
 }
@@ -68,11 +82,14 @@ fn error_view_emits_baseline_style_state_data_attributes() {
         "data-slot=\"error-view-text\"",
         "data-slot=\"error-view-actions\"",
         "data-tone=move || state.get().tone_attr",
+        "data-tone-source=normalized.tone_source_attr",
         "data-state=move || state.get().state_attr",
         "data-invalid=move || state.get().is_visible.then_some(\"true\")",
         "data-hidden=move || state.get().is_hidden.then_some(\"true\")",
         "data-compact=move || state.get().is_compact.then_some(\"true\")",
+        "data-compact-source=normalized.compact_source_attr",
         "data-bordered=move || state.get().is_bordered.then_some(\"true\")",
+        "data-bordered-source=normalized.bordered_source_attr",
         "data-icon=move || state.get().has_icon.then_some(\"true\")",
         "data-actions=move || state.get().has_actions.then_some(\"true\")",
         "data-content=move || state.get().content_attr",
@@ -81,6 +98,8 @@ fn error_view_emits_baseline_style_state_data_attributes() {
         "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
         "data-class-source=move || state.get().class_source_attr",
         "data-motion-source=move || state.get().motion_source_attr",
+        "lang=locale.lang",
+        "dir=locale.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -169,8 +188,8 @@ fn error_view_docs_playgrounds_lock_state_matrix_contract_values() {
         "message=\"This error stays hidden until the field becomes invalid.\".to_string()",
         "title=\"Custom Content + Motion + Actions\"",
         "tone=ErrorViewTone::Neutral",
-        "compact=true",
-        "bordered=true",
+        "is_compact=true",
+        "is_bordered=true",
         "class_name=\"docs-error-view-custom\".to_string()",
         "motion=ErrorViewMotion {",
         "hidden_translate_px: 12.0",
@@ -185,4 +204,49 @@ fn error_view_docs_playgrounds_lock_state_matrix_contract_values() {
             "error_view docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn error_view_docs_include_readme_or_equivalent_entry() {
+    let has_readme = path_exists("src/error_view/README.md");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    assert!(
+        has_readme || docs_source.contains("pub(super) fn error_view() -> AnyView"),
+        "ErrorView should provide README or equivalent docs-app page."
+    );
+}
+
+#[test]
+fn error_view_e2e_contract_uses_semantic_selectors_and_stable_waits() {
+    let source = load_source("../../e2e/tests/docs_app_error_view_contract.spec.mjs");
+
+    for needle in [
+        "body:not(:has(#boot))",
+        "data-slot=\"error-view\"",
+        "data-state",
+        "data-compact-source",
+        "data-bordered-source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "error-view e2e contract should include semantic marker `{needle}`."
+        );
+    }
+
+    for forbidden in ["waitForTimeout", "setTimeout", "nth-child("] {
+        assert!(
+            !source.contains(forbidden),
+            "error-view e2e contract should avoid unstable token `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn error_view_check2_is_marked_complete() {
+    let source = load_source("src/error_view/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "error_view/check2.md should not keep unchecked checklist items after completion."
+    );
 }

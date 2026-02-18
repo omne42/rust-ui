@@ -1,5 +1,6 @@
 pub const CSS: &str = r#"
 .ui-empty-state {
+  --ui-empty-state-enter: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -9,6 +10,10 @@ pub const CSS: &str = r#"
   background: color-mix(in oklab, var(--ui-bg-muted) 86%, var(--ui-bg) 14%);
   border: 1px solid transparent;
   color: var(--ui-fg);
+  opacity: var(--ui-empty-state-enter);
+  transform: translateY(
+    calc((1 - var(--ui-empty-state-enter)) * var(--ui-space-sm))
+  );
 }
 
 .ui-empty-state--tone-default,
@@ -87,5 +92,16 @@ pub const CSS: &str = r#"
 .ui-empty-state[data-custom-class="true"] {
   outline: 1px solid color-mix(in oklab, var(--ui-accent) 26%, transparent);
   outline-offset: 2px;
+}
+
+.ui-empty-state[data-motion-source="custom"],
+.ui-empty-state[data-custom-motion="true"] {
+  --ui-empty-state-motion-custom: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-empty-state {
+    transform: none;
+  }
 }
 "#;

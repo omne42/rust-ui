@@ -1,53 +1,77 @@
-use crate::surface::{
-    SurfaceStateInput,
-    logic::{self, SurfaceElevation, SurfaceTone},
-};
-use leptos::prelude::*;
+use crate::surface::logic::{self, SurfaceElevation, SurfaceTone};
+use leptos::{html, prelude::*};
+use ui_headless::{A11yDirection, SurfaceOptions, use_surface};
 
 #[component]
 pub fn Surface(
     #[prop(optional)] tone: SurfaceTone,
     #[prop(optional)] elevation: SurfaceElevation,
+    #[prop(optional)] is_bordered: Option<bool>,
     #[prop(optional)] bordered: bool,
+    #[prop(optional)] is_padded: Option<bool>,
     #[prop(optional, default = true)] padded: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
+    #[prop(optional)] motion: super::motion::SurfaceMotion,
     children: Children,
 ) -> impl IntoView {
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
-
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
-
-    let state = Memo::new(move |_| {
-        logic::resolve_state(SurfaceStateInput {
-            tone,
-            elevation,
+    let root = logic::normalize_root_state(logic::SurfaceRootInput {
+        tone,
+        elevation,
+        control: logic::SurfaceControlInput {
+            is_bordered,
             bordered,
+            is_padded,
             padded,
-            has_custom_aria_label,
-            has_custom_class_name,
-        })
+        },
+        aria_label,
+        class_name,
     });
 
-    let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let bordered_source_attr = root.bordered_source_attr;
+    let padded_source_attr = root.padded_source_attr;
+    let state = root.state;
+    let class = logic::compose_class_name(root.class_name.clone(), state);
+    let semantics = use_surface(SurfaceOptions {
+        state,
+        aria_label: root.aria_label,
+        lang,
+        dir,
+    });
+    let motion = super::motion::sanitize_motion(motion);
+    let motion_source = if motion == super::motion::SurfaceMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != super::motion::SurfaceMotion::default()).then_some("true");
+    let node_ref: NodeRef<html::Section> = NodeRef::new();
+    super::motion::attach_motion(node_ref, motion);
 
     view! {
         <section
-            class=move || class.get()
+            class=class
+            node_ref=node_ref
             data-slot="surface"
-            data-tone=move || state.get().tone_attr
-            data-elevation=move || state.get().elevation_attr
-            data-state=move || state.get().data_state_attr
-            data-bordered=move || state.get().is_bordered.then_some("true")
-            data-padded=move || state.get().is_padded.then_some("true")
-            data-plain=move || state.get().is_plain.then_some("true")
-            data-aria-source=move || state.get().aria_source_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            data-class-source=move || state.get().class_source_attr
-            role="region"
-            aria-label=aria_label
+            data-tone=semantics.attrs.data_tone
+            data-elevation=semantics.attrs.data_elevation
+            data-state=semantics.attrs.data_state
+            data-bordered=semantics.attrs.data_bordered
+            data-padded=semantics.attrs.data_padded
+            data-plain=semantics.attrs.data_plain
+            data-aria-source=semantics.attrs.data_aria_source
+            data-custom-class=semantics.attrs.data_custom_class
+            data-class-source=semantics.attrs.data_class_source
+            data-bordered-source=bordered_source_attr
+            data-padded-source=padded_source_attr
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
+            role=semantics.attrs.role
+            aria-label=semantics.attrs.aria_label
+            lang=semantics.attrs.lang
+            dir=semantics.attrs.dir
         >
             {children()}
         </section>

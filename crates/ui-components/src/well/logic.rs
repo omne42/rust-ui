@@ -1,73 +1,89 @@
-use crate::well::{WellState, WellStateInput};
+pub use ui_state_primitives::well::{
+    DEFAULT_ARIA_LABEL, WellDensity, WellState, WellStateInput, WellTone, resolve_state,
+};
 
-pub const DEFAULT_ARIA_LABEL: &str = "Content well";
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum WellTone {
-    #[default]
-    Default,
-    Quiet,
-    Strong,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WellNormalizeInput {
+    pub tone: Option<WellTone>,
+    pub density: Option<WellDensity>,
+    pub is_inset: Option<bool>,
+    pub aria_label: Option<String>,
+    pub fallback_aria_label: String,
+    pub class_name: Option<String>,
 }
 
-impl WellTone {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            WellTone::Default => "ui-well--tone-default",
-            WellTone::Quiet => "ui-well--tone-quiet",
-            WellTone::Strong => "ui-well--tone-strong",
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WellNormalizedProps {
+    pub state_input: WellStateInput,
+    pub aria_label: String,
+    pub class_name: Option<String>,
+    pub tone_source_attr: &'static str,
+    pub density_source_attr: &'static str,
+    pub inset_source_attr: &'static str,
+}
 
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            WellTone::Default => "default",
-            WellTone::Quiet => "quiet",
-            WellTone::Strong => "strong",
-        }
-    }
+pub fn normalize_tone(value: Option<WellTone>) -> WellTone {
+    value.unwrap_or_default()
+}
+
+pub fn normalize_density(value: Option<WellDensity>) -> WellDensity {
+    value.unwrap_or_default()
+}
+
+pub fn normalize_is_inset(value: Option<bool>) -> bool {
+    value.unwrap_or(false)
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+    ui_state_primitives::well::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
+    ui_state_primitives::well::normalize_aria_label(value)
+}
+
+pub fn normalize_aria_label_with_fallback(
+    aria_label: Option<String>,
+    fallback_aria_label: &str,
+) -> (String, bool) {
+    if let Some(label) = normalize_optional_text(aria_label) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    let fallback = normalize_optional_text(Some(fallback_aria_label.to_string()))
+        .unwrap_or_else(|| normalize_aria_label(None).0);
+    (fallback, false)
 }
 
-pub fn resolve_state(input: WellStateInput) -> WellState {
-    let label_source_attr = if input.has_custom_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
+pub fn source_attr_from_presence(is_present: bool) -> &'static str {
+    if is_present { "prop" } else { "default" }
+}
 
-    WellState {
-        tone: input.tone,
-        tone_class: input.tone.class_name(),
-        tone_attr: input.tone.as_attr(),
-        density: input.density,
-        density_class: input.density.class_name(),
-        density_attr: input.density.as_attr(),
-        is_inset: input.inset,
-        is_not_inset: !input.inset,
-        has_custom_label: input.has_custom_label,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source_attr,
-        class_source_attr,
+pub fn normalize_props(input: WellNormalizeInput) -> WellNormalizedProps {
+    let tone_source_attr = source_attr_from_presence(input.tone.is_some());
+    let density_source_attr = source_attr_from_presence(input.density.is_some());
+    let inset_source_attr = source_attr_from_presence(input.is_inset.is_some());
+
+    let tone = normalize_tone(input.tone);
+    let density = normalize_density(input.density);
+    let is_inset = normalize_is_inset(input.is_inset);
+    let class_name = normalize_optional_text(input.class_name);
+    let (aria_label, has_custom_label) =
+        normalize_aria_label_with_fallback(input.aria_label, input.fallback_aria_label.as_str());
+
+    WellNormalizedProps {
+        state_input: WellStateInput {
+            tone,
+            density,
+            inset: is_inset,
+            has_custom_label,
+            has_custom_class_name: class_name.is_some(),
+        },
+        aria_label,
+        class_name,
+        tone_source_attr,
+        density_source_attr,
+        inset_source_attr,
     }
 }
 
@@ -88,6 +104,7 @@ pub fn compose_class_name(base_class_name: Option<String>, state: WellState) -> 
 
     if state.has_custom_class_name {
         classes.push("ui-well--custom-class".to_string());
+
         if let Some(base_class_name) = base_class_name {
             classes.push(base_class_name);
         }
@@ -99,56 +116,62 @@ pub fn compose_class_name(base_class_name: Option<String>, state: WellState) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::well::WellDensity;
 
     #[test]
-    fn tone_class_names_and_attrs_are_stable() {
-        assert_eq!(WellTone::Default.class_name(), "ui-well--tone-default");
-        assert_eq!(WellTone::Quiet.class_name(), "ui-well--tone-quiet");
-        assert_eq!(WellTone::Strong.class_name(), "ui-well--tone-strong");
+    fn normalize_defaults_are_explicit_and_stable() {
+        assert_eq!(normalize_tone(None), WellTone::Default);
+        assert_eq!(normalize_tone(Some(WellTone::Strong)), WellTone::Strong);
 
-        assert_eq!(WellTone::Default.as_attr(), "default");
-        assert_eq!(WellTone::Quiet.as_attr(), "quiet");
-        assert_eq!(WellTone::Strong.as_attr(), "strong");
-    }
-
-    #[test]
-    fn normalize_optional_text_filters_blank_values() {
-        assert_eq!(normalize_optional_text(None), None);
-        assert_eq!(normalize_optional_text(Some("\n\t".to_string())), None);
+        assert_eq!(normalize_density(None), WellDensity::Comfortable);
         assert_eq!(
-            normalize_optional_text(Some(" docs-well ".to_string())),
-            Some("docs-well".to_string())
+            normalize_density(Some(WellDensity::Compact)),
+            WellDensity::Compact
         );
+
+        assert!(!normalize_is_inset(None));
+        assert!(normalize_is_inset(Some(true)));
     }
 
     #[test]
-    fn normalize_aria_label_uses_trimmed_text_or_fallback() {
-        let (label, custom) = normalize_aria_label(Some("  Selection summary  ".to_string()));
-        assert_eq!(label, "Selection summary");
-        assert!(custom);
-
-        let (label, custom) = normalize_aria_label(Some("  ".to_string()));
-        assert_eq!(label, DEFAULT_ARIA_LABEL);
-        assert!(!custom);
-    }
-
-    #[test]
-    fn resolve_state_tracks_density_inset_and_sources() {
-        let state = resolve_state(WellStateInput {
-            tone: WellTone::Strong,
-            density: WellDensity::Compact,
-            inset: true,
-            has_custom_label: true,
-            has_custom_class_name: false,
+    fn normalize_props_centralizes_state_input_and_sources() {
+        let normalized = normalize_props(WellNormalizeInput {
+            tone: None,
+            density: Some(WellDensity::Compact),
+            is_inset: None,
+            aria_label: Some("  Selection summary  ".to_string()),
+            fallback_aria_label: "Content well".to_string(),
+            class_name: Some(" docs-well ".to_string()),
         });
 
-        assert_eq!(state.tone_attr, "strong");
-        assert_eq!(state.density_attr, "compact");
-        assert!(state.is_inset);
-        assert!(!state.is_not_inset);
-        assert_eq!(state.label_source_attr, "custom");
-        assert_eq!(state.class_source_attr, "default");
+        assert_eq!(normalized.state_input.tone, WellTone::Default);
+        assert_eq!(normalized.state_input.density, WellDensity::Compact);
+        assert!(!normalized.state_input.inset);
+        assert!(normalized.state_input.has_custom_label);
+        assert!(normalized.state_input.has_custom_class_name);
+        assert_eq!(normalized.aria_label, "Selection summary");
+        assert_eq!(normalized.class_name, Some("docs-well".to_string()));
+        assert_eq!(normalized.tone_source_attr, "default");
+        assert_eq!(normalized.density_source_attr, "prop");
+        assert_eq!(normalized.inset_source_attr, "default");
+    }
+
+    #[test]
+    fn normalize_aria_label_with_fallback_prefers_explicit_and_sanitizes_fallback() {
+        assert_eq!(
+            normalize_aria_label_with_fallback(
+                Some("  Summary  ".to_string()),
+                "Localized default"
+            ),
+            ("Summary".to_string(), true)
+        );
+        assert_eq!(
+            normalize_aria_label_with_fallback(None, "  Localized default  "),
+            ("Localized default".to_string(), false)
+        );
+        assert_eq!(
+            normalize_aria_label_with_fallback(None, "   "),
+            (DEFAULT_ARIA_LABEL.to_string(), false)
+        );
     }
 
     #[test]
@@ -175,5 +198,11 @@ mod tests {
                 "composed class should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn source_attr_from_presence_is_closed_set() {
+        assert_eq!(source_attr_from_presence(false), "default");
+        assert_eq!(source_attr_from_presence(true), "prop");
     }
 }

@@ -2,9 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    BottomSheet, BottomSheetMotion, Button, ButtonVariant, OnPress, Sonner, SonnerPosition,
-    ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, Toaster, ToasterPosition, Tray,
-    TrayMotion, Underlay, provide_toast_store,
+    AiOutputStatus, AiRenderMode, AiSpace, BottomSheet, BottomSheetMotion, Button, ButtonVariant,
+    OnPress, Snippet, Sonner, SonnerPosition, ToastMotion, ToastOptions, ToastStoreOptions,
+    ToastVariant, Toaster, ToasterPosition, Tray, TrayMotion, Underlay, provide_toast_store,
 };
 
 pub(super) fn bottom_sheet() -> AnyView {
@@ -361,6 +361,7 @@ pub(super) fn sonner() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
     let source_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
+    let hello_world_code = Signal::derive(move || r#"<Sonner />"#.to_string());
 
     let push_saved: OnPress = Callback::new(move |_| {
         portal_store.get_value().push_simple("Saved");
@@ -446,25 +447,40 @@ store.push_simple("Saved");"#
             group="Overlays"
             description="baseline-style toast host that composes ToastViewport with position presets, queue limits, and stable Sonner slot/source-state data contracts."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <div class="ui-muted">
+                    "Default path mounts a notification host with sensible defaults and no manual state wiring."
+                </div>
+                <Sonner />
+            </Playground>
+
             <Playground title="Portal Queue + Variants" code_signal=basic_code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Secondary on_press=push_saved>
-                        "Push success"
-                    </Button>
-                    <Button variant=ButtonVariant::Destructive on_press=push_danger>
-                        "Push danger"
-                    </Button>
+                <div class="docs-row" data-slot="sonner-portal-controls">
+                    <span data-slot="sonner-portal-push-success">
+                        <Button variant=ButtonVariant::Secondary on_press=push_saved>
+                            "Push success"
+                        </Button>
+                    </span>
+                    <span data-slot="sonner-portal-push-danger">
+                        <Button variant=ButtonVariant::Destructive on_press=push_danger>
+                            "Push danger"
+                        </Button>
+                    </span>
                 </div>
                 <Sonner store=portal_store.get_value() />
             </Playground>
 
             <Playground title="Inline Top-Center + Max Queue" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button on_press=push_inline>"Push accent"</Button>
-                        <Button variant=ButtonVariant::Secondary on_press=clear_inline>
-                            "Clear"
-                        </Button>
+                    <div class="docs-row" data-slot="sonner-inline-controls">
+                        <span data-slot="sonner-inline-push">
+                            <Button on_press=push_inline>"Push accent"</Button>
+                        </span>
+                        <span data-slot="sonner-inline-clear">
+                            <Button variant=ButtonVariant::Secondary on_press=clear_inline>
+                                "Clear"
+                            </Button>
+                        </span>
                     </div>
                     <Sonner
                         store=inline_store.get_value()
@@ -482,11 +498,15 @@ store.push_simple("Saved");"#
                 code_signal=source_code
             >
                 <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button on_press=push_source>"Push marker toast"</Button>
-                        <Button variant=ButtonVariant::Secondary on_press=clear_source>
-                            "Clear"
-                        </Button>
+                    <div class="docs-row" data-slot="sonner-source-controls">
+                        <span data-slot="sonner-source-push">
+                            <Button on_press=push_source>"Push marker toast"</Button>
+                        </span>
+                        <span data-slot="sonner-source-clear">
+                            <Button variant=ButtonVariant::Secondary on_press=clear_source>
+                                "Clear"
+                            </Button>
+                        </span>
                     </div>
                     <div class="ui-muted">
                         "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools."
@@ -502,6 +522,86 @@ store.push_simple("Saved");"#
                     />
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="sonner-api-matrix">
+                <h3>"API Matrix"</h3>
+                <ul data-slot="sonner-api-rows">
+                    <li>
+                        <code>"position: SonnerPosition"</code>
+                        " "
+                        {format!(
+                            "default = SonnerPosition::{:?} ({})",
+                            SonnerPosition::default(),
+                            SonnerPosition::default().as_attr()
+                        )}
+                    </li>
+                    <li>
+                        <code>"portal: bool"</code>
+                        " "
+                        {format!("default = {}", ui_components::sonner::DEFAULT_PORTAL)}
+                    </li>
+                    <li>
+                        <code>"max_toasts: usize"</code>
+                        " "
+                        {format!("default = {}", ui_components::sonner::DEFAULT_MAX_TOASTS)}
+                    </li>
+                    <li>
+                        <code>"aria_label: Option<String>"</code>
+                        " "
+                        {format!(
+                            "default label = {:?}",
+                            ui_components::sonner::DEFAULT_ARIA_LABEL
+                        )}
+                    </li>
+                    <li>
+                        <code>"class_name: Option<String>"</code>
+                        " default = None"
+                    </li>
+                    <li>
+                        <code>"lang: Option<String>, dir: Option<A11yDirection>"</code>
+                        " default = None (inherits app locale context)"
+                    </li>
+                    <li>
+                        <code>"motion: ToastMotion"</code>
+                        " default = ToastMotion::default()"
+                    </li>
+                    <li>
+                        <code>"store: Option<ToastStore>"</code>
+                        " default path = provided -> context -> local"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="sonner-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="sonner-state-rows">
+                    <li>
+                        <code>"data-state"</code>
+                        " = portal | inline"
+                    </li>
+                    <li>
+                        <code>"data-queue"</code>
+                        " = single | bounded | extended"
+                    </li>
+                    <li>
+                        <code>"data-position"</code>
+                        " = top-left | top-center | top-right | bottom-left | bottom-center | bottom-right"
+                    </li>
+                    <li>
+                        <code>"data-store-source"</code>
+                        " = provided | context | local"
+                    </li>
+                    <li>
+                        <code>"data-position-source / data-portal-source / data-max-toasts-source / data-motion-source"</code>
+                        " = default | custom"
+                    </li>
+                    <li>
+                        <code>"control mode"</code>
+                        " = N/A (Sonner is host config, no controlled/uncontrolled runtime axis)"
+                    </li>
+                </ul>
+            </section>
+
         </ComponentPage>
     }
     .into_any()
@@ -511,6 +611,8 @@ pub(super) fn toaster() -> AnyView {
     let portal_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 3 }));
     let inline_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 2 }));
     let source_store = StoredValue::new(provide_toast_store(ToastStoreOptions { max_toasts: 4 }));
+
+    let hello_world_code = Signal::derive(move || r#"<Toaster />"#.to_string());
 
     let push_saved: OnPress = Callback::new(move |_| {
         portal_store.get_value().push_simple("Synced");
@@ -596,25 +698,40 @@ store.push_simple("Synced");"#
             group="Overlays"
             description="baseline-compatible toast host that composes Sonner/ToastViewport with centralized slot/queue/position/store source-state contracts and baseline-level spring motion handoff."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <div class="ui-muted">
+                    "Default path only mounts host; no state primitive wiring or custom store binding required."
+                </div>
+                <Toaster />
+            </Playground>
+
             <Playground title="Portal Queue Host" code_signal=basic_code>
-                <div class="docs-row">
-                    <Button variant=ButtonVariant::Secondary on_press=push_saved>
-                        "Push success"
-                    </Button>
-                    <Button on_press=push_warning>
-                        "Push accent"
-                    </Button>
+                <div class="docs-row" data-slot="toaster-portal-controls">
+                    <span data-slot="toaster-portal-push-success">
+                        <Button variant=ButtonVariant::Secondary on_press=push_saved>
+                            "Push success"
+                        </Button>
+                    </span>
+                    <span data-slot="toaster-portal-push-accent">
+                        <Button on_press=push_warning>
+                            "Push accent"
+                        </Button>
+                    </span>
                 </div>
                 <Toaster store=portal_store.get_value() />
             </Playground>
 
             <Playground title="Inline Top-Center Host" code_signal=state_code>
                 <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button on_press=push_inline>"Push inline toast"</Button>
-                        <Button variant=ButtonVariant::Secondary on_press=clear_inline>
-                            "Clear"
-                        </Button>
+                    <div class="docs-row" data-slot="toaster-inline-controls">
+                        <span data-slot="toaster-inline-push">
+                            <Button on_press=push_inline>"Push inline toast"</Button>
+                        </span>
+                        <span data-slot="toaster-inline-clear">
+                            <Button variant=ButtonVariant::Secondary on_press=clear_inline>
+                                "Clear"
+                            </Button>
+                        </span>
                     </div>
                     <Toaster
                         store=inline_store.get_value()
@@ -632,11 +749,15 @@ store.push_simple("Synced");"#
                 code_signal=source_code
             >
                 <div class="docs-stack docs-stack--tight">
-                    <div class="docs-row">
-                        <Button on_press=push_source>"Push source toast"</Button>
-                        <Button variant=ButtonVariant::Secondary on_press=clear_source>
-                            "Clear"
-                        </Button>
+                    <div class="docs-row" data-slot="toaster-source-controls">
+                        <span data-slot="toaster-source-push">
+                            <Button on_press=push_source>"Push source toast"</Button>
+                        </span>
+                        <span data-slot="toaster-source-clear">
+                            <Button variant=ButtonVariant::Secondary on_press=clear_source>
+                                "Clear"
+                            </Button>
+                        </span>
                     </div>
                     <div class="ui-muted">
                         "Inspect data-position-source / data-portal-source / data-max-toasts-source / data-store-source / data-motion-source in DevTools."
@@ -652,6 +773,117 @@ store.push_simple("Synced");"#
                     />
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="toaster-api-matrix">
+                <h3>"API Matrix"</h3>
+                <ul data-slot="toaster-api-rows">
+                    <li>
+                        <code>"position: ToasterPosition"</code>
+                        " "
+                        {format!(
+                            "default = ToasterPosition::{:?} ({})",
+                            ToasterPosition::default(),
+                            ToasterPosition::default().as_attr()
+                        )}
+                    </li>
+                    <li>
+                        <code>"portal: bool"</code>
+                        " "
+                        {format!("default = {}", ui_components::toaster::DEFAULT_PORTAL)}
+                    </li>
+                    <li>
+                        <code>"max_toasts: usize"</code>
+                        " "
+                        {format!(
+                            "default = {}",
+                            ui_components::toaster::DEFAULT_MAX_TOASTS
+                        )}
+                    </li>
+                    <li>
+                        <code>"aria_label: Option<String>"</code>
+                        " "
+                        {format!(
+                            "default label = {:?}",
+                            ui_components::toaster::DEFAULT_ARIA_LABEL
+                        )}
+                    </li>
+                    <li>
+                        <code>"class_name: Option<String>"</code>
+                        " default = None"
+                    </li>
+                    <li>
+                        <code>"lang: Option<String>, dir: Option<A11yDirection>"</code>
+                        " default = None (inherits app locale context)"
+                    </li>
+                    <li>
+                        <code>"motion: ToastMotion"</code>
+                        " default = ToastMotion::default()"
+                    </li>
+                    <li>
+                        <code>"store: Option<ToastStore>"</code>
+                        " default path = provided -> context -> local"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="toaster-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="toaster-state-rows">
+                    <li>
+                        <code>"data-state"</code>
+                        " = portal | inline"
+                    </li>
+                    <li>
+                        <code>"data-queue"</code>
+                        " = single | bounded | extended"
+                    </li>
+                    <li>
+                        <code>"data-position"</code>
+                        " = top-left | top-center | top-right | bottom-left | bottom-center | bottom-right"
+                    </li>
+                    <li>
+                        <code>"data-store-source"</code>
+                        " = provided | context | local"
+                    </li>
+                    <li>
+                        <code>"data-position-source / data-portal-source / data-max-toasts-source / data-motion-source"</code>
+                        " = default | custom"
+                    </li>
+                    <li>
+                        <code>"control mode"</code>
+                        " = N/A (Toaster is host config, no controlled/uncontrolled runtime axis)"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="toaster-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground already supports "
+                    <code>"Show code"</code>
+                    " with copy action. The copied snippet is import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Toaster />".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-toaster-source-copy".to_string()
+                />
+                <ul data-slot="toaster-source-paths">
+                    <li><code>"crates/ui-components/src/toaster/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/toaster/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/toaster/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/toaster/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/toaster/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="toaster-source-prerequisites">
+                    <li><code>"component-toaster"</code></li>
+                    <li><code>"component-toast"</code></li>
+                    <li><code>"component-sonner"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -662,6 +894,7 @@ pub(super) fn underlay() -> AnyView {
     let open_scrim: Signal<bool> = Signal::derive(move || open_scrim_raw.get());
 
     let close_scrim: OnPress = Callback::new(move |_| set_open_scrim_raw.set(false));
+    let on_scrim_open_change = Callback::new(move |next: bool| set_open_scrim_raw.set(next));
     let open_scrim_underlay: OnPress = Callback::new(move |_| set_open_scrim_raw.set(true));
 
     let (open_transparent_raw, set_open_transparent_raw) = signal(false);
@@ -669,6 +902,8 @@ pub(super) fn underlay() -> AnyView {
     let disabled_open: Signal<bool> = Signal::derive(|| true);
 
     let close_transparent: OnPress = Callback::new(move |_| set_open_transparent_raw.set(false));
+    let on_transparent_open_change =
+        Callback::new(move |next: bool| set_open_transparent_raw.set(next));
     let open_transparent_underlay: OnPress =
         Callback::new(move |_| set_open_transparent_raw.set(true));
 
@@ -676,15 +911,46 @@ pub(super) fn underlay() -> AnyView {
     let open_source: Signal<bool> = Signal::derive(move || open_source_raw.get());
 
     let close_source: OnPress = Callback::new(move |_| set_open_source_raw.set(false));
+    let on_source_open_change = Callback::new(move |next: bool| set_open_source_raw.set(next));
     let open_source_underlay: OnPress = Callback::new(move |_| set_open_source_raw.set(true));
+
+    let (open_ai_raw, set_open_ai_raw) = signal(false);
+    let open_ai: Signal<bool> = Signal::derive(move || open_ai_raw.get());
+    let close_ai: OnPress = Callback::new(move |_| set_open_ai_raw.set(false));
+    let on_ai_open_change = Callback::new(move |next: bool| set_open_ai_raw.set(next));
+    let open_ai_underlay: OnPress = Callback::new(move |_| set_open_ai_raw.set(true));
+
+    let (ai_mode_raw, set_ai_mode_raw) = signal(AiRenderMode::Snapshot);
+    let ai_mode: Signal<AiRenderMode> = Signal::derive(move || ai_mode_raw.get());
+    let toggle_ai_mode: OnPress = Callback::new(move |_| {
+        set_ai_mode_raw.update(|mode| {
+            *mode = match *mode {
+                AiRenderMode::Snapshot => AiRenderMode::Streaming,
+                AiRenderMode::Streaming => AiRenderMode::Snapshot,
+            };
+        });
+    });
+
+    let (ai_output_status_raw, set_ai_output_status_raw) = signal(AiOutputStatus::Verified);
+    let ai_output_status: Signal<AiOutputStatus> =
+        Signal::derive(move || ai_output_status_raw.get());
+    let cycle_ai_output_status: OnPress = Callback::new(move |_| {
+        set_ai_output_status_raw.update(|status| {
+            *status = match *status {
+                AiOutputStatus::Draft => AiOutputStatus::Verified,
+                AiOutputStatus::Verified => AiOutputStatus::Submittable,
+                AiOutputStatus::Submittable => AiOutputStatus::Draft,
+            };
+        });
+    });
 
     let code = Signal::derive(move || {
         r#"let (open, set_open) = signal(false);
 
 <Underlay
   id_base="docs-underlay-basic".to_string()
-  open=Signal::derive(move || open.get())
-  on_close=Callback::new(move |_| set_open.set(false))
+  is_open=Signal::derive(move || open.get())
+  on_open_change=Callback::new(move |next| set_open.set(next))
 />"#
         .to_string()
     });
@@ -694,15 +960,15 @@ pub(super) fn underlay() -> AnyView {
 
 <Underlay
   id_base="docs-underlay-transparent".to_string()
-  open=Signal::derive(move || open_raw.get())
-  transparent=true
+  is_open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next| set_open_raw.set(next))
+  is_transparent=true
   class_name="docs-underlay-custom".to_string()
-  on_close=Callback::new(move |_| set_open_raw.set(false))
 />
 <Underlay
   id_base="docs-underlay-disabled".to_string()
-  open=Signal::derive(|| true)
-  disabled=true
+  is_open=Signal::derive(|| true)
+  is_disabled=true
 />"#
         .to_string()
     });
@@ -712,18 +978,37 @@ pub(super) fn underlay() -> AnyView {
 
 <Underlay
   id_base="docs-underlay-source".to_string()
-  open=Signal::derive(move || open_raw.get())
-  transparent=true
+  is_open=Signal::derive(move || open_raw.get())
+  on_open_change=Callback::new(move |next| set_open_raw.set(next))
+  is_transparent=true
   class_name="docs-underlay-source".to_string()
-  on_close=Callback::new(move |_| set_open_raw.set(false))
 />
 <Underlay
   id_base="docs-underlay-source-disabled".to_string()
-  open=Signal::derive(|| true)
-  disabled=true
+  is_open=Signal::derive(|| true)
+  is_disabled=true
   class_name="docs-underlay-disabled-source".to_string()
 />"#
         .to_string()
+    });
+
+    let ai_stream_code = Signal::derive(move || {
+        r#"let (open_raw, set_open_raw) = signal(false);
+let (mode_raw, set_mode_raw) = signal(AiRenderMode::Snapshot);
+let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
+
+<AiSpace
+  mode=Signal::derive(move || mode_raw.get())
+  output_status=Signal::derive(move || status_raw.get())
+>
+  <Underlay
+    id_base="docs-underlay-ai".to_string()
+    is_open=Signal::derive(move || open_raw.get())
+    on_open_change=Callback::new(move |next| set_open_raw.set(next))
+    on_close=Callback::new(move |_| set_open_raw.set(false))
+  />
+</AiSpace>"#
+            .to_string()
     });
 
     view! {
@@ -743,7 +1028,8 @@ pub(super) fn underlay() -> AnyView {
 
                 <Underlay
                     id_base="docs-underlay-basic".to_string()
-                    open=open_scrim
+                    is_open=open_scrim
+                    on_open_change=on_scrim_open_change
                     on_close=close_scrim
                 />
             </Playground>
@@ -766,16 +1052,17 @@ pub(super) fn underlay() -> AnyView {
 
                 <Underlay
                     id_base="docs-underlay-transparent".to_string()
-                    open=open_transparent
-                    transparent=true
+                    is_open=open_transparent
+                    on_open_change=on_transparent_open_change
+                    is_transparent=true
                     class_name="docs-underlay-custom".to_string()
                     on_close=close_transparent
                 />
 
                 <Underlay
                     id_base="docs-underlay-disabled".to_string()
-                    open=disabled_open
-                    disabled=true
+                    is_open=disabled_open
+                    is_disabled=true
                     class_name="docs-underlay-disabled".to_string()
                 />
             </Playground>
@@ -793,23 +1080,75 @@ pub(super) fn underlay() -> AnyView {
                         </Button>
                     </div>
                     <div class="ui-muted">
-                        "Inspect data-transparent-source / data-disabled-source / data-close-source / data-class-source in DevTools."
+                        "Inspect data-open-mode / data-open-source / data-open-change-source / data-transparent-source / data-disabled-source / data-close-source / data-class-source in DevTools."
                     </div>
 
                     <Underlay
                         id_base="docs-underlay-source".to_string()
-                        open=open_source
-                        transparent=true
+                        is_open=open_source
+                        on_open_change=on_source_open_change
+                        is_transparent=true
                         class_name="docs-underlay-source".to_string()
                         on_close=close_source
                     />
 
                     <Underlay
                         id_base="docs-underlay-source-disabled".to_string()
-                        open=Signal::derive(|| true)
-                        disabled=true
+                        is_open=Signal::derive(|| true)
+                        is_disabled=true
                         class_name="docs-underlay-disabled-source".to_string()
                     />
+                </div>
+            </Playground>
+
+            <Playground
+                title="LLM Render Modes (Snapshot + Streaming)"
+                description="`Underlay` is not a text-reader surface, so streaming is optional with explicit `fallback=snapshot`; output status stays observable via `data-ui-output-status`."
+                code_signal=ai_stream_code
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/underlay/view.rs".to_string()
+            >
+                <div class="docs-stack docs-stack--tight" data-slot="underlay-ai-demo">
+                    <div class="docs-row" data-slot="underlay-ai-controls">
+                        <button type="button" data-action="open" on:click=move |_| open_ai_underlay.run(())>
+                            "Open AI underlay"
+                        </button>
+                        <button type="button" data-action="close" on:click=move |_| close_ai.run(())>
+                            "Close"
+                        </button>
+                        <button
+                            type="button"
+                            data-action="toggle-mode"
+                            on:click=move |_| toggle_ai_mode.run(())
+                        >
+                            "Toggle mode"
+                        </button>
+                        <button
+                            type="button"
+                            data-action="cycle-status"
+                            on:click=move |_| cycle_ai_output_status.run(())
+                        >
+                            "Cycle status"
+                        </button>
+                    </div>
+                    <span class="ui-muted" data-slot="underlay-ai-runtime">
+                        "mode: " {move || ai_mode_raw.get().as_str()} " | status: "
+                        {move || ai_output_status_raw.get().as_str()} " | open: "
+                        {move || open_ai_raw.get().to_string()}
+                    </span>
+                    <div class="ui-muted">
+                        "Inspect data-ui-stream-support / data-ui-stream-fallback / data-ui-stream-mode / data-ui-output-status on the underlay root."
+                    </div>
+                    <div class="ui-muted">
+                        "Copy-ready snippets auto-include `use leptos::prelude::*; use ui_components::*;` (requires `ui-components` with `component-underlay`)."
+                    </div>
+                    <AiSpace mode=ai_mode output_status=ai_output_status>
+                        <Underlay
+                            id_base="docs-underlay-ai".to_string()
+                            is_open=open_ai
+                            on_open_change=on_ai_open_change
+                            on_close=close_ai
+                        />
+                    </AiSpace>
                 </div>
             </Playground>
         </ComponentPage>

@@ -1,7 +1,9 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Button, ButtonVariant, Coachmark, CoachmarkAssetVariant, OnPress};
+use ui_components::{
+    Button, ButtonVariant, Coachmark, CoachmarkAssetVariant, CoachmarkVariant, OnPress,
+};
 
 pub(super) fn coachmark() -> AnyView {
     let (last_action, set_last_action) = signal("none".to_string());
@@ -64,6 +66,113 @@ pub(super) fn coachmark() -> AnyView {
   <div>Inspect data-state/source markers on root + content.</div>
 </Coachmark>"#
             .to_string()
+    });
+
+    let display_code = Signal::derive(move || {
+        r#"<Coachmark title=\"Help variant\".to_string() default_open=true current_step=1 total_steps=3 primary_cta=\"Next\".to_string() asset_variant=CoachmarkAssetVariant::Folder>
+  <div>Default help intent with built-in asset.</div>
+</Coachmark>
+<Coachmark variant=CoachmarkVariant::Info title=\"Info variant\".to_string() default_open=true primary_cta=\"Understood\".to_string() asset_src=\"https://picsum.photos/420/260\".to_string()>
+  <div>Info intent with external image source.</div>
+</Coachmark>
+<Coachmark title=\"Disabled preview\".to_string() default_open=true disabled=true secondary_cta=\"Dismiss\".to_string()>
+  <div>Disabled state keeps semantic markers for testing.</div>
+</Coachmark>"#
+            .to_string()
+    });
+
+    let (workbench_open_raw, set_workbench_open_raw) = signal(true);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let on_workbench_open_change =
+        Callback::new(move |next: bool| set_workbench_open_raw.set(next));
+    let toggle_workbench_open: OnPress = Callback::new(move |_| {
+        set_workbench_open_raw.update(|open| *open = !*open);
+    });
+
+    let (workbench_info_variant, set_workbench_info_variant) = signal(false);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_show_steps, set_workbench_show_steps) = signal(true);
+    let (workbench_dual_cta, set_workbench_dual_cta) = signal(true);
+    let (workbench_use_image, set_workbench_use_image) = signal(false);
+    let (workbench_use_custom_class, set_workbench_use_custom_class) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let variant = if workbench_info_variant.get() {
+            "  variant=CoachmarkVariant::Info\n"
+        } else {
+            ""
+        };
+        let disabled = if workbench_disabled.get() {
+            "  disabled=true\n"
+        } else {
+            ""
+        };
+        let steps = if workbench_show_steps.get() {
+            "  current_step=2\n  total_steps=5\n"
+        } else {
+            ""
+        };
+        let cta = if workbench_dual_cta.get() {
+            "  primary_cta=\"Next\".to_string()\n  secondary_cta=\"Back\".to_string()\n"
+        } else {
+            "  primary_cta=\"Got it\".to_string()\n"
+        };
+        let asset = if workbench_use_image.get() {
+            "  asset_src=\"https://picsum.photos/420/260\".to_string()\n"
+        } else {
+            "  asset_variant=CoachmarkAssetVariant::Folder\n"
+        };
+        let class_name = if workbench_use_custom_class.get() {
+            "  class_name=\"docs-coachmark-state\".to_string()\n"
+        } else {
+            ""
+        };
+
+        format!(
+            "let (open, set_open) = signal({});\n\n<Coachmark\n  title=\"Workbench coachmark\".to_string()\n{variant}{disabled}  open=Signal::derive(move || open.get())\n  on_open_change=Callback::new(move |next| set_open.set(next))\n{steps}{cta}{asset}{class_name}>\n  <div>Inspect display/config/code/css-test panels together.</div>\n</Coachmark>",
+            workbench_open_raw.get()
+        )
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/coachmark/styles.rs */\n{}",
+            ui_components::coachmark::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let variant = if workbench_info_variant.get() {
+            CoachmarkVariant::Info
+        } else {
+            CoachmarkVariant::Help
+        };
+        let asset_source = if workbench_use_image.get() {
+            "image"
+        } else {
+            "variant"
+        };
+        let cta_mode = if workbench_dual_cta.get() {
+            "dual"
+        } else {
+            "single"
+        };
+        let steps = if workbench_show_steps.get() {
+            "present"
+        } else {
+            "absent"
+        };
+        let class_source = if workbench_use_custom_class.get() {
+            "custom"
+        } else {
+            "default"
+        };
+
+        format!(
+            "CoachmarkWorkbenchConfig {{\n  variant: {variant:?},\n  open: {},\n  disabled: {},\n  steps: \"{steps}\",\n  cta: \"{cta_mode}\",\n  asset_source: \"{asset_source}\",\n  class_source: \"{class_source}\",\n}}",
+            workbench_open_raw.get(),
+            workbench_disabled.get(),
+        )
     });
 
     view! {
@@ -153,6 +262,165 @@ pub(super) fn coachmark() -> AnyView {
                         <div class="ui-muted">"Aria label + class source + asset source contracts are explicit."</div>
                     </div>
                 </Coachmark>
+            </Playground>
+
+            <Playground
+                title="Display Comparisons (Help / Info / Disabled)"
+                description="Display matrix for common states to compare variant intent, asset source, and disabled behavior side by side."
+                code_signal=display_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Coachmark
+                        title="Help variant".to_string()
+                        default_open=true
+                        current_step=1
+                        total_steps=3
+                        primary_cta="Next".to_string()
+                        asset_variant=CoachmarkAssetVariant::Folder
+                    >
+                        <div>"Default help intent with built-in asset."</div>
+                    </Coachmark>
+                    <Coachmark
+                        variant=CoachmarkVariant::Info
+                        title="Info variant".to_string()
+                        default_open=true
+                        primary_cta="Understood".to_string()
+                        asset_src="https://picsum.photos/420/260".to_string()
+                        asset_alt="Info preview".to_string()
+                    >
+                        <div>"Info intent with external image source."</div>
+                    </Coachmark>
+                    <Coachmark
+                        title="Disabled preview".to_string()
+                        default_open=true
+                        disabled=true
+                        secondary_cta="Dismiss".to_string()
+                    >
+                        <div>"Disabled state keeps semantic markers for testing."</div>
+                    </Coachmark>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Config + Code + CSS Test Workbench"
+                description="Config panel drives a single live instance; use Show code and Show test to inspect copy-ready code and scoped CSS."
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/coachmark/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || workbench_info_variant.get()
+                                    on:change=move |ev| set_workbench_info_variant.set(event_target_checked(&ev))
+                                />
+                                <span>"Info variant"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || workbench_disabled.get()
+                                    on:change=move |ev| set_workbench_disabled.set(event_target_checked(&ev))
+                                />
+                                <span>"Disabled"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || workbench_show_steps.get()
+                                    on:change=move |ev| set_workbench_show_steps.set(event_target_checked(&ev))
+                                />
+                                <span>"Show step counter"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || workbench_dual_cta.get()
+                                    on:change=move |ev| set_workbench_dual_cta.set(event_target_checked(&ev))
+                                />
+                                <span>"Dual CTA"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || workbench_use_image.get()
+                                    on:change=move |ev| set_workbench_use_image.set(event_target_checked(&ev))
+                                />
+                                <span>"Use image asset"</span>
+                            </label>
+                            <label class="docs-choice-row">
+                                <input
+                                    type="checkbox"
+                                    prop:checked=move || workbench_use_custom_class.get()
+                                    on:change=move |ev| set_workbench_use_custom_class.set(event_target_checked(&ev))
+                                />
+                                <span>"Enable custom class source"</span>
+                            </label>
+                            <Button variant=ButtonVariant::Secondary on_press=toggle_workbench_open>
+                                "Toggle open"
+                            </Button>
+                        </div>
+                    }
+                }
+            >
+                {move || {
+                    let variant = if workbench_info_variant.get() {
+                        CoachmarkVariant::Info
+                    } else {
+                        CoachmarkVariant::Help
+                    };
+                    let disabled = workbench_disabled.get();
+                    let (current_step, total_steps) = if workbench_show_steps.get() {
+                        (2, 5)
+                    } else {
+                        (0, 1)
+                    };
+                    let primary_cta = if workbench_dual_cta.get() {
+                        "Next".to_string()
+                    } else {
+                        "Got it".to_string()
+                    };
+                    let secondary_cta = if workbench_dual_cta.get() {
+                        "Back".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let asset_src = if workbench_use_image.get() {
+                        "https://picsum.photos/420/260".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if workbench_use_custom_class.get() {
+                        "docs-coachmark-state".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <Coachmark
+                            variant=variant
+                            title="Workbench coachmark".to_string()
+                            open=workbench_open
+                            on_open_change=on_workbench_open_change
+                            disabled=disabled
+                            current_step=current_step
+                            total_steps=total_steps
+                            primary_cta=primary_cta
+                            secondary_cta=secondary_cta
+                            asset_variant=CoachmarkAssetVariant::Folder
+                            asset_src=asset_src
+                            class_name=class_name
+                        >
+                            <div class="docs-stack docs-stack--tight">
+                                <div>"Inspect display/config/code/css-test panels together."</div>
+                                <div class="ui-muted">"Open state is controlled so settings are reproducible for regression review."</div>
+                            </div>
+                        </Coachmark>
+                    }
+                }}
             </Playground>
         </ComponentPage>
     }

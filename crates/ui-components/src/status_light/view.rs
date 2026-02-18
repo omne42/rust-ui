@@ -1,42 +1,51 @@
 use crate::status_light::{
     StatusLightRole, StatusLightVariant,
-    logic::{self, StatusLightStateInput},
+    logic::{self, StatusLightRootInput},
 };
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, StatusLightOptions, use_status_light};
 
 #[component]
 pub fn StatusLight(
-    #[prop(optional)] variant: StatusLightVariant,
+    #[prop(optional)] variant: Option<StatusLightVariant>,
     #[prop(optional)] role: Option<StatusLightRole>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = logic::normalize_optional_text(class_name);
-    let state = logic::resolve_state(StatusLightStateInput {
+    let root = logic::normalize_root_state(StatusLightRootInput {
         variant,
         role,
-        has_custom_class_name: class_name.is_some(),
+        class_name,
     });
-    let class = logic::compose_class_name(class_name, state);
+    let semantics = use_status_light(StatusLightOptions {
+        state: root.state,
+        lang,
+        dir,
+    });
 
     view! {
         <span
-            class=class
-            role=state.role_attr
+            class=root.class_name
+            role=semantics.attrs.role
+            aria-live=semantics.attrs.aria_live
+            lang=semantics.attrs.lang
+            dir=semantics.attrs.dir
             data-slot="status-light"
-            data-variant=state.variant_attr
-            data-state=state.state_attr
-            data-live=state.is_live.then_some("true")
-            data-static=(!state.is_live).then_some("true")
-            data-role=state.role_attr
-            data-role-source=state.role_source_attr
-            data-custom-class=state.has_custom_class_name.then_some("true")
-            data-class-source=state.class_source_attr
+            data-variant=semantics.attrs.data_variant
+            data-state=semantics.attrs.data_state
+            data-live=semantics.attrs.data_live
+            data-static=semantics.attrs.data_static
+            data-role=semantics.attrs.data_role
+            data-role-source=semantics.attrs.data_role_source
+            data-custom-class=semantics.attrs.data_custom_class
+            data-class-source=semantics.attrs.data_class_source
         >
             <span
                 class="ui-status-light__dot"
                 data-slot="status-light-indicator"
-                data-variant=state.variant_attr
+                data-variant=semantics.attrs.data_variant
                 aria-hidden="true"
             ></span>
             <span class="ui-status-light__label" data-slot="status-light-label">

@@ -1,14 +1,15 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::{html, prelude::*};
+use ui_components::color_area::A11yDirection;
 use ui_components::{
     Alert, AlertVariant, Avatar, AvatarGroup, AvatarGroupItem, AvatarSize, Badge, BadgeVariant,
     Chip, ChipSize, ChipVariant, CircularProgress, Code, CodeBlock, CodeVariant,
-    IllustratedMessage, Image, ImageRadius, ImageShadow, InlineAlert, InlineAlertFill,
+    IllustratedMessage, Image, ImageMotion, ImageRadius, ImageShadow, InlineAlert, InlineAlertFill,
     InlineAlertTone, Kbd, KbdSize, Link, Meter, MeterSize, MeterVariant, MotionRipple, Progress,
-    ProgressBar, ProgressBarSize, ProgressBarVariant, ProgressCircle, RippleMotion, Skeleton,
-    SkeletonVariant, SlidingNumber, Snippet, Spinner, SpinnerSize, StaticNumber, StatusLight,
-    StatusLightRole, StatusLightVariant,
+    ProgressBar, ProgressBarSize, ProgressBarVariant, ProgressCircle, RippleMotion,
+    SegmentedControl, SegmentedControlSize, Skeleton, SkeletonVariant, SlidingNumber, Snippet,
+    Spinner, SpinnerSize, StaticNumber, StatusLight, StatusLightRole, StatusLightVariant, Switch,
 };
 
 pub(super) fn alert() -> AnyView {
@@ -52,7 +53,11 @@ pub(super) fn alert() -> AnyView {
             group="Display"
             description="Inline alert surface with centralized variant/content state attrs and action slot semantics."
         >
-            <Playground title="Hello World" code_signal=hello_world_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <Alert title="Notice".to_string()>
                         <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
@@ -125,6 +130,150 @@ pub(super) fn inline_alert() -> AnyView {
             .to_string()
     });
 
+    let matrix_code = Signal::derive(move || {
+        r#"<InlineAlert tone=InlineAlertTone::Info fill=InlineAlertFill::Subtle title="Info".to_string() description="Subtle fill".to_string()>
+  "This is an inline alert."
+</InlineAlert>
+<InlineAlert tone=InlineAlertTone::Positive fill=InlineAlertFill::Border title="Success".to_string() description="Border fill".to_string()>
+  "Everything looks good."
+</InlineAlert>
+<InlineAlert tone=InlineAlertTone::Notice fill=InlineAlertFill::Subtle title="Notice".to_string() description="Review before publish.".to_string()>
+  "Check your settings."
+</InlineAlert>
+<InlineAlert tone=InlineAlertTone::Negative fill=InlineAlertFill::Border title="Error".to_string() description="Border fill".to_string()>
+  "Something went wrong."
+</InlineAlert>"#
+            .to_string()
+    });
+
+    let custom_code = Signal::derive(move || {
+        r#"<InlineAlert
+  tone=InlineAlertTone::Info
+  fill=InlineAlertFill::Bold
+  title="Custom class + slots".to_string()
+  description="With start/end content and icon hidden.".to_string()
+  hide_icon=true
+  class_name="docs-inline-alert-custom".to_string()
+  start_content=move || view! { <span>"↳"</span> }
+  end_content=move || view! { <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>"Fix"</ui_components::Button> }
+>
+  "Action required."
+</InlineAlert>"#
+            .to_string()
+    });
+
+    let tone_options = vec![
+        "Neutral".to_string(),
+        "Info".to_string(),
+        "Positive".to_string(),
+        "Notice".to_string(),
+        "Negative".to_string(),
+    ];
+    let fill_options = vec![
+        "Border".to_string(),
+        "Subtle".to_string(),
+        "Bold".to_string(),
+    ];
+
+    let (tone_index, set_tone_index) = signal(Some(1_usize));
+    let (fill_index, set_fill_index) = signal(Some(0_usize));
+    let (hide_icon, set_hide_icon) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (show_title, set_show_title) = signal(true);
+    let (show_description, set_show_description) = signal(true);
+    let (show_start, set_show_start) = signal(false);
+    let (show_end, set_show_end) = signal(false);
+
+    let tone = Signal::derive(move || match tone_index.get().unwrap_or(1) {
+        0 => InlineAlertTone::Neutral,
+        2 => InlineAlertTone::Positive,
+        3 => InlineAlertTone::Notice,
+        4 => InlineAlertTone::Negative,
+        _ => InlineAlertTone::Info,
+    });
+
+    let fill = Signal::derive(move || match fill_index.get().unwrap_or(0) {
+        1 => InlineAlertFill::Subtle,
+        2 => InlineAlertFill::Bold,
+        _ => InlineAlertFill::Border,
+    });
+
+    let interactive_code = Signal::derive(move || {
+        let tone = tone.get();
+        let fill = fill.get();
+        let hide_icon = hide_icon.get();
+        let custom_class = custom_class.get();
+        let show_title = show_title.get();
+        let show_description = show_description.get();
+        let show_start = show_start.get();
+        let show_end = show_end.get();
+
+        let mut lines = vec![
+            "<InlineAlert".to_string(),
+            format!("  tone=InlineAlertTone::{tone:?}"),
+            format!("  fill=InlineAlertFill::{fill:?}"),
+        ];
+
+        if hide_icon {
+            lines.push("  hide_icon=true".to_string());
+        }
+        if show_title {
+            lines.push("  title=\"Interactive title\".to_string()".to_string());
+        }
+        if show_description {
+            lines.push("  description=\"Interactive description\".to_string()".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-inline-alert-custom\".to_string()".to_string());
+        }
+        if show_start {
+            lines.push("  start_content=move || view! { <span>\"↳\"</span> }".to_string());
+        }
+        if show_end {
+            lines.push("  end_content=move || view! { <span>\"Action\"</span> }".to_string());
+        }
+
+        lines.extend([
+            " >".replace(" ", ""),
+            "  \"Preview message\"".to_string(),
+            "</InlineAlert>".to_string(),
+        ]);
+        lines.join("\n")
+    });
+
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/inline_alert/styles.rs */\n{}",
+            ui_components::inline_alert::styles::CSS
+        )
+    });
+
+    let actual_config = Signal::derive(move || {
+        let tone = tone.get();
+        let fill = fill.get();
+        let hide_icon = hide_icon.get();
+        let custom_class = custom_class.get();
+        let show_title = show_title.get();
+        let show_description = show_description.get();
+        let show_start = show_start.get();
+        let show_end = show_end.get();
+
+        let mut class = vec![
+            "ui-inline-alert".to_string(),
+            tone.class_name().to_string(),
+            fill.class_name().to_string(),
+        ];
+
+        if custom_class {
+            class.push("docs-inline-alert-custom".to_string());
+        }
+
+        format!(
+            "InlineAlertActualConfig {{\n  tone: {tone:?},\n  fill: {fill:?},\n  hide_icon: {hide_icon},\n  has_title: {show_title},\n  has_description: {show_description},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  has_custom_class: {custom_class},\n  class: \"{}\",\n}}",
+            class.join(" ")
+        )
+    });
+
     view! {
         <ComponentPage
             title="InlineAlert"
@@ -152,12 +301,217 @@ pub(super) fn inline_alert() -> AnyView {
                     </InlineAlert>
                 </div>
             </Playground>
+
+            <Playground title="Tone + Fill Matrix" code_signal=matrix_code>
+                <div class="docs-stack">
+                    <InlineAlert
+                        tone=InlineAlertTone::Info
+                        fill=InlineAlertFill::Subtle
+                        title="Info".to_string()
+                        description="Subtle fill".to_string()
+                    >
+                        "This is an inline alert."
+                    </InlineAlert>
+                    <InlineAlert
+                        tone=InlineAlertTone::Positive
+                        fill=InlineAlertFill::Border
+                        title="Success".to_string()
+                        description="Border fill".to_string()
+                    >
+                        "Everything looks good."
+                    </InlineAlert>
+                    <InlineAlert
+                        tone=InlineAlertTone::Notice
+                        fill=InlineAlertFill::Subtle
+                        title="Notice".to_string()
+                        description="Review before publish.".to_string()
+                    >
+                        "Check your settings."
+                    </InlineAlert>
+                    <InlineAlert
+                        tone=InlineAlertTone::Negative
+                        fill=InlineAlertFill::Border
+                        title="Error".to_string()
+                        description="Border fill".to_string()
+                    >
+                        "Something went wrong."
+                    </InlineAlert>
+                </div>
+            </Playground>
+
+            <Playground title="Slots + Custom Class" code_signal=custom_code>
+                <div class="docs-stack">
+                    <InlineAlert
+                        tone=InlineAlertTone::Info
+                        fill=InlineAlertFill::Bold
+                        title="Custom class + slots".to_string()
+                        description="With start/end content and icon hidden.".to_string()
+                        hide_icon=true
+                        class_name="docs-inline-alert-custom".to_string()
+                        start_content=move || view! { <span>"↳"</span> }
+                        end_content=move || {
+                            view! {
+                                <ui_components::Button
+                                    variant=ui_components::ButtonVariant::Secondary
+                                    size=ui_components::ButtonSize::Sm
+                                >
+                                    "Fix"
+                                </ui_components::Button>
+                            }
+                        }
+                    >
+                        "Action required."
+                    </InlineAlert>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                code_signal=interactive_code
+                test_css_source=test_css_source
+                test_source_path="crates/ui-components/src/inline_alert/styles.rs".to_string()
+                test_config_signal=actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Tone"</div>
+                        <SegmentedControl
+                            id_base="docs-inline-alert-tone".to_string()
+                            options=tone_options.clone()
+                            selected_index=tone_index
+                            set_selected_index=set_tone_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Inline alert tone".to_string()
+                        />
+
+                        <div class="docs-search__label">"Fill"</div>
+                        <SegmentedControl
+                            id_base="docs-inline-alert-fill".to_string()
+                            options=fill_options.clone()
+                            selected_index=fill_index
+                            set_selected_index=set_fill_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Inline alert fill".to_string()
+                        />
+
+                        <Switch checked=hide_icon set_checked=set_hide_icon>
+                            "Hide icon"
+                        </Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>
+                            "Custom class"
+                        </Switch>
+                        <Switch checked=show_title set_checked=set_show_title>
+                            "Show title"
+                        </Switch>
+                        <Switch checked=show_description set_checked=set_show_description>
+                            "Show description"
+                        </Switch>
+                        <Switch checked=show_start set_checked=set_show_start>
+                            "Start slot"
+                        </Switch>
+                        <Switch checked=show_end set_checked=set_show_end>
+                            "End slot"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let tone = tone.get();
+                    let fill = fill.get();
+                    let hide_icon = hide_icon.get();
+                    let custom_class = custom_class.get();
+                    let show_title = show_title.get();
+                    let show_description = show_description.get();
+                    let show_start = show_start.get();
+                    let show_end = show_end.get();
+
+                    let title = if show_title {
+                        "Interactive title".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let description = if show_description {
+                        "Interactive description".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-inline-alert-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <div class="docs-stack" style="width: min(100%, 540px);">
+                            {match (show_start, show_end) {
+                                (true, true) => view! {
+                                    <InlineAlert
+                                        tone=tone
+                                        fill=fill
+                                        title=title.clone()
+                                        description=description.clone()
+                                        hide_icon=hide_icon
+                                        class_name=class_name.clone()
+                                        start_content=move || view! { <span>"↳"</span> }
+                                        end_content=move || view! { <span>"Action"</span> }
+                                    >
+                                        "Preview message"
+                                    </InlineAlert>
+                                }
+                                    .into_any(),
+                                (true, false) => view! {
+                                    <InlineAlert
+                                        tone=tone
+                                        fill=fill
+                                        title=title.clone()
+                                        description=description.clone()
+                                        hide_icon=hide_icon
+                                        class_name=class_name.clone()
+                                        start_content=move || view! { <span>"↳"</span> }
+                                    >
+                                        "Preview message"
+                                    </InlineAlert>
+                                }
+                                    .into_any(),
+                                (false, true) => view! {
+                                    <InlineAlert
+                                        tone=tone
+                                        fill=fill
+                                        title=title.clone()
+                                        description=description.clone()
+                                        hide_icon=hide_icon
+                                        class_name=class_name.clone()
+                                        end_content=move || view! { <span>"Action"</span> }
+                                    >
+                                        "Preview message"
+                                    </InlineAlert>
+                                }
+                                    .into_any(),
+                                (false, false) => view! {
+                                    <InlineAlert
+                                        tone=tone
+                                        fill=fill
+                                        title=title
+                                        description=description
+                                        hide_icon=hide_icon
+                                        class_name=class_name
+                                    >
+                                        "Preview message"
+                                    </InlineAlert>
+                                }
+                                    .into_any(),
+                            }}
+                        </div>
+                    }
+                }}
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn badge() -> AnyView {
+    let hello_world_code = Signal::derive(move || r#"<Badge>"New"</Badge>"#.to_string());
+
     let matrix_code = Signal::derive(move || {
         r#"<Badge variant=BadgeVariant::Default>"Default"</Badge>
 <Badge variant=BadgeVariant::Accent>"Accent"</Badge>
@@ -176,6 +530,100 @@ pub(super) fn badge() -> AnyView {
             .to_string()
     });
 
+    let variant_options = vec![
+        "default".to_string(),
+        "accent".to_string(),
+        "danger".to_string(),
+        "outline".to_string(),
+    ];
+    let locale_options = vec!["en-US".to_string(), "zh-CN".to_string(), "ar".to_string()];
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(0_usize));
+    let (workbench_locale_index, set_workbench_locale_index) = signal(Some(0_usize));
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_rtl, set_workbench_rtl) = signal(false);
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(0) {
+            1 => BadgeVariant::Accent,
+            2 => BadgeVariant::Danger,
+            3 => BadgeVariant::Outline,
+            _ => BadgeVariant::Default,
+        });
+
+    let workbench_code = Signal::derive(move || {
+        let variant = workbench_variant.get();
+        let locale_index = workbench_locale_index.get().unwrap_or(0);
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+        let lang = match locale_index {
+            1 => Some("zh-CN"),
+            2 => Some("ar"),
+            _ => None,
+        };
+        let label = match locale_index {
+            1 => "新品",
+            2 => "جديد",
+            _ => "New",
+        };
+
+        let mut lines = vec!["<Badge".to_string()];
+        if variant != BadgeVariant::Default {
+            lines.push(format!("  variant=BadgeVariant::{variant:?}"));
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-badge-custom\".to_string()".to_string());
+        }
+        if let Some(lang) = lang {
+            lines.push(format!("  lang=\"{lang}\".to_string()"));
+        }
+        if rtl {
+            lines.push("  dir=A11yDirection::Rtl".to_string());
+        }
+        lines.extend([
+            ">".to_string(),
+            format!("  \"{label}\""),
+            "</Badge>".to_string(),
+        ]);
+        lines.join("\n")
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/badge/styles.rs */\n{}",
+            ui_components::badge::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let variant = workbench_variant.get();
+        let locale_index = workbench_locale_index.get().unwrap_or(0);
+        let custom_class = workbench_custom_class.get();
+        let rtl = workbench_rtl.get();
+        let lang = match locale_index {
+            1 => "zh-CN",
+            2 => "ar",
+            _ => "default",
+        };
+
+        let mut class = vec![
+            "ui-badge".to_string(),
+            variant.class_name().to_string(),
+            variant.fill_class().to_string(),
+        ];
+        if custom_class {
+            class.push("ui-badge--custom-class".to_string());
+            class.push("docs-badge-custom".to_string());
+        }
+
+        format!(
+            "BadgeActualConfig {{\n  variant: {variant:?},\n  variant_attr: \"{}\",\n  fill_attr: \"{}\",\n  class_source: \"{}\",\n  lang: \"{lang}\",\n  dir: \"{}\",\n  class: \"{}\",\n}}",
+            variant.as_attr(),
+            variant.fill_attr(),
+            if custom_class { "custom" } else { "default" },
+            if rtl { "rtl" } else { "auto" },
+            class.join(" ")
+        )
+    });
+
     view! {
         <ComponentPage
             title="Badge"
@@ -183,6 +631,12 @@ pub(super) fn badge() -> AnyView {
             group="Display"
             description="Status badge with centralized variant/fill state attrs and custom-class contract."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <div class="docs-row">
+                    <Badge>"New"</Badge>
+                </div>
+            </Playground>
+
             <Playground title="Variant Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Badge variant=BadgeVariant::Default>"Default"</Badge>
@@ -202,12 +656,106 @@ pub(super) fn badge() -> AnyView {
                     </Badge>
                 </div>
             </Playground>
+
+            <Playground
+                title="Badge Workbench (Display + Config + Code + CSS Test)"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="crates/ui-components/src/badge/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                description="Button-like workbench: display compare + live config/code/css test."
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="badge-workbench-controls">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-badge-workbench-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=workbench_variant_index
+                            set_selected_index=set_workbench_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Badge variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Locale"</div>
+                        <SegmentedControl
+                            id_base="docs-badge-workbench-locale".to_string()
+                            options=locale_options.clone()
+                            selected_index=workbench_locale_index
+                            set_selected_index=set_workbench_locale_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Badge locale".to_string()
+                        />
+
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class"
+                        </Switch>
+                        <Switch checked=workbench_rtl set_checked=set_workbench_rtl>
+                            "RTL direction"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let variant = workbench_variant.get();
+                    let locale_index = workbench_locale_index.get().unwrap_or(0);
+                    let custom_class = workbench_custom_class.get();
+                    let rtl = workbench_rtl.get();
+                    let lang = match locale_index {
+                        1 => "zh-CN".to_string(),
+                        2 => "ar".to_string(),
+                        _ => String::new(),
+                    };
+                    let label = match locale_index {
+                        1 => "新品",
+                        2 => "جديد",
+                        _ => "New",
+                    };
+                    let class_name = if custom_class {
+                        "docs-badge-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let dir = if rtl {
+                        A11yDirection::Rtl
+                    } else {
+                        A11yDirection::Ltr
+                    };
+
+                    view! {
+                        <div class="docs-stack" data-slot="badge-workbench-compare">
+                            <div class="docs-row">
+                                <div class="docs-stack docs-stack--tight">
+                                    <div class="docs-search__label">"Baseline"</div>
+                                    <Badge>"New"</Badge>
+                                </div>
+                                <div class="docs-stack docs-stack--tight">
+                                    <div class="docs-search__label">"Configured"</div>
+                                    <Badge variant=variant class_name=class_name lang=lang dir=dir>
+                                        {label}
+                                    </Badge>
+                                </div>
+                            </div>
+
+                            <div class="docs-search__label">"Scenario compare"</div>
+                            <div class="docs-row">
+                                <Badge variant=BadgeVariant::Default>"default"</Badge>
+                                <Badge variant=BadgeVariant::Accent>"accent"</Badge>
+                                <Badge variant=BadgeVariant::Danger>"danger"</Badge>
+                                <Badge variant=BadgeVariant::Outline>"outline"</Badge>
+                            </div>
+                        </div>
+                    }
+                }}
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn status_light() -> AnyView {
+    let hello_world_code =
+        Signal::derive(move || r#"<StatusLight>"Idle"</StatusLight>"#.to_string());
+
     let variants_code = Signal::derive(move || {
         r#"<StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
 <StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
@@ -239,7 +787,21 @@ pub(super) fn status_light() -> AnyView {
             group="Display"
             description="Status indicator + label with centralized variant/live/role-source state attrs and optional custom-class contract."
         >
-            <Playground title="Variants" code_signal=variants_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <StatusLight>"Idle"</StatusLight>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Variants"
+                code_signal=variants_code
+                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
                     <StatusLight variant=StatusLightVariant::Accent>"Deploying"</StatusLight>
@@ -247,7 +809,11 @@ pub(super) fn status_light() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Live Region Role" code_signal=role_code>
+            <Playground
+                title="Live Region Role"
+                code_signal=role_code
+                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>
                     <StatusLight
@@ -260,7 +826,11 @@ pub(super) fn status_light() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Static" code_signal=custom_code>
+            <Playground
+                title="Custom Class + Static"
+                code_signal=custom_code
+                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
                     <StatusLight
@@ -278,47 +848,131 @@ pub(super) fn status_light() -> AnyView {
 }
 
 pub(super) fn chip() -> AnyView {
-    let (removed, set_removed) = signal(false);
-    let on_dismiss = Callback::new(move |_| set_removed.set(true));
+    let variant_options = vec![
+        "default".to_string(),
+        "accent".to_string(),
+        "danger".to_string(),
+        "outline".to_string(),
+    ];
+    let size_options = vec!["sm".to_string(), "md".to_string(), "lg".to_string()];
+    let (workbench_variant_index, set_workbench_variant_index) = signal(Some(1));
+    let (workbench_size_index, set_workbench_size_index) = signal(Some(1));
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_is_dismissible, set_workbench_is_dismissible) = signal(true);
+    let (workbench_custom_label, set_workbench_custom_label) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
 
-    let removable_code = Signal::derive(move || {
-        r#"<Chip
-  variant=ChipVariant::Accent
+    let workbench_variant =
+        Signal::derive(move || match workbench_variant_index.get().unwrap_or(1) {
+            0 => ChipVariant::Default,
+            2 => ChipVariant::Danger,
+            3 => ChipVariant::Outline,
+            _ => ChipVariant::Accent,
+        });
+    let workbench_size = Signal::derive(move || match workbench_size_index.get().unwrap_or(1) {
+        0 => ChipSize::Sm,
+        2 => ChipSize::Lg,
+        _ => ChipSize::Md,
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let variant = workbench_variant.get();
+        let size = workbench_size.get();
+        let is_disabled = workbench_is_disabled.get();
+        let is_dismissible = workbench_is_dismissible.get();
+        let custom_label = workbench_custom_label.get() && is_dismissible;
+        let custom_class = workbench_custom_class.get();
+
+        let mut snippet = vec!["<Chip".to_string()];
+        if variant != ChipVariant::Default {
+            snippet.push(format!("  variant=ChipVariant::{variant:?}"));
+        }
+        if size != ChipSize::Md {
+            snippet.push(format!("  size=ChipSize::{size:?}"));
+        }
+        if is_disabled {
+            snippet.push("  is_disabled=true".to_string());
+        }
+        if is_dismissible {
+            snippet.push("  on_dismiss=Callback::new(|_| ())".to_string());
+        }
+        if custom_label {
+            snippet.push("  dismiss_aria_label=\"Remove reviewer\".to_string()".to_string());
+        }
+        if custom_class {
+            snippet.push("  class_name=\"docs-chip-custom\".to_string()".to_string());
+        }
+        snippet.push(">".to_string());
+        snippet.push("  \"Reviewer\"".to_string());
+        snippet.push("</Chip>".to_string());
+        snippet.join("\n")
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let variant = workbench_variant.get();
+        let size = workbench_size.get();
+        let is_disabled = workbench_is_disabled.get();
+        let is_dismissible = workbench_is_dismissible.get();
+        let custom_label = workbench_custom_label.get() && is_dismissible;
+        let custom_class = workbench_custom_class.get();
+
+        let state = if is_disabled {
+            "disabled"
+        } else if is_dismissible {
+            "removable"
+        } else {
+            "static"
+        };
+
+        let mut classes = vec![
+            "ui-chip".to_string(),
+            variant.class_name().to_string(),
+            size.class_name().to_string(),
+            format!("ui-chip--{state}"),
+        ];
+        classes.push(if custom_label {
+            "ui-chip--dismiss-label-custom".to_string()
+        } else {
+            "ui-chip--dismiss-label-default".to_string()
+        });
+        if !is_disabled {
+            classes.push("ui-chip--enabled".to_string());
+        }
+        if custom_class {
+            classes.push("ui-chip--custom-class".to_string());
+            classes.push("docs-chip-custom".to_string());
+        }
+
+        format!(
+            "ChipActualConfig {{\n  variant: {variant:?},\n  size: {size:?},\n  is_disabled: {is_disabled},\n  is_dismissible: {is_dismissible},\n  custom_dismiss_label: {custom_label},\n  custom_class: {custom_class},\n  class: \"{}\",\n  marker_expectations: [\"data-variant\", \"data-size\", \"data-state\", \"data-dismiss-label-source\", \"data-class-source\"],\n}}",
+            classes.join(" ")
+        )
+    });
+
+    let chip_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/chip/styles.rs */\n{}",
+            ui_components::chip::styles::CSS
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default / Static"</Chip>
+<Chip variant=ChipVariant::Accent size=ChipSize::Md on_dismiss=Callback::new(|_| ())>
+  "Accent / Removable"
+</Chip>
+<Chip variant=ChipVariant::Danger size=ChipSize::Lg is_disabled=true on_dismiss=Callback::new(|_| ())>
+  "Danger / Disabled"
+</Chip>
+<Chip
+  variant=ChipVariant::Outline
   size=ChipSize::Md
-  on_dismiss=Some(on_dismiss)
+  on_dismiss=Callback::new(|_| ())
   dismiss_aria_label="Remove reviewer".to_string()
->
-  "Reviewer"
-</Chip>"#
-            .to_string()
-    });
-
-    let variants_code = Signal::derive(move || {
-        r#"<Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
-<Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
-<Chip variant=ChipVariant::Danger size=ChipSize::Lg>"Danger"</Chip>
-<Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>"#
-            .to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
-        r#"<Chip
-  variant=ChipVariant::Accent
-  on_dismiss=Some(Callback::new(|_| ()))
-  dismiss_aria_label="  Remove reviewer  ".to_string()
   class_name="docs-chip-custom".to_string()
 >
-  "Reviewer"
-</Chip>
-<Chip variant=ChipVariant::Outline class_name="docs-chip-custom".to_string()>
-  "Read only"
+  "Outline / Custom"
 </Chip>"#
-            .to_string()
-    });
-
-    let disabled_code = Signal::derive(move || {
-        r#"<Chip disabled=true on_dismiss=Some(on_dismiss)>"Locked"</Chip>
-<Chip disabled=true>"Read only"</Chip>"#
             .to_string()
     });
 
@@ -329,64 +983,150 @@ pub(super) fn chip() -> AnyView {
             group="Display"
             description="Chip / tag pill with centralized variant-size-state attrs, dismiss-label source contracts, and optional custom class semantics."
         >
-            <Playground title="Removable" code_signal=removable_code>
+            <Playground
+                title="Interactive Playground (展示 / Config / Code / CSS Test)"
+                code_signal=workbench_code
+                test_css_source=chip_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/chip/styles.rs".to_string()
+                test_config_signal=workbench_config
+                description="可调 variant/size/disabled/dismiss/custom，并在同一面板查看 code + config + scoped css test。"
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-search__label">"Variant"</div>
+                            <SegmentedControl
+                                id_base="docs-chip-variant".to_string()
+                                options=variant_options.clone()
+                                selected_index=workbench_variant_index
+                                set_selected_index=set_workbench_variant_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Chip variant".to_string()
+                            />
+
+                            <div class="docs-search__label">"Size"</div>
+                            <SegmentedControl
+                                id_base="docs-chip-size".to_string()
+                                options=size_options.clone()
+                                selected_index=workbench_size_index
+                                set_selected_index=set_workbench_size_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Chip size".to_string()
+                            />
+
+                            <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                                "is_disabled"
+                            </Switch>
+                            <Switch checked=workbench_is_dismissible set_checked=set_workbench_is_dismissible>
+                                "Dismiss action"
+                            </Switch>
+                            <Switch checked=workbench_custom_label set_checked=set_workbench_custom_label>
+                                "Custom dismiss aria label"
+                            </Switch>
+                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                "Custom class_name"
+                            </Switch>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    {move || {
+                        let variant = workbench_variant.get();
+                        let size = workbench_size.get();
+                        let is_disabled = workbench_is_disabled.get();
+                        let is_dismissible = workbench_is_dismissible.get();
+                        let dismiss_aria_label = if workbench_custom_label.get() && is_dismissible {
+                            "Remove reviewer".to_string()
+                        } else {
+                            "".to_string()
+                        };
+                        let class_name = if workbench_custom_class.get() {
+                            "docs-chip-custom".to_string()
+                        } else {
+                            "".to_string()
+                        };
+
+                        if is_dismissible {
+                            view! {
+                                <Chip
+                                    variant=variant
+                                    size=size
+                                    is_disabled=is_disabled
+                                    on_dismiss=Callback::new(|_| ())
+                                    dismiss_aria_label=dismiss_aria_label
+                                    class_name=class_name
+                                >
+                                    "Reviewer"
+                                </Chip>
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <Chip
+                                    variant=variant
+                                    size=size
+                                    is_disabled=is_disabled
+                                    class_name=class_name
+                                >
+                                    "Reviewer"
+                                </Chip>
+                            }
+                                .into_any()
+                        }
+                    }}
+
+                    <div class="docs-row">
+                        <span class="ui-muted">"Compare baseline:"</span>
+                        <Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
+                        <Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Comparison Matrix (Variant / Size / Disabled / Custom)"
+                code_signal=matrix_code
+            >
                 <div class="docs-row">
-                    <Show
-                        when=move || !removed.get()
-                        fallback=move || view! { <span class="ui-muted">"Removed"</span> }
-                    >
+                    <div class="docs-card" style="flex: 1 1 200px;">
+                        <span class="ui-muted">"Default / Static"</span>
+                        <Chip variant=ChipVariant::Default size=ChipSize::Sm>
+                            "Default / Static"
+                        </Chip>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 200px;">
+                        <span class="ui-muted">"Accent / Removable"</span>
                         <Chip
                             variant=ChipVariant::Accent
                             size=ChipSize::Md
-                            on_dismiss=on_dismiss
-                            dismiss_aria_label="Remove reviewer".to_string()
+                            on_dismiss=Callback::new(|_| ())
                         >
-                            "Reviewer"
+                            "Accent / Removable"
                         </Chip>
-                    </Show>
-                </div>
-            </Playground>
-
-            <Playground title="Variants + Sizes" code_signal=variants_code>
-                <div class="docs-row">
-                    <Chip variant=ChipVariant::Default size=ChipSize::Sm>"Default"</Chip>
-                    <Chip variant=ChipVariant::Accent size=ChipSize::Md>"Accent"</Chip>
-                    <Chip variant=ChipVariant::Danger size=ChipSize::Lg>"Danger"</Chip>
-                    <Chip variant=ChipVariant::Outline size=ChipSize::Md>"Outline"</Chip>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Label + Class" code_signal=custom_code>
-                <div class="docs-row">
-                    <Chip
-                        variant=ChipVariant::Accent
-                        on_dismiss=Callback::new(|_| ())
-                        dismiss_aria_label="  Remove reviewer  ".to_string()
-                        class_name="docs-chip-custom".to_string()
-                    >
-                        "Reviewer"
-                    </Chip>
-                    <Chip variant=ChipVariant::Outline class_name="docs-chip-custom".to_string()>
-                        "Read only"
-                    </Chip>
-                </div>
-            </Playground>
-
-            <Playground title="Disabled + Static" code_signal=disabled_code>
-                <div class="docs-row">
-                    <Chip
-                        disabled=true
-                        on_dismiss=Callback::new(|_| ())
-                        dismiss_aria_label="Cannot remove".to_string()
-                    >
-                        "Locked"
-                    </Chip>
-                    <Chip disabled=true variant=ChipVariant::Outline>
-                        "Read only"
-                    </Chip>
-                    <Chip variant=ChipVariant::Default size=ChipSize::Sm>
-                        "Static"
-                    </Chip>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 200px;">
+                        <span class="ui-muted">"Danger / Disabled"</span>
+                        <Chip
+                            variant=ChipVariant::Danger
+                            size=ChipSize::Lg
+                            is_disabled=true
+                            on_dismiss=Callback::new(|_| ())
+                        >
+                            "Danger / Disabled"
+                        </Chip>
+                    </div>
+                    <div class="docs-card" style="flex: 1 1 200px;">
+                        <span class="ui-muted">"Outline / Custom"</span>
+                        <Chip
+                            variant=ChipVariant::Outline
+                            size=ChipSize::Md
+                            on_dismiss=Callback::new(|_| ())
+                            dismiss_aria_label="Remove reviewer".to_string()
+                            class_name="docs-chip-custom".to_string()
+                        >
+                            "Outline / Custom"
+                        </Chip>
+                    </div>
                 </div>
             </Playground>
         </ComponentPage>
@@ -395,13 +1135,13 @@ pub(super) fn chip() -> AnyView {
 }
 pub(super) fn skeleton() -> AnyView {
     let shimmer_code = Signal::derive(move || {
-        r#"<Skeleton variant=SkeletonVariant::Rect shimmer=true class_name="docs-skeleton-line".to_string() />
-<Skeleton variant=SkeletonVariant::Circle shimmer=true class_name="docs-skeleton-avatar".to_string() />"#.to_string()
+        r#"<Skeleton variant=SkeletonVariant::Rect is_shimmer=true class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Circle is_shimmer=true class_name="docs-skeleton-avatar".to_string() />"#.to_string()
     });
 
     let still_code = Signal::derive(move || {
-        r#"<Skeleton variant=SkeletonVariant::Rect shimmer=false class_name="docs-skeleton-line".to_string() />
-<Skeleton variant=SkeletonVariant::Circle shimmer=false class_name="docs-skeleton-avatar".to_string() />"#.to_string()
+        r#"<Skeleton variant=SkeletonVariant::Rect is_shimmer=false class_name="docs-skeleton-line".to_string() />
+<Skeleton variant=SkeletonVariant::Circle is_shimmer=false class_name="docs-skeleton-avatar".to_string() />"#.to_string()
     });
 
     view! {
@@ -411,7 +1151,11 @@ pub(super) fn skeleton() -> AnyView {
             group="Display"
             description="Skeleton placeholder blocks with centralized variant/shimmer state attrs."
         >
-            <Playground title="Shimmer" code_signal=shimmer_code>
+            <Playground
+                title="Shimmer"
+                code_signal=shimmer_code
+                test_source_path="crates/ui-components/src/skeleton/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line".to_string() />
                     <Skeleton variant=SkeletonVariant::Rect class_name="docs-skeleton-line docs-skeleton-line--short".to_string() />
@@ -420,21 +1164,25 @@ pub(super) fn skeleton() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Still" code_signal=still_code>
+            <Playground
+                title="Still"
+                code_signal=still_code
+                test_source_path="crates/ui-components/src/skeleton/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <Skeleton
                         variant=SkeletonVariant::Rect
-                        shimmer=false
+                        is_shimmer=false
                         class_name="docs-skeleton-line".to_string()
                     />
                     <Skeleton
                         variant=SkeletonVariant::Rect
-                        shimmer=false
+                        is_shimmer=false
                         class_name="docs-skeleton-line docs-skeleton-line--short".to_string()
                     />
                     <Skeleton
                         variant=SkeletonVariant::Circle
-                        shimmer=false
+                        is_shimmer=false
                         class_name="docs-skeleton-avatar".to_string()
                     />
                 </div>
@@ -503,6 +1251,8 @@ pub(super) fn circular_progress() -> AnyView {
 }
 
 pub(super) fn spinner() -> AnyView {
+    let hello_code = Signal::derive(move || r#"<Spinner />"#.to_string());
+
     let matrix_code = Signal::derive(move || {
         r#"<Spinner size=SpinnerSize::Sm />
 <Spinner size=SpinnerSize::Md />
@@ -523,6 +1273,12 @@ pub(super) fn spinner() -> AnyView {
             group="Display"
             description="Spinner wraps CircularProgress with centralized size/label/class source attrs."
         >
+            <Playground title="Hello World" code_signal=hello_code>
+                <div class="docs-row">
+                    <Spinner />
+                </div>
+            </Playground>
+
             <Playground title="Size Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <Spinner size=SpinnerSize::Sm />
@@ -774,6 +1530,14 @@ pub(super) fn progress_circle() -> AnyView {
 pub(super) fn meter() -> AnyView {
     let (value, set_value) = signal(42_i64);
     let meter_value = Signal::derive(move || Some(value.get() as f64));
+    let (workbench_value, set_workbench_value) = signal(64_i64);
+    let (workbench_variant_danger, set_workbench_variant_danger) = signal(false);
+    let (workbench_size_large, set_workbench_size_large) = signal(false);
+    let (workbench_indeterminate, set_workbench_indeterminate) = signal(false);
+    let (workbench_show_value_label, set_workbench_show_value_label) = signal(true);
+    let (workbench_custom_label, set_workbench_custom_label) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
 
     let matrix_code = Signal::derive(move || {
         r#"let meter_value = Signal::derive(move || Some(value.get() as f64));
@@ -808,6 +1572,119 @@ pub(super) fn meter() -> AnyView {
   class_name="docs-meter-custom".to_string()
 />"#
         .to_string()
+    });
+    let workbench_code = Signal::derive(move || {
+        let variant = if workbench_variant_danger.get() {
+            MeterVariant::Danger
+        } else {
+            MeterVariant::Default
+        };
+        let size = if workbench_size_large.get() {
+            MeterSize::Lg
+        } else {
+            MeterSize::Default
+        };
+        let mut lines = vec![
+            "<Meter".to_string(),
+            "  id=\"docs-meter-workbench\".to_string()".to_string(),
+            "  label=\"Workbench meter\".to_string()".to_string(),
+            if workbench_indeterminate.get() {
+                "  value=Signal::derive(|| None)".to_string()
+            } else {
+                format!(
+                    "  value=Signal::derive(|| Some({}.0))",
+                    workbench_value.get()
+                )
+            },
+        ];
+
+        if variant != MeterVariant::Default {
+            lines.push(format!("  variant=MeterVariant::{variant:?}"));
+        }
+        if size != MeterSize::Default {
+            lines.push(format!("  size=MeterSize::{size:?}"));
+        }
+        if !workbench_show_value_label.get() {
+            lines.push("  show_value_label=false".to_string());
+        }
+        if workbench_custom_label.get() {
+            lines.push(format!(
+                "  value_label=\"{} complete\".to_string()",
+                workbench_value.get()
+            ));
+        }
+        if workbench_custom_motion.get() {
+            lines.push("  motion=ui_components::MeterMotion::fast()".to_string());
+        }
+        if workbench_custom_class.get() {
+            lines.push("  class_name=\"docs-meter-custom\".to_string()".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/meter/styles.rs */\n{}",
+            ui_components::meter::styles::CSS
+        )
+    });
+    let actual_config = Signal::derive(move || {
+        let variant = if workbench_variant_danger.get() {
+            MeterVariant::Danger
+        } else {
+            MeterVariant::Default
+        };
+        let size = if workbench_size_large.get() {
+            MeterSize::Lg
+        } else {
+            MeterSize::Default
+        };
+        let is_indeterminate = workbench_indeterminate.get();
+        let has_custom_label = workbench_custom_label.get();
+        let has_custom_class = workbench_custom_class.get();
+        let has_custom_motion = workbench_custom_motion.get();
+        let show_value_label = workbench_show_value_label.get();
+        let value = workbench_value.get();
+        let data_state = if is_indeterminate {
+            "indeterminate"
+        } else {
+            "determinate"
+        };
+
+        let mut classes = vec![
+            "ui-meter".to_string(),
+            variant.class_name().to_string(),
+            size.class_name().to_string(),
+            if has_custom_label {
+                "ui-meter--value-label-custom".to_string()
+            } else {
+                "ui-meter--value-label-auto".to_string()
+            },
+            if has_custom_motion {
+                "ui-meter--motion-custom".to_string()
+            } else {
+                "ui-meter--motion-default".to_string()
+            },
+            if is_indeterminate {
+                "ui-meter--state-indeterminate".to_string()
+            } else {
+                "ui-meter--state-determinate".to_string()
+            },
+        ];
+        if has_custom_class {
+            classes.push("ui-meter--custom-class".to_string());
+            classes.push("docs-meter-custom".to_string());
+        }
+
+        format!(
+            "MeterActualConfig {{\n  value: {},\n  variant: {variant:?},\n  size: {size:?},\n  is_indeterminate: {is_indeterminate},\n  show_value_label: {show_value_label},\n  has_custom_value_label: {has_custom_label},\n  has_custom_motion: {has_custom_motion},\n  has_custom_class_name: {has_custom_class},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            if is_indeterminate {
+                "None".to_string()
+            } else {
+                format!("Some({value}.0)")
+            },
+            classes.join(" ")
+        )
     });
 
     view! {
@@ -880,6 +1757,197 @@ pub(super) fn meter() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="展示区提供当前配置与对比样例；Config/Code/CSS Test 区用于契约验证。"
+                code_signal=workbench_code
+                test_css_source=test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/meter/styles.rs".to_string()
+                test_config_signal=actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="meter-workbench-controls">
+                        <div class="docs-row">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_variant_danger.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_variant_danger.get() {
+                                    "Variant: Danger"
+                                } else {
+                                    "Variant: Default"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_size_large.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_size_large.get() {
+                                    "Size: Lg"
+                                } else {
+                                    "Size: Default"
+                                }}
+                            </ui_components::Button>
+                        </div>
+
+                        <div class="docs-row">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_value.update(|v| *v = (*v - 10).max(0))
+                                })
+                            >
+                                "-10"
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_value.update(|v| *v = (*v + 10).min(100))
+                                })
+                            >
+                                "+10"
+                            </ui_components::Button>
+                            <span class="ui-muted">"value: " {move || workbench_value.get().to_string()}</span>
+                        </div>
+
+                        <div class="docs-row">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_indeterminate.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_indeterminate.get() {
+                                    "Indeterminate: on"
+                                } else {
+                                    "Indeterminate: off"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_show_value_label.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_show_value_label.get() {
+                                    "Value label: on"
+                                } else {
+                                    "Value label: off"
+                                }}
+                            </ui_components::Button>
+                        </div>
+
+                        <div class="docs-row">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_custom_label.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_custom_label.get() {
+                                    "Custom value label: on"
+                                } else {
+                                    "Custom value label: off"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_custom_motion.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_custom_motion.get() {
+                                    "Custom motion: on"
+                                } else {
+                                    "Custom motion: off"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_custom_class.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_custom_class.get() {
+                                    "Custom class: on"
+                                } else {
+                                    "Custom class: off"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="meter-workbench-preview">
+                    <div class="docs-row">
+                        <div class="docs-stack docs-stack--tight" style="min-width: 18rem;">
+                            <span class="ui-muted">"当前配置"</span>
+                            <Meter
+                                id="docs-meter-workbench".to_string()
+                                label="Workbench meter".to_string()
+                                value=Signal::derive(move || {
+                                    if workbench_indeterminate.get() {
+                                        None
+                                    } else {
+                                        Some(workbench_value.get() as f64)
+                                    }
+                                })
+                                variant=if workbench_variant_danger.get() {
+                                    MeterVariant::Danger
+                                } else {
+                                    MeterVariant::Default
+                                }
+                                size=if workbench_size_large.get() {
+                                    MeterSize::Lg
+                                } else {
+                                    MeterSize::Default
+                                }
+                                show_value_label=workbench_show_value_label.get()
+                                value_label=if workbench_custom_label.get() {
+                                    format!("{} complete", workbench_value.get())
+                                } else {
+                                    String::new()
+                                }
+                                motion=if workbench_custom_motion.get() {
+                                    ui_components::MeterMotion::fast()
+                                } else {
+                                    ui_components::MeterMotion::default()
+                                }
+                                class_name=if workbench_custom_class.get() {
+                                    "docs-meter-custom".to_string()
+                                } else {
+                                    String::new()
+                                }
+                            />
+                        </div>
+
+                        <div class="docs-stack docs-stack--tight" style="min-width: 18rem;">
+                            <span class="ui-muted">"对比：Danger + Lg（固定）"</span>
+                            <Meter
+                                id="docs-meter-workbench-contrast".to_string()
+                                label="Contrast".to_string()
+                                value=Signal::derive(move || Some(workbench_value.get() as f64))
+                                variant=MeterVariant::Danger
+                                size=MeterSize::Lg
+                            />
+                        </div>
+                    </div>
+
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"对比：Indeterminate（固定）"</span>
+                        <Meter
+                            id="docs-meter-workbench-indeterminate".to_string()
+                            label="Pending".to_string()
+                            value=Signal::derive(|| None)
+                            class_name="docs-meter-custom".to_string()
+                        />
+                    </div>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -899,6 +1967,57 @@ pub(super) fn code() -> AnyView {
 <Code variant=CodeVariant::Block class_name="docs-code-custom".to_string()>
   "cargo test -p ui-components --test code_semantics\ncargo test -p ui-components"
 </Code>"#.to_string()
+    });
+    let variant_options = vec!["Inline".to_string(), "Block".to_string()];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (custom_class, set_custom_class) = signal(false);
+    let (long_content, set_long_content) = signal(false);
+    let (show_compare, set_show_compare) = signal(true);
+
+    let active_variant = Signal::derive(move || {
+        if variant_index.get().unwrap_or(0) == 1 {
+            CodeVariant::Block
+        } else {
+            CodeVariant::Inline
+        }
+    });
+    let active_content = Signal::derive(move || {
+        if long_content.get() {
+            "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"
+                .to_string()
+        } else {
+            "cargo test -p ui-components --test code_semantics".to_string()
+        }
+    });
+    let interactive_code = Signal::derive(move || {
+        let variant = active_variant.get();
+        let content = active_content.get();
+        let class_line = if custom_class.get() {
+            " class_name=\"docs-code-custom\".to_string()".to_string()
+        } else {
+            "".to_string()
+        };
+        format!("<Code variant=CodeVariant::{variant:?}{class_line}>\n  {content:?}\n</Code>")
+    });
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/code/styles.rs */\n{}",
+            ui_components::code::styles::CSS
+        )
+    });
+    let actual_config = Signal::derive(move || {
+        let variant = active_variant.get();
+        let has_custom_class = custom_class.get();
+        let show_compare = show_compare.get();
+        let content_mode = if long_content.get() { "long" } else { "short" };
+        let class_name = if has_custom_class {
+            "docs-code-custom"
+        } else {
+            "(none)"
+        };
+        format!(
+            "CodeActualConfig {{\n  variant: CodeVariant::{variant:?},\n  content_mode: \"{content_mode}\",\n  has_custom_class_name: {has_custom_class},\n  class_name: \"{class_name}\",\n  show_compare: {show_compare},\n}}"
+        )
     });
 
     view! {
@@ -936,12 +2055,163 @@ cargo test -p ui-components"#}
                     </Code>
                 </div>
             </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                code_signal=interactive_code
+                test_css_source=test_css_source
+                test_source_path="crates/ui-components/src/code/styles.rs".to_string()
+                test_config_signal=actual_config
+                description="展示区 + Config 区 + Code 区 + CSS Test 区；包含 inline/block 与 custom class 的对比展示。"
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"配置区 · Variant"</div>
+                        <ui_components::SegmentedControl
+                            id_base="docs-code-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=ui_components::SegmentedControlSize::Sm
+                            aria_label="Code variant".to_string()
+                        />
+                        <ui_components::Switch checked=custom_class set_checked=set_custom_class>
+                            "Custom class"
+                        </ui_components::Switch>
+                        <ui_components::Switch checked=long_content set_checked=set_long_content>
+                            "Long content"
+                        </ui_components::Switch>
+                        <ui_components::Switch checked=show_compare set_checked=set_show_compare>
+                            "Show compare matrix"
+                        </ui_components::Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let variant = active_variant.get();
+                    let content = active_content.get();
+                    let class_name = if custom_class.get() {
+                        "docs-code-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let compare = show_compare.get();
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-search__label">"展示区 · Primary"</div>
+                            <div class="docs-card docs-stack docs-stack--tight">
+                                <span class="ui-muted">
+                                    {format!("variant={variant:?}, custom_class={}", custom_class.get())}
+                                </span>
+                                <Code variant=variant class_name=class_name.clone()>
+                                    {content}
+                                </Code>
+                            </div>
+
+                            <Show when=move || compare>
+                                <div class="docs-search__label">"展示区 · 对比矩阵"</div>
+                                <div class="docs-stack docs-stack--tight">
+                                    <div class="docs-row">
+                                        <span>"Inline: "</span>
+                                        <Code variant=CodeVariant::Inline class_name=class_name.clone()>
+                                            "cargo test -p ui-components"
+                                        </Code>
+                                    </div>
+                                    <Code variant=CodeVariant::Block class_name=class_name.clone()>
+                                        {r#"cargo fmt --all
+cargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"#}
+                                    </Code>
+                                </div>
+                            </Show>
+                        </div>
+                    }
+                }}
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn kbd() -> AnyView {
+    let (workbench_size_key, set_workbench_size_key) = signal("md".to_string());
+    let (workbench_keys, set_workbench_keys) = signal("Ctrl".to_string());
+    let (workbench_label, set_workbench_label) = signal("K".to_string());
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_size = Signal::derive(move || match workbench_size_key.get().as_str() {
+        "sm" => KbdSize::Sm,
+        _ => KbdSize::Md,
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let size = workbench_size.get();
+        let keys = workbench_keys.get();
+        let label = workbench_label.get();
+        let custom_class = workbench_custom_class.get();
+        let keys_trimmed = keys.trim().to_string();
+        let label_trimmed = label.trim().to_string();
+
+        let mut lines = vec!["<Kbd".to_string()];
+        if size != KbdSize::Md {
+            lines.push(format!("  size=KbdSize::{size:?}"));
+        }
+        if !keys_trimmed.is_empty() {
+            lines.push(format!("  keys={keys_trimmed:?}.to_string()"));
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-kbd-custom\".to_string()".to_string());
+        }
+        lines.push(">".to_string());
+        lines.push(format!(
+            "  {:?}",
+            if label_trimmed.is_empty() {
+                "K"
+            } else {
+                &label_trimmed
+            }
+        ));
+        lines.push("</Kbd>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/kbd/styles.rs */\n{}",
+            ui_components::kbd::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let size = workbench_size.get();
+        let keys = workbench_keys.get();
+        let label = workbench_label.get();
+        let custom_class = workbench_custom_class.get();
+        let has_keys = !keys.trim().is_empty();
+
+        let mut classes = vec![
+            "ui-kbd".to_string(),
+            size.class_name().to_string(),
+            if has_keys {
+                "ui-kbd--state-with-keys".to_string()
+            } else {
+                "ui-kbd--state-label-only".to_string()
+            },
+        ];
+        if custom_class {
+            classes.push("ui-kbd--custom-class".to_string());
+            classes.push("docs-kbd-custom".to_string());
+        }
+
+        format!(
+            "KbdActualConfig {{\n  size: {size:?},\n  keys: {:?},\n  label: {:?},\n  custom_class: {custom_class},\n  data_size: \"{}\",\n  data_state: \"{}\",\n  class: \"{}\",\n}}",
+            keys.trim(),
+            label.trim(),
+            size.as_attr(),
+            if has_keys { "with-keys" } else { "label-only" },
+            classes.join(" "),
+        )
+    });
+
     let matrix_code = Signal::derive(move || {
         r#"<Kbd size=KbdSize::Md keys="Ctrl".to_string()>"K"</Kbd>
 <Kbd size=KbdSize::Sm keys="⌘".to_string()>"P"</Kbd>"#
@@ -979,6 +2249,118 @@ pub(super) fn kbd() -> AnyView {
                         "Tab"
                     </Kbd>
                 </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="Button-style playground with display/config/code/css-test panels for size/keys/class contracts."
+                code_signal=workbench_code
+                test_css_source=workbench_test_css
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/kbd/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="kbd-workbench-controls">
+                        <label class="docs-search__label">
+                            "Size"
+                            <select
+                                prop:value=move || workbench_size_key.get()
+                                on:change=move |ev| set_workbench_size_key.set(event_target_value(&ev))
+                            >
+                                <option value="md">"Md"</option>
+                                <option value="sm">"Sm"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Keys"
+                            <input
+                                class="docs-search__input"
+                                prop:value=move || workbench_keys.get()
+                                on:input=move |ev| set_workbench_keys.set(event_target_value(&ev))
+                                placeholder="Ctrl"
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "Label"
+                            <input
+                                class="docs-search__input"
+                                prop:value=move || workbench_label.get()
+                                on:input=move |ev| set_workbench_label.set(event_target_value(&ev))
+                                placeholder="K"
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " Custom class"
+                        </label>
+                    </div>
+                }
+            >
+                {move || {
+                    let size = workbench_size.get();
+                    let keys = workbench_keys.get();
+                    let label = workbench_label.get();
+                    let label = {
+                        let trimmed = label.trim().to_string();
+                        if trimmed.is_empty() {
+                            "K".to_string()
+                        } else {
+                            trimmed
+                        }
+                    };
+                    let keys = {
+                        let trimmed = keys.trim().to_string();
+                        if trimmed.is_empty() {
+                            None
+                        } else {
+                            Some(trimmed)
+                        }
+                    };
+                    let has_keys = keys.is_some();
+
+                    if workbench_custom_class.get() && has_keys {
+                        let keys_text = keys.unwrap_or_default();
+                        view! {
+                            <div class="docs-row">
+                                <Kbd
+                                    size=size
+                                    keys=keys_text
+                                    class_name="docs-kbd-custom".to_string()
+                                >
+                                    {label}
+                                </Kbd>
+                            </div>
+                        }
+                        .into_any()
+                    } else if workbench_custom_class.get() {
+                        view! {
+                            <div class="docs-row">
+                                <Kbd size=size class_name="docs-kbd-custom".to_string()>
+                                    {label}
+                                </Kbd>
+                            </div>
+                        }
+                        .into_any()
+                    } else if has_keys {
+                        let keys_text = keys.unwrap_or_default();
+                        view! {
+                            <div class="docs-row">
+                                <Kbd size=size keys=keys_text>{label}</Kbd>
+                            </div>
+                        }
+                        .into_any()
+                    } else {
+                        view! {
+                            <div class="docs-row">
+                                <Kbd size=size>{label}</Kbd>
+                            </div>
+                        }
+                        .into_any()
+                    }
+                }}
             </Playground>
         </ComponentPage>
     }
@@ -1039,11 +2421,11 @@ pub(super) fn snippet() -> AnyView {
         r#"<Snippet
   text="cargo fmt --all".to_string()
   label="Command".to_string()
-  copyable=true
+  is_copyable=true
 />
 <Snippet
   text="RUST_LOG=debug".to_string()
-  copyable=true
+  is_copyable=true
   copied_label="Done".to_string()
 />"#
         .to_string()
@@ -1052,13 +2434,13 @@ pub(super) fn snippet() -> AnyView {
     let custom_code = Signal::derive(move || {
         r#"<Snippet
   text="cargo test -p ui-components --test snippet_semantics".to_string()
-  copyable=false
+  is_copyable=false
   class_name="docs-snippet-custom".to_string()
 />
 <Snippet
   text="cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
   label="CI".to_string()
-  copyable=false
+  is_copyable=false
   class_name="docs-snippet-custom".to_string()
 />"#.to_string()
     });
@@ -1072,8 +2454,16 @@ pub(super) fn snippet() -> AnyView {
         >
             <Playground title="Copyable + Copied Label" code_signal=copy_code>
                 <div class="docs-stack">
-                    <Snippet text="cargo fmt --all".to_string() label="Command".to_string() copyable=true />
-                    <Snippet text="RUST_LOG=debug".to_string() copyable=true copied_label="Done".to_string() />
+                    <Snippet
+                        text="cargo fmt --all".to_string()
+                        label="Command".to_string()
+                        is_copyable=true
+                    />
+                    <Snippet
+                        text="RUST_LOG=debug".to_string()
+                        is_copyable=true
+                        copied_label="Done".to_string()
+                    />
                 </div>
             </Playground>
 
@@ -1081,13 +2471,13 @@ pub(super) fn snippet() -> AnyView {
                 <div class="docs-stack">
                     <Snippet
                         text="cargo test -p ui-components --test snippet_semantics".to_string()
-                        copyable=false
+                        is_copyable=false
                         class_name="docs-snippet-custom".to_string()
                     />
                     <Snippet
                         text="cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
                         label="CI".to_string()
-                        copyable=false
+                        is_copyable=false
                         class_name="docs-snippet-custom".to_string()
                     />
                 </div>
@@ -1098,24 +2488,158 @@ pub(super) fn snippet() -> AnyView {
 }
 
 pub(super) fn link() -> AnyView {
-    let states_code = Signal::derive(move || {
-        r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
-<Link href="https://example.com".to_string() target="_blank">"External link"</Link>
-<Link href="#/docs/welcome".to_string() disabled=true>"Disabled"</Link>
-<Link href="   ".to_string()>"Missing href"</Link>"##
-            .to_string()
+    let destination_options = vec![
+        "internal".to_string(),
+        "external".to_string(),
+        "missing".to_string(),
+    ];
+    let (destination_index, set_destination_index) = signal(Some(0_usize));
+    let destination_href = Signal::derive(move || match destination_index.get().unwrap_or(0) {
+        1 => "https://example.com/docs".to_string(),
+        2 => "   ".to_string(),
+        _ => "#/docs/welcome".to_string(),
+    });
+    let destination_label = Signal::derive(move || match destination_index.get().unwrap_or(0) {
+        1 => "External docs",
+        2 => "Missing href",
+        _ => "Internal docs link",
     });
 
-    let custom_code = Signal::derive(move || {
-        r#"<Link
-  href="https://example.com".to_string()
-  target="_blank"
-  rel="sponsored".to_string()
-  aria_label="Open partner documentation".to_string()
-  class_name="docs-link-custom".to_string()
->
-  "Partner docs"
-</Link>"#
+    let rel_options = vec![
+        "auto".to_string(),
+        "sponsored".to_string(),
+        "author + noopener".to_string(),
+    ];
+    let (rel_index, set_rel_index) = signal(Some(0_usize));
+    let rel = Signal::derive(move || match rel_index.get().unwrap_or(0) {
+        1 => Some("sponsored".to_string()),
+        2 => Some("author noopener".to_string()),
+        _ => None,
+    });
+
+    let (is_target_blank, set_is_target_blank) = signal(false);
+    let (is_disabled, set_is_disabled) = signal(false);
+    let (use_legacy_disabled_alias, set_use_legacy_disabled_alias) = signal(false);
+    let (custom_aria, set_custom_aria) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (custom_lang, set_custom_lang) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let href = destination_href.get();
+        let label = destination_label.get();
+        let rel = rel.get();
+        let is_target_blank = is_target_blank.get();
+        let is_disabled = is_disabled.get();
+        let use_legacy_disabled_alias = use_legacy_disabled_alias.get();
+        let custom_aria = custom_aria.get();
+        let custom_class = custom_class.get();
+        let custom_lang = custom_lang.get();
+
+        let mut out = vec![
+            "<Link".to_string(),
+            format!("  href=\"{href}\".to_string()"),
+        ];
+
+        if is_target_blank {
+            out.push("  target=\"_blank\"".to_string());
+        }
+        if let Some(rel) = rel {
+            out.push(format!("  rel=\"{rel}\".to_string()"));
+        }
+        if is_disabled {
+            out.push(if use_legacy_disabled_alias {
+                "  disabled=true".to_string()
+            } else {
+                "  is_disabled=true".to_string()
+            });
+        }
+        if custom_aria {
+            out.push("  aria_label=\"Open partner documentation\".to_string()".to_string());
+        }
+        if custom_class {
+            out.push("  class_name=\"docs-link-custom\".to_string()".to_string());
+        }
+        if custom_lang {
+            out.push("  lang=\"zh-CN\".to_string()".to_string());
+        }
+
+        out.push(">".to_string());
+        out.push(format!("  \"{label}\""));
+        out.push("</Link>".to_string());
+        out.join("\n")
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let href = destination_href.get();
+        let rel = rel.get();
+        let is_target_blank = is_target_blank.get();
+        let is_disabled = is_disabled.get();
+        let use_legacy_disabled_alias = use_legacy_disabled_alias.get();
+        let custom_aria = custom_aria.get();
+        let custom_class = custom_class.get();
+        let custom_lang = custom_lang.get();
+
+        let has_href = !href.trim().is_empty();
+        let data_state = if is_disabled {
+            "disabled"
+        } else if has_href {
+            "enabled"
+        } else {
+            "missing-href"
+        };
+        let target_kind = if is_target_blank { "blank" } else { "self" };
+        let rel_source = if rel.is_some() { "provided" } else { "auto" };
+        let disabled_source = if is_disabled {
+            if use_legacy_disabled_alias {
+                "legacy-alias"
+            } else {
+                "is-prefixed"
+            }
+        } else {
+            "default"
+        };
+
+        let mut classes = vec![
+            "ui-link".to_string(),
+            format!("ui-link--{data_state}"),
+            if rel.is_some() {
+                "ui-link--rel-provided".to_string()
+            } else {
+                "ui-link--rel-auto".to_string()
+            },
+        ];
+        if is_target_blank {
+            classes.push("ui-link--external".to_string());
+        }
+        if custom_aria {
+            classes.push("ui-link--with-aria-label".to_string());
+        }
+        if custom_class {
+            classes.push("ui-link--custom-class".to_string());
+            classes.push("docs-link-custom".to_string());
+        }
+
+        format!(
+            "LinkActualConfig {{\n  href: \"{href}\",\n  has_href: {has_href},\n  is_disabled: {is_disabled},\n  disabled_source: \"{disabled_source}\",\n  target: \"{target_kind}\",\n  rel: {:?},\n  rel_source: \"{rel_source}\",\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  lang: {},\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
+            rel,
+            if custom_lang { "\"zh-CN\"" } else { "None" },
+            classes.join(" ")
+        )
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/link/styles.rs */\n{}",
+            ui_components::link::styles::CSS
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
+<Link href="https://example.com".to_string() target="_blank">"External link"</Link>
+<Link href="#/docs/welcome".to_string() is_disabled=true>"Disabled (is_*)"</Link>
+<Link href="#/docs/welcome".to_string() disabled=true>"Disabled (legacy alias)"</Link>
+<Link href="   ".to_string()>"Missing href"</Link>"##
             .to_string()
     });
 
@@ -1126,28 +2650,166 @@ pub(super) fn link() -> AnyView {
             group="Display"
             description="Text link with centralized disabled/target/rel state attrs and headless hover + focus-visible semantics."
         >
-            <Playground title="State Matrix" code_signal=states_code>
+            <Playground
+                title="Interactive Playground (展示 / Config / Code / CSS Test)"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css
+                test_source_path="crates/ui-components/src/link/styles.rs".to_string()
+                test_config_signal=workbench_config
+                description="切换 href/target/disabled/rel/class/lang，并在同一面板查看实际 config + code + scoped css test。"
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-search__label">"Destination"</div>
+                            <SegmentedControl
+                                id_base="docs-link-workbench-destination".to_string()
+                                options=destination_options.clone()
+                                selected_index=destination_index
+                                set_selected_index=set_destination_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Link destination".to_string()
+                            />
+
+                            <div class="docs-search__label">"Rel source"</div>
+                            <SegmentedControl
+                                id_base="docs-link-workbench-rel".to_string()
+                                options=rel_options.clone()
+                                selected_index=rel_index
+                                set_selected_index=set_rel_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Link rel source".to_string()
+                            />
+
+                            <Switch checked=is_target_blank set_checked=set_is_target_blank>
+                                "target=_blank"
+                            </Switch>
+                            <Switch checked=is_disabled set_checked=set_is_disabled>"Disabled"</Switch>
+                            <Switch
+                                checked=use_legacy_disabled_alias
+                                set_checked=set_use_legacy_disabled_alias
+                            >
+                                "Use legacy `disabled`"
+                            </Switch>
+                            <Switch checked=custom_aria set_checked=set_custom_aria>
+                                "Custom aria_label"
+                            </Switch>
+                            <Switch checked=custom_class set_checked=set_custom_class>
+                                "Custom class"
+                            </Switch>
+                            <Switch checked=custom_lang set_checked=set_custom_lang>"Lang=zh-CN"</Switch>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    {move || {
+                        let href = destination_href.get();
+                        let label = destination_label.get();
+                        let rel_value = rel.get().unwrap_or_default();
+                        let is_disabled = is_disabled.get();
+                        let is_target_blank = is_target_blank.get();
+                        let use_legacy_disabled_alias = use_legacy_disabled_alias.get();
+                        let aria_label = if custom_aria.get() {
+                            "Open partner documentation".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let class_name = if custom_class.get() {
+                            "docs-link-custom".to_string()
+                        } else {
+                            String::new()
+                        };
+                        let lang = if custom_lang.get() {
+                            "zh-CN".to_string()
+                        } else {
+                            String::new()
+                        };
+
+                        if use_legacy_disabled_alias {
+                            if is_target_blank {
+                                view! {
+                                    <Link
+                                        href=href
+                                        target="_blank"
+                                        rel=rel_value
+                                        disabled=is_disabled
+                                        aria_label=aria_label
+                                        class_name=class_name
+                                        lang=lang
+                                    >
+                                        {label}
+                                    </Link>
+                                }
+                                .into_any()
+                            } else {
+                                view! {
+                                    <Link
+                                        href=href
+                                        rel=rel_value
+                                        disabled=is_disabled
+                                        aria_label=aria_label
+                                        class_name=class_name
+                                        lang=lang
+                                    >
+                                        {label}
+                                    </Link>
+                                }
+                                .into_any()
+                            }
+                        } else if is_target_blank {
+                            view! {
+                                <Link
+                                    href=href
+                                    target="_blank"
+                                    rel=rel_value
+                                    is_disabled=is_disabled
+                                    aria_label=aria_label
+                                    class_name=class_name
+                                    lang=lang
+                                >
+                                    {label}
+                                </Link>
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <Link
+                                    href=href
+                                    rel=rel_value
+                                    is_disabled=is_disabled
+                                    aria_label=aria_label
+                                    class_name=class_name
+                                    lang=lang
+                                >
+                                    {label}
+                                </Link>
+                            }
+                            .into_any()
+                        }
+                    }}
+                    <span class="ui-muted">
+                        {move || format!(
+                            "target={}, rel_source={}",
+                            if is_target_blank.get() { "_blank" } else { "_self" },
+                            if rel.get().is_some() { "provided" } else { "auto" }
+                        )}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Comparison Matrix (Internal / External / Disabled / Missing)" code_signal=matrix_code>
                 <div class="docs-row">
                     <Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
                     <Link href="https://example.com".to_string() target="_blank">
                         "External link"
                     </Link>
-                    <Link href="#/docs/welcome".to_string() disabled=true>"Disabled"</Link>
-                    <Link href="   ".to_string()>"Missing href"</Link>
-                </div>
-            </Playground>
-
-            <Playground title="Custom Rel + Class" code_signal=custom_code>
-                <div class="docs-row">
-                    <Link
-                        href="https://example.com".to_string()
-                        target="_blank"
-                        rel="sponsored".to_string()
-                        aria_label="Open partner documentation".to_string()
-                        class_name="docs-link-custom".to_string()
-                    >
-                        "Partner docs"
+                    <Link href="#/docs/welcome".to_string() is_disabled=true>
+                        "Disabled (is_*)"
                     </Link>
+                    <Link href="#/docs/welcome".to_string() disabled=true>
+                        "Disabled (legacy alias)"
+                    </Link>
+                    <Link href="   ".to_string()>"Missing href"</Link>
                 </div>
             </Playground>
         </ComponentPage>
@@ -1454,10 +3116,137 @@ pub(super) fn avatar_group() -> AnyView {
 }
 
 pub(super) fn image() -> AnyView {
-    let src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27180%27%20viewBox%3D%270%200%20320%20180%27%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20fill%3D%27%23111%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27%23fff%27%20font-size%3D%2720%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%3Erust-ui%3C/text%3E%3C/svg%3E";
+    let src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27180%27%20viewBox%3D%270%200%20320%20180%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%271%27%20y2%3D%271%27%3E%3Cstop%20offset%3D%270%25%27%20stop-color%3D%27%230f172a%27/%3E%3Cstop%20offset%3D%27100%25%27%20stop-color%3D%27%230ea5e9%27/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20fill%3D%27url(%23g)%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27white%27%20font-size%3D%2722%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%3Erust-ui%20image%3C/text%3E%3C/svg%3E";
+    let fallback_src = "data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27180%27%20viewBox%3D%270%200%20320%20180%27%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20fill%3D%27%23334155%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27white%27%20font-size%3D%2720%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27middle%27%3EFallback%3C/text%3E%3C/svg%3E";
+    let radius_options = vec![
+        "sm".to_string(),
+        "md".to_string(),
+        "lg".to_string(),
+        "full".to_string(),
+    ];
+    let shadow_options = vec!["none".to_string(), "sm".to_string(), "md".to_string()];
+    let motion_options = vec!["default".to_string(), "custom".to_string()];
+    let source_options = vec![
+        "valid".to_string(),
+        "invalid".to_string(),
+        "missing".to_string(),
+    ];
+
+    let (radius_index, set_radius_index) = signal(Some(2usize));
+    let (shadow_index, set_shadow_index) = signal(Some(1usize));
+    let (motion_index, set_motion_index) = signal(Some(0usize));
+    let (source_index, set_source_index) = signal(Some(0usize));
+    let (is_zoomed, set_is_zoomed) = signal(true);
+    let (is_blurred, set_is_blurred) = signal(false);
+    let (disable_skeleton, set_disable_skeleton) = signal(false);
+    let (with_fallback, set_with_fallback) = signal(true);
+    let (custom_class, set_custom_class) = signal(false);
+
+    let radius = Signal::derive(move || match radius_index.get().unwrap_or(2) {
+        0 => ImageRadius::Sm,
+        1 => ImageRadius::Md,
+        3 => ImageRadius::Full,
+        _ => ImageRadius::Lg,
+    });
+    let shadow = Signal::derive(move || match shadow_index.get().unwrap_or(1) {
+        0 => ImageShadow::None,
+        2 => ImageShadow::Md,
+        _ => ImageShadow::Sm,
+    });
+    let motion = Signal::derive(move || match motion_index.get().unwrap_or(0) {
+        1 => ImageMotion {
+            zoom_scale: 1.12,
+            ..ImageMotion::default()
+        },
+        _ => ImageMotion::default(),
+    });
+    let source_mode = Signal::derive(move || source_index.get().unwrap_or(0));
 
     let code = Signal::derive(move || {
-        r#"<Image src=Some(src.to_string()) alt="Demo".to_string() />"#.to_string()
+        r#"<Image src=src.to_string() alt="Demo".to_string() />"#.to_string()
+    });
+    let workbench_code = Signal::derive(move || {
+        let radius = radius.get();
+        let shadow = shadow.get();
+        let motion_mode = motion_index.get().unwrap_or(0);
+        let source_mode = source_mode.get();
+        let is_zoomed = is_zoomed.get();
+        let is_blurred = is_blurred.get();
+        let disable_skeleton = disable_skeleton.get();
+        let with_fallback = with_fallback.get();
+        let custom_class = custom_class.get();
+
+        let mut snippet = vec!["<Image".to_string()];
+        match source_mode {
+            1 => snippet.push(
+                "  src=\"https://example.invalid/rust-ui-image.png\".to_string()".to_string(),
+            ),
+            2 => snippet.push("  src=\"\".to_string()".to_string()),
+            _ => snippet.push("  src=src.to_string()".to_string()),
+        }
+        snippet.push("  alt=\"Demo image\".to_string()".to_string());
+        if with_fallback {
+            snippet.push("  fallback_src=fallback_src.to_string()".to_string());
+        }
+        if disable_skeleton {
+            snippet.push("  disable_skeleton=true".to_string());
+        }
+        if is_blurred {
+            snippet.push("  is_blurred=true".to_string());
+        }
+        if is_zoomed {
+            snippet.push("  is_zoomed=true".to_string());
+        }
+        if radius != ImageRadius::Lg {
+            snippet.push(format!("  radius=ImageRadius::{radius:?}"));
+        }
+        if shadow != ImageShadow::Sm {
+            snippet.push(format!("  shadow=ImageShadow::{shadow:?}"));
+        }
+        if motion_mode == 1 {
+            snippet.push(
+                "  motion=ImageMotion { zoom_scale: 1.12, ..ImageMotion::default() }".to_string(),
+            );
+        }
+        if custom_class {
+            snippet.push("  class_name=\"docs-image-custom\".to_string()".to_string());
+        }
+        snippet.extend(["/>".to_string()]);
+        snippet.join("\n")
+    });
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/image/styles.rs */\n{}",
+            ui_components::image::styles::CSS
+        )
+    });
+    let actual_config = Signal::derive(move || {
+        let radius = radius.get();
+        let shadow = shadow.get();
+        let motion_mode = if motion_index.get().unwrap_or(0) == 0 {
+            "default"
+        } else {
+            "custom"
+        };
+        let source_mode = match source_mode.get() {
+            1 => "invalid",
+            2 => "missing",
+            _ => "valid",
+        };
+        format!(
+            "ImageActualConfig {{\n  source_mode: \"{source_mode}\",\n  has_fallback: {},\n  disable_skeleton: {},\n  is_blurred: {},\n  is_zoomed: {},\n  radius: {radius:?},\n  shadow: {shadow:?},\n  motion: \"{motion_mode}\",\n  custom_class: {},\n}}",
+            with_fallback.get(),
+            disable_skeleton.get(),
+            is_blurred.get(),
+            is_zoomed.get(),
+            custom_class.get(),
+        )
+    });
+    let matrix_code = Signal::derive(move || {
+        r#"<Image src=src.to_string() alt="Loaded + Zoom".to_string() is_zoomed=true radius=ImageRadius::Lg shadow=ImageShadow::Md />
+<Image src=src.to_string() alt="Blurred + Soft".to_string() is_blurred=true radius=ImageRadius::Md shadow=ImageShadow::Sm />
+<Image src="https://example.invalid/rust-ui-image.png".to_string() fallback_src=fallback_src.to_string() alt="Invalid -> Fallback".to_string() radius=ImageRadius::Sm shadow=ImageShadow::None />
+<Image src="".to_string() fallback_src=fallback_src.to_string() alt="Missing -> Fallback".to_string() radius=ImageRadius::Full shadow=ImageShadow::Sm />"#.to_string()
     });
 
     view! {
@@ -1476,6 +3265,163 @@ pub(super) fn image() -> AnyView {
                         shadow=ImageShadow::Md
                         is_zoomed=true
                     />
+                </div>
+            </Playground>
+
+            <Playground title="Comparison Matrix: Loaded / Blurred / Fallback / Missing" code_signal=matrix_code>
+                <div class="docs-grid docs-grid--2" style="width: 100%; gap: 1rem;">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Loaded + Zoom"</span>
+                        <Image
+                            src=src.to_string()
+                            alt="Loaded + Zoom".to_string()
+                            is_zoomed=true
+                            radius=ImageRadius::Lg
+                            shadow=ImageShadow::Md
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Blurred + Soft"</span>
+                        <Image
+                            src=src.to_string()
+                            alt="Blurred + Soft".to_string()
+                            is_blurred=true
+                            radius=ImageRadius::Md
+                            shadow=ImageShadow::Sm
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Invalid src -> Fallback"</span>
+                        <Image
+                            src="https://example.invalid/rust-ui-image.png".to_string()
+                            fallback_src=fallback_src.to_string()
+                            alt="Invalid -> Fallback".to_string()
+                            radius=ImageRadius::Sm
+                            shadow=ImageShadow::None
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"Missing src -> Fallback"</span>
+                        <Image
+                            src="".to_string()
+                            fallback_src=fallback_src.to_string()
+                            alt="Missing -> Fallback".to_string()
+                            radius=ImageRadius::Full
+                            shadow=ImageShadow::Sm
+                            class_name="docs-image-frame".to_string()
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench: Display + Config + Code + CSS Test"
+                description="Interactive panel with scoped CSS test + actual config snapshot."
+                code_signal=workbench_code
+                test_css_source=test_css_source
+                test_source_path="crates/ui-components/src/image/styles.rs".to_string()
+                test_config_signal=actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Source"</div>
+                        <SegmentedControl
+                            id_base="docs-image-source".to_string()
+                            options=source_options.clone()
+                            selected_index=source_index
+                            set_selected_index=set_source_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Image source mode".to_string()
+                        />
+
+                        <div class="docs-search__label">"Radius"</div>
+                        <SegmentedControl
+                            id_base="docs-image-radius".to_string()
+                            options=radius_options.clone()
+                            selected_index=radius_index
+                            set_selected_index=set_radius_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Image radius".to_string()
+                        />
+
+                        <div class="docs-search__label">"Shadow"</div>
+                        <SegmentedControl
+                            id_base="docs-image-shadow".to_string()
+                            options=shadow_options.clone()
+                            selected_index=shadow_index
+                            set_selected_index=set_shadow_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Image shadow".to_string()
+                        />
+
+                        <div class="docs-search__label">"Motion"</div>
+                        <SegmentedControl
+                            id_base="docs-image-motion".to_string()
+                            options=motion_options.clone()
+                            selected_index=motion_index
+                            set_selected_index=set_motion_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Image motion mode".to_string()
+                        />
+
+                        <Switch checked=is_zoomed set_checked=set_is_zoomed>"Zoomed"</Switch>
+                        <Switch checked=is_blurred set_checked=set_is_blurred>"Blurred"</Switch>
+                        <Switch checked=disable_skeleton set_checked=set_disable_skeleton>
+                            "Disable skeleton"
+                        </Switch>
+                        <Switch checked=with_fallback set_checked=set_with_fallback>"Use fallback"</Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>"Custom class"</Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" style="width: min(100%, 360px);">
+                    {move || {
+                        let source = match source_mode.get() {
+                            1 => "https://example.invalid/rust-ui-image.png".to_string(),
+                            2 => String::new(),
+                            _ => src.to_string(),
+                        };
+                        let fallback = if with_fallback.get() {
+                            fallback_src.to_string()
+                        } else {
+                            String::new()
+                        };
+                        let class_name = if custom_class.get() {
+                            "docs-image-custom".to_string()
+                        } else {
+                            String::new()
+                        };
+
+                        view! {
+                    <Image
+                        src=source
+                        fallback_src=fallback
+                        alt="Demo image".to_string()
+                        disable_skeleton=disable_skeleton.get()
+                        is_blurred=is_blurred.get()
+                        is_zoomed=is_zoomed.get()
+                        radius=radius.get()
+                        shadow=shadow.get()
+                        motion=motion.get()
+                        class_name=class_name
+                    />
+                        }
+                    }}
+                    <span class="ui-muted">
+                        {move || format!(
+                            "state: source={}, fallback={}, zoomed={}, blurred={}",
+                            match source_mode.get() {
+                                1 => "invalid",
+                                2 => "missing",
+                                _ => "valid",
+                            },
+                            with_fallback.get(),
+                            is_zoomed.get(),
+                            is_blurred.get(),
+                        )}
+                    </span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -1510,6 +3456,7 @@ pub(super) fn illustrated_message() -> AnyView {
 }
 
 pub(super) fn motion_ripple() -> AnyView {
+    let hello_ref: NodeRef<html::Span> = NodeRef::new();
     let default_ref: NodeRef<html::Span> = NodeRef::new();
     let slow_ref: NodeRef<html::Span> = NodeRef::new();
     let static_ref: NodeRef<html::Span> = NodeRef::new();
@@ -1531,6 +3478,9 @@ pub(super) fn motion_ripple() -> AnyView {
         ..RippleMotion::default()
     };
 
+    let on_hello_click = move |_| {
+        ui_components::ripple::motion::trigger_ripple(hello_ref, RippleMotion::default());
+    };
     let on_default_click = move |_| {
         ui_components::ripple::motion::trigger_ripple(default_ref, default_motion);
     };
@@ -1552,6 +3502,13 @@ pub(super) fn motion_ripple() -> AnyView {
         );
     };
 
+    let hello_world_code = Signal::derive(move || {
+        r#"<button class="docs-ripple-surface" type="button">
+  <MotionRipple node_ref=ripple_ref motion=RippleMotion::default() />
+</button>"#
+            .to_string()
+    });
+
     let matrix_code = Signal::derive(move || {
         r#"<MotionRipple node_ref=default_ref motion=RippleMotion::default() />
 <MotionRipple node_ref=slow_ref motion=RippleMotion { duration_ms: 880, ..RippleMotion::default() } />
@@ -1566,7 +3523,7 @@ pub(super) fn motion_ripple() -> AnyView {
 />
 <MotionRipple
   node_ref=unbounded_ref
-  bounded=false
+  is_bounded=false
   motion=RippleMotion { duration_ms: 520, ..RippleMotion::default() }
   class_name="docs-ripple-custom".to_string()
 />"#
@@ -1580,10 +3537,23 @@ pub(super) fn motion_ripple() -> AnyView {
             group="Display"
             description="Ripple overlay with centralized boundary/motion/class source attrs and WAAPI trigger helpers."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <div class="docs-row">
+                    <button class="docs-ripple-surface" type="button" on:click=on_hello_click>
+                        <span class="docs-ripple-label">"Click me"</span>
+                        <MotionRipple
+                            node_ref=hello_ref
+                            motion=RippleMotion::default()
+                            class_name="docs-ripple-item".to_string()
+                        />
+                    </button>
+                </div>
+            </Playground>
+
             <Playground title="Animation Matrix" code_signal=matrix_code>
                 <div class="docs-row">
                     <button class="docs-ripple-surface" type="button" on:click=on_default_click>
-                        <span class="docs-ripple-label">"Default (420ms)"</span>
+                        <span class="docs-ripple-label">"Default (180ms)"</span>
                         <MotionRipple
                             node_ref=default_ref
                             motion=default_motion
@@ -1642,7 +3612,7 @@ pub(super) fn motion_ripple() -> AnyView {
                         <span class="docs-ripple-label">"Unbounded + Origin"</span>
                         <MotionRipple
                             node_ref=unbounded_ref
-                            bounded=false
+                            is_bounded=false
                             motion=unbounded_motion
                             class_name="docs-ripple-custom".to_string()
                         />
@@ -1654,6 +3624,115 @@ pub(super) fn motion_ripple() -> AnyView {
     .into_any()
 }
 pub(super) fn static_number() -> AnyView {
+    let (workbench_number_key, set_workbench_number_key) = signal("positive".to_string());
+    let (workbench_decimal_places_key, set_workbench_decimal_places_key) = signal("2".to_string());
+    let (workbench_decimal_sep_key, set_workbench_decimal_sep_key) = signal("dot".to_string());
+    let (workbench_thousand_sep_key, set_workbench_thousand_sep_key) = signal("comma".to_string());
+    let (workbench_pad_start, set_workbench_pad_start) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_show_compare, set_workbench_show_compare) = signal(true);
+
+    let workbench_number = Signal::derive(move || match workbench_number_key.get().as_str() {
+        "negative" => -9876.5,
+        "nan" => f64::NAN,
+        _ => 12345.67,
+    });
+    let workbench_decimal_places =
+        Signal::derive(move || match workbench_decimal_places_key.get().as_str() {
+            "auto" => None,
+            "0" => Some(0_u32),
+            "6" => Some(6_u32),
+            _ => Some(2_u32),
+        });
+    let workbench_decimal_separator = Signal::derive(move || {
+        if workbench_decimal_sep_key.get() == "comma" {
+            Some(",".to_string())
+        } else {
+            None
+        }
+    });
+    let workbench_thousand_separator =
+        Signal::derive(move || match workbench_thousand_sep_key.get().as_str() {
+            "none" => None,
+            "space" => Some(" ".to_string()),
+            _ => Some(",".to_string()),
+        });
+
+    let workbench_code = Signal::derive(move || {
+        let number = workbench_number.get();
+        let decimal_places = workbench_decimal_places.get();
+        let decimal_separator = workbench_decimal_separator.get();
+        let thousand_separator = workbench_thousand_separator.get();
+
+        let mut lines = vec!["<StaticNumber".to_string(), format!("  number={number}")];
+        if workbench_pad_start.get() {
+            lines.push("  pad_start=true".to_string());
+        }
+        if let Some(separator) = decimal_separator {
+            lines.push(format!("  decimal_separator={separator:?}.to_string()"));
+        }
+        if let Some(places) = decimal_places {
+            lines.push(format!("  decimal_places={places}"));
+        }
+        if let Some(separator) = thousand_separator {
+            lines.push(format!("  thousand_separator={separator:?}.to_string()"));
+        }
+        if workbench_custom_class.get() {
+            lines.push("  class_name=\"docs-static-number-custom\".to_string()".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/number/styles.rs */\n{}",
+            ui_components::number::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let number = workbench_number.get();
+        let sanitized = if number.is_finite() { number } else { 0.0 };
+        let sign = if sanitized < 0.0 {
+            "negative"
+        } else if sanitized > 0.0 {
+            "positive"
+        } else {
+            "zero"
+        };
+        let decimal_separator_source = if workbench_decimal_separator.get().is_some() {
+            "custom"
+        } else {
+            "default"
+        };
+        let decimal_places_source = if workbench_decimal_places.get().is_some() {
+            "custom"
+        } else {
+            "auto"
+        };
+        let thousand_separator_source = if workbench_thousand_separator.get().is_some() {
+            "custom"
+        } else {
+            "none"
+        };
+        let class_source = if workbench_custom_class.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let mut classes = vec!["ui-static-number".to_string(), format!("data-sign={sign}")];
+        if workbench_custom_class.get() {
+            classes.push("docs-static-number-custom".to_string());
+        }
+
+        format!(
+            "StaticNumberActualConfig {{\n  number: {number},\n  sanitized_number: {sanitized},\n  pad_start: {},\n  decimal_separator_source: \"{decimal_separator_source}\",\n  decimal_places_source: \"{decimal_places_source}\",\n  thousand_separator_source: \"{thousand_separator_source}\",\n  class_source: \"{class_source}\",\n  class: \"{}\",\n}}",
+            workbench_pad_start.get(),
+            classes.join(" "),
+        )
+    });
+
     let matrix_code = Signal::derive(move || {
         r#"<StaticNumber number=12345.67 decimal_places=2 thousand_separator=",".to_string() />
 <StaticNumber number=-9876.5 decimal_places=1 thousand_separator=",".to_string() />
@@ -1716,6 +3795,149 @@ pub(super) fn static_number() -> AnyView {
                     />
                 </div>
             </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="Button-style playground with display/config/code/css-test panels for number formatting contracts."
+                code_signal=workbench_code
+                test_css_source=workbench_test_css
+                test_source_path="crates/ui-components/src/number/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="static-number-workbench-controls">
+                        <label class="docs-search__label">
+                            "Value"
+                            <select
+                                prop:value=move || workbench_number_key.get()
+                                on:change=move |ev| set_workbench_number_key.set(event_target_value(&ev))
+                            >
+                                <option value="positive">"Positive"</option>
+                                <option value="negative">"Negative"</option>
+                                <option value="nan">"NaN (sanitized)"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Decimal places"
+                            <select
+                                prop:value=move || workbench_decimal_places_key.get()
+                                on:change=move |ev| set_workbench_decimal_places_key.set(event_target_value(&ev))
+                            >
+                                <option value="auto">"Auto"</option>
+                                <option value="0">"0"</option>
+                                <option value="2">"2"</option>
+                                <option value="6">"6"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Decimal separator"
+                            <select
+                                prop:value=move || workbench_decimal_sep_key.get()
+                                on:change=move |ev| set_workbench_decimal_sep_key.set(event_target_value(&ev))
+                            >
+                                <option value="dot">"Default ."</option>
+                                <option value="comma">"Custom ,"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Thousand separator"
+                            <select
+                                prop:value=move || workbench_thousand_sep_key.get()
+                                on:change=move |ev| set_workbench_thousand_sep_key.set(event_target_value(&ev))
+                            >
+                                <option value="none">"None"</option>
+                                <option value="comma">"Comma"</option>
+                                <option value="space">"Space"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_pad_start.get()
+                                on:change=move |ev| set_workbench_pad_start.set(event_target_checked(&ev))
+                            />
+                            " Pad start"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " Custom class"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_compare.get()
+                                on:change=move |ev| set_workbench_show_compare.set(event_target_checked(&ev))
+                            />
+                            " Show compare"
+                        </label>
+                    </div>
+                }
+            >
+                {move || {
+                    let number = workbench_number.get();
+                    let decimal_places = workbench_decimal_places.get();
+                    let decimal_separator = workbench_decimal_separator.get().unwrap_or_default();
+                    let thousand_separator = workbench_thousand_separator.get().unwrap_or_default();
+                    let class_name = if workbench_custom_class.get() {
+                        "docs-static-number-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let show_compare = workbench_show_compare.get();
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-search__label">"展示区 · Primary"</div>
+                            <div class="docs-card docs-stack docs-stack--tight">
+                                {if let Some(decimal_places) = decimal_places {
+                                    view! {
+                                        <StaticNumber
+                                            number=number
+                                            pad_start=workbench_pad_start.get()
+                                            decimal_separator=decimal_separator.clone()
+                                            decimal_places=decimal_places
+                                            thousand_separator=thousand_separator.clone()
+                                            class_name=class_name.clone()
+                                        />
+                                    }
+                                        .into_any()
+                                } else {
+                                    view! {
+                                        <StaticNumber
+                                            number=number
+                                            pad_start=workbench_pad_start.get()
+                                            decimal_separator=decimal_separator.clone()
+                                            thousand_separator=thousand_separator.clone()
+                                            class_name=class_name.clone()
+                                        />
+                                    }
+                                        .into_any()
+                                }}
+                            </div>
+
+                            <Show when=move || show_compare>
+                                <div class="docs-search__label">"展示区 · 对比矩阵"</div>
+                                <div class="docs-row">
+                                    <StaticNumber
+                                        number=12345.67
+                                        decimal_places=2
+                                        thousand_separator=",".to_string()
+                                    />
+                                    <StaticNumber
+                                        number=-9876.5
+                                        decimal_places=1
+                                        thousand_separator=",".to_string()
+                                    />
+                                    <StaticNumber number=f64::NAN decimal_places=2 />
+                                </div>
+                            </Show>
+                        </div>
+                    }
+                }}
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -1724,6 +3946,132 @@ pub(super) fn static_number() -> AnyView {
 pub(super) fn sliding_number() -> AnyView {
     let (value, set_value) = signal(12345.67_f64);
     let number_signal: Signal<f64> = Signal::derive(move || value.get());
+    let (workbench_decimal_places_key, set_workbench_decimal_places_key) = signal("2".to_string());
+    let (workbench_decimal_sep_key, set_workbench_decimal_sep_key) = signal("dot".to_string());
+    let (workbench_thousand_sep_key, set_workbench_thousand_sep_key) = signal("comma".to_string());
+    let (workbench_custom_motion, set_workbench_custom_motion) = signal(false);
+    let (workbench_animate, set_workbench_animate) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_show_compare, set_workbench_show_compare) = signal(true);
+
+    let workbench_decimal_places =
+        Signal::derive(move || match workbench_decimal_places_key.get().as_str() {
+            "auto" => None,
+            "0" => Some(0_u32),
+            "6" => Some(6_u32),
+            _ => Some(2_u32),
+        });
+    let workbench_decimal_separator = Signal::derive(move || {
+        if workbench_decimal_sep_key.get() == "comma" {
+            Some(",".to_string())
+        } else {
+            None
+        }
+    });
+    let workbench_thousand_separator =
+        Signal::derive(move || match workbench_thousand_sep_key.get().as_str() {
+            "none" => None,
+            "space" => Some(" ".to_string()),
+            _ => Some(",".to_string()),
+        });
+
+    let workbench_motion = Signal::derive(move || {
+        let mut motion = ui_components::SlidingNumberMotion {
+            animate: workbench_animate.get(),
+            ..Default::default()
+        };
+        if workbench_custom_motion.get() {
+            motion.spring.stiffness = 420.0;
+            motion.spring.damping = 34.0;
+        }
+        motion
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let decimal_places = workbench_decimal_places.get();
+        let decimal_separator = workbench_decimal_separator.get();
+        let thousand_separator = workbench_thousand_separator.get();
+        let motion = workbench_motion.get();
+
+        let mut lines = vec![
+            "let (value, set_value) = signal(12345.67_f64);".to_string(),
+            "<SlidingNumber".to_string(),
+            "  number=Signal::derive(move || value.get())".to_string(),
+        ];
+        if let Some(separator) = decimal_separator {
+            lines.push(format!("  decimal_separator={separator:?}.to_string()"));
+        }
+        if let Some(places) = decimal_places {
+            lines.push(format!("  decimal_places={places}"));
+        }
+        if let Some(separator) = thousand_separator {
+            lines.push(format!("  thousand_separator={separator:?}.to_string()"));
+        }
+        if motion != ui_components::SlidingNumberMotion::default() {
+            lines.push(format!(
+                "  motion=SlidingNumberMotion {{ animate: {}, ..Default::default() }}",
+                motion.animate
+            ));
+        }
+        if workbench_custom_class.get() {
+            lines.push("  class_name=\"docs-sliding-number-custom\".to_string()".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/number/styles.rs */\n{}",
+            ui_components::number::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let number = value.get();
+        let decimal_separator_source = if workbench_decimal_separator.get().is_some() {
+            "custom"
+        } else {
+            "default"
+        };
+        let decimal_places_source = if workbench_decimal_places.get().is_some() {
+            "custom"
+        } else {
+            "auto"
+        };
+        let thousand_separator_source = if workbench_thousand_separator.get().is_some() {
+            "custom"
+        } else {
+            "none"
+        };
+        let motion = workbench_motion.get();
+        let motion_source = if motion == ui_components::SlidingNumberMotion::default() {
+            "default"
+        } else {
+            "custom"
+        };
+        let class_source = if workbench_custom_class.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let mut classes = vec![
+            "ui-sliding-number".to_string(),
+            format!(
+                "data-state:{}",
+                if motion.animate { "animated" } else { "static" }
+            ),
+        ];
+        if workbench_custom_class.get() {
+            classes.push("docs-sliding-number-custom".to_string());
+        }
+
+        format!(
+            "SlidingNumberActualConfig {{\n  value: {number},\n  animate: {},\n  decimal_separator_source: \"{decimal_separator_source}\",\n  decimal_places_source: \"{decimal_places_source}\",\n  thousand_separator_source: \"{thousand_separator_source}\",\n  motion_source: \"{motion_source}\",\n  class_source: \"{class_source}\",\n  class: \"{}\",\n}}",
+            motion.animate,
+            classes.join(" "),
+        )
+    });
 
     let matrix_code = Signal::derive(move || {
         r#"<SlidingNumber
@@ -1804,6 +4152,164 @@ pub(super) fn sliding_number() -> AnyView {
                         class_name="docs-sliding-number-custom".to_string()
                     />
                 </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="Button-style playground with display/config/code/css-test panels for sliding number motion and format contracts."
+                code_signal=workbench_code
+                test_css_source=workbench_test_css
+                test_source_path="crates/ui-components/src/number/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="sliding-number-workbench-controls">
+                        <label class="docs-search__label">
+                            "Decimal places"
+                            <select
+                                prop:value=move || workbench_decimal_places_key.get()
+                                on:change=move |ev| set_workbench_decimal_places_key.set(event_target_value(&ev))
+                            >
+                                <option value="auto">"Auto"</option>
+                                <option value="0">"0"</option>
+                                <option value="2">"2"</option>
+                                <option value="6">"6"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Decimal separator"
+                            <select
+                                prop:value=move || workbench_decimal_sep_key.get()
+                                on:change=move |ev| set_workbench_decimal_sep_key.set(event_target_value(&ev))
+                            >
+                                <option value="dot">"Default ."</option>
+                                <option value="comma">"Custom ,"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            "Thousand separator"
+                            <select
+                                prop:value=move || workbench_thousand_sep_key.get()
+                                on:change=move |ev| set_workbench_thousand_sep_key.set(event_target_value(&ev))
+                            >
+                                <option value="none">"None"</option>
+                                <option value="comma">"Comma"</option>
+                                <option value="space">"Space"</option>
+                            </select>
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_animate.get()
+                                on:change=move |ev| set_workbench_animate.set(event_target_checked(&ev))
+                            />
+                            " Animate"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_motion.get()
+                                on:change=move |ev| set_workbench_custom_motion.set(event_target_checked(&ev))
+                            />
+                            " Custom motion"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| set_workbench_custom_class.set(event_target_checked(&ev))
+                            />
+                            " Custom class"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_show_compare.get()
+                                on:change=move |ev| set_workbench_show_compare.set(event_target_checked(&ev))
+                            />
+                            " Show compare"
+                        </label>
+                    </div>
+                }
+            >
+                {move || {
+                    let decimal_places = workbench_decimal_places.get();
+                    let decimal_separator = workbench_decimal_separator.get().unwrap_or_default();
+                    let thousand_separator = workbench_thousand_separator.get().unwrap_or_default();
+                    let motion = workbench_motion.get();
+                    let show_compare = workbench_show_compare.get();
+                    let class_name = if workbench_custom_class.get() {
+                        "docs-sliding-number-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-search__label">"展示区 · Primary"</div>
+                            <div class="docs-card docs-stack docs-stack--tight">
+                                {if let Some(decimal_places) = decimal_places {
+                                    view! {
+                                        <SlidingNumber
+                                            number=number_signal
+                                            motion=motion
+                                            decimal_separator=decimal_separator.clone()
+                                            decimal_places=decimal_places
+                                            thousand_separator=thousand_separator.clone()
+                                            class_name=class_name.clone()
+                                        />
+                                    }
+                                        .into_any()
+                                } else {
+                                    view! {
+                                        <SlidingNumber
+                                            number=number_signal
+                                            motion=motion
+                                            decimal_separator=decimal_separator.clone()
+                                            thousand_separator=thousand_separator.clone()
+                                            class_name=class_name.clone()
+                                        />
+                                    }
+                                        .into_any()
+                                }}
+                                <div class="docs-row">
+                                    <ui_components::Button
+                                        variant=ui_components::ButtonVariant::Secondary
+                                        on_press=Callback::new(move |_| set_value.update(|v| *v += 250.0))
+                                    >
+                                        "+250"
+                                    </ui_components::Button>
+                                    <ui_components::Button
+                                        variant=ui_components::ButtonVariant::Secondary
+                                        on_press=Callback::new(move |_| set_value.update(|v| *v -= 100.0))
+                                    >
+                                        "-100"
+                                    </ui_components::Button>
+                                    <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
+                                </div>
+                            </div>
+
+                            <Show when=move || show_compare>
+                                <div class="docs-search__label">"展示区 · 对比矩阵"</div>
+                                <div class="docs-stack docs-stack--tight">
+                                    <SlidingNumber
+                                        number=Signal::derive(move || value.get())
+                                        decimal_places=2
+                                        thousand_separator=",".to_string()
+                                    />
+                                    <SlidingNumber
+                                        number=Signal::derive(move || value.get())
+                                        decimal_places=0
+                                        motion=ui_components::SlidingNumberMotion {
+                                            animate: false,
+                                            ..Default::default()
+                                        }
+                                        class_name="docs-sliding-number-custom".to_string()
+                                    />
+                                </div>
+                            </Show>
+                        </div>
+                    }
+                }}
             </Playground>
         </ComponentPage>
     }

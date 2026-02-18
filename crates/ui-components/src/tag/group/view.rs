@@ -1,10 +1,165 @@
 use super::{
     Tag,
-    logic::{merge_describedby_ids, normalize_optional_text, resolve_state},
+    logic::{
+        TagGroupItemStateInput, merge_describedby_ids, normalize_group_input, resolve_item_state,
+        resolve_state,
+    },
 };
+use crate::ai_space::use_ai_space_state;
 use crate::tag::{Tag as TagPrimitive, TagSize, TagVariant};
 use leptos::prelude::*;
-use ui_headless::OnPress;
+use ui_headless::{A11yDirection, OnPress, locale_attrs};
+
+const TAG_GROUP_LABEL_CLASS: &str = "ui-tag-group__label";
+const TAG_GROUP_LABEL_SLOT: &str = "tag-group-label";
+const TAG_GROUP_LIST_CLASS: &str = "ui-tag-group__list";
+const TAG_GROUP_LIST_SLOT: &str = "tag-group-list";
+const TAG_GROUP_ITEM_CLASS: &str = "ui-tag-group__item";
+const TAG_GROUP_ITEM_SLOT: &str = "tag-group-item";
+const TAG_GROUP_DESCRIPTION_CLASS: &str = "ui-tag-group__description";
+const TAG_GROUP_DESCRIPTION_SLOT: &str = "tag-group-description";
+const TAG_GROUP_ERROR_CLASS: &str = "ui-tag-group__error";
+const TAG_GROUP_ERROR_SLOT: &str = "tag-group-error";
+
+fn render_group_label(label: Option<String>, label_id: String) -> AnyView {
+    match label {
+        Some(label) => view! {
+            <div class=TAG_GROUP_LABEL_CLASS id=label_id data-slot=TAG_GROUP_LABEL_SLOT>
+                {label}
+            </div>
+        }
+        .into_any(),
+        None => ().into_any(),
+    }
+}
+
+fn render_group_description(description: Option<String>, description_id: String) -> AnyView {
+    match description {
+        Some(description) => view! {
+            <div
+                class=TAG_GROUP_DESCRIPTION_CLASS
+                id=description_id
+                data-slot=TAG_GROUP_DESCRIPTION_SLOT
+            >
+                {description}
+            </div>
+        }
+        .into_any(),
+        None => ().into_any(),
+    }
+}
+
+fn render_group_error(error: Option<String>, error_id: String, invalid: Signal<bool>) -> AnyView {
+    match error {
+        Some(error) => {
+            let error = StoredValue::new(error);
+            let error_id = StoredValue::new(error_id);
+            view! {
+                <Show when=move || invalid.get()>
+                    <div
+                        class=TAG_GROUP_ERROR_CLASS
+                        id=move || error_id.get_value()
+                        data-slot=TAG_GROUP_ERROR_SLOT
+                    >
+                        {move || error.get_value()}
+                    </div>
+                </Show>
+            }
+            .into_any()
+        }
+        None => ().into_any(),
+    }
+}
+
+#[derive(Clone, Copy)]
+struct TagGroupItemRenderCtx {
+    disabled: bool,
+    has_remove_callback: bool,
+    agent_source: RwSignal<super::logic::TagGroupAgentSource>,
+    on_remove: StoredValue<Option<Callback<Tag>>>,
+    variant: TagVariant,
+    size: TagSize,
+}
+
+fn render_tag_node(
+    label: String,
+    variant: TagVariant,
+    size: TagSize,
+    is_disabled: bool,
+    dismiss: Option<OnPress>,
+) -> AnyView {
+    match dismiss {
+        Some(on_remove) => view! {
+            <TagPrimitive
+                disabled=is_disabled
+                variant=variant
+                size=size
+                removable=true
+                on_remove=on_remove
+            >
+                {label}
+            </TagPrimitive>
+        }
+        .into_any(),
+        None => view! {
+            <TagPrimitive disabled=is_disabled variant=variant size=size>
+                {label}
+            </TagPrimitive>
+        }
+        .into_any(),
+    }
+}
+
+fn render_tag_group_item(index: usize, tag: Tag, ctx: TagGroupItemRenderCtx) -> impl IntoView {
+    let tag_id_for_attr = tag.id.clone();
+    let tag_for_remove = tag.clone();
+    let item_state = resolve_item_state(TagGroupItemStateInput {
+        group_disabled: ctx.disabled,
+        supports_removal: ctx.has_remove_callback,
+        tag_disabled: tag.disabled,
+    });
+    let dismiss = if item_state.is_removable {
+        ctx.on_remove.get_value().map(|on_remove| {
+            let on_press: OnPress = Callback::new(move |_| {
+                ctx.agent_source
+                    .set(super::logic::TagGroupAgentSource::RemovePointer);
+                on_remove.run(tag_for_remove.clone());
+            });
+            on_press
+        })
+    } else {
+        None
+    };
+    let tag_view = render_tag_node(
+        tag.label,
+        ctx.variant,
+        ctx.size,
+        item_state.is_disabled,
+        dismiss,
+    );
+
+    view! {
+        <li
+            class=TAG_GROUP_ITEM_CLASS
+            data-slot=TAG_GROUP_ITEM_SLOT
+            data-index=index
+            data-tag-id=tag_id_for_attr
+            data-disabled=item_state.is_disabled.then_some("true")
+            data-removable=item_state.is_removable.then_some("true")
+            data-disabled-source=item_state.disabled_source_attr
+            data-removable-source=item_state.removable_source_attr
+        >
+            {tag_view}
+        </li>
+    }
+}
+
+fn render_tag_group_items(tags: Vec<Tag>, ctx: TagGroupItemRenderCtx) -> impl IntoView {
+    tags.into_iter()
+        .enumerate()
+        .map(|(index, tag)| render_tag_group_item(index, tag, ctx))
+        .collect_view()
+}
 
 #[component]
 pub fn TagGroup(
@@ -22,12 +177,28 @@ pub fn TagGroup(
     #[prop(optional, into)] aria_describedby: Signal<Option<String>>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let id_base = normalize_optional_text(id_base).unwrap_or_else(|| "tag-group".to_string());
-    let label = normalize_optional_text(label);
-    let description = normalize_optional_text(description);
-    let error = normalize_optional_text(error);
-    let aria_label = normalize_optional_text(aria_label).unwrap_or_else(|| "Tags".to_string());
+    let normalized = normalize_group_input(
+        id_base,
+        label,
+        description,
+        error,
+        aria_label,
+        class_name,
+        lang,
+    );
+    let id_base = normalized.id_base;
+    let label = normalized.label;
+    let description = normalized.description;
+    let error = normalized.error;
+    let aria_label = normalized.aria_label;
+    let id_base_source = normalized.id_base_source.as_attr();
+    let aria_label_source = normalized.aria_label_source.as_attr();
+    let class_name_source = normalized.class_name_source.as_attr();
+    let lang_source = normalized.lang_source.as_attr();
+    let locale = locale_attrs(normalized.lang, dir);
 
     let label_id = format!("{id_base}-label");
     let description_id = format!("{id_base}-description");
@@ -55,13 +226,7 @@ pub fn TagGroup(
         )
     });
 
-    let base_class = "ui-tag-group".to_string();
-    let class = class_name
-        .and_then(|value| {
-            let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| format!("{base_class} {trimmed}"))
-        })
-        .unwrap_or(base_class);
+    let class = normalized.class_name;
 
     let has_remove_callback = on_remove.is_some();
     let state = Memo::new(move |_| {
@@ -74,6 +239,11 @@ pub fn TagGroup(
             required.get(),
         )
     });
+    let agent_source = RwSignal::new(super::logic::TagGroupAgentSource::Init);
+    let agent_contract = Signal::derive(move || {
+        super::logic::resolve_agent_contract(state.get(), agent_source.get(), has_remove_callback)
+    });
+    let ai_space_state = StoredValue::new(use_ai_space_state());
 
     let label = StoredValue::new(label);
     let description = StoredValue::new(description);
@@ -81,12 +251,18 @@ pub fn TagGroup(
     let aria_labelledby = StoredValue::new(aria_labelledby);
     let aria_label = StoredValue::new(aria_label);
     let on_remove = StoredValue::new(on_remove);
+    let label_view = render_group_label(label.get_value(), label_id.clone());
+    let description_view =
+        render_group_description(description.get_value(), description_id.clone());
+    let error_view = render_group_error(error.get_value(), error_id.clone(), invalid);
 
     view! {
         <div
             id=id_base
             class=class
             role="group"
+            lang=locale.lang.clone()
+            dir=locale.dir
             aria-label=move || {
                 if aria_labelledby.get_value().is_some() {
                     None
@@ -106,105 +282,62 @@ pub fn TagGroup(
             data-has-removable-tags=move || state.get().has_removable_tags.then_some("true")
             data-invalid=move || state.get().is_invalid.then_some("true")
             data-required=move || state.get().is_required.then_some("true")
+            data-id-base-source=id_base_source
+            data-aria-label-source=aria_label_source
+            data-class-source=class_name_source
+            data-lang-source=lang_source
             data-slot="tag-group"
+            data-ui-schema=move || agent_contract.get().schema_name
+            data-ui-schema-version=move || agent_contract.get().schema_version.as_str()
+            data-ui-intent=move || agent_contract.get().intent.as_str()
+            data-ui-action=move || agent_contract.get().action.as_str()
+            data-ui-state=move || agent_contract.get().state.as_str()
+            data-ui-source=move || agent_contract.get().source.as_str()
+            data-ui-stream-support=move || agent_contract.get().stream_support.as_str()
+            data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()
+            data-ui-stream-mode=move || {
+                ai_space_state
+                    .get_value()
+                    .map(|state| state.get().mode.as_str())
+                    .unwrap_or("snapshot")
+            }
+            data-ui-output-status=move || {
+                ai_space_state
+                    .get_value()
+                    .map(|state| state.get().output_status.as_str())
+                    .unwrap_or(agent_contract.get().output_status.as_str())
+            }
+            data-ui-capability-remove=move || {
+                agent_contract.get().capabilities.can_remove.then_some("true")
+            }
+            data-ui-capability-validate=move || {
+                agent_contract.get().capabilities.can_validate.then_some("true")
+            }
+            data-ui-capability-disable=move || {
+                agent_contract.get().capabilities.can_disable.then_some("true")
+            }
         >
-            {label.get_value().map(|label| {
-                view! {
-                    <div class="ui-tag-group__label" id=label_id.clone() data-slot="tag-group-label">
-                        {label}
-                    </div>
-                }
-            })}
+            {label_view}
 
-            <ul class="ui-tag-group__list" data-slot="tag-group-list">
+            <ul class=TAG_GROUP_LIST_CLASS data-slot=TAG_GROUP_LIST_SLOT>
                 {move || {
-                    tags.get()
-                        .into_iter()
-                        .enumerate()
-                        .map(|(index, tag)| {
-                            let tag_id_for_attr = tag.id.clone();
-                            let tag_for_remove = tag.clone();
-                            let tag_label = tag.label.clone();
-                            let is_disabled = disabled || tag.disabled;
-                            let is_removable = has_remove_callback && !is_disabled;
-                            let dismiss = if is_removable {
-                                on_remove.get_value().map(|on_remove| {
-                                    let on_press: OnPress =
-                                        Callback::new(move |_| on_remove.run(tag_for_remove.clone()));
-                                    on_press
-                                })
-                            } else {
-                                None
-                            };
-
-                            let tag_view: AnyView = match dismiss {
-                                Some(on_remove) => view! {
-                                    <TagPrimitive
-                                        disabled=is_disabled
-                                        variant=variant
-                                        size=size
-                                        removable=true
-                                        on_remove=on_remove
-                                    >
-                                        {tag_label.clone()}
-                                    </TagPrimitive>
-                                }
-                                .into_any(),
-                                None => view! {
-                                    <TagPrimitive
-                                        disabled=is_disabled
-                                        variant=variant
-                                        size=size
-                                    >
-                                        {tag_label}
-                                    </TagPrimitive>
-                                }
-                                .into_any(),
-                            };
-
-                            view! {
-                                <li
-                                    class="ui-tag-group__item"
-                                    data-slot="tag-group-item"
-                                    data-index=index
-                                    data-tag-id=tag_id_for_attr
-                                    data-disabled=is_disabled.then_some("true")
-                                    data-removable=is_removable.then_some("true")
-                                >
-                                    {tag_view}
-                                </li>
-                            }
-                        })
-                        .collect_view()
+                    let ctx = TagGroupItemRenderCtx {
+                        disabled,
+                        has_remove_callback,
+                        agent_source,
+                        on_remove,
+                        variant,
+                        size,
+                    };
+                    render_tag_group_items(
+                        tags.get(),
+                        ctx,
+                    )
                 }}
             </ul>
 
-            {description.get_value().map(|description| {
-                view! {
-                    <div
-                        class="ui-tag-group__description"
-                        id=description_id.clone()
-                        data-slot="tag-group-description"
-                    >
-                        {description}
-                    </div>
-                }
-            })}
-
-            {error.get_value().map(|error| {
-                let error = StoredValue::new(error);
-                view! {
-                    <Show when=move || invalid.get()>
-                        <div
-                            class="ui-tag-group__error"
-                            id=error_id.clone()
-                            data-slot="tag-group-error"
-                        >
-                            {move || error.get_value()}
-                        </div>
-                    </Show>
-                }
-            })}
+            {description_view}
+            {error_view}
         </div>
     }
 }

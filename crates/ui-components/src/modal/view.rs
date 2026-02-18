@@ -1,6 +1,7 @@
+use crate::OnPress;
 use crate::modal::{ModalPartStateInput, ModalSlot, logic};
+use crate::overlay::Overlay;
 use crate::overlay::OverlayMotion;
-use crate::{OnPress, Overlay};
 use leptos::prelude::*;
 
 #[component]

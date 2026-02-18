@@ -1,6 +1,8 @@
+use crate::OnPress;
+use crate::button::{ButtonSize, ButtonVariant};
 use crate::dialog::{DialogMotion, DialogPartStateInput, DialogSize, DialogSlot, logic};
+use crate::icon_button::IconButton;
 use crate::overlay::Overlay;
-use crate::{ButtonSize, ButtonVariant, IconButton, OnPress};
 use leptos::children::ViewFn;
 use leptos::prelude::*;
 

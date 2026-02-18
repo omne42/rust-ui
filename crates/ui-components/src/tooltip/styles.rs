@@ -62,26 +62,26 @@ pub const CSS: &str = r#"
   left: var(--ui-tooltip-left, 0px);
 
   --ui-tooltip-opacity: 0;
-  --ui-tooltip-scale: 0.98;
-  --ui-tooltip-y: 6px;
+  --ui-tooltip-scale: var(--ui-overlay-enter-scale, 0.98);
+  --ui-tooltip-y: var(--ui-overlay-enter-offset-y, 6px);
 
   opacity: var(--ui-tooltip-opacity);
   transform: translateY(var(--ui-tooltip-y)) scale(var(--ui-tooltip-scale));
   will-change: transform, opacity;
 
   pointer-events: none;
-  z-index: 1100;
+  z-index: var(--ui-overlay-z-index, 1000);
 
-  padding: 8px 10px;
+  padding: var(--ui-space-sm, 8px) var(--ui-space-md, 12px);
   border-radius: var(--ui-radius-md);
   border: 1px solid var(--ui-border);
   background: var(--ui-bg);
   color: var(--ui-fg);
   box-shadow: var(--ui-shadow-md);
 
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
   line-height: 1.2;
-  max-width: 280px;
+  max-width: var(--ui-tooltip-max-width, 280px);
 }
 
 .ui-tooltip__panel[data-state="panel"] {

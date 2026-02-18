@@ -21,9 +21,28 @@ pub fn sanitize_motion(motion: ColorAreaMotion) -> ColorAreaMotion {
     }
 }
 
-pub fn attach_motion(motion: ColorAreaMotion) -> String {
+pub fn source_attr(motion: ColorAreaMotion) -> &'static str {
+    if sanitize_motion(motion) == ColorAreaMotion::default() {
+        "default"
+    } else {
+        "custom"
+    }
+}
+
+pub fn attach_motion(base_vars: Option<String>, motion: ColorAreaMotion) -> String {
     let motion = sanitize_motion(motion);
-    format!("--ui-color-area-motion-duration: {}ms;", motion.duration_ms)
+    let mut style = base_vars.unwrap_or_default();
+
+    if !style.trim().is_empty() && !style.trim_end().ends_with(';') {
+        style.push(';');
+    }
+
+    if !style.trim().is_empty() {
+        style.push(' ');
+    }
+
+    style.push_str(format!("--ui-color-area-motion-duration: {}ms;", motion.duration_ms).as_str());
+    style
 }
 
 #[cfg(test)]
@@ -61,10 +80,26 @@ mod tests {
     }
 
     #[test]
+    fn source_attr_distinguishes_default_and_custom_motion() {
+        assert_eq!(source_attr(ColorAreaMotion::default()), "default");
+        assert_eq!(
+            source_attr(ColorAreaMotion { duration_ms: 220.0 }),
+            "custom"
+        );
+    }
+
+    #[test]
     fn attach_motion_outputs_css_variable() {
         assert_eq!(
-            attach_motion(ColorAreaMotion { duration_ms: 220.0 }),
+            attach_motion(None, ColorAreaMotion { duration_ms: 220.0 }),
             "--ui-color-area-motion-duration: 220ms;"
+        );
+        assert_eq!(
+            attach_motion(
+                Some("--ui-color-area-preview-color: #09f;".to_string()),
+                ColorAreaMotion { duration_ms: 220.0 }
+            ),
+            "--ui-color-area-preview-color: #09f; --ui-color-area-motion-duration: 220ms;"
         );
     }
 }

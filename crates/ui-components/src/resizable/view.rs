@@ -1,20 +1,53 @@
-use crate::resizable::logic::{self, ResizableOrientation, ResizableStateInput};
+use crate::resizable::{
+    logic::{self, ResizableOrientation},
+    motion::{self, ResizableMotion},
+};
 use leptos::children::ViewFn;
 use leptos::{ev, html, prelude::*};
-use ui_headless as overlay_open;
+use ui_headless::{self as headless, A11yDirection, ResizableOptions};
+
+fn render_panel(
+    slot: &'static str,
+    class_name: &'static str,
+    content: StoredValue<ViewFn>,
+) -> impl IntoView {
+    view! {
+        <div class=class_name data-slot=slot>
+            {content.get_value().run()}
+        </div>
+    }
+}
+
+fn render_handle_grip() -> impl IntoView {
+    view! {
+        <span class="ui-resizable__handle-grip" data-slot="resizable-handle-grip">
+            <span class="ui-resizable__handle-dot"></span>
+            <span class="ui-resizable__handle-dot"></span>
+            <span class="ui-resizable__handle-dot"></span>
+        </span>
+    }
+}
 
 #[component]
 pub fn Resizable(
     #[prop(optional)] orientation: ResizableOrientation,
+    #[prop(optional)] value: Option<Signal<f64>>,
     #[prop(optional)] split_percent: Option<Signal<f64>>,
+    #[prop(optional)] default_value: Option<f64>,
     #[prop(optional)] default_split_percent: Option<f64>,
+    #[prop(optional)] on_value_change: Option<Callback<f64>>,
     #[prop(optional)] on_split_percent_change: Option<Callback<f64>>,
     #[prop(optional, default = crate::resizable::DEFAULT_MIN_SPLIT_PERCENT)] min_split_percent: f64,
     #[prop(optional, default = crate::resizable::DEFAULT_MAX_SPLIT_PERCENT)] max_split_percent: f64,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_with_handle: Option<bool>,
     #[prop(optional)] with_handle: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
+    #[prop(optional)] motion: ResizableMotion,
     #[prop(into)] first: ViewFn,
     #[prop(into)] second: ViewFn,
 ) -> impl IntoView {
@@ -23,159 +56,154 @@ pub fn Resizable(
     let class_name = StoredValue::new(class_name);
     let aria_label = logic::normalize_aria_label(aria_label);
     let bounds = logic::normalize_bounds(min_split_percent, max_split_percent);
-    let default_split_percent = logic::normalize_split(default_split_percent, bounds);
 
-    let is_controlled = split_percent.is_some();
-    let split_state = overlay_open::use_controllable_state(
+    let value_axis = logic::normalize_value_axis(logic::ResizableValueAxisInput {
+        value,
         split_percent,
-        Some(default_split_percent),
+        default_value,
+        default_split_percent,
+        on_value_change,
         on_split_percent_change,
+        bounds,
+    });
+    let agent_contract = logic::resolve_agent_contract(value_axis.value_change_source);
+    let disabled_state = logic::normalize_disabled(logic::ResizableDisabledInput {
+        is_disabled,
+        disabled,
+    });
+    let handle_state = logic::normalize_handle(logic::ResizableHandleInput {
+        is_with_handle,
+        with_handle,
+    });
+
+    let is_controlled = value_axis.value.is_some();
+    let split_state = headless::use_controllable_state(
+        value_axis.value,
+        Some(value_axis.default_value),
+        value_axis.on_value_change,
     );
-    let split_percent = split_state.value;
-    let request_split_percent_change = split_state.request_change;
 
     let first = StoredValue::new(first);
     let second = StoredValue::new(second);
-
-    let (dragging, set_dragging) = signal(false);
-    let (drag_start_position, set_drag_start_position) = signal(0.0_f64);
-    let (drag_start_split_percent, set_drag_start_split_percent) =
-        signal(split_percent.get_untracked());
-
     let root_ref: NodeRef<html::Div> = NodeRef::new();
-
-    let state = Signal::derive(move || {
-        logic::resolve_state(ResizableStateInput {
-            orientation,
-            split_percent: split_percent.get(),
-            bounds,
-            disabled,
-            dragging: dragging.get(),
-            is_controlled,
-            with_handle,
-            has_custom_class_name,
-        })
+    let resizable_aria = headless::use_resizable(ResizableOptions {
+        orientation,
+        split_percent: split_state.value,
+        bounds,
+        is_disabled: disabled_state.is_disabled,
+        is_controlled,
+        with_handle: handle_state.with_handle,
+        has_custom_class_name,
+        aria_label,
+        lang,
+        dir,
+        on_split_percent_change: split_state.request_change,
     });
 
-    let class =
-        Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
+    let class = Signal::derive(move || {
+        logic::compose_class_name(class_name.get_value(), resizable_aria.state.resolved.get())
+    });
 
-    let pointer_position = move |event: &ev::PointerEvent| match orientation {
-        ResizableOrientation::Horizontal => event.client_x() as f64,
-        ResizableOrientation::Vertical => event.client_y() as f64,
-    };
-
-    let on_handle_pointer_down = move |event: ev::PointerEvent| {
-        if disabled {
-            return;
-        }
-
-        set_dragging.set(true);
-        set_drag_start_position.set(pointer_position(&event));
-        set_drag_start_split_percent.set(state.get_untracked().split_percent);
-        event.prevent_default();
-    };
-
-    let on_pointer_move = move |event: ev::PointerEvent| {
-        if disabled || !dragging.get_untracked() {
-            return;
-        }
-
-        let Some(root) = root_ref.get() else {
-            return;
-        };
-
-        let extent = match orientation {
-            ResizableOrientation::Horizontal => root.client_width() as f64,
-            ResizableOrientation::Vertical => root.client_height() as f64,
-        };
-
-        let next = logic::split_from_drag(
-            drag_start_split_percent.get_untracked(),
-            drag_start_position.get_untracked(),
-            pointer_position(&event),
-            extent,
-            bounds,
-        );
-
-        request_split_percent_change.run(next);
-    };
-
-    let on_pointer_up = move |_| {
-        if dragging.get_untracked() {
-            set_dragging.set(false);
-        }
-    };
-
-    let on_handle_key_down = move |event: ev::KeyboardEvent| {
-        if disabled {
-            return;
-        }
-
-        let key = event.key();
-        let Some(delta) = logic::split_step_for_key(&key, orientation, event.shift_key()) else {
-            return;
-        };
-
-        event.prevent_default();
-
-        let next = logic::clamp_split(state.get_untracked().split_percent + delta, bounds);
-        request_split_percent_change.run(next);
-    };
-
-    let handle_tab_index = if disabled { -1 } else { 0 };
+    let motion = motion::sanitize_motion(motion);
+    let inline_style = StoredValue::new(Some(motion::motion_style_vars(motion)));
+    motion::attach_motion(root_ref, resizable_aria.state.is_dragging.into(), motion);
 
     view! {
         <div
             node_ref=root_ref
             class=move || class.get()
+            style=inline_style.get_value().unwrap_or_default()
             data-slot="resizable"
-            data-orientation=move || state.get().orientation_attr
-            data-state=move || state.get().state_attr
-            data-disabled=move || state.get().disabled.then_some("true")
-            data-enabled=move || state.get().enabled.then_some("true")
-            data-dragging=move || state.get().dragging.then_some("true")
-            data-idle=move || state.get().idle.then_some("true")
-            data-controlled=move || state.get().is_controlled.then_some("true")
-            data-uncontrolled=move || state.get().is_uncontrolled.then_some("true")
-            data-handle=move || state.get().handle_attr
-            data-class-source=move || state.get().class_source_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            on:pointermove=on_pointer_move
-            on:pointerup=on_pointer_up
-            on:pointerleave=on_pointer_up
+            data-orientation=move || resizable_aria.state.resolved.get().orientation_attr
+            data-state=move || resizable_aria.state.resolved.get().state_attr
+            data-disabled=move || resizable_aria.state.resolved.get().disabled.then_some("true")
+            data-enabled=move || resizable_aria.state.resolved.get().enabled.then_some("true")
+            data-dragging=move || resizable_aria.state.resolved.get().dragging.then_some("true")
+            data-idle=move || resizable_aria.state.resolved.get().idle.then_some("true")
+            data-controlled=move || resizable_aria.state.resolved.get().is_controlled.then_some("true")
+            data-uncontrolled=move || resizable_aria.state.resolved.get().is_uncontrolled.then_some("true")
+            data-handle=move || resizable_aria.state.resolved.get().handle_attr
+            data-class-source=move || resizable_aria.state.resolved.get().class_source_attr
+            data-custom-class=move || resizable_aria.state.resolved.get().has_custom_class_name.then_some("true")
+            data-control-mode=value_axis.control_mode_attr
+            data-value-source=value_axis.value_source_attr
+            data-default-value-source=value_axis.default_value_source_attr
+            data-value-change-source=value_axis.value_change_source_attr
+            data-disabled-source=disabled_state.disabled_source_attr
+            data-handle-source=handle_state.with_handle_source_attr
+            data-ui-schema=agent_contract.schema_attr
+            data-ui-intent=agent_contract.intent_attr
+            data-ui-action-model=agent_contract.action_model_attr
+            data-ui-state-axis=agent_contract.state_axis_attr
+            data-ui-source-axis=agent_contract.source_axis_attr
+            data-ui-stream-support=agent_contract.stream_support_attr
+            data-ui-stream-fallback=agent_contract.stream_fallback_attr
+            data-ui-stream-mode=agent_contract.stream_mode_attr
+            data-ui-output-status=agent_contract.output_status_attr
+            lang=move || resizable_aria.attrs.lang.clone()
+            dir=move || resizable_aria.attrs.dir
+            on:pointermove=move |event: ev::PointerEvent| {
+                let Some(root) = root_ref.get() else {
+                    return;
+                };
+                resizable_aria.handlers.on_pointer_move.run((
+                    f64::from(event.client_x()),
+                    f64::from(event.client_y()),
+                    f64::from(root.client_width()),
+                    f64::from(root.client_height()),
+                ));
+            }
+            on:pointerup=move |_| resizable_aria.handlers.on_pointer_up.run(())
+            on:pointerleave=move |_| resizable_aria.handlers.on_pointer_up.run(())
         >
-            <div class="ui-resizable__panel ui-resizable__panel--first" data-slot="resizable-panel-first">
-                {first.get_value().run()}
-            </div>
+            {render_panel(
+                "resizable-panel-first",
+                "ui-resizable__panel ui-resizable__panel--first",
+                first
+            )}
 
             <div
                 class="ui-resizable__handle"
                 data-slot="resizable-handle"
-                data-disabled=move || state.get().disabled.then_some("true")
-                data-dragging=move || state.get().dragging.then_some("true")
-                data-with-handle=move || state.get().with_handle.then_some("true")
-                role="separator"
-                tabindex=handle_tab_index
-                aria-label=aria_label
-                aria-orientation=move || state.get().orientation_attr
-                aria-valuemin=move || format!("{:.2}", state.get().min_split_percent)
-                aria-valuemax=move || format!("{:.2}", state.get().max_split_percent)
-                aria-valuenow=move || format!("{:.2}", state.get().split_percent)
-                aria-disabled=move || state.get().disabled.then_some("true")
-                on:pointerdown=on_handle_pointer_down
-                on:keydown=on_handle_key_down
+                data-disabled=move || resizable_aria.state.resolved.get().disabled.then_some("true")
+                data-dragging=move || resizable_aria.state.resolved.get().dragging.then_some("true")
+                data-with-handle=move || resizable_aria.state.resolved.get().with_handle.then_some("true")
+                role=resizable_aria.handle_attrs.role
+                tabindex=resizable_aria.handle_attrs.tabindex
+                aria-label=move || resizable_aria.handle_attrs.aria_label.clone()
+                aria-orientation=move || resizable_aria.handle_attrs.aria_orientation.get()
+                aria-valuemin=move || resizable_aria.handle_attrs.aria_valuemin.get()
+                aria-valuemax=move || resizable_aria.handle_attrs.aria_valuemax.get()
+                aria-valuenow=move || resizable_aria.handle_attrs.aria_valuenow.get()
+                aria-disabled=move || resizable_aria.handle_attrs.aria_disabled.get()
+                lang=move || resizable_aria.handle_attrs.lang.clone()
+                dir=move || resizable_aria.handle_attrs.dir
+                on:pointerdown=move |event: ev::PointerEvent| {
+                    if resizable_aria.handlers.on_handle_pointer_down.run((
+                        f64::from(event.client_x()),
+                        f64::from(event.client_y()),
+                    )) {
+                        event.prevent_default();
+                    }
+                }
+                on:keydown=move |event: ev::KeyboardEvent| {
+                    if resizable_aria
+                        .handlers
+                        .on_handle_key_down
+                        .run((event.key(), event.shift_key()))
+                    {
+                        event.prevent_default();
+                    }
+                }
             >
-                <span class="ui-resizable__handle-grip" data-slot="resizable-handle-grip">
-                    <span class="ui-resizable__handle-dot"></span>
-                    <span class="ui-resizable__handle-dot"></span>
-                    <span class="ui-resizable__handle-dot"></span>
-                </span>
+                {render_handle_grip()}
             </div>
 
-            <div class="ui-resizable__panel ui-resizable__panel--second" data-slot="resizable-panel-second">
-                {second.get_value().run()}
-            </div>
+            {render_panel(
+                "resizable-panel-second",
+                "ui-resizable__panel ui-resizable__panel--second",
+                second
+            )}
         </div>
     }
 }

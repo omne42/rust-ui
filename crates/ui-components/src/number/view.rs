@@ -1,5 +1,6 @@
 use crate::number::{NumberFormatOptions, SlidingNumberMotion, format_static_number, logic};
 use leptos::prelude::*;
+use ui_headless::a11y::{A11yDirection, locale_attrs};
 
 #[cfg(target_arch = "wasm32")]
 use crate::number::motion;
@@ -44,8 +45,11 @@ pub fn StaticNumber(
     #[prop(optional)] decimal_places: Option<u32>,
     #[prop(optional, into)] thousand_separator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
+    let locale = locale_attrs(lang, dir);
     let (decimal_separator, has_custom_decimal_separator) =
         logic::resolve_decimal_separator(decimal_separator);
     let decimal_places = logic::sanitize_decimal_places(decimal_places);
@@ -78,6 +82,8 @@ pub fn StaticNumber(
     view! {
         <span
             class=class
+            lang=locale.lang.clone()
+            dir=locale.dir
             data-slot="static-number"
             data-state=state.sign_attr
             data-sign=state.sign_attr
@@ -104,10 +110,13 @@ pub fn SlidingNumber(
     #[prop(optional)] decimal_places: Option<u32>,
     #[prop(optional, into)] thousand_separator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let motion = crate::number::motion::sanitize_motion(motion);
     let class_name = logic::normalize_optional_text(class_name);
     let class_name = StoredValue::new(class_name);
+    let locale = locale_attrs(lang, dir);
 
     let (decimal_separator, has_custom_decimal_separator) =
         logic::resolve_decimal_separator(decimal_separator);
@@ -153,6 +162,8 @@ pub fn SlidingNumber(
         view! {
             <span
                 class=move || class.get()
+                lang=locale.lang.clone()
+                dir=locale.dir
                 data-slot="sliding-number"
                 data-state=move || state.get().phase_attr
                 data-phase-class=move || state.get().phase_class
@@ -188,6 +199,8 @@ pub fn SlidingNumber(
             return view! {
                 <span
                     class=move || class.get()
+                    lang=locale.lang.clone()
+                    dir=locale.dir
                     data-slot="sliding-number"
                     data-state=move || state.get().phase_attr
                     data-phase-class=move || state.get().phase_class
@@ -286,6 +299,8 @@ pub fn SlidingNumber(
         view! {
             <span
                 class=move || class.get()
+                lang=locale.lang.clone()
+                dir=locale.dir
                 data-slot="sliding-number"
                 data-state=move || state.get().phase_attr
                 data-phase-class=move || state.get().phase_class

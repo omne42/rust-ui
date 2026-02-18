@@ -1,11 +1,15 @@
 pub const CSS: &str = r#"
 .ui-header {
+  --ui-header-motion-duration: 180ms;
   display: block;
   min-width: 0;
   color: var(--ui-fg);
   font-weight: 600;
   font-size: 1rem;
   line-height: 1.35;
+  transition:
+    color var(--ui-header-motion-duration) ease,
+    border-color var(--ui-header-motion-duration) ease;
 }
 
 .ui-header--tone-default,

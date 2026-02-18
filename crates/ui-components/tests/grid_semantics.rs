@@ -158,3 +158,13 @@ fn grid_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn grid_check2_has_no_unchecked_items_after_verification() {
+    let source = load_source("src/grid/check2.md");
+
+    assert!(
+        !source.contains("- [ ]"),
+        "grid/check2.md should not keep unchecked checklist items after completion."
+    );
+}

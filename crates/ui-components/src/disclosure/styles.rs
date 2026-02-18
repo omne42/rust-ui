@@ -25,8 +25,8 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
   box-shadow: var(--ui-shadow-sm);
 
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--ui-font-size-200, 14px);
+  font-weight: var(--ui-font-weight-semibold, 600);
   line-height: 1.2;
   user-select: none;
   -webkit-tap-highlight-color: transparent;

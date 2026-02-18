@@ -18,6 +18,16 @@ fn alert_dialog_does_not_expose_logic_module() {
 }
 
 #[test]
+fn alert_dialog_feature_gate_declares_required_component_dependencies() {
+    let source = load_source("Cargo.toml");
+
+    assert!(
+        source.contains("component-alert_dialog = [\"component-overlay\", \"component-button\"]"),
+        "component-alert_dialog feature must depend on component-overlay + component-button so minimal feature builds stay valid.",
+    );
+}
+
+#[test]
 fn alert_dialog_module_exposes_slot_and_state_contracts() {
     let source = load_source("src/alert_dialog/mod.rs");
 
@@ -256,6 +266,33 @@ fn alert_dialog_docs_page_contains_state_source_playground() {
         assert!(
             source.contains(needle),
             "alert dialog docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_e2e_contract_uses_semantic_selectors() {
+    let source = load_source("../../e2e/tests/docs_app_alert_dialog_contract.spec.mjs");
+
+    for needle in [
+        "docs-app alert-dialog exposes stable role/source markers",
+        "/#/components/alert-dialog",
+        "Open marker alert",
+        "data-slot=\"overlay-panel\"",
+        "role=\"alertdialog\"",
+        "data-id-source",
+        "data-title-source",
+        "data-description-source",
+        "data-cancel-source",
+        "data-secondary-source",
+        "data-motion-source",
+        "data-auto-focus",
+        "Open destructive",
+        "Escape",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert dialog e2e contract should include `{needle}` for stable semantic regression coverage."
         );
     }
 }

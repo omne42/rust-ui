@@ -28,7 +28,7 @@ pub(super) fn action_bar() -> AnyView {
     let code = Signal::derive(move || {
         let selected_count = selected_count.get();
 
-        vec![
+        [
             "<ActionBar".to_string(),
             format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
             "  on_selected_count_change=Callback::new(move |next: usize| { let _ = next; })"
@@ -45,7 +45,7 @@ pub(super) fn action_bar() -> AnyView {
     });
 
     let state_code = Signal::derive(move || {
-        vec![
+        [
             "<ActionBar".to_string(),
             "  default_selected_count=5".to_string(),
             "  position=ActionBarPosition::Top".to_string(),

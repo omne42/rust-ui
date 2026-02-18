@@ -1,9 +1,9 @@
 use leptos::prelude::*;
 use ui_headless::{
     ButtonElement, ButtonOptions, CheckboxOptions, FocusRingOptions, HoverOptions, MenuItemKind,
-    MenuItemOptions, MenuOptions, PressActivationKeys, PressOptions, SwitchOptions, use_button,
-    use_checkbox, use_focus_ring, use_hover, use_menu, use_menu_item,
-    use_overlay_stack_registration, use_press, use_switch,
+    MenuItemOptions, MenuOptions, PressActivationKeys, PressOptions, SwatchOptions, SwitchOptions,
+    use_button, use_checkbox, use_focus_ring, use_hover, use_menu, use_menu_item,
+    use_overlay_stack_registration, use_press, use_swatch, use_switch,
 };
 
 fn init_executor() {
@@ -222,6 +222,8 @@ fn switch_attrs_reflect_checked_state_and_disabled() {
         is_disabled: false,
         is_checked: checked,
         on_press: Some(on_press),
+        lang: None,
+        dir: None,
     });
 
     assert_eq!(aria.attrs.role, "switch");
@@ -237,9 +239,50 @@ fn switch_attrs_reflect_checked_state_and_disabled() {
         is_disabled: true,
         is_checked: checked,
         on_press: Some(on_press),
+        lang: None,
+        dir: None,
     });
     assert_eq!(aria_disabled.attrs.tabindex, -1);
     assert_eq!(aria_disabled.attrs.aria_disabled, Some("true"));
+}
+
+#[test]
+fn swatch_attrs_reflect_mixed_and_decorative_state() {
+    init_executor();
+    let (selected, _set_selected) = signal(false);
+
+    let swatch = use_swatch(SwatchOptions {
+        is_disabled: false,
+        is_decorative: false,
+        is_mixed_value: true,
+        is_selected: selected.into(),
+        aria_label: Some("Mixed".to_string()),
+        on_press: None,
+        lang: Some(" en-US ".to_string()),
+        dir: Some(ui_headless::A11yDirection::Ltr),
+    });
+
+    assert_eq!(swatch.attrs.role, Some("button"));
+    assert_eq!(swatch.attrs.tabindex, None);
+    assert_eq!(swatch.attrs.aria_checked, Some("mixed"));
+    assert_eq!(swatch.attrs.aria_pressed.get_untracked(), None);
+    assert_eq!(swatch.attrs.lang.as_deref(), Some("en-US"));
+    assert_eq!(swatch.attrs.dir, Some("ltr"));
+
+    let decorative = use_swatch(SwatchOptions {
+        is_disabled: false,
+        is_decorative: true,
+        is_mixed_value: false,
+        is_selected: selected.into(),
+        aria_label: Some("Decorative".to_string()),
+        on_press: None,
+        lang: None,
+        dir: None,
+    });
+
+    assert_eq!(decorative.attrs.role, None);
+    assert_eq!(decorative.attrs.aria_hidden, Some("true"));
+    assert_eq!(decorative.attrs.aria_label, None);
 }
 
 #[test]

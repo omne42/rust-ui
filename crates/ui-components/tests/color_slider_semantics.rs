@@ -17,16 +17,25 @@ fn color_slider_does_not_expose_logic_or_view_modules() {
             "ColorSlider internals should stay private; found `{needle}`."
         );
     }
+
+    assert!(
+        source.contains("pub mod motion;"),
+        "ColorSlider should expose a component-local `motion.rs` boundary."
+    );
 }
 
 #[test]
 fn color_slider_uses_logic_state_model() {
     let logic_source = load_source("src/color_slider/logic.rs");
+    let motion_source = load_source("src/color_slider/motion.rs");
     let view_source = load_source("src/color_slider/view.rs");
 
     for needle in [
         "pub enum ColorSliderChannel",
         "pub const DEFAULT_ARIA_LABEL",
+        "pub fn normalize_accessibility_state(",
+        "pub fn resolve_agent_contract(",
+        "pub fn resolve_ui_action(",
         "pub fn normalize_label(",
         "pub fn normalize_aria_label(",
         "pub fn sanitize_bounds(",
@@ -45,14 +54,48 @@ fn color_slider_uses_logic_state_model() {
     }
 
     for needle in [
-        "overlay_open::use_controllable_state(",
-        "slider_motion::attach_motion(root_ref, visual_percent, motion)",
+        "use_slider(SliderOptions {",
+        "motion::attach_motion(root_ref, visual_percent, motion)",
         "logic::resolve_state(ColorSliderStateInput {",
+        "logic::normalize_accessibility_state(is_disabled, disabled)",
         "logic::compose_class_name(class_name.get_value(), state.get())",
     ] {
         assert!(
             view_source.contains(needle),
             "ColorSlider view should derive state via logic helpers; missing `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct ColorSliderMotion",
+        "pub fn sanitize_motion(",
+        "pub fn attach_motion(",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ColorSlider motion contract should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn color_slider_feature_dependencies_are_self_contained() {
+    let mod_source = load_source("src/color_slider/mod.rs");
+    let logic_source = load_source("src/color_slider/logic.rs");
+    let view_source = load_source("src/color_slider/view.rs");
+
+    for forbidden in ["crate::slider::", "crate::slider ", "crate::color_swatch::"] {
+        assert!(
+            !mod_source.contains(forbidden),
+            "ColorSlider mod boundary should not depend on `{forbidden}`."
+        );
+        assert!(
+            !logic_source.contains(forbidden),
+            "ColorSlider logic should not depend on `{forbidden}`."
+        );
+        assert!(
+            !view_source.contains(forbidden),
+            "ColorSlider view should not depend on `{forbidden}`."
         );
     }
 }
@@ -67,8 +110,23 @@ fn color_slider_exposes_baseline_style_data_markers() {
         "data-channel=move || state.get().channel_attr",
         "data-value=move || state.get().value.to_string()",
         "data-value-percent=move || state.get().value_percent.to_string()",
+        "data-control-mode=control_mode_attr",
+        "data-value-source=value_source_attr",
+        "data-default-value-source=default_value_source_attr",
+        "data-value-change-source=value_change_source_attr",
+        "data-disabled-source=disabled_source_attr",
         "data-motion-source=move || state.get().motion_source_attr",
         "data-track-source=move || state.get().track_source_attr",
+        "data-ui-schema=agent_contract.schema_attr",
+        "data-ui-schema-version=agent_contract.schema_version_attr",
+        "data-ui-stream-support=agent_contract.stream_support_attr",
+        "data-ui-stream-fallback=agent_contract.stream_fallback_attr",
+        "data-ui-stream-mode=agent_contract.stream_mode_attr",
+        "data-ui-output-status=agent_contract.output_status_attr",
+        "data-ui-intent=agent_contract.intent_attr",
+        "data-ui-action=move || ui_action.get().as_attr()",
+        "data-ui-source=value_change_source_attr",
+        "data-ui-state=move || state.get().data_state_attr",
         "data-slot=\"color-slider-label\"",
         "data-slot=\"color-slider-value\"",
         "data-slot=\"color-slider-input\"",
@@ -149,6 +207,26 @@ fn color_slider_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "color-slider docs playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_slider_readme_is_copy_paste_ready() {
+    let source = load_source("src/color_slider/README.md");
+
+    for needle in [
+        "# ColorSlider",
+        "## Hello World",
+        "<ColorSlider",
+        "default_value=220.0",
+        "## API 约定",
+        "is_disabled",
+        "lang` / `dir",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorSlider README should contain `{needle}`.",
         );
     }
 }

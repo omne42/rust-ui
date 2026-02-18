@@ -13,7 +13,7 @@ pub const CSS: &str = r#"
   border: 1px solid transparent;
   box-sizing: border-box;
 
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
   line-height: 1;
   font-weight: 500;
 }
@@ -66,7 +66,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-badge--custom-class,
-.ui-badge[data-custom-class="true"] {
+.ui-badge[data-custom-class="true"],
+.ui-badge[data-class-source="custom"] {
   --ui-badge-custom-class: 1;
 }
 "#;

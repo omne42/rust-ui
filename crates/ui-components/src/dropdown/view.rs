@@ -1,23 +1,30 @@
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use crate::dropdown::{DropdownMotion, logic};
-use crate::{Button, Menu, MenuItemKind, OnPress, Popover};
+use crate::menu::Menu;
+use crate::popover::Popover;
+use crate::{MenuItemKind, OnPress};
 use leptos::{ev, html, prelude::*};
 use ui_headless as overlay_open;
-use ui_headless::PopoverPlacement;
 use ui_headless::use_presence;
+use ui_headless::{A11yDirection, PopoverPlacement};
 
 #[component]
 pub fn Dropdown(
     id_base: String,
     items: Vec<String>,
     on_action: Callback<usize>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
     #[prop(default = true)] close_on_action: bool,
     #[prop(optional)] placement: PopoverPlacement,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
     #[prop(optional)] open: Option<Signal<bool>>,
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: DropdownMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -37,29 +44,40 @@ pub fn Dropdown(
 
     let class_name = logic::normalize_optional_text(class_name);
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
-
-    let is_controlled = open.is_some();
-    let open_state = overlay_open::use_controllable_open_state_traced(
-        "dropdown",
+    let is_disabled = logic::normalize_disabled_state(logic::DisabledStateInput {
+        is_disabled,
+        disabled,
+    });
+    let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {
+        is_open,
         open,
         default_open,
         on_open_change,
+    });
+
+    let open_state = overlay_open::use_controllable_open_state_traced(
+        "dropdown",
+        normalized_open_state.open,
+        normalized_open_state.default_open,
+        normalized_open_state.on_open_change,
     );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
 
-    let state = logic::resolve_state(crate::dropdown::DropdownStateInput {
+    let state = logic::resolve_state(logic::DropdownStateInput {
         item_count,
-        disabled: logic::resolve_trigger_disabled(disabled, item_count),
+        disabled: logic::resolve_trigger_disabled(is_disabled, item_count),
         close_on_action,
         has_custom_aria_label,
         has_custom_class_name: class_name.is_some(),
-        is_controlled,
+        is_controlled: normalized_open_state.is_controlled,
         has_disabled_items: !disabled_indices.get_value().is_empty(),
         has_item_kinds: !item_kinds.get_value().is_empty(),
     });
 
     let class = logic::compose_class_name(class_name, state);
+    let lang_attr = lang.clone();
+    let dir_attr = dir.map(A11yDirection::as_attr);
 
     let (open_focus, set_open_focus) = signal(logic::DropdownOpenFocusStrategy::First);
 
@@ -144,14 +162,16 @@ pub fn Dropdown(
             data-aria-source=state.aria_source_attr
             data-class-source=state.class_source_attr
             data-item-count=state.item_count.to_string()
+            lang=lang_attr.clone()
+            dir=dir_attr
             on:keydown=on_key_down
         >
             <Button
                 node_ref=anchor_ref
                 on_press=on_trigger_press
                 id=trigger_id.get_value()
-                variant=crate::ButtonVariant::Secondary
-                size=crate::ButtonSize::Sm
+                variant=ButtonVariant::Secondary
+                size=ButtonSize::Sm
                 is_disabled=state.is_disabled
                 aria_haspopup="menu"
                 aria_expanded=open

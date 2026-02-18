@@ -2,6 +2,35 @@ use crate::bottom_sheet::{BottomSheetState, BottomSheetStateInput};
 
 pub const DEFAULT_CLOSE_LABEL: &str = "Close bottom sheet";
 
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct BottomSheetAgentContract {
+    pub schema_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub action_attr: &'static str,
+    pub state_axis_attr: &'static str,
+    pub source_axis_attr: &'static str,
+    pub render_mode_attr: &'static str,
+    pub streaming_attr: &'static str,
+    pub fallback_attr: &'static str,
+    pub output_status_attr: &'static str,
+}
+
+#[cfg(test)]
+pub fn agent_contract() -> BottomSheetAgentContract {
+    BottomSheetAgentContract {
+        schema_attr: "bottom-sheet.v1",
+        intent_attr: "overlay",
+        action_attr: "dismiss",
+        state_axis_attr: "visibility|description|footer|detached|inset",
+        source_axis_attr: "default|custom",
+        render_mode_attr: "snapshot",
+        streaming_attr: "optional",
+        fallback_attr: "snapshot",
+        output_status_attr: "verified",
+    }
+}
+
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
@@ -254,5 +283,23 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn agent_contract_is_stable_and_machine_readable() {
+        let contract = agent_contract();
+
+        assert_eq!(contract.schema_attr, "bottom-sheet.v1");
+        assert_eq!(contract.intent_attr, "overlay");
+        assert_eq!(contract.action_attr, "dismiss");
+        assert_eq!(
+            contract.state_axis_attr,
+            "visibility|description|footer|detached|inset"
+        );
+        assert_eq!(contract.source_axis_attr, "default|custom");
+        assert_eq!(contract.render_mode_attr, "snapshot");
+        assert_eq!(contract.streaming_attr, "optional");
+        assert_eq!(contract.fallback_attr, "snapshot");
+        assert_eq!(contract.output_status_attr, "verified");
     }
 }

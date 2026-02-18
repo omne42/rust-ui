@@ -1,4 +1,4 @@
-use leptos::prelude::*;
+use leptos::{ev, html, prelude::*};
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
@@ -23,13 +23,16 @@ pub enum TooltipTriggerMode {
     Focus,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone)]
 pub struct TooltipTriggerOptions {
     pub is_disabled: bool,
     pub delay_ms: u64,
     pub close_delay_ms: u64,
     pub trigger: TooltipTriggerMode,
     pub should_close_on_press: bool,
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
 }
 
 impl Default for TooltipTriggerOptions {
@@ -40,6 +43,9 @@ impl Default for TooltipTriggerOptions {
             close_delay_ms: DEFAULT_CLOSE_DELAY_MS,
             trigger: TooltipTriggerMode::Hover,
             should_close_on_press: true,
+            open: None,
+            default_open: None,
+            on_open_change: None,
         }
     }
 }
@@ -59,14 +65,14 @@ pub struct TooltipTriggerState {
     id: String,
     delay_ms: u64,
     close_delay_ms: u64,
-    is_open: ReadSignal<bool>,
-    set_open: WriteSignal<bool>,
+    open: Signal<bool>,
+    request_open_change: Callback<bool>,
     timers: TooltipTimers,
 }
 
 impl TooltipTriggerState {
-    pub fn is_open(&self) -> ReadSignal<bool> {
-        self.is_open
+    pub fn is_open(&self) -> Signal<bool> {
+        self.open
     }
 
     pub fn id(&self) -> &str {
@@ -88,7 +94,7 @@ impl TooltipTriggerState {
             let mut global = global.borrow_mut();
             global.ensure_entry(self.id.clone(), self.hide_fn());
 
-            if self.is_open.get_untracked() {
+            if self.open.get_untracked() {
                 return false;
             }
 
@@ -135,7 +141,8 @@ impl TooltipTriggerState {
             });
         });
 
-        self.timers.close(immediate, close_delay_ms, self.set_open);
+        self.timers
+            .close(immediate, close_delay_ms, self.request_open_change);
     }
 
     fn show_tooltip(&self) {
@@ -158,7 +165,7 @@ impl TooltipTriggerState {
         });
 
         self.timers.clear_close();
-        self.set_open.set(true);
+        self.request_open_change.run(true);
     }
 
     fn hide_fn(&self) -> Rc<dyn Fn(bool)> {
@@ -173,19 +180,157 @@ pub struct TooltipTriggerAria {
     pub handlers: TooltipTriggerHandlers,
 }
 
+#[derive(Clone)]
+pub struct TooltipFocusHandlers {
+    pub on_focus_in: Callback<ev::FocusEvent>,
+    pub on_focus_out: Callback<ev::FocusEvent>,
+}
+
+#[derive(Clone)]
+pub struct TooltipFocusA11yOptions {
+    pub anchor_ref: NodeRef<html::Span>,
+    pub tooltip_id: StoredValue<String>,
+    pub is_open: Signal<bool>,
+    pub on_focus: Callback<()>,
+    pub on_blur: Callback<()>,
+}
+
+pub fn use_tooltip_focus_a11y(options: TooltipFocusA11yOptions) -> TooltipFocusHandlers {
+    let TooltipFocusA11yOptions {
+        anchor_ref,
+        tooltip_id,
+        is_open,
+        on_focus,
+        on_blur,
+    } = options;
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = (&anchor_ref, &tooltip_id, is_open);
+
+    #[cfg(target_arch = "wasm32")]
+    let focus_target = StoredValue::new_local(None::<leptos::web_sys::Element>);
+
+    #[cfg(target_arch = "wasm32")]
+    on_cleanup(move || {
+        if let Some(target) = focus_target.get_value() {
+            let _ = target.remove_attribute("aria-describedby");
+        }
+    });
+
+    #[cfg(target_arch = "wasm32")]
+    Effect::new(move |_| {
+        let open_now = is_open.get();
+        let Some(target) = focus_target.get_value() else {
+            return;
+        };
+
+        let id = tooltip_id.with_value(|id| id.clone());
+        if open_now {
+            let _ = target.set_attribute("aria-describedby", &id);
+        } else {
+            let _ = target.remove_attribute("aria-describedby");
+        }
+    });
+
+    let on_focus_in = Callback::new(move |ev: ev::FocusEvent| {
+        on_focus.run(());
+
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = &ev;
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use leptos::wasm_bindgen::JsCast;
+
+            if let Some(target) = focus_target.get_value() {
+                let _ = target.remove_attribute("aria-describedby");
+            }
+
+            let Some(target) = ev.target() else {
+                focus_target.set_value(None);
+                return;
+            };
+
+            let Ok(target) = target.dyn_into::<leptos::web_sys::Element>() else {
+                focus_target.set_value(None);
+                return;
+            };
+
+            if is_open.get_untracked() {
+                let id = tooltip_id.with_value(|id| id.clone());
+                let _ = target.set_attribute("aria-describedby", &id);
+            }
+
+            focus_target.set_value(Some(target));
+        }
+    });
+
+    let on_focus_out = Callback::new(move |ev: ev::FocusEvent| {
+        #[cfg(not(target_arch = "wasm32"))]
+        let _ = &ev;
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use leptos::wasm_bindgen::JsCast;
+
+            if let Some(target) = focus_target.get_value() {
+                let _ = target.remove_attribute("aria-describedby");
+            }
+            focus_target.set_value(None);
+
+            let leaving = match anchor_ref.get_untracked() {
+                Some(anchor) => {
+                    let anchor_el: leptos::web_sys::Element = anchor.unchecked_into();
+                    match ev.related_target() {
+                        Some(related) => match related.dyn_into::<leptos::web_sys::Node>() {
+                            Ok(node) => !anchor_el.contains(Some(&node)),
+                            Err(_) => true,
+                        },
+                        None => true,
+                    }
+                }
+                None => true,
+            };
+
+            if !leaving {
+                return;
+            }
+        }
+
+        on_blur.run(());
+    });
+
+    TooltipFocusHandlers {
+        on_focus_in,
+        on_focus_out,
+    }
+}
+
 pub fn use_tooltip_trigger(
     id: Option<String>,
     options: TooltipTriggerOptions,
 ) -> TooltipTriggerAria {
+    let TooltipTriggerOptions {
+        is_disabled,
+        delay_ms,
+        close_delay_ms,
+        trigger,
+        should_close_on_press,
+        open,
+        default_open,
+        on_open_change,
+    } = options;
+
     let id = id.unwrap_or_else(next_tooltip_id);
-    let (is_open, set_open) = signal(false);
+    let open_state =
+        crate::use_controllable_open_state_traced("tooltip", open, default_open, on_open_change);
     let timers = TooltipTimers::new();
     let state = TooltipTriggerState {
         id,
-        delay_ms: options.delay_ms,
-        close_delay_ms: options.close_delay_ms,
-        is_open,
-        set_open,
+        delay_ms,
+        close_delay_ms,
+        open: open_state.open,
+        request_open_change: open_state.request_open_change,
         timers,
     };
 
@@ -196,8 +341,6 @@ pub fn use_tooltip_trigger(
         .unwrap_or_else(|| signal(false).0);
 
     let on_pointer_enter = {
-        let is_disabled = options.is_disabled;
-        let trigger = options.trigger;
         let state = state.clone();
         Callback::new(move |_| {
             if is_disabled || matches!(trigger, TooltipTriggerMode::Focus) {
@@ -208,8 +351,6 @@ pub fn use_tooltip_trigger(
     };
 
     let on_pointer_leave = {
-        let is_disabled = options.is_disabled;
-        let trigger = options.trigger;
         let state = state.clone();
         Callback::new(move |_| {
             if is_disabled || matches!(trigger, TooltipTriggerMode::Focus) {
@@ -221,7 +362,6 @@ pub fn use_tooltip_trigger(
     };
 
     let on_focus = {
-        let is_disabled = options.is_disabled;
         let state = state.clone();
         Callback::new(move |_| {
             if is_disabled {
@@ -244,7 +384,6 @@ pub fn use_tooltip_trigger(
     };
 
     let on_press_start = {
-        let should_close_on_press = options.should_close_on_press;
         let state = state.clone();
         Callback::new(move |_| {
             if !should_close_on_press {
@@ -308,7 +447,7 @@ fn attach_escape_listener(state: TooltipTriggerState) {
     use wasm_bindgen::closure::Closure;
 
     Effect::new(move |_| {
-        if !state.is_open.get() {
+        if !state.open.get() {
             return;
         }
 
@@ -592,12 +731,12 @@ impl TooltipTimers {
         }
     }
 
-    fn close(&self, immediate: bool, close_delay_ms: u64, set_open: WriteSignal<bool>) {
+    fn close(&self, immediate: bool, close_delay_ms: u64, request_open_change: Callback<bool>) {
         #[cfg(all(feature = "web", target_arch = "wasm32"))]
         {
             if immediate || close_delay_ms == 0 {
                 self.clear_close();
-                set_open.set(false);
+                request_open_change.run(false);
                 return;
             }
 
@@ -606,10 +745,10 @@ impl TooltipTimers {
             }
 
             let Ok(handle) = set_timeout_with_handle(
-                move || set_open.set(false),
+                move || request_open_change.run(false),
                 Duration::from_millis(close_delay_ms),
             ) else {
-                set_open.set(false);
+                request_open_change.run(false);
                 return;
             };
             self.close_handle.set_value(Some(handle));
@@ -619,7 +758,7 @@ impl TooltipTimers {
         {
             if immediate || close_delay_ms == 0 {
                 self.clear_close();
-                set_open.set(false);
+                request_open_change.run(false);
                 return;
             }
 
@@ -627,7 +766,8 @@ impl TooltipTimers {
                 return;
             }
 
-            let handle = test_timers::set_timeout(close_delay_ms, move || set_open.set(false));
+            let handle =
+                test_timers::set_timeout(close_delay_ms, move || request_open_change.run(false));
             self.close_handle.set_value(Some(handle));
         }
 
@@ -637,7 +777,7 @@ impl TooltipTimers {
         )))]
         {
             let _ = (close_delay_ms, immediate);
-            set_open.set(false);
+            request_open_change.run(false);
         }
     }
 }

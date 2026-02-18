@@ -1,34 +1,10 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AutoHeightStateInput {
-    pub animate_height: bool,
-    pub has_custom_class_name: bool,
-    pub has_custom_motion: bool,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct AutoHeightState {
-    pub overflow_hidden: bool,
-    pub animate_height: bool,
-    pub is_static: bool,
-    pub has_custom_class_name: bool,
-    pub has_custom_motion: bool,
-}
+pub use ui_state_primitives::auto_height::{AutoHeightState, AutoHeightStateInput, resolve_state};
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
         (!trimmed.is_empty()).then(|| trimmed.to_string())
     })
-}
-
-pub fn resolve_state(input: AutoHeightStateInput) -> AutoHeightState {
-    AutoHeightState {
-        overflow_hidden: true,
-        animate_height: input.animate_height,
-        is_static: !input.animate_height,
-        has_custom_class_name: input.has_custom_class_name,
-        has_custom_motion: input.has_custom_motion,
-    }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: AutoHeightState) -> String {

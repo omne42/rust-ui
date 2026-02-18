@@ -2,7 +2,9 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::tag::{Tag, TagSize, TagVariant};
-use ui_components::{Collapsible, CollapsibleMotion};
+use ui_components::{
+    Collapsible, CollapsibleMotion, SegmentedControl, SegmentedControlSize, Switch,
+};
 
 pub(super) fn tag() -> AnyView {
     let (remove_count, set_remove_count) = signal(0_u32);
@@ -10,6 +12,10 @@ pub(super) fn tag() -> AnyView {
     let on_remove_alpha = Callback::new(move |_| set_remove_count.update(|count| *count += 1));
 
     let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));
+
+    let hello_world_code = Signal::derive(|| {
+        "<Tag>\"Hello Tag\"</Tag>\n<Tag variant=TagVariant::Surface>\"Surface\"</Tag>".to_string()
+    });
 
     let matrix_code = Signal::derive(move || {
         [
@@ -54,7 +60,22 @@ pub(super) fn tag() -> AnyView {
             group="Collections"
             description="baseline-style tag primitive with centralized variant/size/remove-action/source state contracts and stable slot/data markers."
         >
-            <Playground title="Variant + Size Matrix" code_signal=matrix_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                test_source_path="crates/ui-components/src/tag/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Tag>"Hello Tag"</Tag>
+                    <Tag variant=TagVariant::Surface>"Surface"</Tag>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Variant + Size Matrix"
+                code_signal=matrix_code
+                test_source_path="crates/ui-components/src/tag/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Tag variant=TagVariant::Default size=TagSize::Sm>
                         "Rust"
@@ -71,7 +92,11 @@ pub(super) fn tag() -> AnyView {
                 </div>
             </Playground>
 
-            <Playground title="Removable + Disabled + Custom Class" code_signal=states_code>
+            <Playground
+                title="Removable + Disabled + Custom Class"
+                code_signal=states_code
+                test_source_path="crates/ui-components/src/tag/view.rs".to_string()
+            >
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Tag
@@ -111,7 +136,7 @@ pub(super) fn collapsible() -> AnyView {
     let on_open_change = Callback::new(move |next: bool| set_open.set(next));
 
     let basic_code = Signal::derive(move || {
-        vec![
+        [
             format!("let (open, set_open) = signal({});", open.get()),
             "let on_open_change = Callback::new(move |next: bool| set_open.set(next));".to_string(),
             String::new(),
@@ -176,6 +201,114 @@ pub(super) fn collapsible() -> AnyView {
         ..CollapsibleMotion::default()
     };
 
+    let mode_options = vec!["Uncontrolled".to_string(), "Controlled".to_string()];
+    let motion_options = vec!["Default".to_string(), "Custom".to_string()];
+    let (mode_index, set_mode_index) = signal(Some(0_usize));
+    let (motion_index, set_motion_index) = signal(Some(0_usize));
+    let (controlled_open, set_controlled_open) = signal(true);
+    let (default_open_preview, set_default_open_preview) = signal(true);
+    let (disabled_preview, set_disabled_preview) = signal(false);
+    let (custom_label, set_custom_label) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let on_interactive_open_change = Callback::new(move |next: bool| set_controlled_open.set(next));
+
+    let is_controlled = Signal::derive(move || mode_index.get().unwrap_or(0) == 1);
+    let use_custom_motion = Signal::derive(move || motion_index.get().unwrap_or(0) == 1);
+    let interactive_motion = Signal::derive(move || {
+        if use_custom_motion.get() {
+            CollapsibleMotion {
+                panel_offset_y_px: 10.0,
+                ..CollapsibleMotion::default()
+            }
+        } else {
+            CollapsibleMotion::default()
+        }
+    });
+
+    let interactive_code = Signal::derive(move || {
+        let controlled = is_controlled.get();
+        let motion_custom = use_custom_motion.get();
+        let controlled_open = controlled_open.get();
+        let default_open_preview = default_open_preview.get();
+        let disabled_preview = disabled_preview.get();
+        let custom_label = custom_label.get();
+        let custom_class = custom_class.get();
+
+        let mut lines = vec![
+            "<Collapsible".to_string(),
+            "  id_base=\"docs-collapsible-interactive\".to_string()".to_string(),
+            "  title=\"Interactive collapsible\".to_string()".to_string(),
+        ];
+
+        if controlled {
+            lines.push(format!(
+                "  open=Signal::derive(|| {controlled_open}).into()"
+            ));
+            lines.push(
+                "  on_open_change=Callback::new(move |next: bool| set_open.set(next))".to_string(),
+            );
+        } else {
+            lines.push(format!("  default_open={default_open_preview}"));
+        }
+
+        if disabled_preview {
+            lines.push("  disabled=true".to_string());
+        }
+        if custom_label {
+            lines.push("  aria_label=\"Interactive collapsible panel\".to_string()".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-collapsible-custom\".to_string()".to_string());
+        }
+        if motion_custom {
+            lines.push("  motion=CollapsibleMotion { panel_offset_y_px: 10.0, ..CollapsibleMotion::default() }".to_string());
+        }
+
+        lines.extend([
+            ">".to_string(),
+            "  <div>\"Interactive panel content.\"</div>".to_string(),
+            "</Collapsible>".to_string(),
+        ]);
+        lines.join("\n")
+    });
+
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/collapsible/styles.rs */\n{}",
+            ui_components::collapsible::styles::CSS
+        )
+    });
+
+    let actual_config = Signal::derive(move || {
+        let controlled = is_controlled.get();
+        let motion_custom = use_custom_motion.get();
+        let controlled_open = controlled_open.get();
+        let default_open_preview = default_open_preview.get();
+        let disabled_preview = disabled_preview.get();
+        let custom_label = custom_label.get();
+        let custom_class = custom_class.get();
+
+        format!(
+            "CollapsibleActualConfig {{\n  mode: \"{}\",\n  controlled_open: {},\n  default_open: {},\n  disabled: {},\n  custom_label: {},\n  custom_class: {},\n  motion_source: \"{}\",\n  panel_offset_y_px: {},\n}}",
+            if controlled {
+                "controlled"
+            } else {
+                "uncontrolled"
+            },
+            controlled_open,
+            default_open_preview,
+            disabled_preview,
+            custom_label,
+            custom_class,
+            if motion_custom { "custom" } else { "default" },
+            if motion_custom {
+                10.0
+            } else {
+                CollapsibleMotion::default().panel_offset_y_px
+            },
+        )
+    });
+
     view! {
         <ComponentPage
             title="Collapsible"
@@ -234,6 +367,125 @@ pub(super) fn collapsible() -> AnyView {
                         <div class="ui-muted">"Open mode, label source, class source, and motion source are explicit."</div>
                     </div>
                 </Collapsible>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                code_signal=interactive_code
+                test_css_source=test_css_source
+                test_source_path="crates/ui-components/src/collapsible/styles.rs".to_string()
+                test_config_signal=actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Mode"</div>
+                        <SegmentedControl
+                            id_base="docs-collapsible-interactive-mode".to_string()
+                            options=mode_options.clone()
+                            selected_index=mode_index
+                            set_selected_index=set_mode_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Collapsible open mode".to_string()
+                        />
+
+                        <div class="docs-search__label">"Motion"</div>
+                        <SegmentedControl
+                            id_base="docs-collapsible-interactive-motion".to_string()
+                            options=motion_options.clone()
+                            selected_index=motion_index
+                            set_selected_index=set_motion_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Collapsible motion source".to_string()
+                        />
+
+                        <Switch checked=controlled_open set_checked=set_controlled_open>
+                            "Controlled open"
+                        </Switch>
+                        <Switch checked=default_open_preview set_checked=set_default_open_preview>
+                            "Default open"
+                        </Switch>
+                        <Switch checked=disabled_preview set_checked=set_disabled_preview>
+                            "Disabled"
+                        </Switch>
+                        <Switch checked=custom_label set_checked=set_custom_label>
+                            "Custom aria-label"
+                        </Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>
+                            "Custom class"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let controlled = is_controlled.get();
+                    let motion = interactive_motion.get();
+                    let disabled_preview = disabled_preview.get();
+                    let default_open_preview = default_open_preview.get();
+                    let custom_label = custom_label.get();
+                    let custom_class = custom_class.get();
+                    let aria_label = if custom_label {
+                        "Interactive collapsible panel".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-collapsible-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    if controlled {
+                        view! {
+                            <div class="docs-stack docs-stack--tight">
+                                <Collapsible
+                                    id_base="docs-collapsible-interactive".to_string()
+                                    title="Interactive collapsible".to_string()
+                                    open=controlled_open.into()
+                                    on_open_change=on_interactive_open_change
+                                    disabled=disabled_preview
+                                    motion=motion
+                                    aria_label=aria_label.clone()
+                                    class_name=class_name.clone()
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"Interactive panel content."</div>
+                                        <div class="ui-muted">
+                                            "Use Mode switch to compare controlled vs uncontrolled state source."
+                                        </div>
+                                    </div>
+                                </Collapsible>
+                                <span class="ui-muted">
+                                    "controlled open: " {move || controlled_open.get().to_string()}
+                                </span>
+                            </div>
+                        }
+                            .into_any()
+                    } else {
+                        view! {
+                            <div class="docs-stack docs-stack--tight">
+                                <Collapsible
+                                    id_base="docs-collapsible-interactive".to_string()
+                                    title="Interactive collapsible".to_string()
+                                    default_open=default_open_preview
+                                    disabled=disabled_preview
+                                    motion=motion
+                                    aria_label=aria_label
+                                    class_name=class_name
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"Interactive panel content."</div>
+                                        <div class="ui-muted">
+                                            "Use Mode switch to compare controlled vs uncontrolled state source."
+                                        </div>
+                                    </div>
+                                </Collapsible>
+                                <span class="ui-muted">
+                                    "default open: " {default_open_preview.to_string()}
+                                </span>
+                            </div>
+                        }
+                            .into_any()
+                    }
+                }}
             </Playground>
         </ComponentPage>
     }

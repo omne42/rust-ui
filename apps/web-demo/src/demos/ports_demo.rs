@@ -147,7 +147,7 @@ pub fn PortsDemo() -> impl IntoView {
 
                 <div class="demo-stack">
                     <div class="demo-kv">"Form"</div>
-                    <Form required=true>
+                    <Form is_required=true>
                         <div class="demo-stack">
                             <Input
                                 id="demo-form-name".to_string()

@@ -1,3 +1,5 @@
+use ui_theme::default_button_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SegmentedControlMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -5,8 +7,14 @@ pub struct SegmentedControlMotion {
 
 impl Default for SegmentedControlMotion {
     fn default() -> Self {
+        let tokens = default_button_motion_tokens();
         Self {
-            spring: ui_motion::presets::spring_slide(),
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
+            },
         }
     }
 }

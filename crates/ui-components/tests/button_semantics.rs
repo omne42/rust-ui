@@ -2081,8 +2081,11 @@ fn docs_inner_html_is_restricted_to_trusted_whitelisted_markdown_sources() {
     for needle in [
         "const ACCORDION_README_MD: &str =",
         "include_str!(\"../../../../../crates/ui-components/src/accordion/README.md\")",
+        "const DATE_PICKER_README_MD: &str =",
+        "include_str!(\"../../../../../crates/ui-components/src/date_picker/README.md\")",
         "fn component_readme_markdown(slug: &str) -> Option<&'static str> {",
         "\"accordion\" => Some(ACCORDION_README_MD),",
+        "\"date-picker\" => Some(DATE_PICKER_README_MD),",
         "_ => None,",
         "let readme_html = component_readme_markdown(slug).map(crate::markdown::markdown_to_html);",
         "<section class=\"docs-card docs-prose\" data-slot=\"component-readme\" inner_html=html></section>",

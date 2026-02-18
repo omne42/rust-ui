@@ -24,6 +24,8 @@ fn command_dialog_module_exposes_slot_and_state_contracts() {
     let source = load_source("src/command_dialog/mod.rs");
 
     for needle in [
+        "pub mod motion;",
+        "pub use motion::CommandDialogMotion;",
         "pub enum CommandDialogSlot",
         "pub struct CommandDialogPartStateInput",
         "pub struct CommandDialogPartState",
@@ -83,6 +85,7 @@ fn command_dialog_view_uses_logic_state_contracts() {
     let source = load_source("src/command_dialog/view.rs");
 
     for needle in [
+        "motion::attach_motion(command_motion, overlay_motion)",
         "logic::normalize_id_base(id_base)",
         "logic::normalize_title(title)",
         "logic::normalize_optional_text(description)",
@@ -91,6 +94,15 @@ fn command_dialog_view_uses_logic_state_contracts() {
         "logic::compose_class_name(class_name.get_value(), state)",
         "data-slot=move || root_state.get().slot_attr",
         "data-state=move || root_state.get().state_attr",
+        "data-ui-schema=\"command-dialog\"",
+        "data-ui-schema-version=\"1\"",
+        "data-ui-intent=\"command-discovery\"",
+        "data-ui-action=move || {",
+        "data-ui-state=move || root_state.get().state_attr",
+        "data-ui-source=move || root_state.get().open_mode_attr",
+        "data-stream-mode=\"snapshot\"",
+        "data-stream-fallback=\"snapshot\"",
+        "data-output-status=\"verified\"",
         "data-description=move || root_state.get().description_attr",
         "data-open-mode=move || root_state.get().open_mode_attr",
         "data-id-source=move || root_state.get().id_source_attr",
@@ -364,6 +376,49 @@ fn command_dialog_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             docs.contains(needle),
             "command_dialog docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn command_dialog_readme_provides_onboarding_examples() {
+    let readme = load_source("src/command_dialog/README.md");
+
+    for needle in [
+        "# CommandDialog",
+        "## Hello World",
+        "## 受控打开状态",
+        "<CommandDialog",
+        "open + on_open_change + default_open",
+        "data-ui-*",
+        "Source-first",
+    ] {
+        assert!(
+            readme.contains(needle),
+            "command_dialog README should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn command_dialog_e2e_spec_covers_controlled_and_persistent_paths() {
+    let e2e = load_source("../../e2e/tests/docs_app_command_dialog.spec.mjs");
+
+    for needle in [
+        "docs-app command-dialog controlled playground closes on action",
+        "docs-app command-dialog marker playground stays open when close_on_action=false",
+        "/#/components/command-dialog",
+        "[data-slot=\"command-dialog\"][data-open-mode=\"controlled\"]",
+        "[data-slot=\"command-dialog\"][data-open-mode=\"uncontrolled\"]",
+        "#docs-command-dialog-controlled-command-option-0",
+        "#docs-command-dialog-marker-command-option-0",
+        "data-ui-schema",
+        "data-stream-mode",
+        "data-stream-fallback",
+    ] {
+        assert!(
+            e2e.contains(needle),
+            "command_dialog e2e spec should include `{needle}`."
         );
     }
 }

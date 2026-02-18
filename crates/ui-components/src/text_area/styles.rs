@@ -1,5 +1,10 @@
 pub const CSS: &str = r#"
 .ui-text-area {
+  --ui-text-area-label-font-size: var(--ui-font-size-150);
+  --ui-text-area-meta-font-size: var(--ui-font-size-100);
+  --ui-text-area-focus-outline-width: var(--ui-button-focus-outline-width);
+  --ui-text-area-focus-outline-offset: var(--ui-button-focus-outline-offset);
+
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-xs);
@@ -25,6 +30,22 @@ pub const CSS: &str = r#"
   --ui-text-area-required: 1;
 }
 
+.ui-text-area[data-value-control-mode="controlled"] {
+  --ui-text-area-value-control-mode: controlled;
+}
+
+.ui-text-area[data-default-value-source="custom"] {
+  --ui-text-area-default-value-source: custom;
+}
+
+.ui-text-area[data-value-change-source="on_value_change"] {
+  --ui-text-area-value-change-source: on_value_change;
+}
+
+.ui-text-area[data-value-change-source="set_value"] {
+  --ui-text-area-value-change-source: set_value;
+}
+
 .ui-text-area[data-label-source="custom"] {
   --ui-text-area-label-source: custom;
 }
@@ -45,13 +66,14 @@ pub const CSS: &str = r#"
   --ui-text-area-rows-source: custom;
 }
 
-.ui-text-area--custom-class,
-.ui-text-area[data-custom-class="true"] {
+.ui-text-area[data-class-source="custom"],
+.ui-text-area[data-custom-class="true"],
+.ui-text-area--custom-class {
   border-radius: inherit;
 }
 
 .ui-text-area__label {
-  font-size: 14px;
+  font-size: var(--ui-text-area-label-font-size);
   line-height: 1.2;
   font-weight: 500;
   color: var(--ui-fg);
@@ -72,14 +94,14 @@ pub const CSS: &str = r#"
   resize: vertical;
 
   transition:
-    border-color 200ms ease,
-    background-color 200ms ease,
-    outline-color 200ms ease;
+    border-color var(--ui-text-area-motion-duration) var(--ui-text-area-motion-easing),
+    background-color var(--ui-text-area-motion-duration) var(--ui-text-area-motion-easing),
+    outline-color var(--ui-text-area-motion-duration) var(--ui-text-area-motion-easing);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ui-text-area__textarea {
-    transition: none;
+    --ui-text-area-motion-duration: 1ms;
   }
 }
 
@@ -88,8 +110,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-text-area--focus-visible .ui-text-area__textarea {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-text-area-focus-outline-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-text-area-focus-outline-offset);
 }
 
 .ui-text-area--invalid .ui-text-area__textarea {
@@ -102,7 +124,7 @@ pub const CSS: &str = r#"
 
 .ui-text-area__description,
 .ui-text-area__error {
-  font-size: 12px;
+  font-size: var(--ui-text-area-meta-font-size);
   line-height: 1.3;
 }
 

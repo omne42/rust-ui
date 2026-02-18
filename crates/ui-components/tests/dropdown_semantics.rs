@@ -23,30 +23,56 @@ fn dropdown_does_not_expose_logic_or_view_modules() {
 fn dropdown_uses_logic_state_model() {
     let view_source = load_source("src/dropdown/view.rs");
     let logic_source = load_source("src/dropdown/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/dropdown.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::dropdown::{",
+        "DropdownStateInput",
+        "DropdownState",
+        "normalize_optional_text",
+        "normalize_id_base",
+        "normalize_aria_label",
+        "normalize_disabled_indices",
+        "resolve_trigger_disabled",
+        "resolve_state",
+        "pub struct DisabledStateInput",
+        "pub fn normalize_disabled_state(",
+        "pub struct OpenStateInput",
+        "pub fn normalize_open_state(",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Dropdown logic should include `{needle}` while consuming ui-state-primitives."
+        );
+    }
 
     for needle in [
         "pub enum DropdownOpenFocusStrategy",
         "pub fn focus_strategy_for_open_key(",
+        "pub struct DropdownStateInput",
+        "pub struct DropdownState",
         "pub fn normalize_optional_text(",
         "pub fn normalize_id_base(",
         "pub fn normalize_aria_label(",
         "pub fn normalize_disabled_indices(",
         "pub fn resolve_trigger_disabled(",
         "pub fn resolve_state(",
-        "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "Dropdown logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "Dropdown primitives should define `{needle}`."
         );
     }
 
     for needle in [
+        "logic::normalize_disabled_state(logic::DisabledStateInput {",
+        "let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {",
         "logic::normalize_aria_label(aria_label)",
         "logic::normalize_id_base(id_base)",
         "logic::normalize_disabled_indices(disabled_indices, item_count)",
         "overlay_open::use_controllable_open_state_traced(",
-        "logic::resolve_state(crate::dropdown::DropdownStateInput {",
+        "logic::resolve_state(logic::DropdownStateInput {",
         "logic::compose_class_name(class_name, state)",
     ] {
         assert!(
@@ -59,15 +85,19 @@ fn dropdown_uses_logic_state_model() {
 #[test]
 fn dropdown_supports_controlled_and_uncontrolled_open_state() {
     let source = load_source("src/dropdown/view.rs");
+    let logic_source = load_source("src/dropdown/logic.rs");
 
     for needle in [
+        "is_open: Option<Signal<bool>>",
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "pub struct OpenStateInput",
+        "pub fn normalize_open_state(",
         "motion: DropdownMotion",
     ] {
         assert!(
-            source.contains(needle),
+            source.contains(needle) || logic_source.contains(needle),
             "Dropdown should accept `{needle}` for controlled/uncontrolled open state."
         );
     }
@@ -239,4 +269,437 @@ fn dropdown_docs_playgrounds_lock_state_matrix_contract_values() {
             "dropdown docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn dropdown_supports_is_prefixed_boolean_props_with_legacy_aliases() {
+    let view_source = load_source("src/dropdown/view.rs");
+    let logic_source = load_source("src/dropdown/logic.rs");
+
+    for needle in [
+        "is_disabled: Option<bool>",
+        "disabled: bool",
+        "is_open: Option<Signal<bool>>",
+        "open: Option<Signal<bool>>",
+        "pub struct DisabledStateInput",
+        "pub fn normalize_disabled_state(",
+        "pub struct OpenStateInput",
+        "pub fn normalize_open_state(",
+    ] {
+        assert!(
+            view_source.contains(needle) || logic_source.contains(needle),
+            "Dropdown API naming contract should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let is_disabled = logic::normalize_disabled_state(logic::DisabledStateInput {",
+        "let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {",
+        "disabled: logic::resolve_trigger_disabled(is_disabled, item_count)",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Dropdown view should consume normalized accessibility/open state via `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_wires_open_triplet_into_headless_state() {
+    let source = load_source("src/dropdown/view.rs");
+
+    for needle in [
+        "let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {",
+        "let open_state = overlay_open::use_controllable_open_state_traced(",
+        "\"dropdown\",",
+        "normalized_open_state.open,",
+        "normalized_open_state.default_open,",
+        "normalized_open_state.on_open_change,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dropdown open axis should wire `{needle}` for stable controlled/uncontrolled semantics."
+        );
+    }
+}
+
+#[test]
+fn dropdown_view_does_not_inline_default_fallback_rules() {
+    let source = load_source("src/dropdown/view.rs");
+
+    for forbidden in ["is_disabled.unwrap_or(disabled)", "is_open.or(open)"] {
+        assert!(
+            !source.contains(forbidden),
+            "Dropdown view.rs should avoid owning fallback/priority rule `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_styles_depend_on_explicit_state_markers_only() {
+    let source = load_source("src/dropdown/styles.rs");
+
+    for required in [
+        ".ui-dropdown--disabled",
+        ".ui-dropdown[data-disabled=\"true\"]",
+        ".ui-dropdown--persistent",
+        ".ui-dropdown[data-keep-open-on-action=\"true\"]",
+        ".ui-dropdown[data-motion-source=\"custom\"]",
+    ] {
+        assert!(
+            source.contains(required),
+            "Dropdown styles should include explicit marker selector `{required}`."
+        );
+    }
+
+    for forbidden in [":nth-child(", ":nth-of-type(", " > * > * > "] {
+        assert!(
+            !source.contains(forbidden),
+            "Dropdown styles should avoid brittle structural selector `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_component_files_are_layered_and_spec_file_is_absent() {
+    let module_source = load_source("src/dropdown/mod.rs");
+    let logic_source = load_source("src/dropdown/logic.rs");
+    let styles_source = load_source("src/dropdown/styles.rs");
+    let view_source = load_source("src/dropdown/view.rs");
+    let motion_source = load_source("src/dropdown/motion.rs");
+
+    for needle in [
+        "mod logic;",
+        "pub mod motion;",
+        "pub mod styles;",
+        "mod view;",
+        "pub use motion::DropdownMotion;",
+        "pub use view::Dropdown;",
+    ] {
+        assert!(
+            module_source.contains(needle),
+            "Dropdown mod.rs should keep layered export marker `{needle}`.",
+        );
+    }
+    assert!(
+        logic_source.contains("pub use ui_state_primitives::dropdown::{"),
+        "Dropdown logic should consume state primitives from ui-state-primitives."
+    );
+    assert!(styles_source.contains("pub const CSS: &str"));
+    assert!(view_source.contains("#[component]\npub fn Dropdown("));
+    assert!(motion_source.contains("pub struct DropdownMotion"));
+    assert!(
+        !Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("src/dropdown/spec.rs")
+            .exists(),
+        "Dropdown should not add spec.rs for this component scope."
+    );
+}
+
+#[test]
+fn dropdown_docs_page_includes_hello_world_entrypoint() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+    for needle in [
+        "<Playground title=\"Hello World\" code_signal=hello_code>",
+        "data-slot=\"dropdown-hello-world\"",
+        "id_base=\"docs-dropdown-hello\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dropdown docs should include zero-threshold marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_docs_playground_exposes_semantic_selector_anchors() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+    for needle in [
+        "data-slot=\"dropdown-default-playground\"",
+        "data-slot=\"dropdown-last-action\"",
+        "data-slot=\"dropdown-controlled-playground\"",
+        "data-slot=\"dropdown-controlled-open\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dropdown docs should expose semantic selector anchor `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_docs_page_includes_interactive_playground_sections() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=workbench_test_css_source",
+        "test_config_signal=workbench_actual_config",
+        "controls=move || view!",
+        "<SegmentedControl",
+        "<Switch checked=workbench_controlled",
+        "data-slot=\"dropdown-workbench-preview\"",
+        "<Playground title=\"State Matrix Compare\" code_signal=matrix_code>",
+        "data-slot=\"dropdown-state-matrix\"",
+        "id_base=\"docs-dropdown-compare-default\".to_string()",
+        "id_base=\"docs-dropdown-compare-controlled\".to_string()",
+        "id_base=\"docs-dropdown-compare-disabled\".to_string()",
+        "id_base=\"docs-dropdown-compare-empty\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Dropdown docs interactive playground should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_docs_entry_has_readme_streaming_policy_and_source_paths() {
+    let readme = load_source("src/dropdown/README.md");
+
+    for needle in [
+        "# Dropdown",
+        "## Streaming 策略",
+        "Snapshot",
+        "Streaming Optional",
+        "fallback=snapshot",
+        "## Hello World",
+        "## Source-first",
+        "crates/ui-components/src/dropdown/{mod,logic,view,styles,motion}.rs",
+        "crates/ui-state-primitives/src/dropdown.rs",
+    ] {
+        assert!(
+            readme.contains(needle),
+            "Dropdown README should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_readme_documents_display_config_code_and_css_test_sections() {
+    let readme = load_source("src/dropdown/README.md");
+
+    for needle in [
+        "## docs-app 展示区（展示 / config / code / css test）",
+        "展示区（Display）",
+        "Config 区",
+        "Code 区",
+        "CSS Test 区",
+        "Interactive Playground",
+        "## 多场景对比展示",
+        "State Matrix Compare",
+        "`Default`",
+        "`Controlled + Persistent`",
+        "`Disabled`",
+        "`Empty`",
+    ] {
+        assert!(
+            readme.contains(needle),
+            "Dropdown README should document `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_tree_shaking_feature_gates_are_explicit() {
+    let cargo_source = load_source("Cargo.toml");
+    let lib_source = load_source("src/lib.rs");
+    let css_source = load_source("src/css.rs");
+
+    for needle in [
+        "component-dropdown = [\"component-button\", \"component-menu\", \"component-popover\"]",
+        "#[cfg(feature = \"component-dropdown\")]\npub mod dropdown;",
+        "#[cfg(feature = \"component-dropdown\")]\n    out.push_str(crate::dropdown::styles::CSS);",
+    ] {
+        assert!(
+            cargo_source.contains(needle)
+                || lib_source.contains(needle)
+                || css_source.contains(needle),
+            "Dropdown tree-shaking contract should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_platform_contract_preserves_headless_mutex_and_motion_stub_references() {
+    let headless_lib = load_source("../ui-headless/src/lib.rs");
+    let motion_lib = load_source("../ui-motion/src/lib.rs");
+    let view_source = load_source("src/dropdown/view.rs");
+
+    for needle in [
+        "feature = \"web\"",
+        "feature = \"ssr\"",
+        "compile_error!(",
+        "features `web` and `ssr` are mutually exclusive; enable exactly one",
+    ] {
+        assert!(
+            headless_lib.contains(needle),
+            "ui-headless should preserve web/ssr mutex marker `{needle}`."
+        );
+    }
+    for needle in [
+        "#[cfg(not(target_arch = \"wasm32\"))]",
+        "pub fn prefers_reduced_motion() -> bool",
+    ] {
+        assert!(
+            motion_lib.contains(needle),
+            "ui-motion should expose non-wasm fallback marker `{needle}`."
+        );
+    }
+    for forbidden in ["web_sys::", "window()", "document()"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Dropdown view should not directly bind browser-only api `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_inner_html_path_is_absent() {
+    let combined = format!(
+        "{}\n{}\n{}\n{}",
+        load_source("src/dropdown/logic.rs"),
+        load_source("src/dropdown/view.rs"),
+        load_source("src/dropdown/styles.rs"),
+        load_source("src/dropdown/motion.rs")
+    );
+
+    for forbidden in ["inner_html", "<script", "javascript:"] {
+        assert!(
+            !combined.contains(forbidden),
+            "Dropdown should avoid unsafe html injection marker `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_semantics_suite_is_contract_first_not_snapshot_only() {
+    let source = load_source("tests/dropdown_semantics.rs");
+    let has_rust_snapshot_macro = source
+        .lines()
+        .any(|line| line.trim_start().starts_with("assert_snapshot!("));
+    let has_js_snapshot_matcher = source
+        .lines()
+        .any(|line| line.trim_start().starts_with("toMatchSnapshot("));
+    assert!(
+        !has_rust_snapshot_macro && !has_js_snapshot_matcher,
+        "Dropdown semantics suite should stay contract-first and avoid snapshot-only assertions."
+    );
+}
+
+#[test]
+fn dropdown_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_dropdown_contract.spec.mjs");
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_extra.rs");
+
+    for needle in [
+        "body:not(:has(#boot))",
+        "[data-slot=\"dropdown-default-playground\"]",
+        "[data-slot=\"dropdown-last-action\"]",
+        "[data-slot=\"dropdown-controlled-open\"]",
+        "#docs-dropdown-controlled-trigger",
+        "toHaveAttribute(\"data-controlled\", \"true\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle) || docs_source.contains(needle),
+            "Dropdown e2e/docs contract should include `{needle}`."
+        );
+    }
+
+    for forbidden in ["waitForTimeout(", "setTimeout("] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "Dropdown e2e should avoid brittle wait primitive `{forbidden}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_e2e_key_flow_is_repeatable_with_semantic_breakpoints() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_dropdown_contract.spec.mjs");
+    for needle in [
+        "docs-app dropdown key flow is repeatable with semantic contract breakpoints",
+        "await trigger.focus()",
+        "await page.keyboard.press(\"ArrowDown\")",
+        "await option.click()",
+        "await page.reload()",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "Dropdown e2e repeatable flow should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_e2e_interactive_playground_covers_display_config_code_and_css_test() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_dropdown_contract.spec.mjs");
+
+    for needle in [
+        "docs-app dropdown interactive playground exposes display config code and css-test panels",
+        "Interactive Playground",
+        "[data-slot=\"dropdown-workbench-preview\"]",
+        "Show settings",
+        "[data-slot=\"playground-controls\"]",
+        "#docs-dropdown-workbench-placement-trigger",
+        "Show code",
+        "[data-slot=\"playground-code\"]",
+        "Show test",
+        "[data-slot=\"playground-test\"]",
+        ".playground__test-editor",
+        "Actual config",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "Dropdown e2e interactive playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_e2e_state_matrix_compare_covers_key_variants() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_dropdown_contract.spec.mjs");
+
+    for needle in [
+        "docs-app dropdown state matrix compare keeps key variants visible",
+        "[data-slot=\"dropdown-state-matrix\"]",
+        "#docs-dropdown-compare-default-trigger",
+        "#docs-dropdown-compare-controlled-trigger",
+        "#docs-dropdown-compare-disabled-trigger",
+        "#docs-dropdown-compare-empty-trigger",
+        "toHaveAttribute(\"data-controlled\", \"true\")",
+        "toHaveAttribute(\"data-disabled\", \"true\")",
+        "toHaveAttribute(\"data-empty\", \"true\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "Dropdown e2e state matrix compare should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_heroui_strategy_and_docs_entry_stay_in_sync() {
+    let strategy_source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+    let docs_catalog_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
+
+    for needle in [
+        "### Dropdown 同步记录（2026-02-18）",
+        "component_doc!(\"Dropdown\", \"dropdown\", \"Collections\", collections_extra::dropdown)",
+    ] {
+        assert!(
+            strategy_source.contains(needle) || docs_catalog_source.contains(needle),
+            "Dropdown HeroUI/doc sync should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dropdown_check2_has_no_unchecked_checklist_items() {
+    let checklist = load_source("src/dropdown/check2.md");
+    assert!(
+        !checklist.contains("- [ ]"),
+        "Dropdown checklist should be fully checked after scoped verification."
+    );
 }

@@ -19,6 +19,9 @@ pub const CSS: &str = r#"
 .ui-color-area__preview {
   inline-size: 1.75rem;
   block-size: 1.75rem;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid color-mix(in oklab, var(--ui-fg-muted) 28%, transparent);
+  background: var(--ui-color-area-preview-color, color-mix(in oklab, var(--ui-accent) 50%, white));
 }
 
 .ui-color-area__grid {

@@ -22,11 +22,31 @@ fn color_editor_does_not_expose_logic_or_view_modules() {
 #[test]
 fn color_editor_uses_logic_state_model() {
     let logic_source = load_source("src/color_editor/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/color_editor.rs");
     let view_source = load_source("src/color_editor/view.rs");
 
     for needle in [
-        "pub const DEFAULT_LABEL",
-        "pub const DEFAULT_ARIA_LABEL",
+        "pub use ui_state_primitives::color_editor::{",
+        "DEFAULT_LABEL",
+        "sanitize_color",
+        "sanitize_hue",
+        "sanitize_alpha",
+        "sanitize_area",
+        "compose_color_from_hsb",
+        "format_channel_preview",
+        "resolve_state",
+        "compose_class_name",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ColorEditor logic should re-export `{needle}` from ui-state-primitives."
+        );
+    }
+
+    for needle in [
+        "pub enum ColorEditorFormat",
+        "pub struct ColorEditorStateInput",
+        "pub struct ColorEditorState",
         "pub fn sanitize_color(",
         "pub fn sanitize_hue(",
         "pub fn sanitize_alpha(",
@@ -39,8 +59,8 @@ fn color_editor_uses_logic_state_model() {
         "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ColorEditor logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "ColorEditor primitives should include `{needle}` in ui-state-primitives."
         );
     }
 
@@ -118,6 +138,9 @@ fn color_editor_docs_page_covers_primary_playgrounds() {
         "pub(super) fn color_editor() -> AnyView",
         "title=\"ColorEditor\"",
         "slug=\"color-editor\"",
+        "title=\"Interactive Playground\"",
+        "test_css_source=workbench_test_css_source",
+        "test_config_signal=workbench_actual_config",
         "title=\"Controlled Color + Controlled Format\"",
         "title=\"Disabled + Alpha Hidden + Reduced Motion\"",
     ] {
@@ -133,6 +156,15 @@ fn color_editor_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
+        "id_base=\"docs-color-editor-workbench\".to_string()",
+        "id_base=\"docs-color-editor-workbench-compare\".to_string()",
+        "options=workbench_format_options.clone()",
+        "<Switch checked=workbench_disabled set_checked=set_workbench_disabled>",
+        "<Switch checked=workbench_hide_alpha set_checked=set_workbench_hide_alpha>",
+        "<Switch checked=workbench_custom_label set_checked=set_workbench_custom_label>",
+        "<Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>",
+        "<Switch checked=workbench_reduced_motion set_checked=set_workbench_reduced_motion>",
+        "Comparison (Disabled + Alpha Hidden)",
         "<Playground title=\"Controlled Color + Controlled Format\" code_signal=basic_code>",
         "id_base=\"docs-color-editor-basic\".to_string()",
         "selected_color=selected_color_signal",
@@ -158,4 +190,102 @@ fn color_editor_docs_playgrounds_lock_state_matrix_contract_values() {
             "color-editor docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn color_editor_readme_documents_docs_workbench_contract() {
+    let source = load_source("src/color_editor/README.md");
+
+    for needle in [
+        "## Docs Playground（展示 / Config / Code / CSS Test）",
+        "forms_color.rs` 中 `color_editor()`",
+        "展示（Preview）",
+        "Config：`test_config_signal`",
+        "Code：`code_signal`",
+        "CSS Test：`test_css_source`",
+        "Controlled Color + Controlled Format",
+        "Disabled + Alpha Hidden + Reduced Motion",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color_editor README should include docs-playground marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_editor_feature_dependency_chain_covers_composed_children() {
+    let source = load_source("Cargo.toml");
+
+    assert!(
+        source.contains("component-color_editor = ["),
+        "ColorEditor feature should use an explicit dependency list."
+    );
+
+    for dependency in [
+        "\"component-color_area\"",
+        "\"component-color_field\"",
+        "\"component-color_slider\"",
+        "\"component-color_swatch\"",
+        "\"component-slider\"",
+    ] {
+        assert!(
+            source.contains(dependency),
+            "ColorEditor feature dependency chain should include `{dependency}`."
+        );
+    }
+}
+
+#[test]
+fn color_editor_component_has_motion_contract_module() {
+    let mod_source = load_source("src/color_editor/mod.rs");
+    let motion_source = load_source("src/color_editor/motion.rs");
+    let view_source = load_source("src/color_editor/view.rs");
+
+    for needle in ["pub mod motion;", "pub use motion::ColorEditorMotion;"] {
+        assert!(
+            mod_source.contains(needle),
+            "ColorEditor mod.rs should export motion contract marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub use crate::color_slider::ColorSliderMotion as ColorEditorMotion;",
+        "pub fn sanitize_motion(",
+        "pub fn source_attr(",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ColorEditor motion contract should contain `{needle}`."
+        );
+    }
+
+    assert!(
+        view_source.contains("motion_contract::sanitize_motion(motion)"),
+        "ColorEditor view should consume motion contract sanitize path."
+    );
+}
+
+#[test]
+fn color_editor_check2_marks_all_items_completed() {
+    let source = load_source("src/color_editor/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] Tree Shaking 是一等能力",
+        "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color_editor/check2.md should keep completed marker `{needle}`."
+        );
+    }
+
+    assert!(
+        !source.contains("- [ ]"),
+        "color_editor/check2.md should not contain unchecked items."
+    );
 }

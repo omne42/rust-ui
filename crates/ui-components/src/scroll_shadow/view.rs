@@ -1,4 +1,6 @@
-use crate::scroll_shadow::logic::{self, ScrollShadowStateInput, compute_scroll_shadow_edges};
+use crate::scroll_shadow::logic::{
+    self, ScrollShadowSemanticInput, ScrollShadowStateInput, compute_scroll_shadow_edges,
+};
 use leptos::{ev, html, prelude::*};
 use std::rc::Rc;
 
@@ -16,8 +18,12 @@ pub fn ScrollShadow(
     let class = logic::compose_class_name(class_name, state);
 
     let viewport_ref: NodeRef<html::Div> = NodeRef::new();
-    let (shadow_top, set_shadow_top) = signal(false);
-    let (shadow_bottom, set_shadow_bottom) = signal(false);
+    let (edge_state, set_edge_state) = signal(logic::ScrollShadowEdgeState::None);
+    let semantic_state = Memo::new(move |_| {
+        logic::resolve_semantic_state(ScrollShadowSemanticInput {
+            edge_state: edge_state.get(),
+        })
+    });
 
     let update = Rc::new(move || {
         let Some(div) = viewport_ref.get_untracked() else {
@@ -27,11 +33,9 @@ pub fn ScrollShadow(
         let client_height = div.client_height() as f64;
         let scroll_height = div.scroll_height() as f64;
         let edges = compute_scroll_shadow_edges(scroll_top, client_height, scroll_height);
-        if shadow_top.get_untracked() != edges.top {
-            set_shadow_top.set(edges.top);
-        }
-        if shadow_bottom.get_untracked() != edges.bottom {
-            set_shadow_bottom.set(edges.bottom);
+        let next_state = logic::resolve_edge_state(edges.top, edges.bottom);
+        if edge_state.get_untracked() != next_state {
+            set_edge_state.set(next_state);
         }
     });
 
@@ -99,60 +103,27 @@ pub fn ScrollShadow(
         move |_event: ev::Event| update.as_ref()()
     };
 
-    #[cfg(target_arch = "wasm32")]
-    let set_max_height = {
-        let viewport_ref = viewport_ref;
-        let max_height_px = StoredValue::new(state.max_height_px);
-        move || {
-            use leptos::wasm_bindgen::JsCast;
-
-            let Some(px) = max_height_px.get_value() else {
-                return;
-            };
-
-            let Some(div) = viewport_ref.get_untracked() else {
-                return;
-            };
-
-            let element: leptos::web_sys::HtmlElement = div.unchecked_into();
-            let style = element.style();
-            let _ = style.set_property("--ui-scroll-shadow-max-h", &format!("{px}px"));
-        }
-    };
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let set_max_height = {
-        let _ = state.max_height_px;
-        || {}
-    };
-
-    Effect::new(move |_| {
-        let _ = viewport_ref.get();
-        set_max_height();
-    });
-
     view! {
         <div
             class=class
-            class:ui-scroll-shadow--shadow-top=move || shadow_top.get()
-            class:ui-scroll-shadow--shadow-bottom=move || shadow_bottom.get()
-            class:ui-scroll-shadow--scrollable=move || {
-                logic::is_scrollable(shadow_top.get(), shadow_bottom.get())
+            class:ui-scroll-shadow--shadow-top=move || semantic_state.get().shadow_top_attr.is_some()
+            class:ui-scroll-shadow--shadow-bottom=move || {
+                semantic_state.get().shadow_bottom_attr.is_some()
             }
+            class:ui-scroll-shadow--scrollable=move || semantic_state.get().is_scrollable
             data-slot="scroll-shadow"
             data-max-height=state.max_height_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
-            data-state=move || logic::edge_state_attr(shadow_top.get(), shadow_bottom.get())
-            data-scrollable=move || {
-                logic::is_scrollable(shadow_top.get(), shadow_bottom.get()).then_some("true")
-            }
-            data-shadow-top=move || shadow_top.get().then_some("true")
-            data-shadow-bottom=move || shadow_bottom.get().then_some("true")
+            data-state=move || semantic_state.get().edge_state_attr
+            data-scrollable=move || semantic_state.get().scrollable_attr
+            data-shadow-top=move || semantic_state.get().shadow_top_attr
+            data-shadow-bottom=move || semantic_state.get().shadow_bottom_attr
         >
             <div
                 class="ui-scroll-shadow__viewport"
                 node_ref=viewport_ref
                 data-slot="scroll-shadow-viewport"
+                style=logic::compose_inline_style(state.max_height_px)
                 on:scroll=on_scroll
             >
                 {children()}

@@ -163,3 +163,73 @@ fn input_otp_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn input_otp_e2e_contract_uses_semantic_selectors() {
+    let source = load_source("../../e2e/tests/docs_app_input_contract.spec.mjs");
+
+    for needle in [
+        "docs-app input-otp normalizes digits and preserves slot contracts",
+        "docs-app input-otp comparison playground keeps disabled/invalid/default contracts",
+        "/#/components/input-otp",
+        "body:not(:has(#boot))",
+        "data-slot=\"input-otp\"",
+        "data-slot=\"input-otp-input\"",
+        "data-slot=\"input-otp-slot\"",
+        "Default OTP",
+        "Disabled OTP",
+        "Invalid OTP",
+        "toBeDisabled()",
+        "aria-invalid",
+        "data-slot=\"input-otp-error\"",
+        "toHaveCount(6)",
+        "toHaveValue(\"123\")",
+        "toHaveValue(\"123456\")",
+        "Backspace",
+    ] {
+        assert!(
+            source.contains(needle),
+            "input_otp e2e contract should include `{needle}` for stable semantic selector coverage.",
+        );
+    }
+}
+
+#[test]
+fn input_otp_docs_page_exposes_interactive_display_config_code_css_test_contract() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "<Playground",
+        "title=\"Interactive Playground\"",
+        "description=\"展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。\"",
+        "code_signal=workbench_code",
+        "test_css_source=workbench_test_css_source",
+        "test_source_path=\"crates/ui-components/src/input_otp/styles.rs\".to_string()",
+        "test_config_signal=workbench_actual_config",
+        "controls=move || view!",
+        "<Playground title=\"State Comparison\" code_signal=state_compare_code>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "input_otp docs page should include `{needle}` for interactive display/config/code/css-test + comparison coverage.",
+        );
+    }
+}
+
+#[test]
+fn input_otp_readme_covers_display_config_code_css_test_and_comparison_sections() {
+    let source = load_source("src/input_otp/README.md");
+
+    for needle in [
+        "## 展示区（Display）",
+        "## Config 区",
+        "## Code 区",
+        "## CSS Test 区",
+        "## 多种情况对比显示",
+    ] {
+        assert!(
+            source.contains(needle),
+            "input_otp README should include `{needle}` for required documentation structure.",
+        );
+    }
+}

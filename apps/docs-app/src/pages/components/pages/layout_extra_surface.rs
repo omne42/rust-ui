@@ -8,10 +8,10 @@ pub(super) fn surface() -> AnyView {
         r#"<Surface tone=SurfaceTone::Default elevation=SurfaceElevation::Raised>
   <div>"Default raised surface"</div>
 </Surface>
-<Surface tone=SurfaceTone::Subtle elevation=SurfaceElevation::Flat bordered=true>
+<Surface tone=SurfaceTone::Subtle elevation=SurfaceElevation::Flat is_bordered=true>
   <div>"Subtle flat bordered surface"</div>
 </Surface>
-<Surface tone=SurfaceTone::Strong elevation=SurfaceElevation::Floating padded=false>
+<Surface tone=SurfaceTone::Strong elevation=SurfaceElevation::Floating is_padded=false>
   <div>"Strong floating compact surface"</div>
 </Surface>"#
             .to_string()
@@ -21,7 +21,7 @@ pub(super) fn surface() -> AnyView {
         r#"<Surface
   tone=SurfaceTone::Strong
   elevation=SurfaceElevation::Floating
-  bordered=true
+  is_bordered=true
   aria_label="Deployment summary".to_string()
   class_name="docs-surface-custom".to_string()
 >
@@ -49,7 +49,7 @@ pub(super) fn surface() -> AnyView {
                     <Surface
                         tone=SurfaceTone::Subtle
                         elevation=SurfaceElevation::Flat
-                        bordered=true
+                        is_bordered=true
                     >
                         <div class="docs-stack docs-stack--tight">
                             <strong>"Subtle flat bordered"</strong>
@@ -60,7 +60,7 @@ pub(super) fn surface() -> AnyView {
                     <Surface
                         tone=SurfaceTone::Strong
                         elevation=SurfaceElevation::Floating
-                        padded=false
+                        is_padded=false
                     >
                         <div class="docs-stack docs-stack--tight">
                             <strong>"Strong floating compact"</strong>
@@ -74,7 +74,7 @@ pub(super) fn surface() -> AnyView {
                 <Surface
                     tone=SurfaceTone::Strong
                     elevation=SurfaceElevation::Floating
-                    bordered=true
+                    is_bordered=true
                     aria_label="Deployment summary".to_string()
                     class_name="docs-surface-custom".to_string()
                 >

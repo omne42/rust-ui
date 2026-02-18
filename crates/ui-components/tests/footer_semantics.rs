@@ -22,21 +22,33 @@ fn footer_does_not_expose_logic_or_render_modules() {
 #[test]
 fn footer_uses_logic_state_model() {
     let logic_source = load_source("src/footer/logic.rs");
-    let render_source = load_source("src/footer/view.rs");
+    let view_source = load_source("src/footer/view.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/footer.rs");
 
     for needle in [
-        "pub enum FooterTone",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_aria_label(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "aria_source_attr",
-        "class_source_attr",
-        "data_state_attr",
+        "pub use ui_state_primitives::footer::{",
+        "FooterState",
+        "FooterStateInput",
+        "FooterTone",
+        "compose_class_name",
+        "normalize_aria_label",
+        "normalize_optional_text",
+        "resolve_state",
     ] {
         assert!(
             logic_source.contains(needle),
             "Footer logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "pub struct FooterStateInput",
+        "pub struct FooterState",
+        "pub fn resolve_state(input: FooterStateInput) -> FooterState",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "Footer primitive should include `{needle}` in ui-state-primitives."
         );
     }
 
@@ -46,8 +58,8 @@ fn footer_uses_logic_state_model() {
         "logic::compose_class_name(class_name.get_value(), state.get())",
     ] {
         assert!(
-            render_source.contains(needle),
-            "Footer render should derive state via logic helpers; missing `{needle}`."
+            view_source.contains(needle),
+            "Footer view should derive state via logic helpers; missing `{needle}`."
         );
     }
 }
@@ -103,6 +115,7 @@ fn footer_docs_page_covers_primary_playgrounds() {
         "slug=\"footer\"",
         "Playground title=\"Semantic Footer + Tone\"",
         "Playground title=\"Bordered + Custom Aria/Class\"",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
     ] {
         assert!(
             source.contains(needle),
@@ -126,10 +139,69 @@ fn footer_docs_playgrounds_lock_state_matrix_contract_values() {
         "bordered=true",
         "aria_label=\"Settings footer\".to_string()",
         "class_name=\"docs-footer-custom\".to_string()",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "test_css_source=footer_test_css_source",
+        "test_config_signal=footer_actual_config",
+        "controls=move || view! {",
+        "FooterActualConfig",
+        "\"comparison: configured(tone={}, bordered={}, custom_aria={}, custom_class={}) vs reference(default)\"",
     ] {
         assert!(
             source.contains(needle),
             "footer docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn footer_readme_documents_display_config_code_css_test_sections() {
+    let source = load_source("src/footer/README.md");
+
+    for needle in [
+        "## Playground 展示区（展示 / config / code / css test）",
+        "Workbench (Display + Config + Code + CSS Test)",
+        "Config：Workbench test 面板输出 `FooterActualConfig`",
+        "## 对比场景",
+        "## Source-first / Copy-Paste Ready",
+    ] {
+        assert!(
+            source.contains(needle),
+            "footer README should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn footer_check2_marks_component_governance_complete() {
+    let check2_source = load_source("src/footer/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 如果无异步相关，直接打勾。",
+        "- [x] 语义测试优先",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "N/A：`Footer` 无远程请求与异步状态轴",
+        "Streaming Optional",
+        "fallback=snapshot",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "footer/check2.md should pin completion marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn footer_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/footer/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "Footer check2.md should not keep unchecked checklist items after completion."
+    );
 }

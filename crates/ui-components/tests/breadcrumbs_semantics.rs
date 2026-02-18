@@ -25,10 +25,12 @@ fn breadcrumbs_uses_logic_state_model() {
     let logic_source = load_source("src/breadcrumbs/logic.rs");
 
     for needle in [
-        "pub struct BreadcrumbsState",
+        "pub use ui_state_primitives::breadcrumbs::{",
         "pub fn resolve_state(items: &[BreadcrumbItem])",
-        "pub item_count: usize",
-        "pub has_links: bool",
+        "breadcrumbs_primitives::resolve_state(BreadcrumbsStateInput {",
+        "items: &item_inputs",
+        "pub fn resolve_root_state(",
+        "-> BreadcrumbsRootState",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -39,6 +41,10 @@ fn breadcrumbs_uses_logic_state_model() {
     assert!(
         view_source.contains("let state = logic::resolve_state(&items);"),
         "Breadcrumbs view should derive root state through resolve_state."
+    );
+    assert!(
+        view_source.contains("} = logic::resolve_root_state(aria_label, class_name);"),
+        "Breadcrumbs view should consume normalized root state from logic."
     );
 }
 
@@ -54,6 +60,8 @@ fn breadcrumbs_emits_baseline_style_slots_and_root_attrs() {
         "data-slot=\"breadcrumbs-current\"",
         "data-slot=\"breadcrumbs-label\"",
         "data-slot=\"breadcrumbs-separator\"",
+        "data-aria-source=aria_source_attr",
+        "data-class-source=class_source_attr",
         "data-empty=state.is_empty.then_some(\"true\")",
         "data-has-items=state.has_items.then_some(\"true\")",
         "data-has-links=state.has_links.then_some(\"true\")",

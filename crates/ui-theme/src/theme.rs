@@ -4,8 +4,16 @@ use crate::tokens::{
     BUTTON_MOTION_TOKENS_MEDIUM, ButtonLayoutTokens, ButtonMotionTokens, ColorAliasTokens,
     ColorPaletteTokens, ColorScaleTokens, CommonColorScales, ComponentColorTokens,
     ComponentLayoutTokens, IconTokens, LayoutSemanticTokens, LayoutTokens, OverlayLayoutTokens,
-    RadiusTokens, SemanticColorTokens, SemanticRoleTokens, SemanticScaleTokens, ShadowTokens,
-    SpaceTokens, ThemeTokens, TokenScale, TypographyTokens,
+    RadiusTokens, SLIDER_LAYOUT_TOKENS_LARGE, SLIDER_LAYOUT_TOKENS_MEDIUM,
+    SLIDER_MOTION_TOKENS_LARGE, SLIDER_MOTION_TOKENS_MEDIUM, SWATCH_MOTION_TOKENS_LARGE,
+    SWATCH_MOTION_TOKENS_MEDIUM, SWITCH_MOTION_TOKENS_LARGE, SWITCH_MOTION_TOKENS_MEDIUM,
+    SemanticColorTokens, SemanticRoleTokens, SemanticScaleTokens, ShadowTokens, SliderLayoutTokens,
+    SliderMotionTokens, SpaceTokens, SwatchMotionTokens, SwitchMotionTokens,
+    TEXT_FIELD_MOTION_TOKENS_LARGE, TEXT_FIELD_MOTION_TOKENS_MEDIUM, TEXTAREA_MOTION_TOKENS_LARGE,
+    TEXTAREA_MOTION_TOKENS_MEDIUM, TIME_FIELD_MOTION_TOKENS_LARGE, TIME_FIELD_MOTION_TOKENS_MEDIUM,
+    TextFieldMotionTokens, TextareaMotionTokens, ThemeTokens, TimeFieldMotionTokens, TokenScale,
+    TypographyTokens, UNDERLAY_MOTION_TOKENS_LARGE, UNDERLAY_MOTION_TOKENS_MEDIUM,
+    UnderlayMotionTokens,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -205,6 +213,83 @@ pub fn default_button_motion_tokens() -> ButtonMotionTokens {
     button_motion_tokens(ThemeContext::default())
 }
 
+pub fn swatch_motion_tokens(ctx: ThemeContext) -> SwatchMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => SWATCH_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => SWATCH_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_swatch_motion_tokens() -> SwatchMotionTokens {
+    swatch_motion_tokens(ThemeContext::default())
+}
+
+pub fn switch_motion_tokens(ctx: ThemeContext) -> SwitchMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => SWITCH_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => SWITCH_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_switch_motion_tokens() -> SwitchMotionTokens {
+    switch_motion_tokens(ThemeContext::default())
+}
+
+pub fn slider_motion_tokens(ctx: ThemeContext) -> SliderMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => SLIDER_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => SLIDER_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_slider_motion_tokens() -> SliderMotionTokens {
+    slider_motion_tokens(ThemeContext::default())
+}
+
+pub fn underlay_motion_tokens(ctx: ThemeContext) -> UnderlayMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => UNDERLAY_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => UNDERLAY_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_underlay_motion_tokens() -> UnderlayMotionTokens {
+    underlay_motion_tokens(ThemeContext::default())
+}
+
+pub fn time_field_motion_tokens(ctx: ThemeContext) -> TimeFieldMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => TIME_FIELD_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => TIME_FIELD_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_time_field_motion_tokens() -> TimeFieldMotionTokens {
+    time_field_motion_tokens(ThemeContext::default())
+}
+
+pub fn textarea_motion_tokens(ctx: ThemeContext) -> TextareaMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => TEXTAREA_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => TEXTAREA_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_textarea_motion_tokens() -> TextareaMotionTokens {
+    textarea_motion_tokens(ThemeContext::default())
+}
+
+pub fn text_field_motion_tokens(ctx: ThemeContext) -> TextFieldMotionTokens {
+    match ctx.scale.token_scale() {
+        TokenScale::Medium => TEXT_FIELD_MOTION_TOKENS_MEDIUM,
+        TokenScale::Large => TEXT_FIELD_MOTION_TOKENS_LARGE,
+    }
+}
+
+pub fn default_text_field_motion_tokens() -> TextFieldMotionTokens {
+    text_field_motion_tokens(ThemeContext::default())
+}
+
 pub fn button_layout_tokens(ctx: ThemeContext) -> ButtonLayoutTokens {
     match ctx.scale.token_scale() {
         TokenScale::Medium => BUTTON_LAYOUT_TOKENS_MEDIUM,
@@ -214,6 +299,22 @@ pub fn button_layout_tokens(ctx: ThemeContext) -> ButtonLayoutTokens {
 
 pub fn default_button_layout_tokens() -> ButtonLayoutTokens {
     button_layout_tokens(ThemeContext::default())
+}
+
+pub fn slider_layout_tokens(ctx: ThemeContext) -> SliderLayoutTokens {
+    resolve_tokens(ctx).slider_layout
+}
+
+pub fn default_slider_layout_tokens() -> SliderLayoutTokens {
+    slider_layout_tokens(ThemeContext::default())
+}
+
+pub fn overlay_layout_tokens(ctx: ThemeContext) -> OverlayLayoutTokens {
+    resolve_tokens(ctx).overlay_layout
+}
+
+pub fn default_overlay_layout_tokens() -> OverlayLayoutTokens {
+    overlay_layout_tokens(ThemeContext::default())
 }
 
 fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
@@ -502,50 +603,57 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         },
     };
 
-    let (typography, component_layout, overlay_layout) = match ctx.scale.token_scale() {
-        TokenScale::Medium => (
-            TypographyTokens {
-                // Baseline: 12px for font-size-100 at medium scale.
-                font_size_100_px: 12,
-                // Baseline: 14px for font-size-150 at medium scale.
-                font_size_150_px: 14,
-                // Baseline: 16px for font-size-200 at medium scale.
-                font_size_200_px: 16,
-            },
-            ComponentLayoutTokens {
-                // Baseline: 32px for component-height-100 at medium scale.
-                component_height_100_px: 32,
-            },
-            OverlayLayoutTokens {
-                z_index: 1000,
-                panel_min_width_px: 240,
-                viewport_inset_px: 16,
-                enter_offset_y_px: 6,
-                enter_scale: 0.98,
-            },
-        ),
-        TokenScale::Large => (
-            TypographyTokens {
-                // Baseline: 14px for font-size-100 at large scale.
-                font_size_100_px: 14,
-                // Baseline: 16px for font-size-150 at large scale.
-                font_size_150_px: 16,
-                // Baseline: 19px for font-size-200 at large scale.
-                font_size_200_px: 19,
-            },
-            ComponentLayoutTokens {
-                // Baseline: 40px for component-height-100 at large scale.
-                component_height_100_px: 40,
-            },
-            OverlayLayoutTokens {
-                z_index: 1000,
-                panel_min_width_px: 280,
-                viewport_inset_px: 20,
-                enter_offset_y_px: 8,
-                enter_scale: 0.98,
-            },
-        ),
-    };
+    let (typography, component_layout, overlay_layout, slider_layout) =
+        match ctx.scale.token_scale() {
+            TokenScale::Medium => (
+                TypographyTokens {
+                    // Baseline: 12px for font-size-100 at medium scale.
+                    font_size_100_px: 12,
+                    // Baseline: 14px for font-size-150 at medium scale.
+                    font_size_150_px: 14,
+                    // Baseline: 16px for font-size-200 at medium scale.
+                    font_size_200_px: 16,
+                },
+                ComponentLayoutTokens {
+                    // Baseline: 32px for component-height-100 at medium scale.
+                    component_height_100_px: 32,
+                    // Baseline: decorative separator opacity is tokenized to avoid component-local literals.
+                    separator_decorative_opacity_percent: 72,
+                },
+                OverlayLayoutTokens {
+                    z_index: 1000,
+                    panel_min_width_px: 240,
+                    viewport_inset_px: 16,
+                    enter_offset_y_px: 6,
+                    enter_scale: 0.98,
+                },
+                SLIDER_LAYOUT_TOKENS_MEDIUM,
+            ),
+            TokenScale::Large => (
+                TypographyTokens {
+                    // Baseline: 14px for font-size-100 at large scale.
+                    font_size_100_px: 14,
+                    // Baseline: 16px for font-size-150 at large scale.
+                    font_size_150_px: 16,
+                    // Baseline: 19px for font-size-200 at large scale.
+                    font_size_200_px: 19,
+                },
+                ComponentLayoutTokens {
+                    // Baseline: 40px for component-height-100 at large scale.
+                    component_height_100_px: 40,
+                    // Baseline: decorative separator opacity is tokenized to avoid component-local literals.
+                    separator_decorative_opacity_percent: 72,
+                },
+                OverlayLayoutTokens {
+                    z_index: 1000,
+                    panel_min_width_px: 280,
+                    viewport_inset_px: 20,
+                    enter_offset_y_px: 8,
+                    enter_scale: 0.98,
+                },
+                SLIDER_LAYOUT_TOKENS_LARGE,
+            ),
+        };
 
     let color_aliases = ColorAliasTokens {
         text_default: semantic_colors.fg,
@@ -599,6 +707,8 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
         layout,
         component_layout,
         overlay_layout,
+        slider_layout,
+        underlay_motion: underlay_motion_tokens(ctx),
         typography,
         button_layout: button_layout_tokens(ctx),
     }
@@ -641,8 +751,15 @@ mod tests {
         assert!(css.contains("--ui-font-size-150:"));
         assert!(css.contains("--ui-font-size-100:"));
         assert!(css.contains("--ui-component-height-100:"));
+        assert!(css.contains("--ui-separator-decorative-opacity:"));
         assert!(css.contains("--ui-overlay-panel-min-width:"));
         assert!(css.contains("--ui-overlay-z-index:"));
+        assert!(css.contains("--ui-slider-max-width:"));
+        assert!(css.contains("--ui-slider-thumb-border-width:"));
+        assert!(css.contains("--ui-slider-focus-ring-width:"));
+        assert!(css.contains("--ui-underlay-transition-duration:"));
+        assert!(css.contains("--ui-text-field-motion-duration:"));
+        assert!(css.contains("--ui-text-field-motion-easing:"));
         assert!(css.contains("--ui-button-min-width:"));
         assert!(css.contains("--ui-button-spinner-size:"));
         assert!(css.contains("--ui-button-size-m-height:"));

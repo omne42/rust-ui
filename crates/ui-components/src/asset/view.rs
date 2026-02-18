@@ -1,5 +1,5 @@
 use super::{AssetMotion, AssetSize, AssetVariant, logic, motion};
-use crate::Thumbnail;
+use crate::thumbnail::Thumbnail;
 use leptos::prelude::*;
 
 #[component]

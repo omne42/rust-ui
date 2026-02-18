@@ -163,7 +163,7 @@ pub fn PressableFeedback(
             <Show when=move || state.get().has_ripple>
                 <MotionRipple
                     node_ref=ripple_ref
-                    bounded=bounded
+                    is_bounded=bounded
                     motion=motion.ripple
                     class_name="ui-pressable-feedback__ripple".to_string()
                 />

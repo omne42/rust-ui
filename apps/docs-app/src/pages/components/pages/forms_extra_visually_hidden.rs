@@ -4,6 +4,10 @@ use leptos::prelude::*;
 use ui_components::VisuallyHidden;
 
 pub(super) fn visually_hidden() -> AnyView {
+    let hello_world_code = Signal::derive(move || {
+        r##"<VisuallyHidden>"Open account settings"</VisuallyHidden>"##.to_string()
+    });
+
     let icon_code = Signal::derive(move || {
         r##"<button type="button" aria-haspopup="menu">
   <span aria-hidden="true">⚙</span>
@@ -13,7 +17,7 @@ pub(super) fn visually_hidden() -> AnyView {
     });
 
     let focusable_code = Signal::derive(move || {
-        r##"<VisuallyHidden focusable=true>
+        r##"<VisuallyHidden is_focusable=true>
   <a href="#docs-visually-hidden-target">"Skip to details"</a>
 </VisuallyHidden>
 <div id="docs-visually-hidden-target" tabindex="-1">"Details section"</div>"##
@@ -27,6 +31,15 @@ pub(super) fn visually_hidden() -> AnyView {
             group="Forms"
             description="@a11y-baseline/visually-hidden compatible utility for screen-reader-only content and focusable skip-link workflows."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <div class="docs-stack">
+                    <VisuallyHidden>"Open account settings"</VisuallyHidden>
+                    <p>
+                        "Default usage is a single semantic wrapper without extra state wiring."
+                    </p>
+                </div>
+            </Playground>
+
             <Playground title="Icon Button Accessible Label" code_signal=icon_code>
                 <div class="docs-stack">
                     <button type="button" aria-haspopup="menu">
@@ -41,7 +54,7 @@ pub(super) fn visually_hidden() -> AnyView {
 
             <Playground title="Focusable Skip Link" code_signal=focusable_code>
                 <div class="docs-stack">
-                    <VisuallyHidden focusable=true>
+                    <VisuallyHidden is_focusable=true>
                         <a href="#docs-visually-hidden-target">"Skip to details"</a>
                     </VisuallyHidden>
                     <p>

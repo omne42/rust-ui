@@ -163,6 +163,8 @@ fn coachmark_docs_page_covers_primary_playgrounds() {
         "title=\"Step + CTA + Asset Variant\"",
         "title=\"Controlled + Image Asset + Actions\"",
         "title=\"State + Source Markers\"",
+        "title=\"Display Comparisons (Help / Info / Disabled)\"",
+        "title=\"Config + Code + CSS Test Workbench\"",
     ] {
         assert!(
             source.contains(needle),
@@ -190,10 +192,86 @@ fn coachmark_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"State + Source Markers\"",
         "aria_label=\"Coachmark help\".to_string()",
         "class_name=\"docs-coachmark-state\".to_string()",
+        "title=\"Display Comparisons (Help / Info / Disabled)\"",
+        "title=\"Config + Code + CSS Test Workbench\"",
+        "test_css_source=workbench_test_css_source",
+        "test_config_signal=workbench_actual_config",
+        "controls=move || {",
     ] {
         assert!(
             source.contains(needle),
             "coachmark docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn coachmark_readme_includes_display_config_code_css_test_sections() {
+    let source = load_source("src/coachmark/README.md");
+
+    for needle in [
+        "## display（展示区）",
+        "## config（配置区）",
+        "## code（代码区）",
+        "## css test（样式测试区）",
+        "## 多场景对比（Comparison Matrix）",
+    ] {
+        assert!(
+            source.contains(needle),
+            "coachmark README should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn coachmark_exposes_agent_contract_and_snapshot_stream_markers() {
+    let source = load_source("src/coachmark/view.rs");
+
+    for needle in [
+        "data-ui-schema=\"ui.coachmark.agent-contract.v1\"",
+        "data-ui-schema-version=\"1\"",
+        "data-ui-intent=\"guided-tour\"",
+        "data-ui-action=ui_action_attr",
+        "data-ui-state=state.state_attr",
+        "data-ui-source=ui_source_attr",
+        "data-ui-stream-support=\"optional\"",
+        "data-ui-stream-fallback=\"snapshot\"",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=output_status_attr",
+        "data-stream-mode=\"snapshot\"",
+        "data-stream-fallback=\"snapshot\"",
+        "data-output-status=output_status_attr",
+    ] {
+        assert!(
+            source.contains(needle),
+            "coachmark view should expose `{needle}` for agent-contract + stream snapshot markers."
+        );
+    }
+}
+
+#[test]
+fn coachmark_feature_chain_includes_required_dependencies() {
+    let source = load_source("Cargo.toml");
+
+    for needle in [
+        "component-contextual_help = [\"component-button\", \"component-popover\"]",
+        "component-coachmark = [",
+        "\"component-asset\"",
+        "\"component-button\"",
+        "\"component-contextual_help\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "coachmark feature dependency chain should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn coachmark_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/coachmark/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "coachmark check2 checklist should not keep unchecked items."
+    );
 }

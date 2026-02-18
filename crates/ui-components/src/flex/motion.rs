@@ -1,11 +1,20 @@
-pub type FlexMotion = crate::illustrated_message::IllustratedMessageMotion;
-
-pub fn sanitize_motion(motion: FlexMotion) -> FlexMotion {
-    crate::illustrated_message::motion::sanitize_motion(motion)
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct FlexMotion {
+    pub animate_in: bool,
 }
 
-pub fn attach_motion(node_ref: leptos::prelude::NodeRef<leptos::html::Div>, motion: FlexMotion) {
-    crate::illustrated_message::motion::attach_motion(node_ref, sanitize_motion(motion));
+pub fn sanitize_motion(motion: FlexMotion) -> FlexMotion {
+    motion
+}
+
+#[cfg(target_arch = "wasm32")]
+pub fn attach_motion(_node_ref: leptos::prelude::NodeRef<leptos::html::Div>, motion: FlexMotion) {
+    let _ = sanitize_motion(motion);
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn attach_motion(_node_ref: leptos::prelude::NodeRef<leptos::html::Div>, motion: FlexMotion) {
+    let _ = sanitize_motion(motion);
 }
 
 #[cfg(test)]

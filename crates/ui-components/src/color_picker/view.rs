@@ -1,13 +1,14 @@
+use crate::OnPress;
 use crate::color_picker::{
     ColorPickerMotion, ColorPickerStateInput,
     logic::{self},
 };
 use crate::color_swatch::{ColorSwatch, ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize};
-use crate::{OnPress, Popover};
+use crate::popover::Popover;
 use leptos::{html, prelude::*};
 use ui_headless as overlay_open;
-use ui_headless::PopoverPlacement;
 use ui_headless::use_presence;
+use ui_headless::{A11yDirection, PopoverPlacement, locale_attrs};
 
 #[component]
 pub fn ColorPicker(
@@ -15,6 +16,8 @@ pub fn ColorPicker(
     children: ChildrenFn,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] selected_color: Option<Signal<Option<String>>>,
     #[prop(optional, into)] default_selected_color: Option<String>,
@@ -100,6 +103,7 @@ pub fn ColorPicker(
     let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));
 
     let aria_controls = ui_headless::aria_controls_when_open(open, panel_id.get_value());
+    let locale = locale_attrs(lang, dir);
 
     let children = StoredValue::new(children);
 
@@ -124,6 +128,8 @@ pub fn ColorPicker(
                 "custom"
             }
             data-custom-motion=move || (motion != ColorPickerMotion::default()).then_some("true")
+            lang=locale.lang.clone()
+            dir=locale.dir
         >
             <button
                 id=trigger_id.get_value()

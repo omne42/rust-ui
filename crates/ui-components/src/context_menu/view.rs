@@ -1,17 +1,20 @@
 use crate::context_menu::{
     ContextMenuMotion, ContextMenuPartStateInput, ContextMenuSlot, MenuOpenFocusStrategy, logic,
 };
-use crate::{Menu, MenuItemKind, OnPress, Popover};
+use crate::menu::Menu;
+use crate::popover::Popover;
+use crate::{MenuItemKind, OnPress};
 use leptos::{ev, html, prelude::*};
 use ui_headless as overlay_open;
-use ui_headless::PopoverPlacement;
 use ui_headless::use_presence;
+use ui_headless::{A11yDirection, PopoverPlacement, locale_attrs};
 
 #[component]
 pub fn ContextMenu(
     id_base: String,
     items: Vec<String>,
     on_action: Callback<usize>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] item_kinds: Vec<MenuItemKind>,
@@ -21,6 +24,8 @@ pub fn ContextMenu(
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional)] motion: ContextMenuMotion,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -45,11 +50,13 @@ pub fn ContextMenu(
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
 
     let (aria_label, has_custom_aria_label) = logic::resolve_trigger_aria_label(aria_label);
     let aria_label = StoredValue::new(aria_label);
 
-    let has_custom_disabled = disabled != logic::DEFAULT_DISABLED;
+    let disabled = is_disabled.unwrap_or(disabled);
+    let has_custom_disabled = is_disabled.is_some() || disabled != logic::DEFAULT_DISABLED;
     let has_custom_close_on_action = close_on_action != logic::DEFAULT_CLOSE_ON_ACTION;
     let has_custom_placement = placement != logic::DEFAULT_PLACEMENT;
 
@@ -150,6 +157,8 @@ pub fn ContextMenu(
     view! {
         <div
             class=move || root_class.get()
+            lang=locale.lang.clone()
+            dir=locale.dir
             data-slot=move || root_state.get().slot_attr
             data-state=move || root_state.get().state_attr
             data-items=move || root_state.get().item_attr
@@ -200,6 +209,28 @@ pub fn ContextMenu(
                 root_state.get().has_custom_on_open_change.then_some("true")
             }
             data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
+            data-ui-schema="ui.context_menu.agent-contract.v1"
+            data-ui-schema-version="1"
+            data-ui-intent="open-context-actions"
+            data-ui-action=move || {
+                if root_state.get().is_open {
+                    "open"
+                } else {
+                    "idle"
+                }
+            }
+            data-ui-state=move || root_state.get().state_attr
+            data-ui-source=move || root_state.get().open_source_attr
+            data-ui-stream-support="unsupported"
+            data-ui-stream-fallback="snapshot"
+            data-ui-stream-mode="snapshot"
+            data-ui-output-status=move || {
+                if root_state.get().is_open {
+                    "draft"
+                } else {
+                    "submittable"
+                }
+            }
         >
             <button
                 type="button"

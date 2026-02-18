@@ -1,69 +1,51 @@
-use crate::date_range_picker::{DateRangePickerState, DateRangePickerStateInput};
+use ui_state_primitives::date_range_picker as date_range_picker_state;
 
-pub const DEFAULT_ARIA_LABEL: &str = "Date range picker";
+pub use ui_state_primitives::date_range_picker::{
+    DEFAULT_ARIA_LABEL, DateRangePickerState, DateRangePickerStateInput, DateRangePickerTone,
+};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum DateRangePickerTone {
-    #[default]
-    Default,
-    Quiet,
-    Strong,
+pub const DEFAULT_START_LABEL: &str = "Start";
+pub const DEFAULT_END_LABEL: &str = "End";
+pub const DEFAULT_START_PLACEHOLDER: &str = "Start date";
+pub const DEFAULT_END_PLACEHOLDER: &str = "End date";
+pub const DEFAULT_INVALID_RANGE_MESSAGE: &str = "End date must be on or after start date.";
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DateRangePickerTextInput {
+    pub start_label: Option<String>,
+    pub end_label: Option<String>,
+    pub start_placeholder: Option<String>,
+    pub end_placeholder: Option<String>,
+    pub start_aria_label: Option<String>,
+    pub end_aria_label: Option<String>,
+    pub invalid_range_message: Option<String>,
 }
 
-impl DateRangePickerTone {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            DateRangePickerTone::Default => "ui-date-range-picker--tone-default",
-            DateRangePickerTone::Quiet => "ui-date-range-picker--tone-quiet",
-            DateRangePickerTone::Strong => "ui-date-range-picker--tone-strong",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            DateRangePickerTone::Default => "default",
-            DateRangePickerTone::Quiet => "quiet",
-            DateRangePickerTone::Strong => "strong",
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct DateRangePickerTextState {
+    pub start_label: String,
+    pub end_label: String,
+    pub start_placeholder: String,
+    pub end_placeholder: String,
+    pub start_aria_label: String,
+    pub end_aria_label: String,
+    pub invalid_range_message: String,
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+    date_range_picker_state::normalize_optional_text(value)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    date_range_picker_state::normalize_aria_label(value)
 }
 
 pub fn normalize_month(month: u8) -> u8 {
-    month.clamp(1, 12)
-}
-
-pub fn is_leap_year(year: i32) -> bool {
-    (year % 4 == 0 && year % 100 != 0) || year % 400 == 0
+    date_range_picker_state::normalize_month(month)
 }
 
 pub fn days_in_month(year: i32, month: u8) -> u8 {
-    match normalize_month(month) {
-        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
-        4 | 6 | 9 | 11 => 30,
-        2 => {
-            if is_leap_year(year) {
-                29
-            } else {
-                28
-            }
-        }
-        _ => 31,
-    }
+    date_range_picker_state::days_in_month(year, month)
 }
 
 pub fn normalize_day(day: Option<u8>, year: i32, month: u8) -> Option<u8> {
@@ -73,102 +55,51 @@ pub fn normalize_day(day: Option<u8>, year: i32, month: u8) -> Option<u8> {
     })
 }
 
-fn date_rank(year: i32, month: u8, day: u8) -> i64 {
-    (year as i64 * 372) + (normalize_month(month) as i64 * 31) + day as i64
-}
-
 pub fn is_range_invalid(start: Option<(i32, u8, u8)>, end: Option<(i32, u8, u8)>) -> bool {
-    match (start, end) {
-        (Some((start_year, start_month, start_day)), Some((end_year, end_month, end_day))) => {
-            date_rank(start_year, start_month, start_day) > date_rank(end_year, end_month, end_day)
-        }
-        _ => false,
-    }
+    date_range_picker_state::is_range_invalid(start, end)
 }
 
 pub fn resolve_state(input: DateRangePickerStateInput) -> DateRangePickerState {
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    let has_full_value = input.has_start_value && input.has_end_value;
-    let is_partial = input.has_start_value ^ input.has_end_value;
-
-    let data_state_attr = if input.disabled {
-        "disabled"
-    } else if input.is_invalid_range {
-        "invalid"
-    } else if has_full_value {
-        "value"
-    } else if is_partial {
-        "partial"
-    } else {
-        "empty"
-    };
-
-    DateRangePickerState {
-        tone: input.tone,
-        tone_class: input.tone.class_name(),
-        tone_attr: input.tone.as_attr(),
-        is_disabled: input.disabled,
-        has_start_value: input.has_start_value,
-        has_end_value: input.has_end_value,
-        has_full_value,
-        is_partial,
-        is_invalid_range: input.is_invalid_range,
-        data_state_attr,
-        aria_source_attr,
-        class_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
-    }
+    date_range_picker_state::resolve_state(input)
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: DateRangePickerState) -> String {
-    let mut classes = vec![
-        "ui-date-range-picker".to_string(),
-        state.tone_class.to_string(),
-    ];
+    date_range_picker_state::compose_class_name(base_class_name, state)
+}
 
-    if state.is_disabled {
-        classes.push("ui-date-range-picker--disabled".to_string());
-    }
-    if state.has_start_value {
-        classes.push("ui-date-range-picker--has-start".to_string());
-    }
-    if state.has_end_value {
-        classes.push("ui-date-range-picker--has-end".to_string());
-    }
-    if state.has_full_value {
-        classes.push("ui-date-range-picker--has-full-value".to_string());
-    }
-    if state.is_partial {
-        classes.push("ui-date-range-picker--partial".to_string());
-    }
-    if state.is_invalid_range {
-        classes.push("ui-date-range-picker--invalid-range".to_string());
-    }
+pub fn resolve_text_state(input: DateRangePickerTextInput) -> DateRangePickerTextState {
+    let start_label = normalize_optional_text(input.start_label)
+        .unwrap_or_else(|| DEFAULT_START_LABEL.to_string());
+    let end_label =
+        normalize_optional_text(input.end_label).unwrap_or_else(|| DEFAULT_END_LABEL.to_string());
 
-    if state.has_custom_class_name {
-        classes.push("ui-date-range-picker--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
+    let start_placeholder = normalize_optional_text(input.start_placeholder)
+        .unwrap_or_else(|| DEFAULT_START_PLACEHOLDER.to_string());
+    let end_placeholder = normalize_optional_text(input.end_placeholder)
+        .unwrap_or_else(|| DEFAULT_END_PLACEHOLDER.to_string());
 
-    classes.join(" ")
+    let start_aria_label = normalize_optional_text(input.start_aria_label)
+        .unwrap_or_else(|| start_placeholder.clone());
+    let end_aria_label =
+        normalize_optional_text(input.end_aria_label).unwrap_or_else(|| end_placeholder.clone());
+
+    let invalid_range_message = normalize_optional_text(input.invalid_range_message)
+        .unwrap_or_else(|| DEFAULT_INVALID_RANGE_MESSAGE.to_string());
+
+    DateRangePickerTextState {
+        start_label,
+        end_label,
+        start_placeholder,
+        end_placeholder,
+        start_aria_label,
+        end_aria_label,
+        invalid_range_message,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::date_range_picker::DateRangePickerStateInput;
 
     #[test]
     fn tone_class_names_and_attrs_are_stable() {
@@ -246,5 +177,26 @@ mod tests {
         ] {
             assert!(class_name.contains(token), "class should include `{token}`");
         }
+    }
+
+    #[test]
+    fn resolve_text_state_uses_single_logic_fallback_source() {
+        let text = resolve_text_state(DateRangePickerTextInput {
+            start_label: Some("  ".to_string()),
+            end_label: None,
+            start_placeholder: Some("Begin".to_string()),
+            end_placeholder: None,
+            start_aria_label: None,
+            end_aria_label: Some("Finish".to_string()),
+            invalid_range_message: None,
+        });
+
+        assert_eq!(text.start_label, DEFAULT_START_LABEL);
+        assert_eq!(text.end_label, DEFAULT_END_LABEL);
+        assert_eq!(text.start_placeholder, "Begin");
+        assert_eq!(text.end_placeholder, DEFAULT_END_PLACEHOLDER);
+        assert_eq!(text.start_aria_label, "Begin");
+        assert_eq!(text.end_aria_label, "Finish");
+        assert_eq!(text.invalid_range_message, DEFAULT_INVALID_RANGE_MESSAGE);
     }
 }

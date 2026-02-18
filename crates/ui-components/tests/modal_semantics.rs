@@ -258,3 +258,36 @@ fn modal_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn modal_docs_include_interactive_playground_contract_panels() {
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/overlays.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=interactive_test_css",
+        "test_config_signal=interactive_config",
+        "controls=move || view!",
+        "test_source_path=\"crates/ui-components/src/modal/styles.rs\".to_string()",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "modal docs interactive playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn modal_readme_and_docs_shell_register_display_config_code_css_contract() {
+    let readme_source = load_source("src/modal/README.md");
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+
+    assert!(
+        readme_source.contains("## Playground 展示区（Display / Config / Code / CSS Test）"),
+        "modal README should document display/config/code/css test playground layout.",
+    );
+    assert!(
+        shell_source.contains("\"modal\" => Some(MODAL_README_MD)"),
+        "docs shell should map modal slug to MODAL_README_MD.",
+    );
+}

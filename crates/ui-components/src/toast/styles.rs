@@ -1,14 +1,17 @@
 pub const CSS: &str = r#"
 .ui-toast-viewport {
+  --ui-toast-viewport-offset: var(--ui-overlay-viewport-inset, 16px);
+  --ui-toast-single-max-width: var(--ui-overlay-panel-min-width, 240px);
+  --ui-toast-max-inline-width: calc(var(--ui-overlay-panel-min-width, 240px) + var(--ui-space-lg, 16px) * 9);
   position: fixed;
-  right: 16px;
-  bottom: 16px;
-  z-index: 1100;
+  right: var(--ui-toast-viewport-offset);
+  bottom: var(--ui-toast-viewport-offset);
+  z-index: var(--ui-overlay-z-index, 1100);
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-sm);
   pointer-events: none;
-  max-width: min(92vw, 420px);
+  max-width: min(92vw, var(--ui-toast-max-inline-width));
 }
 
 .ui-toast-viewport--portal,
@@ -42,12 +45,12 @@ pub const CSS: &str = r#"
 }
 
 .ui-toast-viewport[data-queue="single"] {
-  max-width: min(92vw, 360px);
+  max-width: min(92vw, var(--ui-toast-single-max-width));
 }
 
 .ui-toast-viewport[data-queue="bounded"],
 .ui-toast-viewport[data-queue="extended"] {
-  max-width: min(92vw, 420px);
+  max-width: min(92vw, var(--ui-toast-max-inline-width));
 }
 
 .ui-toast {
@@ -122,30 +125,30 @@ pub const CSS: &str = r#"
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--ui-space-2xs, 4px);
   flex: 1;
 }
 
 .ui-toast__title {
   font-weight: 700;
-  font-size: 13px;
+  font-size: var(--ui-font-size-100, 14px);
   line-height: 1.2;
 }
 
 .ui-toast__description {
-  font-size: 12px;
+  font-size: calc(var(--ui-font-size-100, 14px) - 2px);
   line-height: 1.35;
   color: var(--ui-fg-muted);
 }
 
 .ui-toast__close {
   all: unset;
-  width: 28px;
-  height: 28px;
+  width: calc(var(--ui-space-lg, 16px) + var(--ui-space-xs, 8px));
+  height: calc(var(--ui-space-lg, 16px) + var(--ui-space-xs, 8px));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
+  border-radius: var(--ui-radius-md, 10px);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   color: var(--ui-fg-muted);

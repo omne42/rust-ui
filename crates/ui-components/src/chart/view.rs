@@ -1,9 +1,8 @@
-use crate::active_highlight::attach_active_highlight_motion;
-use crate::chart::ChartMotion;
 use crate::chart::logic::{self, ChartKind, ChartPoint, ChartStateInput};
+use crate::chart::motion;
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
-use ui_headless as overlay_open;
+use ui_headless::{A11yDirection, ChartKeyAction, ChartOptions, use_chart, use_controllable_state};
 
 #[component]
 pub fn Chart(
@@ -14,15 +13,19 @@ pub fn Chart(
     #[prop(optional)] default_active_index: Option<usize>,
     #[prop(optional)] on_active_index_change: Option<Callback<usize>>,
     #[prop(optional)] on_action: Option<Callback<String>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional, default = true)] show_grid: bool,
-    #[prop(optional)] motion: ChartMotion,
+    #[prop(optional)] motion: motion::ChartMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let id_base = logic::normalize_id_base(id_base);
     let class_name = logic::normalize_optional_text(class_name);
     let aria_label = logic::normalize_aria_label(aria_label);
+    let resolved_disabled = is_disabled.unwrap_or(disabled);
 
     let points: Arc<[ChartPoint]> = logic::normalize_points(points).into();
     let point_count = points.len();
@@ -31,7 +34,7 @@ pub fn Chart(
     let default_active_index = logic::default_active_index(point_count, default_active_index);
 
     let is_controlled = active_index.is_some();
-    let active_state = overlay_open::use_controllable_state(
+    let active_state = use_controllable_state(
         active_index,
         Some(default_active_index),
         on_active_index_change,
@@ -50,16 +53,27 @@ pub fn Chart(
     let points = StoredValue::new(points);
     let domain = StoredValue::new(domain);
     let on_action = StoredValue::new(on_action);
+    let lang = StoredValue::new(lang);
+    let dir = StoredValue::new(dir);
 
     let state = Signal::derive(move || {
         logic::resolve_state(ChartStateInput {
             kind,
             point_count,
             active_index: active_index.get(),
-            disabled,
+            disabled: resolved_disabled,
             show_grid,
             is_controlled,
             has_custom_class_name: class_name.get_value().is_some(),
+        })
+    });
+
+    let semantics = Signal::derive(move || {
+        use_chart(ChartOptions {
+            state: state.get(),
+            aria_label: aria_label.get_value(),
+            lang: lang.get_value(),
+            dir: dir.get_value(),
         })
     });
 
@@ -70,13 +84,20 @@ pub fn Chart(
     let highlight_ref: NodeRef<html::Div> = NodeRef::new();
     let option_id =
         Callback::new(move |index: usize| format!("{}-legend-{index}", id_base.get_value()));
-    attach_active_highlight_motion(
+    let motion = motion::sanitize_motion(motion);
+    motion::attach_motion(
         legend_ref,
         highlight_ref,
         active_index_read,
         option_id,
         motion,
     );
+    let motion_source = if motion == motion::ChartMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != motion::ChartMotion::default()).then_some("true");
 
     let indices: StoredValue<Vec<usize>> = StoredValue::new((0..point_count).collect());
 
@@ -86,7 +107,7 @@ pub fn Chart(
     ));
 
     let select_point = Callback::new(move |index: usize| {
-        if disabled || point_count == 0 {
+        if resolved_disabled || point_count == 0 {
             return;
         }
 
@@ -95,7 +116,7 @@ pub fn Chart(
     });
 
     let trigger_action = Callback::new(move |index: usize| {
-        if disabled || point_count == 0 {
+        if resolved_disabled || point_count == 0 {
             return;
         }
 
@@ -113,20 +134,24 @@ pub fn Chart(
         <section
             class=move || class.get()
             data-slot="chart"
-            data-kind=move || state.get().kind_attr
-            data-state=move || state.get().state_attr
-            data-empty=move || state.get().is_empty.then_some("true")
-            data-has-points=move || state.get().has_points.then_some("true")
-            data-disabled=move || state.get().disabled.then_some("true")
-            data-enabled=move || state.get().enabled.then_some("true")
-            data-show-grid=move || state.get().show_grid.then_some("true")
-            data-controlled=move || state.get().is_controlled.then_some("true")
-            data-uncontrolled=move || state.get().is_uncontrolled.then_some("true")
+            data-kind=move || semantics.get().attrs.data_kind
+            data-state=move || semantics.get().attrs.data_state
+            data-empty=move || semantics.get().attrs.data_empty
+            data-has-points=move || semantics.get().attrs.data_has_points
+            data-disabled=move || semantics.get().attrs.data_disabled
+            data-enabled=move || semantics.get().attrs.data_enabled
+            data-show-grid=move || semantics.get().attrs.data_show_grid
+            data-controlled=move || semantics.get().attrs.data_controlled
+            data-uncontrolled=move || semantics.get().attrs.data_uncontrolled
             data-active-index=move || state.get().active_index.to_string()
-            data-class-source=move || state.get().class_source_attr
-            data-custom-class=move || state.get().has_custom_class_name.then_some("true")
-            role="region"
-            aria-label=aria_label.get_value()
+            data-class-source=move || semantics.get().attrs.data_class_source
+            data-custom-class=move || semantics.get().attrs.data_custom_class
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
+            role=move || semantics.get().attrs.role
+            aria-label=move || semantics.get().attrs.aria_label
+            lang=move || semantics.get().attrs.lang
+            dir=move || semantics.get().attrs.dir
         >
             <div class="ui-chart__plot-wrap" data-slot="chart-plot-wrap">
                 <svg
@@ -134,7 +159,7 @@ pub fn Chart(
                     data-slot="chart-plot"
                     viewBox="0 0 100 56"
                     role="img"
-                    aria-label=aria_label.get_value()
+                    aria-label=move || semantics.get().attrs.aria_label
                 >
                     <Show when=move || state.get().show_grid>
                         <g class="ui-chart__grid" data-slot="chart-grid">
@@ -174,23 +199,21 @@ pub fn Chart(
                                 };
 
                                 let on_key_down = move |event: ev::KeyboardEvent| {
-                                    if disabled {
-                                        return;
-                                    }
-
-                                    if event.key() == "Enter" || event.key() == " " {
-                                        trigger_action.run(index);
-                                        event.prevent_default();
-                                        return;
-                                    }
-
-                                    if let Some(next) = logic::next_index_for_key(
+                                    match semantics.get_untracked().handlers.on_key_down(
                                         &event.key(),
-                                        state.get_untracked().active_index,
+                                        index,
                                         point_count,
+                                        resolved_disabled,
                                     ) {
-                                        select_point.run(next);
-                                        event.prevent_default();
+                                        ChartKeyAction::Noop => {}
+                                        ChartKeyAction::MoveTo(next) => {
+                                            select_point.run(next);
+                                            event.prevent_default();
+                                        }
+                                        ChartKeyAction::Activate(current) => {
+                                            trigger_action.run(current);
+                                            event.prevent_default();
+                                        }
                                     }
                                 };
 
@@ -208,10 +231,10 @@ pub fn Chart(
                                             y=y
                                             width=bar_width
                                             height=rect_h
-                                            tabindex=if disabled { -1 } else { 0 }
+                                            tabindex=if resolved_disabled { -1 } else { 0 }
                                             role="button"
                                             aria-label=format!("{} {:.2}", point.label, point.value)
-                                            aria-disabled=disabled.then_some("true")
+                                            aria-disabled=resolved_disabled.then_some("true")
                                             on:pointerenter=on_enter
                                             on:click=on_click
                                             on:keydown=on_key_down
@@ -229,10 +252,10 @@ pub fn Chart(
                                             cx=x
                                             cy=y
                                             r=move || if is_active() { 2.8 } else { 2.0 }
-                                            tabindex=if disabled { -1 } else { 0 }
+                                            tabindex=if resolved_disabled { -1 } else { 0 }
                                             role="button"
                                             aria-label=format!("{} {:.2}", point.label, point.value)
-                                            aria-disabled=disabled.then_some("true")
+                                            aria-disabled=resolved_disabled.then_some("true")
                                             on:pointerenter=on_enter
                                             on:click=on_click
                                             on:keydown=on_key_down
@@ -272,23 +295,21 @@ pub fn Chart(
                             };
 
                             let on_key_down = move |event: ev::KeyboardEvent| {
-                                if disabled {
-                                    return;
-                                }
-
-                                if event.key() == "Enter" || event.key() == " " {
-                                    trigger_action.run(index);
-                                    event.prevent_default();
-                                    return;
-                                }
-
-                                if let Some(next) = logic::next_index_for_key(
+                                match semantics.get_untracked().handlers.on_key_down(
                                     &event.key(),
-                                    state.get_untracked().active_index,
+                                    index,
                                     point_count,
+                                    resolved_disabled,
                                 ) {
-                                    select_point.run(next);
-                                    event.prevent_default();
+                                    ChartKeyAction::Noop => {}
+                                    ChartKeyAction::MoveTo(next) => {
+                                        select_point.run(next);
+                                        event.prevent_default();
+                                    }
+                                    ChartKeyAction::Activate(current) => {
+                                        trigger_action.run(current);
+                                        event.prevent_default();
+                                    }
                                 }
                             };
 
@@ -300,7 +321,7 @@ pub fn Chart(
                                     data-active=move || (state.get().active_index == index).then_some("true")
                                     id=move || format!("{}-legend-{index}", id_base.get_value())
                                     type="button"
-                                    disabled=disabled
+                                    disabled=resolved_disabled
                                     aria-pressed=move || {
                                         if state.get().active_index == index {
                                             "true"

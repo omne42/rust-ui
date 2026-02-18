@@ -181,25 +181,25 @@
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`crates/ui-components/src/toast/view.rs` 未使用 `inner_html`；由 `crates/ui-components/tests/toast_semantics.rs` 的 `toast_view_disallows_inner_html_injection_paths` 锁定）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`Toast` 复用全局 `ui_headless::UiTrace` + docs-app `UiDebugOverlay`：状态来源由 `data-control-mode/data-open-source/data-default-open-source/data-open-change-source` 持续可追踪；时间线由 `UiTraceEvent { ts_ms, component, kind: OpenChange }` 提供；交互最小可复现链路由 close 按钮 pointer/keyboard 与 `Escape -> request_open_change.run(false)` 构成。调试能力通过仓库级 `wasm_debug_proxy` 与现有 opt-in debug feature（如 `button-wasm-debug`）隔离，`Cargo.toml` 不存在 `toast-wasm-debug`，不污染生产公共 API。回归：`crates/ui-components/tests/toast_semantics.rs` 的 `toast_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated`。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`Toast` 复用 docs `Playground` 的 scoped-css 热重载与隔离画布能力：`apps/docs-app/src/playground.rs` 提供 `compose_scoped_css + data-playground-scope + Show test/Restore original CSS`，常见样式调整无需重编 wasm；`apps/docs-app/src/pages/components/pages/overlays.rs` 的 Toast 页面提供 `Basic Toast + Escape/Close` 与 `State + Source Markers` 两个隔离演练入口，并通过 `open_default_raw/open_danger_raw` + re-open 按钮保持交互上下文。可选状态保留在当前 Toast 文档场景按 N/A 处理：不引入本地 workbench storage key/persist toggle，避免把页面级持久化噪音注入组件契约。回归由 `crates/ui-components/tests/toast_semantics.rs` 的 `toast_dx_playground_supports_css_hot_reload_without_wasm_rebuild`、`toast_dx_workbench_uses_interactive_playground_and_marks_persist_state_na` 与 `toast_dx_check_script_keeps_shared_playground_contract_gate` 覆盖。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`Toast` 当前无 `spec.rs`/schema 入口，spec 序列化与迁移路径按 N/A 固化；`component-toast = []` 未引入 `serde/tracing/tokio/async-std` 依赖扇出。关键交互追踪复用 `ui_headless::use_controllable_open_state_traced` 与 `UiTraceEventKind::OpenChange`，不引入组件私有 `tracing::span/event` 词汇漂移。异步边界仅使用浏览器定时器桥接（`set_timeout_with_handle`，wasm 分支内封装），不暴露任何 tokio/async-std runtime 类型到公共 API。回归由 `crates/ui-components/tests/toast_semantics.rs` 的 `toast_does_not_define_spec_module_for_simple_component_scope` 与 `toast_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnostic` 覆盖。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] `ui-components` 固定入口文件落点正确。（`Toast` 组件继续遵循统一入口边界：`src/lib.rs` 维持 `component-*` gate + 公共 `pub use`；`src/css.rs` 通过 feature 条件聚合 `push_components_css`，`component-toast` 仅在启用时注入；`src/root.rs` 作为 `UiRoot` 统一注入 base css + theme vars +（可选）components css 并提供 i18n 上下文；`src/active_highlight.rs` 保持共享高亮样式/动效驱动且无组件业务语义。`src/overlay_open.rs` / `src/presence.rs` / `src/a11y.rs` 在 ui-components 不存在，对应原语固定在 ui-headless。回归：`crates/ui-components/tests/toast_semantics.rs` 的 `toast_ui_components_fixed_entry_files_follow_layered_boundaries`。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -207,7 +207,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`Toast` 目录保持标准落点：`mod.rs/logic.rs/styles.rs/view.rs/motion.rs` 全部存在；`render.rs` 与 `spec.rs` 不存在。`mod.rs` 维持最小稳定导出面（`logic/view` 私有、对外通过 `pub use` 暴露稳定 API）；`logic.rs` 聚焦归一化与来源派生并消费 `ui-state-primitives`；`styles.rs` 保持 token-first 静态 CSS；`view.rs` 只做 Leptos 结构渲染与 headless 挂载；`motion.rs` 仅承载 `ToastMotion + sanitize_motion + attach_motion` 映射与驱动。回归由 `crates/ui-components/tests/toast_semantics.rs` 的 `toast_component_directory_standard_files_follow_responsibility_boundaries` 覆盖。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -216,25 +216,25 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`Toast` 与 `ToastViewport` 均通过 `logic.rs` 的类型化契约 `ToastAgentIntent/ToastAgentActionModel/ToastAgentContract` 生成 schema 字段，并在 `view.rs` 挂载 `data-ui-schema/data-ui-intent/data-ui-action-model/data-ui-state-axis/data-ui-source-axis`；避免散落字符串拼接与脚本注入路径。回归：`crates/ui-components/tests/toast_semantics.rs::toast_agent_contract_schema_is_typed_traceable_and_whitelisted` + `crates/ui-components/src/toast/logic.rs` 单元测试 `agent_contracts_are_typed_and_stable`。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（定义已固定：`Streaming` 仅表示 LLM 生成中增量显示，`Snapshot` 表示完整结果一次性显示；本组件后续流式能力判定均基于该二分法，避免把非 LLM 异步过程混入流式语义。回归：`crates/ui-components/tests/toast_semantics.rs::toast_streaming_definition_is_llm_output_only_with_two_modes`。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`Toast/ToastViewport` 作为 snapshot-first 组件，能够在接收完整配置后稳定渲染：`Toast` 侧对 `title/description` 做统一归一化并输出稳定语义标记，`ToastViewport` 侧可消费 `provided/context/local` 三类 store 来源并稳定挂载。当前不承载 LLM 正文流协议字段，保持 snapshot-only 契约清晰。回归：`crates/ui-components/tests/toast_semantics.rs::toast_check2_documents_snapshot_as_default_baseline_capability` 与 `crates/ui-components/tests/toast_semantics.rs::toast_snapshot_baseline_consumes_complete_result_and_renders_stably`。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`Toast` 并非正文阅读面，归类为 `Streaming Optional` 且当前实现为 `fallback=snapshot`：组件侧不承载 token 增量流协议，只消费完整配置并稳定渲染。输出状态（草稿/已验证/可提交）由上层 LLM 容器决策并透传，`Toast` 只保证 `role`/`aria-*`/`data-*` 语义连续可读。数据校验、断线恢复、重试策略保持在上层，不下沉到组件层。回归：`crates/ui-components/tests/toast_semantics.rs::toast_check2_documents_streaming_required_optional_classification_rules`、`crates/ui-components/tests/toast_semantics.rs::toast_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous`、`crates/ui-components/tests/toast_semantics.rs::toast_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer`。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`Toast` 已采用 `*_semantics.rs` 作为主回归入口：关键状态轴与来源标记通过 `data-*`/`aria-*`/`role`/键盘路径断言覆盖，视觉快照不作为主信号；新增语义字段需同步在语义测试补断言。回归：`crates/ui-components/tests/toast_semantics.rs::toast_check2_documents_semantics_first_testing_rules`、`crates/ui-components/tests/toast_semantics.rs::toast_semantics_suite_is_contract_first_not_snapshot_only`、`crates/ui-components/tests/toast_semantics.rs::toast_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

@@ -29,6 +29,8 @@ fn link_uses_logic_state_model() {
         "pub struct LinkState",
         "pub fn normalize_href(",
         "pub fn normalize_optional_text(",
+        "pub fn normalize_is_disabled(",
+        "pub enum LinkDisabledSource",
         "pub fn resolve_state(input: LinkStateInput)",
         "pub fn resolve_rel(",
         "pub fn compose_class_name(",
@@ -41,9 +43,11 @@ fn link_uses_logic_state_model() {
 
     for needle in [
         "let href = logic::normalize_href(href);",
+        "let (is_disabled, disabled_source) = logic::normalize_is_disabled(is_disabled, disabled);",
         "let rel = logic::normalize_optional_text(rel);",
         "let aria_label = logic::normalize_optional_text(aria_label);",
         "let class_name = logic::normalize_optional_text(class_name);",
+        "let locale = locale_attrs(lang, dir);",
         "let state = logic::resolve_state(LinkStateInput {",
         "let rel = logic::resolve_rel(target, rel);",
         "let class = logic::compose_class_name(class_name, state);",
@@ -76,6 +80,7 @@ fn link_supports_disabled_semantics_without_navigation() {
         "aria-disabled=state.is_disabled.then_some(\"true\")",
         "tabindex=state.is_disabled.then_some(-1)",
         "data-disabled=state.is_disabled.then_some(\"true\")",
+        "data-disabled-source=disabled_source.as_attr()",
         "data-missing-href=(!state.has_href).then_some(\"true\")",
     ] {
         assert!(
@@ -98,6 +103,15 @@ fn link_emits_baseline_style_data_attributes() {
         "data-rel=state.rel_source_attr",
         "data-aria-label=if state.has_aria_label { \"custom\" } else { \"none\" }",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
+        "data-ui-schema=\"ui.link.agent-contract\"",
+        "data-ui-schema-version=\"1\"",
+        "data-ui-intent=\"navigation\"",
+        "data-ui-action=\"navigate\"",
+        "data-ui-state=state.state_attr",
+        "data-ui-source=disabled_source.as_attr()",
+        "data-ui-stream-support=\"optional\"",
+        "data-ui-stream-fallback=\"snapshot\"",
+        "data-ui-output-status=\"verified\"",
         "class:ui-link--focus-visible=move || focus_ring.is_focus_visible.get()",
     ] {
         assert!(
@@ -144,8 +158,8 @@ fn link_docs_page_covers_primary_playgrounds() {
         "pub(super) fn link() -> AnyView",
         "title=\"Link\"",
         "slug=\"link\"",
-        "Playground title=\"State Matrix\"",
-        "Playground title=\"Custom Rel + Class\"",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "title=\"Comparison Matrix (Internal / External / Disabled / Missing)\"",
     ] {
         assert!(
             source.contains(needle),
@@ -159,15 +173,17 @@ fn link_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
-        "title=\"State Matrix\"",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "test_source_path=\"crates/ui-components/src/link/styles.rs\".to_string()",
+        "test_config_signal=workbench_config",
+        "title=\"Comparison Matrix (Internal / External / Disabled / Missing)\"",
         "<Link href=\"#/docs/welcome\".to_string()>\"Internal docs link\"</Link>",
         "<Link href=\"https://example.com\".to_string() target=\"_blank\">",
-        "<Link href=\"#/docs/welcome\".to_string() disabled=true>\"Disabled\"</Link>",
+        "<Link href=\"#/docs/welcome\".to_string() is_disabled=true>",
+        "<Link href=\"#/docs/welcome\".to_string() disabled=true>",
         "<Link href=\"   \".to_string()>\"Missing href\"</Link>",
-        "title=\"Custom Rel + Class\"",
-        "rel=\"sponsored\".to_string()",
-        "aria_label=\"Open partner documentation\".to_string()",
-        "class_name=\"docs-link-custom\".to_string()",
+        "Some(\"sponsored\".to_string())",
+        "\"docs-link-custom\".to_string()",
     ] {
         assert!(
             source.contains(needle),

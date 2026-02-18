@@ -1,105 +1,41 @@
-use crate::dropdown::{DropdownState, DropdownStateInput};
-use std::collections::BTreeSet;
+use leptos::prelude::*;
 
-pub const DEFAULT_ID_BASE: &str = "dropdown";
-pub const DEFAULT_ARIA_LABEL: &str = "Open dropdown";
+pub use ui_state_primitives::dropdown::{
+    DropdownOpenFocusStrategy, DropdownState, DropdownStateInput, focus_strategy_for_open_key,
+    normalize_aria_label, normalize_disabled_indices, normalize_id_base, normalize_optional_text,
+    resolve_state, resolve_trigger_disabled,
+};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum DropdownOpenFocusStrategy {
-    #[default]
-    First,
-    Last,
+pub struct DisabledStateInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
 }
 
-impl DropdownOpenFocusStrategy {
-    pub fn default_index(self, item_count: usize) -> usize {
-        match self {
-            Self::First => 0,
-            Self::Last => item_count.saturating_sub(1),
-        }
-    }
+pub fn normalize_disabled_state(input: DisabledStateInput) -> bool {
+    input.is_disabled.unwrap_or(input.disabled)
 }
 
-pub fn focus_strategy_for_open_key(key: &str) -> Option<DropdownOpenFocusStrategy> {
-    match key {
-        "ArrowDown" => Some(DropdownOpenFocusStrategy::First),
-        "ArrowUp" => Some(DropdownOpenFocusStrategy::Last),
-        _ => None,
-    }
+pub struct OpenStateInput {
+    pub is_open: Option<Signal<bool>>,
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+pub struct OpenState {
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+    pub is_controlled: bool,
 }
 
-pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
-}
-
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
-}
-
-pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize) -> Vec<usize> {
-    let mut unique = BTreeSet::new();
-    for index in disabled_indices {
-        if index < item_count {
-            unique.insert(index);
-        }
-    }
-    unique.into_iter().collect()
-}
-
-pub fn resolve_trigger_disabled(disabled: bool, item_count: usize) -> bool {
-    disabled || item_count == 0
-}
-
-pub fn resolve_state(input: DropdownStateInput) -> DropdownState {
-    let data_state_attr = if input.disabled {
-        "disabled"
-    } else if input.item_count == 0 {
-        "empty"
-    } else if input.close_on_action {
-        "close-on-action"
-    } else {
-        "persistent"
-    };
-
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
-    } else {
-        "default"
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    DropdownState {
-        item_count: input.item_count,
-        is_empty: input.item_count == 0,
-        has_items: input.item_count > 0,
-        is_disabled: input.disabled,
-        close_on_action: input.close_on_action,
-        keep_open_on_action: !input.close_on_action,
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_class_name: input.has_custom_class_name,
-        has_disabled_items: input.has_disabled_items,
-        has_item_kinds: input.has_item_kinds,
-        is_controlled: input.is_controlled,
-        is_uncontrolled: !input.is_controlled,
-        data_state_attr,
-        aria_source_attr,
-        class_source_attr,
+pub fn normalize_open_state(input: OpenStateInput) -> OpenState {
+    let open = input.is_open.or(input.open);
+    OpenState {
+        is_controlled: open.is_some(),
+        open,
+        default_open: input.default_open,
+        on_open_change: input.on_open_change,
     }
 }
 
@@ -135,69 +71,60 @@ pub fn compose_class_name(base_class_name: Option<String>, state: DropdownState)
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dropdown::DropdownStateInput;
 
     #[test]
-    fn normalize_id_base_trims_or_falls_back() {
+    fn state_primitives_are_reexported_from_ui_state_primitives() {
         assert_eq!(
-            normalize_id_base("  docs-dropdown  ".to_string()),
-            "docs-dropdown"
-        );
-        assert_eq!(normalize_id_base("   ".to_string()), DEFAULT_ID_BASE);
-    }
-
-    #[test]
-    fn normalize_aria_label_trims_or_falls_back() {
-        assert_eq!(
-            normalize_aria_label(Some("  Actions menu  ".to_string())),
-            ("Actions menu".to_string(), true)
+            normalize_id_base("   ".to_string()),
+            ui_state_primitives::dropdown::DEFAULT_ID_BASE
         );
         assert_eq!(
-            normalize_aria_label(Some("\n\t".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            normalize_aria_label(None),
+            (
+                ui_state_primitives::dropdown::DEFAULT_ARIA_LABEL.to_string(),
+                false
+            )
         );
-    }
-
-    #[test]
-    fn normalize_disabled_indices_dedupes_and_clamps() {
-        assert_eq!(normalize_disabled_indices(vec![2, 1, 1, 9], 3), vec![1, 2]);
-        assert_eq!(normalize_disabled_indices(vec![4], 0), Vec::<usize>::new());
-    }
-
-    #[test]
-    fn focus_strategy_for_open_key_maps_arrow_keys() {
         assert_eq!(
             focus_strategy_for_open_key("ArrowDown"),
             Some(DropdownOpenFocusStrategy::First)
         );
-        assert_eq!(
-            focus_strategy_for_open_key("ArrowUp"),
-            Some(DropdownOpenFocusStrategy::Last)
-        );
-        assert_eq!(focus_strategy_for_open_key("Enter"), None);
     }
 
     #[test]
-    fn resolve_state_tracks_state_and_sources() {
-        let state = resolve_state(DropdownStateInput {
-            item_count: 3,
+    fn normalize_disabled_state_prefers_is_prefix() {
+        assert!(normalize_disabled_state(DisabledStateInput {
+            is_disabled: Some(true),
             disabled: false,
-            close_on_action: false,
-            has_custom_aria_label: true,
-            has_custom_class_name: true,
-            is_controlled: true,
-            has_disabled_items: true,
-            has_item_kinds: true,
+        }));
+        assert!(!normalize_disabled_state(DisabledStateInput {
+            is_disabled: None,
+            disabled: false,
+        }));
+    }
+
+    #[test]
+    fn normalize_open_state_prefers_is_open_and_preserves_triplet() {
+        let (is_open_signal, _set_is_open_signal) = signal(true);
+        let (legacy_open_signal, _set_legacy_open_signal) = signal(false);
+        let on_open_change = Callback::new(|_: bool| {});
+
+        let open_state = normalize_open_state(OpenStateInput {
+            is_open: Some(is_open_signal.into()),
+            open: Some(legacy_open_signal.into()),
+            default_open: Some(false),
+            on_open_change: Some(on_open_change),
         });
 
-        assert_eq!(state.data_state_attr, "persistent");
-        assert!(state.has_items);
-        assert!(!state.is_empty);
-        assert!(state.keep_open_on_action);
-        assert!(state.is_controlled);
-        assert!(!state.is_uncontrolled);
-        assert_eq!(state.aria_source_attr, "custom");
-        assert_eq!(state.class_source_attr, "custom");
+        assert!(open_state.is_controlled);
+        assert!(
+            open_state
+                .open
+                .expect("normalized open should exist")
+                .get_untracked()
+        );
+        assert_eq!(open_state.default_open, Some(false));
+        assert!(open_state.on_open_change.is_some());
     }
 
     #[test]

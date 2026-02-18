@@ -1,6 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
+use ui_components::text_area::TextAreaMotion;
 use ui_components::{
     Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Form, FormLabelAlign,
     FormLabelPosition, Input, InputGroup, InputOtp, InputSize, InputVariant, NumberField, Radio,
@@ -130,28 +131,108 @@ let (disabled_value, set_disabled_value) = signal(String::new());
 pub(super) fn form() -> AnyView {
     let (name, set_name) = signal(String::new());
     let (email, set_email) = signal(String::new());
+    let (matrix_default_name, set_matrix_default_name) = signal(String::new());
+    let (matrix_required_email, set_matrix_required_email) = signal(String::new());
+    let (matrix_disabled_name, set_matrix_disabled_name) = signal(String::new());
+    let (matrix_readonly_token, set_matrix_readonly_token) = signal("token_123".to_string());
 
-    let code = Signal::derive(move || {
-        r#"let (name, set_name) = signal(String::new());
-let (email, set_email) = signal(String::new());
+    let label_position_options = vec!["top".to_string(), "left".to_string()];
+    let label_align_options = vec!["start".to_string(), "end".to_string()];
+    let (workbench_label_position_index, set_workbench_label_position_index) = signal(Some(0));
+    let (workbench_label_align_index, set_workbench_label_align_index) = signal(Some(0));
+    let (workbench_is_required, set_workbench_is_required) = signal(true);
+    let (workbench_is_disabled, set_workbench_is_disabled) = signal(false);
+    let (workbench_is_read_only, set_workbench_is_read_only) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
 
-<Form required=true label_position=FormLabelPosition::Left label_align=FormLabelAlign::End>
-  <Input
-    id="name".to_string()
-    label="Name".to_string()
-    value=name
-    set_value=set_name
-    placeholder="Jane".to_string()
-    variant=InputVariant::Bordered
-  />
-  <Input
-    id="email".to_string()
-    label="Email".to_string()
-    value=email
-    set_value=set_email
-    placeholder="jane@example.com".to_string()
-    variant=InputVariant::Bordered
-  />
+    let workbench_label_position =
+        Signal::derive(
+            move || match workbench_label_position_index.get().unwrap_or(0) {
+                1 => FormLabelPosition::Left,
+                _ => FormLabelPosition::Top,
+            },
+        );
+    let workbench_label_align =
+        Signal::derive(
+            move || match workbench_label_align_index.get().unwrap_or(0) {
+                1 => FormLabelAlign::End,
+                _ => FormLabelAlign::Start,
+            },
+        );
+
+    let workbench_code = Signal::derive(move || {
+        let label_position = workbench_label_position.get();
+        let label_align = workbench_label_align.get();
+        let is_required = workbench_is_required.get();
+        let is_disabled = workbench_is_disabled.get();
+        let is_read_only = workbench_is_read_only.get();
+        let custom_class = workbench_custom_class.get();
+
+        let mut lines = vec!["<Form".to_string()];
+        if is_required {
+            lines.push("  is_required=true".to_string());
+        }
+        if is_disabled {
+            lines.push("  is_disabled=true".to_string());
+        }
+        if is_read_only {
+            lines.push("  is_read_only=true".to_string());
+        }
+        if label_position != FormLabelPosition::Top {
+            lines.push(format!(
+                "  label_position=FormLabelPosition::{label_position:?}"
+            ));
+        }
+        if label_align != FormLabelAlign::Start {
+            lines.push(format!("  label_align=FormLabelAlign::{label_align:?}"));
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-form-custom\".to_string()".to_string());
+        }
+        lines.push(">".to_string());
+        lines.push("  <Input id=\"name\" label=\"Name\" ... />".to_string());
+        lines.push("  <Input id=\"email\" label=\"Email\" ... />".to_string());
+        lines.push("</Form>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_config = Signal::derive(move || {
+        let label_position = workbench_label_position.get();
+        let label_align = workbench_label_align.get();
+        let is_required = workbench_is_required.get();
+        let is_disabled = workbench_is_disabled.get();
+        let is_read_only = workbench_is_read_only.get();
+        let custom_class = workbench_custom_class.get();
+        let class = if custom_class {
+            "ui-form docs-form-custom"
+        } else {
+            "ui-form"
+        };
+
+        format!(
+            "FormActualConfig {{\n  is_required: {is_required},\n  is_disabled: {is_disabled},\n  is_read_only: {is_read_only},\n  label_position: {label_position:?},\n  label_align: {label_align:?},\n  class: \"{class}\",\n  marker_expectations: [\"data-disabled\", \"data-readonly\", \"data-required\", \"data-label-position\", \"data-label-align\"],\n}}"
+        )
+    });
+
+    let form_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/form/styles.rs */\n{}",
+            ui_components::form::styles::CSS
+        )
+    });
+
+    let matrix_code = Signal::derive(move || {
+        r#"<Form>
+  <Input id="m1-name".to_string() label="Name".to_string() ... />
+</Form>
+<Form is_required=true label_position=FormLabelPosition::Left label_align=FormLabelAlign::End>
+  <Input id="m2-name".to_string() label="Name".to_string() ... />
+</Form>
+<Form is_disabled=true>
+  <Input id="m3-name".to_string() label="Name".to_string() ... />
+</Form>
+<Form is_read_only=true class_name="docs-form-custom".to_string()>
+  <Input id="m4-name".to_string() label="Name".to_string() ... />
 </Form>"#
             .to_string()
     });
@@ -163,33 +244,171 @@ let (email, set_email) = signal(String::new());
             group="Forms"
             description="A context provider for form-wide disabled/required/label layout."
         >
-            <Playground title="Label layout context" code_signal=code>
-                <Form
-                    required=true
-                    label_position=FormLabelPosition::Left
-                    label_align=FormLabelAlign::End
-                >
-                    <div class="docs-stack">
-                        <Input
-                            id="docs-form-name".to_string()
-                            label="Name".to_string()
-                            value=name
-                            set_value=set_name
-                            placeholder="Jane".to_string()
-                            size=InputSize::Md
-                            variant=InputVariant::Bordered
-                        />
-                        <Input
-                            id="docs-form-email".to_string()
-                            label="Email".to_string()
-                            value=email
-                            set_value=set_email
-                            placeholder="jane@example.com".to_string()
-                            size=InputSize::Md
-                            variant=InputVariant::Bordered
-                        />
+            <Playground
+                title="Interactive Playground (展示 / Config / Code / CSS Test)"
+                code_signal=workbench_code
+                test_css_source=form_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/form/styles.rs".to_string()
+                test_config_signal=workbench_config
+                description="可调 label-position/align/required/disabled/read-only/class，并在同一面板查看 code + config + scoped css test。"
+                controls=move || {
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-search__label">"Label Position"</div>
+                            <SegmentedControl
+                                id_base="docs-form-label-position".to_string()
+                                options=label_position_options.clone()
+                                selected_index=workbench_label_position_index
+                                set_selected_index=set_workbench_label_position_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Form label position".to_string()
+                                orientation=SegmentedControlOrientation::Horizontal
+                            />
+
+                            <div class="docs-search__label">"Label Align"</div>
+                            <SegmentedControl
+                                id_base="docs-form-label-align".to_string()
+                                options=label_align_options.clone()
+                                selected_index=workbench_label_align_index
+                                set_selected_index=set_workbench_label_align_index
+                                size=SegmentedControlSize::Sm
+                                aria_label="Form label align".to_string()
+                                orientation=SegmentedControlOrientation::Horizontal
+                            />
+
+                            <Switch checked=workbench_is_required set_checked=set_workbench_is_required>
+                                "is_required"
+                            </Switch>
+                            <Switch checked=workbench_is_disabled set_checked=set_workbench_is_disabled>
+                                "is_disabled"
+                            </Switch>
+                            <Switch checked=workbench_is_read_only set_checked=set_workbench_is_read_only>
+                                "is_read_only"
+                            </Switch>
+                            <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                                "Custom class_name"
+                            </Switch>
+                        </div>
+                    }
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    {move || {
+                        let label_position = workbench_label_position.get();
+                        let label_align = workbench_label_align.get();
+                        let is_required = workbench_is_required.get();
+                        let is_disabled = workbench_is_disabled.get();
+                        let is_read_only = workbench_is_read_only.get();
+                        let class_name = if workbench_custom_class.get() {
+                            "docs-form-custom".to_string()
+                        } else {
+                            "".to_string()
+                        };
+
+                        view! {
+                            <Form
+                                is_required=is_required
+                                is_disabled=is_disabled
+                                is_read_only=is_read_only
+                                label_position=label_position
+                                label_align=label_align
+                                class_name=class_name
+                            >
+                                <div class="docs-stack">
+                                    <Input
+                                        id="docs-form-name".to_string()
+                                        label="Name".to_string()
+                                        value=name
+                                        set_value=set_name
+                                        placeholder="Jane".to_string()
+                                        size=InputSize::Md
+                                        variant=InputVariant::Bordered
+                                    />
+                                    <Input
+                                        id="docs-form-email".to_string()
+                                        label="Email".to_string()
+                                        value=email
+                                        set_value=set_email
+                                        placeholder="jane@example.com".to_string()
+                                        size=InputSize::Md
+                                        variant=InputVariant::Bordered
+                                    />
+                                </div>
+                            </Form>
+                        }
+                    }}
+                </div>
+            </Playground>
+
+            <Playground
+                title="Comparison Matrix (Default / Required / Disabled / ReadOnly)"
+                code_signal=matrix_code
+            >
+                <div class="docs-row">
+                    <div class="docs-card" style="flex: 1 1 240px;">
+                        <span class="ui-muted">"Default"</span>
+                        <Form>
+                            <Input
+                                id="docs-form-matrix-default".to_string()
+                                label="Name".to_string()
+                                value=matrix_default_name
+                                set_value=set_matrix_default_name
+                                placeholder="Jane".to_string()
+                                size=InputSize::Md
+                                variant=InputVariant::Bordered
+                            />
+                        </Form>
                     </div>
-                </Form>
+
+                    <div class="docs-card" style="flex: 1 1 240px;">
+                        <span class="ui-muted">"Required + Left/End"</span>
+                        <Form
+                            is_required=true
+                            label_position=FormLabelPosition::Left
+                            label_align=FormLabelAlign::End
+                        >
+                            <Input
+                                id="docs-form-matrix-required".to_string()
+                                label="Email".to_string()
+                                value=matrix_required_email
+                                set_value=set_matrix_required_email
+                                placeholder="jane@example.com".to_string()
+                                size=InputSize::Md
+                                variant=InputVariant::Bordered
+                            />
+                        </Form>
+                    </div>
+
+                    <div class="docs-card" style="flex: 1 1 240px;">
+                        <span class="ui-muted">"Disabled"</span>
+                        <Form is_disabled=true>
+                            <Input
+                                id="docs-form-matrix-disabled".to_string()
+                                label="Name".to_string()
+                                value=matrix_disabled_name
+                                set_value=set_matrix_disabled_name
+                                placeholder="Disabled".to_string()
+                                size=InputSize::Md
+                                variant=InputVariant::Bordered
+                            />
+                        </Form>
+                    </div>
+
+                    <div class="docs-card" style="flex: 1 1 240px;">
+                        <span class="ui-muted">"ReadOnly + Custom"</span>
+                        <Form is_read_only=true class_name="docs-form-custom".to_string()>
+                            <Input
+                                id="docs-form-matrix-readonly".to_string()
+                                label="Token".to_string()
+                                value=matrix_readonly_token
+                                set_value=set_matrix_readonly_token
+                                placeholder="Read only".to_string()
+                                size=InputSize::Md
+                                variant=InputVariant::Bordered
+                            />
+                        </Form>
+                    </div>
+                </div>
             </Playground>
         </ComponentPage>
     }
@@ -253,21 +472,34 @@ pub(super) fn input() -> AnyView {
 pub(super) fn text_area() -> AnyView {
     let (value, set_value) = signal("Shipping notes".to_string());
     let (invalid, set_invalid) = signal(false);
+    let on_value_change = Callback::new(move |next: String| set_value.set(next));
+
+    let hello_code = Signal::derive(move || {
+        r#"<TextArea
+  id="summary".to_string()
+  label="Summary".to_string()
+  default_value="Ready for launch".to_string()
+/>"#
+        .to_string()
+    });
 
     let markers_code = Signal::derive(move || {
         r#"let (value, set_value) = signal("Shipping notes".to_string());
 let (invalid, set_invalid) = signal(false);
+let on_value_change = Callback::new(move |next: String| set_value.set(next));
 
 <TextArea
   id="docs-text-area-markers".to_string()
   label="Release notes".to_string()
-  value=value
-  set_value=set_value
-  required=true
-  invalid=Signal::derive(move || invalid.get())
+  value=Signal::derive(move || value.get())
+  default_value="Shipping notes".to_string()
+  on_value_change=on_value_change
+  is_required=Signal::derive(move || true)
+  is_invalid=Signal::derive(move || invalid.get())
   description="Inspect source/state marker contracts".to_string()
   error="Release notes are required".to_string()
   placeholder="Write release notes…".to_string()
+  motion=TextAreaMotion::disabled()
   rows=6
   class_name="docs-text-area-state".to_string()
 />"#
@@ -282,21 +514,35 @@ let (invalid, set_invalid) = signal(false);
             description="Multiline text field with baseline-style semantics and explicit state/source marker contracts."
         >
             <Playground
+                title="Hello World"
+                description="Minimal usage: id + label + default_value."
+                code_signal=hello_code
+            >
+                <TextArea
+                    id="docs-text-area-hello".to_string()
+                    label="Summary".to_string()
+                    default_value="Ready for launch".to_string()
+                />
+            </Playground>
+
+            <Playground
                 title="State + Source Markers"
-                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
+                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-value-control-mode`, `data-default-value-source`, `data-value-change-source`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`."
                 code_signal=markers_code
             >
                 <div class="docs-stack docs-stack--tight">
                     <TextArea
                         id="docs-text-area-markers".to_string()
                         label="Release notes".to_string()
-                        value=value
-                        set_value=set_value
-                        required=true
-                        invalid=Signal::derive(move || invalid.get())
+                        value=Signal::derive(move || value.get())
+                        default_value="Shipping notes".to_string()
+                        on_value_change=on_value_change
+                        is_required=Signal::derive(move || true)
+                        is_invalid=Signal::derive(move || invalid.get())
                         description="Inspect source/state marker contracts".to_string()
                         error="Release notes are required".to_string()
                         placeholder="Write release notes…".to_string()
+                        motion=TextAreaMotion::disabled()
                         rows=6
                         class_name="docs-text-area-state".to_string()
                     />
@@ -314,13 +560,40 @@ let (invalid, set_invalid) = signal(false);
 }
 
 pub(super) fn search_field() -> AnyView {
-    let (value, set_value) = signal(String::new());
-    let code = Signal::derive(move || {
-        r#"let (value, set_value) = signal(String::new());
-<SearchField id="search".to_string()
+    let (marker_value, set_marker_value) = signal("rust ui".to_string());
+    let on_marker_value_change = Callback::new(move |next: String| set_marker_value.set(next));
+    let (marker_invalid, set_marker_invalid) = signal(false);
+    let (marker_read_only, set_marker_read_only) = signal(false);
+    let (marker_disabled, set_marker_disabled) = signal(false);
+
+    let hello_code = Signal::derive(move || {
+        r#"<SearchField
+  id="search".to_string()
   label="Search".to_string()
-  value=value
-  set_value=set_value
+  default_value="rust ui".to_string()
+/>"#
+        .to_string()
+    });
+
+    let markers_code = Signal::derive(move || {
+        r#"let (marker_value, set_marker_value) = signal("rust ui".to_string());
+let on_value_change = Callback::new(move |next: String| set_marker_value.set(next));
+let (marker_invalid, set_marker_invalid) = signal(false);
+let (marker_read_only, set_marker_read_only) = signal(false);
+let (marker_disabled, set_marker_disabled) = signal(false);
+
+<SearchField
+  id="docs-search-field-markers".to_string()
+  label="Search".to_string()
+  value=marker_value
+  on_value_change=on_value_change
+  default_value="rust ui".to_string()
+  is_required=Signal::derive(|| true)
+  is_invalid=Signal::derive(move || marker_invalid.get())
+  is_read_only=marker_read_only.get()
+  is_disabled=marker_disabled.get()
+  placeholder="Search docs…".to_string()
+  class_name="docs-search-field-state".to_string()
 />"#
         .to_string()
     });
@@ -330,17 +603,187 @@ pub(super) fn search_field() -> AnyView {
             title="SearchField"
             slug="search-field"
             group="Forms"
-            description="Search input with clear action and keyboard-friendly semantics."
+            description="A search input built on typed state primitives + headless semantics, with explicit state/source markers."
         >
-            <Playground title="Search" code_signal=code>
+            <Playground
+                title="Hello World"
+                description="Minimal usage: id + label + default_value."
+                code_signal=hello_code
+            >
                 <SearchField
-                    id="docs-search-field".to_string()
+                    id="docs-search-field-hello".to_string()
                     label="Search".to_string()
-                    value=value
-                    set_value=set_value
-                    placeholder="Search…".to_string()
+                    default_value="rust ui".to_string()
                 />
             </Playground>
+
+            <Playground
+                title="Interactive Playground (State + Source Markers)"
+                description="Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-ui-*`, and `data-value-*` while toggling invalid/read-only/disabled."
+                code_signal=markers_code
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <SearchField
+                        id="docs-search-field-markers".to_string()
+                        label="Search".to_string()
+                        value=marker_value
+                        on_value_change=on_marker_value_change
+                        default_value="rust ui".to_string()
+                        is_required=Signal::derive(|| true)
+                        is_invalid=Signal::derive(move || marker_invalid.get())
+                        is_read_only=marker_read_only.get()
+                        is_disabled=marker_disabled.get()
+                        placeholder="Search docs…".to_string()
+                        class_name="docs-search-field-state".to_string()
+                    />
+
+                    <div class="docs-row" data-slot="search-field-marker-controls">
+                        <div data-slot="search-field-toggle-invalid">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_marker_invalid.update(|value| *value = !*value)
+                                })
+                            >
+                                {move || if marker_invalid.get() {
+                                    "Clear marker invalid"
+                                } else {
+                                    "Mark marker invalid"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                        <div data-slot="search-field-toggle-readonly">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_marker_read_only.update(|value| *value = !*value)
+                                })
+                            >
+                                {move || if marker_read_only.get() {
+                                    "Set editable"
+                                } else {
+                                    "Set read only"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                        <div data-slot="search-field-toggle-disabled">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_marker_disabled.update(|value| *value = !*value)
+                                })
+                            >
+                                {move || if marker_disabled.get() {
+                                    "Set enabled"
+                                } else {
+                                    "Set disabled"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                    </div>
+
+                    <span class="ui-muted" data-slot="search-field-marker-summary">
+                        "value: " {move || marker_value.get()}
+                        " · invalid: " {move || marker_invalid.get().to_string()}
+                        " · read-only: " {move || marker_read_only.get().to_string()}
+                        " · disabled: " {move || marker_disabled.get().to_string()}
+                    </span>
+                </div>
+            </Playground>
+
+            <section class="docs-card docs-prose" data-slot="search-field-api-matrix">
+                <h3>"API Matrix"</h3>
+                <ul data-slot="search-field-api-rows">
+                    <li>
+                        <code>"id: String"</code>
+                        " required"
+                    </li>
+                    <li>
+                        <code>"label: String"</code>
+                        " required"
+                    </li>
+                    <li>
+                        <code>"value + on_value_change + default_value"</code>
+                        " controlled/uncontrolled value axis"
+                    </li>
+                    <li>
+                        <code>"is_disabled / is_read_only / is_required / is_invalid"</code>
+                        " unified prefixed accessibility states"
+                    </li>
+                    <li>
+                        <code>"on_submit / on_clear / clear_button_aria_label"</code>
+                        " search action contract + clear-label source chain"
+                    </li>
+                    <li>
+                        <code>"lang / dir"</code>
+                        " locale passthrough to headless contract"
+                    </li>
+                    <li>
+                        <code>"motion: SearchFieldMotion"</code>
+                        " default = SearchFieldMotion::default()"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="search-field-state-matrix">
+                <h3>"State Matrix"</h3>
+                <ul data-slot="search-field-state-rows">
+                    <li>
+                        <code>"data-state"</code>
+                        " = ready | invalid | readonly | disabled"
+                    </li>
+                    <li>
+                        <code>"data-value"</code>
+                        " = empty | filled"
+                    </li>
+                    <li>
+                        <code>"data-requirement"</code>
+                        " = required | optional"
+                    </li>
+                    <li>
+                        <code>"data-value-control-mode / data-default-value-source / data-value-change-source"</code>
+                        " = controlled|uncontrolled + default|custom + on_value_change|set_value|none"
+                    </li>
+                    <li>
+                        <code>"data-clear-label-source / data-class-source"</code>
+                        " = prop|i18n|default and default|custom"
+                    </li>
+                    <li>
+                        <code>"data-ui-schema / data-ui-intent / data-ui-action-model / data-ui-state-axis / data-ui-source-axis"</code>
+                        " typed Agent Contract markers"
+                    </li>
+                </ul>
+            </section>
+
+            <section class="docs-card docs-prose" data-slot="search-field-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ui_components::Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<SearchField\n  id=\"search\".to_string()\n  label=\"Search\".to_string()\n  default_value=\"rust ui\".to_string()\n/>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-search-field-source-copy".to_string()
+                />
+                <ul data-slot="search-field-source-paths">
+                    <li><code>"crates/ui-components/src/search_field/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/search_field/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/search_field/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/search_field/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/search_field/motion.rs"</code></li>
+                    <li><code>"crates/ui-state-primitives/src/search_field.rs"</code></li>
+                    <li><code>"crates/ui-headless/src/search_field.rs"</code></li>
+                </ul>
+                <ul data-slot="search-field-source-prerequisites">
+                    <li><code>"component-search_field"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -358,6 +801,105 @@ pub(super) fn number_field() -> AnyView {
   max=100
 />"#
         .to_string()
+    });
+
+    let (required_value, set_required_value) = signal(7_i64);
+    let required_flag: Signal<bool> = Signal::derive(|| true);
+
+    let (invalid_value, set_invalid_value) = signal(120_i64);
+    let invalid_flag: Signal<bool> = Signal::derive(|| true);
+
+    let (disabled_value, set_disabled_value) = signal(18_i64);
+
+    let states_code = Signal::derive(move || {
+        r#"<NumberField id="qty-default".to_string() label="Default".to_string() value=value set_value=set_value min=0 max=100 />
+<NumberField id="qty-required".to_string() label="Required".to_string() value=required_value set_value=set_required_value min=0 max=20 required=Signal::derive(|| true) description=Some("Required field".to_string()) />
+<NumberField id="qty-invalid".to_string() label="Invalid".to_string() value=invalid_value set_value=set_invalid_value min=0 max=100 invalid=Signal::derive(|| true) error=Some("Out of range".to_string()) />
+<NumberField id="qty-disabled".to_string() label="Disabled".to_string() value=disabled_value set_value=set_disabled_value min=0 max=100 disabled=true />"#.to_string()
+    });
+
+    let bounds_options = vec![
+        "0..100".to_string(),
+        "0..10".to_string(),
+        "-20..20".to_string(),
+    ];
+    let (bounds_index, set_bounds_index) = signal(Some(1_usize));
+    let workbench_min = Signal::derive(move || match bounds_index.get().unwrap_or(1) {
+        1 => 0_i64,
+        2 => -20_i64,
+        _ => 0_i64,
+    });
+    let workbench_max = Signal::derive(move || match bounds_index.get().unwrap_or(1) {
+        1 => 10_i64,
+        2 => 20_i64,
+        _ => 100_i64,
+    });
+
+    let step_options = vec!["1".to_string(), "5".to_string(), "10".to_string()];
+    let (step_index, set_step_index) = signal(Some(0_usize));
+    let workbench_step = Signal::derive(move || match step_index.get().unwrap_or(0) {
+        1 => 5_i64,
+        2 => 10_i64,
+        _ => 1_i64,
+    });
+
+    let (workbench_value, set_workbench_value) = signal(12_i64);
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_required_raw, set_workbench_required_raw) = signal(false);
+    let (workbench_invalid_raw, set_workbench_invalid_raw) = signal(false);
+    let workbench_required: Signal<bool> = Signal::derive(move || workbench_required_raw.get());
+    let workbench_invalid: Signal<bool> = Signal::derive(move || workbench_invalid_raw.get());
+
+    let (workbench_last_change, set_workbench_last_change) = signal("none".to_string());
+    let on_workbench_change = Callback::new(move |next: i64| {
+        set_workbench_last_change.set(next.to_string());
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let mut lines = vec![
+            "<NumberField".to_string(),
+            "  id=\"docs-number-field-workbench\".to_string()".to_string(),
+            "  label=\"Quantity\".to_string()".to_string(),
+            "  value=value".to_string(),
+            "  set_value=set_value".to_string(),
+            format!("  min={}", workbench_min.get()),
+            format!("  max={}", workbench_max.get()),
+            format!("  step={}", workbench_step.get()),
+        ];
+        if workbench_disabled.get() {
+            lines.push("  disabled=true".to_string());
+        }
+        if workbench_required_raw.get() {
+            lines.push("  required=Signal::derive(|| true)".to_string());
+            lines.push("  description=\"Required field\".to_string()".to_string());
+        }
+        if workbench_invalid_raw.get() {
+            lines.push("  invalid=Signal::derive(|| true)".to_string());
+            lines.push("  error=\"Out of range\".to_string()".to_string());
+        }
+        lines.push("/>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/number_field/styles.rs */\n{}",
+            ui_components::number_field::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "NumberFieldWorkbenchConfig {{\n  value: {},\n  min: {:?},\n  max: {:?},\n  step: {},\n  disabled: {},\n  required: {},\n  invalid: {},\n  last_change: \"{}\",\n}}",
+            workbench_value.get(),
+            workbench_min.get(),
+            workbench_max.get(),
+            workbench_step.get(),
+            workbench_disabled.get(),
+            workbench_required_raw.get(),
+            workbench_invalid_raw.get(),
+            workbench_last_change.get()
+        )
     });
 
     view! {
@@ -380,6 +922,126 @@ pub(super) fn number_field() -> AnyView {
                     <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
                 </div>
             </Playground>
+
+            <Playground title="State Matrix" code_signal=states_code>
+                <div class="docs-stack docs-stack--tight">
+                    <div class="docs-row">
+                        <NumberField
+                            id="docs-number-field-default".to_string()
+                            label="Default".to_string()
+                            value=value
+                            set_value=set_value
+                            min=0
+                            max=100
+                        />
+                        <NumberField
+                            id="docs-number-field-required".to_string()
+                            label="Required".to_string()
+                            value=required_value
+                            set_value=set_required_value
+                            min=0
+                            max=20
+                            required=required_flag
+                            description="Required field".to_string()
+                        />
+                    </div>
+                    <div class="docs-row">
+                        <NumberField
+                            id="docs-number-field-invalid".to_string()
+                            label="Invalid".to_string()
+                            value=invalid_value
+                            set_value=set_invalid_value
+                            min=0
+                            max=100
+                            invalid=invalid_flag
+                            error="Out of range".to_string()
+                        />
+                        <NumberField
+                            id="docs-number-field-disabled".to_string()
+                            label="Disabled".to_string()
+                            value=disabled_value
+                            set_value=set_disabled_value
+                            min=0
+                            max=100
+                            disabled=true
+                        />
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                description="Display + Config + Code + CSS Test workbench for number-field semantics and stepping contracts."
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/number_field/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="number-field-workbench-controls">
+                        <div class="docs-search__label">"Bounds"</div>
+                        <SegmentedControl
+                            id_base="docs-number-field-workbench-bounds".to_string()
+                            options=bounds_options.clone()
+                            selected_index=bounds_index
+                            set_selected_index=set_bounds_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="NumberField bounds".to_string()
+                        />
+
+                        <div class="docs-search__label">"Step"</div>
+                        <SegmentedControl
+                            id_base="docs-number-field-workbench-step".to_string()
+                            options=step_options.clone()
+                            selected_index=step_index
+                            set_selected_index=set_step_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="NumberField step".to_string()
+                        />
+
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "Disabled"
+                        </Switch>
+                        <Switch checked=workbench_required_raw set_checked=set_workbench_required_raw>
+                            "Required"
+                        </Switch>
+                        <Switch checked=workbench_invalid_raw set_checked=set_workbench_invalid_raw>
+                            "Invalid"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight" style="width: min(100%, 360px);">
+                    <NumberField
+                        id="docs-number-field-workbench".to_string()
+                        label="Quantity".to_string()
+                        value=workbench_value
+                        set_value=set_workbench_value
+                        min=workbench_min.get()
+                        max=workbench_max.get()
+                        step=workbench_step.get()
+                        disabled=workbench_disabled.get()
+                        required=workbench_required
+                        invalid=workbench_invalid
+                        description=if workbench_required_raw.get() {
+                            "Required field".to_string()
+                        } else {
+                            String::new()
+                        }
+                        error=if workbench_invalid_raw.get() {
+                            "Out of range".to_string()
+                        } else {
+                            String::new()
+                        }
+                        on_change=on_workbench_change
+                    />
+                    <span class="ui-muted">
+                        "value: "
+                        {move || workbench_value.get().to_string()}
+                        " | last on_change: "
+                        {move || workbench_last_change.get()}
+                    </span>
+                </div>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
@@ -396,6 +1058,109 @@ pub(super) fn input_otp() -> AnyView {
   length=6
 />"#
         .to_string()
+    });
+
+    let length_options = vec!["4".to_string(), "6".to_string(), "8".to_string()];
+    let (workbench_length_index, set_workbench_length_index) = signal(Some(1_usize));
+    let workbench_length =
+        Signal::derive(move || match workbench_length_index.get().unwrap_or(1) {
+            0 => 4_usize,
+            2 => 8_usize,
+            _ => 6_usize,
+        });
+    let (workbench_value, set_workbench_value) = signal(String::new());
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_required, set_workbench_required) = signal(false);
+    let (workbench_invalid, set_workbench_invalid) = signal(false);
+    let (workbench_show_description, set_workbench_show_description) = signal(true);
+    let (workbench_show_error, set_workbench_show_error) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_last_complete, set_workbench_last_complete) = signal("none".to_string());
+    let on_workbench_complete =
+        Callback::new(move |next: String| set_workbench_last_complete.set(next));
+
+    let workbench_code = Signal::derive(move || {
+        let length = workbench_length.get();
+        let disabled_line = if workbench_disabled.get() {
+            "  disabled=true\n"
+        } else {
+            ""
+        };
+        let required_line = if workbench_required.get() {
+            "  required=Signal::derive(move || true)\n"
+        } else {
+            ""
+        };
+        let invalid_line = if workbench_invalid.get() {
+            "  invalid=Signal::derive(move || true)\n"
+        } else {
+            ""
+        };
+        let description_line = if workbench_show_description.get() {
+            "  description=\"We sent a code to your device.\".to_string()\n"
+        } else {
+            ""
+        };
+        let error_line = if workbench_show_error.get() {
+            "  error=\"Code does not match.\".to_string()\n"
+        } else {
+            ""
+        };
+        let class_line = if workbench_custom_class.get() {
+            "  class_name=\"docs-input-otp-workbench\".to_string()\n"
+        } else {
+            ""
+        };
+        let aria_line = if workbench_custom_aria.get() {
+            "  aria_label=\"Verification code\".to_string()\n"
+        } else {
+            ""
+        };
+
+        format!(
+            "let (value, set_value) = signal(String::new());\n\n<InputOtp\n  id_base=\"docs-otp-workbench\".to_string()\n  label=\"One-time code\".to_string()\n  value=value\n  set_value=set_value\n  length={length}\n{disabled_line}{required_line}{invalid_line}{description_line}{error_line}{class_line}{aria_line}/>"
+        )
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/input_otp/styles.rs */\n{}",
+            ui_components::input_otp::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let length = workbench_length.get();
+        let disabled = workbench_disabled.get();
+        let required = workbench_required.get();
+        let invalid = workbench_invalid.get();
+        let show_description = workbench_show_description.get();
+        let show_error = workbench_show_error.get();
+        let custom_class = workbench_custom_class.get();
+        let custom_aria = workbench_custom_aria.get();
+        let value = workbench_value.get();
+
+        format!(
+            "InputOtpWorkbenchConfig {{\n  length: {length},\n  value: \"{value}\",\n  disabled: {disabled},\n  required: {required},\n  invalid: {invalid},\n  show_description: {show_description},\n  show_error: {show_error},\n  custom_class: {custom_class},\n  custom_aria_label: {custom_aria},\n}}"
+        )
+    });
+
+    let (compare_default, set_compare_default) = signal(String::new());
+    let (compare_disabled, set_compare_disabled) = signal("2468".to_string());
+    let (compare_invalid, set_compare_invalid) = signal("12".to_string());
+    let state_compare_code = Signal::derive(move || {
+        r#"<InputOtp id_base="otp-default".to_string() value=default_value set_value=set_default_value length=6 />
+<InputOtp id_base="otp-disabled".to_string() value=disabled_value set_value=set_disabled_value length=4 disabled=true />
+<InputOtp
+  id_base="otp-invalid".to_string()
+  value=invalid_value
+  set_value=set_invalid_value
+  length=6
+  invalid=Signal::derive(move || true)
+  error="Code does not match.".to_string()
+/>"#
+            .to_string()
     });
 
     view! {
@@ -415,6 +1180,127 @@ pub(super) fn input_otp() -> AnyView {
                         length=6
                     />
                     <span class="ui-muted">"value: " {move || value.get()}</span>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Interactive Playground"
+                description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="crates/ui-components/src/input_otp/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Length"</div>
+                        <SegmentedControl
+                            id_base="docs-input-otp-workbench-length".to_string()
+                            options=length_options.clone()
+                            selected_index=workbench_length_index
+                            set_selected_index=set_workbench_length_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="InputOtp workbench length".to_string()
+                        />
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "Disabled"
+                        </Switch>
+                        <Switch checked=workbench_required set_checked=set_workbench_required>
+                            "Required"
+                        </Switch>
+                        <Switch checked=workbench_invalid set_checked=set_workbench_invalid>
+                            "Invalid"
+                        </Switch>
+                        <Switch
+                            checked=workbench_show_description
+                            set_checked=set_workbench_show_description
+                        >
+                            "Show description"
+                        </Switch>
+                        <Switch checked=workbench_show_error set_checked=set_workbench_show_error>
+                            "Show error"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class"
+                        </Switch>
+                        <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                            "Custom aria_label"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="input-otp-workbench">
+                    <InputOtp
+                        id_base="docs-otp-workbench".to_string()
+                        label="One-time code".to_string()
+                        value=workbench_value
+                        set_value=set_workbench_value
+                        length=workbench_length.get()
+                        disabled=workbench_disabled.get()
+                        required=workbench_required
+                        invalid=workbench_invalid
+                        description=if workbench_show_description.get() {
+                            "We sent a code to your device.".to_string()
+                        } else {
+                            String::new()
+                        }
+                        error=if workbench_show_error.get() {
+                            "Code does not match.".to_string()
+                        } else {
+                            String::new()
+                        }
+                        class_name=if workbench_custom_class.get() {
+                            "docs-input-otp-workbench".to_string()
+                        } else {
+                            String::new()
+                        }
+                        aria_label=if workbench_custom_aria.get() {
+                            "Verification code".to_string()
+                        } else {
+                            String::new()
+                        }
+                        on_complete=on_workbench_complete
+                    />
+                    <span class="ui-muted">"value: " {move || workbench_value.get()}</span>
+                    <span class="ui-muted">
+                        "last complete: "
+                        {move || workbench_last_complete.get()}
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="State Comparison" code_signal=state_compare_code>
+                <div class="docs-stack docs-stack--tight" data-slot="input-otp-state-compare">
+                    <div class="ui-muted">"Default"</div>
+                    <InputOtp
+                        id_base="docs-otp-compare-default".to_string()
+                        label="Default OTP".to_string()
+                        value=compare_default
+                        set_value=set_compare_default
+                        length=6
+                    />
+                    <span class="ui-muted">"value: " {move || compare_default.get()}</span>
+
+                    <div class="ui-muted">"Disabled (prefilled)"</div>
+                    <InputOtp
+                        id_base="docs-otp-compare-disabled".to_string()
+                        label="Disabled OTP".to_string()
+                        value=compare_disabled
+                        set_value=set_compare_disabled
+                        length=4
+                        disabled=true
+                    />
+
+                    <div class="ui-muted">"Invalid + error"</div>
+                    <InputOtp
+                        id_base="docs-otp-compare-invalid".to_string()
+                        label="Invalid OTP".to_string()
+                        value=compare_invalid
+                        set_value=set_compare_invalid
+                        length=6
+                        invalid=Signal::derive(move || true)
+                        error="Code does not match.".to_string()
+                    />
+                    <span class="ui-muted">"value: " {move || compare_invalid.get()}</span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -799,7 +1685,9 @@ pub(super) fn radio_group() -> AnyView {
     ];
     let (billing_selected, set_billing_selected) = signal(Some(2_usize));
     let external_label_id = "docs-radio-group-billing-label".to_string();
-    let billing_disabled_indices = vec![1_usize];
+    let (billing_is_horizontal, set_billing_is_horizontal) = signal(true);
+    let (billing_group_disabled, set_billing_group_disabled) = signal(false);
+    let (billing_disable_middle, set_billing_disable_middle) = signal(true);
 
     let empty_options = Vec::<String>::new();
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
@@ -821,9 +1709,21 @@ pub(super) fn radio_group() -> AnyView {
         .to_string()
     });
 
-    let states_code = Signal::derive(move || {
+    let matrix_code = Signal::derive(move || {
         r#"let (billing_selected, set_billing_selected) = signal(Some(2_usize));
 let (empty_selected, set_empty_selected) = signal(None::<usize>);
+let (is_horizontal, set_is_horizontal) = signal(true);
+let (is_group_disabled, set_is_group_disabled) = signal(false);
+let (disable_middle, set_disable_middle) = signal(true);
+
+let orientation = Signal::derive(move || {
+  if is_horizontal.get() {
+    RadioGroupOrientation::Horizontal
+  } else {
+    RadioGroupOrientation::Vertical
+  }
+});
+let disabled_indices = Signal::derive(move || if disable_middle.get() { vec![1] } else { Vec::new() });
 
 <RadioGroup
   id_base="billing".to_string()
@@ -832,8 +1732,9 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
     "Quarterly".to_string(),
     "Yearly".to_string(),
   ]
-  orientation=RadioGroupOrientation::Horizontal
-  disabled_indices=vec![1]
+  orientation=orientation.get()
+  is_disabled=is_group_disabled.get()
+  disabled_indices=disabled_indices.get()
   aria_labelledby="docs-radio-group-billing-label".to_string()
   selected_index=billing_selected
   set_selected_index=set_billing_selected
@@ -841,7 +1742,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
 <RadioGroup
   id_base="empty".to_string()
   options=Vec::<String>::new()
-  disabled=true
+  is_disabled=true
   aria_label="No options available".to_string()
   selected_index=empty_selected
   set_selected_index=set_empty_selected
@@ -856,7 +1757,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             group="Forms"
             description="Roving tabindex radiogroup with baseline-level spring motion and baseline-style root state attrs."
         >
-            <Playground title="Selection + Root State" code_signal=code>
+            <Playground title="Hello World（默认路径）" code_signal=code>
                 <div class="docs-stack">
                     <RadioGroup
                         id_base="docs-radio-group".to_string()
@@ -874,28 +1775,96 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                 </div>
             </Playground>
 
-            <Playground title="Horizontal + Disabled + Empty" code_signal=states_code>
+            <Playground title="Interactive Matrix（方向/禁用/状态）" code_signal=matrix_code>
                 <div class="docs-stack">
+                    <div class="docs-row">
+                        <button
+                            class="ui-button"
+                            type="button"
+                            on:click=move |_| {
+                                set_billing_is_horizontal.update(|value| *value = !*value)
+                            }
+                        >
+                            {move || {
+                                if billing_is_horizontal.get() {
+                                    "Orientation: Horizontal"
+                                } else {
+                                    "Orientation: Vertical"
+                                }
+                            }}
+                        </button>
+                        <button
+                            class="ui-button"
+                            type="button"
+                            on:click=move |_| {
+                                set_billing_group_disabled.update(|value| *value = !*value)
+                            }
+                        >
+                            {move || {
+                                if billing_group_disabled.get() {
+                                    "Group: Disabled"
+                                } else {
+                                    "Group: Enabled"
+                                }
+                            }}
+                        </button>
+                        <button
+                            class="ui-button"
+                            type="button"
+                            on:click=move |_| {
+                                set_billing_disable_middle.update(|value| *value = !*value)
+                            }
+                        >
+                            {move || {
+                                if billing_disable_middle.get() {
+                                    "Middle option: Disabled"
+                                } else {
+                                    "Middle option: Enabled"
+                                }
+                            }}
+                        </button>
+                    </div>
                     <div id=external_label_id.clone() class="ui-muted">"Billing cycle"</div>
-                    <RadioGroup
-                        id_base="docs-radio-group-billing".to_string()
-                        options=billing_options
-                        orientation=RadioGroupOrientation::Horizontal
-                        disabled_indices=billing_disabled_indices
-                        aria_labelledby=external_label_id.clone()
-                        selected_index=billing_selected
-                        set_selected_index=set_billing_selected
-                    />
+                    {move || {
+                        let orientation = if billing_is_horizontal.get() {
+                            RadioGroupOrientation::Horizontal
+                        } else {
+                            RadioGroupOrientation::Vertical
+                        };
+                        let disabled_indices = if billing_disable_middle.get() {
+                            vec![1_usize]
+                        } else {
+                            Vec::new()
+                        };
+                        let is_disabled = billing_group_disabled.get();
+                        view! {
+                            <RadioGroup
+                                id_base="docs-radio-group-billing".to_string()
+                                options=billing_options.clone()
+                                orientation=orientation
+                                is_disabled=is_disabled
+                                disabled_indices=disabled_indices
+                                aria_labelledby=external_label_id.clone()
+                                selected_index=billing_selected
+                                set_selected_index=set_billing_selected
+                            />
+                        }
+                    }}
                     <span class="ui-muted">
                         "billing: "
                         {move || billing_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
-                        " · disabled options: 1"
+                        " · orientation: "
+                        {move || if billing_is_horizontal.get() { "horizontal" } else { "vertical" }}
+                        " · group disabled: "
+                        {move || billing_group_disabled.get().to_string()}
+                        " · disabled options: "
+                        {move || if billing_disable_middle.get() { "1" } else { "0" }}
                     </span>
 
                     <RadioGroup
                         id_base="docs-radio-group-empty".to_string()
                         options=empty_options
-                        disabled=true
+                        is_disabled=true
                         aria_label="No options available".to_string()
                         selected_index=empty_selected
                         set_selected_index=set_empty_selected
@@ -912,15 +1881,49 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
 }
 pub(super) fn radio() -> AnyView {
     let (checked, set_checked) = signal(false);
-    let on_change = Callback::new(move |next: bool| set_checked.set(next));
+    let on_checked_change = Callback::new(move |next: bool| set_checked.set(next));
+    let (disabled_checked, set_disabled_checked) = signal(true);
+    let (disabled_unchecked, set_disabled_unchecked) = signal(false);
     let code = Signal::derive(move || {
         r#"let (checked, set_checked) = signal(false);
 
 <Radio
   id="r1".to_string()
   label="Standalone".to_string()
-  checked=checked.into()
-  on_change=Callback::new(move |next: bool| set_checked.set(next))
+  is_checked=Signal::derive(move || checked.get())
+  on_checked_change=Callback::new(move |next: bool| set_checked.set(next))
+/>"#
+        .to_string()
+    });
+    let matrix_code = Signal::derive(move || {
+        r#"let (checked, set_checked) = signal(false);
+let (disabled_checked, set_disabled_checked) = signal(true);
+let (disabled_unchecked, set_disabled_unchecked) = signal(false);
+
+<Radio
+  id="r1".to_string()
+  label="Standalone".to_string()
+  is_checked=Signal::derive(move || checked.get())
+  on_checked_change=Callback::new(move |next: bool| set_checked.set(next))
+/>
+<Radio
+  id="r2".to_string()
+  label="Disabled on".to_string()
+  is_checked=Signal::derive(move || disabled_checked.get())
+  on_checked_change=Callback::new(move |next: bool| set_disabled_checked.set(next))
+  is_disabled=true
+/>
+<Radio
+  id="r3".to_string()
+  label="Disabled off".to_string()
+  is_checked=Signal::derive(move || disabled_unchecked.get())
+  on_checked_change=Callback::new(move |next: bool| set_disabled_unchecked.set(next))
+  is_disabled=true
+/>
+<Radio
+  id="r4".to_string()
+  label="Uncontrolled default on".to_string()
+  default_checked=true
 />"#
         .to_string()
     });
@@ -932,15 +1935,45 @@ pub(super) fn radio() -> AnyView {
             group="Forms"
             description="Standalone radio button (use RadioGroup for semantics)."
         >
-            <Playground title="Standalone" code_signal=code>
+            <Playground title="Hello World（默认路径）" code_signal=code>
                 <div class="docs-row">
                     <Radio
                         id="docs-radio".to_string()
                         label="Standalone".to_string()
-                        checked=checked.into()
-                        on_change=on_change
+                        is_checked=Signal::derive(move || checked.get())
+                        on_checked_change=on_checked_change
                     />
                     <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+                </div>
+            </Playground>
+
+            <Playground title="状态矩阵（受控 + disabled）" code_signal=matrix_code>
+                <div class="docs-row">
+                    <Radio
+                        id="docs-radio-controlled".to_string()
+                        label="Controlled".to_string()
+                        is_checked=Signal::derive(move || checked.get())
+                        on_checked_change=on_checked_change
+                    />
+                    <Radio
+                        id="docs-radio-disabled-on".to_string()
+                        label="Disabled on".to_string()
+                        is_checked=Signal::derive(move || disabled_checked.get())
+                        on_checked_change=Callback::new(move |next: bool| set_disabled_checked.set(next))
+                        is_disabled=true
+                    />
+                    <Radio
+                        id="docs-radio-disabled-off".to_string()
+                        label="Disabled off".to_string()
+                        is_checked=Signal::derive(move || disabled_unchecked.get())
+                        on_checked_change=Callback::new(move |next: bool| set_disabled_unchecked.set(next))
+                        is_disabled=true
+                    />
+                    <Radio
+                        id="docs-radio-uncontrolled-default".to_string()
+                        label="Uncontrolled default on".to_string()
+                        default_checked=true
+                    />
                 </div>
             </Playground>
         </ComponentPage>
@@ -949,6 +1982,8 @@ pub(super) fn radio() -> AnyView {
 }
 
 pub(super) fn segmented_control() -> AnyView {
+    let hello_options = vec!["Overview".to_string(), "Details".to_string()];
+    let (hello_selected, set_hello_selected) = signal(Some(0_usize));
     let options = vec![
         "Overview".to_string(),
         "Details".to_string(),
@@ -967,6 +2002,23 @@ pub(super) fn segmented_control() -> AnyView {
 
     let empty_options = Vec::<String>::new();
     let (empty_selected, set_empty_selected) = signal(None::<usize>);
+
+    let interactive_options = vec![
+        "Overview".to_string(),
+        "Details".to_string(),
+        "Settings".to_string(),
+    ];
+    let (interactive_selected, set_interactive_selected) = signal(Some(0_usize));
+    let (interactive_vertical, set_interactive_vertical) = signal(false);
+    let (interactive_small, set_interactive_small) = signal(false);
+    let (interactive_disabled, set_interactive_disabled) = signal(false);
+    let (interactive_disable_last, set_interactive_disable_last) = signal(true);
+
+    let hello_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(Some(0_usize));
+<SegmentedControl id_base="seg".to_string() options=vec!["Overview".to_string(), "Details".to_string()] selected_index=value set_selected_index=set_value />"#
+            .to_string()
+    });
 
     let code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(Some(0_usize));
@@ -1013,6 +2065,22 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
         .to_string()
     });
 
+    let interactive_code = Signal::derive(move || {
+        r#"let (value, set_value) = signal(Some(0_usize));
+let (is_vertical, set_is_vertical) = signal(false);
+let (is_small, set_is_small) = signal(false);
+
+<SegmentedControl
+  id_base="seg-interactive".to_string()
+  options=vec!["Overview".to_string(), "Details".to_string(), "Settings".to_string()]
+  selected_index=value
+  set_selected_index=set_value
+  orientation=if is_vertical.get() { SegmentedControlOrientation::Vertical } else { SegmentedControlOrientation::Horizontal }
+  size=if is_small.get() { SegmentedControlSize::Sm } else { SegmentedControlSize::Default }
+/>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="SegmentedControl"
@@ -1020,6 +2088,15 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
             group="Forms"
             description="Segmented control with baseline-level indicator motion and baseline-style root state attrs."
         >
+            <Playground title="Hello World" code_signal=hello_code>
+                <SegmentedControl
+                    id_base="docs-segments-hello".to_string()
+                    options=hello_options
+                    selected_index=hello_selected
+                    set_selected_index=set_hello_selected
+                />
+            </Playground>
+
             <Playground title="Selection + Root State" code_signal=code>
                 <div class="docs-stack">
                     <SegmentedControl
@@ -1036,6 +2113,107 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         " · has selection: "
                         {move || has_selection.get().to_string()}
                         " · disabled options: 1"
+                    </span>
+                </div>
+            </Playground>
+
+            <Playground title="Interactive Playground (Props + State)"
+                description="Toggle orientation/size/disabled rules and observe semantic markers."
+                code_signal=interactive_code>
+                <div class="docs-stack">
+                    <SegmentedControl
+                        id_base="docs-segments-interactive".to_string()
+                        options=interactive_options
+                        selected_index=interactive_selected
+                        set_selected_index=set_interactive_selected
+                        orientation=if interactive_vertical.get() {
+                            SegmentedControlOrientation::Vertical
+                        } else {
+                            SegmentedControlOrientation::Horizontal
+                        }
+                        size=if interactive_small.get() {
+                            SegmentedControlSize::Sm
+                        } else {
+                            SegmentedControlSize::Default
+                        }
+                        disabled=interactive_disabled.get()
+                        disabled_indices=if interactive_disable_last.get() {
+                            vec![2_usize]
+                        } else {
+                            Vec::new()
+                        }
+                    />
+                    <div class="docs-row" data-slot="segmented-control-marker-controls">
+                        <div data-slot="segmented-control-toggle-orientation">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_interactive_vertical.update(|value| *value = !*value);
+                                })
+                            >
+                                {move || if interactive_vertical.get() {
+                                    "Orientation vertical"
+                                } else {
+                                    "Orientation horizontal"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                        <div data-slot="segmented-control-toggle-size">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_interactive_small.update(|value| *value = !*value);
+                                })
+                            >
+                                {move || if interactive_small.get() { "Size sm" } else { "Size default" }}
+                            </ui_components::Button>
+                        </div>
+                        <div data-slot="segmented-control-toggle-disabled">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_interactive_disabled.update(|value| *value = !*value);
+                                })
+                            >
+                                {move || if interactive_disabled.get() {
+                                    "Set enabled"
+                                } else {
+                                    "Set disabled"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                        <div data-slot="segmented-control-toggle-disabled-last">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_interactive_disable_last.update(|value| *value = !*value);
+                                })
+                            >
+                                {move || if interactive_disable_last.get() {
+                                    "Disable last on"
+                                } else {
+                                    "Disable last off"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                        <div data-slot="segmented-control-reset-selection">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_interactive_selected.set(Some(0_usize));
+                                })
+                            >
+                                "Reset selection"
+                            </ui_components::Button>
+                        </div>
+                    </div>
+                    <span class="ui-muted" data-slot="segmented-control-marker-summary">
+                        "selected: "
+                        {move || interactive_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
+                        " · vertical: " {move || interactive_vertical.get().to_string()}
+                        " · size: " {move || if interactive_small.get() { "sm" } else { "default" }}
+                        " · disabled: " {move || interactive_disabled.get().to_string()}
+                        " · disable last: " {move || interactive_disable_last.get().to_string()}
                     </span>
                 </div>
             </Playground>
@@ -1074,6 +2252,34 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                     </div>
                 </div>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="segmented-control-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground supports "
+                    <code>"Show code"</code>
+                    " + copy. Copied snippets are import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <ui_components::Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\nlet (value, set_value) = signal(Some(0_usize));\n<SegmentedControl id_base=\"seg\".to_string() options=vec![\"Overview\".to_string(), \"Details\".to_string()] selected_index=value set_selected_index=set_value />".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-segmented-control-source-copy".to_string()
+                />
+                <ul data-slot="segmented-control-source-paths">
+                    <li><code>"crates/ui-components/src/segmented_control/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/segmented_control/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/segmented_control/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/segmented_control/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/segmented_control/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="segmented-control-source-prerequisites">
+                    <li><code>"component-segmented_control"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()

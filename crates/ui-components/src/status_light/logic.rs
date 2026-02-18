@@ -1,108 +1,19 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum StatusLightVariant {
-    #[default]
-    Default,
-    Accent,
-    Danger,
-}
+pub use ui_state_primitives::status_light::{
+    StatusLightRole, StatusLightState, StatusLightStateInput, StatusLightVariant,
+    normalize_optional_text, resolve_state,
+};
 
-impl StatusLightVariant {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            StatusLightVariant::Default => "ui-status-light--variant-default",
-            StatusLightVariant::Accent => "ui-status-light--variant-accent",
-            StatusLightVariant::Danger => "ui-status-light--variant-danger",
-        }
-    }
-
-    pub fn as_str(self) -> &'static str {
-        match self {
-            StatusLightVariant::Default => "default",
-            StatusLightVariant::Accent => "accent",
-            StatusLightVariant::Danger => "danger",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum StatusLightRole {
-    Status,
-}
-
-impl StatusLightRole {
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            StatusLightRole::Status => "status",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct StatusLightStateInput {
-    pub variant: StatusLightVariant,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StatusLightRootInput {
+    pub variant: Option<StatusLightVariant>,
     pub role: Option<StatusLightRole>,
-    pub has_custom_class_name: bool,
+    pub class_name: Option<String>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct StatusLightState {
-    pub variant: StatusLightVariant,
-    pub variant_class: &'static str,
-    pub variant_attr: &'static str,
-    pub role: Option<StatusLightRole>,
-    pub role_attr: Option<&'static str>,
-    pub state_class: &'static str,
-    pub state_attr: &'static str,
-    pub role_source_class: &'static str,
-    pub role_source_attr: &'static str,
-    pub is_live: bool,
-    pub has_custom_class_name: bool,
-    pub class_source_attr: &'static str,
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-pub fn resolve_state(input: StatusLightStateInput) -> StatusLightState {
-    let role_attr = input.role.map(StatusLightRole::as_attr);
-    let is_live = role_attr.is_some();
-
-    let (state_class, state_attr) = if is_live {
-        ("ui-status-light--live", "live")
-    } else {
-        ("ui-status-light--static", "static")
-    };
-
-    let (role_source_class, role_source_attr) = if is_live {
-        ("ui-status-light--role-custom", "custom")
-    } else {
-        ("ui-status-light--role-none", "none")
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    StatusLightState {
-        variant: input.variant,
-        variant_class: input.variant.class_name(),
-        variant_attr: input.variant.as_str(),
-        role: input.role,
-        role_attr,
-        state_class,
-        state_attr,
-        role_source_class,
-        role_source_attr,
-        is_live,
-        has_custom_class_name: input.has_custom_class_name,
-        class_source_attr,
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct StatusLightRootState {
+    pub state: StatusLightState,
+    pub class_name: String,
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: StatusLightState) -> String {
@@ -121,6 +32,21 @@ pub fn compose_class_name(base_class_name: Option<String>, state: StatusLightSta
     }
 
     classes.join(" ")
+}
+
+pub fn normalize_root_state(input: StatusLightRootInput) -> StatusLightRootState {
+    let variant = input.variant.unwrap_or_default();
+    let class_name = normalize_optional_text(input.class_name);
+    let state = resolve_state(StatusLightStateInput {
+        variant,
+        role: input.role,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    StatusLightRootState {
+        state,
+        class_name: compose_class_name(class_name, state),
+    }
 }
 
 #[cfg(test)]
@@ -142,9 +68,9 @@ mod tests {
             "ui-status-light--variant-danger"
         );
 
-        assert_eq!(StatusLightVariant::Default.as_str(), "default");
-        assert_eq!(StatusLightVariant::Accent.as_str(), "accent");
-        assert_eq!(StatusLightVariant::Danger.as_str(), "danger");
+        assert_eq!(StatusLightVariant::Default.as_attr(), "default");
+        assert_eq!(StatusLightVariant::Accent.as_attr(), "accent");
+        assert_eq!(StatusLightVariant::Danger.as_attr(), "danger");
     }
 
     #[test]
@@ -216,5 +142,21 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn normalize_root_state_keeps_single_default_source_and_centralized_derivation() {
+        let root = normalize_root_state(StatusLightRootInput {
+            variant: None,
+            role: None,
+            class_name: Some("  docs-status  ".to_string()),
+        });
+
+        assert_eq!(root.state.variant, StatusLightVariant::Default);
+        assert_eq!(root.state.variant_attr, "default");
+        assert_eq!(root.state.state_attr, "static");
+        assert!(root.class_name.contains("ui-status-light"));
+        assert!(root.class_name.contains("ui-status-light--variant-default"));
+        assert!(root.class_name.contains("docs-status"));
     }
 }

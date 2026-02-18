@@ -328,3 +328,58 @@ fn drawer_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn drawer_merge_gate_verdicts_are_explicit_and_fully_completed() {
+    let check2_source = load_source("src/drawer/check2.md");
+
+    for needle in [
+        "### 9. 合并门禁（最终裁决）",
+        "- [x] 架构正确（边界不破）。",
+        "- [x] 行为正确（状态与交互语义成立）。",
+        "- [x] 可访问性达标（默认可用）。",
+        "- [x] 默认主题美学质量达标（与可访问性同级门禁）。",
+        "- [x] 可测试（契约可断言）。",
+        "- [x] 可维护（命名和模式一致）。",
+        "- [x] 可解释（人和自动化都能读懂）。",
+        "- [x] 改动在正确层。",
+        "- [x] 命名与全库一致。",
+        "- [x] 无效状态被限制或归一化。",
+        "- [x] 暴露必要语义标记。",
+        "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
+        "- [x] 文档与示例同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "drawer merge-gate checklist should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn drawer_checklist_sections_one_to_nine_have_no_unchecked_items() {
+    let check2_source = load_source("src/drawer/check2.md");
+
+    for needle in [
+        "### 1. 大骨架（架构边界与层职责）",
+        "### 2. 小骨架（API 设计检查 + 状态管理检查）",
+        "### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）",
+        "### 4. SSR / 跨平台 / WASM / 性能 / 工程能力",
+        "### 5. 文件落点检查（必须提及）",
+        "### 6. AI 原生能力（Agent Contract + 流式）",
+        "### 7. 测试与文档（验证闭环）",
+        "### 8. 明确禁止的反模式",
+        "### 9. 合并门禁（最终裁决）",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "drawer checklist should include section `{needle}`."
+        );
+    }
+
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "drawer checklist must not keep unchecked items after completion."
+    );
+}

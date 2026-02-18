@@ -1,9 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
-pub use crate::slider::SliderMotion as ColorSliderMotion;
 pub use logic::{ColorSliderChannel, DEFAULT_ARIA_LABEL};
+pub use motion::ColorSliderMotion;
 pub use view::ColorSlider;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

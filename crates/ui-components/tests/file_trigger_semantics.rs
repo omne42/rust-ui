@@ -218,3 +218,73 @@ fn file_trigger_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn file_trigger_check2_marks_architecture_layer_definitions_complete() {
+    let check2_source = load_source("src/file_trigger/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。",
+        "- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。",
+        "- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。",
+        "- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。",
+        "- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "file_trigger/check2.md should keep architecture-layer marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn file_trigger_check2_marks_semantics_first_testing_complete() {
+    let check2_source = load_source("src/file_trigger/check2.md");
+
+    for needle in [
+        "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
+        "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
+        "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "file_trigger/check2.md should keep semantics-first marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn file_trigger_check2_marks_final_merge_gates_complete() {
+    let check2_source = load_source("src/file_trigger/check2.md");
+
+    for needle in [
+        "- [x] 架构正确（边界不破）。",
+        "- [x] 行为正确（状态与交互语义成立）。",
+        "- [x] 可访问性达标（默认可用）。",
+        "- [x] 默认主题美学质量达标（与可访问性同级门禁）。",
+        "- [x] 可测试（契约可断言）。",
+        "- [x] 可维护（命名和模式一致）。",
+        "- [x] 可解释（人和自动化都能读懂）。",
+        "- [x] 改动在正确层。",
+        "- [x] 命名与全库一致。",
+        "- [x] 无效状态被限制或归一化。",
+        "- [x] 暴露必要语义标记。",
+        "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
+        "- [x] 文档与示例同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "file_trigger/check2.md should keep final-gate marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn file_trigger_check2_has_no_remaining_unchecked_items() {
+    let check2_source = load_source("src/file_trigger/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "file_trigger/check2.md should not keep unchecked checklist items once governance is complete."
+    );
+}

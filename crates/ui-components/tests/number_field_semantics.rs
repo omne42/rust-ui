@@ -92,3 +92,80 @@ fn number_field_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn number_field_docs_includes_state_matrix_comparison_playground() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"State Matrix\"",
+        "id=\"docs-number-field-default\".to_string()",
+        "id=\"docs-number-field-required\".to_string()",
+        "id=\"docs-number-field-invalid\".to_string()",
+        "id=\"docs-number-field-disabled\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number-field state matrix playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn number_field_docs_interactive_playground_exposes_config_code_css_test_sections() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=workbench_test_css_source",
+        "test_config_signal=workbench_actual_config",
+        "controls=move || view! {",
+        "data-slot=\"number-field-workbench-controls\"",
+        "id_base=\"docs-number-field-workbench-bounds\".to_string()",
+        "id_base=\"docs-number-field-workbench-step\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/number_field/styles.rs\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number-field interactive docs playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn number_field_check2_marks_core_sections_complete() {
+    let source = load_source("src/number_field/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 状态归一化集中",
+        "- [x] 存在 A11y 实现、国际化与本地化实现",
+        "- [x] 状态可观测、可检索、可验证",
+        "- [x] 测试验证“语义契约”而不只验证视觉快照。",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "### 10. NumberField 本轮验收证据",
+        "component-number_field -> component-button",
+        "crates/ui-components/src/number_field/view.rs",
+    ] {
+        assert!(
+            source.contains(needle),
+            "NumberField check2 should contain completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn number_field_check2_has_no_unchecked_checklist_items() {
+    let source = load_source("src/number_field/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "number_field check2 should not keep unchecked checklist items"
+    );
+}

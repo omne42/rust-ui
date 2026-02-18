@@ -14,7 +14,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-radio-group__label {
-  font-size: 14px;
+  font-size: var(--ui-font-size-100);
   line-height: 1.2;
   font-weight: 500;
   color: var(--ui-fg);
@@ -55,16 +55,16 @@ pub const CSS: &str = r#"
 }
 
 .ui-radio--focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-button-focus-outline-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-button-focus-outline-offset);
 }
 
 .ui-radio__indicator {
-  width: 16px;
-  height: 16px;
-  border-radius: 9999px;
+  width: var(--ui-icon-size-100);
+  height: var(--ui-icon-size-100);
+  border-radius: var(--ui-button-radius-full);
   box-sizing: border-box;
-  border: 2px solid var(--ui-border);
+  border: calc(var(--ui-space-2xs) / 2) solid var(--ui-border);
   background: var(--ui-bg);
   display: inline-flex;
   align-items: center;
@@ -77,9 +77,9 @@ pub const CSS: &str = r#"
 }
 
 .ui-radio__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
+  width: calc(var(--ui-icon-size-100) / 2);
+  height: calc(var(--ui-icon-size-100) / 2);
+  border-radius: var(--ui-button-radius-full);
   background: var(--ui-accent);
   opacity: 0;
   transform: scale(0.5);

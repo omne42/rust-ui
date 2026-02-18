@@ -1,12 +1,16 @@
 pub const CSS: &str = r#"
 .ui-circular-progress {
   display: inline-block;
-  width: var(--ui-cp-size, 20px);
-  height: var(--ui-cp-size, 20px);
+  width: var(--ui-cp-size, var(--ui-button-spinner-size, 16px));
+  height: var(--ui-cp-size, var(--ui-button-spinner-size, 16px));
   box-sizing: border-box;
   border-radius: 9999px;
-  border: var(--ui-cp-thickness, 2px) solid var(--ui-border);
+  border: var(--ui-cp-thickness, var(--ui-button-spinner-border, 2px)) solid var(--ui-border);
   border-top-color: var(--ui-accent);
+  animation-duration: var(
+    --ui-cp-rotation-duration,
+    var(--ui-button-spinner-duration, 800ms)
+  );
 }
 
 .ui-circular-progress--state-indeterminate,
@@ -17,12 +21,12 @@ pub const CSS: &str = r#"
 
 .ui-circular-progress--size-custom,
 .ui-circular-progress[data-size-source="custom"] {
-  min-width: var(--ui-cp-size, 20px);
+  min-width: var(--ui-cp-size, var(--ui-button-spinner-size, 16px));
 }
 
 .ui-circular-progress--thickness-custom,
 .ui-circular-progress[data-thickness-source="custom"] {
-  border-width: var(--ui-cp-thickness, 2px);
+  border-width: var(--ui-cp-thickness, var(--ui-button-spinner-border, 2px));
 }
 
 .ui-circular-progress--label-custom,
@@ -45,7 +49,8 @@ pub const CSS: &str = r#"
   .ui-circular-progress--state-indeterminate,
   .ui-circular-progress[data-state="indeterminate"],
   .ui-circular-progress[data-motion="spin"] {
-    animation: none;
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
   }
 }
 "#;

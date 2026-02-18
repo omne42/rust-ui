@@ -60,8 +60,8 @@ pub const CSS: &str = r#"
   background: linear-gradient(
     135deg,
     transparent calc(50% - 1px),
-    color-mix(in oklab, var(--ui-danger) 82%, black 18%) calc(50% - 1px),
-    color-mix(in oklab, var(--ui-danger) 82%, black 18%) calc(50% + 1px),
+    color-mix(in oklab, var(--ui-danger) 82%, var(--ui-bg) 18%) calc(50% - 1px),
+    color-mix(in oklab, var(--ui-danger) 82%, var(--ui-bg) 18%) calc(50% + 1px),
     transparent calc(50% + 1px)
   );
 }

@@ -1,4 +1,4 @@
-use crate::ColorSwatch;
+use crate::color_swatch::ColorSwatch;
 use crate::color_thumb::{
     ColorThumbStateInput,
     logic::{self},

@@ -1,10 +1,12 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::{
     DEFAULT_CLOSE_ON_ACTION, DEFAULT_DEFAULT_OPEN, DEFAULT_DISABLED, DEFAULT_ID_BASE, DEFAULT_TITLE,
 };
+pub use motion::CommandDialogMotion;
 pub use view::CommandDialog;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

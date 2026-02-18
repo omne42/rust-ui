@@ -84,6 +84,7 @@ fn color_handle_styles_include_focus_drag_disabled_and_custom_contracts() {
         ".ui-color-handle[data-disabled=\"true\"]",
         ".ui-color-handle--custom-class",
         ".ui-color-handle[data-custom-class=\"true\"]",
+        "--ui-color-handle-motion-duration",
     ] {
         assert!(
             source.contains(selector),
@@ -133,4 +134,92 @@ fn color_handle_docs_playgrounds_lock_state_matrix_contract_values() {
             "color-handle docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn color_handle_docs_workbench_exposes_display_config_code_and_css_test_contract() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
+
+    for needle in [
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "code_signal=workbench_code",
+        "test_css_source=workbench_test_css",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color_handle/styles.rs\".to_string()",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"color-handle-workbench-controls\"",
+        "display: baseline vs configured",
+        "docs-color-handle-workbench",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-handle workbench should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_handle_exposes_motion_contract_and_view_mount() {
+    let mod_source = load_source("src/color_handle/mod.rs");
+    let motion_source = load_source("src/color_handle/motion.rs");
+    let view_source = load_source("src/color_handle/view.rs");
+
+    for needle in ["pub mod motion;", "pub use motion::ColorHandleMotion;"] {
+        assert!(
+            mod_source.contains(needle),
+            "ColorHandle module should export motion contract marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct ColorHandleMotion",
+        "pub fn sanitize_motion(",
+        "pub fn source_attr(",
+        "pub fn attach_motion(",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ColorHandle motion contract should define `{needle}`."
+        );
+    }
+
+    for needle in [
+        "motion::source_attr(motion)",
+        "motion::attach_motion(None, motion)",
+        "data-motion-source=motion_source_attr",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "ColorHandle view should mount motion contract marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn color_handle_readme_covers_workbench_display_config_code_css_test_sections() {
+    let source = load_source("src/color_handle/README.md");
+
+    for needle in [
+        "# ColorHandle",
+        "Docs Playground（展示 / Config / Code / CSS Test）",
+        "展示",
+        "Config",
+        "Code",
+        "CSS Test",
+        "对比场景",
+        "Workbench (Display + Config + Code + CSS Test)",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-handle README should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_handle_check2_has_no_remaining_unchecked_items() {
+    let check2_source = load_source("src/color_handle/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "ColorHandle check2.md should not keep unchecked checklist items after completion."
+    );
 }

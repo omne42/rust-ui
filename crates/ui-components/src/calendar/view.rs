@@ -1,5 +1,9 @@
-use crate::calendar::logic::{self, CalendarFirstWeekday, CalendarStateInput, CalendarTone};
+use crate::calendar::{
+    logic::{self, CalendarFirstWeekday, CalendarStateInput, CalendarTone},
+    motion::CalendarMotion,
+};
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn Calendar(
@@ -12,6 +16,9 @@ pub fn Calendar(
     #[prop(default = None)] on_day_press: Option<Callback<u8>>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional)] motion: CalendarMotion,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let normalized_month = logic::normalize_month(month);
     let normalized_selected_day =
@@ -31,7 +38,12 @@ pub fn Calendar(
         has_custom_class_name: class_name.is_some(),
     });
 
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
     let class = logic::compose_class_name(class_name, state);
+    let agent_contract = logic::resolve_agent_contract(state);
+    let motion = crate::calendar::motion::sanitize_motion(motion);
+    let motion_source = crate::calendar::motion::source_attr(motion);
+    let panel_vars = crate::calendar::motion::attach_motion(None, motion);
     let title = logic::month_title(state.year, state.month);
     let weekdays = logic::weekday_labels(state.first_weekday);
     let grid = logic::build_month_grid(
@@ -49,6 +61,7 @@ pub fn Calendar(
     view! {
         <div
             class=class
+            style=panel_vars
             data-slot="calendar"
             data-tone=state.tone_attr
             data-first-weekday=state.first_weekday_attr
@@ -60,8 +73,21 @@ pub fn Calendar(
             data-aria-source=state.aria_source_attr
             data-custom-class=state.has_custom_class_name.then_some("true")
             data-class-source=state.class_source_attr
+            data-motion-source=motion_source
+            data-custom-motion=(motion_source == "custom").then_some("true")
+            data-ui-schema=agent_contract.schema_attr
+            data-ui-intent=agent_contract.intent_attr
+            data-ui-action=agent_contract.action.as_attr()
+            data-ui-state=agent_contract.state.as_attr()
+            data-ui-source=agent_contract.source.as_attr()
+            data-ui-stream-support=agent_contract.stream_support.as_attr()
+            data-ui-stream-fallback=agent_contract.stream_fallback.as_attr()
+            data-ui-stream-mode="snapshot"
+            data-ui-output-status=agent_contract.output_status.as_attr()
             role="group"
             aria-label=aria_label
+            lang=locale.lang.clone()
+            dir=locale.dir
         >
             <div class="ui-calendar__header" data-slot="calendar-header">
                 <span class="ui-calendar__title" data-slot="calendar-title">{title}</span>

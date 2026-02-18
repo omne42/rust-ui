@@ -1,8 +1,10 @@
 mod logic;
+pub mod motion;
 pub mod styles;
 mod view;
 
 pub use logic::DEFAULT_ARIA_LABEL;
+pub use motion::ColorHandleMotion;
 pub use view::ColorHandle;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

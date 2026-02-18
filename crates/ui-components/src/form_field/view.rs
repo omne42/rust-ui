@@ -1,9 +1,11 @@
+use crate::checkbox::{Checkbox, CheckboxVariant};
 use crate::form_field::{
     FormFieldIndicatorPlacement, FormFieldIndicatorVariant, FormFieldStateInput, FormFieldTone,
     logic,
 };
-use crate::{Checkbox, CheckboxVariant, Switch};
+use crate::switch::Switch;
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn FormField(
@@ -20,6 +22,8 @@ pub fn FormField(
     #[prop(optional, into)] description: Option<String>,
     #[prop(optional, into)] error_message: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let id_base = StoredValue::new(logic::normalize_id_base(id_base));
@@ -89,6 +93,7 @@ pub fn FormField(
     });
 
     let control_class = StoredValue::new("ui-form-field__control".to_string());
+    let locale = locale_attrs(lang, dir);
 
     view! {
         <div
@@ -114,6 +119,8 @@ pub fn FormField(
             aria-describedby=move || describedby.get()
             aria-disabled=move || state.get().is_disabled.then_some("true")
             aria-invalid=move || state.get().is_invalid.then_some("true")
+            lang=locale.lang.clone()
+            dir=locale.dir
         >
             <Show when=move || state.get().indicator_placement == FormFieldIndicatorPlacement::Start>
                 <div class="ui-form-field__indicator" data-slot="form-field-indicator">

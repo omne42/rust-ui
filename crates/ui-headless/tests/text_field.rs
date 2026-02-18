@@ -1,9 +1,5 @@
 use leptos::prelude::*;
-
-#[path = "../src/text_field.rs"]
-mod text_field;
-
-use text_field::{TextFieldOptions, use_text_field};
+use ui_headless::{TextFieldOptions, use_text_field};
 
 fn init_executor() {
     let _ = any_spawner::Executor::init_futures_executor();

@@ -9,19 +9,25 @@ use ui_components::{
 pub(super) fn file_trigger() -> AnyView {
     let (files, set_files) = signal(Vec::<FileTriggerFile>::new());
     let on_files = Callback::new(move |next: Vec<FileTriggerFile>| set_files.set(next));
-
     let (custom_files, set_custom_files) = signal(Vec::<FileTriggerFile>::new());
     let on_custom_files =
         Callback::new(move |next: Vec<FileTriggerFile>| set_custom_files.set(next));
 
     let code = Signal::derive(move || {
-        r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
-<FileTrigger multiple=true on_files=on_files>"Pick files"</FileTrigger>"#
+        r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| {
+  // handle selected files
+});
+
+<FileTrigger multiple=true on_files=on_files>
+  "Pick files"
+</FileTrigger>"#
             .to_string()
     });
 
     let motion_code = Signal::derive(move || {
-        r#"let on_files = Callback::new(|files: Vec<FileTriggerFile>| { /* ... */ });
+        r#"let on_custom_files = Callback::new(|files: Vec<FileTriggerFile>| {
+  // handle selected files
+});
 
 <FileTrigger
   multiple=true
@@ -32,7 +38,7 @@ pub(super) fn file_trigger() -> AnyView {
       ..ButtonMotion::default()
     }
   }
-  on_files=on_files
+  on_files=on_custom_files
 >
   "Pick files (custom motion)"
 </FileTrigger>"#
@@ -47,40 +53,38 @@ pub(super) fn file_trigger() -> AnyView {
             description="A Button that forwards to an invisible <input type=file>."
         >
             <Playground title="Pick files" code_signal=code>
-                <div class="docs-stack">
+                <div class="docs-stack docs-stack--tight">
                     <FileTrigger multiple=true on_files=on_files>
                         "Pick files"
                     </FileTrigger>
-                    <div class="docs-stack docs-stack--tight">
-                        {move || {
-                            let list = files.get();
-                            if list.is_empty() {
-                                view! { <div class="ui-muted">"No files selected."</div> }.into_any()
-                            } else {
-                                view! {
-                                    <ul class="docs-list">
-                                        {list
-                                            .into_iter()
-                                            .map(|file| {
-                                                view! {
-                                                    <li>
-                                                        <code>{file.name}</code>
-                                                        <span class="ui-muted">" ("{file.size}" bytes)"</span>
-                                                    </li>
-                                                }
-                                            })
-                                            .collect_view()}
-                                    </ul>
-                                }
-                                .into_any()
+                    {move || {
+                        let list = files.get();
+                        if list.is_empty() {
+                            view! { <div class="ui-muted">"No files selected."</div> }.into_any()
+                        } else {
+                            view! {
+                                <ul class="docs-list">
+                                    {list
+                                        .into_iter()
+                                        .map(|file| {
+                                            view! {
+                                                <li>
+                                                    <code>{file.name}</code>
+                                                    <span class="ui-muted">" ("{file.size}" bytes)"</span>
+                                                </li>
+                                            }
+                                        })
+                                        .collect_view()}
+                                </ul>
                             }
-                        }}
-                    </div>
+                            .into_any()
+                        }
+                    }}
                 </div>
             </Playground>
 
             <Playground title="Pick files with custom motion" code_signal=motion_code>
-                <div class="docs-stack">
+                <div class="docs-stack docs-stack--tight">
                     <FileTrigger
                         multiple=true
                         motion=FileTriggerMotion {
@@ -94,34 +98,30 @@ pub(super) fn file_trigger() -> AnyView {
                     >
                         "Pick files (custom motion)"
                     </FileTrigger>
-                    <div class="docs-stack docs-stack--tight">
-                        {move || {
-                            let list = custom_files.get();
-                            if list.is_empty() {
-                                view! {
-                                    <div class="ui-muted">"No files selected (custom motion example)."</div>
-                                }
+                    {move || {
+                        let list = custom_files.get();
+                        if list.is_empty() {
+                            view! { <div class="ui-muted">"No files selected (custom motion example)."</div> }
                                 .into_any()
-                            } else {
-                                view! {
-                                    <ul class="docs-list">
-                                        {list
-                                            .into_iter()
-                                            .map(|file| {
-                                                view! {
-                                                    <li>
-                                                        <code>{file.name}</code>
-                                                        <span class="ui-muted">" ("{file.size}" bytes)"</span>
-                                                    </li>
-                                                }
-                                            })
-                                            .collect_view()}
-                                    </ul>
-                                }
-                                .into_any()
+                        } else {
+                            view! {
+                                <ul class="docs-list">
+                                    {list
+                                        .into_iter()
+                                        .map(|file| {
+                                            view! {
+                                                <li>
+                                                    <code>{file.name}</code>
+                                                    <span class="ui-muted">" ("{file.size}" bytes)"</span>
+                                                </li>
+                                            }
+                                        })
+                                        .collect_view()}
+                                </ul>
                             }
-                        }}
-                    </div>
+                            .into_any()
+                        }
+                    }}
                 </div>
             </Playground>
         </ComponentPage>

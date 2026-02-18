@@ -1,11 +1,15 @@
+use crate::OnPress;
+use crate::button::Button;
+use crate::calendar::{Calendar, CalendarFirstWeekday, CalendarTone};
 use crate::date_picker::{
-    DatePickerMotion, DatePickerStateInput, DatePickerStrings,
-    logic::{self, DatePickerTone},
+    DatePickerMotion, DatePickerStrings,
+    logic::{self, DatePickerStateInput, DatePickerTone},
 };
-use crate::{Button, Calendar, CalendarFirstWeekday, CalendarTone, OnPress, Popover};
+use crate::popover::Popover;
 use leptos::{html, prelude::*};
 use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;
+use ui_headless::a11y::{A11yDirection, locale_attrs};
 use ui_headless::i18n;
 use ui_headless::use_presence;
 
@@ -28,6 +32,8 @@ pub fn DatePicker(
     #[prop(optional)] motion: DatePickerMotion,
     #[prop(optional, into)] placeholder: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let i18n = i18n::use_ui_i18n();
@@ -59,6 +65,7 @@ pub fn DatePicker(
     let placeholder = StoredValue::new(placeholder);
 
     let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
 
     let class_name = logic::normalize_optional_text(class_name);
 
@@ -146,6 +153,8 @@ pub fn DatePicker(
             data-custom-motion=move || state.get().has_custom_motion.then_some("true")
             role="group"
             aria-label=aria_label
+            lang=locale.lang
+            dir=locale.dir
         >
             <div class="ui-date-picker__trigger-wrap" data-slot="date-picker-trigger">
                 <Button

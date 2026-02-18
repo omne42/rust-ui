@@ -2036,3 +2036,87 @@ fn action_bar_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn action_bar_anti_patterns_are_blocked_by_contracts() {
+    let suite_source = load_source("tests/action_bar_semantics.rs");
+    let check2_source = load_source("src/action_bar/check2.md");
+
+    for needle in [
+        "fn action_bar_status_primitives_are_sourced_from_ui_state_primitives()",
+        "fn action_bar_mounts_headless_contract_in_view_not_logic_layer()",
+        "fn action_bar_state_normalization_is_centralized_in_logic()",
+        "fn action_bar_api_naming_uses_is_on_default_prefix_contract()",
+        "fn action_bar_composition_api_prefers_explicit_parent_item_structure()",
+        "fn action_bar_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free()",
+        "fn action_bar_status_primitive_boundary_avoids_local_state_machine_and_business_store_coupling()",
+    ] {
+        assert!(
+            suite_source.contains(needle),
+            "ActionBar anti-pattern gate should keep backing contract test `{needle}`."
+        );
+    }
+
+    for needle in [
+        "### 8. 明确禁止的反模式",
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 在 `ui-headless` 写视觉和动画编排。",
+        "- [x] 在 `view` 层隐藏关键状态决策。",
+        "- [x] 新增参数但不纳入统一命名与契约。",
+        "- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。",
+        "- [x] 公共 API 泄露底层实现细节类型。",
+        "- [x] 用临时补丁破坏跨组件一致性。",
+        "- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "ActionBar checklist anti-pattern section should keep checked governance marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn action_bar_check2_marks_final_merge_gates_complete() {
+    let suite_source = load_source("tests/action_bar_semantics.rs");
+    let check2_source = load_source("src/action_bar/check2.md");
+
+    for needle in [
+        "fn action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_stable()",
+        "fn action_bar_uses_logic_state_model()",
+        "fn action_bar_emits_toolbar_semantics_and_state_attributes()",
+        "fn action_bar_visual_desire_reuses_theme_visual_baseline_gate()",
+        "fn action_bar_semantics_suite_prioritizes_contract_assertions_over_snapshots()",
+        "fn action_bar_component_files_follow_layered_responsibilities()",
+        "fn action_bar_machine_readable_contract_uses_typed_inputs_and_semantic_markers()",
+        "fn action_bar_reduced_motion_ssr_wasm_branches_keep_semantics_consistent()",
+        "fn action_bar_docs_page_covers_primary_playgrounds()",
+    ] {
+        assert!(
+            suite_source.contains(needle),
+            "ActionBar final merge gate should keep backing contract test `{needle}`."
+        );
+    }
+
+    for needle in [
+        "### 9. 合并门禁（最终裁决）",
+        "- [x] 架构正确（边界不破）。",
+        "- [x] 行为正确（状态与交互语义成立）。",
+        "- [x] 可访问性达标（默认可用）。",
+        "- [x] 默认主题美学质量达标（与可访问性同级门禁）。",
+        "- [x] 可测试（契约可断言）。",
+        "- [x] 可维护（命名和模式一致）。",
+        "- [x] 可解释（人和自动化都能读懂）。",
+        "- [x] 改动在正确层。",
+        "- [x] 命名与全库一致。",
+        "- [x] 无效状态被限制或归一化。",
+        "- [x] 暴露必要语义标记。",
+        "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
+        "- [x] 文档与示例同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "ActionBar checklist final merge gate should keep checked governance marker `{needle}`."
+        );
+    }
+}

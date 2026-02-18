@@ -36,24 +36,29 @@ pub fn use_roving_tabindex(options: RovingTabIndexOptions) -> RovingTabIndexStat
     // Clamp active index when the item count changes.
     Effect::new(move |_| {
         let count = options.item_count.get();
+        let current = active_index.get_untracked();
+        let mut next = current;
+
         if count == 0 {
-            set_active_index.set(0);
-            return;
-        }
-        set_active_index.update(|i| {
-            if *i >= count {
-                *i = count.saturating_sub(1);
+            next = 0;
+        } else {
+            if next >= count {
+                next = count.saturating_sub(1);
             }
             if let Some(is_item_disabled) = options.is_item_disabled
-                && is_item_disabled.run(*i)
+                && is_item_disabled.run(next)
             {
-                let previous_enabled = (0..=*i).rev().find(|&idx| !is_item_disabled.run(idx));
-                let next_enabled = (*i..count).find(|&idx| !is_item_disabled.run(idx));
+                let previous_enabled = (0..=next).rev().find(|&idx| !is_item_disabled.run(idx));
+                let next_enabled = (next..count).find(|&idx| !is_item_disabled.run(idx));
                 if let Some(enabled) = previous_enabled.or(next_enabled) {
-                    *i = enabled;
+                    next = enabled;
                 }
             }
-        });
+        }
+
+        if next != current {
+            set_active_index.set(next);
+        }
     });
 
     let on_item_focus = Callback::new(move |index: usize| {

@@ -2,6 +2,7 @@ use crate::toast::{
     ToastPartState, ToastPartStateInput, ToastViewportState, ToastViewportStateInput,
 };
 use leptos::prelude::*;
+use ui_state_primitives::toast as toast_state;
 
 fn next_id() -> u64 {
     use std::cell::Cell;
@@ -17,7 +18,66 @@ fn next_id() -> u64 {
 
 pub const DEFAULT_TITLE: &str = "Notification";
 pub const DEFAULT_VIEWPORT_PORTAL: bool = true;
-pub const DEFAULT_VIEWPORT_MAX_TOASTS: usize = 3;
+pub const DEFAULT_VIEWPORT_MAX_TOASTS: usize = toast_state::DEFAULT_MAX_TOASTS;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ToastAgentIntent {
+    NotificationItem,
+    NotificationViewport,
+}
+
+impl ToastAgentIntent {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::NotificationItem => "notification-item",
+            Self::NotificationViewport => "notification-viewport",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ToastAgentActionModel {
+    DismissClose,
+    QueueDismissRemove,
+}
+
+impl ToastAgentActionModel {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::DismissClose => "dismiss|close",
+            Self::QueueDismissRemove => "queue|dismiss|remove",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ToastAgentContract {
+    pub schema_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub action_model_attr: &'static str,
+    pub state_axis_attr: &'static str,
+    pub source_axis_attr: &'static str,
+}
+
+pub fn toast_agent_contract() -> ToastAgentContract {
+    ToastAgentContract {
+        schema_attr: "ui.toast.v1",
+        intent_attr: ToastAgentIntent::NotificationItem.as_attr(),
+        action_model_attr: ToastAgentActionModel::DismissClose.as_attr(),
+        state_axis_attr: "state|variant|description|close-mode|open",
+        source_axis_attr: "id|description|class|motion|close|exit|open",
+    }
+}
+
+pub fn toast_viewport_agent_contract() -> ToastAgentContract {
+    ToastAgentContract {
+        schema_attr: "ui.toast.viewport.v1",
+        intent_attr: ToastAgentIntent::NotificationViewport.as_attr(),
+        action_model_attr: ToastAgentActionModel::QueueDismissRemove.as_attr(),
+        state_axis_attr: "state|queue|portal|max-toasts",
+        source_axis_attr: "portal|max-toasts|class|motion|store",
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ToastVariant {
@@ -83,7 +143,7 @@ pub fn viewport_queue_attr(max_toasts: usize) -> &'static str {
 }
 
 pub fn normalize_viewport_max_toasts(max_toasts: usize) -> usize {
-    max_toasts.max(1)
+    toast_state::normalize_max_toasts(max_toasts)
 }
 
 pub fn resolve_state(input: ToastPartStateInput) -> ToastPartState {
@@ -242,6 +302,45 @@ pub fn normalize_description(value: Option<String>) -> Option<String> {
     normalize_optional_text(value)
 }
 
+#[derive(Clone)]
+pub struct ToastOpenStateConfig {
+    pub controlled_open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+    pub is_controlled: bool,
+    pub has_custom_default_open: bool,
+    pub has_custom_on_open_change: bool,
+    pub open_source_attr: &'static str,
+}
+
+pub fn resolve_open_state_config(
+    is_open: Option<Signal<bool>>,
+    open: Option<Signal<bool>>,
+    default_open: Option<bool>,
+    on_open_change: Option<Callback<bool>>,
+) -> ToastOpenStateConfig {
+    let (controlled_open, open_source_attr) = if let Some(is_open) = is_open {
+        (Some(is_open), "is_open")
+    } else if let Some(open) = open {
+        (Some(open), "open")
+    } else {
+        (None, "implicit")
+    };
+
+    let has_custom_default_open = default_open.is_some();
+    let has_custom_on_open_change = on_open_change.is_some();
+
+    ToastOpenStateConfig {
+        is_controlled: controlled_open.is_some(),
+        controlled_open,
+        default_open: default_open.or(Some(true)),
+        on_open_change,
+        has_custom_default_open,
+        has_custom_on_open_change,
+        open_source_attr,
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct ToastOptions {
     pub title: String,
@@ -261,14 +360,20 @@ impl ToastOptions {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct ToastPayload {
+    title: String,
+    description: Option<String>,
+    variant: ToastVariant,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ToastInstance {
     pub id: String,
     pub title: String,
     pub description: Option<String>,
     pub variant: ToastVariant,
-    pub open: ReadSignal<bool>,
-    pub set_open: WriteSignal<bool>,
+    pub is_open: bool,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -278,12 +383,54 @@ pub struct ToastStoreOptions {
 
 impl Default for ToastStoreOptions {
     fn default() -> Self {
-        Self { max_toasts: 3 }
+        Self {
+            max_toasts: DEFAULT_VIEWPORT_MAX_TOASTS,
+        }
     }
+}
+
+fn to_primitive_records(list: &[ToastInstance]) -> Vec<toast_state::ToastRecord<ToastPayload>> {
+    list.iter()
+        .map(|toast| toast_state::ToastRecord {
+            id: toast.id.clone(),
+            payload: ToastPayload {
+                title: toast.title.clone(),
+                description: toast.description.clone(),
+                variant: toast.variant,
+            },
+            is_open: toast.is_open,
+        })
+        .collect()
+}
+
+fn from_primitive_records(
+    records: Vec<toast_state::ToastRecord<ToastPayload>>,
+) -> Vec<ToastInstance> {
+    records
+        .into_iter()
+        .map(|record| ToastInstance {
+            id: record.id,
+            title: record.payload.title,
+            description: record.payload.description,
+            variant: record.payload.variant,
+            is_open: record.is_open,
+        })
+        .collect()
+}
+
+fn dismiss_timeout_ids(mutations: &[toast_state::ToastMutation]) -> Vec<String> {
+    mutations
+        .iter()
+        .filter_map(|mutation| match mutation.kind {
+            toast_state::ToastMutationKind::Pushed => None,
+            _ => Some(mutation.id.clone()),
+        })
+        .collect()
 }
 
 #[derive(Clone)]
 pub struct ToastStore {
+    max_toasts: usize,
     toasts: ReadSignal<Vec<ToastInstance>>,
     set_toasts: WriteSignal<Vec<ToastInstance>>,
     #[cfg(target_arch = "wasm32")]
@@ -294,6 +441,7 @@ pub struct ToastStore {
 }
 
 pub fn provide_toast_store(options: ToastStoreOptions) -> ToastStore {
+    let max_toasts = toast_state::normalize_max_toasts(options.max_toasts);
     let (toasts, set_toasts) = signal(Vec::<ToastInstance>::new());
 
     #[cfg(target_arch = "wasm32")]
@@ -301,62 +449,63 @@ pub fn provide_toast_store(options: ToastStoreOptions) -> ToastStore {
         StoredValue::new_local(std::collections::HashMap::new());
 
     let push = Callback::new({
-        let max_toasts = options.max_toasts.max(1);
         #[cfg(target_arch = "wasm32")]
         let timeouts = timeouts;
         move |opts: ToastOptions| -> String {
             let id = format!("ui-toast-{}", next_id());
-            let (open, set_open) = signal(true);
-
-            let instance = ToastInstance {
-                id: id.clone(),
+            let payload = ToastPayload {
                 title: opts.title,
                 description: opts.description,
                 variant: opts.variant,
-                open,
-                set_open,
             };
-
+            let mut mutations: Vec<toast_state::ToastMutation> = Vec::new();
             set_toasts.update(|list| {
-                list.push(instance);
-                if list.len() > max_toasts {
-                    let overflow = list.len() - max_toasts;
-                    for _ in 0..overflow {
-                        if !list.is_empty() {
-                            // Mark the oldest toast as closing; it will be removed by its exit callback.
-                            #[cfg(target_arch = "wasm32")]
-                            {
-                                let mut map = timeouts.get_value();
-                                if let Some(handle) = map.remove(&list[0].id) {
-                                    handle.clear();
-                                }
-                                timeouts.set_value(map);
-                            }
-                            list[0].set_open.set(false);
-                            // Rotate it to the end so it can animate out without affecting newer entries.
-                            let oldest = list.remove(0);
-                            list.push(oldest);
-                        }
-                    }
-                }
+                let mut state = toast_state::ToastState::from_records(
+                    toast_state::ToastStateOptions { max_toasts },
+                    to_primitive_records(list),
+                );
+                mutations = state.push(id.clone(), payload.clone());
+                *list = from_primitive_records(state.into_records());
             });
 
             #[cfg(target_arch = "wasm32")]
+            {
+                let mut map = timeouts.get_value();
+                for toast_id in dismiss_timeout_ids(&mutations) {
+                    if let Some(handle) = map.remove(&toast_id) {
+                        handle.clear();
+                    }
+                }
+                timeouts.set_value(map);
+            }
+
+            #[cfg(target_arch = "wasm32")]
             if let Some(duration_ms) = opts.duration_ms.filter(|v| *v > 0) {
-                let set_open_for_timeout = set_open.clone();
                 let id_for_timeout = id.clone();
                 let Ok(handle) = set_timeout_with_handle(
-                    move || set_open_for_timeout.set(false),
+                    {
+                        let set_toasts = set_toasts;
+                        move || {
+                            set_toasts.update(|list| {
+                                let mut state = toast_state::ToastState::from_records(
+                                    toast_state::ToastStateOptions { max_toasts },
+                                    to_primitive_records(list),
+                                );
+                                let _ = state.dismiss(&id_for_timeout);
+                                *list = from_primitive_records(state.into_records());
+                            });
+                        }
+                    },
                     std::time::Duration::from_millis(duration_ms),
                 ) else {
                     return id;
                 };
 
                 let mut map = timeouts.get_value();
-                if let Some(prev) = map.remove(&id_for_timeout) {
+                if let Some(prev) = map.remove(&id) {
                     prev.clear();
                 }
-                map.insert(id_for_timeout, handle);
+                map.insert(id.clone(), handle);
                 timeouts.set_value(map);
             }
 
@@ -368,23 +517,25 @@ pub fn provide_toast_store(options: ToastStoreOptions) -> ToastStore {
         #[cfg(target_arch = "wasm32")]
         let timeouts = timeouts;
         move |id: String| {
-            if id.trim().is_empty() {
-                return;
-            }
-            let list = toasts.get_untracked();
-            for toast in list {
-                if toast.id == id {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        let mut map = timeouts.get_value();
-                        if let Some(handle) = map.remove(&toast.id) {
-                            handle.clear();
-                        }
-                        timeouts.set_value(map);
-                    }
-                    toast.set_open.set(false);
-                    break;
+            let mut dismissed: Option<String> = None;
+            set_toasts.update(|list| {
+                let mut state = toast_state::ToastState::from_records(
+                    toast_state::ToastStateOptions { max_toasts },
+                    to_primitive_records(list),
+                );
+                if let Some(mutation) = state.dismiss(&id) {
+                    dismissed = Some(mutation.id);
                 }
+                *list = from_primitive_records(state.into_records());
+            });
+
+            #[cfg(target_arch = "wasm32")]
+            if let Some(dismissed) = dismissed {
+                let mut map = timeouts.get_value();
+                if let Some(handle) = map.remove(&dismissed) {
+                    handle.clear();
+                }
+                timeouts.set_value(map);
             }
         }
     });
@@ -393,23 +544,32 @@ pub fn provide_toast_store(options: ToastStoreOptions) -> ToastStore {
         #[cfg(target_arch = "wasm32")]
         let timeouts = timeouts;
         move |_| {
-            let list = toasts.get_untracked();
-            for toast in list {
-                toast.set_open.set(false);
-            }
+            let mut cleared_ids = Vec::new();
+            set_toasts.update(|list| {
+                let mut state = toast_state::ToastState::from_records(
+                    toast_state::ToastStateOptions { max_toasts },
+                    to_primitive_records(list),
+                );
+                let mutations = state.clear();
+                cleared_ids = dismiss_timeout_ids(&mutations);
+                *list = from_primitive_records(state.into_records());
+            });
 
             #[cfg(target_arch = "wasm32")]
             {
-                let map = timeouts.get_value();
-                for (_, handle) in map {
-                    handle.clear();
+                let mut map = timeouts.get_value();
+                for id in cleared_ids {
+                    if let Some(handle) = map.remove(&id) {
+                        handle.clear();
+                    }
                 }
-                timeouts.set_value(std::collections::HashMap::new());
+                timeouts.set_value(map);
             }
         }
     });
 
     let store = ToastStore {
+        max_toasts,
         toasts,
         set_toasts,
         #[cfg(target_arch = "wasm32")]
@@ -445,21 +605,28 @@ impl ToastStore {
     }
 
     pub fn remove(&self, id: &str) {
-        let id = id.trim();
-        if id.is_empty() {
-            return;
-        }
+        let mut removed: Option<String> = None;
+        self.set_toasts.update(|list| {
+            let mut state = toast_state::ToastState::from_records(
+                toast_state::ToastStateOptions {
+                    max_toasts: self.max_toasts,
+                },
+                to_primitive_records(list),
+            );
+            if let Some(mutation) = state.remove(id) {
+                removed = Some(mutation.id);
+            }
+            *list = from_primitive_records(state.into_records());
+        });
 
         #[cfg(target_arch = "wasm32")]
-        {
+        if let Some(removed) = removed {
             let mut map = self.timeouts.get_value();
-            if let Some(handle) = map.remove(id) {
+            if let Some(handle) = map.remove(&removed) {
                 handle.clear();
             }
             self.timeouts.set_value(map);
         }
-
-        self.set_toasts.update(|list| list.retain(|t| t.id != id));
     }
 }
 
@@ -483,6 +650,47 @@ mod tests {
     }
 
     #[test]
+    fn agent_contracts_are_typed_and_stable() {
+        let toast_contract = toast_agent_contract();
+        assert_eq!(toast_contract.schema_attr, "ui.toast.v1");
+        assert_eq!(
+            toast_contract.intent_attr,
+            ToastAgentIntent::NotificationItem.as_attr()
+        );
+        assert_eq!(
+            toast_contract.action_model_attr,
+            ToastAgentActionModel::DismissClose.as_attr()
+        );
+        assert_eq!(
+            toast_contract.state_axis_attr,
+            "state|variant|description|close-mode|open"
+        );
+        assert_eq!(
+            toast_contract.source_axis_attr,
+            "id|description|class|motion|close|exit|open"
+        );
+
+        let viewport_contract = toast_viewport_agent_contract();
+        assert_eq!(viewport_contract.schema_attr, "ui.toast.viewport.v1");
+        assert_eq!(
+            viewport_contract.intent_attr,
+            ToastAgentIntent::NotificationViewport.as_attr()
+        );
+        assert_eq!(
+            viewport_contract.action_model_attr,
+            ToastAgentActionModel::QueueDismissRemove.as_attr()
+        );
+        assert_eq!(
+            viewport_contract.state_axis_attr,
+            "state|queue|portal|max-toasts"
+        );
+        assert_eq!(
+            viewport_contract.source_axis_attr,
+            "portal|max-toasts|class|motion|store"
+        );
+    }
+
+    #[test]
     fn store_push_adds_toast_and_returns_id() {
         with_store(3, |store| {
             let id = store.push.run(ToastOptions::simple("Hello"));
@@ -491,7 +699,7 @@ mod tests {
             let toasts = store.toasts().get_untracked();
             assert_eq!(toasts.len(), 1);
             assert_eq!(toasts[0].id, id);
-            assert!(toasts[0].open.get_untracked());
+            assert!(toasts[0].is_open);
         });
     }
 
@@ -509,9 +717,9 @@ mod tests {
             assert_eq!(toasts[1].id, id3);
             assert_eq!(toasts[2].id, id1);
 
-            assert!(toasts[0].open.get_untracked());
-            assert!(toasts[1].open.get_untracked());
-            assert!(!toasts[2].open.get_untracked());
+            assert!(toasts[0].is_open);
+            assert!(toasts[1].is_open);
+            assert!(!toasts[2].is_open);
         });
     }
 
@@ -526,8 +734,8 @@ mod tests {
             let toasts = store.toasts().get_untracked();
             let t1 = toasts.iter().find(|t| t.id == id1).unwrap();
             let t2 = toasts.iter().find(|t| t.id == id2).unwrap();
-            assert!(!t1.open.get_untracked());
-            assert!(t2.open.get_untracked());
+            assert!(!t1.is_open);
+            assert!(t2.is_open);
         });
     }
 
@@ -542,7 +750,7 @@ mod tests {
             let toasts = store.toasts().get_untracked();
             assert!(!toasts.is_empty());
             for toast in toasts {
-                assert!(!toast.open.get_untracked());
+                assert!(!toast.is_open);
             }
         });
     }
@@ -584,6 +792,21 @@ mod tests {
             normalize_description(Some("  done  ".to_string())),
             Some("done".to_string())
         );
+    }
+
+    #[test]
+    fn open_state_config_prefers_is_open_and_sets_default_open_fallback() {
+        let (is_open_raw, _set_is_open_raw) = signal(false);
+        let (open_raw, _set_open_raw) = signal(true);
+
+        let config =
+            resolve_open_state_config(Some(is_open_raw.into()), Some(open_raw.into()), None, None);
+
+        assert!(config.is_controlled);
+        assert_eq!(config.open_source_attr, "is_open");
+        assert_eq!(config.default_open, Some(true));
+        assert!(!config.has_custom_default_open);
+        assert!(!config.has_custom_on_open_change);
     }
 
     #[test]

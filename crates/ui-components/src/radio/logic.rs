@@ -1,293 +1,147 @@
-use std::collections::HashSet;
+use leptos::prelude::{Callback, Signal};
 use ui_headless::RovingOrientation;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum RadioGroupOrientation {
-    #[default]
-    Vertical,
-    Horizontal,
+pub use ui_state_primitives::radio::{
+    DEFAULT_CHECKED, RadioGroupOrientation, normalize_optional_text, resolve_accessible_name,
+    resolve_state,
+};
+use ui_state_primitives::radio::{
+    RadioCheckedAxisInput as PrimitiveRadioCheckedAxisInput, resolve_checked_axis,
+};
+
+pub struct DisabledPropInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
 }
 
-impl RadioGroupOrientation {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            RadioGroupOrientation::Vertical => "ui-radio-group--vertical",
-            RadioGroupOrientation::Horizontal => "ui-radio-group--horizontal",
-        }
-    }
-
-    pub fn roving_orientation(self) -> RovingOrientation {
-        match self {
-            RadioGroupOrientation::Vertical => RovingOrientation::Vertical,
-            RadioGroupOrientation::Horizontal => RovingOrientation::Horizontal,
-        }
-    }
-
-    pub fn aria_orientation(self) -> &'static str {
-        match self {
-            RadioGroupOrientation::Vertical => "vertical",
-            RadioGroupOrientation::Horizontal => "horizontal",
-        }
-    }
-
-    pub fn data_orientation(self) -> &'static str {
-        self.aria_orientation()
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct RadioGroupState {
-    pub item_count: usize,
-    pub is_empty: bool,
-    pub has_items: bool,
+pub struct DisabledPropState {
     pub is_disabled: bool,
-    pub has_disabled_options: bool,
-    pub disabled_option_count: usize,
-    pub selected_index: Option<usize>,
-    pub has_selection: bool,
-    pub selection_empty: bool,
-    pub is_horizontal: bool,
-    pub is_vertical: bool,
-    pub has_label: bool,
+    pub disabled_source_attr: &'static str,
 }
 
-pub fn resolve_state(
-    item_count: usize,
-    is_disabled: bool,
-    disabled_indices: &HashSet<usize>,
-    selected_index: Option<usize>,
-    orientation: RadioGroupOrientation,
-    has_label: bool,
-) -> RadioGroupState {
-    let has_items = item_count > 0;
-    let selected_index = selected_index.filter(|index| *index < item_count);
-    let has_selection = selected_index.is_some();
-    let disabled_option_count = disabled_indices
-        .iter()
-        .filter(|index| **index < item_count)
-        .count();
-
-    RadioGroupState {
-        item_count,
-        is_empty: !has_items,
-        has_items,
-        is_disabled,
-        has_disabled_options: disabled_option_count > 0,
-        disabled_option_count,
-        selected_index,
-        has_selection,
-        selection_empty: !has_selection,
-        is_horizontal: matches!(orientation, RadioGroupOrientation::Horizontal),
-        is_vertical: matches!(orientation, RadioGroupOrientation::Vertical),
-        has_label,
+pub fn normalize_disabled_prop(input: DisabledPropInput) -> DisabledPropState {
+    DisabledPropState {
+        is_disabled: input.is_disabled.unwrap_or(input.disabled),
+        disabled_source_attr: if input.is_disabled.is_some() {
+            "is_disabled"
+        } else if input.disabled {
+            "disabled"
+        } else {
+            "none"
+        },
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RadioGroupAccessibleName {
-    pub aria_label: Option<String>,
-    pub aria_labelledby: Option<String>,
+pub struct CheckedAxisInput {
+    pub is_checked: Option<Signal<bool>>,
+    pub checked: Option<Signal<bool>>,
+    pub default_checked: Option<bool>,
+    pub on_checked_change: Option<Callback<bool>>,
+    pub on_change: Option<Callback<bool>>,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+pub struct CheckedAxisState {
+    pub controlled_checked: Option<Signal<bool>>,
+    pub default_checked: bool,
+    pub on_checked_change: Option<Callback<bool>>,
+    pub is_controlled: bool,
+    pub control_mode_attr: &'static str,
+    pub checked_source_attr: &'static str,
+    pub default_checked_source_attr: &'static str,
+    pub checked_change_source_attr: &'static str,
 }
 
-pub fn resolve_accessible_name(
-    aria_label: Option<String>,
-    aria_labelledby: Option<String>,
-    fallback_labelledby: Option<String>,
-) -> RadioGroupAccessibleName {
-    let aria_label = normalize_optional_text(aria_label);
-    let aria_labelledby = normalize_optional_text(aria_labelledby);
+pub fn normalize_checked_axis(input: CheckedAxisInput) -> CheckedAxisState {
+    let has_is_checked = input.is_checked.is_some();
+    let has_checked = input.checked.is_some();
+    let has_default_checked = input.default_checked.is_some();
+    let has_on_checked_change = input.on_checked_change.is_some();
+    let has_on_change = input.on_change.is_some();
+    let primitive = resolve_checked_axis(PrimitiveRadioCheckedAxisInput {
+        has_is_checked,
+        has_checked,
+        has_default_checked,
+        has_on_checked_change,
+        has_on_change,
+    });
 
-    if aria_label.is_some() {
-        return RadioGroupAccessibleName {
-            aria_label,
-            aria_labelledby: None,
-        };
+    CheckedAxisState {
+        controlled_checked: input.is_checked.or(input.checked),
+        default_checked: input.default_checked.unwrap_or(DEFAULT_CHECKED),
+        on_checked_change: input.on_checked_change.or(input.on_change),
+        is_controlled: primitive.is_controlled,
+        control_mode_attr: primitive.control_mode_attr,
+        checked_source_attr: primitive.checked_source_attr,
+        default_checked_source_attr: primitive.default_checked_source_attr,
+        checked_change_source_attr: primitive.checked_change_source_attr,
     }
+}
 
-    if aria_labelledby.is_some() {
-        return RadioGroupAccessibleName {
-            aria_label: None,
-            aria_labelledby,
-        };
-    }
-
-    if fallback_labelledby.is_some() {
-        return RadioGroupAccessibleName {
-            aria_label: None,
-            aria_labelledby: fallback_labelledby,
-        };
-    }
-
-    RadioGroupAccessibleName {
-        aria_label: Some("Radio group".to_string()),
-        aria_labelledby: None,
+pub fn roving_orientation(orientation: RadioGroupOrientation) -> RovingOrientation {
+    match orientation {
+        RadioGroupOrientation::Vertical => RovingOrientation::Vertical,
+        RadioGroupOrientation::Horizontal => RovingOrientation::Horizontal,
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn orientation_class_names_are_stable() {
-        assert_eq!(
-            RadioGroupOrientation::Vertical.class_name(),
-            "ui-radio-group--vertical"
-        );
-        assert_eq!(
-            RadioGroupOrientation::Horizontal.class_name(),
-            "ui-radio-group--horizontal"
-        );
-    }
-
     #[test]
     fn roving_orientation_matches_headless_contract() {
         assert_eq!(
-            RadioGroupOrientation::Vertical.roving_orientation(),
+            roving_orientation(RadioGroupOrientation::Vertical),
             RovingOrientation::Vertical
         );
         assert_eq!(
-            RadioGroupOrientation::Horizontal.roving_orientation(),
+            roving_orientation(RadioGroupOrientation::Horizontal),
             RovingOrientation::Horizontal
         );
     }
 
     #[test]
-    fn aria_and_data_orientation_values_are_stable() {
-        assert_eq!(
-            RadioGroupOrientation::Vertical.aria_orientation(),
-            "vertical"
-        );
-        assert_eq!(
-            RadioGroupOrientation::Horizontal.aria_orientation(),
-            "horizontal"
-        );
+    fn normalize_disabled_prop_prefers_is_disabled_alias() {
+        let from_is = normalize_disabled_prop(DisabledPropInput {
+            is_disabled: Some(true),
+            disabled: false,
+        });
+        assert!(from_is.is_disabled);
+        assert_eq!(from_is.disabled_source_attr, "is_disabled");
 
-        assert_eq!(
-            RadioGroupOrientation::Vertical.data_orientation(),
-            "vertical"
-        );
-        assert_eq!(
-            RadioGroupOrientation::Horizontal.data_orientation(),
-            "horizontal"
-        );
+        let from_legacy = normalize_disabled_prop(DisabledPropInput {
+            is_disabled: None,
+            disabled: true,
+        });
+        assert!(from_legacy.is_disabled);
+        assert_eq!(from_legacy.disabled_source_attr, "disabled");
     }
 
     #[test]
-    fn resolve_state_tracks_empty_disabled_group() {
-        let disabled = HashSet::new();
-        let state = resolve_state(
-            0,
-            true,
-            &disabled,
-            Some(0),
-            RadioGroupOrientation::Vertical,
-            false,
-        );
+    fn normalize_checked_axis_prefers_is_checked_alias() {
+        let from_new = normalize_checked_axis(CheckedAxisInput {
+            is_checked: Some(Signal::derive(|| false)),
+            checked: Some(Signal::derive(|| true)),
+            default_checked: Some(true),
+            on_checked_change: Some(Callback::new(|_: bool| {})),
+            on_change: Some(Callback::new(|_: bool| {})),
+        });
+        assert!(from_new.is_controlled);
+        assert_eq!(from_new.control_mode_attr, "controlled");
+        assert_eq!(from_new.checked_source_attr, "is_checked");
+        assert_eq!(from_new.default_checked_source_attr, "provided");
+        assert_eq!(from_new.checked_change_source_attr, "on_checked_change");
 
-        assert_eq!(state.item_count, 0);
-        assert!(state.is_empty);
-        assert!(!state.has_items);
-        assert!(state.is_disabled);
-        assert!(!state.has_disabled_options);
-        assert_eq!(state.disabled_option_count, 0);
-        assert_eq!(state.selected_index, None);
-        assert!(!state.has_selection);
-        assert!(state.selection_empty);
-        assert!(!state.is_horizontal);
-        assert!(state.is_vertical);
-        assert!(!state.has_label);
-    }
-
-    #[test]
-    fn resolve_state_tracks_selection_and_disabled_options() {
-        let disabled = HashSet::from([1_usize, 9_usize]);
-        let state = resolve_state(
-            3,
-            false,
-            &disabled,
-            Some(2),
-            RadioGroupOrientation::Horizontal,
-            true,
-        );
-
-        assert_eq!(state.item_count, 3);
-        assert!(!state.is_empty);
-        assert!(state.has_items);
-        assert!(!state.is_disabled);
-        assert!(state.has_disabled_options);
-        assert_eq!(state.disabled_option_count, 1);
-        assert_eq!(state.selected_index, Some(2));
-        assert!(state.has_selection);
-        assert!(!state.selection_empty);
-        assert!(state.is_horizontal);
-        assert!(!state.is_vertical);
-        assert!(state.has_label);
-    }
-
-    #[test]
-    fn normalize_optional_text_filters_blank_values() {
-        assert_eq!(normalize_optional_text(None), None);
-        assert_eq!(normalize_optional_text(Some("   ".to_string())), None);
-        assert_eq!(
-            normalize_optional_text(Some("  Size  ".to_string())),
-            Some("Size".to_string())
-        );
-    }
-
-    #[test]
-    fn resolve_accessible_name_prefers_aria_label() {
-        assert_eq!(
-            resolve_accessible_name(
-                Some("  Plan selector  ".to_string()),
-                Some("external-label".to_string()),
-                Some("internal-label".to_string())
-            ),
-            RadioGroupAccessibleName {
-                aria_label: Some("Plan selector".to_string()),
-                aria_labelledby: None,
-            }
-        );
-    }
-
-    #[test]
-    fn resolve_accessible_name_uses_external_labelledby_when_present() {
-        assert_eq!(
-            resolve_accessible_name(
-                None,
-                Some("  external-label  ".to_string()),
-                Some("internal-label".to_string())
-            ),
-            RadioGroupAccessibleName {
-                aria_label: None,
-                aria_labelledby: Some("external-label".to_string()),
-            }
-        );
-    }
-
-    #[test]
-    fn resolve_accessible_name_falls_back_to_internal_labelledby_then_default_label() {
-        assert_eq!(
-            resolve_accessible_name(None, None, Some("internal-label".to_string())),
-            RadioGroupAccessibleName {
-                aria_label: None,
-                aria_labelledby: Some("internal-label".to_string()),
-            }
-        );
-
-        assert_eq!(
-            resolve_accessible_name(None, Some(" ".to_string()), None),
-            RadioGroupAccessibleName {
-                aria_label: Some("Radio group".to_string()),
-                aria_labelledby: None,
-            }
-        );
+        let uncontrolled = normalize_checked_axis(CheckedAxisInput {
+            is_checked: None,
+            checked: None,
+            default_checked: None,
+            on_checked_change: None,
+            on_change: Some(Callback::new(|_: bool| {})),
+        });
+        assert!(!uncontrolled.is_controlled);
+        assert_eq!(uncontrolled.control_mode_attr, "uncontrolled");
+        assert_eq!(uncontrolled.checked_source_attr, "default");
+        assert_eq!(uncontrolled.default_checked_source_attr, "default");
+        assert_eq!(uncontrolled.checked_change_source_attr, "on_change");
     }
 }

@@ -7,6 +7,11 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn path_exists(rel_path: &str) -> bool {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir.join(rel_path).exists()
+}
+
 #[test]
 fn number_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/number/mod.rs");
@@ -273,4 +278,238 @@ fn number_docs_playgrounds_lock_state_matrix_contract_values() {
             "number docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn number_docs_page_includes_button_style_workbench_playgrounds() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+
+    for needle in [
+        "pub(super) fn static_number() -> AnyView",
+        "pub(super) fn sliding_number() -> AnyView",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "description=\"Button-style playground with display/config/code/css-test panels for number formatting contracts.\"",
+        "description=\"Button-style playground with display/config/code/css-test panels for sliding number motion and format contracts.\"",
+        "test_css_source=workbench_test_css",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"static-number-workbench-controls\"",
+        "data-slot=\"sliding-number-workbench-controls\"",
+        "\"展示区 · 对比矩阵\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "display number docs should include `{needle}` for button-style workbench coverage.",
+        );
+    }
+}
+
+#[test]
+fn number_readme_covers_display_config_code_css_test_sections_and_comparisons() {
+    let rel = "src/number/README.md";
+    assert!(path_exists(rel), "number README should exist at `{rel}`.");
+    let source = load_source(rel);
+
+    for needle in [
+        "# Number",
+        "## Playground 展示区（Display / Config / Code / CSS Test）",
+        "## 对比场景（多种情况）",
+        "Display",
+        "Config",
+        "Code",
+        "CSS Test",
+        "StaticNumber",
+        "SlidingNumber",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number README should include `{needle}` for docs contract completeness.",
+        );
+    }
+}
+
+#[test]
+fn number_feature_dependency_chain_supports_minimal_component_builds() {
+    let cargo_toml = load_source("Cargo.toml");
+
+    for needle in [
+        "component-number = []",
+        "component-number_field = [\"component-button\"]",
+    ] {
+        assert!(
+            cargo_toml.contains(needle),
+            "Number feature dependency chain should include `{needle}` for minimal-feature builds."
+        );
+    }
+}
+
+#[test]
+fn number_view_mounts_locale_and_headless_a11y_contracts() {
+    let source = load_source("src/number/view.rs");
+
+    for needle in [
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = locale_attrs(lang, dir);",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
+        "data-slot=\"static-number\"",
+        "data-slot=\"sliding-number\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Number view should include `{needle}` for locale/a11y contract coverage."
+        );
+    }
+}
+
+#[test]
+fn number_tree_shaking_boundaries_stay_feature_gated() {
+    let lib_source = load_source("src/lib.rs");
+    let css_source = load_source("src/css.rs");
+
+    for needle in [
+        "#[cfg(feature = \"component-number\")]",
+        "pub mod number;",
+        "pub use number::{NumberFormatOptions, SlidingNumber, SlidingNumberMotion, StaticNumber};",
+    ] {
+        assert!(
+            lib_source.contains(needle),
+            "ui-components lib boundary should include `{needle}` for number feature gating."
+        );
+    }
+
+    for needle in [
+        "#[cfg(feature = \"component-number\")]",
+        "out.push_str(crate::number::styles::CSS);",
+    ] {
+        assert!(
+            css_source.contains(needle),
+            "ui-components css boundary should include `{needle}` for number feature gating."
+        );
+    }
+}
+
+#[test]
+fn number_e2e_contract_uses_semantic_selectors_and_settled_waits() {
+    let rel = "../../e2e/tests/docs_app_number_contract.spec.mjs";
+    assert!(
+        path_exists(rel),
+        "number E2E contract file should exist at `{rel}`."
+    );
+
+    let source = load_source(rel);
+    for needle in [
+        "body:not(:has(#boot))",
+        "[data-component=\"static-number\"]",
+        "[data-component=\"sliding-number\"]",
+        "data-slot=\"static-number\"",
+        "data-slot=\"sliding-number\"",
+        "data-slot=\"sliding-number-a11y-value\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number E2E contract should include semantic selector/wait marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn number_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source() {
+    let source = load_source("../../e2e/tests/docs_app_number_contract.spec.mjs");
+
+    for needle in [
+        "page.keyboard.press(\"Tab\")",
+        "await page.reload();",
+        "Show code|Hide code",
+        "data-copyable",
+        "Copy to clipboard",
+    ] {
+        assert!(
+            source.contains(needle),
+            "number E2E contract should include `{needle}` for key-flow and source-copy coverage.",
+        );
+    }
+}
+
+#[test]
+fn number_check2_marks_component_governance_complete() {
+    let check2_source = load_source("src/number/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 如果无异步相关，直接打勾。",
+        "- [x] 语义测试优先",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "N/A：`Number` 当前仅处理同步数值格式化与渲染状态标记",
+        "`Number` 归类为 `Streaming Optional`",
+        "fallback=snapshot",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "number/check2.md should pin completion marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn number_check2_marks_forbidden_anti_patterns_complete() {
+    let check2_source = load_source("src/number/check2.md");
+
+    for needle in [
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 在 `ui-headless` 写视觉和动画编排。",
+        "- [x] 在 `view` 层隐藏关键状态决策。",
+        "- [x] 新增参数但不纳入统一命名与契约。",
+        "- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。",
+        "- [x] 公共 API 泄露底层实现细节类型。",
+        "- [x] 用临时补丁破坏跨组件一致性。",
+        "- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "number/check2.md should mark anti-pattern guard `{needle}` as complete.",
+        );
+    }
+}
+
+#[test]
+fn number_check2_marks_final_merge_gates_complete() {
+    let check2_source = load_source("src/number/check2.md");
+
+    for needle in [
+        "- [x] 架构正确（边界不破）。",
+        "- [x] 行为正确（状态与交互语义成立）。",
+        "- [x] 可访问性达标（默认可用）。",
+        "- [x] 默认主题美学质量达标（与可访问性同级门禁）。",
+        "- [x] 可测试（契约可断言）。",
+        "- [x] 可维护（命名和模式一致）。",
+        "- [x] 可解释（人和自动化都能读懂）。",
+        "- [x] 改动在正确层。",
+        "- [x] 命名与全库一致。",
+        "- [x] 无效状态被限制或归一化。",
+        "- [x] 暴露必要语义标记。",
+        "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
+        "- [x] 文档与示例同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "number/check2.md should keep final merge-gate marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn number_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/number/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "Number check2.md should not keep unchecked checklist items after completion."
+    );
 }

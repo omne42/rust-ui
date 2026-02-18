@@ -1,6 +1,7 @@
 pub const CSS: &str = r#"
 .ui-toaster {
-  --ui-toaster-max-inline-width: 420px;
+  --ui-toaster-single-max-width: var(--ui-overlay-panel-min-width);
+  --ui-toaster-max-inline-width: calc(var(--ui-overlay-panel-min-width) + var(--ui-space-lg) * 9);
   pointer-events: none;
 }
 
@@ -74,7 +75,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-toaster[data-queue="single"] .ui-toaster__sonner.ui-sonner {
-  max-width: min(100%, 360px);
+  max-width: min(100%, var(--ui-toaster-single-max-width));
 }
 
 .ui-toaster[data-queue="bounded"] .ui-toaster__sonner.ui-sonner,

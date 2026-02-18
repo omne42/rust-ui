@@ -1,3 +1,5 @@
+use ui_theme::default_overlay_layout_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ToastMotion {
     pub spring: ui_motion::spring::SpringConfig,
@@ -7,39 +9,18 @@ pub struct ToastMotion {
 
 impl Default for ToastMotion {
     fn default() -> Self {
+        let overlay = default_overlay_layout_tokens();
         Self {
             spring: ui_motion::presets::spring_slide(),
-            initial_y_px: 12.0,
-            initial_scale: 0.98,
+            initial_y_px: f64::from(overlay.enter_offset_y_px),
+            initial_scale: overlay.enter_scale,
         }
     }
 }
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
     let default = ToastMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    ui_motion::spring::sanitize_config(value, default)
 }
 
 fn sanitize_number(value: f64, fallback: f64) -> f64 {
@@ -52,12 +33,13 @@ pub fn sanitize_motion(motion: ToastMotion) -> ToastMotion {
 
     ToastMotion {
         spring: sanitize_spring(motion.spring),
-        initial_y_px: sanitize_number(motion.initial_y_px, default.initial_y_px),
+        initial_y_px: sanitize_number(motion.initial_y_px, default.initial_y_px).clamp(0.0, 320.0),
         initial_scale: if initial_scale > 0.0 {
             initial_scale
         } else {
             default.initial_scale
-        },
+        }
+        .clamp(0.5, 1.5),
     }
 }
 
@@ -102,6 +84,15 @@ pub fn attach_motion(
         let _ = style.set_property("--ui-toast-opacity", &format!("{opacity_initial}"));
         let _ = style.set_property("--ui-toast-y", &format!("{y_initial}px"));
         let _ = style.set_property("--ui-toast-scale", &format!("{scale_initial}"));
+
+        if ui_motion::web::prefers_reduced_motion() {
+            if open_now {
+                let _ = style.set_property("--ui-toast-opacity", "1");
+                let _ = style.set_property("--ui-toast-y", "0px");
+                let _ = style.set_property("--ui-toast-scale", "1");
+            }
+            return;
+        }
 
         let style_for_opacity = style.clone();
         let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
@@ -151,6 +142,9 @@ pub fn attach_motion(
         last_state.set_value(Some(open));
 
         let Some((opacity, y, scale)) = springs.get_value() else {
+            if !open {
+                on_exit_complete.run(());
+            }
             return;
         };
 

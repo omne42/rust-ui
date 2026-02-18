@@ -29,6 +29,10 @@ fn text_area_is_exported_from_module_and_crate_root() {
         "text_area module should export `TextArea`.",
     );
     assert!(
+        module_source.contains("pub use motion::TextAreaMotion;"),
+        "text_area module should export `TextAreaMotion`.",
+    );
+    assert!(
         crate_source.contains("pub use text_area::TextArea;"),
         "crate root should re-export `TextArea`.",
     );
@@ -36,18 +40,37 @@ fn text_area_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn text_area_logic_exposes_state_helpers() {
-    let source = load_source("src/text_area/logic.rs");
+    let logic_source = load_source("src/text_area/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/text_area.rs");
 
     for needle in [
-        "pub fn normalize_optional_text(",
-        "pub fn resolve_label(value: String)",
-        "pub fn resolve_state(input: TextAreaStateInput)",
+        "pub use ui_state_primitives::text_area::{",
+        "TextAreaState",
+        "TextAreaStateInput",
+        "normalize_optional_text",
+        "resolve_label_with_fallback",
+        "resolve_state",
+        "pub fn normalize_value_axis(input: ValueAxisInput) -> ValueAxisState",
+        "pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState",
+        "pub fn resolve_props(input: ResolvedTextAreaPropsInput) -> ResolvedTextAreaProps",
         "pub fn compose_class_name(class_name: Option<String>, state: TextAreaState)",
-        "DEFAULT_LABEL",
     ] {
         assert!(
-            source.contains(needle),
-            "TextArea logic should include `{needle}` for centralized source/state contracts.",
+            logic_source.contains(needle),
+            "TextArea logic should include `{needle}` to consume shared state primitives.",
+        );
+    }
+
+    for needle in [
+        "pub struct TextAreaStateInput",
+        "pub struct TextAreaState",
+        "pub fn resolve_label(value: String)",
+        "pub fn resolve_label_with_fallback(value: String, fallback_label: &str)",
+        "pub fn resolve_state(input: TextAreaStateInput) -> TextAreaState",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "TextArea state primitive layer should include `{needle}`.",
         );
     }
 }
@@ -59,10 +82,26 @@ fn text_area_view_uses_logic_state_and_a11y_contracts() {
     for needle in [
         "use_focus_ring",
         "use_text_field",
-        "logic::resolve_label(label)",
+        "use_controllable_state",
+        "use_ui_i18n",
+        "A11yDirection",
+        "locale_attrs",
+        "logic::normalize_value_axis(logic::ValueAxisInput {",
+        "logic::normalize_accessibility_state(logic::AccessibilityStateInput {",
+        "logic::resolve_props(logic::ResolvedTextAreaPropsInput {",
         "logic::resolve_state(TextAreaStateInput {",
         "logic::compose_class_name(class_name.clone(), state.get())",
+        "motion::sanitize_motion(motion)",
+        "motion::motion_style_vars(motion)",
+        "motion::attach_motion(root_ref, is_active, motion)",
+        "let locale = locale_attrs(lang, dir);",
         "data-slot=\"text-area\"",
+        "data-motion-source=if has_custom_motion { \"custom\" } else { \"default\" }",
+        "data-value-control-mode=value_axis.control_mode_attr",
+        "data-default-value-source=value_axis.default_value_source_attr",
+        "data-value-change-source=value_axis.value_change_source_attr",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
         "data-state=move || state.get().state_attr",
         "data-value=move || state.get().value_attr",
         "data-requirement=move || state.get().requirement_attr",
@@ -93,14 +132,21 @@ fn text_area_styles_include_state_source_and_reduced_motion_markers() {
         ".ui-text-area[data-state=\"readonly\"]",
         ".ui-text-area[data-value=\"filled\"]",
         ".ui-text-area[data-requirement=\"required\"]",
+        ".ui-text-area[data-value-control-mode=\"controlled\"]",
+        ".ui-text-area[data-default-value-source=\"custom\"]",
+        ".ui-text-area[data-value-change-source=\"on_value_change\"]",
+        ".ui-text-area[data-value-change-source=\"set_value\"]",
         ".ui-text-area[data-label-source=\"custom\"]",
         ".ui-text-area[data-description-source=\"custom\"]",
         ".ui-text-area[data-error-source=\"custom\"]",
         ".ui-text-area[data-placeholder-source=\"custom\"]",
         ".ui-text-area[data-rows-source=\"custom\"]",
+        ".ui-text-area[data-class-source=\"custom\"]",
         ".ui-text-area--custom-class",
+        "var(--ui-text-area-motion-duration)",
+        "var(--ui-text-area-motion-easing)",
         "prefers-reduced-motion: reduce",
-        "transition: none;",
+        "--ui-text-area-motion-duration: 1ms;",
     ] {
         assert!(
             source.contains(selector),
@@ -145,18 +191,41 @@ fn text_area_docs_state_source_playground_locks_contract_values() {
         "title=\"State + Source Markers\"",
         "id=\"docs-text-area-markers\".to_string()",
         "label=\"Release notes\".to_string()",
-        "required=true",
-        "invalid=Signal::derive(move || invalid.get())",
+        "default_value=\"Shipping notes\".to_string()",
+        "is_required=Signal::derive(move || true)",
+        "is_invalid=Signal::derive(move || invalid.get())",
         "description=\"Inspect source/state marker contracts\".to_string()",
         "error=\"Release notes are required\".to_string()",
         "placeholder=\"Write release notes…\".to_string()",
+        "motion=TextAreaMotion::disabled()",
         "rows=6",
         "class_name=\"docs-text-area-state\".to_string()",
-        "Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`.",
+        "Inspect root markers like `data-state`, `data-value`, `data-requirement`, `data-value-control-mode`, `data-default-value-source`, `data-value-change-source`, `data-label-source`, `data-description-source`, `data-error-source`, `data-placeholder-source`, and `data-rows-source`.",
     ] {
         assert!(
             source.contains(needle),
             "TextArea docs state/source playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn text_area_motion_module_uses_token_backed_contract() {
+    let source = load_source("src/text_area/motion.rs");
+
+    for needle in [
+        "pub struct TextAreaMotion",
+        "default_textarea_motion_tokens",
+        "pub fn sanitize_motion(motion: TextAreaMotion) -> TextAreaMotion",
+        "pub fn motion_style_vars(motion: TextAreaMotion) -> String",
+        "--ui-text-area-motion-duration",
+        "--ui-text-area-motion-easing",
+        "pub fn attach_motion(",
+        "#[cfg(not(target_arch = \"wasm32\"))]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "TextArea motion module should include `{needle}`.",
         );
     }
 }

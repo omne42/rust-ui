@@ -6,7 +6,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-segmented-control__label {
-  font-size: 13px;
+  font-size: var(--ui-font-size-100);
   font-weight: 600;
   color: var(--ui-fg);
 }
@@ -14,7 +14,7 @@ pub const CSS: &str = r#"
 .ui-segmented-control__options {
   position: relative;
   display: inline-flex;
-  padding: 4px;
+  padding: var(--ui-space-2xs);
   border-radius: var(--ui-radius-lg);
   background: var(--ui-bg-muted);
   border: 1px solid var(--ui-border);
@@ -33,8 +33,8 @@ pub const CSS: &str = r#"
 
 .ui-segmented-control__indicator {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: var(--ui-space-2xs);
+  left: var(--ui-space-2xs);
   width: var(--ui-segmented-control-indicator-w, 0px);
   height: var(--ui-segmented-control-indicator-h, 0px);
   transform:
@@ -42,7 +42,7 @@ pub const CSS: &str = r#"
     translateY(var(--ui-segmented-control-indicator-y, 0px));
   opacity: var(--ui-segmented-control-indicator-o, 0);
   background: var(--ui-bg);
-  border-radius: calc(var(--ui-radius-lg) - 4px);
+  border-radius: calc(var(--ui-radius-lg) - var(--ui-space-2xs));
   box-shadow: var(--ui-shadow-sm);
   pointer-events: none;
   will-change: transform, width, height, opacity;
@@ -54,15 +54,15 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: calc((var(--ui-space-sm) + var(--ui-space-2xs)) / 2);
   border: 0;
   background: transparent;
   color: var(--ui-fg);
-  border-radius: calc(var(--ui-radius-lg) - 4px);
+  border-radius: calc(var(--ui-radius-lg) - var(--ui-space-2xs));
   font-weight: 600;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
-  min-width: 44px;
+  min-width: calc(var(--ui-component-height-100) + var(--ui-space-md));
 }
 
 .ui-segmented-control__option:not(:disabled) {
@@ -79,25 +79,25 @@ pub const CSS: &str = r#"
 }
 
 .ui-segmented-control__option--focus-visible {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: calc(var(--ui-space-2xs) - (var(--ui-space-3xs) / 2)) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-space-3xs);
 }
 
 .ui-segmented-control--size-default .ui-segmented-control__option {
-  height: 34px;
-  padding: 0 14px;
-  font-size: 13px;
+  height: calc(var(--ui-component-height-100) + (var(--ui-space-2xs) / 2));
+  padding-inline: calc(var(--ui-space-md) + (var(--ui-space-2xs) / 2));
+  font-size: var(--ui-font-size-150);
 }
 
 .ui-segmented-control--size-sm .ui-segmented-control__option {
-  height: 30px;
-  padding: 0 12px;
-  font-size: 12px;
+  height: calc(var(--ui-component-height-100) - (var(--ui-space-2xs) / 2));
+  padding-inline: var(--ui-space-md);
+  font-size: var(--ui-font-size-100);
 }
 
 .ui-segmented-control--size-lg .ui-segmented-control__option {
-  height: 38px;
-  padding: 0 18px;
-  font-size: 14px;
+  height: calc(var(--ui-component-height-100) + var(--ui-space-sm) - (var(--ui-space-2xs) / 2));
+  padding-inline: calc(var(--ui-space-md) + var(--ui-space-sm) - (var(--ui-space-2xs) / 2));
+  font-size: var(--ui-font-size-200);
 }
 "#;

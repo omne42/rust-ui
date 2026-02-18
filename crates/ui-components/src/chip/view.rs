@@ -9,7 +9,7 @@ use ui_headless::OnPress;
 pub fn Chip(
     #[prop(optional)] variant: ChipVariant,
     #[prop(optional)] size: ChipSize,
-    #[prop(optional)] disabled: bool,
+    #[prop(optional)] is_disabled: bool,
     #[prop(optional)] on_dismiss: Option<OnPress>,
     #[prop(optional, into)] dismiss_aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -22,7 +22,7 @@ pub fn Chip(
     let state = logic::resolve_state(ChipStateInput {
         variant,
         size,
-        disabled,
+        disabled: is_disabled,
         has_dismiss_action: on_dismiss.is_some(),
         has_custom_dismiss_aria_label,
         has_custom_class_name: class_name.is_some(),

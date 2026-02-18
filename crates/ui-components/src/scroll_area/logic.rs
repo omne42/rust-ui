@@ -1,108 +1,232 @@
-pub const DEFAULT_ARIA_LABEL: &str = "Scrollable region";
+pub use ui_state_primitives::scroll_area::{
+    DEFAULT_ARIA_LABEL, ScrollAreaOrientation, ScrollAreaState, ScrollAreaStateInput,
+    normalize_aria_label, normalize_optional_text, resolve_state,
+};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum ScrollAreaOrientation {
-    #[default]
-    Vertical,
-    Horizontal,
-    Both,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaDisabledSourceAttr {
+    IsProp,
+    LegacyProp,
 }
 
-impl ScrollAreaOrientation {
-    pub fn class_name(self) -> &'static str {
+impl ScrollAreaDisabledSourceAttr {
+    pub const fn as_attr(self) -> &'static str {
         match self {
-            ScrollAreaOrientation::Vertical => "ui-scroll-area--vertical",
-            ScrollAreaOrientation::Horizontal => "ui-scroll-area--horizontal",
-            ScrollAreaOrientation::Both => "ui-scroll-area--both",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            ScrollAreaOrientation::Vertical => "vertical",
-            ScrollAreaOrientation::Horizontal => "horizontal",
-            ScrollAreaOrientation::Both => "both",
+            Self::IsProp => "is-prop",
+            Self::LegacyProp => "legacy-prop",
         }
     }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ScrollAreaStateInput {
-    pub orientation: ScrollAreaOrientation,
-    pub disabled: bool,
-    pub max_height_px: Option<u32>,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
+pub enum ScrollAreaAgentSchema {
+    V1,
+}
+
+impl ScrollAreaAgentSchema {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "ui.scroll-area.agent-contract.v1",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ScrollAreaState {
-    pub orientation: ScrollAreaOrientation,
-    pub orientation_class: &'static str,
-    pub orientation_attr: &'static str,
+pub enum ScrollAreaStreamSupport {
+    Unsupported,
+}
+
+impl ScrollAreaStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Unsupported => "unsupported",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaStreamFallback {
+    Snapshot,
+}
+
+impl ScrollAreaStreamFallback {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaStreamMode {
+    Snapshot,
+}
+
+impl ScrollAreaStreamMode {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaOutputStatus {
+    Verified,
+}
+
+impl ScrollAreaOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaAgentIntent {
+    InspectRegion,
+}
+
+impl ScrollAreaAgentIntent {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::InspectRegion => "inspect-region",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaAgentAction {
+    Observe,
+    Disabled,
+}
+
+impl ScrollAreaAgentAction {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Observe => "observe",
+            Self::Disabled => "disabled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScrollAreaAgentState {
+    Enabled,
+    Disabled,
+}
+
+impl ScrollAreaAgentState {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Enabled => "enabled",
+            Self::Disabled => "disabled",
+        }
+    }
+}
+
+pub struct ScrollAreaAgentContract {
+    pub schema_attr: &'static str,
+    pub stream_support_attr: &'static str,
+    pub stream_fallback_attr: &'static str,
+    pub stream_mode_attr: &'static str,
+    pub output_status_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub action_attr: &'static str,
+    pub state_attr: &'static str,
+    pub source_attr: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ScrollAreaDisableInput {
+    pub is_disabled: Option<bool>,
     pub disabled: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ScrollAreaDisableState {
+    pub is_disabled: bool,
+    pub disabled_source_attr: ScrollAreaDisabledSourceAttr,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ScrollAreaRootInput {
+    pub class_name: Option<String>,
+    pub aria_label: Option<String>,
+    pub fallback_aria_label: String,
+    pub orientation: ScrollAreaOrientation,
     pub max_height_px: Option<u32>,
-    pub has_custom_max_height: bool,
-    pub max_height_attr: &'static str,
-    pub has_custom_aria_label: bool,
-    pub aria_source_attr: &'static str,
-    pub has_custom_class_name: bool,
-    pub class_source_attr: &'static str,
+    pub disabled: ScrollAreaDisableInput,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ScrollAreaRootState {
+    pub class_name: Option<String>,
+    pub aria_label: String,
+    pub state: ScrollAreaState,
+    pub disabled_source_attr: ScrollAreaDisabledSourceAttr,
 }
 
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(value) = normalize_optional_text(value) {
-        (value, true)
+pub fn normalize_disable_state(input: ScrollAreaDisableInput) -> ScrollAreaDisableState {
+    if let Some(is_disabled) = input.is_disabled {
+        ScrollAreaDisableState {
+            is_disabled,
+            disabled_source_attr: ScrollAreaDisabledSourceAttr::IsProp,
+        }
     } else {
-        (DEFAULT_ARIA_LABEL.to_string(), false)
+        ScrollAreaDisableState {
+            is_disabled: input.disabled,
+            disabled_source_attr: ScrollAreaDisabledSourceAttr::LegacyProp,
+        }
     }
 }
 
-pub fn normalize_max_height(max_height_px: Option<u32>) -> Option<u32> {
-    max_height_px.filter(|px| *px > 0)
+pub fn normalize_aria_label_with_fallback(
+    aria_label: Option<String>,
+    fallback_aria_label: &str,
+) -> (String, bool) {
+    if let Some(label) = normalize_optional_text(aria_label) {
+        return (label, true);
+    }
+
+    let fallback = normalize_optional_text(Some(fallback_aria_label.to_string()))
+        .unwrap_or_else(|| normalize_aria_label(None).0);
+    (fallback, false)
 }
 
-pub fn resolve_state(input: ScrollAreaStateInput) -> ScrollAreaState {
-    let max_height_px = normalize_max_height(input.max_height_px);
+pub fn normalize_root_state(input: ScrollAreaRootInput) -> ScrollAreaRootState {
+    let class_name = normalize_optional_text(input.class_name);
+    let (aria_label, has_custom_aria_label) =
+        normalize_aria_label_with_fallback(input.aria_label, input.fallback_aria_label.as_str());
+    let disable = normalize_disable_state(input.disabled);
 
-    ScrollAreaState {
+    let state = resolve_state(ScrollAreaStateInput {
         orientation: input.orientation,
-        orientation_class: input.orientation.class_name(),
-        orientation_attr: input.orientation.as_attr(),
-        disabled: input.disabled,
-        max_height_px,
-        has_custom_max_height: max_height_px.is_some(),
-        max_height_attr: if max_height_px.is_some() {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_aria_label: input.has_custom_aria_label,
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
+        disabled: disable.is_disabled,
+        max_height_px: input.max_height_px,
+        has_custom_aria_label,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    ScrollAreaRootState {
+        class_name,
+        aria_label,
+        state,
+        disabled_source_attr: disable.disabled_source_attr,
     }
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ScrollAreaState) -> String {
+    let orientation_class_name = match state.orientation {
+        ScrollAreaOrientation::Vertical => "ui-scroll-area--vertical",
+        ScrollAreaOrientation::Horizontal => "ui-scroll-area--horizontal",
+        ScrollAreaOrientation::Both => "ui-scroll-area--both",
+    };
+
     let mut classes = vec![
         "ui-scroll-area".to_string(),
-        state.orientation_class.to_string(),
+        orientation_class_name.to_string(),
     ];
 
     if state.disabled {
@@ -123,52 +247,119 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ScrollAreaStat
     classes.join(" ")
 }
 
+pub fn resolve_agent_contract(
+    state: ScrollAreaState,
+    disabled_source_attr: ScrollAreaDisabledSourceAttr,
+) -> ScrollAreaAgentContract {
+    let action = if state.disabled {
+        ScrollAreaAgentAction::Disabled
+    } else {
+        ScrollAreaAgentAction::Observe
+    };
+    let state_axis = if state.disabled {
+        ScrollAreaAgentState::Disabled
+    } else {
+        ScrollAreaAgentState::Enabled
+    };
+
+    ScrollAreaAgentContract {
+        schema_attr: ScrollAreaAgentSchema::V1.as_attr(),
+        stream_support_attr: ScrollAreaStreamSupport::Unsupported.as_attr(),
+        stream_fallback_attr: ScrollAreaStreamFallback::Snapshot.as_attr(),
+        stream_mode_attr: ScrollAreaStreamMode::Snapshot.as_attr(),
+        output_status_attr: ScrollAreaOutputStatus::Verified.as_attr(),
+        intent_attr: ScrollAreaAgentIntent::InspectRegion.as_attr(),
+        action_attr: action.as_attr(),
+        state_attr: state_axis.as_attr(),
+        source_attr: disabled_source_attr.as_attr(),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn normalize_optional_text_trims_and_filters_blank_values() {
-        assert_eq!(normalize_optional_text(None), None);
-        assert_eq!(normalize_optional_text(Some("".to_string())), None);
+    fn normalize_disable_state_prefers_is_prefixed_prop() {
+        let state = normalize_disable_state(ScrollAreaDisableInput {
+            is_disabled: Some(true),
+            disabled: false,
+        });
+
+        assert!(state.is_disabled);
         assert_eq!(
-            normalize_optional_text(Some("  ok  ".to_string())),
-            Some("ok".to_string())
+            state.disabled_source_attr,
+            ScrollAreaDisabledSourceAttr::IsProp
         );
     }
 
     #[test]
-    fn normalize_aria_label_uses_default_when_missing() {
-        let (aria_label, custom) = normalize_aria_label(None);
-        assert_eq!(aria_label, DEFAULT_ARIA_LABEL);
-        assert!(!custom);
-
-        let (aria_label, custom) = normalize_aria_label(Some(" Inbox updates ".to_string()));
-        assert_eq!(aria_label, "Inbox updates");
-        assert!(custom);
-    }
-
-    #[test]
-    fn normalize_max_height_ignores_zero() {
-        assert_eq!(normalize_max_height(Some(0)), None);
-        assert_eq!(normalize_max_height(Some(240)), Some(240));
-    }
-
-    #[test]
-    fn resolve_state_tracks_markers() {
-        let state = resolve_state(ScrollAreaStateInput {
-            orientation: ScrollAreaOrientation::Horizontal,
+    fn normalize_disable_state_falls_back_to_legacy_prop() {
+        let state = normalize_disable_state(ScrollAreaDisableInput {
+            is_disabled: None,
             disabled: true,
-            max_height_px: Some(180),
-            has_custom_aria_label: true,
-            has_custom_class_name: true,
         });
 
-        assert_eq!(state.orientation_attr, "horizontal");
-        assert_eq!(state.max_height_attr, "custom");
-        assert_eq!(state.aria_source_attr, "custom");
-        assert_eq!(state.class_source_attr, "custom");
-        assert!(state.disabled);
+        assert!(state.is_disabled);
+        assert_eq!(
+            state.disabled_source_attr,
+            ScrollAreaDisabledSourceAttr::LegacyProp
+        );
+    }
+
+    #[test]
+    fn normalize_root_state_centralizes_defaults_and_sources() {
+        let root = normalize_root_state(ScrollAreaRootInput {
+            class_name: Some("  docs-scroll-area-custom ".to_string()),
+            aria_label: None,
+            fallback_aria_label: DEFAULT_ARIA_LABEL.to_string(),
+            orientation: ScrollAreaOrientation::Vertical,
+            max_height_px: Some(180),
+            disabled: ScrollAreaDisableInput {
+                is_disabled: Some(true),
+                disabled: false,
+            },
+        });
+
+        assert_eq!(root.class_name, Some("docs-scroll-area-custom".to_string()));
+        assert_eq!(root.aria_label, DEFAULT_ARIA_LABEL);
+        assert_eq!(root.state.orientation_attr, "vertical");
+        assert!(root.state.disabled);
+        assert_eq!(
+            root.state.max_height_attr,
+            ui_state_primitives::scroll_area::ScrollAreaMaxHeightAttr::Custom
+        );
+        assert_eq!(
+            root.state.aria_source_attr,
+            ui_state_primitives::scroll_area::ScrollAreaSourceAttr::Default
+        );
+        assert_eq!(
+            root.state.class_source_attr,
+            ui_state_primitives::scroll_area::ScrollAreaSourceAttr::Custom
+        );
+        assert_eq!(
+            root.disabled_source_attr,
+            ScrollAreaDisabledSourceAttr::IsProp
+        );
+    }
+
+    #[test]
+    fn normalize_aria_label_with_fallback_prefers_prop_then_fallback_then_default() {
+        assert_eq!(
+            normalize_aria_label_with_fallback(
+                Some("  Custom label  ".to_string()),
+                "Localized fallback",
+            ),
+            ("Custom label".to_string(), true)
+        );
+        assert_eq!(
+            normalize_aria_label_with_fallback(None, "  Localized fallback  "),
+            ("Localized fallback".to_string(), false)
+        );
+        assert_eq!(
+            normalize_aria_label_with_fallback(None, "   "),
+            (DEFAULT_ARIA_LABEL.to_string(), false)
+        );
     }
 
     #[test]
@@ -197,5 +388,42 @@ mod tests {
                 "expected class list to contain `{expected}`, got `{class_name}`"
             );
         }
+    }
+
+    #[test]
+    fn resolve_agent_contract_uses_closed_set_markers() {
+        let enabled = resolve_agent_contract(
+            resolve_state(ScrollAreaStateInput {
+                orientation: ScrollAreaOrientation::Vertical,
+                disabled: false,
+                max_height_px: None,
+                has_custom_aria_label: false,
+                has_custom_class_name: false,
+            }),
+            ScrollAreaDisabledSourceAttr::LegacyProp,
+        );
+        assert_eq!(enabled.schema_attr, "ui.scroll-area.agent-contract.v1");
+        assert_eq!(enabled.stream_support_attr, "unsupported");
+        assert_eq!(enabled.stream_fallback_attr, "snapshot");
+        assert_eq!(enabled.stream_mode_attr, "snapshot");
+        assert_eq!(enabled.output_status_attr, "verified");
+        assert_eq!(enabled.intent_attr, "inspect-region");
+        assert_eq!(enabled.action_attr, "observe");
+        assert_eq!(enabled.state_attr, "enabled");
+        assert_eq!(enabled.source_attr, "legacy-prop");
+
+        let disabled = resolve_agent_contract(
+            resolve_state(ScrollAreaStateInput {
+                orientation: ScrollAreaOrientation::Vertical,
+                disabled: true,
+                max_height_px: None,
+                has_custom_aria_label: false,
+                has_custom_class_name: false,
+            }),
+            ScrollAreaDisabledSourceAttr::IsProp,
+        );
+        assert_eq!(disabled.action_attr, "disabled");
+        assert_eq!(disabled.state_attr, "disabled");
+        assert_eq!(disabled.source_attr, "is-prop");
     }
 }

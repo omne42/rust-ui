@@ -72,3 +72,23 @@ test("docs-app input-otp normalizes digits and preserves slot contracts", async 
   await input.press("Backspace");
   await expect(input).toHaveValue("12345");
 });
+
+test("docs-app input-otp comparison playground keeps disabled/invalid/default contracts", async ({
+  page,
+}) => {
+  await page.goto("/#/components/input-otp");
+  await page.locator("body:not(:has(#boot))").waitFor();
+
+  const comparison = page.locator('[data-slot="input-otp-state-compare"]').first();
+  const defaultInput = comparison.getByLabel("Default OTP");
+  await defaultInput.fill("9a8");
+  await expect(defaultInput).toHaveValue("98");
+
+  const disabledInput = comparison.getByLabel("Disabled OTP");
+  await expect(disabledInput).toBeDisabled();
+  await expect(disabledInput).toHaveValue("2468");
+
+  const invalidInput = comparison.getByLabel("Invalid OTP");
+  await expect(invalidInput).toHaveAttribute("aria-invalid", "true");
+  await expect(comparison.locator('[data-slot="input-otp-error"]')).toBeVisible();
+});

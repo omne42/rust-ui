@@ -4,6 +4,9 @@ use leptos::prelude::*;
 use ui_components::{Swatch, SwatchBorder, SwatchMotion, SwatchRounding, SwatchShape, SwatchSize};
 
 pub(super) fn swatch() -> AnyView {
+    let hello_world_code =
+        Signal::derive(move || "<Swatch color=\"#ffcc00\".to_string() />".to_string());
+
     let size_code = Signal::derive(move || {
         r##"<Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
 <Swatch color="#ffcc00".to_string() size=SwatchSize::S />
@@ -28,9 +31,9 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
   selected=move || selected.get()
   on_selected_change=on_selected_change
 />
-<Swatch mixed_value=true size=SwatchSize::L shape=SwatchShape::Rectangle />
-<Swatch nothing=true border=SwatchBorder::None rounding=SwatchRounding::Full />
-<Swatch color="#111827".to_string() disabled=true />"##
+<Swatch is_mixed_value=true size=SwatchSize::L shape=SwatchShape::Rectangle />
+<Swatch is_nothing=true border=SwatchBorder::None rounding=SwatchRounding::Full />
+<Swatch color="#111827".to_string() is_disabled=true />"##
             .to_string()
     });
 
@@ -72,7 +75,21 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             group="Display"
             description="baseline-compatible swatch primitive with centralized size/shape/rounding/border/state contracts and baseline-level spring selection motion."
         >
-            <Playground title="Size + Shape + Rounding" code_signal=size_code>
+            <Playground
+                title="Hello World"
+                code_signal=hello_world_code
+                test_source_path="crates/ui-components/src/swatch/view.rs".to_string()
+            >
+                <div class="docs-row">
+                    <Swatch color="#ffcc00".to_string() />
+                </div>
+            </Playground>
+
+            <Playground
+                title="Size + Shape + Rounding"
+                code_signal=size_code
+                test_source_path="crates/ui-components/src/swatch/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
                     <Swatch color="#ffcc00".to_string() size=SwatchSize::S />
@@ -87,7 +104,11 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
                 </div>
             </Playground>
 
-            <Playground title="Mixed + Nothing + Disabled + Controlled" code_signal=state_code>
+            <Playground
+                title="Mixed + Nothing + Disabled + Controlled"
+                code_signal=state_code
+                test_source_path="crates/ui-components/src/swatch/view.rs".to_string()
+            >
                 <div class="docs-stack docs-stack--tight">
                     <Swatch
                         color="rgba(38, 99, 235, 0.35)".to_string()
@@ -98,17 +119,21 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
                     <div class="ui-muted">
                         {move || format!("Selected: {}", selected.get())}
                     </div>
-                    <Swatch mixed_value=true size=SwatchSize::L shape=SwatchShape::Rectangle />
+                    <Swatch is_mixed_value=true size=SwatchSize::L shape=SwatchShape::Rectangle />
                     <Swatch
-                        nothing=true
+                        is_nothing=true
                         border=SwatchBorder::None
                         rounding=SwatchRounding::Full
                     />
-                    <Swatch color="#111827".to_string() disabled=true />
+                    <Swatch color="#111827".to_string() is_disabled=true />
                 </div>
             </Playground>
 
-            <Playground title="Custom Motion Contract" code_signal=motion_code>
+            <Playground
+                title="Custom Motion Contract"
+                code_signal=motion_code
+                test_source_path="crates/ui-components/src/swatch/view.rs".to_string()
+            >
                 <div class="docs-row">
                     <Swatch
                         color="#7c3aed".to_string()

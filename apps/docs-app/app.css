@@ -1139,6 +1139,17 @@ a {
   background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 14%);
 }
 
+.docs-pagination-custom {
+  padding: 6px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid color-mix(in oklch, var(--ui-border), var(--ui-accent) 36%);
+  background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 14%);
+}
+
+.docs-pagination-custom [aria-current="page"] .ui-button {
+  background: color-mix(in oklch, var(--ui-accent-soft), var(--ui-bg) 16%);
+}
+
 .docs-disclosure-group-custom {
   border-radius: var(--ui-radius-md);
   background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-accent-soft) 10%);

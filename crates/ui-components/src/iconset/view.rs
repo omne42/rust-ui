@@ -1,4 +1,4 @@
-use crate::Icon;
+use crate::icon::Icon;
 use crate::iconset::{IconsetGlyph, IconsetSize, IconsetStateInput, IconsetTone, logic};
 use leptos::prelude::*;
 

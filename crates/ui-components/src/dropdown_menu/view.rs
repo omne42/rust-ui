@@ -1,5 +1,8 @@
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use crate::dropdown_menu::{DropdownMenuMotion, logic};
-use crate::{Button, ButtonSize, ButtonVariant, Menu, MenuItemKind, OnPress, Popover};
+use crate::menu::Menu;
+use crate::popover::Popover;
+use crate::{MenuItemKind, OnPress};
 use leptos::{ev, html, prelude::*};
 use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;

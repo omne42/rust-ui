@@ -1,3 +1,5 @@
+use ui_theme::default_button_layout_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SpinnerMotion {
     pub rotation_duration_ms: u16,
@@ -5,8 +7,9 @@ pub struct SpinnerMotion {
 
 impl Default for SpinnerMotion {
     fn default() -> Self {
+        let tokens = default_button_layout_tokens();
         Self {
-            rotation_duration_ms: 900,
+            rotation_duration_ms: tokens.spinner_duration_ms,
         }
     }
 }

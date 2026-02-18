@@ -1,6 +1,8 @@
 use super::{SkeletonGroupState, SkeletonGroupStateInput};
 
 pub const DEFAULT_ARIA_LABEL: &str = "Skeleton group";
+pub const DEFAULT_IS_LOADING: bool = true;
+pub const DEFAULT_IS_SKELETON_ONLY: bool = false;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SkeletonGroupVariant {
@@ -58,6 +60,17 @@ pub enum SkeletonGroupDensity {
     Comfortable,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SkeletonGroupViewInput {
+    pub is_loading: Option<bool>,
+    pub is_skeleton_only: Option<bool>,
+    pub variant: Option<SkeletonGroupVariant>,
+    pub layout: Option<SkeletonGroupLayout>,
+    pub density: Option<SkeletonGroupDensity>,
+    pub has_custom_aria_label: bool,
+    pub has_custom_class_name: bool,
+}
+
 impl SkeletonGroupDensity {
     pub fn class_name(self) -> &'static str {
         match self {
@@ -86,6 +99,18 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         (value, true)
     } else {
         (DEFAULT_ARIA_LABEL.to_string(), false)
+    }
+}
+
+pub fn normalize_state_input(input: SkeletonGroupViewInput) -> SkeletonGroupStateInput {
+    SkeletonGroupStateInput {
+        is_loading: input.is_loading.unwrap_or(DEFAULT_IS_LOADING),
+        is_skeleton_only: input.is_skeleton_only.unwrap_or(DEFAULT_IS_SKELETON_ONLY),
+        variant: input.variant.unwrap_or_default(),
+        layout: input.layout.unwrap_or_default(),
+        density: input.density.unwrap_or_default(),
+        has_custom_aria_label: input.has_custom_aria_label,
+        has_custom_class_name: input.has_custom_class_name,
     }
 }
 
@@ -284,5 +309,47 @@ mod tests {
                 "composed class name should include `{expected}`"
             );
         }
+    }
+
+    #[test]
+    fn normalize_state_input_applies_single_default_source() {
+        let state_input = normalize_state_input(SkeletonGroupViewInput {
+            is_loading: None,
+            is_skeleton_only: None,
+            variant: None,
+            layout: None,
+            density: None,
+            has_custom_aria_label: false,
+            has_custom_class_name: false,
+        });
+
+        assert!(state_input.is_loading);
+        assert!(!state_input.is_skeleton_only);
+        assert_eq!(state_input.variant, SkeletonGroupVariant::default());
+        assert_eq!(state_input.layout, SkeletonGroupLayout::default());
+        assert_eq!(state_input.density, SkeletonGroupDensity::default());
+        assert!(!state_input.has_custom_aria_label);
+        assert!(!state_input.has_custom_class_name);
+    }
+
+    #[test]
+    fn normalize_state_input_prefers_explicit_values() {
+        let state_input = normalize_state_input(SkeletonGroupViewInput {
+            is_loading: Some(false),
+            is_skeleton_only: Some(true),
+            variant: Some(SkeletonGroupVariant::Pulse),
+            layout: Some(SkeletonGroupLayout::Horizontal),
+            density: Some(SkeletonGroupDensity::Compact),
+            has_custom_aria_label: true,
+            has_custom_class_name: true,
+        });
+
+        assert!(!state_input.is_loading);
+        assert!(state_input.is_skeleton_only);
+        assert_eq!(state_input.variant, SkeletonGroupVariant::Pulse);
+        assert_eq!(state_input.layout, SkeletonGroupLayout::Horizontal);
+        assert_eq!(state_input.density, SkeletonGroupDensity::Compact);
+        assert!(state_input.has_custom_aria_label);
+        assert!(state_input.has_custom_class_name);
     }
 }

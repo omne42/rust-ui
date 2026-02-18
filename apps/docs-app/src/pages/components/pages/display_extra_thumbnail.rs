@@ -4,6 +4,13 @@ use leptos::prelude::*;
 use ui_components::{Thumbnail, ThumbnailMotion, ThumbnailSize};
 
 pub(super) fn thumbnail() -> AnyView {
+    let hello_world_code = Signal::derive(move || {
+        r#"<Thumbnail>
+  <img src="https://picsum.photos/240/160" alt="Thumbnail sample" />
+</Thumbnail>"#
+            .to_string()
+    });
+
     let size_code = Signal::derive(move || {
         r#"<Thumbnail size=ThumbnailSize::Size100>
   <img src="https://picsum.photos/180/120" alt="Landscape" />
@@ -71,6 +78,12 @@ pub(super) fn thumbnail() -> AnyView {
             group="Display"
             description="baseline-compatible thumbnail primitive with size/background/cover/layer contracts and baseline-level spring focus-selection motion."
         >
+            <Playground title="Hello World" code_signal=hello_world_code>
+                <Thumbnail>
+                    <img src="https://picsum.photos/240/160" alt="Thumbnail sample" />
+                </Thumbnail>
+            </Playground>
+
             <Playground title="Sizes" code_signal=size_code>
                 <div class="docs-row">
                     <Thumbnail size=ThumbnailSize::Size100>

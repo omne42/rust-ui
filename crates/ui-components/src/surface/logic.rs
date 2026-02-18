@@ -1,111 +1,84 @@
-use crate::surface::{SurfaceState, SurfaceStateInput};
+pub use ui_state_primitives::surface::{
+    DEFAULT_ARIA_LABEL, SurfaceElevation, SurfaceState, SurfaceStateInput, SurfaceTone,
+    normalize_aria_label, normalize_optional_text, resolve_state,
+};
 
-pub const DEFAULT_ARIA_LABEL: &str = "Surface";
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum SurfaceTone {
-    #[default]
-    Default,
-    Subtle,
-    Strong,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SurfaceControlInput {
+    pub is_bordered: Option<bool>,
+    pub bordered: bool,
+    pub is_padded: Option<bool>,
+    pub padded: bool,
 }
 
-impl SurfaceTone {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            SurfaceTone::Default => "ui-surface--tone-default",
-            SurfaceTone::Subtle => "ui-surface--tone-subtle",
-            SurfaceTone::Strong => "ui-surface--tone-strong",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            SurfaceTone::Default => "default",
-            SurfaceTone::Subtle => "subtle",
-            SurfaceTone::Strong => "strong",
-        }
-    }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SurfaceControlState {
+    pub bordered: bool,
+    pub padded: bool,
+    pub bordered_source_attr: &'static str,
+    pub padded_source_attr: &'static str,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum SurfaceElevation {
-    Flat,
-    #[default]
-    Raised,
-    Floating,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SurfaceRootInput {
+    pub tone: SurfaceTone,
+    pub elevation: SurfaceElevation,
+    pub control: SurfaceControlInput,
+    pub aria_label: Option<String>,
+    pub class_name: Option<String>,
 }
 
-impl SurfaceElevation {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            SurfaceElevation::Flat => "ui-surface--elevation-flat",
-            SurfaceElevation::Raised => "ui-surface--elevation-raised",
-            SurfaceElevation::Floating => "ui-surface--elevation-floating",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            SurfaceElevation::Flat => "flat",
-            SurfaceElevation::Raised => "raised",
-            SurfaceElevation::Floating => "floating",
-        }
-    }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SurfaceRootState {
+    pub aria_label: String,
+    pub class_name: Option<String>,
+    pub state: SurfaceState,
+    pub bordered_source_attr: &'static str,
+    pub padded_source_attr: &'static str,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
-}
-
-pub fn resolve_state(input: SurfaceStateInput) -> SurfaceState {
-    let data_state_attr = if input.bordered && input.padded {
-        "framed"
-    } else if input.bordered {
-        "bordered"
-    } else if input.padded {
-        "padded"
+pub fn normalize_control_state(input: SurfaceControlInput) -> SurfaceControlState {
+    let (bordered, bordered_source_attr) = if let Some(value) = input.is_bordered {
+        (value, "is-prop")
     } else {
-        "plain"
+        (input.bordered, "legacy-prop")
     };
 
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
+    let (padded, padded_source_attr) = if let Some(value) = input.is_padded {
+        (value, "is-prop")
     } else {
-        "default"
+        (input.padded, "legacy-prop")
     };
 
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
+    SurfaceControlState {
+        bordered,
+        padded,
+        bordered_source_attr,
+        padded_source_attr,
+    }
+}
 
-    SurfaceState {
+pub fn normalize_root_state(input: SurfaceRootInput) -> SurfaceRootState {
+    let control = normalize_control_state(input.control);
+    let (aria_label, has_custom_aria_label) = normalize_aria_label(input.aria_label);
+    let class_name = normalize_optional_text(input.class_name);
+    let has_custom_class_name = class_name.is_some();
+
+    let state = resolve_state(SurfaceStateInput {
         tone: input.tone,
-        tone_class: input.tone.class_name(),
-        tone_attr: input.tone.as_attr(),
         elevation: input.elevation,
-        elevation_class: input.elevation.class_name(),
-        elevation_attr: input.elevation.as_attr(),
-        is_bordered: input.bordered,
-        is_padded: input.padded,
-        is_plain: !input.bordered && !input.padded,
-        data_state_attr,
-        aria_source_attr,
-        class_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
+        bordered: control.bordered,
+        padded: control.padded,
+        has_custom_aria_label,
+        has_custom_class_name,
+    });
+
+    SurfaceRootState {
+        aria_label,
+        class_name,
+        state,
+        bordered_source_attr: control.bordered_source_attr,
+        padded_source_attr: control.padded_source_attr,
     }
 }
 
@@ -137,66 +110,61 @@ pub fn compose_class_name(base_class_name: Option<String>, state: SurfaceState) 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::surface::SurfaceStateInput;
 
     #[test]
-    fn tone_and_elevation_contracts_are_stable() {
-        assert_eq!(
-            SurfaceTone::Default.class_name(),
-            "ui-surface--tone-default"
-        );
-        assert_eq!(SurfaceTone::Subtle.class_name(), "ui-surface--tone-subtle");
-        assert_eq!(SurfaceTone::Strong.class_name(), "ui-surface--tone-strong");
-
-        assert_eq!(
-            SurfaceElevation::Flat.class_name(),
-            "ui-surface--elevation-flat"
-        );
-        assert_eq!(
-            SurfaceElevation::Raised.class_name(),
-            "ui-surface--elevation-raised"
-        );
-        assert_eq!(
-            SurfaceElevation::Floating.class_name(),
-            "ui-surface--elevation-floating"
-        );
-    }
-
-    #[test]
-    fn normalize_aria_label_falls_back_to_default() {
-        assert_eq!(
-            normalize_aria_label(Some("  Dashboard card  ".to_string())),
-            ("Dashboard card".to_string(), true)
-        );
-        assert_eq!(
-            normalize_aria_label(Some("\n\t".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
-        );
-        assert_eq!(
-            normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
-        );
-    }
-
-    #[test]
-    fn resolve_state_tracks_state_and_source_markers() {
-        let state = resolve_state(SurfaceStateInput {
-            tone: SurfaceTone::Strong,
-            elevation: SurfaceElevation::Floating,
-            bordered: true,
+    fn normalize_control_state_prefers_is_prefixed_props() {
+        let normalized = normalize_control_state(SurfaceControlInput {
+            is_bordered: Some(true),
+            bordered: false,
+            is_padded: Some(false),
             padded: true,
-            has_custom_aria_label: true,
-            has_custom_class_name: true,
         });
 
-        assert_eq!(state.tone_attr, "strong");
-        assert_eq!(state.elevation_attr, "floating");
-        assert!(state.is_bordered);
-        assert!(state.is_padded);
-        assert!(!state.is_plain);
-        assert_eq!(state.data_state_attr, "framed");
-        assert_eq!(state.aria_source_attr, "custom");
-        assert_eq!(state.class_source_attr, "custom");
+        assert!(normalized.bordered);
+        assert!(!normalized.padded);
+        assert_eq!(normalized.bordered_source_attr, "is-prop");
+        assert_eq!(normalized.padded_source_attr, "is-prop");
+    }
+
+    #[test]
+    fn normalize_control_state_falls_back_to_legacy_props() {
+        let normalized = normalize_control_state(SurfaceControlInput {
+            is_bordered: None,
+            bordered: true,
+            is_padded: None,
+            padded: false,
+        });
+
+        assert!(normalized.bordered);
+        assert!(!normalized.padded);
+        assert_eq!(normalized.bordered_source_attr, "legacy-prop");
+        assert_eq!(normalized.padded_source_attr, "legacy-prop");
+    }
+
+    #[test]
+    fn normalize_root_state_centralizes_defaults_and_sources() {
+        let state = normalize_root_state(SurfaceRootInput {
+            tone: SurfaceTone::Subtle,
+            elevation: SurfaceElevation::Flat,
+            control: SurfaceControlInput {
+                is_bordered: None,
+                bordered: false,
+                is_padded: None,
+                padded: true,
+            },
+            aria_label: None,
+            class_name: Some("  docs-surface-custom ".to_string()),
+        });
+
+        assert_eq!(state.aria_label, DEFAULT_ARIA_LABEL);
+        assert_eq!(state.class_name, Some("docs-surface-custom".to_string()));
+        assert_eq!(state.state.tone_attr, "subtle");
+        assert_eq!(state.state.elevation_attr, "flat");
+        assert_eq!(state.state.data_state_attr, "padded");
+        assert_eq!(state.state.aria_source_attr, "default");
+        assert_eq!(state.state.class_source_attr, "custom");
+        assert_eq!(state.bordered_source_attr, "legacy-prop");
+        assert_eq!(state.padded_source_attr, "legacy-prop");
     }
 
     #[test]

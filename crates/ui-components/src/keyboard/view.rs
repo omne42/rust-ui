@@ -7,7 +7,7 @@ use leptos::prelude::*;
 #[component]
 pub fn Keyboard(
     #[prop(optional)] tone: KeyboardTone,
-    #[prop(optional)] compact: bool,
+    #[prop(optional)] is_compact: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -21,7 +21,7 @@ pub fn Keyboard(
     let state = Memo::new(move |_| {
         logic::resolve_state(KeyboardStateInput {
             tone,
-            compact,
+            compact: is_compact,
             has_custom_aria_label,
             has_custom_class_name,
         })

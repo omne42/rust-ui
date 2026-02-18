@@ -1,6 +1,6 @@
 use super::{IconsUiSize, IconsUiTone, IconsetGlyph};
-use crate::Iconset;
 use crate::icons_ui::{IconsUiStateInput, logic};
+use crate::iconset::Iconset;
 use leptos::prelude::*;
 
 #[component]

@@ -57,7 +57,7 @@ pub(super) fn item_primitives() -> AnyView {
     });
 
     let advanced_code = Signal::derive(move || {
-        vec![
+        [
             "<Item variant=ItemVariant::Muted size=ItemSize::Sm>".to_string(),
             "  <ItemHeader>".to_string(),
             "    <ItemTitle>\"Edge deployment\"</ItemTitle>".to_string(),

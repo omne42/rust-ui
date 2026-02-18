@@ -1,3 +1,5 @@
+pub use ui_state_primitives::disclosure::{DisclosureState, DisclosureStateInput};
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct DisclosureIds {
     pub trigger_id: String,
@@ -13,19 +15,11 @@ impl DisclosureIds {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct DisclosureState {
-    pub is_open: bool,
-    pub is_closed: bool,
-    pub is_disabled: bool,
-}
-
 pub fn resolve_state(is_open: bool, is_disabled: bool) -> DisclosureState {
-    DisclosureState {
+    ui_state_primitives::disclosure::resolve_state(DisclosureStateInput {
         is_open,
-        is_closed: !is_open,
         is_disabled,
-    }
+    })
 }
 
 #[cfg(test)]

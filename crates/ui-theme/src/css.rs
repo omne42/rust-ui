@@ -6,7 +6,7 @@ pub const BASE_CSS: &str = r#"
 
 use std::fmt::Write;
 
-use crate::theme::Theme;
+use crate::theme::{Theme, text_field_motion_tokens};
 use crate::tokens::ColorScaleTokens;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -152,7 +152,10 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     let typography = &theme.tokens.typography;
     let component_layout = &theme.tokens.component_layout;
     let overlay_layout = &theme.tokens.overlay_layout;
+    let slider_layout = &theme.tokens.slider_layout;
+    let underlay_motion = &theme.tokens.underlay_motion;
     let button_layout = &theme.tokens.button_layout;
+    let text_field_motion = text_field_motion_tokens(theme.ctx);
     let mut css = String::new();
 
     let _ = writeln!(css, ":root {{");
@@ -394,10 +397,22 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         "  --ui-component-height-100: {}px;",
         component_layout.component_height_100_px
     );
+    let separator_decorative_opacity =
+        f64::from(component_layout.separator_decorative_opacity_percent) / 100.0;
+    let _ = writeln!(
+        css,
+        "  --ui-separator-decorative-opacity: {};",
+        separator_decorative_opacity
+    );
     let _ = writeln!(css, "  --ui-overlay-z-index: {};", overlay_layout.z_index);
     let _ = writeln!(
         css,
         "  --ui-overlay-panel-min-width: {}px;",
+        overlay_layout.panel_min_width_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-tooltip-max-width: {}px;",
         overlay_layout.panel_min_width_px
     );
     let _ = writeln!(
@@ -414,6 +429,58 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         css,
         "  --ui-overlay-enter-scale: {};",
         overlay_layout.enter_scale
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-slider-max-width: {}px;",
+        slider_layout.max_width_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-slider-thumb-border-width: {}px;",
+        slider_layout.thumb_border_width_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-slider-focus-ring-width: {}px;",
+        slider_layout.focus_ring_width_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-underlay-transition-duration: {}ms;",
+        underlay_motion.transition_duration_ms
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-underlay-visibility-duration: {}ms;",
+        underlay_motion.visibility_duration_ms
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-underlay-backdrop-blur: {}px;",
+        underlay_motion.backdrop_blur_px
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-underlay-scrim-alpha: {}%;",
+        underlay_motion.scrim_alpha_percent
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-underlay-transition-easing: {};",
+        underlay_motion.transition_easing
+    );
+    let _ = writeln!(css);
+
+    let _ = writeln!(
+        css,
+        "  --ui-text-field-motion-duration: {}ms;",
+        text_field_motion.duration_ms
+    );
+    let _ = writeln!(
+        css,
+        "  --ui-text-field-motion-easing: {};",
+        text_field_motion.easing
     );
     let _ = writeln!(css);
 

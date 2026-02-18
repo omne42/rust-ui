@@ -56,8 +56,13 @@ fn inline_style_bindings_use_css_variable_builders_only() {
     let allowed_patterns = [
         "style=panel_vars",
         "style=state.style_vars",
+        "style=style_vars",
+        "style=motion_style.clone()",
         "style=logic::compose_inline_style(",
         "style=inline_style.get_value().unwrap_or_default()",
+        "style=move || inline_style.get()",
+        "style=move || style.get_value()",
+        "style=move || motion_style.get_value()",
     ];
 
     let mut inline_style_lines = Vec::new();
@@ -102,6 +107,8 @@ fn inline_style_helper_outputs_are_css_variable_assignments() {
     let thumbnail_logic = load_source("src/thumbnail/logic.rs");
     let color_slider_logic = load_source("src/color_slider/logic.rs");
     let circular_progress_logic = load_source("src/circular_progress/logic.rs");
+    let circular_progress_primitive =
+        load_source("../ui-state-primitives/src/circular_progress.rs");
 
     for needle in [
         "--ui-swatch-color:",
@@ -116,7 +123,8 @@ fn inline_style_helper_outputs_are_css_variable_assignments() {
             || color_swatch_logic.contains(needle)
             || thumbnail_logic.contains(needle)
             || color_slider_logic.contains(needle)
-            || circular_progress_logic.contains(needle);
+            || circular_progress_logic.contains(needle)
+            || circular_progress_primitive.contains(needle);
 
         assert!(
             has_needle,

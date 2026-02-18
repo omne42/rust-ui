@@ -1,137 +1,125 @@
 use crate::tooltip::{TooltipPartState, TooltipPartStateInput, TooltipSlot};
+use leptos::prelude::*;
 use ui_headless::TooltipTriggerMode;
+use ui_state_primitives::tooltip as tooltip_state;
 
-pub const DEFAULT_DELAY_MS: u64 = 1500;
-pub const DEFAULT_CLOSE_DELAY_MS: u64 = 500;
-pub const DEFAULT_SHOULD_CLOSE_ON_PRESS: bool = true;
+pub const DEFAULT_DELAY_MS: u64 = tooltip_state::DEFAULT_DELAY_MS;
+pub const DEFAULT_CLOSE_DELAY_MS: u64 = tooltip_state::DEFAULT_CLOSE_DELAY_MS;
+pub const DEFAULT_SHOULD_CLOSE_ON_PRESS: bool = tooltip_state::DEFAULT_SHOULD_CLOSE_ON_PRESS;
+
+pub struct AccessibilityStateInput {
+    pub is_disabled: Option<bool>,
+    pub disabled: bool,
+}
+
+pub struct AccessibilityState {
+    pub is_disabled: bool,
+}
+
+pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState {
+    AccessibilityState {
+        is_disabled: input.is_disabled.unwrap_or(input.disabled),
+    }
+}
+
+pub struct OpenStateInput {
+    pub is_open: Option<Signal<bool>>,
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+}
+
+pub struct OpenState {
+    pub open: Option<Signal<bool>>,
+    pub default_open: Option<bool>,
+    pub on_open_change: Option<Callback<bool>>,
+    pub is_controlled: bool,
+    pub has_custom_open: bool,
+    pub has_custom_default_open: bool,
+    pub has_custom_on_open_change: bool,
+    pub open_mode_attr: &'static str,
+    pub open_source_attr: &'static str,
+    pub default_open_source_attr: &'static str,
+    pub open_change_source_attr: &'static str,
+}
+
+pub fn normalize_open_state(input: OpenStateInput) -> OpenState {
+    let open = input.is_open.or(input.open);
+    let has_custom_open = open.is_some();
+    let has_custom_default_open = input.default_open.is_some();
+    let has_custom_on_open_change = input.on_open_change.is_some();
+    let is_controlled = has_custom_open;
+
+    OpenState {
+        is_controlled,
+        open,
+        default_open: input.default_open,
+        on_open_change: input.on_open_change,
+        has_custom_open,
+        has_custom_default_open,
+        has_custom_on_open_change,
+        open_mode_attr: if is_controlled {
+            "controlled"
+        } else {
+            "uncontrolled"
+        },
+        open_source_attr: if has_custom_open { "custom" } else { "default" },
+        default_open_source_attr: if has_custom_default_open {
+            "provided"
+        } else {
+            "implicit"
+        },
+        open_change_source_attr: if has_custom_on_open_change {
+            "provided"
+        } else {
+            "none"
+        },
+    }
+}
 
 pub fn state_attr_for_open(is_open: bool) -> &'static str {
-    if is_open { "open" } else { "closed" }
+    tooltip_state::state_attr_for_open(is_open)
 }
 
 pub fn trigger_attr(trigger: TooltipTriggerMode) -> &'static str {
-    match trigger {
-        TooltipTriggerMode::Hover => "hover",
-        TooltipTriggerMode::Focus => "focus",
-    }
+    let trigger = match trigger {
+        TooltipTriggerMode::Hover => tooltip_state::TooltipTriggerMode::Hover,
+        TooltipTriggerMode::Focus => tooltip_state::TooltipTriggerMode::Focus,
+    };
+
+    tooltip_state::trigger_attr(trigger)
 }
 
 pub fn press_behavior_attr(should_close_on_press: bool) -> &'static str {
-    if should_close_on_press {
-        "close"
-    } else {
-        "persist"
-    }
+    tooltip_state::press_behavior_attr(should_close_on_press)
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+    tooltip_state::normalize_optional_text(value)
 }
 
 pub fn resolve_id(custom_id: Option<String>, fallback_id: String) -> (String, bool) {
-    if let Some(custom_id) = normalize_optional_text(custom_id) {
-        return (custom_id, true);
-    }
-
-    (fallback_id, false)
+    tooltip_state::resolve_id(custom_id, fallback_id)
 }
 
 pub fn has_custom_delays(delay_ms: u64, close_delay_ms: u64) -> bool {
-    delay_ms != DEFAULT_DELAY_MS || close_delay_ms != DEFAULT_CLOSE_DELAY_MS
+    tooltip_state::has_custom_delays(delay_ms, close_delay_ms)
 }
 
 pub fn resolve_state(input: TooltipPartStateInput) -> TooltipPartState {
-    TooltipPartState {
-        slot: input.slot,
-        slot_attr: input.slot.as_attr(),
-        base_class: input.slot.base_class(),
-        state_attr: match input.slot {
-            TooltipSlot::Root => state_attr_for_open(input.open),
-            TooltipSlot::Panel => "panel",
-        },
-        is_open: input.open,
-        is_disabled: input.disabled,
-        has_custom_class_name: input.has_custom_class_name,
-        has_custom_motion: input.has_custom_motion,
-        has_custom_delays: input.has_custom_delays,
-        has_custom_trigger_mode: input.has_custom_trigger_mode,
-        has_custom_press_behavior: input.has_custom_press_behavior,
-        has_custom_id: input.has_custom_id,
-        trigger_attr: input.trigger_attr,
-        press_behavior_attr: input.press_behavior_attr,
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        motion_source_attr: if input.has_custom_motion {
-            "custom"
-        } else {
-            "default"
-        },
-        delay_source_attr: if input.has_custom_delays {
-            "custom"
-        } else {
-            "default"
-        },
-        trigger_source_attr: if input.has_custom_trigger_mode {
-            "custom"
-        } else {
-            "default"
-        },
-        press_source_attr: if input.has_custom_press_behavior {
-            "custom"
-        } else {
-            "default"
-        },
-        id_source_attr: if input.has_custom_id {
-            "custom"
-        } else {
-            "default"
-        },
+    let mut state = tooltip_state::resolve_state(input);
+    if matches!(state.slot, TooltipSlot::Root) {
+        state.state_attr = state_attr_for_open(state.is_open);
     }
+    state
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: TooltipPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
-
-    if state.slot == TooltipSlot::Root {
-        if state.has_custom_motion {
-            classes.push("ui-tooltip--custom-motion".to_string());
-        }
-
-        if state.has_custom_delays {
-            classes.push("ui-tooltip--custom-delay".to_string());
-        }
-
-        if state.has_custom_trigger_mode {
-            classes.push("ui-tooltip--custom-trigger".to_string());
-        }
-
-        if state.has_custom_press_behavior {
-            classes.push("ui-tooltip--custom-press".to_string());
-        }
-
-        if state.has_custom_id {
-            classes.push("ui-tooltip--custom-id".to_string());
-        }
-
-        if state.has_custom_class_name {
-            classes.push("ui-tooltip--custom-class".to_string());
-            if let Some(base_class_name) = base_class_name {
-                classes.push(base_class_name);
-            }
-        }
-    }
-
-    classes.join(" ")
+    tooltip_state::compose_class_name(base_class_name, state)
 }
 
 pub fn compose_panel_vars(top_px: f64, left_px: f64) -> String {
-    format!("--ui-tooltip-top: {top_px}px; --ui-tooltip-left: {left_px}px;")
+    tooltip_state::compose_panel_vars(top_px, left_px)
 }
 
 #[cfg(test)]
@@ -256,5 +244,65 @@ mod tests {
             compose_panel_vars(18.5, 42.0),
             "--ui-tooltip-top: 18.5px; --ui-tooltip-left: 42px;"
         );
+    }
+
+    #[test]
+    fn normalize_accessibility_state_prefers_is_prefixed_prop() {
+        let normalized = normalize_accessibility_state(AccessibilityStateInput {
+            is_disabled: Some(false),
+            disabled: true,
+        });
+        assert!(!normalized.is_disabled);
+
+        let normalized = normalize_accessibility_state(AccessibilityStateInput {
+            is_disabled: None,
+            disabled: true,
+        });
+        assert!(normalized.is_disabled);
+    }
+
+    #[test]
+    fn normalize_open_state_prefers_is_open_and_tracks_control_mode() {
+        let (prefixed, _set_prefixed) = signal(true);
+        let (legacy, _set_legacy) = signal(false);
+        let on_open_change = Callback::new(|_: bool| {});
+
+        let normalized = normalize_open_state(OpenStateInput {
+            is_open: Some(prefixed.into()),
+            open: Some(legacy.into()),
+            default_open: Some(false),
+            on_open_change: Some(on_open_change),
+        });
+        assert_eq!(
+            normalized.open.map(|signal| signal.get_untracked()),
+            Some(true)
+        );
+        assert_eq!(normalized.default_open, Some(false));
+        assert!(normalized.on_open_change.is_some());
+        assert!(normalized.is_controlled);
+        assert!(normalized.has_custom_open);
+        assert!(normalized.has_custom_default_open);
+        assert!(normalized.has_custom_on_open_change);
+        assert_eq!(normalized.open_mode_attr, "controlled");
+        assert_eq!(normalized.open_source_attr, "custom");
+        assert_eq!(normalized.default_open_source_attr, "provided");
+        assert_eq!(normalized.open_change_source_attr, "provided");
+
+        let normalized = normalize_open_state(OpenStateInput {
+            is_open: None,
+            open: None,
+            default_open: Some(true),
+            on_open_change: None,
+        });
+        assert_eq!(normalized.open, None);
+        assert_eq!(normalized.default_open, Some(true));
+        assert!(!normalized.is_controlled);
+        assert!(!normalized.has_custom_open);
+        assert!(normalized.has_custom_default_open);
+        assert!(!normalized.has_custom_on_open_change);
+        assert_eq!(normalized.open_mode_attr, "uncontrolled");
+        assert_eq!(normalized.open_source_attr, "default");
+        assert_eq!(normalized.default_open_source_attr, "provided");
+        assert_eq!(normalized.open_change_source_attr, "none");
     }
 }

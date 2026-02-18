@@ -109,30 +109,59 @@ impl ColorSwatchAlpha {
     }
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSwatchBoolSource {
+    IsPrefixed,
+    LegacyAlias,
+    Default,
 }
 
-fn is_allowed_color_char(ch: char) -> bool {
-    matches!(
-        ch,
-        '#' | '(' | ')' | ',' | '.' | '%' | '-' | '/' | ' ' | '[' | ']' | '_' | 'a'..='z' | 'A'..='Z' | '0'..='9'
-    )
+impl ColorSwatchBoolSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::IsPrefixed => "is-prefixed",
+            Self::LegacyAlias => "legacy-alias",
+            Self::Default => "default",
+        }
+    }
+}
+
+pub fn normalize_is_bordered(
+    is_bordered: Option<bool>,
+    bordered: Option<bool>,
+) -> (bool, ColorSwatchBoolSource) {
+    if let Some(value) = is_bordered {
+        return (value, ColorSwatchBoolSource::IsPrefixed);
+    }
+
+    if let Some(value) = bordered {
+        return (value, ColorSwatchBoolSource::LegacyAlias);
+    }
+
+    (true, ColorSwatchBoolSource::Default)
+}
+
+pub fn normalize_is_decorative(
+    is_decorative: Option<bool>,
+    decorative: Option<bool>,
+) -> (bool, ColorSwatchBoolSource) {
+    if let Some(value) = is_decorative {
+        return (value, ColorSwatchBoolSource::IsPrefixed);
+    }
+
+    if let Some(value) = decorative {
+        return (value, ColorSwatchBoolSource::LegacyAlias);
+    }
+
+    (false, ColorSwatchBoolSource::Default)
+}
+
+pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
+    ui_state_primitives::swatch::normalize_optional_text(value)
 }
 
 pub fn sanitize_color_value(value: Option<String>) -> Option<String> {
-    let value = normalize_optional_text(value)?;
-    if value.len() > 96 {
-        return None;
-    }
-    if value.chars().all(is_allowed_color_char) {
-        Some(value)
-    } else {
-        None
-    }
+    ui_state_primitives::swatch::sanitize_color_value(value)
 }
 
 fn parse_hex_alpha(value: &str) -> Option<f32> {
@@ -370,6 +399,35 @@ mod tests {
         assert_eq!(
             sanitize_color_value(Some("javascript:alert(1)".to_string())),
             None
+        );
+    }
+
+    #[test]
+    fn is_prefixed_boolean_props_take_precedence_with_legacy_alias_fallback() {
+        assert_eq!(
+            normalize_is_bordered(Some(false), Some(true)),
+            (false, ColorSwatchBoolSource::IsPrefixed)
+        );
+        assert_eq!(
+            normalize_is_bordered(None, Some(false)),
+            (false, ColorSwatchBoolSource::LegacyAlias)
+        );
+        assert_eq!(
+            normalize_is_bordered(None, None),
+            (true, ColorSwatchBoolSource::Default)
+        );
+
+        assert_eq!(
+            normalize_is_decorative(Some(true), Some(false)),
+            (true, ColorSwatchBoolSource::IsPrefixed)
+        );
+        assert_eq!(
+            normalize_is_decorative(None, Some(true)),
+            (true, ColorSwatchBoolSource::LegacyAlias)
+        );
+        assert_eq!(
+            normalize_is_decorative(None, None),
+            (false, ColorSwatchBoolSource::Default)
         );
     }
 

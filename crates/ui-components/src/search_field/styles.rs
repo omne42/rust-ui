@@ -28,9 +28,9 @@ pub const CSS: &str = r#"
   color: var(--ui-fg);
 
   transition:
-    border-color 200ms ease,
-    background-color 200ms ease,
-    outline-color 200ms ease;
+    border-color var(--ui-text-field-motion-duration, 200ms) var(--ui-text-field-motion-easing, ease),
+    background-color var(--ui-text-field-motion-duration, 200ms) var(--ui-text-field-motion-easing, ease),
+    outline-color var(--ui-text-field-motion-duration, 200ms) var(--ui-text-field-motion-easing, ease);
 }
 
 @media (prefers-reduced-motion: reduce) {

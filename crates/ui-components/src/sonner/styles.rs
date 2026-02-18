@@ -1,7 +1,8 @@
 pub const CSS: &str = r#"
 .ui-sonner {
-  --ui-sonner-offset: 16px;
-  --ui-sonner-max-inline-width: 420px;
+  --ui-sonner-offset: var(--ui-overlay-viewport-inset, var(--ui-space-md));
+  --ui-sonner-max-inline-width: var(--ui-overlay-panel-min-width);
+  --ui-sonner-single-inline-width: calc(var(--ui-sonner-max-inline-width) - var(--ui-space-md));
   pointer-events: none;
 }
 
@@ -75,7 +76,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-sonner[data-queue="single"] .ui-sonner__viewport.ui-toast-viewport {
-  max-width: min(100%, 360px);
+  max-width: min(100%, var(--ui-sonner-single-inline-width));
 }
 
 .ui-sonner[data-queue="bounded"] .ui-sonner__viewport.ui-toast-viewport,

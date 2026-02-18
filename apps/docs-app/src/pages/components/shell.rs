@@ -5,10 +5,22 @@ use ui_headless::{UiPerfBudget, UiPerfProbe};
 
 const ACCORDION_README_MD: &str =
     include_str!("../../../../../crates/ui-components/src/accordion/README.md");
+const CHECKBOX_FIELD_README_MD: &str =
+    include_str!("../../../../../crates/ui-components/src/checkbox_field/README.md");
+const DATE_PICKER_README_MD: &str =
+    include_str!("../../../../../crates/ui-components/src/date_picker/README.md");
+const DROPDOWN_MENU_README_MD: &str =
+    include_str!("../../../../../crates/ui-components/src/dropdown_menu/README.md");
+const MODAL_README_MD: &str =
+    include_str!("../../../../../crates/ui-components/src/modal/README.md");
 
 fn component_readme_markdown(slug: &str) -> Option<&'static str> {
     match slug {
         "accordion" => Some(ACCORDION_README_MD),
+        "checkbox-field" => Some(CHECKBOX_FIELD_README_MD),
+        "date-picker" => Some(DATE_PICKER_README_MD),
+        "dropdown-menu" => Some(DROPDOWN_MENU_README_MD),
+        "modal" => Some(MODAL_README_MD),
         _ => None,
     }
 }
@@ -64,6 +76,41 @@ fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget {
             max_mount_ms: 32.0,
             max_update_ms: Some(11.0),
             max_heap_kb: Some(576.0),
+        },
+        "swatch" => UiPerfBudget {
+            max_mount_ms: 22.0,
+            max_update_ms: Some(6.0),
+            max_heap_kb: Some(320.0),
+        },
+        "tag" => UiPerfBudget {
+            max_mount_ms: 24.0,
+            max_update_ms: Some(8.0),
+            max_heap_kb: Some(384.0),
+        },
+        "tag-group" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
+        },
+        "tree" => UiPerfBudget {
+            max_mount_ms: 42.0,
+            max_update_ms: Some(14.0),
+            max_heap_kb: Some(896.0),
+        },
+        "time-field" => UiPerfBudget {
+            max_mount_ms: 32.0,
+            max_update_ms: Some(11.0),
+            max_heap_kb: Some(576.0),
+        },
+        "slider" => UiPerfBudget {
+            max_mount_ms: 30.0,
+            max_update_ms: Some(10.0),
+            max_heap_kb: Some(512.0),
+        },
+        "resizable" => UiPerfBudget {
+            max_mount_ms: 34.0,
+            max_update_ms: Some(12.0),
+            max_heap_kb: Some(640.0),
         },
         _ => UiPerfBudget::mount_only(120.0),
     }

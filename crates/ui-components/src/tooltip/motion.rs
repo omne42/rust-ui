@@ -1,4 +1,5 @@
 use ui_headless::TooltipPlacement;
+use ui_theme::default_overlay_layout_tokens;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct TooltipMotion {
@@ -9,10 +10,11 @@ pub struct TooltipMotion {
 
 impl Default for TooltipMotion {
     fn default() -> Self {
+        let overlay = default_overlay_layout_tokens();
         Self {
             spring: ui_motion::presets::spring_soft(),
-            initial_scale: 0.98,
-            offset_y_px: 6.0,
+            initial_scale: overlay.enter_scale,
+            offset_y_px: f64::from(overlay.enter_offset_y_px),
         }
     }
 }
@@ -23,29 +25,7 @@ fn sanitize_number(value: f64, fallback: f64) -> f64 {
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
     let default = TooltipMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    ui_motion::spring::sanitize_config(value, default)
 }
 
 pub fn sanitize_motion(motion: TooltipMotion) -> TooltipMotion {

@@ -1,3 +1,5 @@
+use ui_theme::default_slider_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SliderMotion {
     pub enabled: bool,
@@ -15,13 +17,14 @@ impl SliderMotion {
 
 impl Default for SliderMotion {
     fn default() -> Self {
+        let tokens = default_slider_motion_tokens();
         Self {
             enabled: true,
             spring: ui_motion::spring::SpringConfig {
-                stiffness: 340.0,
-                damping: 28.0,
-                mass: 0.9,
-                ..Default::default()
+                stiffness: tokens.spring.stiffness,
+                damping: tokens.spring.damping,
+                mass: tokens.spring.mass,
+                precision: tokens.spring.precision,
             },
         }
     }
@@ -36,30 +39,7 @@ pub fn sanitize_percent(percent: f64) -> f64 {
 }
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = SliderMotion::default().spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
+    ui_motion::spring::sanitize_config(value, SliderMotion::default().spring)
 }
 
 pub fn sanitize_motion(motion: SliderMotion) -> SliderMotion {

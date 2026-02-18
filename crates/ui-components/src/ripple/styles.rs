@@ -9,7 +9,7 @@ pub const CSS: &str = r#"
   transform-origin: var(--ui-ripple-origin-x, 50%) var(--ui-ripple-origin-y, 50%);
   pointer-events: none;
   will-change: transform, opacity;
-  --ui-ripple-duration-ms: 420;
+  --ui-ripple-duration-ms: var(--ui-text-field-motion-duration, 180ms);
 }
 
 .ui-ripple--state-animated,

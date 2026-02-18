@@ -1,8 +1,40 @@
 use std::collections::BTreeSet;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LinkDisabledSource {
+    IsPrefixed,
+    LegacyAlias,
+    Default,
+}
+
+impl LinkDisabledSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::IsPrefixed => "is-prefixed",
+            Self::LegacyAlias => "legacy-alias",
+            Self::Default => "default",
+        }
+    }
+}
+
+pub fn normalize_is_disabled(
+    is_disabled: Option<bool>,
+    disabled: Option<bool>,
+) -> (bool, LinkDisabledSource) {
+    if let Some(value) = is_disabled {
+        return (value, LinkDisabledSource::IsPrefixed);
+    }
+
+    if let Some(value) = disabled {
+        return (value, LinkDisabledSource::LegacyAlias);
+    }
+
+    (false, LinkDisabledSource::Default)
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct LinkStateInput {
-    pub disabled: bool,
+    pub is_disabled: bool,
     pub has_href: bool,
     pub target: Option<&'static str>,
     pub has_explicit_rel: bool,
@@ -69,7 +101,7 @@ pub fn resolve_state(input: LinkStateInput) -> LinkState {
         None => "self",
     };
 
-    let (state_class, state_attr) = if input.disabled {
+    let (state_class, state_attr) = if input.is_disabled {
         ("ui-link--disabled", "disabled")
     } else if input.has_href {
         ("ui-link--enabled", "enabled")
@@ -84,8 +116,8 @@ pub fn resolve_state(input: LinkStateInput) -> LinkState {
     };
 
     LinkState {
-        is_disabled: input.disabled,
-        is_enabled: !input.disabled,
+        is_disabled: input.is_disabled,
+        is_enabled: !input.is_disabled,
         has_href: input.has_href,
         target_kind,
         opens_new_context: target_kind == "blank",
@@ -148,6 +180,22 @@ mod tests {
     }
 
     #[test]
+    fn normalize_is_disabled_prefers_is_prefix_with_legacy_fallback() {
+        assert_eq!(
+            normalize_is_disabled(Some(true), Some(false)),
+            (true, LinkDisabledSource::IsPrefixed)
+        );
+        assert_eq!(
+            normalize_is_disabled(None, Some(true)),
+            (true, LinkDisabledSource::LegacyAlias)
+        );
+        assert_eq!(
+            normalize_is_disabled(None, None),
+            (false, LinkDisabledSource::Default)
+        );
+    }
+
+    #[test]
     fn resolve_rel_adds_security_tokens_for_blank_targets() {
         assert_eq!(
             resolve_rel(Some("_blank"), Some("noopener custom".to_string())),
@@ -163,7 +211,7 @@ mod tests {
     #[test]
     fn resolve_state_tracks_enablement_target_and_metadata() {
         let enabled_state = resolve_state(LinkStateInput {
-            disabled: false,
+            is_disabled: false,
             has_href: true,
             target: Some("_blank"),
             has_explicit_rel: true,
@@ -183,7 +231,7 @@ mod tests {
         assert_eq!(enabled_state.rel_source_attr, "provided");
 
         let missing_state = resolve_state(LinkStateInput {
-            disabled: false,
+            is_disabled: false,
             has_href: false,
             target: None,
             has_explicit_rel: false,
@@ -200,7 +248,7 @@ mod tests {
         let class_name = compose_class_name(
             Some("custom".to_string()),
             resolve_state(LinkStateInput {
-                disabled: false,
+                is_disabled: false,
                 has_href: true,
                 target: Some("_blank"),
                 has_explicit_rel: false,

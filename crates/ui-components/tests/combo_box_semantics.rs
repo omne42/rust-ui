@@ -7,6 +7,17 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn combo_box_docs_section(source: &str) -> &str {
+    let start = source
+        .find("pub(super) fn combo_box() -> AnyView")
+        .expect("combo_box docs function should exist");
+    let tail = &source[start..];
+    let end = tail
+        .find("pub(super) fn autocomplete() -> AnyView")
+        .expect("combo_box docs section should end before autocomplete docs function");
+    &tail[..end]
+}
+
 #[test]
 fn combo_box_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/combo_box/mod.rs");
@@ -518,21 +529,25 @@ fn combo_box_motion_sanitizes_custom_contract_values() {
 #[test]
 fn combo_box_docs_page_covers_primary_playgrounds() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+    let section = combo_box_docs_section(&source);
 
     for needle in [
-        "pub(super) fn combo_box() -> AnyView",
         "title=\"ComboBox\"",
         "slug=\"combo-box\"",
         "description=\"Combobox with input + listbox + popover, baseline-style root attrs, and baseline-level panel/highlight motion.\"",
-        "<Playground title=\"Selection + Validation\" code_signal=code>",
-        "<Playground title=\"Controlled Open State\" code_signal=controlled_code>",
-        "<Playground title=\"Disabled + Empty\" code_signal=states_code>",
+        "title=\"展示：多场景对比\"",
+        "title=\"Workbench（展示 + Config + Code + CSS Test）\"",
+        "test_css_source=workbench_test_css",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"combo-box-showcase\"",
+        "data-slot=\"combo-box-workbench-controls\"",
+        "data-slot=\"combo-box-workbench-canvas\"",
         "<ComboBox",
         "is_open=controlled_open",
         "is_disabled=true",
     ] {
         assert!(
-            source.contains(needle),
+            section.contains(needle),
             "collections docs page should include `{needle}` for combo-box coverage.",
         );
     }
@@ -541,6 +556,7 @@ fn combo_box_docs_page_covers_primary_playgrounds() {
 #[test]
 fn combo_box_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+    let section = combo_box_docs_section(&source);
 
     for needle in [
         "id_base=\"docs-combo-box\".to_string()",
@@ -561,8 +577,93 @@ fn combo_box_docs_playgrounds_lock_state_matrix_contract_values() {
         "\"empty selected: \"",
     ] {
         assert!(
-            source.contains(needle),
+            section.contains(needle),
             "combo-box docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn combo_box_readme_documents_display_config_code_css_test_sections() {
+    let source = load_source("src/combo_box/README.md");
+
+    for needle in [
+        "## 展示 (Display)",
+        "## Config (Workbench Settings)",
+        "## Code (Workbench Snippet)",
+        "## CSS Test (Scoped CSS)",
+        "collections.rs` 的 `combo_box()`",
+        "受控 open（`is_open` + `on_open_change`）",
+        "test_css_source",
+        "test_config_signal",
+    ] {
+        assert!(
+            source.contains(needle),
+            "combo_box README should contain `{needle}` to lock workbench docs contract."
+        );
+    }
+}
+
+#[test]
+fn combo_box_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/combo_box/check2.md");
+
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "combo_box/check2.md should not keep unchecked checklist items after sequential verification."
+    );
+}
+
+#[test]
+fn combo_box_check2_marks_async_scope_as_explicit_na() {
+    let check2_source = load_source("src/combo_box/check2.md");
+
+    assert!(
+        check2_source.contains("N/A：`ComboBox` 当前仅做本地筛选与选择，无远程请求和异步状态轴"),
+        "combo_box/check2.md should explicitly mark async contract as N/A for current component scope."
+    );
+}
+
+#[test]
+fn combo_box_check2_marks_streaming_scope_as_optional_with_snapshot_fallback() {
+    let check2_source = load_source("src/combo_box/check2.md");
+
+    for needle in [
+        "归类为 `Streaming Optional`",
+        "`fallback=snapshot`",
+        "`Snapshot` 渲染为基线",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "combo_box/check2.md should keep streaming-scope governance marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn combo_box_check2_documents_semantic_e2e_selector_and_ready_wait_contract() {
+    let check2_source = load_source("src/combo_box/check2.md");
+
+    for needle in [
+        "e2e/tests/docs_app_components_coverage.spec.mjs",
+        "`data-slot=\"combo-box\"`",
+        "`body:not(:has(#boot))`",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "combo_box/check2.md should keep e2e stability marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn combo_box_feature_graph_declares_required_motion_dependencies() {
+    let cargo_toml = load_source("Cargo.toml");
+
+    assert!(
+        cargo_toml.contains(
+            "component-combo_box = [\"component-active_highlight\", \"component-popover\"]"
+        ),
+        "ui-components feature graph should declare combo_box -> active_highlight/popover dependencies for minimal-feature builds."
+    );
 }

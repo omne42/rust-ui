@@ -1,75 +1,170 @@
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, SnippetCopyOptions, use_snippet_copy};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SnippetStateInput {
-    pub is_multiline: bool,
-    pub has_text: bool,
-    pub has_label: bool,
-    pub copyable: bool,
-    pub has_custom_copied_label: bool,
-    pub has_custom_class_name: bool,
+pub use ui_state_primitives::snippet::{SnippetStateInput, normalize_optional_text, resolve_state};
+pub type SnippetViewState = ui_state_primitives::snippet::SnippetState;
+
+pub const DEFAULT_IS_COPYABLE: bool = true;
+pub const DEFAULT_COPY_LABEL: &str = "Copy";
+pub const DEFAULT_COPIED_LABEL: &str = "Copied";
+pub const DEFAULT_COPY_ARIA_LABEL: &str = "Copy to clipboard";
+pub const DEFAULT_COPY_ERROR_LABEL: &str = "Copy failed. Activate again to retry.";
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SnippetTextContract {
+    pub copy_label: String,
+    pub copied_label: String,
+    pub copy_aria_label: String,
+    pub copy_error_label: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct SnippetTextFallbacks {
+    pub copy_label: Option<String>,
+    pub copied_label: Option<String>,
+    pub copy_aria_label: Option<String>,
+    pub copy_error_label: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SnippetViewState {
-    pub is_multiline: bool,
-    pub is_empty: bool,
-    pub has_label: bool,
-    pub copyable: bool,
-    pub copy_is_actionable: bool,
-    pub state_class: &'static str,
-    pub state_attr: &'static str,
-    pub copy_state_class: &'static str,
-    pub copy_state_attr: &'static str,
-    pub copied_label_source_class: &'static str,
-    pub copied_label_source_attr: &'static str,
-    pub has_custom_class_name: bool,
+pub enum SnippetCopyableSource {
+    Default,
+    IsCopyableProp,
+    LegacyCopyableProp,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-pub fn resolve_state(input: SnippetStateInput) -> SnippetViewState {
-    let (state_class, state_attr) = if input.is_multiline {
-        ("ui-snippet--state-multiline", "multiline")
-    } else {
-        ("ui-snippet--state-single-line", "single-line")
-    };
-
-    let copy_is_actionable = input.copyable && input.has_text;
-    let (copy_state_class, copy_state_attr) = if input.copyable {
-        if copy_is_actionable {
-            ("ui-snippet--copyable", "copyable")
-        } else {
-            ("ui-snippet--copy-disabled", "disabled")
+impl SnippetCopyableSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::IsCopyableProp => "is_copyable",
+            Self::LegacyCopyableProp => "copyable_legacy",
         }
-    } else {
-        ("ui-snippet--copy-static", "static")
-    };
+    }
+}
 
-    let (copied_label_source_class, copied_label_source_attr) = if input.has_custom_copied_label {
-        ("ui-snippet--custom-copied-label", "custom")
-    } else {
-        ("ui-snippet--default-copied-label", "default")
-    };
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SnippetCopyableContract {
+    pub is_copyable: bool,
+    pub source: SnippetCopyableSource,
+}
 
-    SnippetViewState {
-        is_multiline: input.is_multiline,
-        is_empty: !input.has_text,
-        has_label: input.has_label,
-        copyable: input.copyable,
-        copy_is_actionable,
-        state_class,
-        state_attr,
-        copy_state_class,
-        copy_state_attr,
-        copied_label_source_class,
-        copied_label_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SnippetCopiedSource {
+    Controlled,
+    Uncontrolled,
+}
+
+impl SnippetCopiedSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Controlled => "controlled",
+            Self::Uncontrolled => "uncontrolled",
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct SnippetControlledCopied {
+    pub value: Option<Signal<bool>>,
+    pub source: SnippetCopiedSource,
+}
+
+#[derive(Clone)]
+pub struct SnippetLogicOptions {
+    pub text: String,
+    pub is_copyable: bool,
+    pub is_copied: Option<Signal<bool>>,
+    pub default_copied: Option<bool>,
+    pub on_copied_change: Option<Callback<bool>>,
+    pub on_copy_error: Option<Callback<()>>,
+    pub lang: Option<String>,
+    pub dir: Option<A11yDirection>,
+}
+
+#[derive(Clone)]
+pub struct SnippetLogic {
+    pub copied: Signal<bool>,
+    pub is_loading: ReadSignal<bool>,
+    pub has_error: ReadSignal<bool>,
+    pub is_copying: ReadSignal<bool>,
+    pub has_copy_error: ReadSignal<bool>,
+    pub copy: Callback<()>,
+    pub retry_copy: Callback<()>,
+    pub aria_busy: Signal<Option<&'static str>>,
+    pub lang: Option<String>,
+    pub dir: Option<&'static str>,
+}
+
+pub fn resolve_copyable_contract(
+    is_copyable: Option<bool>,
+    copyable: Option<bool>,
+) -> SnippetCopyableContract {
+    if let Some(value) = is_copyable {
+        return SnippetCopyableContract {
+            is_copyable: value,
+            source: SnippetCopyableSource::IsCopyableProp,
+        };
+    }
+
+    if let Some(value) = copyable {
+        return SnippetCopyableContract {
+            is_copyable: value,
+            source: SnippetCopyableSource::LegacyCopyableProp,
+        };
+    }
+
+    SnippetCopyableContract {
+        is_copyable: DEFAULT_IS_COPYABLE,
+        source: SnippetCopyableSource::Default,
+    }
+}
+
+pub fn resolve_controlled_copied(
+    is_copied: Option<Signal<bool>>,
+    copied: Option<Signal<bool>>,
+) -> SnippetControlledCopied {
+    let value = is_copied.or(copied);
+    let source = if value.is_some() {
+        SnippetCopiedSource::Controlled
+    } else {
+        SnippetCopiedSource::Uncontrolled
+    };
+    SnippetControlledCopied { value, source }
+}
+
+pub fn resolve_text_contract(
+    copy_label: Option<String>,
+    copied_label: Option<String>,
+    copy_aria_label: Option<String>,
+    copy_error_label: Option<String>,
+    fallbacks: SnippetTextFallbacks,
+) -> SnippetTextContract {
+    let SnippetTextFallbacks {
+        copy_label: fallback_copy_label,
+        copied_label: fallback_copied_label,
+        copy_aria_label: fallback_copy_aria_label,
+        copy_error_label: fallback_copy_error_label,
+    } = fallbacks;
+
+    let copy_label = normalize_optional_text(copy_label)
+        .or_else(|| normalize_optional_text(fallback_copy_label))
+        .unwrap_or_else(|| DEFAULT_COPY_LABEL.to_string());
+    let copied_label = normalize_optional_text(copied_label)
+        .or_else(|| normalize_optional_text(fallback_copied_label))
+        .unwrap_or_else(|| DEFAULT_COPIED_LABEL.to_string());
+    let copy_aria_label = normalize_optional_text(copy_aria_label)
+        .or_else(|| normalize_optional_text(fallback_copy_aria_label))
+        .unwrap_or_else(|| DEFAULT_COPY_ARIA_LABEL.to_string());
+    let copy_error_label = normalize_optional_text(copy_error_label)
+        .or_else(|| normalize_optional_text(fallback_copy_error_label))
+        .unwrap_or_else(|| DEFAULT_COPY_ERROR_LABEL.to_string());
+
+    SnippetTextContract {
+        copy_label,
+        copied_label,
+        copy_aria_label,
+        copy_error_label,
     }
 }
 
@@ -98,188 +193,49 @@ pub fn compose_class_name(base_class_name: Option<String>, state: SnippetViewSta
     classes.join(" ")
 }
 
-#[derive(Clone)]
-pub struct SnippetLogic {
-    pub copied: ReadSignal<bool>,
-    pub is_copying: ReadSignal<bool>,
-    pub has_copy_error: ReadSignal<bool>,
-    pub copy: Callback<()>,
-}
+pub fn use_snippet_logic_with_options(options: SnippetLogicOptions) -> SnippetLogic {
+    let contract = use_snippet_copy(SnippetCopyOptions {
+        text: options.text,
+        is_copyable: options.is_copyable,
+        is_copied: options.is_copied,
+        default_copied: options.default_copied,
+        on_copied_change: options.on_copied_change,
+        on_copy_error: options.on_copy_error,
+        lang: options.lang,
+        dir: options.dir,
+    });
 
-#[cfg(not(target_arch = "wasm32"))]
-pub fn use_snippet_logic(_text: String) -> SnippetLogic {
-    let (copied, _set_copied) = signal(false);
-    let (is_copying, _set_is_copying) = signal(false);
-    let (has_copy_error, _set_has_copy_error) = signal(false);
-    let copy = Callback::new(|_| {});
     SnippetLogic {
-        copied,
-        is_copying,
-        has_copy_error,
-        copy,
+        copied: contract.state.copied,
+        is_loading: contract.state.is_loading,
+        has_error: contract.state.has_error,
+        is_copying: contract.state.is_loading,
+        has_copy_error: contract.state.has_error,
+        copy: contract.handlers.on_copy,
+        retry_copy: contract.handlers.on_retry,
+        aria_busy: contract.attrs.aria_busy,
+        lang: contract.attrs.lang,
+        dir: contract.attrs.dir,
     }
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(any(feature = "component-button_copy", feature = "component-code_block"))]
 pub fn use_snippet_logic(text: String) -> SnippetLogic {
-    let (copied, set_copied) = signal(false);
-    let (is_copying, set_is_copying) = signal(false);
-    let (has_copy_error, set_has_copy_error) = signal(false);
-
-    let copied_timeout = StoredValue::new_local(None::<TimeoutHandle>);
-
-    on_cleanup(move || {
-        if let Some(handle) = copied_timeout.get_value() {
-            handle.clear();
-        }
-    });
-
-    let copy = Callback::new(move |_| {
-        if copied.get_untracked() || is_copying.get_untracked() {
-            return;
-        }
-
-        if text.trim().is_empty() {
-            return;
-        }
-
-        set_has_copy_error.set(false);
-        set_is_copying.set(true);
-
-        let text = text.clone();
-        let set_copied = set_copied.clone();
-        let set_is_copying = set_is_copying.clone();
-        let set_has_copy_error = set_has_copy_error.clone();
-        let copied_timeout = copied_timeout;
-        leptos::task::spawn_local(async move {
-            if !write_to_clipboard(text).await {
-                set_is_copying.set(false);
-                set_has_copy_error.set(true);
-                return;
-            }
-
-            set_copied.set(true);
-            set_is_copying.set(false);
-            set_has_copy_error.set(false);
-
-            if let Some(handle) = copied_timeout.get_value() {
-                handle.clear();
-            }
-            copied_timeout.set_value(None);
-
-            let set_copied_for_timeout = set_copied.clone();
-            let timeout_result = set_timeout_with_handle(
-                move || {
-                    set_copied_for_timeout.set(false);
-                    copied_timeout.set_value(None);
-                },
-                std::time::Duration::from_millis(2000),
-            );
-            if let Ok(handle) = timeout_result {
-                copied_timeout.set_value(Some(handle));
-            }
-        });
-    });
-
-    SnippetLogic {
-        copied,
-        is_copying,
-        has_copy_error,
-        copy,
-    }
-}
-
-#[cfg(target_arch = "wasm32")]
-async fn write_to_clipboard(text: String) -> bool {
-    use leptos::__reexports::wasm_bindgen_futures::JsFuture;
-    use leptos::__reexports::wasm_bindgen_futures::js_sys::{self, Function, Promise, Reflect};
-    use leptos::wasm_bindgen::{JsCast, JsValue};
-
-    let global = js_sys::global();
-
-    let navigator = match Reflect::get(&global, &JsValue::from_str("navigator")) {
-        Ok(value) => value,
-        Err(_) => return false,
-    };
-
-    let clipboard = match Reflect::get(&navigator, &JsValue::from_str("clipboard")) {
-        Ok(value) => value,
-        Err(_) => return false,
-    };
-
-    let write_text = match Reflect::get(&clipboard, &JsValue::from_str("writeText")) {
-        Ok(value) => value,
-        Err(_) => return false,
-    };
-
-    let Ok(write_text) = write_text.dyn_into::<Function>() else {
-        return false;
-    };
-
-    let Ok(promise) = write_text.call1(&clipboard, &JsValue::from_str(&text)) else {
-        return false;
-    };
-
-    let Ok(promise) = promise.dyn_into::<Promise>() else {
-        return false;
-    };
-
-    JsFuture::from(promise).await.is_ok()
+    use_snippet_logic_with_options(SnippetLogicOptions {
+        text,
+        is_copyable: true,
+        is_copied: None,
+        default_copied: Some(false),
+        on_copied_change: None,
+        on_copy_error: None,
+        lang: None,
+        dir: None,
+    })
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn normalize_optional_text_filters_blank_values() {
-        assert_eq!(normalize_optional_text(None), None);
-        assert_eq!(normalize_optional_text(Some("\n\t".to_string())), None);
-        assert_eq!(
-            normalize_optional_text(Some("  Done  ".to_string())),
-            Some("Done".to_string())
-        );
-    }
-
-    #[test]
-    fn resolve_state_tracks_copy_and_label_sources() {
-        let state = resolve_state(SnippetStateInput {
-            is_multiline: true,
-            has_text: true,
-            has_label: true,
-            copyable: true,
-            has_custom_copied_label: true,
-            has_custom_class_name: true,
-        });
-
-        assert_eq!(state.state_class, "ui-snippet--state-multiline");
-        assert_eq!(state.copy_state_class, "ui-snippet--copyable");
-        assert_eq!(
-            state.copied_label_source_class,
-            "ui-snippet--custom-copied-label"
-        );
-        assert!(!state.is_empty);
-        assert!(state.has_label);
-        assert!(state.copyable);
-        assert!(state.copy_is_actionable);
-        assert!(state.has_custom_class_name);
-    }
-
-    #[test]
-    fn resolve_state_marks_empty_copyable_snippet_as_disabled_copy() {
-        let state = resolve_state(SnippetStateInput {
-            is_multiline: false,
-            has_text: false,
-            has_label: false,
-            copyable: true,
-            has_custom_copied_label: false,
-            has_custom_class_name: false,
-        });
-
-        assert_eq!(state.copy_state_attr, "disabled");
-        assert!(state.is_empty);
-        assert!(!state.copy_is_actionable);
-    }
 
     #[test]
     fn compose_class_name_includes_state_markers() {
@@ -289,7 +245,7 @@ mod tests {
                 is_multiline: false,
                 has_text: false,
                 has_label: true,
-                copyable: true,
+                is_copyable: true,
                 has_custom_copied_label: false,
                 has_custom_class_name: true,
             }),
@@ -310,5 +266,92 @@ mod tests {
                 "composed class name should include `{token}`"
             );
         }
+    }
+
+    #[test]
+    fn snippet_logic_supports_controlled_copied_axis() {
+        let (is_copied, set_is_copied) = signal(false);
+
+        let logic = use_snippet_logic_with_options(SnippetLogicOptions {
+            text: "cargo test".to_string(),
+            is_copyable: true,
+            is_copied: Some(is_copied.into()),
+            default_copied: Some(true),
+            on_copied_change: None,
+            on_copy_error: None,
+            lang: None,
+            dir: None,
+        });
+
+        assert!(!logic.copied.get_untracked());
+        set_is_copied.set(true);
+        assert!(logic.copied.get_untracked());
+    }
+
+    #[test]
+    fn default_snippet_logic_is_uncontrolled_and_not_busy() {
+        let logic = use_snippet_logic_with_options(SnippetLogicOptions {
+            text: "cargo fmt --all".to_string(),
+            is_copyable: true,
+            is_copied: None,
+            default_copied: Some(false),
+            on_copied_change: None,
+            on_copy_error: None,
+            lang: None,
+            dir: None,
+        });
+        assert!(!logic.copied.get_untracked());
+        assert!(!logic.is_loading.get_untracked());
+        assert!(!logic.has_error.get_untracked());
+        assert_eq!(logic.aria_busy.get_untracked(), None);
+    }
+
+    #[test]
+    fn resolve_text_contract_centralizes_defaults() {
+        let contract =
+            resolve_text_contract(None, None, None, None, SnippetTextFallbacks::default());
+        assert_eq!(contract.copy_label, DEFAULT_COPY_LABEL);
+        assert_eq!(contract.copied_label, DEFAULT_COPIED_LABEL);
+        assert_eq!(contract.copy_aria_label, DEFAULT_COPY_ARIA_LABEL);
+        assert_eq!(contract.copy_error_label, DEFAULT_COPY_ERROR_LABEL);
+    }
+
+    #[test]
+    fn resolve_text_contract_prefers_props_then_i18n_then_defaults() {
+        let contract = resolve_text_contract(
+            None,
+            Some("Copied now".to_string()),
+            None,
+            None,
+            SnippetTextFallbacks {
+                copy_label: Some("复制".to_string()),
+                copied_label: Some("已复制".to_string()),
+                copy_aria_label: Some("复制到剪贴板".to_string()),
+                copy_error_label: Some("复制失败，请重试".to_string()),
+            },
+        );
+
+        assert_eq!(contract.copy_label, "复制");
+        assert_eq!(contract.copied_label, "Copied now");
+        assert_eq!(contract.copy_aria_label, "复制到剪贴板");
+        assert_eq!(contract.copy_error_label, "复制失败，请重试");
+    }
+
+    #[test]
+    fn resolve_copyable_contract_tracks_source() {
+        let from_default = resolve_copyable_contract(None, None);
+        assert_eq!(from_default.source, SnippetCopyableSource::Default);
+        assert!(from_default.is_copyable);
+
+        let from_new_prop = resolve_copyable_contract(Some(false), Some(true));
+        assert_eq!(from_new_prop.source, SnippetCopyableSource::IsCopyableProp);
+        assert!(!from_new_prop.is_copyable);
+
+        let from_legacy_prop = resolve_copyable_contract(None, Some(false));
+        assert_eq!(
+            from_legacy_prop.source,
+            SnippetCopyableSource::LegacyCopyableProp
+        );
+        assert!(!from_legacy_prop.is_copyable);
     }
 }

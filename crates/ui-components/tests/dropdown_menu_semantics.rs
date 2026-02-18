@@ -273,3 +273,66 @@ fn dropdown_menu_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn dropdown_menu_minimal_feature_gate_keeps_dependency_chain_and_module_paths_wired() {
+    let cargo_toml = load_source("Cargo.toml");
+    let view_source = load_source("src/dropdown_menu/view.rs");
+    let menu_motion_source = load_source("src/menu/motion.rs");
+
+    assert!(
+        cargo_toml.contains(
+            "component-dropdown_menu = [\"component-button\", \"component-menu\", \"component-popover\"]"
+        ),
+        "component-dropdown_menu must depend on button/menu/popover for minimal-feature compilation."
+    );
+
+    for needle in [
+        "use crate::button::{Button, ButtonSize, ButtonVariant};",
+        "use crate::menu::Menu;",
+        "use crate::popover::Popover;",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "DropdownMenu view should use module imports (`{needle}`) instead of fragile root re-exports."
+        );
+    }
+
+    assert!(
+        menu_motion_source.contains("use crate::active_highlight::ActiveHighlightMotion;"),
+        "menu motion should import ActiveHighlightMotion from module path to keep feature-gated builds stable."
+    );
+}
+
+#[test]
+fn dropdown_menu_docs_include_interactive_playground_contract_panels() {
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=interactive_test_css",
+        "test_config_signal=interactive_config",
+        "controls=move || view!",
+        "test_source_path=\"crates/ui-components/src/dropdown_menu/styles.rs\".to_string()",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "dropdown-menu docs interactive playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn dropdown_menu_readme_and_docs_shell_register_display_config_code_css_contract() {
+    let readme_source = load_source("src/dropdown_menu/README.md");
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+
+    assert!(
+        readme_source.contains("## Playground 展示区（Display / Config / Code / CSS Test）"),
+        "dropdown-menu README should document display/config/code/css test playground layout.",
+    );
+    assert!(
+        shell_source.contains("\"dropdown-menu\" => Some(DROPDOWN_MENU_README_MD)"),
+        "docs shell should map dropdown-menu slug to DROPDOWN_MENU_README_MD.",
+    );
+}

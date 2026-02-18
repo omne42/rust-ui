@@ -1,9 +1,9 @@
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use crate::code_block::{
     CodeBlockMotion, CodeBlockStrings,
     logic::{self, CodeBlockStateInput},
     motion,
 };
-use crate::{Button, ButtonSize, ButtonVariant};
 use leptos::{html, prelude::*};
 use ui_headless::i18n;
 
@@ -84,7 +84,7 @@ pub fn CodeBlock(
     let copied_label = StoredValue::new(copied_status_text);
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
-    motion::attach_motion(root_ref, copy_logic.copied.into(), motion);
+    motion::attach_motion(root_ref, copy_logic.copied, motion);
 
     view! {
         <div

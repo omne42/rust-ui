@@ -124,8 +124,10 @@ fn empty_docs_page_contains_state_source_playground() {
         "pub(super) fn empty() -> AnyView",
         "title=\"Empty\"",
         "slug=\"empty\"",
-        "State + Source Markers",
-        "data-variant-source",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "title=\"Comparison Matrix (Header / Action / Source Markers)\"",
+        "test_css_source=empty_test_css_source",
+        "test_config_signal=workbench_config",
         "<Empty",
     ] {
         assert!(
@@ -141,15 +143,14 @@ fn empty_docs_default_playgrounds_lock_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
 
     for needle in [
-        "<Playground title=\"Header + Icon Variant\" code_signal=basic_code>",
-        "<EmptyMedia variant=EmptyMediaVariant::Icon>",
-        "\"No messages\"",
-        "\"You're all caught up.\"",
-        "<Playground title=\"Content Action Region\" code_signal=content_code>",
-        "<Empty class_name=\"docs-empty-custom\".to_string()>",
-        "\"No deployments\"",
-        "\"Create your first release to populate this list.\"",
-        "<a href=\"#/components/button\">\"Create deployment\"</a>",
+        "id_base=\"docs-empty-media-variant\".to_string()",
+        "\"Show content action\"",
+        "\"Custom root class\"",
+        "\"Custom slot classes\"",
+        "class_name=\"docs-empty-custom\".to_string()",
+        "class_name=\"docs-empty-header\".to_string()",
+        "class_name=\"docs-empty-media\".to_string()",
+        "<a href=\"#/components/search\">\"Open search\"</a>",
     ] {
         assert!(
             source.contains(needle),
@@ -164,7 +165,12 @@ fn empty_docs_state_source_playground_locks_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
 
     for needle in [
-        "title=\"State + Source Markers\"",
+        "title=\"Comparison Matrix (Header / Action / Source Markers)\"",
+        "<span class=\"ui-muted\">\"Header + Icon\"</span>",
+        "<span class=\"ui-muted\">\"Content Action\"</span>",
+        "<span class=\"ui-muted\">\"State + Source Markers\"</span>",
+        "\"No messages\"",
+        "\"No deployments\"",
         "<Empty class_name=\"docs-empty-state\".to_string()>",
         "<EmptyHeader class_name=\"docs-empty-header\".to_string()>",
         "variant=EmptyMediaVariant::Icon",
@@ -191,9 +197,8 @@ fn empty_docs_page_covers_primary_playgrounds() {
         "title=\"Empty\"",
         "slug=\"empty\"",
         "description=\"baseline-compatible empty-state composition primitives (`Empty*`) with stable slot contracts for header/media/title/description/content layering.\"",
-        "<Playground title=\"Header + Icon Variant\" code_signal=basic_code>",
-        "<Playground title=\"Content Action Region\" code_signal=content_code>",
-        "title=\"State + Source Markers\"",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "title=\"Comparison Matrix (Header / Action / Source Markers)\"",
         "<Empty",
     ] {
         assert!(
@@ -209,16 +214,15 @@ fn empty_docs_playgrounds_lock_state_matrix_contract_values() {
         load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
 
     for needle in [
-        "title=\"Header + Icon Variant\"",
+        "id_base=\"docs-empty-media-variant\".to_string()",
+        "title=\"Comparison Matrix (Header / Action / Source Markers)\"",
         "variant=EmptyMediaVariant::Icon",
         "\"No messages\"",
         "\"You're all caught up.\"",
-        "title=\"Content Action Region\"",
         "class_name=\"docs-empty-custom\".to_string()",
         "\"No deployments\"",
         "\"Create your first release to populate this list.\"",
         "<a href=\"#/components/button\">\"Create deployment\"</a>",
-        "title=\"State + Source Markers\"",
         "class_name=\"docs-empty-state\".to_string()",
         "class_name=\"docs-empty-header\".to_string()",
         "class_name=\"docs-empty-media\".to_string()",

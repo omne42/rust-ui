@@ -1,15 +1,24 @@
 use crate::circular_progress::logic::{self, CircularProgressStateInput};
 use leptos::prelude::*;
+use ui_headless::i18n;
+use ui_headless::i18n::CommonStrings;
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn CircularProgress(
-    #[prop(optional, into, default = logic::DEFAULT_ARIA_LABEL.to_string())] aria_label: String,
+    #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional)] size_px: Option<f64>,
     #[prop(optional)] thickness_px: Option<f64>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let i18n = i18n::use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
     let class_name = logic::normalize_optional_text(class_name);
-    let (aria_label, has_custom_aria_label) = logic::resolve_aria_label(aria_label);
+    let (aria_label, has_custom_aria_label) =
+        logic::resolve_aria_label(aria_label, common.loading_aria_label.as_ref());
 
     let state = logic::resolve_state(CircularProgressStateInput {
         size_px,
@@ -41,6 +50,8 @@ pub fn CircularProgress(
             aria-label=aria_label
             aria-valuemin="0"
             aria-valuemax="100"
+            lang=locale.lang.clone()
+            dir=locale.dir
         ></span>
     }
 }

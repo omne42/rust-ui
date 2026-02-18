@@ -5,9 +5,9 @@ use ui_components::overlays::OverlaysRoot;
 use ui_components::{
     Button, ButtonVariant, ContextualHelp, ContextualHelpVariant, Drawer, DrawerMotion,
     DrawerPlacement, Modal, OnPress, Overlay, OverlayMotion, Popover, PopoverMotion, PreviewCard,
-    PreviewCardMotion, PreviewLinkCard, PreviewLinkCardMotion, Sheet, SheetMotion, SheetPlacement,
-    Toast, ToastMotion, ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport,
-    provide_toast_store,
+    PreviewCardMotion, PreviewLinkCard, PreviewLinkCardMotion, SegmentedControl,
+    SegmentedControlSize, Sheet, SheetMotion, SheetPlacement, Snippet, Switch, Toast, ToastMotion,
+    ToastOptions, ToastStoreOptions, ToastVariant, ToastViewport, provide_toast_store,
 };
 
 #[path = "overlays_dialog.rs"]
@@ -21,6 +21,39 @@ mod overlays_hover_card;
 
 #[path = "overlays_tooltip.rs"]
 mod overlays_tooltip;
+
+const SHEET_PLAYGROUND_CODE: &str = r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
+
+<Sheet
+  open=Signal::derive(move || open_raw.get())
+  placement=SheetPlacement::Bottom
+  on_close=close
+  on_exit_complete=finish_exit
+>
+  move || view! { ... }
+</Sheet>"#;
+
+const SHEET_MARKER_PLAYGROUND_CODE: &str = r#"let (open_raw, set_open_raw) = signal(true);
+let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
+let finish_exit = Callback::new(move |_| {});
+let custom_motion = SheetMotion {
+  initial_offset_px: 56.0,
+  ..SheetMotion::default()
+};
+
+<Sheet
+  open=Signal::derive(move || open_raw.get())
+  placement=SheetPlacement::Right
+  on_close=close
+  is_dismissable=false
+  is_keyboard_dismiss_disabled=true
+  motion=custom_motion
+  on_exit_complete=finish_exit
+>
+  ...
+</Sheet>"#;
 
 pub(super) fn overlay() -> AnyView {
     let (open_raw, set_open_raw) = signal(false);
@@ -257,6 +290,111 @@ let custom_motion = PopoverMotion {
             .to_string()
     });
 
+    let workbench_anchor_ref: NodeRef<html::Button> = NodeRef::new();
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let (workbench_present, set_workbench_present) = signal(workbench_open.get_untracked());
+    Effect::new(move |_| {
+        if workbench_open.get() {
+            set_workbench_present.set(true);
+        }
+    });
+    let workbench_close: OnPress = Callback::new(move |_| set_workbench_open_raw.set(false));
+    let workbench_toggle: OnPress =
+        Callback::new(move |_| set_workbench_open_raw.update(|value| *value = !*value));
+    let workbench_on_exit_complete = Callback::new(move |_| set_workbench_present.set(false));
+
+    let (workbench_modal, set_workbench_modal) = signal(true);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+    let (workbench_scale_pct, set_workbench_scale_pct) = signal(98_u16);
+    let (workbench_offset_px, set_workbench_offset_px) = signal(6_u16);
+
+    let workbench_motion = Signal::derive(move || PopoverMotion {
+        initial_scale: f64::from(workbench_scale_pct.get()) / 100.0,
+        offset_y_px: f64::from(workbench_offset_px.get()),
+        ..PopoverMotion::default()
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let is_modal = workbench_modal.get();
+        let custom_class = workbench_custom_class.get();
+        let motion = workbench_motion.get();
+
+        let mut lines = vec![
+            "let anchor_ref: NodeRef<html::Button> = NodeRef::new();".to_string(),
+            "let (open_raw, set_open_raw) = signal(false);".to_string(),
+            "let close: OnPress = Callback::new(move |_| set_open_raw.set(false));".to_string(),
+            "let on_exit_complete = Callback::new(move |_| {});".to_string(),
+            "let custom_motion = PopoverMotion {".to_string(),
+            format!("  initial_scale: {:.2},", motion.initial_scale),
+            format!("  offset_y_px: {:.1},", motion.offset_y_px),
+            "  ..PopoverMotion::default()".to_string(),
+            "};".to_string(),
+            "".to_string(),
+            "<Popover".to_string(),
+            "  open=Signal::derive(move || open_raw.get())".to_string(),
+            "  anchor_ref=anchor_ref".to_string(),
+            "  on_close=close".to_string(),
+            "  motion=custom_motion".to_string(),
+        ];
+        if !is_modal {
+            lines.push("  is_modal=false".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-popover-workbench\".to_string()".to_string());
+        }
+        lines.push("  on_exit_complete=on_exit_complete".to_string());
+        lines.push(">".to_string());
+        lines.push("  ...".to_string());
+        lines.push("</Popover>".to_string());
+        lines.join("\n")
+    });
+
+    let workbench_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/popover/styles.rs */\n{}",
+            ui_components::popover::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let is_modal = workbench_modal.get();
+        let custom_class = workbench_custom_class.get();
+        let motion = workbench_motion.get();
+        let has_custom_motion = motion != PopoverMotion::default();
+        let is_open = workbench_open_raw.get();
+
+        let mut root_class = vec!["ui-popover".to_string()];
+        if has_custom_motion {
+            root_class.push("ui-popover--custom-motion".to_string());
+        }
+        if !is_modal {
+            root_class.push("ui-popover--non-modal".to_string());
+            root_class.push("ui-popover--custom-modal".to_string());
+        }
+        root_class.push("ui-popover--custom-exit".to_string());
+        if custom_class {
+            root_class.push("ui-popover--custom-class".to_string());
+            root_class.push("docs-popover-workbench".to_string());
+        }
+
+        format!(
+            "PopoverWorkbenchConfig {{\n  open: {is_open},\n  modal: {is_modal},\n  custom_class: {custom_class},\n  initial_scale: {:.2},\n  offset_y_px: {:.1},\n  state_attr: \"{}\",\n  modal_attr: \"{}\",\n  motion_source: \"{}\",\n  placement_source: \"default\",\n  modal_source: \"{}\",\n  class_source: \"{}\",\n  exit_source: \"custom\",\n  root_class: \"{}\",\n}}",
+            motion.initial_scale,
+            motion.offset_y_px,
+            if is_open { "open" } else { "closed" },
+            if is_modal { "modal" } else { "non-modal" },
+            if has_custom_motion {
+                "custom"
+            } else {
+                "default"
+            },
+            if is_modal { "default" } else { "custom" },
+            if custom_class { "custom" } else { "default" },
+            root_class.join(" "),
+        )
+    });
+
     view! {
         <ComponentPage
             title="Popover"
@@ -331,12 +469,264 @@ let custom_motion = PopoverMotion {
                     </Popover>
                 </Show>
             </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="Button-style playground with display/config/code/css-test panels for popover open/modal/motion/class contracts."
+                code_signal=workbench_code
+                test_css_source=workbench_test_css
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/popover/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="popover-workbench-controls">
+                        <label class="docs-search__label">
+                            "Initial scale (" {move || format!("{:.2}", f64::from(workbench_scale_pct.get()) / 100.0)} ")"
+                            <input
+                                type="range"
+                                min="70"
+                                max="120"
+                                step="1"
+                                prop:value=move || workbench_scale_pct.get().to_string()
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev)
+                                        .parse::<u16>()
+                                        .unwrap_or(98)
+                                        .clamp(70, 120);
+                                    set_workbench_scale_pct.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            "Offset px (" {move || workbench_offset_px.get().to_string()} ")"
+                            <input
+                                type="range"
+                                min="0"
+                                max="48"
+                                step="1"
+                                prop:value=move || workbench_offset_px.get().to_string()
+                                on:input=move |ev| {
+                                    let next = event_target_value(&ev)
+                                        .parse::<u16>()
+                                        .unwrap_or(6)
+                                        .clamp(0, 48);
+                                    set_workbench_offset_px.set(next);
+                                }
+                            />
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_modal.get()
+                                on:change=move |ev| set_workbench_modal.set(event_target_checked(&ev))
+                            />
+                            " Modal"
+                        </label>
+                        <label class="docs-search__label">
+                            <input
+                                type="checkbox"
+                                prop:checked=move || workbench_custom_class.get()
+                                on:change=move |ev| {
+                                    set_workbench_custom_class.set(event_target_checked(&ev))
+                                }
+                            />
+                            " Custom class"
+                        </label>
+                    </div>
+                }
+            >
+                <div class="docs-row">
+                    <Button
+                        node_ref=workbench_anchor_ref
+                        on_press=workbench_toggle
+                        aria_haspopup="dialog"
+                        aria_expanded=workbench_open
+                    >
+                        {move || {
+                            if workbench_open_raw.get() {
+                                "Close workbench popover"
+                            } else {
+                                "Open workbench popover"
+                            }
+                        }}
+                    </Button>
+                    <span class="ui-muted">
+                        "open: " {move || workbench_open_raw.get().to_string()}
+                    </span>
+                </div>
+
+                <Show when=move || workbench_present.get()>
+                    {move || {
+                        let motion = workbench_motion.get();
+                        let is_modal = workbench_modal.get();
+                        if workbench_custom_class.get() {
+                            view! {
+                                <Popover
+                                    open=workbench_open
+                                    anchor_ref=workbench_anchor_ref
+                                    on_close=workbench_close
+                                    motion=motion
+                                    is_modal=is_modal
+                                    class_name="docs-popover-workbench".to_string()
+                                    on_exit_complete=workbench_on_exit_complete
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"Workbench popover content"</div>
+                                        <div class="ui-muted">
+                                            "Tune modal + motion + class source and inspect config/test panels."
+                                        </div>
+                                        <Button variant=ButtonVariant::Secondary on_press=workbench_close>
+                                            "Close"
+                                        </Button>
+                                    </div>
+                                </Popover>
+                            }
+                            .into_any()
+                        } else {
+                            view! {
+                                <Popover
+                                    open=workbench_open
+                                    anchor_ref=workbench_anchor_ref
+                                    on_close=workbench_close
+                                    motion=motion
+                                    is_modal=is_modal
+                                    on_exit_complete=workbench_on_exit_complete
+                                >
+                                    <div class="docs-stack docs-stack--tight">
+                                        <div>"Workbench popover content"</div>
+                                        <div class="ui-muted">
+                                            "Tune modal + motion + class source and inspect config/test panels."
+                                        </div>
+                                        <Button variant=ButtonVariant::Secondary on_press=workbench_close>
+                                            "Close"
+                                        </Button>
+                                    </div>
+                                </Popover>
+                            }
+                            .into_any()
+                        }
+                    }}
+                </Show>
+            </Playground>
         </ComponentPage>
     }
     .into_any()
 }
 
 pub(super) fn modal() -> AnyView {
+    let (interactive_open_raw, set_interactive_open_raw) = signal(false);
+    let interactive_open: Signal<bool> = Signal::derive(move || interactive_open_raw.get());
+    let open_interactive_modal: OnPress =
+        Callback::new(move |_| set_interactive_open_raw.set(true));
+    let close_interactive_modal: OnPress =
+        Callback::new(move |_| set_interactive_open_raw.set(false));
+    let (interactive_with_description, set_interactive_with_description) = signal(true);
+    let (interactive_custom_id, set_interactive_custom_id) = signal(true);
+    let (interactive_custom_title, set_interactive_custom_title) = signal(true);
+    let (interactive_custom_class, set_interactive_custom_class) = signal(false);
+    let (interactive_custom_motion, set_interactive_custom_motion) = signal(false);
+    let (interactive_custom_exit, set_interactive_custom_exit) = signal(false);
+
+    let interactive_code = Signal::derive(move || {
+        let with_description = interactive_with_description.get();
+        let custom_id = interactive_custom_id.get();
+        let custom_title = interactive_custom_title.get();
+        let custom_class = interactive_custom_class.get();
+        let custom_motion = interactive_custom_motion.get();
+        let custom_exit = interactive_custom_exit.get();
+
+        let mut lines = vec![
+            "let (open, set_open) = signal(false);".to_string(),
+            "let close: OnPress = Callback::new(move |_| set_open.set(false));".to_string(),
+            "".to_string(),
+            "<Modal".to_string(),
+            "  open=Signal::derive(move || open.get())".to_string(),
+            format!(
+                "  id_base={}",
+                if custom_id {
+                    "\"docs-modal-interactive\".to_string()"
+                } else {
+                    "\" \".to_string()"
+                }
+            ),
+            format!(
+                "  title={}",
+                if custom_title {
+                    "\"Action required\".to_string()"
+                } else {
+                    "\" \".to_string()"
+                }
+            ),
+            "  on_close=close".to_string(),
+        ];
+
+        if with_description {
+            lines.push(
+                "  description=\"Review settings before confirming.\".to_string()".to_string(),
+            );
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-modal-custom\".to_string()".to_string());
+        }
+        if custom_motion {
+            lines.push("  motion=OverlayMotion {".to_string());
+            lines.push("    initial_scale: 0.92,".to_string());
+            lines.push("    initial_y_px: 18.0,".to_string());
+            lines.push("    ..OverlayMotion::default()".to_string());
+            lines.push("  }".to_string());
+        }
+        if custom_exit {
+            lines.push("  on_exit_complete=Callback::new(move |_| {})".to_string());
+        }
+        lines.push(">".to_string());
+        lines.push("  ...".to_string());
+        lines.push("</Modal>".to_string());
+        lines.join("\n")
+    });
+
+    let interactive_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/modal/styles.rs */\n{}",
+            ui_components::modal::styles::CSS
+        )
+    });
+
+    let interactive_config = Signal::derive(move || {
+        format!(
+            "ModalActualConfig {{\n  open: {},\n  id_source: {},\n  title_source: {},\n  description: {},\n  class_source: {},\n  motion_source: {},\n  exit_source: {},\n}}",
+            interactive_open_raw.get(),
+            if interactive_custom_id.get() {
+                "\"custom\""
+            } else {
+                "\"default\""
+            },
+            if interactive_custom_title.get() {
+                "\"custom\""
+            } else {
+                "\"default\""
+            },
+            if interactive_with_description.get() {
+                "\"present\""
+            } else {
+                "\"absent\""
+            },
+            if interactive_custom_class.get() {
+                "\"custom\""
+            } else {
+                "\"default\""
+            },
+            if interactive_custom_motion.get() {
+                "\"custom\""
+            } else {
+                "\"default\""
+            },
+            if interactive_custom_exit.get() {
+                "\"custom\""
+            } else {
+                "\"default\""
+            },
+        )
+    });
+
     let (open_semantic_raw, set_open_semantic_raw) = signal(false);
     let open_semantic: Signal<bool> = Signal::derive(move || open_semantic_raw.get());
     let (present_semantic, set_present_semantic) = signal(open_semantic.get_untracked());
@@ -419,6 +809,148 @@ let custom_motion = OverlayMotion {
             group="Overlays"
             description="Overlay composition with centralized title/description/class state attrs and stable modal slots."
         >
+            <Playground
+                title="Interactive Playground"
+                description="Display + Config + Code + CSS Test: toggle source contracts and inspect actual normalized config."
+                code_signal=interactive_code
+                test_css_source=interactive_test_css
+                test_source_path="crates/ui-components/src/modal/styles.rs".to_string()
+                test_config_signal=interactive_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <Switch
+                            checked=interactive_with_description
+                            set_checked=set_interactive_with_description
+                        >
+                            "Description"
+                        </Switch>
+                        <Switch checked=interactive_custom_id set_checked=set_interactive_custom_id>
+                            "Custom id_base"
+                        </Switch>
+                        <Switch
+                            checked=interactive_custom_title
+                            set_checked=set_interactive_custom_title
+                        >
+                            "Custom title"
+                        </Switch>
+                        <Switch
+                            checked=interactive_custom_class
+                            set_checked=set_interactive_custom_class
+                        >
+                            "Custom class"
+                        </Switch>
+                        <Switch
+                            checked=interactive_custom_motion
+                            set_checked=set_interactive_custom_motion
+                        >
+                            "Custom motion"
+                        </Switch>
+                        <Switch
+                            checked=interactive_custom_exit
+                            set_checked=set_interactive_custom_exit
+                        >
+                            "Custom exit callback"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let motion = if interactive_custom_motion.get() {
+                        OverlayMotion {
+                            initial_scale: 0.92,
+                            initial_y_px: 18.0,
+                            ..OverlayMotion::default()
+                        }
+                    } else {
+                        OverlayMotion::default()
+                    };
+                    let class_name = if interactive_custom_class.get() {
+                        "docs-modal-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let description = if interactive_with_description.get() {
+                        "Review settings before confirming.".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let id_base = if interactive_custom_id.get() {
+                        "docs-modal-interactive".to_string()
+                    } else {
+                        " ".to_string()
+                    };
+                    let title = if interactive_custom_title.get() {
+                        "Action required".to_string()
+                    } else {
+                        " ".to_string()
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-row">
+                                <Button on_press=open_interactive_modal>"Open interactive modal"</Button>
+                                <span class="ui-muted">
+                                    "open: " {move || interactive_open_raw.get().to_string()}
+                                </span>
+                            </div>
+
+                            {if interactive_custom_exit.get() {
+                                view! {
+                                    <Modal
+                                        open=interactive_open
+                                        id_base=id_base.clone()
+                                        title=title.clone()
+                                        on_close=close_interactive_modal
+                                        description=description.clone()
+                                        motion=motion
+                                        on_exit_complete=Callback::new(move |_| {})
+                                        class_name=class_name.clone()
+                                    >
+                                        <div class="docs-stack docs-stack--tight">
+                                            <div>"Inspect root markers in DevTools while toggling config."</div>
+                                            <div class="docs-row docs-row--end">
+                                                <Button
+                                                    variant=ButtonVariant::Secondary
+                                                    on_press=close_interactive_modal
+                                                >
+                                                    "Close"
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </Modal>
+                                }
+                                    .into_any()
+                            } else {
+                                view! {
+                                    <Modal
+                                        open=interactive_open
+                                        id_base=id_base
+                                        title=title
+                                        on_close=close_interactive_modal
+                                        description=description
+                                        motion=motion
+                                        class_name=class_name
+                                    >
+                                        <div class="docs-stack docs-stack--tight">
+                                            <div>"Inspect root markers in DevTools while toggling config."</div>
+                                            <div class="docs-row docs-row--end">
+                                                <Button
+                                                    variant=ButtonVariant::Secondary
+                                                    on_press=close_interactive_modal
+                                                >
+                                                    "Close"
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </Modal>
+                                }
+                                    .into_any()
+                            }}
+                        </div>
+                    }
+                }}
+            </Playground>
+
             <Playground title="Label + Description" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_modal>"Open described modal"</Button>
@@ -533,44 +1065,8 @@ pub(super) fn sheet() -> AnyView {
         ..SheetMotion::default()
     };
 
-    let code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(true);
-let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-let finish_exit = Callback::new(move |_| {});
-
-<Sheet
-  open=Signal::derive(move || open_raw.get())
-  placement=SheetPlacement::Bottom
-  on_close=close
-  on_exit_complete=finish_exit
->
-  move || view! { ... }
-</Sheet>"#
-            .to_string()
-    });
-
-    let marker_code = Signal::derive(move || {
-        r#"let (open_raw, set_open_raw) = signal(true);
-let close: OnPress = Callback::new(move |_| set_open_raw.set(false));
-let finish_exit = Callback::new(move |_| {});
-let custom_motion = SheetMotion {
-  initial_offset_px: 56.0,
-  ..SheetMotion::default()
-};
-
-<Sheet
-  open=Signal::derive(move || open_raw.get())
-  placement=SheetPlacement::Right
-  on_close=close
-  is_dismissable=false
-  is_keyboard_dismiss_disabled=true
-  motion=custom_motion
-  on_exit_complete=finish_exit
->
-  ...
-</Sheet>"#
-            .to_string()
-    });
+    let code = Signal::derive(move || SHEET_PLAYGROUND_CODE.to_string());
+    let marker_code = Signal::derive(move || SHEET_MARKER_PLAYGROUND_CODE.to_string());
 
     view! {
         <ComponentPage
@@ -638,6 +1134,34 @@ let custom_motion = SheetMotion {
                     </Sheet>
                 </Show>
             </Playground>
+
+            <section class="docs-card docs-prose" data-slot="sheet-source-first">
+                <h3>"Source-first / Copy-Paste Ready"</h3>
+                <p>
+                    "Each playground already supports "
+                    <code>"Show code"</code>
+                    " with copy action. The copied snippet is import-ready via "
+                    <code>"apps/docs-app/src/playground.rs::compose_copy_ready_code"</code>
+                    "."
+                </p>
+                <Snippet
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Sheet open=Signal::derive(|| true)>\n  move || view! { <div>\"Sheet content\"</div> }\n</Sheet>".to_string()
+                    label="Copy starter".to_string()
+                    copyable=true
+                    class_name="docs-sheet-source-copy".to_string()
+                />
+                <ul data-slot="sheet-source-paths">
+                    <li><code>"crates/ui-components/src/sheet/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/sheet/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/sheet/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/sheet/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/sheet/motion.rs"</code></li>
+                </ul>
+                <ul data-slot="sheet-source-prerequisites">
+                    <li><code>"component-sheet"</code></li>
+                    <li><code>"inject-css"</code></li>
+                </ul>
+            </section>
         </ComponentPage>
     }
     .into_any()
@@ -1055,6 +1579,116 @@ pub(super) fn contextual_help() -> AnyView {
             .to_string()
     });
 
+    let variant_options = vec!["help".to_string(), "info".to_string()];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let variant_value: Signal<ContextualHelpVariant> =
+        Signal::derive(move || match variant_index.get().unwrap_or(0) {
+            1 => ContextualHelpVariant::Info,
+            _ => ContextualHelpVariant::Help,
+        });
+
+    let (workbench_disabled, set_workbench_disabled) = signal(false);
+    let (workbench_controlled, set_workbench_controlled) = signal(true);
+    let (workbench_open_raw, set_workbench_open_raw) = signal(false);
+    let workbench_open: Signal<bool> = Signal::derive(move || workbench_open_raw.get());
+    let on_workbench_open_change =
+        Callback::new(move |next: bool| set_workbench_open_raw.set(next));
+    let toggle_workbench_open: OnPress =
+        Callback::new(move |_| set_workbench_open_raw.update(|open| *open = !*open));
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_code = Signal::derive(move || {
+        let variant = variant_value.get();
+        let controlled_mode = workbench_controlled.get();
+        let disabled = workbench_disabled.get();
+        let open = workbench_open_raw.get();
+        let custom_aria = workbench_custom_aria.get();
+        let custom_class = workbench_custom_class.get();
+
+        let mut lines = vec!["<ContextualHelp".to_string()];
+        if variant != ContextualHelpVariant::Help {
+            lines.push("  variant=ContextualHelpVariant::Info".to_string());
+        }
+        if controlled_mode {
+            lines.push("  open=Signal::derive(move || open_raw.get())".to_string());
+            lines.push(
+                "  on_open_change=Callback::new(move |next| set_open_raw.set(next))".to_string(),
+            );
+        } else {
+            lines.push(format!("  default_open={open}"));
+        }
+        if disabled {
+            lines.push("  disabled=true".to_string());
+        }
+        lines.push("  heading=\"Contextual help\".to_string()".to_string());
+        lines.push("  footer=move || view! { \"Popover-based\" }".to_string());
+        if custom_aria {
+            lines.push("  aria_label=\"More info\".to_string()".to_string());
+        }
+        if custom_class {
+            lines.push("  class_name=\"docs-contextual-help-custom\".to_string()".to_string());
+        }
+        lines.push(">".to_string());
+        lines.push("  <div>\"Workbench content\"</div>".to_string());
+        lines.push("</ContextualHelp>".to_string());
+        lines.join("\n")
+    });
+
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/contextual_help/styles.rs */\n{}",
+            ui_components::contextual_help::styles::CSS
+        )
+    });
+
+    let actual_config = Signal::derive(move || {
+        let variant = variant_value.get();
+        let disabled = workbench_disabled.get();
+        let controlled_mode = workbench_controlled.get();
+        let open = workbench_open_raw.get();
+        let custom_aria = workbench_custom_aria.get();
+        let custom_class = workbench_custom_class.get();
+
+        let mut class_tokens = vec!["ui-contextual-help".to_string()];
+        class_tokens.push(match variant {
+            ContextualHelpVariant::Help => "ui-contextual-help--variant-help".to_string(),
+            ContextualHelpVariant::Info => "ui-contextual-help--variant-info".to_string(),
+        });
+        class_tokens.push(if disabled {
+            "ui-contextual-help--disabled".to_string()
+        } else {
+            "ui-contextual-help--enabled".to_string()
+        });
+        class_tokens.push(if controlled_mode {
+            "ui-contextual-help--controlled".to_string()
+        } else {
+            "ui-contextual-help--uncontrolled".to_string()
+        });
+        if custom_class {
+            class_tokens.push("ui-contextual-help--custom-class".to_string());
+            class_tokens.push("docs-contextual-help-custom".to_string());
+        }
+
+        format!(
+            "ContextualHelpActualConfig {{\n  variant: {variant:?},\n  disabled: {disabled},\n  controlled_mode: {controlled_mode},\n  open: {open},\n  custom_aria_label: {custom_aria},\n  custom_class_name: {custom_class},\n  class: \"{}\",\n}}",
+            class_tokens.join(" ")
+        )
+    });
+
+    let comparison_code = Signal::derive(move || {
+        r#"<ContextualHelp heading="Help".to_string() footer=move || view! { "Default" }>
+  <div>"Default Help"</div>
+</ContextualHelp>
+<ContextualHelp variant=ContextualHelpVariant::Info heading="Info".to_string() footer=move || view! { "Info Variant" }>
+  <div>"Info Help"</div>
+</ContextualHelp>
+<ContextualHelp variant=ContextualHelpVariant::Info disabled=true aria_label="Disabled info".to_string() class_name="docs-contextual-help-custom".to_string()>
+  <div>"Disabled Trigger"</div>
+</ContextualHelp>"#
+            .to_string()
+    });
+
     view! {
         <ComponentPage
             title="ContextualHelp"
@@ -1096,6 +1730,137 @@ pub(super) fn contextual_help() -> AnyView {
                             <div>"Controlled mode keeps parent state as the source of truth."</div>
                             <div class="ui-muted">"No heading path falls back to aria-label on panel."</div>
                         </div>
+                    </ContextualHelp>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="Button-like playground surface: display/config/code/css-test with stable state/source markers."
+                code_signal=workbench_code
+                test_css_source=test_css_source
+                test_source_path="crates/ui-components/src/contextual_help/styles.rs".to_string()
+                test_config_signal=actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-contextual-help-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="ContextualHelp variant".to_string()
+                        />
+                        <Switch checked=workbench_disabled set_checked=set_workbench_disabled>
+                            "Disabled"
+                        </Switch>
+                        <Switch checked=workbench_controlled set_checked=set_workbench_controlled>
+                            "Controlled mode"
+                        </Switch>
+                        <Switch checked=workbench_custom_aria set_checked=set_workbench_custom_aria>
+                            "Custom aria label"
+                        </Switch>
+                        <Switch checked=workbench_custom_class set_checked=set_workbench_custom_class>
+                            "Custom class"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let open = workbench_open_raw.get();
+                    let controlled_mode = workbench_controlled.get();
+                    let disabled = workbench_disabled.get();
+                    let custom_aria = workbench_custom_aria.get();
+                    let custom_class = workbench_custom_class.get();
+                    let variant = variant_value.get();
+                    let aria_label = if custom_aria {
+                        "More info".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let class_name = if custom_class {
+                        "docs-contextual-help-custom".to_string()
+                    } else {
+                        String::new()
+                    };
+
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <div class="docs-row">
+                                <Button variant=ButtonVariant::Secondary on_press=toggle_workbench_open>
+                                    "Toggle workbench open"
+                                </Button>
+                                <span class="ui-muted">
+                                    "mode: " {if controlled_mode { "controlled" } else { "uncontrolled" }}
+                                    " | open: " {open.to_string()}
+                                </span>
+                            </div>
+
+                            <div class="docs-row">
+                                {if controlled_mode {
+                                    view! {
+                                        <ContextualHelp
+                                            variant=variant
+                                            open=workbench_open
+                                            on_open_change=on_workbench_open_change
+                                            disabled=disabled
+                                            heading="Contextual help".to_string()
+                                            footer=move || view! { "Popover-based" }
+                                            aria_label=aria_label.clone()
+                                            class_name=class_name.clone()
+                                        >
+                                            <div class="docs-stack docs-stack--tight">
+                                                <div>"Workbench content"</div>
+                                                <div class="ui-muted">"Inspect data-state / data-open-mode / data-*-source markers."</div>
+                                            </div>
+                                        </ContextualHelp>
+                                    }
+                                        .into_any()
+                                } else {
+                                    view! {
+                                        <ContextualHelp
+                                            variant=variant
+                                            default_open=open
+                                            disabled=disabled
+                                            heading="Contextual help".to_string()
+                                            footer=move || view! { "Popover-based" }
+                                            aria_label=aria_label
+                                            class_name=class_name
+                                        >
+                                            <div class="docs-stack docs-stack--tight">
+                                                <div>"Workbench content"</div>
+                                                <div class="ui-muted">"Inspect data-state / data-open-mode / data-*-source markers."</div>
+                                            </div>
+                                        </ContextualHelp>
+                                    }
+                                        .into_any()
+                                }}
+                            </div>
+                        </div>
+                    }
+                }}
+            </Playground>
+
+            <Playground title="State Comparison" code_signal=comparison_code>
+                <div class="docs-row">
+                    <ContextualHelp heading="Help".to_string() footer=move || view! { "Default" }>
+                        <div>"Default Help"</div>
+                    </ContextualHelp>
+                    <ContextualHelp
+                        variant=ContextualHelpVariant::Info
+                        heading="Info".to_string()
+                        footer=move || view! { "Info Variant" }
+                    >
+                        <div>"Info Help"</div>
+                    </ContextualHelp>
+                    <ContextualHelp
+                        variant=ContextualHelpVariant::Info
+                        disabled=true
+                        aria_label="Disabled info".to_string()
+                        class_name="docs-contextual-help-custom".to_string()
+                    >
+                        <div>"Disabled Trigger"</div>
                     </ContextualHelp>
                 </div>
             </Playground>

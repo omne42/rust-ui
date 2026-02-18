@@ -1,10 +1,12 @@
-use crate::ColorSwatch;
 use crate::color_field::{
     ColorFieldStateInput,
     logic::{self},
 };
+use crate::color_swatch::ColorSwatch;
 use leptos::prelude::*;
-use ui_headless as overlay_open;
+use ui_headless::{
+    A11yDirection, CommonStrings, locale_attrs, use_controllable_state, use_ui_i18n,
+};
 
 #[component]
 pub fn ColorField(
@@ -18,10 +20,16 @@ pub fn ColorField(
     #[prop(optional, default = true)] show_preview: bool,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
+    let i18n = use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
+    let clear_label = StoredValue::new(common.clear_aria_label.to_string());
+
     let default_value = logic::normalize_color_value(default_value);
-    let value_state =
-        overlay_open::use_controllable_state(value, Some(default_value), on_value_change);
+    let value_state = use_controllable_state(value, Some(default_value), on_value_change);
     let value = value_state.value;
     let request_value_change = value_state.request_change;
 
@@ -101,6 +109,8 @@ pub fn ColorField(
             role="group"
             aria-label=aria_label
             aria-labelledby=label_id.clone()
+            lang=locale.lang.clone()
+            dir=locale.dir
         >
             <label id=label_id.clone() class="ui-color-field__label" data-slot="color-field-label" for=input_id.clone()>
                 {label.get_value()}
@@ -144,10 +154,10 @@ pub fn ColorField(
                         class="ui-color-field__clear"
                         data-slot="color-field-clear"
                         disabled=disabled
-                        aria-label="Clear color"
+                        aria-label=clear_label.get_value()
                         on:click=on_clear
                     >
-                        "Clear"
+                        {clear_label.get_value()}
                     </button>
                 </Show>
             </div>

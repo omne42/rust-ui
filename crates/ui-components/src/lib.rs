@@ -1,5 +1,6 @@
 //! `ui-components` — Leptos components that compose ui-state-primitives + ui-headless + ui-theme.
 
+#[cfg(any(feature = "component-button", feature = "component-accordion"))]
 macro_rules! wasm_debug_proxy {
     ($feature:literal, $debug:block, $release:block $(,)?) => {{
         #[cfg(all(feature = $feature, debug_assertions, target_arch = "wasm32"))]
@@ -13,6 +14,7 @@ macro_rules! wasm_debug_proxy {
     }};
 }
 
+#[cfg(any(feature = "component-button", feature = "component-accordion"))]
 pub(crate) use wasm_debug_proxy;
 
 #[cfg(target_arch = "wasm32")]
@@ -487,7 +489,7 @@ mod web_demo_components {
     pub use sheet::{Sheet, SheetMotion, SheetPlacement};
     pub use skeleton::{Skeleton, SkeletonVariant};
     pub use snippet::Snippet;
-    pub use spacer::{Spacer, SpacerAxis, SpacerSize};
+    pub use spacer::{Spacer, SpacerAxis, SpacerMotion, SpacerSize};
     pub use spinner::{Spinner, SpinnerSize};
     pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};
     pub use switch::{Switch, SwitchMotion};
@@ -565,7 +567,9 @@ mod all_components {
         ButtonA11y, ButtonAction, ButtonColor, ButtonIntent, ButtonLoadingPlacement, ButtonMotion,
         ButtonRadius, ButtonSchema, ButtonSize, ButtonSpec, ButtonText, ButtonVariant,
     };
-    pub use calendar::{Calendar, CalendarFirstWeekday, CalendarGridCell, CalendarTone};
+    pub use calendar::{
+        Calendar, CalendarFirstWeekday, CalendarGridCell, CalendarMotion, CalendarTone,
+    };
     pub use card::{Card, CardVariant};
     pub use carousel::{Carousel, CarouselItem, CarouselMotion, CarouselOrientation};
     pub use chart::{Chart, ChartKind, ChartMotion, ChartPoint};
@@ -641,7 +645,7 @@ mod all_components {
         FormField, FormFieldIndicatorPlacement, FormFieldIndicatorVariant, FormFieldTone,
     };
     pub use grid::{Grid, GridAlign, GridColumns, GridGap, GridJustify, GridRows};
-    pub use header::{Header, HeaderTone};
+    pub use header::{Header, HeaderMotion, HeaderTone};
     pub use heading::{Heading, HeadingLevel, HeadingMotion, HeadingTone};
     pub use help_text::{HelpText, HelpTextTone};
     pub use hover_card::{HoverCard, HoverCardMotion};
@@ -733,11 +737,11 @@ mod all_components {
     pub use slider::{Slider, SliderMotion};
     pub use snippet::Snippet;
     pub use sonner::{Sonner, SonnerPosition};
-    pub use spacer::{Spacer, SpacerAxis, SpacerSize};
+    pub use spacer::{Spacer, SpacerAxis, SpacerMotion, SpacerSize};
     pub use spinner::{Spinner, SpinnerSize};
     pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};
     pub use step_list::{StepList, StepListItem, StepListOrientation, StepListSize};
-    pub use surface::{Surface, SurfaceElevation, SurfaceTone};
+    pub use surface::{Surface, SurfaceElevation, SurfaceMotion, SurfaceTone};
     pub use swatch::{Swatch, SwatchBorder, SwatchMotion, SwatchRounding, SwatchShape, SwatchSize};
     pub use switch::Switch;
     pub use switch::SwitchMotion;
@@ -762,8 +766,8 @@ mod all_components {
     pub use tooltip::Tooltip;
     pub use tooltip::TooltipMotion;
     pub use tray::{Tray, TrayMotion};
-    pub use tree::{Tree, TreeDensity, TreeNode, TreeTone};
-    pub use underlay::Underlay;
+    pub use tree::{Tree, TreeDensity, TreeMotion, TreeNode, TreeTone};
+    pub use underlay::{Underlay, UnderlayMotion};
     pub use view::{
         View, ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow,
     };

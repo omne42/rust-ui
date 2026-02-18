@@ -23,17 +23,27 @@ fn auto_height_does_not_expose_logic_or_view_modules() {
 fn auto_height_uses_logic_state_model() {
     let logic_source = load_source("src/auto_height/logic.rs");
     let view_source = load_source("src/auto_height/view.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/auto_height.rs");
 
     for needle in [
-        "pub struct AutoHeightStateInput",
-        "pub struct AutoHeightState",
+        "pub use ui_state_primitives::auto_height::{AutoHeightState, AutoHeightStateInput, resolve_state};",
         "pub fn normalize_optional_text(",
-        "pub fn resolve_state(",
         "pub fn compose_class_name(",
     ] {
         assert!(
             logic_source.contains(needle),
             "AutoHeight logic should include `{needle}` for centralized state derivation."
+        );
+    }
+
+    for needle in [
+        "pub struct AutoHeightStateInput",
+        "pub struct AutoHeightState",
+        "pub fn resolve_state(input: AutoHeightStateInput) -> AutoHeightState",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "AutoHeight state primitive should define `{needle}` in ui-state-primitives."
         );
     }
 
@@ -161,6 +171,41 @@ fn auto_height_motion_sanitizes_custom_contract_values() {
 }
 
 #[test]
+fn auto_height_check2_marks_component_governance_complete() {
+    let check2_source = load_source("src/auto_height/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 如果无异步相关，直接打勾。",
+        "- [x] 语义测试优先",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "N/A：`AutoHeight` 无远程请求与异步状态轴",
+        "Streaming Optional",
+        "fallback=snapshot",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "auto_height/check2.md should pin completion marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn auto_height_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/auto_height/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "AutoHeight check2.md should not keep unchecked checklist items after completion."
+    );
+}
+
+#[test]
 fn auto_height_docs_page_covers_primary_playgrounds() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/layout.rs");
 
@@ -170,6 +215,7 @@ fn auto_height_docs_page_covers_primary_playgrounds() {
         "slug=\"auto-height\"",
         "Playground title=\"Animated Height\"",
         "Playground title=\"Static Motion + Custom Class\"",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
     ] {
         assert!(
             source.contains(needle),
@@ -192,10 +238,34 @@ fn auto_height_docs_playgrounds_lock_state_matrix_contract_values() {
         "..AutoHeightMotion::default()",
         "class_name=\"docs-auto-height docs-auto-height--static-demo\".to_string()",
         "\"Static mode content\"",
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "test_css_source=auto_height_test_css_source",
+        "test_config_signal=auto_height_actual_config",
+        "controls=move || view! {",
+        "AutoHeightActualConfig",
+        "\"comparison: configured(open={}, animate_height={}, custom_class={}) vs reference(default)\"",
     ] {
         assert!(
             source.contains(needle),
             "auto-height docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn auto_height_readme_documents_display_config_code_css_test_sections() {
+    let source = load_source("src/auto_height/README.md");
+
+    for needle in [
+        "## Playground 展示区（展示 / config / code / css test）",
+        "Workbench (Display + Config + Code + CSS Test)",
+        "Config：Workbench test 面板输出 `AutoHeightActualConfig`",
+        "## 对比场景",
+        "## Source-first",
+    ] {
+        assert!(
+            source.contains(needle),
+            "auto_height README should include `{needle}`.",
         );
     }
 }

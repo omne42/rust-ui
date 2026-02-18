@@ -1,34 +1,57 @@
 use crate::scroll_area::{
     ScrollAreaMotion,
-    logic::{self, ScrollAreaStateInput},
+    logic::{self, ScrollAreaDisableInput, ScrollAreaRootInput},
     motion,
 };
 use leptos::{html, prelude::*};
+use ui_headless::{A11yDirection, CommonStrings, ScrollAreaOptions, use_scroll_area, use_ui_i18n};
+
+const SLOT_SCROLL_AREA: &str = "scroll-area";
+const SLOT_SCROLL_AREA_VIEWPORT: &str = "scroll-area-viewport";
+const CLASS_SCROLL_AREA_VIEWPORT: &str = "ui-scroll-area__viewport";
+const BOOL_TRUE: &str = "true";
+const MOTION_SOURCE_CUSTOM: &str = "custom";
 
 #[component]
 pub fn ScrollArea(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] orientation: crate::scroll_area::ScrollAreaOrientation,
     #[prop(optional)] max_height_px: Option<u32>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] motion: ScrollAreaMotion,
     #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
-    let class_name = logic::normalize_optional_text(class_name);
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
+    let i18n = use_ui_i18n();
+    let common = i18n.strings::<CommonStrings>();
 
-    let state = logic::resolve_state(ScrollAreaStateInput {
+    let root = logic::normalize_root_state(ScrollAreaRootInput {
+        class_name,
+        aria_label,
+        fallback_aria_label: common.scroll_area_aria_label.as_ref().to_string(),
         orientation,
-        disabled,
         max_height_px,
-        has_custom_aria_label,
-        has_custom_class_name: class_name.is_some(),
+        disabled: ScrollAreaDisableInput {
+            is_disabled,
+            disabled,
+        },
     });
-
-    let class = logic::compose_class_name(class_name, state);
+    let state = root.state;
+    let class = logic::compose_class_name(root.class_name, state);
+    let semantics = use_scroll_area(ScrollAreaOptions {
+        state,
+        aria_label: root.aria_label,
+        lang,
+        dir,
+    });
     let motion = motion::sanitize_motion(motion);
-    let has_custom_motion = motion != ScrollAreaMotion::default();
+    let motion_source = motion::source_attr(motion);
+    let inline_style = StoredValue::new(Some(motion::attach_motion(None, motion)));
+    let has_custom_motion = motion_source == MOTION_SOURCE_CUSTOM;
+    let agent_contract = logic::resolve_agent_contract(state, root.disabled_source_attr);
 
     let viewport_ref: NodeRef<html::Div> = NodeRef::new();
 
@@ -67,24 +90,37 @@ pub fn ScrollArea(
     view! {
         <div
             class=class
-            data-slot="scroll-area"
-            data-motion-source=if has_custom_motion { "custom" } else { "default" }
-            data-custom-motion=has_custom_motion.then_some("true")
-            data-orientation=state.orientation_attr
-            data-disabled=state.disabled.then_some("true")
-            data-max-height=state.max_height_attr
-            data-aria-source=state.aria_source_attr
-            data-class-source=state.class_source_attr
-            data-custom-class=state.has_custom_class_name.then_some("true")
-            role="region"
-            aria-label=aria_label
+            style=inline_style.get_value().unwrap_or_default()
+            data-slot=SLOT_SCROLL_AREA
+            data-motion-source=motion_source
+            data-custom-motion=has_custom_motion.then_some(BOOL_TRUE)
+            data-orientation=semantics.root_attrs.data_orientation
+            data-disabled=semantics.root_attrs.data_disabled
+            data-disabled-source=root.disabled_source_attr.as_attr()
+            data-max-height=semantics.root_attrs.data_max_height
+            data-aria-source=semantics.root_attrs.data_aria_source
+            data-class-source=semantics.root_attrs.data_class_source
+            data-custom-class=semantics.root_attrs.data_custom_class
+            data-ui-schema=agent_contract.schema_attr
+            data-ui-stream-support=agent_contract.stream_support_attr
+            data-ui-stream-fallback=agent_contract.stream_fallback_attr
+            data-ui-stream-mode=agent_contract.stream_mode_attr
+            data-ui-output-status=agent_contract.output_status_attr
+            data-ui-intent=agent_contract.intent_attr
+            data-ui-action=agent_contract.action_attr
+            data-ui-state=agent_contract.state_attr
+            data-ui-source=agent_contract.source_attr
+            role=semantics.root_attrs.role
+            aria-label=semantics.root_attrs.aria_label
+            lang=semantics.root_attrs.lang
+            dir=semantics.root_attrs.dir
         >
             <div
-                class="ui-scroll-area__viewport"
+                class=CLASS_SCROLL_AREA_VIEWPORT
                 node_ref=viewport_ref
-                data-slot="scroll-area-viewport"
-                tabindex=if state.disabled { -1 } else { 0 }
-                aria-disabled=state.disabled.then_some("true")
+                data-slot=SLOT_SCROLL_AREA_VIEWPORT
+                tabindex=semantics.viewport_attrs.tabindex
+                aria-disabled=semantics.viewport_attrs.aria_disabled
             >
                 {children()}
             </div>

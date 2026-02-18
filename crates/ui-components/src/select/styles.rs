@@ -31,7 +31,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-select__panel {
-  min-width: 240px;
+  min-width: var(--ui-overlay-panel-min-width);
 }
 
 .ui-select__listbox {

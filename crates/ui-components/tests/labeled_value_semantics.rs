@@ -22,38 +22,87 @@ fn labeled_value_does_not_expose_logic_or_view_modules() {
 #[test]
 fn labeled_value_uses_logic_state_model() {
     let logic_source = load_source("src/labeled_value/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/labeled_value.rs");
+    let primitive_lib_source = load_source("../ui-state-primitives/src/lib.rs");
+    let headless_source = load_source("../ui-headless/src/labeled_value.rs");
+    let headless_lib_source = load_source("../ui-headless/src/lib.rs");
     let view_source = load_source("src/labeled_value/view.rs");
 
     for needle in [
+        "pub use ui_state_primitives::labeled_value::{",
+        "LabeledValueOrientation",
+        "LabeledValueTone",
+        "LabeledValueState",
+        "LabeledValueStateInput",
+        "normalize_label_text",
+        "normalize_value_text",
+        "normalize_aria_label",
+        "resolve_state",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "LabeledValue logic should bridge ui-state-primitives and include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum LabeledValueOrientation",
         "pub enum LabeledValueTone",
+        "pub struct LabeledValueStateInput",
+        "pub struct LabeledValueState",
         "pub fn normalize_optional_text(",
         "pub fn normalize_label_text(",
         "pub fn normalize_value_text(",
         "pub fn normalize_aria_label(",
         "pub fn resolve_state(",
-        "pub fn compose_class_name(",
-        "label_source_attr",
-        "value_source_attr",
-        "aria_source_attr",
-        "class_source_attr",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "LabeledValue logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "LabeledValue state primitive should define `{needle}` in ui-state-primitives."
         );
     }
 
+    assert!(
+        primitive_lib_source.contains("pub mod labeled_value;"),
+        "ui-state-primitives should export `labeled_value` module."
+    );
+
     for needle in [
+        "pub struct LabeledValueOptions",
+        "pub struct LabeledValueContract",
+        "pub fn use_labeled_value(options: LabeledValueOptions) -> LabeledValueContract",
+        "labeled_group_attrs(options.aria_label, options.lang, options.dir)",
+    ] {
+        assert!(
+            headless_source.contains(needle),
+            "LabeledValue headless contract should include `{needle}`."
+        );
+    }
+
+    assert!(
+        headless_lib_source.contains("pub mod labeled_value;"),
+        "ui-headless should export `labeled_value` module."
+    );
+    assert!(
+        headless_lib_source.contains("use_labeled_value"),
+        "ui-headless should re-export `use_labeled_value` contract."
+    );
+
+    for needle in [
+        "use ui_headless::{A11yDirection, LabeledValueOptions, use_labeled_value};",
         "logic::normalize_label_text(label)",
         "logic::normalize_value_text(value)",
         "logic::normalize_optional_text(description)",
         "logic::normalize_aria_label(aria_label)",
         "logic::resolve_state(LabeledValueStateInput {",
+        "let semantics = Signal::derive(move || {",
+        "use_labeled_value(LabeledValueOptions {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
     ] {
         assert!(
             view_source.contains(needle),
-            "LabeledValue view should derive state via logic helpers; missing `{needle}`."
+            "LabeledValue view should derive state via logic/headless helpers; missing `{needle}`."
         );
     }
 }
@@ -64,16 +113,20 @@ fn labeled_value_emits_baseline_style_state_data_attributes() {
 
     for attr in [
         "data-slot=\"labeled-value\"",
-        "data-orientation=move || state.get().orientation_attr",
-        "data-tone=move || state.get().tone_attr",
-        "data-state=move || if state.get().has_description { \"with-description\" } else { \"default\" }",
-        "data-has-description=move || state.get().has_description.then_some(\"true\")",
-        "data-label-source=move || state.get().label_source_attr",
-        "data-value-source=move || state.get().value_source_attr",
-        "data-aria-source=move || state.get().aria_source_attr",
-        "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
-        "data-class-source=move || state.get().class_source_attr",
-        "role=\"group\"",
+        "data-orientation=move || semantics.get().attrs.data_orientation",
+        "data-tone=move || semantics.get().attrs.data_tone",
+        "data-state=move || semantics.get().attrs.data_state",
+        "data-has-description=move || semantics.get().attrs.data_has_description",
+        "data-label-source=move || semantics.get().attrs.data_label_source",
+        "data-value-source=move || semantics.get().attrs.data_value_source",
+        "data-aria-source=move || semantics.get().attrs.data_aria_source",
+        "data-custom-class=move || semantics.get().attrs.data_custom_class",
+        "data-class-source=move || semantics.get().attrs.data_class_source",
+        "data-motion-source=motion_source",
+        "role=move || semantics.get().attrs.role",
+        "aria-label=move || semantics.get().attrs.aria_label",
+        "lang=move || semantics.get().attrs.lang",
+        "dir=move || semantics.get().attrs.dir",
         "data-slot=\"labeled-value-label\"",
         "data-slot=\"labeled-value-value\"",
         "data-slot=\"labeled-value-description\"",
@@ -157,4 +210,40 @@ fn labeled_value_docs_playgrounds_lock_state_matrix_contract_values() {
             "labeled_value docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn labeled_value_check2_marks_core_sections_complete() {
+    let source = load_source("src/labeled_value/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 状态归一化集中",
+        "- [x] 状态可观测、可检索、可验证",
+        "- [x] 测试验证“语义契约”而不只验证视觉快照。",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "ui-state-primitives/src/labeled_value.rs",
+        "ui-headless/src/labeled_value.rs",
+        "crates/ui-components/tests/labeled_value_semantics.rs",
+    ] {
+        assert!(
+            source.contains(needle),
+            "LabeledValue check2 should contain completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn labeled_value_check2_has_no_unchecked_checklist_items() {
+    let source = load_source("src/labeled_value/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "labeled_value check2 should not keep unchecked checklist items"
+    );
 }

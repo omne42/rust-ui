@@ -10,12 +10,12 @@ pub const CSS: &str = r#"
 
 .ui-scroll-shadow__viewport {
   overflow: auto;
-  max-height: var(--ui-scroll-shadow-max-h, 280px);
+  max-height: var(--ui-scroll-shadow-max-h);
 }
 
 .ui-scroll-shadow--max-height-custom .ui-scroll-shadow__viewport,
 .ui-scroll-shadow[data-max-height="custom"] .ui-scroll-shadow__viewport {
-  max-height: var(--ui-scroll-shadow-max-h, 280px);
+  max-height: var(--ui-scroll-shadow-max-h);
 }
 
 .ui-scroll-shadow::before,
@@ -24,17 +24,9 @@ pub const CSS: &str = r#"
   position: absolute;
   left: 0;
   right: 0;
-  height: 18px;
+  height: var(--ui-space-md);
   pointer-events: none;
   opacity: 0;
-  transition: opacity 120ms ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ui-scroll-shadow::before,
-  .ui-scroll-shadow::after {
-    transition: none;
-  }
 }
 
 .ui-scroll-shadow::before {

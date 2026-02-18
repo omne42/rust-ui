@@ -23,12 +23,29 @@ fn circular_progress_does_not_expose_logic_or_view_modules() {
 fn circular_progress_uses_logic_state_model() {
     let view_source = load_source("src/circular_progress/view.rs");
     let logic_source = load_source("src/circular_progress/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/circular_progress.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::circular_progress::{",
+        "CircularProgressStateInput",
+        "DEFAULT_ARIA_LABEL",
+        "compose_class_name",
+        "normalize_optional_text",
+        "resolve_aria_label",
+        "resolve_state",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "CircularProgress logic should re-export primitive contract `{needle}`."
+        );
+    }
 
     for needle in [
         "pub struct CircularProgressStateInput",
         "pub struct CircularProgressState",
+        "pub const DEFAULT_ARIA_LABEL: &str = \"Loading\";",
         "pub fn normalize_optional_text(",
-        "pub fn resolve_aria_label(",
+        "pub fn resolve_aria_label(value: Option<String>, default_aria_label: &str)",
         "pub fn sanitize_dimension(",
         "pub fn compose_style_vars(",
         "pub fn resolve_state(",
@@ -39,14 +56,17 @@ fn circular_progress_uses_logic_state_model() {
         "class_source_attr",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "CircularProgress logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "CircularProgress primitives should include `{needle}` for centralized state derivation."
         );
     }
 
     for needle in [
+        "let i18n = i18n::use_ui_i18n();",
+        "let common = i18n.strings::<CommonStrings>();",
+        "let locale = locale_attrs(logic::normalize_optional_text(lang), dir);",
         "logic::normalize_optional_text(class_name)",
-        "logic::resolve_aria_label(aria_label)",
+        "logic::resolve_aria_label(aria_label, common.loading_aria_label.as_ref())",
         "logic::resolve_state(CircularProgressStateInput {",
         "logic::compose_class_name(class_name, &state)",
     ] {
@@ -76,6 +96,8 @@ fn circular_progress_emits_baseline_style_state_data_attributes() {
         "role=\"progressbar\"",
         "aria-valuemin=\"0\"",
         "aria-valuemax=\"100\"",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -99,6 +121,10 @@ fn circular_progress_styles_include_state_marker_contracts() {
         ".ui-circular-progress[data-label-source=\"custom\"]",
         ".ui-circular-progress--custom-class",
         ".ui-circular-progress[data-custom-class=\"true\"]",
+        "--ui-cp-rotation-duration",
+        "--ui-button-spinner-duration",
+        "prefers-reduced-motion: reduce",
+        "animation-duration: 1ms;",
     ] {
         assert!(
             source.contains(selector),

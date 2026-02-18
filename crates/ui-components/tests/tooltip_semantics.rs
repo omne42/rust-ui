@@ -29,8 +29,8 @@ fn tooltip_is_exported_from_module_and_crate_root() {
         "tooltip module should export `Tooltip`."
     );
     assert!(
-        module_source.contains("pub struct TooltipPartStateInput"),
-        "tooltip module should expose `TooltipPartStateInput` contract."
+        module_source.contains("pub use ui_state_primitives::tooltip::{TooltipPartState, TooltipPartStateInput, TooltipSlot};"),
+        "tooltip module should expose tooltip state contracts from ui-state-primitives."
     );
     assert!(
         crate_source.contains("pub use tooltip::Tooltip;")
@@ -44,9 +44,11 @@ fn tooltip_logic_exposes_state_helpers() {
     let source = load_source("src/tooltip/logic.rs");
 
     for needle in [
-        "pub const DEFAULT_DELAY_MS: u64 = 1500;",
-        "pub const DEFAULT_CLOSE_DELAY_MS: u64 = 500;",
-        "pub const DEFAULT_SHOULD_CLOSE_ON_PRESS: bool = true;",
+        "pub const DEFAULT_DELAY_MS: u64 = tooltip_state::DEFAULT_DELAY_MS;",
+        "pub const DEFAULT_CLOSE_DELAY_MS: u64 = tooltip_state::DEFAULT_CLOSE_DELAY_MS;",
+        "pub const DEFAULT_SHOULD_CLOSE_ON_PRESS: bool = tooltip_state::DEFAULT_SHOULD_CLOSE_ON_PRESS;",
+        "pub fn normalize_accessibility_state(input: AccessibilityStateInput) -> AccessibilityState",
+        "pub fn normalize_open_state(input: OpenStateInput) -> OpenState",
         "pub fn state_attr_for_open(is_open: bool)",
         "pub fn trigger_attr(trigger: TooltipTriggerMode)",
         "pub fn press_behavior_attr(should_close_on_press: bool)",
@@ -70,9 +72,16 @@ fn tooltip_view_uses_logic_state_contracts() {
 
     for needle in [
         "pub fn Tooltip(",
+        "logic::normalize_accessibility_state(logic::AccessibilityStateInput",
+        "logic::normalize_open_state(logic::OpenStateInput",
         "logic::normalize_optional_text(class_name)",
         "logic::resolve_id(id, format!(\"ui-tooltip-{}\", next_id()))",
         "logic::has_custom_delays(delay_ms, close_delay_ms)",
+        "open,",
+        "default_open,",
+        "on_open_change,",
+        "let open_mode_attr = normalized_open_state.open_mode_attr;",
+        "let open_source_attr = normalized_open_state.open_source_attr;",
         "let root_state = Memo::new(move |_| {",
         "let panel_state = Memo::new(move |_| {",
         "logic::resolve_state(TooltipPartStateInput {",
@@ -89,10 +98,17 @@ fn tooltip_view_uses_logic_state_contracts() {
         "data-trigger-source=move || root_state.get().trigger_source_attr",
         "data-press-source=move || root_state.get().press_source_attr",
         "data-id-source=move || root_state.get().id_source_attr",
+        "data-open-mode=open_mode_attr",
+        "data-open-source=open_source_attr",
+        "data-default-open-source=default_open_source_attr",
+        "data-open-change-source=open_change_source_attr",
         "data-custom-delay=move || root_state.get().has_custom_delays.then_some(\"true\")",
         "data-custom-trigger=move || root_state.get().has_custom_trigger_mode.then_some(\"true\")",
         "data-custom-press=move || root_state.get().has_custom_press_behavior.then_some(\"true\")",
         "data-custom-id=move || root_state.get().has_custom_id.then_some(\"true\")",
+        "data-custom-open=has_custom_open.then_some(\"true\")",
+        "data-custom-default-open=has_custom_default_open.then_some(\"true\")",
+        "data-custom-open-change=has_custom_on_open_change.then_some(\"true\")",
         "data-slot=move || panel_state.get().slot_attr",
         "data-state=move || panel_state.get().state_attr",
         "data-open=move || panel_state.get().is_open.then_some(\"true\")",
@@ -111,10 +127,33 @@ fn tooltip_view_uses_logic_state_contracts() {
 }
 
 #[test]
+fn tooltip_api_naming_supports_prefixed_props_with_legacy_aliases() {
+    let source = load_source("src/tooltip/view.rs");
+
+    for needle in [
+        "#[prop(optional)] is_disabled: Option<bool>,",
+        "#[prop(optional)] disabled: bool,",
+        "#[prop(optional)] is_open: Option<Signal<bool>>,",
+        "#[prop(optional)] open: Option<Signal<bool>>,",
+        "#[prop(optional)] default_open: Option<bool>,",
+        "#[prop(optional)] on_open_change: Option<Callback<bool>>,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Tooltip API should expose `{needle}` to keep prefixed naming and legacy migration compatibility."
+        );
+    }
+}
+
+#[test]
 fn tooltip_uses_headless_trigger_and_position_hooks() {
     let source = load_source("src/tooltip/view.rs");
 
-    for needle in ["use_tooltip_trigger", "use_tooltip_position"] {
+    for needle in [
+        "use_tooltip_trigger",
+        "use_tooltip_position",
+        "use_tooltip_focus_a11y",
+    ] {
         assert!(
             source.contains(needle),
             "Tooltip should use headless `{needle}` hooks for baseline-style behavior and positioning."
@@ -140,18 +179,18 @@ fn tooltip_uses_presence_for_exit_motion_unmounting() {
 
 #[test]
 fn tooltip_manages_aria_describedby_on_the_focused_element() {
-    let source = load_source("src/tooltip/view.rs");
+    let view_source = load_source("src/tooltip/view.rs");
+    let headless_source = load_source("../ui-headless/src/tooltip.rs");
 
-    for needle in [
-        "aria-describedby",
-        "set_attribute(\"aria-describedby\"",
-        "remove_attribute(\"aria-describedby\"",
-    ] {
-        assert!(
-            source.contains(needle),
-            "Tooltip should manage `aria-describedby` on the focused element via `{needle}` (baseline parity)."
-        );
-    }
+    assert!(
+        view_source.contains("use_tooltip_focus_a11y"),
+        "Tooltip view should delegate focused-element aria-describedby semantics to headless."
+    );
+    assert!(
+        headless_source.contains("set_attribute(\"aria-describedby\"")
+            && headless_source.contains("remove_attribute(\"aria-describedby\""),
+        "Tooltip headless contract should manage `aria-describedby` on the focused element."
+    );
 }
 
 #[test]
@@ -178,6 +217,10 @@ fn tooltip_styles_include_state_and_source_marker_contracts() {
         ".ui-tooltip__panel[data-custom-press=\"true\"]",
         ".ui-tooltip__panel[data-id-source=\"custom\"]",
         ".ui-tooltip__panel[data-custom-id=\"true\"]",
+        "z-index: var(--ui-overlay-z-index, 1000);",
+        "padding: var(--ui-space-sm, 8px) var(--ui-space-md, 12px);",
+        "font-size: var(--ui-font-size-100, 12px);",
+        "max-width: var(--ui-tooltip-max-width, 280px);",
     ] {
         assert!(
             source.contains(needle),
@@ -221,6 +264,8 @@ fn tooltip_motion_contract_exposes_default_and_custom_test_coverage() {
 
     for needle in [
         "pub struct TooltipMotion",
+        "use ui_theme::default_overlay_layout_tokens;",
+        "ui_motion::spring::sanitize_config(value, default)",
         "fn default_motion_uses_soft_spring_contract()",
         "fn placement_offset_y_follows_vertical_direction_contract()",
         "fn supports_custom_motion_contract()",

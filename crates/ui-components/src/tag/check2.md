@@ -232,6 +232,7 @@
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
+  - Tag/TagGroup 归类为 `Streaming Optional`；当前实现使用 `data-ui-stream-support=\"unsupported\" + data-ui-stream-fallback=\"full-snapshot\"`，并输出 `data-ui-output-status`。
 
 ### 7. 测试与文档（验证闭环）
 - [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。

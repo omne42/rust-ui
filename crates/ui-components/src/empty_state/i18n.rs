@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use crate::empty_state::logic::{DEFAULT_ARIA_LABEL, DEFAULT_DESCRIPTION, DEFAULT_TITLE};
+
 #[derive(Clone, Debug)]
 pub struct EmptyStateStrings {
     pub default_title: Arc<str>,
@@ -10,9 +12,9 @@ pub struct EmptyStateStrings {
 impl Default for EmptyStateStrings {
     fn default() -> Self {
         Self {
-            default_title: "Nothing to show".into(),
-            default_description: "Try adjusting filters or refreshing data.".into(),
-            default_aria_label: "Empty state".into(),
+            default_title: DEFAULT_TITLE.into(),
+            default_description: DEFAULT_DESCRIPTION.into(),
+            default_aria_label: DEFAULT_ARIA_LABEL.into(),
         }
     }
 }

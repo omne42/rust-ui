@@ -1,8 +1,8 @@
 use crate::tooltip::{TooltipMotion, TooltipPartStateInput, TooltipSlot, logic, motion};
 use leptos::{children::ViewFn, ev, html, portal::Portal, prelude::*};
 use ui_headless::{
-    TooltipPlacement, TooltipPositionOptions, TooltipTriggerMode, TooltipTriggerOptions,
-    use_tooltip_position, use_tooltip_trigger,
+    TooltipFocusA11yOptions, TooltipPlacement, TooltipPositionOptions, TooltipTriggerMode,
+    TooltipTriggerOptions, use_tooltip_focus_a11y, use_tooltip_position, use_tooltip_trigger,
 };
 
 fn next_id() -> u64 {
@@ -21,8 +21,13 @@ fn next_id() -> u64 {
 pub fn Tooltip(
     #[prop(into)] content: ViewFn,
     children: Children,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] placement: TooltipPlacement,
+    #[prop(optional)] is_open: Option<Signal<bool>>,
+    #[prop(optional)] open: Option<Signal<bool>>,
+    #[prop(optional)] default_open: Option<bool>,
+    #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional, default = logic::DEFAULT_DELAY_MS)] delay_ms: u64,
     #[prop(optional, default = logic::DEFAULT_CLOSE_DELAY_MS)] close_delay_ms: u64,
     #[prop(optional)] trigger: TooltipTriggerMode,
@@ -31,6 +36,38 @@ pub fn Tooltip(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional, into)] id: Option<String>,
 ) -> impl IntoView {
+    let accessibility_state =
+        logic::normalize_accessibility_state(logic::AccessibilityStateInput {
+            is_disabled,
+            disabled,
+        });
+    let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {
+        is_open,
+        open,
+        default_open,
+        on_open_change,
+    });
+    let is_disabled = accessibility_state.is_disabled;
+    let open = normalized_open_state.open;
+    let default_open = normalized_open_state.default_open;
+    let on_open_change = normalized_open_state.on_open_change;
+    let is_controlled = normalized_open_state.is_controlled;
+    let has_custom_open = normalized_open_state.has_custom_open;
+    let has_custom_default_open = normalized_open_state.has_custom_default_open;
+    let has_custom_on_open_change = normalized_open_state.has_custom_on_open_change;
+    let open_mode_attr = normalized_open_state.open_mode_attr;
+    let open_source_attr = normalized_open_state.open_source_attr;
+    let default_open_source_attr = normalized_open_state.default_open_source_attr;
+    let open_change_source_attr = normalized_open_state.open_change_source_attr;
+    debug_assert_eq!(
+        open_mode_attr,
+        if is_controlled {
+            "controlled"
+        } else {
+            "uncontrolled"
+        }
+    );
+
     let class_name = logic::normalize_optional_text(class_name);
     let has_custom_class_name = class_name.is_some();
     let has_custom_motion = motion != TooltipMotion::default();
@@ -44,24 +81,27 @@ pub fn Tooltip(
     let trigger_aria = use_tooltip_trigger(
         Some(resolved_id),
         TooltipTriggerOptions {
-            is_disabled: disabled,
+            is_disabled,
             delay_ms,
             close_delay_ms,
             trigger,
             should_close_on_press,
+            open,
+            default_open,
+            on_open_change,
         },
     );
 
     let tooltip_id: StoredValue<String> = StoredValue::new(trigger_aria.state.id().to_string());
 
-    let open: Signal<bool> = trigger_aria.state.is_open().into();
+    let open = trigger_aria.state.is_open();
     let presence = ui_headless::use_presence(open);
 
     let root_state = Memo::new(move |_| {
         logic::resolve_state(TooltipPartStateInput {
             slot: TooltipSlot::Root,
             open: open.get(),
-            disabled,
+            disabled: is_disabled,
             has_custom_class_name,
             has_custom_motion,
             has_custom_delays,
@@ -78,7 +118,7 @@ pub fn Tooltip(
         logic::resolve_state(TooltipPartStateInput {
             slot: TooltipSlot::Panel,
             open: open.get(),
-            disabled,
+            disabled: is_disabled,
             has_custom_class_name: false,
             has_custom_motion,
             has_custom_delays,
@@ -111,92 +151,15 @@ pub fn Tooltip(
         motion,
     );
 
-    #[cfg(target_arch = "wasm32")]
-    let focus_target = StoredValue::new_local(None::<leptos::web_sys::Element>);
-
-    #[cfg(target_arch = "wasm32")]
-    on_cleanup(move || {
-        if let Some(target) = focus_target.get_value() {
-            let _ = target.remove_attribute("aria-describedby");
-        }
+    let focus_handlers = use_tooltip_focus_a11y(TooltipFocusA11yOptions {
+        anchor_ref,
+        tooltip_id,
+        is_open: open,
+        on_focus: trigger_aria.handlers.on_focus,
+        on_blur: trigger_aria.handlers.on_blur,
     });
-
-    #[cfg(target_arch = "wasm32")]
-    Effect::new(move |_| {
-        let is_open = open.get();
-        let Some(target) = focus_target.get_value() else {
-            return;
-        };
-
-        let id = tooltip_id.with_value(|id| id.clone());
-        if is_open {
-            let _ = target.set_attribute("aria-describedby", &id);
-        } else {
-            let _ = target.remove_attribute("aria-describedby");
-        }
-    });
-
-    let on_focus_in = move |_ev: ev::FocusEvent| {
-        trigger_aria.handlers.on_focus.run(());
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            use leptos::wasm_bindgen::JsCast;
-
-            if let Some(target) = focus_target.get_value() {
-                let _ = target.remove_attribute("aria-describedby");
-            }
-
-            let Some(target) = _ev.target() else {
-                focus_target.set_value(None);
-                return;
-            };
-
-            let Ok(target) = target.dyn_into::<leptos::web_sys::Element>() else {
-                focus_target.set_value(None);
-                return;
-            };
-
-            if open.get_untracked() {
-                let id = tooltip_id.with_value(|id| id.clone());
-                let _ = target.set_attribute("aria-describedby", &id);
-            }
-
-            focus_target.set_value(Some(target));
-        }
-    };
-
-    let on_focus_out = move |_ev: ev::FocusEvent| {
-        #[cfg(target_arch = "wasm32")]
-        {
-            use leptos::wasm_bindgen::JsCast;
-
-            if let Some(target) = focus_target.get_value() {
-                let _ = target.remove_attribute("aria-describedby");
-            }
-            focus_target.set_value(None);
-
-            let leaving = match anchor_ref.get_untracked() {
-                Some(anchor) => {
-                    let anchor_el: leptos::web_sys::Element = anchor.unchecked_into();
-                    match _ev.related_target() {
-                        Some(related) => match related.dyn_into::<leptos::web_sys::Node>() {
-                            Ok(node) => !anchor_el.contains(Some(&node)),
-                            Err(_) => true,
-                        },
-                        None => true,
-                    }
-                }
-                None => true,
-            };
-
-            if !leaving {
-                return;
-            }
-        }
-
-        trigger_aria.handlers.on_blur.run(());
-    };
+    let on_focus_in = focus_handlers.on_focus_in;
+    let on_focus_out = focus_handlers.on_focus_out;
 
     let panel_vars =
         move || logic::compose_panel_vars(position.top_px.get(), position.left_px.get());
@@ -218,17 +181,24 @@ pub fn Tooltip(
             data-trigger-source=move || root_state.get().trigger_source_attr
             data-press-source=move || root_state.get().press_source_attr
             data-id-source=move || root_state.get().id_source_attr
+            data-open-mode=open_mode_attr
+            data-open-source=open_source_attr
+            data-default-open-source=default_open_source_attr
+            data-open-change-source=open_change_source_attr
             data-custom-class=move || root_state.get().has_custom_class_name.then_some("true")
             data-custom-motion=move || root_state.get().has_custom_motion.then_some("true")
             data-custom-delay=move || root_state.get().has_custom_delays.then_some("true")
             data-custom-trigger=move || root_state.get().has_custom_trigger_mode.then_some("true")
             data-custom-press=move || root_state.get().has_custom_press_behavior.then_some("true")
             data-custom-id=move || root_state.get().has_custom_id.then_some("true")
+            data-custom-open=has_custom_open.then_some("true")
+            data-custom-default-open=has_custom_default_open.then_some("true")
+            data-custom-open-change=has_custom_on_open_change.then_some("true")
             node_ref=anchor_ref
             on:pointerenter=move |_| trigger_aria.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| trigger_aria.handlers.on_pointer_leave.run(())
-            on:focusin=on_focus_in
-            on:focusout=on_focus_out
+            on:focusin=move |ev: ev::FocusEvent| on_focus_in.run(ev)
+            on:focusout=move |ev: ev::FocusEvent| on_focus_out.run(ev)
             on:pointerdown=move |_| trigger_aria.handlers.on_pointer_down.run(())
             on:keydown=move |ev: ev::KeyboardEvent| trigger_aria.handlers.on_key_down.run(ev.key())
         >
@@ -257,11 +227,18 @@ pub fn Tooltip(
                         data-trigger-source=move || panel_state.get().trigger_source_attr
                         data-press-source=move || panel_state.get().press_source_attr
                         data-id-source=move || panel_state.get().id_source_attr
+                        data-open-mode=open_mode_attr
+                        data-open-source=open_source_attr
+                        data-default-open-source=default_open_source_attr
+                        data-open-change-source=open_change_source_attr
                         data-custom-motion=move || panel_state.get().has_custom_motion.then_some("true")
                         data-custom-delay=move || panel_state.get().has_custom_delays.then_some("true")
                         data-custom-trigger=move || panel_state.get().has_custom_trigger_mode.then_some("true")
                         data-custom-press=move || panel_state.get().has_custom_press_behavior.then_some("true")
                         data-custom-id=move || panel_state.get().has_custom_id.then_some("true")
+                        data-custom-open=has_custom_open.then_some("true")
+                        data-custom-default-open=has_custom_default_open.then_some("true")
+                        data-custom-open-change=has_custom_on_open_change.then_some("true")
                     >
                         {move || content.with_value(|content| content.run())}
                     </div>

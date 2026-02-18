@@ -50,7 +50,7 @@ pub fn sanitize_motion(motion: ButtonCopyMotion) -> ButtonCopyMotion {
 #[cfg(target_arch = "wasm32")]
 pub fn attach_motion(
     node_ref: NodeRef<html::Span>,
-    is_copied: ReadSignal<bool>,
+    is_copied: Signal<bool>,
     motion: ButtonCopyMotion,
 ) {
     use crate::observability::set_css_property_observed;
@@ -123,7 +123,7 @@ pub fn attach_motion(
 #[cfg(not(target_arch = "wasm32"))]
 pub fn attach_motion(
     _node_ref: NodeRef<html::Span>,
-    _is_copied: ReadSignal<bool>,
+    _is_copied: Signal<bool>,
     motion: ButtonCopyMotion,
 ) {
     let _ = sanitize_motion(motion);

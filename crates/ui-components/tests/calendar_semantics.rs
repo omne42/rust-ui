@@ -20,6 +20,23 @@ fn calendar_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn calendar_module_exposes_motion_contracts() {
+    let source = load_source("src/calendar/mod.rs");
+
+    for needle in [
+        "pub mod motion;",
+        "pub mod styles;",
+        "pub use motion::CalendarMotion;",
+        "pub use view::Calendar;",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Calendar module should include `{needle}` contract."
+        );
+    }
+}
+
+#[test]
 fn calendar_logic_delegates_state_primitives() {
     let logic_source = load_source("src/calendar/logic.rs");
     let view_source = load_source("src/calendar/view.rs");
@@ -38,6 +55,8 @@ fn calendar_logic_delegates_state_primitives() {
         "resolve_state",
         "weekday_labels",
         "pub fn compose_class_name(",
+        "pub struct CalendarAgentContract",
+        "pub fn resolve_agent_contract(state: CalendarState)",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -69,6 +88,7 @@ fn calendar_logic_delegates_state_primitives() {
         "logic::normalize_selected_day(selected_day, year, normalized_month)",
         "logic::normalize_aria_label(aria_label)",
         "logic::resolve_state(CalendarStateInput {",
+        "logic::resolve_agent_contract(state)",
         "logic::compose_class_name(class_name, state)",
         "logic::build_month_grid(",
     ] {
@@ -95,6 +115,17 @@ fn calendar_emits_baseline_style_state_data_attributes() {
         "data-aria-source=state.aria_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
         "data-class-source=state.class_source_attr",
+        "data-motion-source=motion_source",
+        "data-custom-motion=(motion_source == \"custom\").then_some(\"true\")",
+        "data-ui-schema=agent_contract.schema_attr",
+        "data-ui-intent=agent_contract.intent_attr",
+        "data-ui-action=agent_contract.action.as_attr()",
+        "data-ui-state=agent_contract.state.as_attr()",
+        "data-ui-source=agent_contract.source.as_attr()",
+        "data-ui-stream-support=agent_contract.stream_support.as_attr()",
+        "data-ui-stream-fallback=agent_contract.stream_fallback.as_attr()",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=agent_contract.output_status.as_attr()",
         "data-slot=\"calendar-header\"",
         "data-slot=\"calendar-title\"",
         "data-slot=\"calendar-weekdays\"",
@@ -103,6 +134,8 @@ fn calendar_emits_baseline_style_state_data_attributes() {
         "data-slot=\"calendar-day\"",
         "data-slot=\"calendar-day-empty\"",
         "role=\"group\"",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -116,6 +149,7 @@ fn calendar_styles_include_tone_weekday_and_selection_markers() {
     let source = load_source("src/calendar/styles.rs");
 
     for selector in [
+        "--ui-calendar-motion-duration",
         ".ui-calendar--tone-default",
         ".ui-calendar[data-tone=\"default\"]",
         ".ui-calendar--tone-quiet",
@@ -134,6 +168,7 @@ fn calendar_styles_include_tone_weekday_and_selection_markers() {
         ".ui-calendar__day[data-selected=\"true\"]",
         ".ui-calendar__day--outside",
         ".ui-calendar__day[data-month-source=\"outside\"]",
+        ".ui-calendar__day:active",
     ] {
         assert!(
             source.contains(selector),
@@ -152,6 +187,8 @@ fn calendar_docs_page_covers_primary_playgrounds() {
         "slug=\"calendar\"",
         "title=\"Default + Outside Days\"",
         "title=\"Monday First + Strong Tone\"",
+        "title=\"Interactive Playground (State + Source Markers)\"",
+        "\"Source-first / Copy-Paste Ready\"",
     ] {
         assert!(
             source.contains(needle),
@@ -179,10 +216,129 @@ fn calendar_docs_playgrounds_lock_state_matrix_contract_values() {
         "first_weekday=CalendarFirstWeekday::Monday",
         "show_outside_days=false",
         "class_name=\"docs-calendar-custom\".to_string()",
+        "let (interactive_month, set_interactive_month) = signal(3_u8);",
+        "data-slot=\"calendar-interactive-controls\"",
+        "data-action=\"prev-month\"",
+        "data-action=\"next-month\"",
+        "data-action=\"toggle-weekday\"",
+        "data-action=\"toggle-tone\"",
+        "data-action=\"toggle-outside-days\"",
+        "data-action=\"clear-selection\"",
+        "data-slot=\"calendar-interactive-summary\"",
+        "class_name=\"docs-calendar-interactive\".to_string()",
+        "data-slot=\"calendar-source-first\"",
+        "class_name=\"docs-calendar-source-copy\".to_string()",
+        "\"crates/ui-components/src/calendar/motion.rs\"",
+        "\"component-calendar\"",
+        "\"inject-css\"",
     ] {
         assert!(
             source.contains(needle),
             "calendar docs playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn calendar_motion_contract_exposes_sanitization_and_style_vars() {
+    let source = load_source("src/calendar/motion.rs");
+
+    for needle in [
+        "pub struct CalendarMotion",
+        "pub fn sanitize_motion(motion: CalendarMotion) -> CalendarMotion",
+        "pub fn source_attr(motion: CalendarMotion) -> &'static str",
+        "pub fn attach_motion(base_vars: Option<String>, motion: CalendarMotion) -> String",
+        "--ui-calendar-motion-duration",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Calendar motion should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn calendar_e2e_contract_uses_semantic_selectors_and_stable_waits() {
+    let source = load_source("../../e2e/tests/docs_app_calendar_contract.spec.mjs");
+
+    for needle in [
+        "body:not(:has(#boot))",
+        "#/components/calendar",
+        "[data-slot=\"calendar\"]",
+        "data-ui-stream-support",
+        "data-ui-stream-fallback",
+        "data-ui-stream-mode",
+        "data-ui-output-status",
+        "[data-action=\"next-month\"]",
+        "[data-action=\"clear-selection\"]",
+    ] {
+        assert!(
+            source.contains(needle),
+            "calendar e2e should include `{needle}` semantic contract selector/wait."
+        );
+    }
+}
+
+#[test]
+fn calendar_check2_marks_component_governance_complete() {
+    let check2_source = load_source("src/calendar/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] 如果无异步相关，直接打勾。",
+        "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
+        "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
+        "- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "N/A：`Calendar` 无远程请求与异步状态轴",
+        "Streaming Optional",
+        "fallback=snapshot",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "calendar/check2.md should pin completion marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn calendar_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/calendar/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "Calendar check2.md should not keep unchecked checklist items after completion."
+    );
+}
+
+#[test]
+fn calendar_heroui_alignment_doc_and_docs_entry_stay_in_sync() {
+    let heroui_source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+    let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
+
+    for needle in [
+        "### Calendar 同步记录（2026-02-19）",
+        "`Calendar` 继续保持月视图基元定位",
+        "component_doc!(\"Calendar\", \"calendar\", \"Forms\", forms_extra::calendar)",
+        "`#/components/calendar` 可索引访问",
+        "Interactive Playground (State + Source Markers)",
+        "Source-first / Copy-Paste Ready",
+    ] {
+        assert!(
+            heroui_source.contains(needle),
+            "HeroUI strategy doc should keep calendar sync token `{needle}`."
+        );
+    }
+
+    for needle in ["\"Calendar\"", "\"calendar\"", "forms_extra::calendar"] {
+        assert!(
+            pages_source.contains(needle),
+            "docs pages registry should keep calendar docs entry `{needle}`."
         );
     }
 }

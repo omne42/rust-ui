@@ -1,8 +1,8 @@
 use crate::color_wheel::{
     ColorWheelMotion, ColorWheelStateInput,
     logic::{self},
+    motion,
 };
-use crate::slider::motion as slider_motion;
 use leptos::{ev, html, prelude::*};
 use ui_headless as overlay_open;
 
@@ -54,7 +54,7 @@ pub fn ColorWheel(
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
 
-    let motion = slider_motion::sanitize_motion(motion);
+    let motion = motion::sanitize_motion(motion);
     let has_custom_motion = motion != ColorWheelMotion::default();
 
     let state = Memo::new(move |_| {
@@ -74,7 +74,7 @@ pub fn ColorWheel(
 
     let visual_percent = Signal::derive(move || state.get().value_percent);
     let root_ref: NodeRef<html::Div> = NodeRef::new();
-    slider_motion::attach_motion(root_ref, visual_percent, motion);
+    motion::attach_motion(root_ref, visual_percent, motion);
 
     let track_ref: NodeRef<html::Div> = NodeRef::new();
     #[cfg(target_arch = "wasm32")]

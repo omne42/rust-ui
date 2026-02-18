@@ -1,106 +1,8 @@
-use crate::labeled_value::{LabeledValueState, LabeledValueStateInput};
-
-pub const DEFAULT_LABEL_TEXT: &str = "Label";
-pub const DEFAULT_VALUE_TEXT: &str = "—";
-pub const DEFAULT_ARIA_LABEL: &str = "Labeled value";
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum LabeledValueTone {
-    #[default]
-    Default,
-    Subtle,
-    Strong,
-}
-
-impl LabeledValueTone {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            LabeledValueTone::Default => "ui-labeled-value--tone-default",
-            LabeledValueTone::Subtle => "ui-labeled-value--tone-subtle",
-            LabeledValueTone::Strong => "ui-labeled-value--tone-strong",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            LabeledValueTone::Default => "default",
-            LabeledValueTone::Subtle => "subtle",
-            LabeledValueTone::Strong => "strong",
-        }
-    }
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-pub fn normalize_label_text(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_LABEL_TEXT.to_string(), false)
-}
-
-pub fn normalize_value_text(value: Option<String>) -> (String, bool) {
-    if let Some(value) = normalize_optional_text(value) {
-        return (value, true);
-    }
-
-    (DEFAULT_VALUE_TEXT.to_string(), false)
-}
-
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
-}
-
-pub fn resolve_state(input: LabeledValueStateInput) -> LabeledValueState {
-    let label_source_attr = if input.has_custom_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let value_source_attr = if input.has_custom_value {
-        "custom"
-    } else {
-        "default"
-    };
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    LabeledValueState {
-        orientation: input.orientation,
-        orientation_class: input.orientation.class_name(),
-        orientation_attr: input.orientation.as_attr(),
-        tone: input.tone,
-        tone_class: input.tone.class_name(),
-        tone_attr: input.tone.as_attr(),
-        has_custom_label: input.has_custom_label,
-        has_custom_value: input.has_custom_value,
-        has_description: input.has_description,
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source_attr,
-        value_source_attr,
-        aria_source_attr,
-        class_source_attr,
-    }
-}
+pub use ui_state_primitives::labeled_value::{
+    DEFAULT_ARIA_LABEL, DEFAULT_LABEL_TEXT, DEFAULT_VALUE_TEXT, LabeledValueOrientation,
+    LabeledValueState, LabeledValueStateInput, LabeledValueTone, normalize_aria_label,
+    normalize_label_text, normalize_optional_text, normalize_value_text, resolve_state,
+};
 
 pub fn compose_class_name(base_class_name: Option<String>, state: LabeledValueState) -> String {
     let mut classes = vec![
@@ -135,7 +37,6 @@ pub fn compose_class_name(base_class_name: Option<String>, state: LabeledValueSt
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::labeled_value::LabeledValueOrientation;
 
     #[test]
     fn tone_class_names_and_attrs_are_stable() {

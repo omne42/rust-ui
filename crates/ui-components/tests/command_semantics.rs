@@ -311,6 +311,27 @@ fn command_docs_page_covers_primary_playgrounds() {
 }
 
 #[test]
+fn command_docs_interactive_playground_exposes_config_code_css_test_sections() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=workbench_test_css_source",
+        "test_config_signal=workbench_actual_config",
+        "controls=move || view! {",
+        "data-slot=\"command-workbench-controls\"",
+        "id_base=\"docs-command-workbench-scenario\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/command/styles.rs\".to_string()",
+    ] {
+        assert!(
+            source.contains(needle),
+            "command interactive docs playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
 fn command_docs_playgrounds_lock_state_matrix_contract_values() {
     let source =
         load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
@@ -341,4 +362,44 @@ fn command_docs_playgrounds_lock_state_matrix_contract_values() {
             "command docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn command_check2_marks_core_sections_complete() {
+    let source = load_source("src/command/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 状态归一化集中",
+        "- [x] 存在 A11y 实现、国际化与本地化实现",
+        "- [x] 状态可观测、可检索、可验证",
+        "- [x] 测试验证“语义契约”而不只验证视觉快照。",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "### 10. Command 本轮验收证据",
+        "component-command -> component-active_highlight",
+        "component-command_dialog -> component-command + component-modal",
+        "crates/ui-components/src/command_dialog/view.rs",
+        "crates/ui-components/src/modal/view.rs",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Command check2 should contain completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn command_check2_has_no_unchecked_checklist_items() {
+    let source = load_source("src/command/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "command check2 should not keep unchecked checklist items"
+    );
 }

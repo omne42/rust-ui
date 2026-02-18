@@ -91,9 +91,12 @@ fn context_menu_view_uses_logic_contracts_and_source_markers() {
         "logic::normalize_id_base(id_base)",
         "logic::normalize_disabled_indices(disabled_indices, item_count.get_value())",
         "logic::resolve_trigger_aria_label(aria_label)",
+        "let locale = locale_attrs(logic::normalize_optional_text(lang), dir);",
         "logic::resolve_state(ContextMenuPartStateInput {",
         "slot: ContextMenuSlot::Root",
         "logic::compose_class_name(class_name.get_value(), root_state_for_class.get())",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
         "data-slot=move || root_state.get().slot_attr",
         "data-state=move || root_state.get().state_attr",
         "data-items=move || root_state.get().item_attr",
@@ -123,6 +126,12 @@ fn context_menu_view_uses_logic_contracts_and_source_markers() {
         "data-custom-default-open=move || {",
         "data-custom-open-change=move || {",
         "data-custom-motion=move || root_state.get().has_custom_motion.then_some(\"true\")",
+        "data-ui-schema=\"ui.context_menu.agent-contract.v1\"",
+        "data-ui-stream-support=\"unsupported\"",
+        "data-ui-stream-fallback=\"snapshot\"",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-state=move || root_state.get().state_attr",
+        "data-ui-source=move || root_state.get().open_source_attr",
     ] {
         assert!(
             source.contains(needle),
@@ -136,9 +145,11 @@ fn context_menu_supports_controlled_and_uncontrolled_open_state() {
     let source = load_source("src/context_menu/view.rs");
 
     for needle in [
+        "is_disabled: Option<bool>",
         "open: Option<Signal<bool>>",
         "default_open: Option<bool>",
         "on_open_change: Option<Callback<bool>>",
+        "let disabled = is_disabled.unwrap_or(disabled);",
         "overlay_open::use_controllable_open_state_traced(",
         "let has_custom_open = open.is_some()",
         "let has_custom_default_open = default_open.is_some()",

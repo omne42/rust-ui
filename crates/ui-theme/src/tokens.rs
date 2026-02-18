@@ -166,6 +166,7 @@ pub struct ShadowTokens {
 pub struct ComponentLayoutTokens {
     // Baseline examples (must be regression-testable):
     pub component_height_100_px: u16,
+    pub separator_decorative_opacity_percent: u8,
 }
 
 #[derive(Clone, Copy)]
@@ -206,6 +207,61 @@ pub struct ButtonMotionTokens {
     pub spring: SpringMotionTokens,
     pub hover_scale: f64,
     pub tap_scale: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SwatchMotionTokens {
+    pub spring: SpringMotionTokens,
+    pub selected_scale: f64,
+    pub selected_ring_opacity: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SwitchMotionTokens {
+    pub spring: SpringMotionTokens,
+    pub pressed_width_default_px: f64,
+    pub pressed_width_min_px: f64,
+    pub pressed_width_max_px: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SliderMotionTokens {
+    pub spring: SpringMotionTokens,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SliderLayoutTokens {
+    pub max_width_px: u16,
+    pub thumb_border_width_px: u16,
+    pub focus_ring_width_px: u16,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct UnderlayMotionTokens {
+    pub transition_duration_ms: u16,
+    pub visibility_duration_ms: u16,
+    pub backdrop_blur_px: u16,
+    pub scrim_alpha_percent: u8,
+    pub transition_easing: &'static str,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TimeFieldMotionTokens {
+    pub spring: SpringMotionTokens,
+    pub hidden_scale: f64,
+    pub hover_scale: f64,
+    pub tap_scale: f64,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextareaMotionTokens {
+    pub duration_ms: u16,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct TextFieldMotionTokens {
+    pub duration_ms: u16,
+    pub easing: &'static str,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -277,6 +333,138 @@ pub const BUTTON_MOTION_TOKENS_LARGE: ButtonMotionTokens = ButtonMotionTokens {
     },
     hover_scale: 1.05,
     tap_scale: 0.95,
+};
+
+pub const SWATCH_MOTION_TOKENS_MEDIUM: SwatchMotionTokens = SwatchMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 280.0,
+        damping: 20.0,
+        mass: 1.0,
+        precision: 0.001,
+    },
+    selected_scale: 1.06,
+    selected_ring_opacity: 1.0,
+};
+
+pub const SWATCH_MOTION_TOKENS_LARGE: SwatchMotionTokens = SwatchMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 280.0,
+        damping: 20.0,
+        mass: 1.0,
+        precision: 0.001,
+    },
+    selected_scale: 1.06,
+    selected_ring_opacity: 1.0,
+};
+
+pub const SWITCH_MOTION_TOKENS_MEDIUM: SwitchMotionTokens = SwitchMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 260.0,
+        damping: 16.0,
+        mass: 1.0,
+        precision: 0.001,
+    },
+    pressed_width_default_px: 19.0,
+    pressed_width_min_px: 16.0,
+    pressed_width_max_px: 64.0,
+};
+
+pub const SWITCH_MOTION_TOKENS_LARGE: SwitchMotionTokens = SwitchMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 260.0,
+        damping: 16.0,
+        mass: 1.0,
+        precision: 0.001,
+    },
+    pressed_width_default_px: 19.0,
+    pressed_width_min_px: 16.0,
+    pressed_width_max_px: 64.0,
+};
+
+pub const SLIDER_MOTION_TOKENS_MEDIUM: SliderMotionTokens = SliderMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 340.0,
+        damping: 28.0,
+        mass: 0.9,
+        precision: 0.001,
+    },
+};
+
+pub const SLIDER_MOTION_TOKENS_LARGE: SliderMotionTokens = SliderMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 340.0,
+        damping: 28.0,
+        mass: 0.9,
+        precision: 0.001,
+    },
+};
+
+pub const SLIDER_LAYOUT_TOKENS_MEDIUM: SliderLayoutTokens = SliderLayoutTokens {
+    max_width_px: 352,
+    thumb_border_width_px: 2,
+    focus_ring_width_px: 2,
+};
+
+pub const SLIDER_LAYOUT_TOKENS_LARGE: SliderLayoutTokens = SliderLayoutTokens {
+    max_width_px: 400,
+    thumb_border_width_px: 2,
+    focus_ring_width_px: 2,
+};
+
+pub const UNDERLAY_MOTION_TOKENS_MEDIUM: UnderlayMotionTokens = UnderlayMotionTokens {
+    transition_duration_ms: 220,
+    visibility_duration_ms: 220,
+    backdrop_blur_px: 1,
+    scrim_alpha_percent: 56,
+    transition_easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+};
+
+pub const UNDERLAY_MOTION_TOKENS_LARGE: UnderlayMotionTokens = UnderlayMotionTokens {
+    transition_duration_ms: 240,
+    visibility_duration_ms: 240,
+    backdrop_blur_px: 1,
+    scrim_alpha_percent: 56,
+    transition_easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+};
+
+pub const TIME_FIELD_MOTION_TOKENS_MEDIUM: TimeFieldMotionTokens = TimeFieldMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 260.0,
+        damping: 16.0,
+        mass: 1.0,
+        precision: 0.001,
+    },
+    hidden_scale: 0.85,
+    hover_scale: 1.04,
+    tap_scale: 0.96,
+};
+
+pub const TIME_FIELD_MOTION_TOKENS_LARGE: TimeFieldMotionTokens = TimeFieldMotionTokens {
+    spring: SpringMotionTokens {
+        stiffness: 260.0,
+        damping: 16.0,
+        mass: 1.0,
+        precision: 0.001,
+    },
+    hidden_scale: 0.85,
+    hover_scale: 1.04,
+    tap_scale: 0.96,
+};
+
+pub const TEXTAREA_MOTION_TOKENS_MEDIUM: TextareaMotionTokens =
+    TextareaMotionTokens { duration_ms: 180 };
+
+pub const TEXTAREA_MOTION_TOKENS_LARGE: TextareaMotionTokens =
+    TextareaMotionTokens { duration_ms: 200 };
+
+pub const TEXT_FIELD_MOTION_TOKENS_MEDIUM: TextFieldMotionTokens = TextFieldMotionTokens {
+    duration_ms: 180,
+    easing: "cubic-bezier(0.2, 0, 0, 1)",
+};
+
+pub const TEXT_FIELD_MOTION_TOKENS_LARGE: TextFieldMotionTokens = TextFieldMotionTokens {
+    duration_ms: 200,
+    easing: "cubic-bezier(0.2, 0, 0, 1)",
 };
 
 pub const BUTTON_LAYOUT_TOKENS_MEDIUM: ButtonLayoutTokens = ButtonLayoutTokens {
@@ -375,6 +563,8 @@ pub struct ThemeTokens {
     pub layout: LayoutTokens,
     pub component_layout: ComponentLayoutTokens,
     pub overlay_layout: OverlayLayoutTokens,
+    pub slider_layout: SliderLayoutTokens,
+    pub underlay_motion: UnderlayMotionTokens,
     pub typography: TypographyTokens,
     pub button_layout: ButtonLayoutTokens,
 }

@@ -1,5 +1,17 @@
 pub const CSS: &str = r#"
 .ui-textarea {
+  --ui-textarea-label-font-size: var(--ui-font-size-150);
+  --ui-textarea-meta-font-size: var(--ui-font-size-100);
+  --ui-textarea-focus-outline-width: var(--ui-button-focus-outline-width);
+  --ui-textarea-focus-outline-offset: var(--ui-button-focus-outline-offset);
+  --ui-textarea-control-bg: var(--ui-bg);
+  --ui-textarea-control-bg-hover: color-mix(in oklab, var(--ui-bg-muted) 38%, var(--ui-bg) 62%);
+  --ui-textarea-control-bg-active: color-mix(in oklab, var(--ui-bg-muted) 52%, var(--ui-bg) 48%);
+  --ui-textarea-control-border: var(--ui-border);
+  --ui-textarea-control-border-hover: color-mix(in oklab, var(--ui-border) 62%, var(--ui-fg) 38%);
+  --ui-textarea-control-border-active: color-mix(in oklab, var(--ui-border) 44%, var(--ui-fg) 56%);
+  --ui-textarea-control-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ui-border) 74%, transparent);
+
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-xs);
@@ -51,7 +63,7 @@ pub const CSS: &str = r#"
 }
 
 .ui-textarea__label {
-  font-size: 14px;
+  font-size: var(--ui-textarea-label-font-size);
   line-height: 1.2;
   font-weight: 500;
   color: var(--ui-fg);
@@ -63,23 +75,35 @@ pub const CSS: &str = r#"
 
   padding: var(--ui-space-sm) var(--ui-space-md);
 
-  border: 1px solid var(--ui-border);
+  border: 1px solid var(--ui-textarea-control-border);
   border-radius: var(--ui-radius-md);
-  background: var(--ui-bg);
+  background: var(--ui-textarea-control-bg);
   color: var(--ui-fg);
   font: inherit;
+  box-shadow: var(--ui-textarea-control-shadow);
 
   resize: vertical;
 
   transition:
-    border-color 200ms ease,
-    background-color 200ms ease,
-    outline-color 200ms ease;
+    border-color var(--ui-textarea-motion-duration) var(--ui-textarea-motion-easing),
+    background-color var(--ui-textarea-motion-duration) var(--ui-textarea-motion-easing),
+    outline-color var(--ui-textarea-motion-duration) var(--ui-textarea-motion-easing),
+    box-shadow var(--ui-textarea-motion-duration) var(--ui-textarea-motion-easing);
+}
+
+.ui-textarea__textarea:hover:not(:disabled):not([readonly]) {
+  border-color: var(--ui-textarea-control-border-hover);
+  background: var(--ui-textarea-control-bg-hover);
+}
+
+.ui-textarea__textarea:active:not(:disabled):not([readonly]) {
+  border-color: var(--ui-textarea-control-border-active);
+  background: var(--ui-textarea-control-bg-active);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ui-textarea__textarea {
-    transition: none;
+    --ui-textarea-motion-duration: 1ms;
   }
 }
 
@@ -88,8 +112,9 @@ pub const CSS: &str = r#"
 }
 
 .ui-textarea--focus-visible .ui-textarea__textarea {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-textarea-focus-outline-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-textarea-focus-outline-offset);
+  border-color: color-mix(in oklab, var(--ui-focus-ring) 32%, var(--ui-textarea-control-border) 68%);
 }
 
 .ui-textarea--invalid .ui-textarea__textarea {
@@ -102,7 +127,7 @@ pub const CSS: &str = r#"
 
 .ui-textarea__description,
 .ui-textarea__error {
-  font-size: 12px;
+  font-size: var(--ui-textarea-meta-font-size);
   line-height: 1.3;
 }
 

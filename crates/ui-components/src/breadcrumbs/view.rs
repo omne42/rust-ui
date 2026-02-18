@@ -28,24 +28,22 @@ pub fn Breadcrumbs(
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
-    let aria_label = aria_label
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "Breadcrumb".to_string());
-
-    let base_class = "ui-breadcrumbs".to_string();
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
-        .map(|value| format!("{base_class} {value}"))
-        .unwrap_or(base_class);
-
+    let logic::BreadcrumbsRootState {
+        aria_label,
+        aria_source_attr,
+        class_name,
+        class_source_attr,
+    } = logic::resolve_root_state(aria_label, class_name);
     let state = logic::resolve_state(&items);
     let last_index = items.len().saturating_sub(1);
 
     view! {
         <nav
-            class=class
+            class=class_name
             data-slot="breadcrumbs"
             aria-label=aria_label
+            data-aria-source=aria_source_attr
+            data-class-source=class_source_attr
             data-empty=state.is_empty.then_some("true")
             data-has-items=state.has_items.then_some("true")
             data-has-links=state.has_links.then_some("true")
@@ -58,13 +56,7 @@ pub fn Breadcrumbs(
                     .enumerate()
                     .map(|(index, item)| {
                         let is_last = index == last_index;
-                        let href = (!is_last)
-                            .then_some(())
-                            .and(item.href)
-                            .and_then(|href| {
-                                let trimmed = href.trim();
-                                (!trimmed.is_empty()).then(|| trimmed.to_string())
-                            });
+                        let href = logic::resolve_item_href(&item, is_last);
 
                         let href_for_attr = href.clone();
 

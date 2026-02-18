@@ -27,9 +27,7 @@ fn tray_is_exported_and_exposes_state_contracts() {
     for needle in [
         "pub use motion::TrayMotion;",
         "pub use view::Tray;",
-        "pub enum TraySlot",
-        "pub struct TrayPartStateInput",
-        "pub struct TrayPartState",
+        "pub use ui_state_primitives::tray::{TrayPartState, TrayPartStateInput, TraySlot};",
     ] {
         assert!(
             module_source.contains(needle),
@@ -50,28 +48,22 @@ fn tray_logic_exposes_state_helpers() {
     let source = load_source("src/tray/logic.rs");
 
     for needle in [
-        "pub const DEFAULT_ID_BASE: &str = \"ui-tray\";",
-        "pub const DEFAULT_TITLE: &str = \"Tray\";",
-        "pub const DEFAULT_SHOW_CLOSE_BUTTON: bool = true;",
-        "pub const DEFAULT_FIXED_HEIGHT: bool = false;",
-        "pub const DEFAULT_DISMISSABLE: bool = true;",
-        "pub const DEFAULT_KEYBOARD_DISMISS_DISABLED: bool = false;",
-        "pub fn state_attr(has_description: bool)",
-        "pub fn description_attr(has_description: bool)",
-        "pub fn footer_attr(has_footer: bool)",
-        "pub fn close_button_attr(show_close_button: bool)",
-        "pub fn size_attr(is_fixed_height: bool)",
-        "pub fn dismiss_attr(is_dismissable: bool)",
-        "pub fn keyboard_dismiss_attr(is_keyboard_dismiss_disabled: bool)",
-        "pub fn normalize_optional_text(value: Option<String>)",
-        "pub fn normalize_required_text(value: String, fallback: &'static str)",
-        "pub fn normalize_id_base(value: String)",
-        "pub fn resolve_state(input: TrayPartStateInput)",
+        "pub use ui_state_primitives::tray::{",
+        "DEFAULT_ID_BASE",
+        "DEFAULT_TITLE",
+        "DEFAULT_SHOW_CLOSE_BUTTON",
+        "DEFAULT_FIXED_HEIGHT",
+        "DEFAULT_DISMISSABLE",
+        "DEFAULT_KEYBOARD_DISMISS_DISABLED",
+        "normalize_optional_text",
+        "normalize_required_text",
+        "normalize_id_base",
+        "resolve_state",
         "pub fn compose_class_name(base_class_name: Option<String>, state: TrayPartState)",
     ] {
         assert!(
             source.contains(needle),
-            "Tray logic should include `{needle}` for centralized state/source contracts."
+            "Tray logic should include `{needle}` while consuming state primitives from ui-state-primitives."
         );
     }
 }
@@ -83,6 +75,8 @@ fn tray_composes_sheet_with_bottom_placement_and_motion_contract() {
     for needle in [
         "<Sheet",
         "placement=SheetPlacement::Bottom",
+        "aria_labelledby=panel_aria_labelledby.get_value()",
+        "aria_describedby=panel_aria_describedby.get_value()",
         "is_dismissable=is_dismissable",
         "is_keyboard_dismiss_disabled=is_keyboard_dismiss_disabled",
         "motion=motion.sheet",
@@ -147,23 +141,30 @@ fn tray_view_uses_logic_state_contracts() {
 }
 
 #[test]
-fn tray_only_sets_describedby_when_description_exists() {
+fn tray_uses_headless_overlay_a11y_contract() {
     let source = load_source("src/tray/view.rs");
 
-    assert!(
-        source.contains("if root_state.show_description"),
-        "Tray should branch on description presence so `aria-describedby` is only set when needed."
-    );
-
     for needle in [
+        "use ui_headless::{A11yDirection, overlay_dialog_attrs};",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let panel_a11y = overlay_dialog_attrs(",
+        "root_state.show_description",
+        ".then_some(description_id.clone())",
+        "let panel_aria_labelledby = StoredValue::new(panel_a11y.aria_labelledby);",
+        "let panel_aria_describedby = StoredValue::new(panel_a11y.aria_describedby);",
+        "let panel_lang = StoredValue::new(panel_a11y.lang);",
+        "let panel_dir = panel_a11y.dir;",
         "let description_id = format!(\"{id_base}-description\")",
-        "aria_describedby=description_id.clone()",
+        "aria_describedby=panel_aria_describedby.get_value()",
+        "lang=panel_lang.get_value()",
+        "dir=panel_dir",
         "data-slot=description_state.slot_attr",
         "data-description-source=description_state.description_source_attr",
     ] {
         assert!(
             source.contains(needle),
-            "Tray should wire description ids only on described path (`{needle}`)."
+            "Tray should consume typed overlay A11y attrs from ui-headless (`{needle}`)."
         );
     }
 }
@@ -297,11 +298,11 @@ fn tray_motion_sanitizes_custom_contract_values() {
 
     for needle in [
         "pub fn sanitize_motion(motion: TrayMotion) -> TrayMotion",
-        "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
-        "initial_offset_px",
         "sheet: crate::sheet::SheetMotion",
+        "crate::sheet::motion::sanitize_motion(motion.sheet)",
         "fn sanitize_motion_falls_back_for_invalid_values()",
         "fn sanitize_motion_clamps_offset_range()",
+        "fn sanitize_motion_delegates_to_sheet_contract()",
     ] {
         assert!(
             motion_source.contains(needle),

@@ -72,7 +72,7 @@ pub fn attach_motion(
     use leptos::prelude::*;
     use leptos::wasm_bindgen::JsCast;
 
-    if is_disabled {
+    if is_disabled || ui_motion::web::prefers_reduced_motion() {
         return;
     }
 

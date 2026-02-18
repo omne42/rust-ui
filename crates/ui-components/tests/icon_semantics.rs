@@ -162,3 +162,44 @@ fn icon_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn icon_docs_workbench_exposes_display_config_code_and_css_test_contract() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    for needle in [
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "code_signal=workbench_code",
+        "test_css_source=workbench_test_css",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/styles.rs\".to_string()",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"icon-workbench-controls\"",
+        "display: baseline vs configured vs disabled contrast",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icon workbench should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn icon_readme_covers_workbench_display_config_code_css_test_sections() {
+    let source = load_source("src/icon/README.md");
+
+    for needle in [
+        "# Icon",
+        "Docs Playground（展示 / Config / Code / CSS Test）",
+        "展示",
+        "Config",
+        "Code",
+        "CSS Test",
+        "对比场景",
+        "Workbench (Display + Config + Code + CSS Test)",
+    ] {
+        assert!(
+            source.contains(needle),
+            "icon README should contain `{needle}`.",
+        );
+    }
+}

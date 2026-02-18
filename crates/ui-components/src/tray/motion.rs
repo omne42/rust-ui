@@ -3,46 +3,9 @@ pub struct TrayMotion {
     pub sheet: crate::sheet::SheetMotion,
 }
 
-fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = TrayMotion::default().sheet.spring;
-
-    ui_motion::spring::SpringConfig {
-        stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
-            value.stiffness
-        } else {
-            default.stiffness
-        },
-        damping: if value.damping.is_finite() && value.damping > 0.0 {
-            value.damping
-        } else {
-            default.damping
-        },
-        mass: if value.mass.is_finite() && value.mass > 0.0 {
-            value.mass
-        } else {
-            default.mass
-        },
-        precision: if value.precision.is_finite() && value.precision > 0.0 {
-            value.precision
-        } else {
-            default.precision
-        },
-    }
-}
-
 pub fn sanitize_motion(motion: TrayMotion) -> TrayMotion {
-    let default = TrayMotion::default();
-    let initial_offset_px = if motion.sheet.initial_offset_px.is_finite() {
-        motion.sheet.initial_offset_px.abs().clamp(0.0, 640.0)
-    } else {
-        default.sheet.initial_offset_px
-    };
-
     TrayMotion {
-        sheet: crate::sheet::SheetMotion {
-            spring: sanitize_spring(motion.sheet.spring),
-            initial_offset_px,
-        },
+        sheet: crate::sheet::motion::sanitize_motion(motion.sheet),
     }
 }
 
@@ -128,5 +91,23 @@ mod tests {
         assert_eq!(motion.sheet.spring.damping, 20.0);
         assert_eq!(motion.sheet.spring.mass, 1.05);
         assert_eq!(motion.sheet.spring.precision, 0.003);
+    }
+
+    #[test]
+    fn sanitize_motion_delegates_to_sheet_contract() {
+        let input = crate::sheet::SheetMotion {
+            spring: ui_motion::spring::SpringConfig {
+                stiffness: f64::NAN,
+                damping: -1.0,
+                mass: 0.0,
+                precision: f64::INFINITY,
+            },
+            initial_offset_px: -9999.0,
+        };
+
+        let motion = sanitize_motion(TrayMotion { sheet: input });
+        let expected = crate::sheet::motion::sanitize_motion(input);
+
+        assert_eq!(motion.sheet, expected);
     }
 }

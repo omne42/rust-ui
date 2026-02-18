@@ -60,7 +60,7 @@ pub const CSS: &str = r#"
   min-width: 0;
   margin: 0;
   padding: 0;
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-150, 0.875rem);
 }
 
 .ui-fieldset--orientation-horizontal .ui-fieldset__legend,
@@ -96,7 +96,7 @@ pub const CSS: &str = r#"
 .ui-fieldset__description,
 .ui-fieldset__error {
   margin: 0;
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 0.75rem);
   line-height: 1.35;
   transition:
     opacity var(--ui-fieldset-motion-duration, 170ms) ease,
@@ -114,7 +114,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-fieldset--custom-class,
-.ui-fieldset[data-custom-class="true"] {
+.ui-fieldset[data-custom-class="true"],
+.ui-fieldset[data-class-source="custom"] {
   outline: 1px solid color-mix(in oklab, var(--ui-accent) 24%, transparent);
   outline-offset: 2px;
 }

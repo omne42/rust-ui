@@ -14,23 +14,44 @@ pub const CSS: &str = r#"
 .ui-image--radius-sm {
   border-radius: var(--ui-radius-sm);
 }
+.ui-image[data-radius="sm"] {
+  border-radius: var(--ui-radius-sm);
+}
 .ui-image--radius-md {
+  border-radius: var(--ui-radius-md);
+}
+.ui-image[data-radius="md"] {
   border-radius: var(--ui-radius-md);
 }
 .ui-image--radius-lg {
   border-radius: var(--ui-radius-lg);
 }
+.ui-image[data-radius="lg"] {
+  border-radius: var(--ui-radius-lg);
+}
 .ui-image--radius-full {
+  border-radius: 999px;
+}
+.ui-image[data-radius="full"] {
   border-radius: 999px;
 }
 
 .ui-image--shadow-none {
   box-shadow: none;
 }
+.ui-image[data-shadow="none"] {
+  box-shadow: none;
+}
 .ui-image--shadow-sm {
   box-shadow: var(--ui-shadow-sm);
 }
+.ui-image[data-shadow="sm"] {
+  box-shadow: var(--ui-shadow-sm);
+}
 .ui-image--shadow-md {
+  box-shadow: var(--ui-shadow-md);
+}
+.ui-image[data-shadow="md"] {
   box-shadow: var(--ui-shadow-md);
 }
 
@@ -78,7 +99,20 @@ pub const CSS: &str = r#"
   z-index: 2;
 }
 
+.ui-image[data-state="loaded"] .ui-image__skeleton {
+  display: none;
+}
+
+.ui-image[data-custom-motion="true"] .ui-image__img {
+  transform: scale(var(--ui-image-zoom, 1));
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ui-image__img {
+    transform: none;
+    will-change: auto;
+  }
+
   .ui-image__skeleton {
     animation: none;
   }
@@ -92,7 +126,6 @@ pub const CSS: &str = r#"
     background-position: -120% 0;
   }
 }
-
 .ui-image[data-loaded="true"] .ui-image__skeleton {
   display: none;
 }

@@ -54,7 +54,10 @@ fn form_docs_page_covers_primary_playgrounds() {
         "title=\"Form\"",
         "slug=\"form\"",
         "description=\"A context provider for form-wide disabled/required/label layout.\"",
-        "<Playground title=\"Label layout context\" code_signal=code>",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "title=\"Comparison Matrix (Default / Required / Disabled / ReadOnly)\"",
+        "test_css_source=form_test_css_source",
+        "test_config_signal=workbench_config",
         "<Form",
     ] {
         assert!(
@@ -69,18 +72,19 @@ fn form_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in [
-        "title=\"Label layout context\"",
-        "required=true",
+        "id_base=\"docs-form-label-position\".to_string()",
+        "id_base=\"docs-form-label-align\".to_string()",
+        "is_required=true",
+        "is_disabled=true",
+        "is_read_only=true",
         "label_position=FormLabelPosition::Left",
         "label_align=FormLabelAlign::End",
-        "id=\"docs-form-name\".to_string()",
-        "label=\"Name\".to_string()",
-        "placeholder=\"Jane\".to_string()",
-        "id=\"docs-form-email\".to_string()",
-        "label=\"Email\".to_string()",
-        "placeholder=\"jane@example.com\".to_string()",
-        "size=InputSize::Md",
-        "variant=InputVariant::Bordered",
+        "class_name=\"docs-form-custom\".to_string()",
+        "title=\"Comparison Matrix (Default / Required / Disabled / ReadOnly)\"",
+        "id=\"docs-form-matrix-default\".to_string()",
+        "id=\"docs-form-matrix-required\".to_string()",
+        "id=\"docs-form-matrix-disabled\".to_string()",
+        "id=\"docs-form-matrix-readonly\".to_string()",
     ] {
         assert!(
             source.contains(needle),

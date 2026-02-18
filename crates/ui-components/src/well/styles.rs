@@ -5,7 +5,8 @@ pub const CSS: &str = r#"
   border: 1px solid var(--ui-border);
   color: var(--ui-fg);
   background: var(--ui-bg-muted);
-  box-shadow: inset 0 1px 0 color-mix(in oklab, white 9%, transparent), var(--ui-shadow-xs);
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--ui-common-white) 9%, transparent),
+    var(--ui-shadow-sm);
 }
 
 .ui-well--density-comfortable,
@@ -37,7 +38,7 @@ pub const CSS: &str = r#"
 
 .ui-well--inset,
 .ui-well[data-inset="true"] {
-  box-shadow: inset 0 1px 0 color-mix(in oklab, white 8%, transparent),
+  box-shadow: inset 0 1px 0 color-mix(in oklab, var(--ui-common-white) 8%, transparent),
     inset 0 0 0 1px color-mix(in oklab, var(--ui-border) 86%, transparent);
 }
 

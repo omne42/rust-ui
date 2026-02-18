@@ -22,24 +22,47 @@ fn color_loupe_does_not_expose_logic_or_view_modules() {
 #[test]
 fn color_loupe_uses_logic_state_model() {
     let logic_source = load_source("src/color_loupe/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/color_loupe.rs");
+    let primitive_lib_source = load_source("../ui-state-primitives/src/lib.rs");
     let view_source = load_source("src/color_loupe/view.rs");
 
     for needle in [
-        "pub const DEFAULT_COLOR",
-        "pub const DEFAULT_ARIA_LABEL",
+        "pub use ui_state_primitives::color_loupe::{",
+        "ColorLoupeState",
+        "ColorLoupeStateInput",
+        "DEFAULT_COLOR",
+        "DEFAULT_ARIA_LABEL",
+        "sanitize_color",
+        "normalize_aria_label",
+        "resolve_state",
+        "pub fn compose_class_name(",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "ColorLoupe logic should bridge ui-state-primitives and include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub struct ColorLoupeStateInput",
+        "pub struct ColorLoupeState",
         "pub fn sanitize_percent(",
         "pub fn sanitize_color(",
         "pub fn normalize_aria_label(",
         "pub fn position_bucket(",
         "pub fn vertical_bucket(",
         "pub fn resolve_state(",
-        "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
-            "ColorLoupe logic should include `{needle}` for centralized state derivation."
+            primitive_source.contains(needle),
+            "ColorLoupe state primitive should define `{needle}` in ui-state-primitives."
         );
     }
+
+    assert!(
+        primitive_lib_source.contains("pub mod color_loupe;"),
+        "ui-state-primitives should export `color_loupe` module."
+    );
 
     for needle in [
         "logic::resolve_state(ColorLoupeStateInput {",
@@ -146,4 +169,39 @@ fn color_loupe_docs_playgrounds_lock_state_matrix_contract_values() {
             "color-loupe docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn color_loupe_check2_marks_core_sections_complete() {
+    let source = load_source("src/color_loupe/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 状态归一化集中",
+        "- [x] 状态可观测、可检索、可验证",
+        "- [x] 测试验证“语义契约”而不只验证视觉快照。",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "ui-state-primitives/src/color_loupe.rs",
+        "crates/ui-components/tests/color_loupe_semantics.rs",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorLoupe check2 should contain completion evidence `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn color_loupe_check2_has_no_unchecked_checklist_items() {
+    let source = load_source("src/color_loupe/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "color_loupe check2 should not keep unchecked checklist items"
+    );
 }

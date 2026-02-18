@@ -2,7 +2,8 @@ use crate::disclosure::{DisclosureIds, DisclosureMotion, logic, motion};
 use leptos::{html, prelude::*};
 use ui_headless as overlay_open;
 use ui_headless::{
-    ButtonOptions, FocusRingOptions, HoverOptions, use_button, use_focus_ring, use_hover,
+    A11yDirection, A11yLocaleAttrs, ButtonOptions, DisclosureTriggerA11yAttrs, FocusRingOptions,
+    HoverOptions, disclosure_trigger_attrs, use_button, use_focus_ring, use_hover,
 };
 
 #[component]
@@ -13,6 +14,8 @@ pub fn Disclosure(
     #[prop(optional)] default_open: Option<bool>,
     #[prop(optional)] on_open_change: Option<Callback<bool>>,
     #[prop(optional)] disabled: bool,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: DisclosureMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
@@ -26,6 +29,18 @@ pub fn Disclosure(
         .filter(|value| !value.trim().is_empty())
         .unwrap_or_else(|| label.clone());
 
+    let is_open_controlled = open.is_some();
+    let open_control_mode = if is_open_controlled {
+        "controlled"
+    } else {
+        "uncontrolled"
+    };
+    let default_open_source = if default_open.is_some() {
+        "prop"
+    } else {
+        "implicit-default"
+    };
+
     let open_state = overlay_open::use_controllable_open_state_traced(
         "disclosure",
         open,
@@ -34,6 +49,12 @@ pub fn Disclosure(
     );
     let open = open_state.open;
     let request_open_change = open_state.request_open_change;
+    let disclosure_a11y: DisclosureTriggerA11yAttrs =
+        disclosure_trigger_attrs(open, panel_id.clone(), lang, dir);
+    let locale = A11yLocaleAttrs {
+        lang: disclosure_a11y.lang.clone(),
+        dir: disclosure_a11y.dir,
+    };
 
     let state = Signal::derive(move || logic::resolve_state(open.get(), disabled));
 
@@ -83,6 +104,10 @@ pub fn Disclosure(
             data-open=move || state.get().is_open.then_some("true")
             data-closed=move || state.get().is_closed.then_some("true")
             data-disabled=move || state.get().is_disabled.then_some("true")
+            data-open-control-mode=open_control_mode
+            data-open-controlled=is_open_controlled.then_some("true")
+            data-open-uncontrolled=(!is_open_controlled).then_some("true")
+            data-default-open-source=default_open_source
             data-motion-source=motion_source
             data-custom-motion=custom_motion
         >
@@ -93,8 +118,8 @@ pub fn Disclosure(
                 id=trigger_id.clone()
                 data-slot="disclosure-trigger"
                 aria-label=aria_label
-                aria-expanded=move || if open.get() { "true" } else { "false" }
-                aria-controls=panel_id.clone()
+                aria-expanded=move || disclosure_a11y.aria_expanded.get()
+                aria-controls=disclosure_a11y.aria_controls.clone()
                 disabled=disabled
                 data-open=move || if open.get() { Some("true") } else { None }
                 data-closed=move || (!open.get()).then_some("true")
@@ -104,6 +129,8 @@ pub fn Disclosure(
                 role=aria.attrs.role
                 tabindex=aria.attrs.tabindex
                 aria-disabled=aria.attrs.aria_disabled
+                lang=locale.lang.clone()
+                dir=locale.dir
                 on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
                 on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
                 on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())

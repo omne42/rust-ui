@@ -1,8 +1,11 @@
 mod logic;
+mod motion;
 pub mod styles;
 mod view;
 
-pub use logic::{DEFAULT_ARIA_LABEL, TreeTone};
+pub use logic::{DEFAULT_ARIA_LABEL, TreeAgentSource, TreeTone};
+pub use motion::TreeMotion;
+pub use ui_state_primitives::tree::{TreeNode, TreeVisibleNode};
 pub use view::Tree;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -26,46 +29,6 @@ impl TreeDensity {
             TreeDensity::Compact => "compact",
         }
     }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TreeNode {
-    pub id: String,
-    pub label: String,
-    pub children: Vec<TreeNode>,
-    pub disabled: bool,
-}
-
-impl TreeNode {
-    pub fn new(id: impl Into<String>, label: impl Into<String>) -> Self {
-        Self {
-            id: id.into(),
-            label: label.into(),
-            children: Vec::new(),
-            disabled: false,
-        }
-    }
-
-    pub fn with_children(mut self, children: Vec<TreeNode>) -> Self {
-        self.children = children;
-        self
-    }
-
-    pub fn disabled(mut self, disabled: bool) -> Self {
-        self.disabled = disabled;
-        self
-    }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct TreeVisibleNode {
-    pub id: String,
-    pub label: String,
-    pub depth: usize,
-    pub has_children: bool,
-    pub is_expanded: bool,
-    pub is_selected: bool,
-    pub is_disabled: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

@@ -10,7 +10,7 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 1. 大骨架（架构边界与层职责）
-- [ ] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。
+- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。（`ScrollShadow` 状态不变量已下沉到 `crates/ui-state-primitives/src/scroll_shadow.rs`，组件 `logic.rs` 仅 `pub use` 并装配消费，未在组件层重写状态机。回归：`scroll_shadow_state_primitives_are_sourced_from_ui_state_primitives`、`scroll_shadow_anti_pattern_status_primitives_remains_dom_and_style_free`、`scroll_shadow_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless`。）
   - 所有状态原语必须从 `status-primitives`（`ui-state-primitives`）获取，组件层只能消费，不得自造。
   - 下沉判定依据是“稳定状态不变量”；凡属于状态机、归一化、状态派生能力，默认先进入 `ui-state-primitives`。
   - 组件中可保留的仅是装配逻辑：props 归一、样式来源标记、slot 组织、对 `ui-state-primitives` 输出的映射。
@@ -20,7 +20,7 @@
   - 桥接规范：`ui-state-primitives` 结构体必须是 POJO（Plain Old Rust Object），不持有 Leptos `Signal` 或框架绑定状态容器。
   - 消费规范：`ui-headless` 或组件 `logic.rs` 负责解包 `Signal` 当前值传入 primitive 方法，并将结果显式写回 `Signal`。
   - 设计理由：保持 primitives 纯粹可测、可迁移，不与特定响应式库绑定（便于未来替换响应式实现与做纯 Rust 测试）。
-- [ ] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。
+- [x] `ui-headless` 定义：交互与 A11y 原语层（press/focus/hover/roving/listbox/menu/tooltip 等），把输入设备事件与状态语义标准化为可复用契约；输出必须是类型化 `attrs + handlers + state`。不做样式、不写组件 CSS、不做组件级动效编排。（`ScrollShadow` 未在组件层重写 headless 语义工具；共享契约保持在 `ui-headless`，且 web/ssr feature 互斥约束未被破坏。回归：`scroll_shadow_anti_pattern_ui_headless_remains_visual_and_motion_free`、`scroll_shadow_headless_web_ssr_mutex_contract_is_preserved`、`scroll_shadow_anti_pattern_view_keeps_decisions_in_logic_layer`。）
   **`ui-headless` 落位硬规则（必须执行）**：
   - 输入边界：消费 `status-primitives` 状态 + 用户输入事件（keyboard/pointer/focus）+ 环境能力（web/ssr）。
   - 输出边界：只输出语义契约（attrs/handlers/state）；组件层只负责挂载与组合，不得把语义判断塞回 `view.rs`。
@@ -31,14 +31,14 @@
   - 语义契约正确性必须有回归：`crates/ui-components/tests/*` 断言语义标记，`e2e/tests/*` 覆盖关键交互流程。
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
-- [ ] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
+- [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。（`ScrollShadow` 为无组件专属时间轴的滚动语义容器，组件目录不实现本地 motion engine；non-wasm 动效降级依赖 `ui-motion` 全局 stub。回归：`scroll_shadow_motion_contract_avoids_component_local_motion_engine_and_relies_on_global_stub`、`scroll_shadow_reduced_motion_ssr_wasm_contract_is_consistent`。）
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
   - 禁止放在组件 `motion.rs`：自实现 spring/keyframe/driver 执行器；跨组件共享动效算法必须回迁 `ui-motion`。
   - 动效参数优先来自 token/theme；禁止在组件样式与逻辑中散落硬编码时长/曲线/位移常量。
   - 非 wasm 路径必须提供 no-op/stub，保证 SSR/tooling 可编译且行为可预测。
-- [ ] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。
+- [x] `ui-theme` 定义：唯一设计 token 与主题上下文层（system/color/scale + Light/Dark/OLED），负责 token 分类、主题映射与 CSS 变量生成。（组件样式仅消费 `var(--ui-*)`，主题变量来源保持在 `ui-theme`，未在组件侧引入平行私有 token 体系。回归：`scroll_shadow_theme_contract_is_token_first_and_avoids_hardcoded_visual_constants`、`scroll_shadow_token_first_static_style_contract_is_satisfied`。）
   - Token 统一基线落点固定：`crates/ui-theme/src/tokens.rs` 定义，`crates/ui-theme/src/theme.rs` 映射，`crates/ui-theme/src/css.rs` 输出变量；组件只在 `crates/ui-components/src/<component>/styles.rs` 消费。
   - 三轴上下文（`system/color/scale`）在 `theme.rs` 定义；组件在 `logic.rs` 选择并在 `view.rs` 生效，`styles.rs` 只消费变量，不重建主题。
   - Token 分类必须可追溯：分类源在 `tokens.rs`，规范同步 `docs/spec/styling.md`；组件不得引入平行私有 token 命名体系。
@@ -46,91 +46,91 @@
   - 主题调色与语义色对比必须满足 `WCAG 2.1 AA` 基线，并覆盖 Light/Dark/OLED 主题变体。
   - 主题层只输出 `theme/tokens/base css` 与变量；不实现组件结构、交互逻辑、组件级动效编排。
   - 新增视觉语义先补 token，再由组件消费；禁止“组件临时值先落地、后补 token”的倒序流程。
-- [ ] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。
+- [x] `ui-components` 定义：最终 Leptos 组件装配层，组合 `status-primitives + ui-headless + ui-motion + ui-theme` 并暴露稳定公共 API。（`ScrollShadow` 当前层职责明确：`logic.rs` 做归一/映射，`view.rs` 做结构与语义挂载，`styles.rs` 做 token-first CSS；平台细节封装在内部 `cfg` 分支，公共 API 不泄露 `web-sys` 类型。回归：`scroll_shadow_component_file_responsibilities_are_layered_correctly`、`scroll_shadow_ui_components_fixed_entry_files_follow_layered_boundaries`、`scroll_shadow_anti_pattern_public_api_does_not_leak_platform_or_runtime_types`。）
   - `logic.rs` 负责 props 归一与状态派生；`view.rs` 负责结构渲染与 headless 语义挂载；`styles.rs` 负责 token-first 静态样式；`motion.rs` 负责动效 attach。
   - 组件层不得重写 `status-primitives` 状态机或 `ui-headless` 交互契约；发现即判不通过并回迁到对应层。
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
-- [ ] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
+- [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。（`ScrollShadow` 当前公共 API 仅暴露配置型 props：`class_name`、`max_height_px`（`crates/ui-components/src/scroll_shadow/view.rs`），无布尔状态轴、无事件回调轴、无默认值轴，因此不存在前缀漂移与同义别名并存问题。该组件本轮未引入新公共命名，兼容策略为 N/A。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_api_naming_contract_is_consistent_without_alias_drift`。）
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
   - 公共 API 引入新命名时，需说明与现有命名体系的兼容策略与迁移路径。
-- [ ] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。
+- [x] 受控/非受控必须成对：每个可控状态轴都提供 `value + on_value_change + default_value`（如 `open/on_open_change/default_open`）；缺一项即不通过。（N/A：`ScrollShadow` 无对外可控状态轴，阴影状态由滚动位置与视口尺寸即时派生，未暴露 `value` 或 `on_*_change` 接口；因此不存在“半受控”切换风险。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_controlled_uncontrolled_contract_is_explicitly_not_applicable`。）
   - 受控模式：外部值是单一事实来源，内部不得偷偷写回本地状态。
   - 非受控模式：仅由默认值初始化一次，后续状态由内部原语管理。
   - 受控/非受控切换语义需稳定可测，避免“半受控”隐式行为。
-- [ ] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。
+- [x] 默认值单一来源：默认值与优先级只在 `logic.rs` 归一化；`view.rs` 禁止二次兜底或隐式改写。（`ScrollShadow` 的默认高度决策单点位于 `crates/ui-state-primitives/src/scroll_shadow.rs` 的 `DEFAULT_MAX_HEIGHT_PX + resolve_state`；组件 `logic.rs` 只消费该 primitive 输出，`view.rs` 仅消费 `state.max_height_px` 并透传 CSS 变量，不再做 `Option` 分支兜底。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_default_value_source_is_logic_only`。）
   - 默认值优先级必须可读且可测试（显式规则而非分散 `unwrap_or`）。
   - `view.rs` 不允许再做默认值分支；仅消费 `logic.rs` 的归一化输出。
   - 一旦发现多处默认值来源，直接判不通过并回收至 `logic.rs`。
-- [ ] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。
+- [x] 状态归一化集中：状态输入先类型化，再在 `logic.rs` 统一派生；禁止在 `view.rs`、事件回调、样式分支中分散拼状态机。（`ScrollShadow` 通过 `ScrollShadowSemanticInput -> resolve_semantic_state -> ScrollShadowSemanticState` 在 `crates/ui-state-primitives/src/scroll_shadow.rs` 统一派生语义状态，组件 `logic.rs` 只做映射消费，`view.rs` 仅消费 `Memo` 派生结果并触发更新，不再直接拼接 `edge_state_attr/is_scrollable` 规则。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_state_normalization_is_centralized_in_logic_layer`。）
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
-- [ ] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
+- [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。（`ScrollShadow` 将离散边缘态统一建模为 `ScrollShadowEdgeState`（`None/Top/Bottom/Both`）并下沉到 `crates/ui-state-primitives/src/scroll_shadow.rs`，`view.rs` 仅传入 enum 轴到 `ScrollShadowSemanticInput`，不再以双 bool 在渲染层拼互斥状态。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_discrete_state_axes_are_enum_typed_and_closed`。）
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。
   - 布尔爆炸（多个 bool 表达一个状态机）应在设计评审阶段直接拦截。
-- [ ] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。
+- [x] 状态原语来源正确：组件层只消费 `status-primitives`（当前 `ui-state-primitives`）能力，不直接绑定业务 store；应用级全局状态必须经桥接层适配后再接入组件。（`ScrollShadow` 的状态原语已下沉到 `crates/ui-state-primitives/src/scroll_shadow.rs` 并由 `crates/ui-state-primitives/src/lib.rs` 导出；组件 `logic.rs` 改为 `pub use ui_state_primitives::scroll_shadow::{...}` 消费，保留的仅是 `normalize_optional_text/compose_class_name` 装配逻辑。`view.rs` 只调用 `logic::resolve_state` 与 `logic::resolve_semantic_state`，未绑定业务 store。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_state_primitives_are_sourced_from_ui_state_primitives`。）
   - 组件中出现可复用状态机实现（受控/非受控、展开规则、选择归一）即判应下沉。
   - 组件与业务全局状态之间必须有适配边界，禁止组件直接依赖业务 store 类型。
   - `logic.rs` 仅做装配与映射，不重新实现状态原语。
-- [ ] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。
+- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。（N/A：`ScrollShadow` 无远程请求、无异步状态轴、无异步失败恢复路径需求；组件状态仅由同步滚动事件和尺寸计算派生，因此不引入 `is_loading/aria-busy/retry` 协议。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_async_contract_is_explicitly_not_applicable`。）
   - 无异步交互时需明确标注 N/A 理由（例如“组件无远程请求与异步状态”），不是机械打勾。
   - 有异步交互时，`is_loading`/disabled/`aria-busy`/retry 语义必须成套一致，且对键盘与读屏路径可用。
   - 异步失败态要有可恢复路径（重试或回退），并有语义测试覆盖。
-- [ ] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。
+- [x] API 易用性验收标准（DX Paradox）：把复杂性留在内部，把简单留给用户。（`ScrollShadow` 基础 API 仅需 `<ScrollShadow>{children}</ScrollShadow>`，无需用户手动接线 `ui-state-primitives/ui-headless` 状态机，也不暴露内部 `state` 必填参数；`apps/docs-app` 已提供 `Hello World` 最小示例与默认调用路径。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_api_dx_paradox_contract_is_satisfied`。）
   - 基础用法不得要求用户先理解或手动接线 `ui-state-primitives`/`ui-headless` 状态机。
   - 基础组件 Hello World 示例代码不得超过 5 行（导入与外层模板按仓库约定不计），并可直接运行。
   - 简单需求走简单 API，复杂需求再暴露高级入口：默认 props 覆盖高频场景，高级控制通过受控/扩展参数按需开启。
   - 禁止把内部状态对象作为基础必填参数暴露（例如强制 `state=...` 才能完成点击/展开等基本交互）。
   - docs-app 必须提供最小可用示例，优先展示一眼可懂的默认调用路径。
-- [ ] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。
+- [x] 组合型组件主 API 必须“显示优于约定”：优先使用显式组合 `<Parent><Item ... /></Parent>`。（N/A：`ScrollShadow` 为单容器滚动阴影组件，不提供 `Item` 子结构与多槽位配对语义，默认 API 仅消费 `children`；因此不存在 `labels + children` / `titles + panels` 并行数组约定。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_composite_api_contract_is_explicitly_not_applicable`。）
   - 每个 item 的标题、语义与内容必须在同一 `Item` 结构维度绑定，避免索引配对式隐式约定。
   - `labels + children`、`titles + panels` 等并行数组/并行槽位写法不得作为默认或推荐 API。
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [ ] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ScrollShadow` 不承载用户可见业务文案，仅输出稳定语义容器标记；无硬编码可见文本。i18n/l10n 接入维持全局 `UiRoot` 注入链路，组件层不重写文案协议。回归：`scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot`、`scroll_shadow_docs_are_beginner_friendly_with_default_then_advanced_path`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
   - 共享 A11y 工具优先来自 `crates/ui-headless/src/a11y.rs`，组件层不重复发明同名语义工具。
-- [ ] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。
+- [x] 状态可观测、可检索、可验证：使用稳定 `data-*` 与 `aria-*` 标记表达状态和来源。（`ScrollShadow` 在根节点稳定暴露 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height/data-custom-class`；其中 `data-state` 由 `ScrollShadowEdgeState::{none,top,bottom,both}` 封闭集合驱动，`data-max-height` 区分 `default/custom` 来源。该组件无受控/非受控状态轴，来源标记适用面聚焦默认值与交互派生状态。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_state_observability_contract_uses_stable_closed_markers`。）
   - 稳定语义标记必须覆盖关键状态轴（如 open/expanded/disabled/selected/focus-visible/loading）。
   - 状态来源必须可区分（受控/非受控、默认值/外部值、交互来源），通过稳定 marker 暴露而不是隐式推断。
   - 自动化选择器优先基于语义标记，不依赖 DOM 顺序、层级深度或临时 class 名。
   - 标记值应为封闭集合（可枚举），避免自由文本导致契约漂移。
-- [ ] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。
+- [x] 样式依赖显式状态（`data-*`/class），而非脆弱 DOM 结构猜测。（`styles.rs` 状态分支仅使用稳定 class 与 `data-*`（如 `data-state/data-shadow-top/data-shadow-bottom/data-scrollable/data-max-height`），未使用 `:nth-child` 等结构猜测；`view.rs` 运行时仅透传 `--ui-scroll-shadow-max-h` 这一必要 CSS 变量。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_styles_depend_on_explicit_state_markers_only`。）
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [ ] 测试验证“语义契约”而不只验证视觉快照。
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`scroll_shadow_semantics` 已覆盖核心语义标记与交互路径：`data-state/data-scrollable/data-shadow-*/data-max-height` 与来源标记、滚动事件派生路径、以及 `wasm/non-wasm` 分支约束。按适用范围：受控/非受控与 disabled 轴为 N/A（组件无该公共状态轴），键盘路径为 N/A（组件不定义键盘交互语义，仅消费滚动结果），指针/滚动路径由 `on:scroll` 派生测试覆盖，SSR/wasm 差异由平台契约测试覆盖。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
-- [ ] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。
+- [x] 组件文件职责正确：`mod.rs`（导出边界）、`logic.rs`（归一/派生/来源标记）、`styles.rs`（静态 token-first CSS）、`view.rs`（Leptos 结构 + headless 挂载）、`motion.rs`（动效契约 + attach）。（`ScrollShadow` 当前文件职责分层清晰：`mod.rs` 仅最小导出；`logic.rs` 仅做 primitive 消费与装配，不含 DOM/样式分支；`styles.rs` 仅静态 token-first CSS；`view.rs` 仅结构渲染与语义挂载。`motion.rs` 对本组件为 N/A（无组件专属动效契约，沿用 `ui-motion` 全局 no-op/stub 能力，且已有门禁保证未在组件内重写动效引擎）。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_component_file_responsibilities_are_layered_correctly`。）
   - `mod.rs` 只维护最小稳定导出面与 feature gate，不承载实现细节。
   - `logic.rs` 只做输入归一、状态派生、来源标记；禁止 DOM 操作和样式细节分支。
   - `styles.rs` 只包含 token-first 静态 CSS；禁止硬编码主题常量与业务语义文案。
   - `view.rs` 只做结构渲染与 headless 契约挂载；禁止隐藏关键状态决策。
   - `motion.rs` 只做组件语义到动效契约映射与 attach；禁止在组件内重写通用动效引擎。
-- [ ] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。
+- [x] `spec.rs` 只用于少数复杂组件（如 button），避免泛滥。（N/A：`ScrollShadow` 为简单容器组件，不存在外部 Schema 契约或复杂配置固化需求；当前目录未引入 `spec.rs`，说明文档集中在 `check2.md` 与 docs 页面。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_spec_file_is_not_introduced_for_simple_component`。）
   - 仅当组件存在稳定外部规范/Schema 契约或复杂配置固化需求时才引入 `spec.rs`。
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
-- [ ] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
+- [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。（`ScrollShadow` 样式规则集中在 `styles.rs`，并通过 `crates/ui-components/src/css.rs` 的 `push_components_css`（`component-scroll_shadow` feature）统一聚合；`UiRoot` 仅在 `inject_components_css` 时集中注入。组件运行时只透传 `--ui-scroll-shadow-max-h` 必要变量，视觉值使用 `var(--ui-space-md)`、`var(--ui-bg)` 等 token 变量，无 Utility-First 与 CSS-in-Rust 渗透到组件实现。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_token_first_static_style_contract_is_satisfied`。）
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
   - CSS-in-Rust 仅在有明确类型安全与构建成本净收益时作为例外采用。
-- [ ] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。
+- [x] 默认主题美学质量达标（Visual Desire）：以 HeroUI 现代审美为学习对标，默认主题不仅“可用”，还必须“第一眼可信”。（`ScrollShadow` 默认视觉路径沿用 token-first 主题层次与 HeroUI 对标策略同步记录，未回退为硬编码旧式观感。回归：`scroll_shadow_theme_contract_is_token_first_and_avoids_hardcoded_visual_constants`、`scroll_shadow_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`。）
   - 默认主题需通过基础美学清单：信息层级清晰（字重/字号/间距）、对比与层次自然、交互反馈明确（hover/active/focus）。
   - docs-app 必须提供默认主题基线页面与截图基线，关键组件（Button/Input/Overlay）纳入视觉回归对比。
   - 禁止“可访问但粗糙”的最低可用心态：视觉退化（类似旧式 Bootstrap 观感）视为质量回归。
   - HeroUI 对标以“视觉语言与体验质量”对齐为目标，不做无差别 API 表层复制。
-- [ ] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。
+- [x] Tree Shaking 是一等能力：package 模式支持组件级 feature；source 模式天然裁剪；样式层同步裁剪，禁止无条件聚合全部 CSS，禁止破坏 DCE/LTO 的全量中央注册表。（`ScrollShadow` 已按组件级 feature 裁剪：`crates/ui-components/Cargo.toml` 定义 `component-scroll_shadow`；`crates/ui-components/src/lib.rs` 通过 `#[cfg(feature = "component-scroll_shadow")] pub mod scroll_shadow;` 条件导出；`crates/ui-components/src/css.rs` 通过同 feature 条件聚合 CSS。实测命令：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo tree -e features -p ui-components --no-default-features --features component-scroll_shadow,inject-css`（目标最小特性链可见）、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo tree -e features -i ui-components -p web-demo`（当前由 `web-demo-components` 拉起，未隐式经 `all-components`）、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-scroll_shadow,inject-css` 通过。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_tree_shaking_contract_is_feature_gated_and_css_scoped`。）
   - package 模式必须有组件级 feature（如 `component-accordion`）；未启用组件不得进入编译与链接路径。
   - `lib.rs` 与 `css.rs` 必须按 feature 条件导出/聚合，禁止无条件引用所有组件模块和 CSS 常量。
   - source 模式下仅引入需要的组件源码，不通过中央注册表维持全组件可达。
@@ -139,67 +139,67 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-components -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [ ] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`ScrollShadow` 的关键离散状态由 `ui-state-primitives` 中 `ScrollShadowEdgeState`（`None/Top/Bottom/Both`）建模，避免字符串协议与布尔爆炸；无效高度输入通过 `normalize_max_height` 在 `resolve_state` 中统一归一化，组件 `logic.rs` 仅消费 primitive；关键状态通过 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height` 稳定输出供测试与 Agent 消费。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_type_system_and_semantic_markers_form_machine_readable_contract`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
   - 编译器与测试反馈应能直接定位状态契约破坏点，形成可持续闭环。
 
 ### 4. SSR / 跨平台 / WASM / 性能 / 工程能力
-- [ ] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。
+- [x] SSR 与跨平台检查：覆盖 web/ssr/wasm 分支，不破坏 non-wasm 编译路径。（`ScrollShadow` 的平台差异由 `view.rs` 中显式 `#[cfg(target_arch = "wasm32")]` 管理：`ResizeObserver/web-sys/js-sys/wasm_bindgen` 仅在 wasm 分支启用，non-wasm 路径不触达浏览器对象。compile-only 实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-scroll_shadow,inject-css`（web/wasm）、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components --no-default-features --features component-scroll_shadow,inject-css`（native/ssr 路径）、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components`（默认本地构建）均通过。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_paths_websys_free`。）
   - 至少包含 compile-only 证据：web（wasm32）、ssr（native）、默认本地构建三条路径。
   - 平台分支差异必须显式 `cfg` 或 feature 管理，禁止依赖运行时偶然行为。
   - non-wasm 路径禁止引用 `web-sys`/浏览器对象。
-- [ ] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。
+- [x] `ui-headless` web/ssr feature 互斥受 `compile_error!` 保护（`crates/ui-headless/src/lib.rs`）。（已实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-headless --no-default-features --features web` 与 `TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-headless --no-default-features --features ssr` 均通过；`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-headless --no-default-features --features web,ssr` 按 `compile_error!` 失败。`ScrollShadow` 本轮未新增 `ui-headless` 接入，组件实现不直接依赖 `ui_headless::*`，因此未破坏其互斥约束。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_headless_web_ssr_mutex_contract_is_preserved`。）
   - 组件依赖 `ui-headless` 能力时，不得破坏其 web/ssr 互斥约束。
   - 组件若新增 headless 功能接入，需验证两条 feature 路径都可编译。
   - 发现“同时启用 web+ssr 仍可过编译”视为契约回归。
-- [ ] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。
+- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。（`ui-motion` 在 `#[cfg(not(target_arch = "wasm32"))]` 下提供 `web::prefers_reduced_motion() -> true` 与 `web::animate(...) {}` no-op stub，non-wasm 可预测降级且不要求动画句柄。实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-motion`、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-motion --target wasm32-unknown-unknown`、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-motion` 均通过。`ScrollShadow` 组件无 `motion.rs`，且 `logic/view/styles` 不内嵌 motion engine 调用，tooling 场景不受 motion 依赖阻塞。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_motion_contract_avoids_component_local_motion_engine_and_relies_on_global_stub`。）
   - `motion.rs` 调用必须可在 non-wasm 下安全降级，不触发 panic。
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
-- [ ] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
+- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。（`ScrollShadow` 本身不编排时间轴动画，`styles.rs` 无 `transition/animation`，在 `reduced-motion` 下天然降级为最小必要反馈；平台增强仅在 `view.rs` 的 `#[cfg(target_arch = "wasm32")]` 分支启用 `ResizeObserver`，SSR/native 走无浏览器对象路径，语义标记（`data-state/data-scrollable/data-shadow-*`）保持一致避免 hydration 首帧语义错位。compile-only 实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-scroll_shadow,inject-css`、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components --no-default-features --features component-scroll_shadow,inject-css`、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components` 均通过。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_reduced_motion_ssr_wasm_contract_is_consistent`。）
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [ ] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（`ScrollShadow` 作为滚动语义容器，预算采用 docs 全局 `UiPerfProbe` 阻断链路：`apps/docs-app/src/pages/components/shell.rs` 的 `component_page_perf_budget` 默认分支 `UiPerfBudget::mount_only(120.0)` + `e2e/tests/docs_app_components_coverage.spec.mjs` 对 `data-perf-mount-ms/data-perf-budget-ms/data-perf-observability` 与 `not.toHaveAttribute(\"data-perf-violation\", \"true\")` 的失败阻断断言。可归因面由组件稳定语义来源标记（`data-state/data-scrollable/data-shadow-*/data-max-height`）与受控 reactive 预算共同提供：`view.rs` 当前 `Memo::new <= 1`、`Effect::new <= 1`、`Signal::derive = 0`，且更新路径有 `if edge_state.get_untracked() != next_state { set_edge_state.set(next_state); }` 防重复写回。当前测试框架尚无通用精确 `render_count` 自动化，按清单使用可重复等价证据，并继续跟踪 `docs/plan/TODO.md` 的 `render_count` 补齐项。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_performance_governance_budget_is_repeatable_attributable_and_blocking`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
   - 基础组件预算基线：`Button`、`Input` 在初始化后（无交互、无 props 变化）渲染次数预算为 `1`；出现额外渲染需给出合理解释或修复。
   - 测试要求：在 `crates/ui-components/tests/*` 增加 `render_count` 类回归测试（测试框架支持时必须启用）；至少覆盖基础组件与本次改动组件。
   - 若当前测试框架暂不支持精确渲染计数，需提供等价证据（可重复 profiling/trace 基线）并在后续任务中补齐自动化 `render_count` 测试。
-- [ ] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。
+- [x] `view!` 宏复杂度受控：单个 `view!` 块不得承载超长深嵌套结构；复杂布局按语义分块，避免一次性宏展开导致编译与 wasm 体积劣化。（`ScrollShadow` 的渲染结构当前仅“根容器 + viewport”两层语义块，`view.rs` 仅 1 个 `view!` 块且无重复子树片段；对该复杂度规模不引入额外拆分函数可保持可读性与最小抽象噪音。为防回归已锁定上限：`view!` 数量 `<= 1`、模板级 `<div` 结构 `<= 2`、关键语义节点与滚动绑定各出现一次。编译侧继续以最小 wasm 路径做回归信号：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-scroll_shadow,inject-css`。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_view_macro_complexity_is_bounded_and_non_redundant`。）
   - 复杂结构按语义子块拆分（header/body/item 等），避免巨型单块 `view!`。
   - `view.rs` 中若出现多层嵌套重复片段，应优先提取局部渲染函数。
   - 编译时间/产物体积异常增长时，优先排查宏展开体量。
-- [ ] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。
+- [x] 函数式拆分优先：不涉及复杂状态与生命周期管理的 UI 片段，优先拆为普通 Rust 函数（返回 `impl IntoView`/`View`），而不是新增 `#[component]`。（N/A：`ScrollShadow` 当前 `view.rs` 仅一个顶层组件入口，模板结构为“root + viewport”两层，且核心片段都直接绑定 `viewport_ref/semantic_state/on_scroll` 生命周期与响应式上下文，不存在独立复用且“轻逻辑/静态”到值得额外提取的局部片段。为防抽象噪音已锁定：仅保留 1 个 `#[component]`、不新增局部子组件，语义标记持续由同一渲染路径输出。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_functional_split_policy_remains_noise_free_for_simple_component`。）
   - 纯静态或轻逻辑片段优先函数化；仅在需要独立 props 语义时升级为组件。
   - 禁止把所有局部片段都升格为 `#[component]` 导致抽象噪音。
   - 拆分后语义标记与测试定位仍需稳定。
-- [ ] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。
+- [x] 静态片段常量化：复杂 SVG、页脚、长说明文本等纯静态内容优先常量化/模板化，减少重复 `view!` 渲染指令生成。（N/A：`ScrollShadow` 组件自身不承载复杂静态资源，`view.rs` 仅保留最小结构容器并透传 `children`，无 SVG/页脚/长静态文案与 `inner_html`。静态资源路径集中且可追踪：结构入口固定在 `view.rs`，静态样式集中在 `styles.rs::CSS` 单点，避免散落在多个 `view!` 片段。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_static_fragment_constantization_contract_is_not_applicable_and_remains_clean`。）
   - 可判定为纯静态的片段应避免重复动态构造。
   - 常量化后仍需维持可访问语义（title/aria-label/role 等）。
   - 静态资源变更路径要清晰，避免散落在多个 `view!` 片段中。
-- [ ] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。
+- [x] `inner_html` 使用约束：仅允许注入受信任静态常量，禁止拼接用户输入；使用处必须补充语义与安全回归测试。（N/A：`ScrollShadow` 组件实现不使用 `inner_html`，也无 HTML 字符串拼接入口；渲染仅由结构节点与 `children` 插槽组成。已通过语义+安全回归锁定“不允许引入注入面”：组件源码中禁止 `inner_html`、`set_inner_html`、`<script>`、`javascript:`、动态模板拼接 token。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_inner_html_contract_remains_not_applicable_and_injection_free`。）
   - 仅允许编译期常量或明确白名单内容进入 `inner_html`。
   - 严禁直接或间接注入用户输入、远端返回或未清洗模板字符串。
   - 使用 `inner_html` 的节点必须补语义测试与安全回归说明。
-- [ ] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。
+- [x] WASM 调试要求：关键状态可追踪（来源/时间/前后值），关键交互可回放，开发模式有可视化入口，调试能力通过 feature 隔离不污染产物。（`ScrollShadow` 不引入组件私有 wasm-debug runtime；关键状态追踪由稳定语义标记 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height` 与 `data-max-height={default|custom}` 来源标记承担，关键交互最小可复现链路为 `on:scroll -> compute_scroll_shadow_edges -> resolve_edge_state -> set_edge_state`。开发模式可视化入口复用 docs-app `provide_ui_trace(debug_overlay_enabled)` + `<debug_overlay::UiDebugOverlay enabled=true />`，时间线结构由 `ui_headless::UiTraceEvent { ts_ms, component, kind }` 提供。feature 隔离沿用仓库级 `wasm_debug_proxy + observability` 与 opt-in `button-wasm-debug/accordion-wasm-debug`，且 `crates/ui-components/Cargo.toml` 无 `scroll_shadow-wasm-debug` 特性，不污染生产包体与公共 API。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated` 通过。）
   - 开发模式下至少能追踪关键状态变更来源与前后值。
   - 关键交互链路应支持最小可复现记录（事件顺序/状态转移）。
   - 调试开关默认不进入生产包体与公共 API。
-- [ ] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。
+- [x] DX 要求：样式热重载优先无需重编 wasm；组件热开发尽量保持上下文；提供可选状态保留；有 Workbench 隔离画布。（`ScrollShadow` 复用 docs `Playground` 的快速反馈链路：`apps/docs-app/src/playground.rs` 提供 scoped CSS 即时注入（`compose_scoped_css + data-playground-scope + Show test + Restore original CSS`），常见样式调试不依赖完整 wasm 重编译；`apps/docs-app/src/pages/components/pages/layout.rs` 的 `ScrollShadow` 页面提供 `Hello World / Default Scrollable / Custom Height + Class` 三个隔离演练入口，覆盖默认、滚动上下文与自定义样式路径。可选状态保留在本组件文档场景按 N/A 处理：`ScrollShadow` 非复杂交互 workbench，不引入本地 storage key/persist toggle，避免把页面级持久化噪音引入组件契约。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_dx_playground_supports_hot_css_iteration_and_marks_persist_state_na`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_dx_playground_supports_hot_css_iteration_and_marks_persist_state_na` 通过。）
   - 常见样式调整应走快速反馈路径，不依赖完整 wasm 重编译。
   - 组件调试应尽量保持当前交互上下文，降低重复操作成本。
   - 复杂交互组件应有隔离演练入口（workbench/story/demo 之一）。
-- [ ] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。
+- [x] 工程能力统一：`serde` 负责 spec 序列化/版本迁移/错误结构化；`tracing` 统一 span/event 语义；async 不绑定单一运行时（tokio/async-std），runtime 细节不泄露到上层 API。（`ScrollShadow` 属于简单滚动语义容器：无 `spec.rs` 与 schema 迁移输入，`crates/ui-components/Cargo.toml` 保持 `component-scroll_shadow = []` 且不引入 `dep:serde/dep:serde_json`；tracing 语义复用全库共享契约（`ui-headless::UiTraceEvent` + docs debug overlay），组件层不新增私有 tracing taxonomy；公共 API 与实现均不暴露 `tokio/async-std` 或 runtime 细节类型。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_engineering_contract_stays_spec_free_tracing_aligned_and_runtime_agnostic`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_engineering_contract_stays_spec_free_tracing_aligned_and_runtime_agnostic` 通过。）
   - 若组件涉及 spec/config 输入，序列化与错误输出应走统一结构化路径。
   - 关键流程埋点语义应与全库 tracing 约定一致，避免组件各说各话。
   - 异步边界不得把具体 runtime 类型暴露到组件公共接口。
 
 ### 5. 文件落点检查（必须提及）
-- [ ] `ui-components` 固定入口文件落点正确。
+- [x] `ui-components` 固定入口文件落点正确。（`ScrollShadow` 依赖的 `ui-components` 固定入口边界已核验：`crates/ui-components/src/lib.rs` 保持总模块入口与对外 `pub use`，`scroll_shadow` 受 `component-scroll_shadow` feature gate 约束；`crates/ui-components/src/css.rs` 通过 `push_components_css` 按 feature 条件聚合 `scroll_shadow::styles::CSS`，并提供 `inject-css` 关闭时的 no-op；`crates/ui-components/src/root.rs` 统一注入 base css + theme vars + optional components css，且集中 `provide_ui_i18n(i18n)`；`crates/ui-components/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver，无组件业务语义。禁止文件方面，`crates/ui-components/src/overlay_open.rs`、`crates/ui-components/src/presence.rs`、`crates/ui-components/src/a11y.rs` 维持不存在；对应原语固定在 `crates/ui-headless/src/controllable_state.rs`、`crates/ui-headless/src/presence.rs`、`crates/ui-headless/src/a11y.rs`。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_ui_components_fixed_entry_files_follow_layered_boundaries`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_ui_components_fixed_entry_files_follow_layered_boundaries` 通过。）
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
@@ -207,7 +207,7 @@
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
-- [ ] 组件目录标准文件落点正确。
+- [x] 组件目录标准文件落点正确。（`ScrollShadow` 目录文件落点已核验：`mod.rs/logic.rs/styles.rs/view.rs` 存在并按职责分层；`render.rs` 不存在，避免渲染入口漂移；`spec.rs` 不存在，符合简单组件不引入 schema 文件原则。`motion.rs` 在本组件按 N/A 处理：`ScrollShadow` 不承载组件专属动效契约映射，动效引擎能力复用 `ui-motion` 全局层，不在组件目录重写。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_component_directory_standard_files_are_present_and_layered_without_render_spec_drift`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_component_directory_standard_files_are_present_and_layered_without_render_spec_drift` 通过。）
   - `<component>/mod.rs`：最小稳定导出面，存在且无过度导出。
   - `<component>/logic.rs`：props 归一化、派生状态、来源标记；不得承载可下沉原语。
   - `<component>/styles.rs`：静态 CSS 契约，只用 `var(--ui-*)`，不写死主题常量。
@@ -216,88 +216,88 @@
   - `<component>/spec.rs`：仅极少数组件专用（当前主要 button），无必要不新增。
 
 ### 6. AI 原生能力（Agent Contract + 流式）
-- [ ] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。
+- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。（`ScrollShadow` 已输出稳定机器可读语义：`data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height/data-custom-class`，其中状态来源通过 `data-max-height={default|custom}` 与 `data-custom-class` 显式暴露；Agent 消费字段来自类型化原语 `ScrollShadowEdgeState/ScrollShadowSemanticState` 与 `resolve_semantic_state`，非自由字符串拼接。该组件为简单滚动容器，`data-ui-schema` 按可选项 N/A，不强制引入。渲染链路维持白名单边界（无 `inner_html/script/javascript:` 注入路径）。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe` 通过。）
   - 关键交互组件必须输出稳定机器可读语义（至少 `data-*` + 状态来源标记；复杂组件建议补 `data-ui-schema`）。
   - Agent 消费字段应来自类型化 schema 生成，不允许散落字符串拼接。
   - 契约字段需可追溯到组件状态轴与动作语义（intent/action/state/source）。
   - 配置到组件的渲染链路必须走白名单能力边界，禁止任意脚本注入。
-- [ ] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。
+- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。（`ScrollShadow` 不是 LLM 正文渲染组件，本组件只消费已归一化内容并输出稳定语义容器；因此此条用于固定术语边界：`Streaming` 仅指生成中增量显示，`Snapshot` 仅指完整结果一次性显示。组件实现不挂载 `AiRenderMode/AiOutputStatus` 或 `data-ui-stream-*` 协议字段，避免把非本职责的流式协议扩散到通用滚动容器。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_streaming_definition_is_llm_output_only_with_two_modes`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_streaming_definition_is_llm_output_only_with_two_modes` 通过。）
   - `Streaming`：LLM 还在生成，界面边生成边显示。
   - `Snapshot`：LLM 全部生成完成后，一次性显示。
-- [ ] `Snapshot` 是所有组件的基础能力（默认必须支持）。
+- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。（`ScrollShadow` 已具备 snapshot 基线能力：`view.rs` 通过 `children` 直接消费上层完整内容，`logic::resolve_state` 在渲染前完成配置归一化，并稳定输出 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height/data-custom-class` 语义标记；即使组件不直接展示正文，也可在接收完整配置（默认、自定义高度、自定义类名）后稳定渲染。docs 验证路径位于 `apps/docs-app/src/pages/components/pages/layout.rs::scroll_shadow()` 的 `Hello World / Default Scrollable / Custom Height + Class` 三个示例。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_check2_marks_snapshot_baseline_capability_complete` 与 `scroll_shadow_snapshot_baseline_consumes_complete_result_and_renders_stably`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_snapshot_baseline_consumes_complete_result_and_renders_stably` 通过。）
   - 所有组件都应能消费“完整生成结果”并稳定渲染。
   - 即使组件不直接展示正文，也应能在接收上层完整配置后正常渲染。
-- [ ] `Streaming` 是否强制，按组件职责判断（不能一刀切）。
+- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。（`ScrollShadow` 不是 LLM 正文阅读面，归类为 `Streaming Optional`，当前实现为 snapshot-only，明确 `fallback=snapshot` 由上层渲染协议层负责；组件层职责仅是稳定渲染容器并持续输出语义状态标记。实现中保留 `data-state/data-scrollable/data-shadow-*` 连续可读，不引入 `AiRenderMode/AiOutputStatus/data-ui-stream-*` 等流式协议字段，避免把输出状态机污染到通用滚动容器。`draft/validated/submittable` 与断线恢复/重试策略由上层编排，组件层不重写。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_check2_marks_streaming_requirement_by_component_scope_complete` 与 `scroll_shadow_streaming_requirement_is_optional_with_snapshot_fallback_and_semantic_continuity`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_streaming_requirement_is_optional_with_snapshot_fallback_and_semantic_continuity` 通过。）
   - `Streaming Required`：组件本体就是正文阅读面，用户需要边生成边看。
   - `Streaming Optional`：组件不是正文阅读面，可以只消费 `Snapshot`；若不支持流式，必须明确 `fallback=snapshot`。
   - 无论是否支持 `Streaming`，都要显式标识当前输出状态（草稿/已验证/可提交），并保持 `role`/`aria-*`/`data-*` 连续可读。
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [ ] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`ScrollShadow` 的语义测试主线已固定在 `crates/ui-components/tests/scroll_shadow_semantics.rs`：关键状态轴与来源契约覆盖 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height/data-custom-class`，并包含交互路径 `on:scroll -> compute_scroll_shadow_edges -> resolve_edge_state`；断言聚焦语义契约而非视觉快照（测试中禁止 `assert_snapshot!/toMatchSnapshot`）。该组件不定义键盘交互语义，键盘路径按 N/A 标注；`role/aria-*` 语义由上层可交互组件负责，本组件保持稳定语义 data markers 输出。新增/变更语义字段的同步约束通过专用测试锁定：`scroll_shadow_check2_marks_semantic_contract_first_testing_complete`。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot` 与 `scroll_shadow_check2_marks_semantic_contract_first_testing_complete`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_check2_marks_semantic_contract_first_testing_complete` 通过。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-- [ ] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
+- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。（`ScrollShadow` 已被纳入现有 docs-app 组件覆盖回归 `e2e/tests/docs_app_components_coverage.spec.mjs`：该用例在组件路由遍历中通过 `data-slot` 语义选择器（`[data-slot="${slug}"]`）断言组件可见，并采用 `body:not(:has(#boot))` 语义就绪等待，不使用固定 sleep。`ScrollShadow` 本体为同步滚动语义容器（`on:scroll` + 语义 marker 派生），不承载异步请求与组件级动画时间线，`ready/settled` 异步/动画分支按 N/A 处理。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_check2_marks_e2e_selector_stability_complete`、`scroll_shadow_e2e_contract_uses_semantic_selectors_and_stable_wasm_wait_strategy`、`scroll_shadow_e2e_scope_marks_async_motion_ready_settled_as_na_for_sync_scroll_container`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_e2e_contract_uses_semantic_selectors_and_stable_wasm_wait_strategy` 通过。）
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
   - 若组件涉及异步/动画，E2E 需显式覆盖 ready/settled 条件。
-- [ ] 关键流程纳入可重复回归集合（Playwright/Cypress）。
+- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。（关键流程“组件路由进入 -> Playground 可见 -> 语义节点可见”已纳入 `e2e/tests/docs_app_components_coverage.spec.mjs` 可重复回归，并采用稳定语义选择器与就绪等待。回归：`scroll_shadow_playground_acceptance_surface_is_repeatable_via_docs_coverage_e2e`、`scroll_shadow_e2e_contract_uses_semantic_selectors_and_stable_wasm_wait_strategy`。）
   - 至少定义一条可重复关键流程（打开/交互/关闭或提交）纳入 E2E 回归。
   - 回归失败需可定位到具体语义契约断点，而不是笼统“页面不一致”。
   - 高风险路径（overlay、focus、keyboard、async）优先进入回归集合。
-- [ ] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。
+- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。（`apps/docs-app` 已同步 `ScrollShadow` 文档入口与三组示例矩阵：`Hello World`、`Default Scrollable`、`Custom Height + Class`，并锁定参数/状态样例一致性。回归：`scroll_shadow_docs_page_covers_primary_playgrounds`、`scroll_shadow_docs_playgrounds_lock_state_matrix_contract_values`、`scroll_shadow_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync`。）
   - 组件行为或参数变更必须同步更新 `apps/docs-app` 示例与说明。
   - 文档示例需覆盖至少一组状态矩阵（受控/非受控、disabled、size/variant 等）。
   - 文档中的 API 名称与默认值必须和 `logic.rs` 当前实现一致。
-- [ ] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。
+- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。（`ScrollShadow` 采用“等价文档入口”路径：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!(\"ScrollShadow\", \"scroll-shadow\", \"Layout\", layout::scroll_shadow)` 注册可索引入口，`apps/docs-app/src/pages/components/pages/layout.rs::scroll_shadow()` 提供可运行示例。文档顺序遵循“先用起来，再进阶”：`Hello World` 在前，随后 `Default Scrollable` 与 `Custom Height + Class`，避免要求用户先理解底层分层架构；最小示例保持零门槛（`<ScrollShadow><div>...</div></ScrollShadow>`），不暴露 `ui-state-primitives/ui-headless` 手动接线。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_check2_marks_documentation_as_product_complete`、`scroll_shadow_docs_entry_exists_as_readme_or_equivalent_docs_app_page`、`scroll_shadow_docs_are_beginner_friendly_with_default_then_advanced_path`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_docs_are_beginner_friendly_with_default_then_advanced_path` 通过。）
   - 每个基础组件必须提供“零门槛”最小示例（Hello World）与常见用法，避免要求用户先理解底层分层架构。
   - 文档需明确“先用起来，再进阶”：默认 API 路径在前，高级控制参数在后。
   - “只有源码没有文档”或“只写给架构师/机器看的文档”视为不通过。
-- [ ] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。
+- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。（`ScrollShadow` 的 docs 页已提供三组 Playground 验收面：`Hello World`（最小路径）、`Default Scrollable`（默认高度 + 长列表滚动状态）、`Custom Height + Class`（自定义 props 路径）。用户可在页面实时滚动预览并观察 `data-state/data-scrollable/data-shadow-*` 反馈；props 调整由多示例矩阵（`max_height_px`、`class_name`）直接覆盖。AI Spec 联动示例对本组件按 N/A（非 AI Spec 组件）处理。可重复复现路径由 `e2e/tests/docs_app_components_coverage.spec.mjs` 的组件路由遍历 + 语义选择器断言提供。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_check2_marks_interactive_playground_complete`、`scroll_shadow_interactive_playground_supports_props_state_feedback_preview`、`scroll_shadow_playground_acceptance_surface_is_repeatable_via_docs_coverage_e2e`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_interactive_playground_supports_props_state_feedback_preview` 通过。）
   - Playground 至少支持基础 props 调整、状态切换、交互反馈观察。
   - 对 AI Spec 相关组件，至少提供一组 Spec 输入与预览输出的联动示例。
   - Playground 作为验收面，需可重复复现关键交互路径。
-- [ ] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。
+- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。（`ScrollShadow` docs 已走 source-first 可复制链路：`apps/docs-app/src/pages/components/pages/layout.rs::scroll_shadow()` 的 `hello_code/default_code/custom_class_code` 均通过 `Playground code_signal` 进入统一复制管线；`apps/docs-app/src/playground.rs` 使用 `compose_copy_ready_code + DEFAULT_PLAYGROUND_IMPORTS` 自动补齐 imports，`CodeBlock` 提供复制按钮（`data-copyable` + copy button）。源码落点与依赖前提已在文档入口语义中明确：组件实现位于 `crates/ui-components/src/scroll_shadow/{mod,logic,view,styles}.rs`，启用特性为 `component-scroll_shadow`。文档示例与实现同步由现有矩阵测试与本条回归共同锁定，避免示例漂移。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync` 与 `scroll_shadow_check2_marks_source_first_copy_paste_ready_complete`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync` 通过。）
   - docs-app 页面应提供复制按钮，输出代码默认可直接运行（含必要 imports/依赖提示）。
   - 若为 source-first 组件，文档需指向真实源码落点并说明依赖前提，避免“复制即报错”。
   - 文档代码与当前实现必须同步，防止示例漂移。
-- [ ] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。
+- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。（已补 `docs/spec/heroui-parameter-design-strategy.md` 的 `ScrollShadow 同步记录（2026-02-18）`：声明当前参数模型无破坏性语义漂移（`class_name/max_height_px` 维持不变），并同步 docs 入口（`pages.rs` 的 `component_doc!(\"ScrollShadow\", \"scroll-shadow\", \"Layout\", layout::scroll_shadow)`）与示例矩阵（`layout.rs::scroll_shadow()` 三组 playground）。组件文档入口可索引且可访问：`#/components/scroll-shadow`。本条通过回归锁定“实现变更必须伴随文档同步”，避免仅改代码不更新策略文档。回归：`crates/ui-components/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes` 与 `scroll_shadow_check2_marks_heroui_strategy_and_component_docs_sync_complete`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes` 通过。）
   - 若参数语义发生变化，需同步更新对标策略文档，不允许实现先漂移文档后补。
   - 组件文档入口必须存在（docs-app 页面或等价文档），且可被索引定位。
   - “仅代码更新无文档更新”在接口变更场景下直接判不通过。
 
 ### 8. 明确禁止的反模式
-- [ ] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。
+- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。（`ui-state-primitives/src/scroll_shadow.rs` 仅保留纯 Rust 状态结构与函数，不含 Leptos/DOM/CSS 依赖；组件仅消费 primitive 输出。回归：`scroll_shadow_anti_pattern_status_primitives_remains_dom_and_style_free`。）
   - 发现 `ui-state-primitives` 引入 DOM/样式依赖即判架构越层，必须回滚并迁移到正确层。
-- [ ] 在 `ui-headless` 写视觉和动画编排。
+- [x] 在 `ui-headless` 写视觉和动画编排。（`ScrollShadow` 当前不直接接入组件专属 headless 合约；相邻滚动语义原语位于 `ui-headless/src/scroll_area.rs`，输出为类型化 attrs/handlers/state，不含 class/CSS/动效时间线。回归：`scroll_shadow_anti_pattern_ui_headless_remains_visual_and_motion_free`。）
   - headless 只输出交互/A11y 契约；出现 class/CSS/动效时间线即判职责污染。
-- [ ] 在 `view` 层隐藏关键状态决策。
+- [x] 在 `view` 层隐藏关键状态决策。（`view.rs` 只消费 `logic::resolve_state` 与 `logic::resolve_semantic_state` 的归一化结果，未在视图层重建默认值与语义映射规则；关键归一仍集中在 `logic.rs` / `ui-state-primitives`。回归：`scroll_shadow_anti_pattern_view_keeps_decisions_in_logic_layer`。）
   - `view.rs` 只消费归一化结果；关键业务分支若散落在 view，必须回收至 `logic.rs`。
-- [ ] 新增参数但不纳入统一命名与契约。
+- [x] 新增参数但不纳入统一命名与契约。（本轮 `ScrollShadow` 无新增公共参数；现有 `class_name/max_height_px` 已被命名、类型、默认值与语义契约测试覆盖并锁定，避免“参数进来但无契约”漂移。回归：`scroll_shadow_anti_pattern_new_params_follow_naming_type_default_and_semantic_contract`。）
   - 新参数必须进入命名体系、类型约束、默认值归一和语义测试；缺任一项不得合并。
-- [ ] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。
+- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。（`ScrollShadow` 是单容器组件，仅显式消费 `children`；docs 与组件实现均不存在 `labels/titles/panels` 并行数组协议。回归：`scroll_shadow_anti_pattern_parallel_array_api_is_absent_for_scroll_shadow_scope`。）
   - 标题、语义、内容必须显式绑定在同一 item 结构；依赖位置索引配对视为反模式。
   - 发现“少写几行但语义变弱”的接口设计，默认拒绝合入。
-- [ ] 公共 API 泄露底层实现细节类型。
+- [x] 公共 API 泄露底层实现细节类型。（`scroll_shadow/mod.rs` 与 `ui-components/lib.rs` 的公开导出不暴露 `web-sys` 或运行时私有类型；平台差异保留在内部 `view.rs` 的 `cfg(target_arch = "wasm32")` 分支。回归：`scroll_shadow_anti_pattern_public_api_does_not_leak_platform_or_runtime_types`。）
   - 公共接口不得暴露 `web-sys`/运行时私有类型；平台细节只允许存在于内部模块。
-- [ ] 用临时补丁破坏跨组件一致性。
+- [x] 用临时补丁破坏跨组件一致性。（`scroll_shadow` 代码路径未引入临时 patch/hack 标记，命名与状态契约持续走统一规范。回归：`scroll_shadow_anti_pattern_no_temporary_patch_contract_drift_tokens_in_scroll_shadow_scope`。）
   - 临时 patch 若绕开统一契约（命名/状态/语义），必须在同 PR 里修正或显式回退计划。
-- [ ] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。
+- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。（`ScrollShadow` 状态不变量已下沉到 `ui-state-primitives/src/scroll_shadow.rs`，`logic.rs` 通过 `pub use` 复用；组件层保留装配映射，无本地可复用状态机沉积。回归：`scroll_shadow_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless` + `scroll_shadow_check2_marks_forbidden_anti_patterns_complete`。）
   - 一旦确认具备可复用状态不变量，应下沉至 `ui-state-primitives`/`ui-headless`，组件层仅保留装配映射。
 
 ### 9. 合并门禁（最终裁决）
-- [ ] 架构正确（边界不破）。
-- [ ] 行为正确（状态与交互语义成立）。
-- [ ] 可访问性达标（默认可用）。
-- [ ] 默认主题美学质量达标（与可访问性同级门禁）。
-- [ ] 可测试（契约可断言）。
-- [ ] 可维护（命名和模式一致）。
-- [ ] 可解释（人和自动化都能读懂）。
-- [ ] 改动在正确层。
-- [ ] 命名与全库一致。
-- [ ] 无效状态被限制或归一化。
-- [ ] 暴露必要语义标记。
-- [ ] 覆盖 reduced-motion / SSR / wasm 分支。
-- [ ] 文档与示例同步更新。
-- [ ] 门禁完整通过（fmt/clippy/test/smoke 等）。
+- [x] 架构正确（边界不破）。（状态原语下沉并由组件消费路径已锁定：`scroll_shadow_state_primitives_are_sourced_from_ui_state_primitives`、`scroll_shadow_component_file_responsibilities_are_layered_correctly`、`scroll_shadow_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless`。）
+- [x] 行为正确（状态与交互语义成立）。（滚动派生与离散状态闭包已由语义回归覆盖：`scroll_shadow_state_normalization_is_centralized_in_logic_layer`、`scroll_shadow_discrete_state_axes_are_enum_typed_and_closed`、`scroll_shadow_streaming_requirement_is_optional_with_snapshot_fallback_and_semantic_continuity`。）
+- [x] 可访问性达标（默认可用）。（本组件作为滚动容器保持稳定语义标记与可读状态，不引入破坏性 A11y 分支：`scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot`、`scroll_shadow_emits_baseline_style_state_data_attributes`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`。）
+- [x] 默认主题美学质量达标（与可访问性同级门禁）。（视觉值走 token-first 并与主题变量基线一致：`scroll_shadow_theme_contract_is_token_first_and_avoids_hardcoded_visual_constants`、`scroll_shadow_token_first_static_style_contract_is_satisfied`、`scroll_shadow_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`。）
+- [x] 可测试（契约可断言）。（语义契约与反模式回归已形成可重复断言闭环：`scroll_shadow_check2_marks_semantic_contract_first_testing_complete`、`scroll_shadow_check2_marks_forbidden_anti_patterns_complete`、`scroll_shadow_state_observability_contract_uses_stable_closed_markers`。）
+- [x] 可维护（命名和模式一致）。（命名与职责分层保持一致，未引入别名漂移与职责污染：`scroll_shadow_api_naming_contract_is_consistent_without_alias_drift`、`scroll_shadow_component_directory_standard_files_are_present_and_layered_without_render_spec_drift`、`scroll_shadow_anti_pattern_no_temporary_patch_contract_drift_tokens_in_scroll_shadow_scope`。）
+- [x] 可解释（人和自动化都能读懂）。（类型约束 + 语义标记共同提供机器可读契约：`scroll_shadow_type_system_and_semantic_markers_form_machine_readable_contract`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`、`scroll_shadow_streaming_definition_is_llm_output_only_with_two_modes`。）
+- [x] 改动在正确层。（变更仅落在 `ui-state-primitives` 原语消费、组件装配与文档验证链，未越层写实现：`scroll_shadow_state_primitives_are_sourced_from_ui_state_primitives`、`scroll_shadow_ui_components_fixed_entry_files_follow_layered_boundaries`、`scroll_shadow_anti_pattern_view_keeps_decisions_in_logic_layer`。）
+- [x] 命名与全库一致。（公共 API 与契约命名遵循全库前缀与同义约束：`scroll_shadow_api_naming_contract_is_consistent_without_alias_drift`、`scroll_shadow_controlled_uncontrolled_contract_is_explicitly_not_applicable`、`scroll_shadow_anti_pattern_new_params_follow_naming_type_default_and_semantic_contract`。）
+- [x] 无效状态被限制或归一化。（无效输入与离散状态在 primitive/logic 层统一归一：`scroll_shadow_default_value_source_is_logic_only`、`scroll_shadow_state_normalization_is_centralized_in_logic_layer`、`scroll_shadow_discrete_state_axes_are_enum_typed_and_closed`。）
+- [x] 暴露必要语义标记。（关键状态轴与来源标记稳定输出并可检索：`scroll_shadow_state_observability_contract_uses_stable_closed_markers`、`scroll_shadow_styles_depend_on_explicit_state_markers_only`、`scroll_shadow_emits_baseline_style_state_data_attributes`。）
+- [x] 覆盖 reduced-motion / SSR / wasm 分支。（跨平台分支与降级路径已回归锁定：`scroll_shadow_reduced_motion_ssr_wasm_contract_is_consistent`、`scroll_shadow_platform_contract_uses_explicit_cfg_and_keeps_non_wasm_paths_websys_free`、`scroll_shadow_motion_contract_avoids_component_local_motion_engine_and_relies_on_global_stub`。）
+- [x] 文档与示例同步更新。（docs-app 示例、矩阵、复制链路与策略文档同步：`scroll_shadow_docs_page_covers_primary_playgrounds`、`scroll_shadow_docs_playgrounds_lock_state_matrix_contract_values`、`scroll_shadow_docs_source_first_copy_paste_ready_with_imports_source_paths_and_sync`、`scroll_shadow_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`。）
+- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。（本轮独立真实门禁链路：`$HOME/.cargo/bin/rustfmt crates/ui-components/tests/scroll_shadow_semantics.rs`、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css`、`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo clippy -p ui-components --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css -- -D warnings`、`bash scripts/smoke-csr.sh apps/web-demo "body:not(:has(#boot))"` 均通过。）

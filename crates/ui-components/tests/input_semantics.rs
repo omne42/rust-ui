@@ -235,3 +235,134 @@ fn input_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn input_performance_governance_contract_is_budgeted_traceable_and_blocking() {
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+    let perf_probe_source = load_source("../../crates/ui-headless/src/perf.rs");
+    let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
+    let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
+    let check2_source = load_source("src/input/check2.md");
+    let todo_source = load_source("../../docs/plan/TODO.md");
+    let view_source = load_source("src/input/view.rs");
+
+    for needle in [
+        "\"button\" => UiPerfBudget {",
+        "max_mount_ms: 24.0,",
+        "max_update_ms: Some(8.0),",
+        "max_heap_kb: Some(384.0),",
+        "\"input\" => UiPerfBudget {",
+        "max_mount_ms: 28.0,",
+        "max_update_ms: Some(10.0),",
+        "max_heap_kb: Some(512.0),",
+    ] {
+        assert!(
+            shell_source.contains(needle),
+            "component shell should keep performance budget token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "data-perf-mount-ms",
+        "data-perf-budget-ms",
+        "data-perf-budget-update-ms",
+        "data-perf-budget-heap-kb",
+        "data-perf-violation",
+        "data-perf-observability",
+        "(mount_ms > budget.max_mount_ms).then_some(\"true\")",
+        "\"mount-plus-budget\"",
+    ] {
+        assert!(
+            perf_probe_source.contains(needle),
+            "UiPerfProbe should expose performance regression marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "toHaveAttribute(\"data-perf-mount-ms\", /[0-9]/);",
+        "toHaveAttribute(\"data-perf-budget-ms\", /[0-9]/);",
+        "toHaveAttribute(\"data-perf-observability\", /mount/);",
+        "not.toHaveAttribute(\"data-perf-violation\", \"true\");",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "docs coverage e2e should enforce perf regression guard `{needle}`."
+        );
+    }
+
+    for needle in [
+        "let trace = ui_headless::use_ui_trace();",
+        "trace.emit(",
+        "fn render_events(trace: ui_headless::UiTrace) -> AnyView",
+    ] {
+        assert!(
+            debug_overlay_source.contains(needle),
+            "debug overlay should keep trace-based performance attribution token `{needle}`."
+        );
+    }
+
+    for needle in [
+        "性能治理：关键路径有预算",
+        "渲染次数预算为 `1`",
+        "render_count",
+        "若当前测试框架暂不支持精确渲染计数",
+        "等价证据",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "Input checklist should keep performance governance marker `{needle}`."
+        );
+    }
+
+    for needle in [
+        "render_count",
+        "建立 `render_count` 自动化回归（Button/Input/Accordion），替换当前 mount-only 等价证据",
+    ] {
+        assert!(
+            todo_source.contains(needle),
+            "performance governance follow-up plan should keep `{needle}`."
+        );
+    }
+
+    for needle in [
+        "logic::resolve_view_state(",
+        "motion::attach_clear_button_motion(",
+        "data-focused=move || is_focused.get().then_some(\"true\")",
+        "data-filled=move || view_state.get().is_filled.then_some(\"true\")",
+        "data-invalid=move || invalid.get().then_some(\"true\")",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Input view should expose state/render/style/motion attribution marker `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn input_performance_check_script_covers_budget_and_follow_up_gates() {
+    let script_source = load_source("../../scripts/check-ui-components-performance.sh");
+
+    for needle in [
+        "cargo test -p ui-components --test input_semantics --no-default-features --features component-input,inject-css input_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui-components --test button_semantics button_performance_governance_contract_is_budgeted_traceable_and_blocking",
+        "cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages",
+        "cargo test -p ui-components --test accordion_semantics perf_render_count_follow_up_is_tracked_in_plan",
+    ] {
+        assert!(
+            script_source.contains(needle),
+            "performance gate script should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn input_check2_has_no_unchecked_items_after_verification() {
+    let source = load_source("src/input/check2.md");
+
+    assert!(
+        !source.contains("- [ ]"),
+        "input/check2.md should not keep unchecked checklist items after completion."
+    );
+}

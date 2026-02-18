@@ -1,6 +1,7 @@
-use crate::image::logic::{ImageStatus, resolve_view_state};
-use crate::image::{ImageMotion, ImageRadius, ImageShadow, motion};
+use crate::image::logic::{self, ImageRadius, ImageShadow, ImageStatus};
+use crate::image::{ImageMotion, motion};
 use leptos::{ev, html, prelude::*};
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn Image(
@@ -15,10 +16,19 @@ pub fn Image(
     #[prop(optional)] motion: ImageMotion,
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] node_ref: NodeRef<html::Img>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let motion = crate::image::motion::sanitize_motion(motion);
-    let src = src.filter(|value| !value.trim().is_empty());
-    let fallback_src = fallback_src.filter(|value| !value.trim().is_empty());
+    let motion_source = if motion == ImageMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let src = logic::normalize_optional_text(src);
+    let fallback_src = logic::normalize_optional_text(fallback_src);
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
+    let alt = StoredValue::new(alt);
 
     let (status, set_status) = signal(if src.is_some() {
         ImageStatus::Loading
@@ -30,7 +40,7 @@ pub fn Image(
     let fallback_src = StoredValue::new(fallback_src);
 
     let view_state = Memo::new(move |_| {
-        resolve_view_state(
+        logic::resolve_view_state(
             src.get_value().as_deref(),
             fallback_src.get_value().as_deref(),
             status.get(),
@@ -40,8 +50,7 @@ pub fn Image(
     });
 
     let base_class = format!("ui-image {} {}", radius.class_name(), shadow.class_name());
-    let class = class_name
-        .filter(|value| !value.trim().is_empty())
+    let class = logic::normalize_optional_text(class_name)
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
@@ -62,8 +71,18 @@ pub fn Image(
             class=class
             node_ref=wrapper_ref
             data-slot="image-wrapper"
+            data-state=move || view_state.get().status_attr
             data-loaded=move || view_state.get().is_loaded.then_some("true")
             data-zoomed=is_zoomed.then_some("true")
+            data-fallback=move || view_state.get().show_fallback.then_some("true")
+            data-skeleton=move || view_state.get().show_skeleton.then_some("true")
+            data-blurred=move || view_state.get().show_blurred.then_some("true")
+            data-radius=radius.as_attr()
+            data-shadow=shadow.as_attr()
+            data-motion-source=motion_source
+            data-custom-motion=(motion_source == "custom").then_some("true")
+            lang=locale.lang.clone()
+            dir=locale.dir
             on:pointerenter=move |_| motion_state.hover.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| motion_state.hover.handlers.on_pointer_leave.run(())
         >
@@ -81,9 +100,8 @@ pub fn Image(
                 <img
                     class="ui-image__fallback"
                     data-slot="image-fallback"
-                    aria-hidden="true"
                     src=move || fallback_src.get_value().unwrap_or_default()
-                    alt=""
+                    alt=move || alt.get_value()
                 />
             </Show>
 
@@ -93,7 +111,7 @@ pub fn Image(
                     data-slot="image"
                     node_ref=node_ref
                     src=move || src.get_value().unwrap_or_default()
-                    alt=alt.clone()
+                    alt=move || alt.get_value()
                     on:load=on_load
                     on:error=on_error
                 />

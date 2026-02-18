@@ -5,16 +5,16 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   gap: var(--ui-space-sm);
-  font-size: 14px;
+  font-size: var(--ui-font-size-150);
   font-weight: 500;
   line-height: 1.2;
 }
 
 .ui-status-light__dot {
-  width: 10px;
-  height: 10px;
+  width: var(--ui-space-sm);
+  height: var(--ui-space-sm);
   flex-shrink: 0;
-  border-radius: 9999px;
+  border-radius: var(--ui-radius-lg);
   background: var(--ui-status-light-dot);
   box-shadow: 0 0 0 1px color-mix(in oklch, var(--ui-fg) 12%, transparent);
 }

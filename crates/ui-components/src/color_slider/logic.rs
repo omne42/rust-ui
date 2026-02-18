@@ -100,6 +100,243 @@ impl ColorSliderChannel {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderControlMode {
+    Controlled,
+    Uncontrolled,
+}
+
+impl ColorSliderControlMode {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Controlled => "controlled",
+            Self::Uncontrolled => "uncontrolled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderValueSource {
+    External,
+    DefaultValue,
+}
+
+impl ColorSliderValueSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::External => "external",
+            Self::DefaultValue => "default_value",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderValueChangeSource {
+    OnValueChange,
+    None,
+}
+
+impl ColorSliderValueChangeSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::OnValueChange => "on_value_change",
+            Self::None => "none",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderDisabledSource {
+    IsDisabled,
+    Disabled,
+    Default,
+}
+
+impl ColorSliderDisabledSource {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::IsDisabled => "is_disabled",
+            Self::Disabled => "disabled",
+            Self::Default => "default",
+        }
+    }
+}
+
+pub struct ColorSliderAccessibilityState {
+    pub is_disabled: bool,
+    pub disabled_source_attr: &'static str,
+}
+
+pub fn normalize_accessibility_state(
+    is_disabled: Option<bool>,
+    disabled: bool,
+) -> ColorSliderAccessibilityState {
+    let source = if is_disabled.is_some() {
+        ColorSliderDisabledSource::IsDisabled
+    } else if disabled {
+        ColorSliderDisabledSource::Disabled
+    } else {
+        ColorSliderDisabledSource::Default
+    };
+
+    ColorSliderAccessibilityState {
+        is_disabled: is_disabled.unwrap_or(disabled),
+        disabled_source_attr: source.as_attr(),
+    }
+}
+
+pub fn source_attr_from_presence(is_custom: bool) -> &'static str {
+    if is_custom { "custom" } else { "default" }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderAgentSchema {
+    V1,
+}
+
+impl ColorSliderAgentSchema {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "ui.color-slider.agent-contract.v1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderAgentSchemaVersion {
+    V1,
+}
+
+impl ColorSliderAgentSchemaVersion {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::V1 => "1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderStreamSupport {
+    Unsupported,
+}
+
+impl ColorSliderStreamSupport {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Unsupported => "unsupported",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderStreamFallback {
+    Snapshot,
+}
+
+impl ColorSliderStreamFallback {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderStreamMode {
+    Snapshot,
+}
+
+impl ColorSliderStreamMode {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderOutputStatus {
+    Verified,
+    Submittable,
+}
+
+impl ColorSliderOutputStatus {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+            Self::Submittable => "submittable",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderIntent {
+    AdjustColorChannel,
+}
+
+impl ColorSliderIntent {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::AdjustColorChannel => "adjust-color-channel",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ColorSliderUiAction {
+    Idle,
+    Focus,
+    Press,
+}
+
+impl ColorSliderUiAction {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            Self::Idle => "idle",
+            Self::Focus => "focus",
+            Self::Press => "press",
+        }
+    }
+}
+
+pub fn resolve_ui_action(is_pressed: bool, is_focused: bool) -> ColorSliderUiAction {
+    if is_pressed {
+        ColorSliderUiAction::Press
+    } else if is_focused {
+        ColorSliderUiAction::Focus
+    } else {
+        ColorSliderUiAction::Idle
+    }
+}
+
+pub struct ColorSliderAgentContract {
+    pub schema_attr: &'static str,
+    pub schema_version_attr: &'static str,
+    pub stream_support_attr: &'static str,
+    pub stream_fallback_attr: &'static str,
+    pub stream_mode_attr: &'static str,
+    pub output_status_attr: &'static str,
+    pub intent_attr: &'static str,
+}
+
+pub fn resolve_agent_contract(has_value_change_handler: bool) -> ColorSliderAgentContract {
+    let output_status = if has_value_change_handler {
+        ColorSliderOutputStatus::Submittable
+    } else {
+        ColorSliderOutputStatus::Verified
+    };
+
+    ColorSliderAgentContract {
+        schema_attr: ColorSliderAgentSchema::V1.as_attr(),
+        schema_version_attr: ColorSliderAgentSchemaVersion::V1.as_attr(),
+        stream_support_attr: ColorSliderStreamSupport::Unsupported.as_attr(),
+        stream_fallback_attr: ColorSliderStreamFallback::Snapshot.as_attr(),
+        stream_mode_attr: ColorSliderStreamMode::Snapshot.as_attr(),
+        output_status_attr: output_status.as_attr(),
+        intent_attr: ColorSliderIntent::AdjustColorChannel.as_attr(),
+    }
+}
+
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
@@ -191,15 +428,8 @@ pub fn resolve_percent(value: f64, min: f64, max: f64) -> f64 {
     }
 }
 
-pub fn parse_value(value: &str) -> Option<f64> {
-    let trimmed = value.trim();
-    (!trimmed.is_empty())
-        .then(|| trimmed.parse::<f64>().ok())
-        .flatten()
-}
-
 pub fn sanitize_track_color(value: Option<String>) -> Option<String> {
-    crate::color_swatch::sanitize_color_value(normalize_optional_text(value))
+    ui_state_primitives::swatch::sanitize_color_value(normalize_optional_text(value))
 }
 
 pub fn compose_inline_style(track_start: Option<&str>, track_end: Option<&str>) -> Option<String> {
@@ -383,8 +613,6 @@ mod tests {
         assert_eq!(value, 360.0);
 
         assert_eq!(resolve_percent(180.0, min, max), 50.0);
-        assert_eq!(parse_value(" 42.5 "), Some(42.5));
-        assert_eq!(parse_value(""), None);
     }
 
     #[test]
@@ -432,5 +660,29 @@ mod tests {
         assert!(class.contains("ui-color-slider--motion-custom"));
         assert!(class.contains("ui-color-slider--track-custom"));
         assert!(class.contains("docs-custom"));
+    }
+
+    #[test]
+    fn accessibility_and_agent_contract_markers_are_closed_sets() {
+        let accessibility = normalize_accessibility_state(Some(false), true);
+        assert!(!accessibility.is_disabled);
+        assert_eq!(accessibility.disabled_source_attr, "is_disabled");
+
+        let accessibility = normalize_accessibility_state(None, true);
+        assert!(accessibility.is_disabled);
+        assert_eq!(accessibility.disabled_source_attr, "disabled");
+
+        let contract = resolve_agent_contract(true);
+        assert_eq!(contract.schema_attr, "ui.color-slider.agent-contract.v1");
+        assert_eq!(contract.schema_version_attr, "1");
+        assert_eq!(contract.stream_support_attr, "unsupported");
+        assert_eq!(contract.stream_fallback_attr, "snapshot");
+        assert_eq!(contract.stream_mode_attr, "snapshot");
+        assert_eq!(contract.output_status_attr, "submittable");
+        assert_eq!(contract.intent_attr, "adjust-color-channel");
+
+        assert_eq!(resolve_ui_action(false, false).as_attr(), "idle");
+        assert_eq!(resolve_ui_action(false, true).as_attr(), "focus");
+        assert_eq!(resolve_ui_action(true, true).as_attr(), "press");
     }
 }

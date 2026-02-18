@@ -2,15 +2,19 @@ pub const CSS: &str = r#"
 .ui-resizable {
   --ui-resizable-split: 50%;
   --ui-resizable-handle-size: 1px;
-  --ui-resizable-hit-size: 0.5rem;
+  --ui-resizable-hit-size: var(--ui-space-xs, 8px);
+  --ui-resizable-panel-duration: var(--ui-text-field-motion-duration, 180ms);
+  --ui-resizable-handle-duration: var(--ui-text-field-motion-duration, 180ms);
+  --ui-resizable-motion-easing: var(--ui-text-field-motion-easing, cubic-bezier(0.2, 0, 0, 1));
   display: flex;
   width: 100%;
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--ui-border-subtle, color-mix(in oklab, currentColor 18%, transparent));
-  border-radius: var(--ui-radius-md, 0.75rem);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-md);
   overflow: hidden;
-  background: var(--ui-bg-surface, color-mix(in oklab, currentColor 4%, transparent));
+  background: var(--ui-bg-muted);
+  color: var(--ui-fg);
 }
 
 .ui-resizable[data-orientation="vertical"] {
@@ -25,6 +29,7 @@ pub const CSS: &str = r#"
 
 .ui-resizable__panel--first {
   flex: 0 0 var(--ui-resizable-split);
+  transition: flex-basis var(--ui-resizable-runtime-panel-duration, var(--ui-resizable-panel-duration)) var(--ui-resizable-motion-easing);
 }
 
 .ui-resizable__panel--second {
@@ -40,10 +45,13 @@ pub const CSS: &str = r#"
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--ui-border-subtle, color-mix(in oklab, currentColor 22%, transparent));
-  color: var(--ui-fg-muted, color-mix(in oklab, currentColor 72%, transparent));
+  background: var(--ui-border);
+  color: var(--ui-fg-muted);
   cursor: col-resize;
   outline: none;
+  transition:
+    background-color var(--ui-resizable-runtime-handle-duration, var(--ui-resizable-handle-duration)) var(--ui-resizable-motion-easing),
+    color var(--ui-resizable-runtime-handle-duration, var(--ui-resizable-handle-duration)) var(--ui-resizable-motion-easing);
 }
 
 .ui-resizable[data-orientation="vertical"] .ui-resizable__handle {
@@ -72,7 +80,7 @@ pub const CSS: &str = r#"
   display: none;
   align-items: center;
   justify-content: center;
-  gap: 0.125rem;
+  gap: var(--ui-space-3xs, 2px);
   z-index: 1;
 }
 
@@ -82,8 +90,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-resizable__handle-dot {
-  width: 0.1875rem;
-  height: 0.1875rem;
+  width: var(--ui-space-3xs, 2px);
+  height: var(--ui-space-3xs, 2px);
   border-radius: 999px;
   background: currentColor;
 }
@@ -95,8 +103,8 @@ pub const CSS: &str = r#"
 .ui-resizable__handle:focus-visible,
 .ui-resizable[data-state="dragging"] .ui-resizable__handle,
 .ui-resizable__handle[data-dragging="true"] {
-  background: var(--ui-accent-solid, color-mix(in oklab, currentColor 52%, transparent));
-  color: var(--ui-accent-contrast, white);
+  background: var(--ui-accent);
+  color: var(--ui-accent-fg);
 }
 
 .ui-resizable--disabled,

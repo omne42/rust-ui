@@ -3,6 +3,7 @@ use crate::alert_banner::{
 };
 use leptos::children::ViewFn;
 use leptos::{html, prelude::*};
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn AlertBanner(
@@ -10,17 +11,27 @@ pub fn AlertBanner(
     #[prop(optional)] fill: AlertBannerFill,
     #[prop(optional, into)] title: Option<String>,
     #[prop(optional, into)] description: Option<String>,
-    #[prop(optional)] hide_icon: bool,
+    #[prop(optional)] is_hide_icon: Option<bool>,
+    #[prop(optional)] hide_icon: Option<bool>,
     #[prop(optional, into)] icon_label: Option<String>,
     #[prop(optional, into)] start_content: Option<ViewFn>,
     #[prop(optional, into)] end_content: Option<ViewFn>,
     #[prop(optional)] motion: AlertBannerMotion,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     children: Children,
 ) -> impl IntoView {
     let title = logic::normalize_optional_text(title);
     let description = logic::normalize_optional_text(description);
     let class_name = logic::normalize_optional_text(class_name);
+    let locale = locale_attrs(lang, dir);
+
+    let (hide_icon, hide_icon_source) = match (is_hide_icon, hide_icon) {
+        (Some(value), _) => (value, "is-hide-icon"),
+        (None, Some(value)) => (value, "hide-icon"),
+        (None, None) => (false, "default"),
+    };
 
     let state =
         logic::resolve_view_state(tone, title.as_deref(), description.as_deref(), hide_icon);
@@ -42,8 +53,14 @@ pub fn AlertBanner(
         .map(str::trim)
         .filter(|v| !v.is_empty())
         .map(|v| v.to_string())
-        .or_else(|| tone.default_icon_label().map(|v| v.to_string()));
-    let icon_label = StoredValue::new(icon_label.unwrap_or_default());
+        .map(|label| (label, "custom"))
+        .or_else(|| {
+            tone.default_icon_label()
+                .map(|label| (label.to_string(), "tone-default"))
+        })
+        .unwrap_or_else(|| (String::new(), "none"));
+    let icon_label_source = icon_label.1;
+    let icon_label = StoredValue::new(icon_label.0);
 
     let start_content = start_content.map(StoredValue::new);
     let end_content = end_content.map(StoredValue::new);
@@ -55,8 +72,14 @@ pub fn AlertBanner(
             data-slot="alert-banner"
             data-tone=tone.class_name().trim_start_matches("ui-alert-banner--tone-")
             data-fill=fill.class_name().trim_start_matches("ui-alert-banner--fill-")
+            data-icon-visible=if state.show_icon { "true" } else { "false" }
+            data-hide-icon=hide_icon.then_some("true")
+            data-hide-icon-source=hide_icon_source
+            data-icon-label-source=icon_label_source
             role=tone.role()
             aria-live=tone.aria_live()
+            lang=locale.lang
+            dir=locale.dir
             data-motion-source=if motion == AlertBannerMotion::default() {
                 "default"
             } else {

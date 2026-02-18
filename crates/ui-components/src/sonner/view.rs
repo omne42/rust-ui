@@ -1,6 +1,7 @@
 use crate::sonner::{SonnerPartStateInput, SonnerPosition, SonnerSlot, SonnerStoreSource, logic};
 use crate::toast::{ToastMotion, ToastStore, ToastStoreOptions, ToastViewport};
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, region_attrs};
 
 #[component]
 pub fn Sonner(
@@ -11,20 +12,21 @@ pub fn Sonner(
     #[prop(optional, into)] class_name: Option<String>,
     #[prop(optional)] motion: ToastMotion,
     #[prop(optional)] store: Option<ToastStore>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
-    let class_name = logic::normalize_optional_text(class_name);
-    let has_custom_class_name = class_name.is_some();
-    let class_name = StoredValue::new(class_name);
+    let motion = crate::sonner::motion::sanitize_motion(motion);
+    let normalized = logic::normalize_props(logic::SonnerNormalizeInput {
+        position,
+        portal,
+        max_toasts,
+        aria_label,
+        class_name,
+        motion,
+    });
+    let class_name = StoredValue::new(normalized.class_name);
+    let region_a11y = region_attrs(normalized.aria_label, lang, dir);
 
-    let (aria_label, has_custom_aria_label) = logic::normalize_aria_label(aria_label);
-    let aria_label = StoredValue::new(aria_label);
-
-    let has_custom_position = position != SonnerPosition::default();
-    let has_custom_portal = portal != logic::DEFAULT_PORTAL;
-    let has_custom_max_toasts = max_toasts != logic::DEFAULT_MAX_TOASTS;
-    let has_custom_motion = motion != ToastMotion::default();
-
-    let normalized_max_toasts = logic::normalize_max_toasts(max_toasts);
     let (store, store_source) = if let Some(provided_store) = store {
         (provided_store, SonnerStoreSource::Provided)
     } else if let Some(context_store) = crate::toast::use_toast_store() {
@@ -32,7 +34,7 @@ pub fn Sonner(
     } else {
         (
             crate::toast::provide_toast_store(ToastStoreOptions {
-                max_toasts: normalized_max_toasts,
+                max_toasts: normalized.max_toasts,
             }),
             SonnerStoreSource::Local,
         )
@@ -40,38 +42,47 @@ pub fn Sonner(
 
     let root_state = logic::resolve_state(SonnerPartStateInput {
         slot: SonnerSlot::Root,
-        position,
-        portal,
-        max_toasts,
-        has_custom_position,
-        has_custom_portal,
-        has_custom_max_toasts,
-        has_custom_aria_label,
-        has_custom_class_name,
-        has_custom_motion,
+        position: normalized.position,
+        portal: normalized.portal,
+        max_toasts: normalized.max_toasts,
+        has_custom_position: normalized.has_custom_position,
+        has_custom_portal: normalized.has_custom_portal,
+        has_custom_max_toasts: normalized.has_custom_max_toasts,
+        has_custom_aria_label: normalized.has_custom_aria_label,
+        has_custom_class_name: normalized.has_custom_class_name,
+        has_custom_motion: normalized.has_custom_motion,
         store_source,
     });
 
     let viewport_state = logic::resolve_state(SonnerPartStateInput {
         slot: SonnerSlot::Viewport,
-        position,
-        portal,
-        max_toasts,
-        has_custom_position,
-        has_custom_portal,
-        has_custom_max_toasts,
-        has_custom_aria_label,
+        position: normalized.position,
+        portal: normalized.portal,
+        max_toasts: normalized.max_toasts,
+        has_custom_position: normalized.has_custom_position,
+        has_custom_portal: normalized.has_custom_portal,
+        has_custom_max_toasts: normalized.has_custom_max_toasts,
+        has_custom_aria_label: normalized.has_custom_aria_label,
         has_custom_class_name: false,
-        has_custom_motion,
+        has_custom_motion: normalized.has_custom_motion,
         store_source,
     });
 
     let root_class_name = logic::compose_class_name(class_name.get_value(), root_state);
     let viewport_class_name = logic::compose_class_name(None, viewport_state);
+    let agent_contract = logic::agent_contract();
 
     view! {
         <section
             class=root_class_name
+            data-ui-schema=agent_contract.schema_attr
+            data-ui-intent=agent_contract.intent_attr
+            data-ui-action-model=agent_contract.action_model_attr
+            data-ui-stream-support=agent_contract.stream_support_attr
+            data-ui-stream-fallback=agent_contract.stream_fallback_attr
+            data-ui-output-status=agent_contract.output_status_attr
+            data-ui-state-axis=agent_contract.state_axis_attr
+            data-ui-source-axis=agent_contract.source_axis_attr
             data-slot=root_state.slot_attr
             data-state=root_state.state_attr
             data-queue=root_state.queue_attr
@@ -96,8 +107,10 @@ pub fn Sonner(
             data-viewport-position=viewport_state.position_attr
             data-viewport-portal=viewport_state.portal_attr
             data-viewport-queue=viewport_state.queue_attr
-            role="region"
-            aria-label=aria_label.get_value()
+            role=region_a11y.role
+            aria-label=region_a11y.aria_label
+            lang=region_a11y.lang
+            dir=region_a11y.dir
         >
             <ToastViewport
                 store=store

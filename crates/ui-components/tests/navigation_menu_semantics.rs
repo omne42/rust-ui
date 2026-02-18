@@ -360,3 +360,55 @@ fn navigation_menu_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn navigation_menu_docs_workbench_exposes_display_config_code_and_css_test_contract() {
+    let source =
+        load_source("../../apps/docs-app/src/pages/components/pages/collections_command.rs");
+
+    for needle in [
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "code_signal=workbench_code",
+        "test_css_source=workbench_test_css",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/navigation_menu/styles.rs\".to_string()",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"navigation-menu-workbench-controls\"",
+        "display: baseline vs configured",
+        "docs-navigation-menu-workbench",
+    ] {
+        assert!(
+            source.contains(needle),
+            "navigation-menu workbench should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn navigation_menu_readme_covers_workbench_display_config_code_css_test_sections() {
+    let source = load_source("src/navigation_menu/README.md");
+
+    for needle in [
+        "# NavigationMenu",
+        "Docs Playground（展示 / Config / Code / CSS Test）",
+        "展示",
+        "Config",
+        "Code",
+        "CSS Test",
+        "对比场景",
+        "Workbench (Display + Config + Code + CSS Test)",
+    ] {
+        assert!(
+            source.contains(needle),
+            "navigation-menu README should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn navigation_menu_check2_has_no_remaining_unchecked_items() {
+    let source = load_source("src/navigation_menu/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "navigation_menu/check2.md still contains unchecked checklist items."
+    );
+}

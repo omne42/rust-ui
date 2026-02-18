@@ -1,9 +1,10 @@
+use crate::OnPress;
 use crate::alert_dialog::{
     AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogPartStateInput, AlertDialogSlot,
     AlertDialogVariant, logic,
 };
+use crate::button::{Button, ButtonVariant};
 use crate::overlay::Overlay;
-use crate::{Button, ButtonVariant, OnPress};
 use leptos::{html, prelude::*};
 
 #[cfg(target_arch = "wasm32")]

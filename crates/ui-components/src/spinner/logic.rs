@@ -1,104 +1,52 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum SpinnerSize {
-    Sm,
-    #[default]
-    Md,
-    Lg,
-}
+use super::motion::{self, SpinnerMotion};
 
-impl SpinnerSize {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            SpinnerSize::Sm => "ui-spinner--size-sm",
-            SpinnerSize::Md => "ui-spinner--size-md",
-            SpinnerSize::Lg => "ui-spinner--size-lg",
-        }
-    }
+pub use ui_state_primitives::spinner::{
+    SpinnerSize, SpinnerState, SpinnerStateInput, compose_class_name, normalize_optional_text,
+    resolve_aria_label, resolve_state,
+};
 
-    pub fn as_str(self) -> &'static str {
-        match self {
-            SpinnerSize::Sm => "sm",
-            SpinnerSize::Md => "md",
-            SpinnerSize::Lg => "lg",
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SpinnerStateInput {
+#[derive(Debug)]
+pub struct SpinnerRenderInput<'a> {
     pub size: SpinnerSize,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
+    pub aria_label: Option<String>,
+    pub class_name: Option<String>,
+    pub motion: SpinnerMotion,
+    pub default_aria_label: &'a str,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SpinnerState {
-    pub size: SpinnerSize,
-    pub size_class: &'static str,
-    pub size_attr: &'static str,
-    pub has_custom_aria_label: bool,
-    pub has_custom_class_name: bool,
-    pub label_source_class: &'static str,
-    pub label_source_attr: &'static str,
-    pub class_source_attr: &'static str,
+#[derive(Debug)]
+pub struct SpinnerRenderState {
+    pub aria_label: String,
+    pub class_name: String,
+    pub state: SpinnerState,
+    pub motion_source: &'static str,
+    pub style_vars: String,
 }
 
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
+pub fn resolve_render_state(input: SpinnerRenderInput<'_>) -> SpinnerRenderState {
+    let class_name = normalize_optional_text(input.class_name);
+    let (aria_label, has_custom_aria_label) =
+        resolve_aria_label(input.aria_label, input.default_aria_label);
 
-pub fn resolve_aria_label(value: Option<String>, default: &str) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        let is_custom = label != default;
-        return (label, is_custom);
-    }
+    let motion = motion::sanitize_motion(input.motion);
+    let motion_source = motion::source_attr(motion);
+    let style = motion::attach_motion(None, motion);
 
-    (default.to_string(), false)
-}
-
-pub fn resolve_state(input: SpinnerStateInput) -> SpinnerState {
-    let (label_source_class, label_source_attr) = if input.has_custom_aria_label {
-        ("ui-spinner--label-custom", "custom")
-    } else {
-        ("ui-spinner--label-default", "default")
-    };
-
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    SpinnerState {
+    let state = resolve_state(SpinnerStateInput {
         size: input.size,
-        size_class: input.size.class_name(),
-        size_attr: input.size.as_str(),
-        has_custom_aria_label: input.has_custom_aria_label,
-        has_custom_class_name: input.has_custom_class_name,
-        label_source_class,
-        label_source_attr,
-        class_source_attr,
+        has_custom_aria_label,
+        has_custom_class_name: class_name.is_some(),
+    });
+
+    let class_name = compose_class_name(class_name, state);
+
+    SpinnerRenderState {
+        aria_label,
+        class_name,
+        state,
+        motion_source,
+        style_vars: style,
     }
-}
-
-pub fn compose_class_name(base_class_name: Option<String>, state: SpinnerState) -> String {
-    let mut classes = vec![
-        "ui-spinner".to_string(),
-        state.size_class.to_string(),
-        state.label_source_class.to_string(),
-    ];
-
-    if state.has_custom_class_name {
-        classes.push("ui-spinner--custom-class".to_string());
-        if let Some(base_class_name) = base_class_name {
-            classes.push(base_class_name);
-        }
-    }
-
-    classes.join(" ")
 }
 
 #[cfg(test)]
@@ -106,83 +54,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn size_mappings_are_stable() {
-        assert_eq!(SpinnerSize::Sm.class_name(), "ui-spinner--size-sm");
-        assert_eq!(SpinnerSize::Md.class_name(), "ui-spinner--size-md");
-        assert_eq!(SpinnerSize::Lg.class_name(), "ui-spinner--size-lg");
-
-        assert_eq!(SpinnerSize::Sm.as_str(), "sm");
-        assert_eq!(SpinnerSize::Md.as_str(), "md");
-        assert_eq!(SpinnerSize::Lg.as_str(), "lg");
-    }
-
-    #[test]
-    fn normalize_optional_text_filters_blank_values() {
-        assert_eq!(normalize_optional_text(None), None);
-        assert_eq!(normalize_optional_text(Some(" \n\t ".to_string())), None);
-        assert_eq!(
-            normalize_optional_text(Some("  custom-spinner  ".to_string())),
-            Some("custom-spinner".to_string())
-        );
-    }
-
-    #[test]
-    fn resolve_aria_label_defaults_and_detects_custom_source() {
-        let default_aria_label = "Loading";
-        assert_eq!(
-            resolve_aria_label(None, default_aria_label),
-            (default_aria_label.to_string(), false)
-        );
-        assert_eq!(
-            resolve_aria_label(Some("  Loading  ".to_string()), default_aria_label),
-            (default_aria_label.to_string(), false)
-        );
-        assert_eq!(
-            resolve_aria_label(Some(" Fetching activity ".to_string()), default_aria_label),
-            ("Fetching activity".to_string(), true)
-        );
-    }
-
-    #[test]
-    fn resolve_state_tracks_source_contracts() {
-        let state = resolve_state(SpinnerStateInput {
-            size: SpinnerSize::Lg,
-            has_custom_aria_label: true,
-            has_custom_class_name: true,
+    fn resolve_render_state_centralizes_default_priority() {
+        let render = resolve_render_state(SpinnerRenderInput {
+            size: SpinnerSize::Md,
+            aria_label: Some("  ".to_string()),
+            class_name: Some(" docs-spinner ".to_string()),
+            motion: SpinnerMotion {
+                rotation_duration_ms: 1200,
+            },
+            default_aria_label: "Loading",
         });
 
-        assert_eq!(state.size, SpinnerSize::Lg);
-        assert_eq!(state.size_class, "ui-spinner--size-lg");
-        assert_eq!(state.size_attr, "lg");
-        assert_eq!(state.label_source_class, "ui-spinner--label-custom");
-        assert_eq!(state.label_source_attr, "custom");
-        assert_eq!(state.class_source_attr, "custom");
-        assert!(state.has_custom_aria_label);
-        assert!(state.has_custom_class_name);
-    }
-
-    #[test]
-    fn compose_class_name_includes_state_markers() {
-        let class_name = compose_class_name(
-            Some("docs-spinner-custom".to_string()),
-            resolve_state(SpinnerStateInput {
-                size: SpinnerSize::Sm,
-                has_custom_aria_label: true,
-                has_custom_class_name: true,
-            }),
+        assert_eq!(render.aria_label, "Loading");
+        assert_eq!(render.state.label_source_attr, "default");
+        assert_eq!(render.state.class_source_attr, "custom");
+        assert_eq!(render.motion_source, "custom");
+        assert!(render.class_name.contains("docs-spinner"));
+        assert!(
+            render
+                .style_vars
+                .contains("--ui-spinner-rotation-duration: 1200ms;")
         );
-
-        for token in [
-            "ui-spinner",
-            "ui-spinner--size-sm",
-            "ui-spinner--label-custom",
-            "ui-spinner--custom-class",
-            "docs-spinner-custom",
-        ] {
-            assert!(
-                class_name.contains(token),
-                "composed class name should include `{token}`"
-            );
-        }
     }
 }

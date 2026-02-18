@@ -1,6 +1,11 @@
 # Rust
 target/
 **/target/
+target-*/
+target_*/
+apps/**/target-*/
+apps/**/target_*/
+.target*
 
 # Upstream references (not committed)
 examples/
@@ -8,6 +13,11 @@ examples/
 # Dist (release artifacts)
 dist/
 .trunk/
+
+# Test artifacts
+e2e/artifacts/
+e2e/test-results/
+/test-results/
 
 # Tauri generated (schemas/mobile projects)
 apps/**/gen/

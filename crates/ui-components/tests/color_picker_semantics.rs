@@ -7,6 +7,11 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn path_exists(rel_path: &str) -> bool {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir.join(rel_path).exists()
+}
+
 #[test]
 fn color_picker_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/color_picker/mod.rs");
@@ -190,4 +195,193 @@ fn color_picker_docs_playgrounds_lock_state_matrix_contract_values() {
             "color-picker docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn color_picker_feature_dependency_chain_supports_minimal_component_builds() {
+    let cargo_toml = load_source("Cargo.toml");
+
+    for needle in [
+        "component-color_picker = [\"component-color_swatch\", \"component-popover\"]",
+        "component-color_swatch = [\"component-illustrated_message\"]",
+    ] {
+        assert!(
+            cargo_toml.contains(needle),
+            "ColorPicker feature dependency chain should include `{needle}` for minimal-feature builds."
+        );
+    }
+}
+
+#[test]
+fn color_picker_view_mounts_locale_and_headless_a11y_contracts() {
+    let source = load_source("src/color_picker/view.rs");
+
+    for needle in [
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "let locale = locale_attrs(lang, dir);",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
+        "ui_headless::aria_controls_when_open(open, panel_id.get_value())",
+        "aria-haspopup=\"dialog\"",
+        "role=\"dialog\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "ColorPicker view should include `{needle}` for locale/a11y contract coverage."
+        );
+    }
+}
+
+#[test]
+fn color_picker_tree_shaking_boundaries_stay_feature_gated() {
+    let lib_source = load_source("src/lib.rs");
+    let css_source = load_source("src/css.rs");
+
+    for needle in [
+        "#[cfg(feature = \"component-color_picker\")]",
+        "pub mod color_picker;",
+        "pub use color_picker::{ColorPicker, ColorPickerMotion};",
+    ] {
+        assert!(
+            lib_source.contains(needle),
+            "ui-components lib boundary should include `{needle}` for ColorPicker feature gating."
+        );
+    }
+
+    for needle in [
+        "#[cfg(feature = \"component-color_picker\")]",
+        "out.push_str(crate::color_picker::styles::CSS);",
+    ] {
+        assert!(
+            css_source.contains(needle),
+            "ui-components css boundary should include `{needle}` for ColorPicker feature gating."
+        );
+    }
+}
+
+#[test]
+fn color_picker_e2e_contract_uses_semantic_selectors_and_settled_waits() {
+    let rel = "../../e2e/tests/docs_app_color_picker_contract.spec.mjs";
+    assert!(
+        path_exists(rel),
+        "color-picker E2E contract file should exist at `{rel}`."
+    );
+
+    let source = load_source(rel);
+    for needle in [
+        "body:not(:has(#boot))",
+        "[data-component=\"color-picker\"]",
+        "#docs-color-picker-basic",
+        "data-slot=\"color-picker\"",
+        "data-slot=\"color-picker-trigger\"",
+        "data-slot=\"color-swatch-picker-option\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-picker E2E contract should include semantic selector/wait marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_picker_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source() {
+    let source = load_source("../../e2e/tests/docs_app_color_picker_contract.spec.mjs");
+
+    for needle in [
+        "page.keyboard.press(\"Enter\")",
+        "page.keyboard.press(\"Escape\")",
+        "await page.reload();",
+        "Show code|Hide code",
+        "data-copyable",
+        "Copy to clipboard",
+    ] {
+        assert!(
+            source.contains(needle),
+            "color-picker E2E contract should include `{needle}` for key-flow and source-copy coverage.",
+        );
+    }
+}
+
+#[test]
+fn color_picker_check2_marks_component_governance_complete() {
+    let check2_source = load_source("src/color_picker/check2.md");
+
+    for needle in [
+        "- [x] `status-primitives` 定义",
+        "- [x] `ui-headless` 定义",
+        "- [x] `ui-motion` 定义",
+        "- [x] `ui-theme` 定义",
+        "- [x] `ui-components` 定义",
+        "- [x] API 命名契约统一",
+        "- [x] 如果无异步相关，直接打勾。",
+        "- [x] 语义测试优先",
+        "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+        "N/A：`ColorPicker` 当前仅包含同步状态轴",
+        "`ColorPicker` 归类为 `Streaming Optional`",
+        "fallback=snapshot",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "color_picker/check2.md should pin completion marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_picker_check2_marks_forbidden_anti_patterns_complete() {
+    let check2_source = load_source("src/color_picker/check2.md");
+
+    for needle in [
+        "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
+        "- [x] 在 `ui-headless` 写视觉和动画编排。",
+        "- [x] 在 `view` 层隐藏关键状态决策。",
+        "- [x] 新增参数但不纳入统一命名与契约。",
+        "- [x] 用并行数组/隐式约定替代显式语义结构（如 `labels + children`）。",
+        "- [x] 公共 API 泄露底层实现细节类型。",
+        "- [x] 用临时补丁破坏跨组件一致性。",
+        "- [x] 明明是跨组件可复用状态原语，却长期留在某个组件 `logic.rs` 不下沉。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "color_picker/check2.md should mark anti-pattern guard `{needle}` as complete.",
+        );
+    }
+}
+
+#[test]
+fn color_picker_check2_marks_final_merge_gates_complete() {
+    let check2_source = load_source("src/color_picker/check2.md");
+
+    for needle in [
+        "- [x] 架构正确（边界不破）。",
+        "- [x] 行为正确（状态与交互语义成立）。",
+        "- [x] 可访问性达标（默认可用）。",
+        "- [x] 默认主题美学质量达标（与可访问性同级门禁）。",
+        "- [x] 可测试（契约可断言）。",
+        "- [x] 可维护（命名和模式一致）。",
+        "- [x] 可解释（人和自动化都能读懂）。",
+        "- [x] 改动在正确层。",
+        "- [x] 命名与全库一致。",
+        "- [x] 无效状态被限制或归一化。",
+        "- [x] 暴露必要语义标记。",
+        "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
+        "- [x] 文档与示例同步更新。",
+        "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
+    ] {
+        assert!(
+            check2_source.contains(needle),
+            "color_picker/check2.md should keep final merge-gate marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn color_picker_check2_has_no_unchecked_checklist_items() {
+    let check2_source = load_source("src/color_picker/check2.md");
+    assert!(
+        !check2_source.contains("- [ ]"),
+        "ColorPicker check2.md should not keep unchecked checklist items after completion."
+    );
 }

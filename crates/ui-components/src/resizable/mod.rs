@@ -7,7 +7,9 @@ pub use logic::ResizableOrientation;
 pub use motion::ResizableMotion;
 pub use view::Resizable;
 
-pub const DEFAULT_ARIA_LABEL: &str = "Resizable panels";
-pub const DEFAULT_SPLIT_PERCENT: f64 = 50.0;
-pub const DEFAULT_MIN_SPLIT_PERCENT: f64 = 10.0;
-pub const DEFAULT_MAX_SPLIT_PERCENT: f64 = 90.0;
+pub const DEFAULT_ARIA_LABEL: &str = ui_state_primitives::resizable::DEFAULT_ARIA_LABEL;
+pub const DEFAULT_SPLIT_PERCENT: f64 = ui_state_primitives::resizable::DEFAULT_SPLIT_PERCENT;
+pub const DEFAULT_MIN_SPLIT_PERCENT: f64 =
+    ui_state_primitives::resizable::DEFAULT_MIN_SPLIT_PERCENT;
+pub const DEFAULT_MAX_SPLIT_PERCENT: f64 =
+    ui_state_primitives::resizable::DEFAULT_MAX_SPLIT_PERCENT;

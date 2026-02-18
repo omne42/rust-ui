@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `workspace`: completes a full gate loop (`cargo fmt --all`, `./scripts/check.sh`, `cargo test --workspace --no-fail-fast`) after fixing docs/semantics regressions in `file_trigger`, `skeleton`, `time_field`, and `tree` contracts so all checks pass together.
+
 - `ui-components`: syncs `button/copy/check2.md` checklist to mark the `spec.rs` rule as satisfied (button remains the only complex component using `spec.rs`).
 
 - `ui-components`: completes button-family namespace consolidation under `button/*` (including `action`, `copy`, and toggle variants), aligns migrated semantics contracts (`search_input_button`, `tag_group`, `upstream_name_parity`), and hardens motion/style hygiene checks so full `./scripts/check.sh` passes end-to-end.

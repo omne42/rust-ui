@@ -1,8 +1,10 @@
+use crate::OnPress;
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use crate::contextual_help::{
     ContextualHelpMotion, ContextualHelpVariant,
     logic::{self, ContextualHelpStateInput},
 };
-use crate::{Button, ButtonSize, ButtonVariant, OnPress, Popover};
+use crate::popover::Popover;
 use leptos::{children::ViewFn, html, prelude::*};
 use ui_headless as overlay_open;
 use ui_headless::PopoverPlacement;

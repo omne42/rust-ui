@@ -170,3 +170,53 @@ fn checkbox_field_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn checkbox_field_minimal_feature_gate_keeps_checkbox_dependency_wired() {
+    let cargo_toml = load_source("Cargo.toml");
+    let view_source = load_source("src/checkbox_field/view.rs");
+
+    assert!(
+        cargo_toml.contains("component-checkbox_field = [\"component-checkbox\"]"),
+        "component-checkbox_field must depend on component-checkbox to keep minimal feature builds valid."
+    );
+
+    assert!(
+        view_source.contains("use crate::checkbox::{Checkbox, CheckboxVariant};"),
+        "checkbox_field view should import checkbox types from crate::checkbox module, not root re-exports."
+    );
+}
+
+#[test]
+fn checkbox_field_docs_include_interactive_playground_contract_panels() {
+    let docs_source =
+        load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=interactive_test_css",
+        "test_config_signal=interactive_config",
+        "controls=move || view!",
+        "test_source_path=\"crates/ui-components/src/checkbox_field/styles.rs\".to_string()",
+    ] {
+        assert!(
+            docs_source.contains(needle),
+            "checkbox-field docs interactive playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn checkbox_field_readme_and_docs_shell_register_display_config_code_css_contract() {
+    let readme_source = load_source("src/checkbox_field/README.md");
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+
+    assert!(
+        readme_source.contains("## Playground 展示区（Display / Config / Code / CSS Test）"),
+        "checkbox-field README should document display/config/code/css test playground layout.",
+    );
+    assert!(
+        shell_source.contains("\"checkbox-field\" => Some(CHECKBOX_FIELD_README_MD)"),
+        "docs shell should map checkbox-field slug to CHECKBOX_FIELD_README_MD.",
+    );
+}

@@ -1,12 +1,22 @@
 pub const CSS: &str = r#"
 .ui-text-field {
+  --ui-text-field-label-font-size: var(--ui-font-size-150);
+  --ui-text-field-meta-font-size: var(--ui-font-size-100);
+  --ui-text-field-focus-outline-width: var(--ui-button-focus-outline-width);
+  --ui-text-field-focus-outline-offset: var(--ui-button-focus-outline-offset);
+  --ui-text-field-control-bg: var(--ui-bg);
+  --ui-text-field-control-bg-hover: color-mix(in oklab, var(--ui-bg-muted) 38%, var(--ui-bg) 62%);
+  --ui-text-field-control-border: var(--ui-border);
+  --ui-text-field-control-border-hover: color-mix(in oklab, var(--ui-border) 62%, var(--ui-fg) 38%);
+  --ui-text-field-control-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ui-border) 74%, transparent);
+
   display: flex;
   flex-direction: column;
   gap: var(--ui-space-xs);
 }
 
 .ui-text-field__label {
-  font-size: 14px;
+  font-size: var(--ui-text-field-label-font-size);
   line-height: 1.2;
   font-weight: 500;
   color: var(--ui-fg);
@@ -18,16 +28,23 @@ pub const CSS: &str = r#"
 
   padding: var(--ui-space-sm) var(--ui-space-md);
 
-  border: 1px solid var(--ui-border);
+  border: 1px solid var(--ui-text-field-control-border);
   border-radius: var(--ui-radius-md);
-  background: var(--ui-bg);
+  background: var(--ui-text-field-control-bg);
   color: var(--ui-fg);
   font: inherit;
+  box-shadow: var(--ui-text-field-control-shadow);
 
   transition:
-    border-color 200ms ease,
-    background-color 200ms ease,
-    outline-color 200ms ease;
+    border-color var(--ui-text-field-motion-duration) var(--ui-text-field-motion-easing),
+    background-color var(--ui-text-field-motion-duration) var(--ui-text-field-motion-easing),
+    outline-color var(--ui-text-field-motion-duration) var(--ui-text-field-motion-easing),
+    box-shadow var(--ui-text-field-motion-duration) var(--ui-text-field-motion-easing);
+}
+
+.ui-text-field__input:hover:not(:disabled):not([readonly]) {
+  border-color: var(--ui-text-field-control-border-hover);
+  background: var(--ui-text-field-control-bg-hover);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -41,8 +58,9 @@ pub const CSS: &str = r#"
 }
 
 .ui-text-field--focus-visible .ui-text-field__input {
-  outline: 3px solid var(--ui-focus-ring);
-  outline-offset: 2px;
+  outline: var(--ui-text-field-focus-outline-width) solid var(--ui-focus-ring);
+  outline-offset: var(--ui-text-field-focus-outline-offset);
+  border-color: color-mix(in oklab, var(--ui-focus-ring) 32%, var(--ui-text-field-control-border) 68%);
 }
 
 .ui-text-field--invalid .ui-text-field__input {
@@ -55,7 +73,7 @@ pub const CSS: &str = r#"
 
 .ui-text-field__description,
 .ui-text-field__error {
-  font-size: 12px;
+  font-size: var(--ui-text-field-meta-font-size);
   line-height: 1.3;
 }
 
@@ -92,6 +110,22 @@ pub const CSS: &str = r#"
 
 .ui-text-field[data-requirement="required"] {
   --ui-text-field-required: 1;
+}
+
+.ui-text-field[data-value-control-mode="controlled"] {
+  --ui-text-field-value-control-mode: controlled;
+}
+
+.ui-text-field[data-default-value-source="custom"] {
+  --ui-text-field-default-value-source: custom;
+}
+
+.ui-text-field[data-value-change-source="on_value_change"] {
+  --ui-text-field-value-change-source: on_value_change;
+}
+
+.ui-text-field[data-value-change-source="set_value"] {
+  --ui-text-field-value-change-source: set_value;
 }
 
 .ui-text-field[data-label-source="custom"] {

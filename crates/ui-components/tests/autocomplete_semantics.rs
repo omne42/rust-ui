@@ -626,3 +626,302 @@ fn autocomplete_docs_playgrounds_lock_state_matrix_contract_values() {
         );
     }
 }
+
+#[test]
+fn autocomplete_docs_page_includes_hello_world_entrypoint() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "<Playground title=\"Hello World\" code_signal=hello_code>",
+        "data-slot=\"autocomplete-hello-world\"",
+        "id_base=\"docs-autocomplete-hello\".to_string()",
+        "data-slot=\"autocomplete-hello-selected\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Autocomplete docs should keep zero-threshold hello-world marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_docs_playground_exposes_semantic_selector_anchors() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "data-slot=\"autocomplete-validation-playground\"",
+        "data-slot=\"autocomplete-controlled-playground\"",
+        "data-slot=\"autocomplete-controlled-open\"",
+        "data-slot=\"autocomplete-controlled-selected\"",
+        "data-slot=\"autocomplete-states-playground\"",
+        "data-slot=\"autocomplete-disabled-playground\"",
+        "data-slot=\"autocomplete-empty-playground\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Autocomplete docs should expose semantic anchor `{needle}` for e2e and contract tests.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_docs_entry_has_readme_streaming_policy_and_source_paths() {
+    let readme_source = load_source("src/autocomplete/README.md");
+
+    for needle in [
+        "# Autocomplete",
+        "## Streaming 策略",
+        "Snapshot",
+        "Streaming Optional",
+        "fallback=snapshot",
+        "## Hello World",
+        "## Source-first",
+        "crates/ui-components/src/autocomplete/{mod,logic,view,styles,motion}.rs",
+        "crates/ui-state-primitives/src/autocomplete.rs",
+    ] {
+        assert!(
+            readme_source.contains(needle),
+            "Autocomplete README should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_styles_depend_on_explicit_state_markers_only() {
+    let source = load_source("src/autocomplete/styles.rs");
+
+    for required in [
+        ".ui-autocomplete[data-empty=\"true\"] .ui-autocomplete__input",
+        ".ui-autocomplete[data-controlled=\"true\"] .ui-autocomplete__control",
+        ".ui-autocomplete[data-has-disabled-options=\"true\"] .ui-autocomplete__listbox",
+        ".ui-autocomplete__panel[data-placement=\"bottom-start\"]",
+    ] {
+        assert!(
+            source.contains(required),
+            "Autocomplete styles should use explicit semantic marker `{required}`.",
+        );
+    }
+
+    for forbidden in [
+        ":nth-child(",
+        ":nth-of-type(",
+        " > * > * > ",
+        " + div + div",
+    ] {
+        assert!(
+            !source.contains(forbidden),
+            "Autocomplete styles should avoid brittle structural selector `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_semantics_suite_is_contract_first_not_snapshot_only() {
+    let source = load_source("tests/autocomplete_semantics.rs");
+    let has_rust_snapshot_macro = source
+        .lines()
+        .any(|line| line.trim_start().starts_with("assert_snapshot!("));
+    let has_js_snapshot_matcher = source
+        .lines()
+        .any(|line| line.trim_start().starts_with("toMatchSnapshot("));
+
+    assert!(
+        !has_rust_snapshot_macro && !has_js_snapshot_matcher,
+        "Autocomplete semantics suite should stay contract-first and avoid snapshot-only assertions."
+    );
+}
+
+#[test]
+fn autocomplete_component_files_are_layered_and_spec_file_is_absent() {
+    let module_source = load_source("src/autocomplete/mod.rs");
+    let logic_source = load_source("src/autocomplete/logic.rs");
+    let styles_source = load_source("src/autocomplete/styles.rs");
+    let view_source = load_source("src/autocomplete/view.rs");
+    let motion_source = load_source("src/autocomplete/motion.rs");
+
+    for needle in [
+        "mod logic;",
+        "pub mod motion;",
+        "pub mod styles;",
+        "mod view;",
+        "pub use motion::AutocompleteMotion;",
+        "pub use view::Autocomplete;",
+    ] {
+        assert!(
+            module_source.contains(needle),
+            "Autocomplete mod.rs should keep layered export marker `{needle}`.",
+        );
+    }
+
+    assert!(
+        !module_source.contains("pub mod logic") && !module_source.contains("pub mod view"),
+        "Autocomplete should not expose internal implementation modules."
+    );
+    assert!(
+        logic_source.contains("pub fn normalize_root_state("),
+        "Autocomplete logic.rs should keep normalization entrypoint."
+    );
+    assert!(
+        styles_source.contains("pub const CSS: &str"),
+        "Autocomplete styles.rs should keep static css contract."
+    );
+    assert!(
+        view_source.contains("#[component]\npub fn Autocomplete("),
+        "Autocomplete view.rs should keep component entrypoint."
+    );
+    assert!(
+        motion_source.contains("pub struct AutocompleteMotion"),
+        "Autocomplete motion.rs should keep motion contract."
+    );
+    assert!(
+        !Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("src/autocomplete/spec.rs")
+            .exists(),
+        "Autocomplete should not add spec.rs for this component scope."
+    );
+}
+
+#[test]
+fn autocomplete_tree_shaking_feature_gates_are_explicit() {
+    let cargo_source = load_source("Cargo.toml");
+    let lib_source = load_source("src/lib.rs");
+    let css_source = load_source("src/css.rs");
+
+    for needle in [
+        "component-autocomplete = [\"component-active_highlight\", \"component-popover\"]",
+        "#[cfg(feature = \"component-autocomplete\")]\npub mod autocomplete;",
+        "#[cfg(feature = \"component-autocomplete\")]\n    out.push_str(crate::autocomplete::styles::CSS);",
+    ] {
+        assert!(
+            cargo_source.contains(needle)
+                || lib_source.contains(needle)
+                || css_source.contains(needle),
+            "Autocomplete tree-shaking contract should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_platform_contract_preserves_headless_mutex_and_motion_stub_references() {
+    let headless_lib = load_source("../ui-headless/src/lib.rs");
+    let motion_lib = load_source("../ui-motion/src/lib.rs");
+    let view_source = load_source("src/autocomplete/view.rs");
+
+    for needle in [
+        "feature = \"web\"",
+        "feature = \"ssr\"",
+        "compile_error!(",
+        "features `web` and `ssr` are mutually exclusive; enable exactly one",
+    ] {
+        assert!(
+            headless_lib.contains(needle),
+            "ui-headless should preserve web/ssr mutex marker `{needle}`.",
+        );
+    }
+
+    for needle in [
+        "#[cfg(not(target_arch = \"wasm32\"))]",
+        "pub fn prefers_reduced_motion() -> bool",
+    ] {
+        assert!(
+            motion_lib.contains(needle),
+            "ui-motion should expose non-wasm fallback marker `{needle}`.",
+        );
+    }
+
+    for forbidden in ["web_sys::", "window()", "document()"] {
+        assert!(
+            !view_source.contains(forbidden),
+            "Autocomplete view should not directly hard-bind browser-only API `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_inner_html_path_is_absent() {
+    let combined = format!(
+        "{}\n{}\n{}\n{}",
+        load_source("src/autocomplete/logic.rs"),
+        load_source("src/autocomplete/view.rs"),
+        load_source("src/autocomplete/styles.rs"),
+        load_source("src/autocomplete/motion.rs")
+    );
+
+    for forbidden in ["inner_html", "<script", "javascript:"] {
+        assert!(
+            !combined.contains(forbidden),
+            "Autocomplete should avoid unsafe html injection marker `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_autocomplete_contract.spec.mjs");
+    let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "body:not(:has(#boot))",
+        "#docs-autocomplete-controlled-input",
+        "data-slot=\"autocomplete-controlled-open\"",
+        "data-slot=\"autocomplete-controlled-selected\"",
+        "[data-slot=\"autocomplete-option\"]",
+        "toHaveAttribute(\"data-controlled\", \"true\")",
+    ] {
+        assert!(
+            e2e_source.contains(needle) || docs_source.contains(needle),
+            "Autocomplete e2e/docs contract should include `{needle}`.",
+        );
+    }
+
+    for forbidden in ["waitForTimeout(", "setTimeout("] {
+        assert!(
+            !e2e_source.contains(forbidden),
+            "Autocomplete e2e should avoid brittle wait primitive `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_e2e_key_flow_is_repeatable_with_semantic_breakpoints() {
+    let e2e_source = load_source("../../e2e/tests/docs_app_autocomplete_contract.spec.mjs");
+
+    for needle in [
+        "docs-app autocomplete key flow is repeatable with semantic contract breakpoints",
+        "await controlledInput.fill(\"Shen\")",
+        "await option.click()",
+        "await expect(selectedMarker).toHaveText(\"selected: 3\")",
+        "await page.reload()",
+        "selected: 2",
+    ] {
+        assert!(
+            e2e_source.contains(needle),
+            "Autocomplete e2e repeatable flow should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_heroui_strategy_and_docs_entry_stay_in_sync() {
+    let strategy_source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
+    let docs_catalog_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
+
+    for needle in [
+        "### Autocomplete 同步记录（2026-02-18）",
+        "component_doc!(\"Autocomplete\", \"autocomplete\", \"Collections\", collections::autocomplete)",
+    ] {
+        assert!(
+            strategy_source.contains(needle) || docs_catalog_source.contains(needle),
+            "Autocomplete HeroUI/doc sync should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn autocomplete_check2_has_no_unchecked_checklist_items() {
+    let checklist = load_source("src/autocomplete/check2.md");
+    assert!(
+        !checklist.contains("- [ ]"),
+        "Autocomplete checklist should be fully checked after stepwise verification.",
+    );
+}

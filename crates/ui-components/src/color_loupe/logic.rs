@@ -1,97 +1,8 @@
-use crate::color_loupe::{ColorLoupeState, ColorLoupeStateInput};
-
-pub const DEFAULT_COLOR: &str = "#3b82f6";
-pub const DEFAULT_ARIA_LABEL: &str = "Color loupe";
-pub const DEFAULT_POSITION_PERCENT: f32 = 50.0;
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-pub fn sanitize_percent(value: f32) -> f32 {
-    if value.is_finite() {
-        value.clamp(0.0, 100.0)
-    } else {
-        DEFAULT_POSITION_PERCENT
-    }
-}
-
-pub fn sanitize_color(color: Option<String>) -> Option<String> {
-    crate::color_swatch::sanitize_color_value(normalize_optional_text(color))
-}
-
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(aria_label) = normalize_optional_text(value) {
-        return (aria_label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
-}
-
-pub fn position_bucket(value: f32) -> (&'static str, &'static str) {
-    if value <= 33.333 {
-        ("start", "ui-color-loupe--x-start")
-    } else if value >= 66.667 {
-        ("end", "ui-color-loupe--x-end")
-    } else {
-        ("center", "ui-color-loupe--x-center")
-    }
-}
-
-pub fn vertical_bucket(value: f32) -> (&'static str, &'static str) {
-    if value <= 33.333 {
-        ("start", "ui-color-loupe--y-start")
-    } else if value >= 66.667 {
-        ("end", "ui-color-loupe--y-end")
-    } else {
-        ("center", "ui-color-loupe--y-center")
-    }
-}
-
-pub fn resolve_state(input: ColorLoupeStateInput) -> ColorLoupeState {
-    let x_percent = sanitize_percent(input.x_percent);
-    let y_percent = sanitize_percent(input.y_percent);
-    let (x_bucket_attr, x_bucket_class) = position_bucket(x_percent);
-    let (y_bucket_attr, y_bucket_class) = vertical_bucket(y_percent);
-
-    let is_open = input.open && !input.disabled;
-    let data_state_attr = if input.disabled {
-        "disabled"
-    } else if is_open {
-        "open"
-    } else if input.has_color {
-        "color"
-    } else {
-        "idle"
-    };
-
-    ColorLoupeState {
-        is_open,
-        is_disabled: input.disabled,
-        has_color: input.has_color,
-        x_percent,
-        y_percent,
-        x_bucket_class,
-        y_bucket_class,
-        x_bucket_attr,
-        y_bucket_attr,
-        data_state_attr,
-        aria_source_attr: if input.has_custom_aria_label {
-            "custom"
-        } else {
-            "default"
-        },
-        class_source_attr: if input.has_custom_class_name {
-            "custom"
-        } else {
-            "default"
-        },
-        has_custom_class_name: input.has_custom_class_name,
-    }
-}
+pub use ui_state_primitives::color_loupe::{
+    ColorLoupeState, ColorLoupeStateInput, DEFAULT_ARIA_LABEL, DEFAULT_COLOR,
+    DEFAULT_POSITION_PERCENT, normalize_aria_label, normalize_optional_text, resolve_state,
+    sanitize_color,
+};
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ColorLoupeState) -> String {
     let mut classes = vec![
@@ -121,14 +32,6 @@ pub fn compose_class_name(base_class_name: Option<String>, state: ColorLoupeStat
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn sanitize_percent_clamps_and_falls_back_for_invalid_numbers() {
-        assert_eq!(sanitize_percent(-1.0), 0.0);
-        assert_eq!(sanitize_percent(38.5), 38.5);
-        assert_eq!(sanitize_percent(101.0), 100.0);
-        assert_eq!(sanitize_percent(f32::NAN), DEFAULT_POSITION_PERCENT);
-    }
 
     #[test]
     fn sanitize_color_rejects_unsafe_values() {

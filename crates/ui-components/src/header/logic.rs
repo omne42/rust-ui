@@ -1,78 +1,7 @@
-use crate::header::{HeaderState, HeaderStateInput};
-
-pub const DEFAULT_ARIA_LABEL: &str = "Header";
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum HeaderTone {
-    #[default]
-    Default,
-    Strong,
-}
-
-impl HeaderTone {
-    pub fn class_name(self) -> &'static str {
-        match self {
-            HeaderTone::Default => "ui-header--tone-default",
-            HeaderTone::Strong => "ui-header--tone-strong",
-        }
-    }
-
-    pub fn as_attr(self) -> &'static str {
-        match self {
-            HeaderTone::Default => "default",
-            HeaderTone::Strong => "strong",
-        }
-    }
-}
-
-pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
-    value.and_then(|value| {
-        let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
-    })
-}
-
-pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
-    if let Some(label) = normalize_optional_text(value) {
-        return (label, true);
-    }
-
-    (DEFAULT_ARIA_LABEL.to_string(), false)
-}
-
-pub fn resolve_state(input: HeaderStateInput) -> HeaderState {
-    let aria_source_attr = if input.has_custom_aria_label {
-        "custom"
-    } else {
-        "default"
-    };
-    let class_source_attr = if input.has_custom_class_name {
-        "custom"
-    } else {
-        "default"
-    };
-
-    let data_state_attr = if input.bordered && input.tone == HeaderTone::Strong {
-        "strong-bordered"
-    } else if input.bordered {
-        "bordered"
-    } else if input.tone == HeaderTone::Strong {
-        "strong"
-    } else {
-        "default"
-    };
-
-    HeaderState {
-        tone: input.tone,
-        tone_class: input.tone.class_name(),
-        tone_attr: input.tone.as_attr(),
-        is_bordered: input.bordered,
-        data_state_attr,
-        aria_source_attr,
-        class_source_attr,
-        has_custom_class_name: input.has_custom_class_name,
-    }
-}
+pub use ui_state_primitives::header::{
+    DEFAULT_ARIA_LABEL, HeaderState, HeaderStateInput, HeaderTone, normalize_aria_label,
+    normalize_optional_text, resolve_state,
+};
 
 pub fn compose_class_name(base_class_name: Option<String>, state: HeaderState) -> String {
     let mut classes = vec!["ui-header".to_string(), state.tone_class.to_string()];
@@ -91,54 +20,146 @@ pub fn compose_class_name(base_class_name: Option<String>, state: HeaderState) -
     classes.join(" ")
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HeaderAgentAction {
+    StaticHeader,
+}
+
+impl HeaderAgentAction {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::StaticHeader => "static-header",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HeaderAgentState {
+    Default,
+    Strong,
+    Bordered,
+    StrongBordered,
+}
+
+impl HeaderAgentState {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Strong => "strong",
+            Self::Bordered => "bordered",
+            Self::StrongBordered => "strong-bordered",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HeaderAgentSource {
+    ImplicitDefault,
+    PropsStrong,
+}
+
+impl HeaderAgentSource {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::ImplicitDefault => "implicit-default",
+            Self::PropsStrong => "props-strong",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HeaderAgentStreamSupport {
+    Unsupported,
+}
+
+impl HeaderAgentStreamSupport {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Unsupported => "unsupported",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HeaderAgentStreamFallback {
+    Snapshot,
+}
+
+impl HeaderAgentStreamFallback {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Snapshot => "snapshot",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum HeaderAgentOutputStatus {
+    Verified,
+}
+
+impl HeaderAgentOutputStatus {
+    pub const fn as_attr(self) -> &'static str {
+        match self {
+            Self::Verified => "verified",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HeaderAgentContract {
+    pub schema_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub action: HeaderAgentAction,
+    pub state: HeaderAgentState,
+    pub source: HeaderAgentSource,
+    pub stream_support: HeaderAgentStreamSupport,
+    pub stream_fallback: HeaderAgentStreamFallback,
+    pub output_status: HeaderAgentOutputStatus,
+}
+
+pub fn resolve_agent_contract(state: HeaderState) -> HeaderAgentContract {
+    let tone_source = if state.tone == HeaderTone::Strong {
+        HeaderAgentSource::PropsStrong
+    } else {
+        HeaderAgentSource::ImplicitDefault
+    };
+
+    let state_axis = if state.is_bordered && state.tone == HeaderTone::Strong {
+        HeaderAgentState::StrongBordered
+    } else if state.is_bordered {
+        HeaderAgentState::Bordered
+    } else if state.tone == HeaderTone::Strong {
+        HeaderAgentState::Strong
+    } else {
+        HeaderAgentState::Default
+    };
+
+    HeaderAgentContract {
+        schema_attr: "ui.header",
+        intent_attr: "section-heading",
+        action: HeaderAgentAction::StaticHeader,
+        state: state_axis,
+        source: tone_source,
+        stream_support: HeaderAgentStreamSupport::Unsupported,
+        stream_fallback: HeaderAgentStreamFallback::Snapshot,
+        output_status: HeaderAgentOutputStatus::Verified,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn header_tone_contract_is_stable() {
-        assert_eq!(HeaderTone::Default.class_name(), "ui-header--tone-default");
-        assert_eq!(HeaderTone::Strong.class_name(), "ui-header--tone-strong");
-
-        assert_eq!(HeaderTone::Default.as_attr(), "default");
-        assert_eq!(HeaderTone::Strong.as_attr(), "strong");
-    }
-
-    #[test]
-    fn normalize_optional_text_trims_and_drops_blank_values() {
-        assert_eq!(normalize_optional_text(None), None);
-        assert_eq!(normalize_optional_text(Some("\n\t  ".to_string())), None);
-        assert_eq!(
-            normalize_optional_text(Some("  docs-header  ".to_string())),
-            Some("docs-header".to_string())
-        );
-    }
-
-    #[test]
-    fn normalize_aria_label_uses_fallback_when_missing() {
-        let (label, custom) = normalize_aria_label(Some("  Dialog Header  ".to_string()));
-        assert_eq!(label, "Dialog Header");
+    fn state_primitives_are_reexported_from_ui_state_primitives() {
+        let (label, custom) = normalize_aria_label(Some("  Header area  ".to_string()));
+        assert_eq!(label, "Header area");
         assert!(custom);
 
-        let (label, custom) = normalize_aria_label(Some("  ".to_string()));
+        let (label, custom) = normalize_aria_label(Some(" ".to_string()));
         assert_eq!(label, DEFAULT_ARIA_LABEL);
         assert!(!custom);
-    }
-
-    #[test]
-    fn resolve_state_tracks_flags_and_sources() {
-        let state = resolve_state(HeaderStateInput {
-            tone: HeaderTone::Strong,
-            bordered: true,
-            has_custom_aria_label: true,
-            has_custom_class_name: false,
-        });
-
-        assert_eq!(state.tone_attr, "strong");
-        assert!(state.is_bordered);
-        assert_eq!(state.data_state_attr, "strong-bordered");
-        assert_eq!(state.aria_source_attr, "custom");
-        assert_eq!(state.class_source_attr, "default");
     }
 
     #[test]
@@ -151,7 +172,6 @@ mod tests {
         });
 
         let class_name = compose_class_name(Some("docs-header-custom".to_string()), state);
-
         for token in [
             "ui-header",
             "ui-header--tone-default",
@@ -159,10 +179,27 @@ mod tests {
             "ui-header--custom-class",
             "docs-header-custom",
         ] {
-            assert!(
-                class_name.contains(token),
-                "composed class should include `{token}`"
-            );
+            assert!(class_name.contains(token), "class should include `{token}`");
         }
+    }
+
+    #[test]
+    fn resolve_agent_contract_uses_tone_and_bordered_axes() {
+        let state = resolve_state(HeaderStateInput {
+            tone: HeaderTone::Strong,
+            bordered: true,
+            has_custom_aria_label: false,
+            has_custom_class_name: false,
+        });
+        let contract = resolve_agent_contract(state);
+
+        assert_eq!(contract.schema_attr, "ui.header");
+        assert_eq!(contract.intent_attr, "section-heading");
+        assert_eq!(contract.action.as_attr(), "static-header");
+        assert_eq!(contract.state.as_attr(), "strong-bordered");
+        assert_eq!(contract.source.as_attr(), "props-strong");
+        assert_eq!(contract.stream_support.as_attr(), "unsupported");
+        assert_eq!(contract.stream_fallback.as_attr(), "snapshot");
+        assert_eq!(contract.output_status.as_attr(), "verified");
     }
 }

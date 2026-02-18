@@ -1,8 +1,8 @@
-use crate::ColorSwatch;
 use crate::color_loupe::{
     ColorLoupeStateInput,
     logic::{self},
 };
+use crate::color_swatch::ColorSwatch;
 use leptos::prelude::*;
 
 #[component]

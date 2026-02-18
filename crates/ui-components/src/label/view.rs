@@ -3,6 +3,7 @@ use crate::label::{
     logic::{self, LabelEmphasis},
 };
 use leptos::prelude::*;
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn Label(
@@ -13,12 +14,15 @@ pub fn Label(
     #[prop(optional)] emphasis: LabelEmphasis,
     #[prop(optional, into)] required_indicator: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let (text, has_custom_label) = logic::normalize_label_text(text);
     let (required_indicator, has_custom_indicator) =
         logic::normalize_required_indicator(required_indicator);
     let for_id = logic::normalize_optional_text(for_id);
     let has_for_id = for_id.is_some();
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
     let class_name = logic::normalize_optional_text(class_name);
     let class_name = StoredValue::new(class_name);
 
@@ -41,6 +45,8 @@ pub fn Label(
         <label
             class=move || class.get()
             for=for_id
+            lang=locale.lang.clone()
+            dir=locale.dir
             data-slot="label"
             data-emphasis=move || state.get().emphasis_attr
             data-state=move || if state.get().is_required { "required" } else { "optional" }

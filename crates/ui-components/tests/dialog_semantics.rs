@@ -18,6 +18,18 @@ fn dialog_does_not_expose_logic_module() {
 }
 
 #[test]
+fn dialog_feature_gate_declares_required_component_dependencies() {
+    let source = load_source("Cargo.toml");
+
+    assert!(
+        source.contains(
+            "component-dialog = [\"component-overlay\", \"component-icon_button\", \"component-button\"]",
+        ),
+        "component-dialog feature must depend on component-overlay + component-icon_button + component-button so minimal feature builds stay valid.",
+    );
+}
+
+#[test]
 fn dialog_module_exposes_slot_and_state_contracts() {
     let source = load_source("src/dialog/mod.rs");
 
@@ -218,6 +230,78 @@ fn dialog_docs_page_contains_state_source_playground() {
         assert!(
             source.contains(needle),
             "dialog docs page should contain `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn dialog_docs_page_exposes_interactive_display_config_code_css_test_contract() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/overlays_dialog.rs");
+
+    for needle in [
+        "<Playground",
+        "title=\"Interactive Playground\"",
+        "description=\"展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。\"",
+        "code_signal=workbench_code",
+        "test_css_source=workbench_test_css_source",
+        "test_source_path=\"crates/ui-components/src/dialog/styles.rs\".to_string()",
+        "test_config_signal=workbench_actual_config",
+        "controls=move || view!",
+        "<Playground title=\"Scenario Comparison\" code_signal=scenario_code>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog docs page should include `{needle}` for interactive display/config/code/css-test + comparison coverage.",
+        );
+    }
+}
+
+#[test]
+fn dialog_readme_covers_display_config_code_css_test_and_comparison_sections() {
+    let source = load_source("src/dialog/README.md");
+
+    for needle in [
+        "## 展示区（Display）",
+        "## Config 区",
+        "## Code 区",
+        "## CSS Test 区",
+        "## 多种情况对比显示",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog README should include `{needle}` for required documentation structure.",
+        );
+    }
+}
+
+#[test]
+fn dialog_e2e_contract_uses_semantic_selectors() {
+    let source = load_source("../../e2e/tests/docs_app_dialog_contract.spec.mjs");
+
+    for needle in [
+        "docs-app dialog exposes stable role/source markers",
+        "docs-app dialog interactive + comparison playgrounds stay contract-stable",
+        "/#/components/dialog",
+        "Open marker dialog",
+        "Open workbench dialog",
+        "Open compact comparison",
+        "Open motion comparison",
+        "data-slot=\"overlay-panel\"",
+        "role=\"dialog\"",
+        "data-id-source",
+        "data-title-source",
+        "data-description-source",
+        "data-close-source",
+        "data-motion-source",
+        "Dismiss dialog",
+        "Cancel",
+        "Close",
+        "Open dialog",
+        "Escape",
+    ] {
+        assert!(
+            source.contains(needle),
+            "dialog e2e contract should include `{needle}` for stable semantic regression coverage."
         );
     }
 }

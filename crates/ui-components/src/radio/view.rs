@@ -2,8 +2,8 @@ use crate::radio::{RadioGroupOrientation, RadioMotion, logic, motion};
 use leptos::{ev, html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{
-    FocusRingOptions, HoverOptions, PressOptions, RadioGroupOptions, use_focus_ring, use_hover,
-    use_press, use_radio_group,
+    A11yDirection, FocusRingOptions, HoverOptions, PressOptions, RadioGroupOptions, RadioOptions,
+    use_controllable_state, use_focus_ring, use_hover, use_press, use_radio,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -20,24 +20,41 @@ fn focus_radio(radio_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
 #[cfg(not(target_arch = "wasm32"))]
 fn focus_radio(_radio_refs: &Arc<Vec<NodeRef<html::Button>>>, _index: usize) {}
 
+fn radio_indicator_view() -> impl IntoView {
+    view! {
+        <span class="ui-radio__indicator" aria-hidden="true">
+            <span class="ui-radio__dot"></span>
+        </span>
+    }
+}
+
 #[component]
 pub fn RadioGroup(
     id_base: String,
     options: Vec<String>,
     selected_index: ReadSignal<Option<usize>>,
     set_selected_index: WriteSignal<Option<usize>>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
     #[prop(optional)] orientation: RadioGroupOrientation,
     #[prop(optional, into)] label: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] aria_labelledby: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
     #[prop(optional)] motion: RadioMotion,
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let options: StoredValue<Arc<[String]>> = StoredValue::new(options.into());
     let item_count = options.get_value().len();
     let (item_count_signal, _set_item_count) = signal(item_count);
+    let disabled_state = logic::normalize_disabled_prop(logic::DisabledPropInput {
+        is_disabled,
+        disabled,
+    });
+    let is_disabled = disabled_state.is_disabled;
+    let disabled_source_attr = disabled_state.disabled_source_attr;
 
     let disabled_index_set: HashSet<usize> = disabled_indices.into_iter().collect();
     let has_disabled = !disabled_index_set.is_empty();
@@ -48,15 +65,19 @@ pub fn RadioGroup(
         Callback::new(move |index: usize| disabled_indices.contains(&index))
     });
 
-    let aria = use_radio_group(RadioGroupOptions {
-        is_disabled: disabled,
-        id_base: id_base.clone(),
-        orientation: orientation.roving_orientation(),
-        item_count: item_count_signal,
-        selected_index,
-        set_selected_index,
-        on_change: None,
-        is_item_disabled,
+    let aria = use_radio(RadioOptions {
+        group: RadioGroupOptions {
+            is_disabled,
+            id_base: id_base.clone(),
+            orientation: logic::roving_orientation(orientation),
+            item_count: item_count_signal,
+            selected_index,
+            set_selected_index,
+            on_change: None,
+            is_item_disabled,
+        },
+        lang,
+        dir,
     });
 
     let radio_refs: Arc<Vec<NodeRef<html::Button>>> =
@@ -76,9 +97,9 @@ pub fn RadioGroup(
     let state = Memo::new(move |_| {
         logic::resolve_state(
             item_count,
-            disabled,
+            is_disabled,
             disabled_indices_for_state.as_ref(),
-            aria.selected_index.get(),
+            aria.state.selected_index.get(),
             orientation,
             has_label,
         )
@@ -116,8 +137,8 @@ pub fn RadioGroup(
                     })
                     .unwrap_or_else(|| format!("Option {}", index + 1));
                 let node_ref = radio_refs[index];
-                let is_checked = move || aria.selected_index.get() == Some(index);
-                let is_disabled = disabled || disabled_indices_set.contains(&index);
+                let is_checked = move || aria.state.selected_index.get() == Some(index);
+                let is_disabled = is_disabled || disabled_indices_set.contains(&index);
 
                 let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
                 let hover = use_hover(HoverOptions { is_disabled });
@@ -137,7 +158,7 @@ pub fn RadioGroup(
 
                 let on_key_down = {
                     let on_key_down = aria.handlers.on_key_down;
-                    let active_index = aria.active_index;
+                    let active_index = aria.state.active_index;
                     let radio_refs = radio_refs.clone();
                     move |ev: ev::KeyboardEvent| {
                         if on_key_down.run(ev.key()) {
@@ -153,9 +174,9 @@ pub fn RadioGroup(
                         class="ui-radio"
                         class:ui-radio--focus-visible=move || focus_ring.is_focus_visible.get()
                         node_ref=node_ref
-                        id=aria.radio_id.run(index)
+                        id=aria.state.radio_id.run(index)
                         role="radio"
-                        tabindex=move || if is_disabled { -1 } else if aria.active_index.get() == index { 0 } else { -1 }
+                        tabindex=move || if is_disabled { -1 } else if aria.state.active_index.get() == index { 0 } else { -1 }
                         aria-checked=move || if is_checked() { "true" } else { "false" }
                         aria-disabled=if is_disabled { Some("true") } else { None }
                         disabled=is_disabled
@@ -163,7 +184,7 @@ pub fn RadioGroup(
                         data-index=index
                         data-checked=move || is_checked().then_some("true")
                         data-disabled=is_disabled.then_some("true")
-                        data-active=move || (aria.active_index.get() == index).then_some("true")
+                        data-active=move || (aria.state.active_index.get() == index).then_some("true")
                         data-hovered=move || hover.is_hovered.get().then_some("true")
                         data-pressed=move || press.is_pressed.get().then_some("true")
                         data-focused=move || focus_ring.is_focused.get().then_some("true")
@@ -186,9 +207,7 @@ pub fn RadioGroup(
                         on:click=move |_| aria.handlers.on_radio_click.run(index)
                         on:keydown=on_key_down
                     >
-                        <span class="ui-radio__indicator" aria-hidden="true">
-                            <span class="ui-radio__dot"></span>
-                        </span>
+                        {radio_indicator_view()}
                         <span class="ui-radio__label">{label}</span>
                     </button>
                 }
@@ -203,9 +222,12 @@ pub fn RadioGroup(
             aria-label=aria_label.get_value()
             aria-labelledby=aria_labelledby.get_value()
             aria-disabled=aria.attrs.aria_disabled
+            lang=aria.attrs.lang
+            dir=aria.attrs.dir
             aria-orientation=orientation.aria_orientation()
             data-slot="radio-group"
             data-disabled=move || state.get().is_disabled.then_some("true")
+            data-disabled-source=disabled_source_attr
             data-empty=move || state.get().is_empty.then_some("true")
             data-has-items=move || state.get().has_items.then_some("true")
             data-count=move || state.get().item_count.to_string()
@@ -220,6 +242,15 @@ pub fn RadioGroup(
             data-has-label=move || state.get().has_label.then_some("true")
             data-motion-source=motion_source
             data-custom-motion=custom_motion
+            data-stream-mode="snapshot"
+            data-stream-fallback="snapshot"
+            data-output-status="verified"
+            data-ui-schema="ui.radio-group"
+            data-ui-schema-version="1"
+            data-ui-intent="single-selection"
+            data-ui-action="select-option"
+            data-ui-state=move || if state.get().has_selection { "has-selection" } else { "empty-selection" }
+            data-ui-source="external-selected-index"
         >
             {label.get_value().map(|label| {
                 let label_id = label_id.get_value();
@@ -242,21 +273,46 @@ pub fn RadioGroup(
 pub fn Radio(
     id: String,
     label: String,
-    checked: Signal<bool>,
+    #[prop(optional, into)] is_checked: Option<Signal<bool>>,
+    #[prop(optional, into)] checked: Option<Signal<bool>>,
+    #[prop(optional)] default_checked: Option<bool>,
+    #[prop(optional)] is_disabled: Option<bool>,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] motion: RadioMotion,
     #[prop(optional, into)] class_name: Option<String>,
-    #[prop(optional)] node_ref: NodeRef<html::Button>,
+    #[prop(optional)] on_checked_change: Option<Callback<bool>>,
     #[prop(optional)] on_change: Option<Callback<bool>>,
 ) -> impl IntoView {
-    let focus_ring = use_focus_ring(FocusRingOptions {
-        is_disabled: disabled,
+    let checked_axis = logic::normalize_checked_axis(logic::CheckedAxisInput {
+        is_checked,
+        checked,
+        default_checked,
+        on_checked_change,
+        on_change,
     });
-    let hover = use_hover(HoverOptions {
-        is_disabled: disabled,
+    let controllable_checked = use_controllable_state(
+        checked_axis.controlled_checked,
+        Some(checked_axis.default_checked),
+        checked_axis.on_checked_change,
+    );
+    let checked = controllable_checked.value;
+    let request_checked_change = controllable_checked.request_change;
+    let checked_source_attr = checked_axis.checked_source_attr;
+    let default_checked_source_attr = checked_axis.default_checked_source_attr;
+    let checked_change_source_attr = checked_axis.checked_change_source_attr;
+    let checked_control_mode_attr = checked_axis.control_mode_attr;
+    let is_checked_controlled = checked_axis.is_controlled;
+    let disabled_state = logic::normalize_disabled_prop(logic::DisabledPropInput {
+        is_disabled,
+        disabled,
     });
+    let is_disabled = disabled_state.is_disabled;
+    let disabled_source_attr = disabled_state.disabled_source_attr;
+    let node_ref: NodeRef<html::Button> = NodeRef::new();
+    let focus_ring = use_focus_ring(FocusRingOptions { is_disabled });
+    let hover = use_hover(HoverOptions { is_disabled });
     let press = use_press(PressOptions {
-        is_disabled: disabled,
+        is_disabled,
         on_press: None,
         ..Default::default()
     });
@@ -265,7 +321,7 @@ pub fn Radio(
         node_ref,
         hover.is_hovered,
         press.is_pressed,
-        disabled,
+        is_disabled,
         motion,
     );
 
@@ -283,12 +339,10 @@ pub fn Radio(
     let custom_motion = (motion != RadioMotion::default()).then_some("true");
 
     let on_click = move |_| {
-        if disabled {
+        if is_disabled {
             return;
         }
-        if let Some(on_change) = on_change {
-            on_change.run(!checked.get_untracked());
-        }
+        request_checked_change.run(!checked.get_untracked());
     };
 
     view! {
@@ -299,19 +353,35 @@ pub fn Radio(
             class:ui-radio--focus-visible=move || focus_ring.is_focus_visible.get()
             node_ref=node_ref
             role="radio"
-            tabindex=if disabled { -1 } else { 0 }
+            tabindex=if is_disabled { -1 } else { 0 }
             aria-checked=move || if checked.get() { "true" } else { "false" }
-            aria-disabled=if disabled { Some("true") } else { None }
-            disabled=disabled
+            aria-disabled=if is_disabled { Some("true") } else { None }
+            disabled=is_disabled
             data-slot="radio"
             data-checked=move || checked.get().then_some("true")
-            data-disabled=disabled.then_some("true")
+            data-checked-control-mode=checked_control_mode_attr
+            data-checked-controlled=is_checked_controlled.then_some("true")
+            data-checked-uncontrolled=(!is_checked_controlled).then_some("true")
+            data-checked-source=checked_source_attr
+            data-default-checked-source=default_checked_source_attr
+            data-checked-change-source=checked_change_source_attr
+            data-disabled=is_disabled.then_some("true")
+            data-disabled-source=disabled_source_attr
             data-hovered=move || hover.is_hovered.get().then_some("true")
             data-pressed=move || press.is_pressed.get().then_some("true")
             data-focused=move || focus_ring.is_focused.get().then_some("true")
             data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
             data-motion-source=motion_source
             data-custom-motion=custom_motion
+            data-stream-mode="snapshot"
+            data-stream-fallback="snapshot"
+            data-output-status="verified"
+            data-ui-schema="ui.radio"
+            data-ui-schema-version="1"
+            data-ui-intent="single-option"
+            data-ui-action="toggle-request"
+            data-ui-state=move || if checked.get() { "checked" } else { "unchecked" }
+            data-ui-source=checked_source_attr
             on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
             on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
             on:pointerdown=move |_| press.handlers.on_pointer_down.run(())
@@ -324,9 +394,7 @@ pub fn Radio(
             }
             on:click=on_click
         >
-            <span class="ui-radio__indicator" aria-hidden="true">
-                <span class="ui-radio__dot"></span>
-            </span>
+            {radio_indicator_view()}
             <span class="ui-radio__label">{label}</span>
         </button>
     }

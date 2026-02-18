@@ -20,6 +20,31 @@ fn color_wheel_does_not_expose_logic_or_view_modules() {
 }
 
 #[test]
+fn color_wheel_has_local_motion_module_boundary() {
+    let mod_source = load_source("src/color_wheel/mod.rs");
+    let motion_source = load_source("src/color_wheel/motion.rs");
+
+    for needle in ["mod motion;", "pub use motion::ColorWheelMotion;"] {
+        assert!(
+            mod_source.contains(needle),
+            "ColorWheel module boundary should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub fn sanitize_motion(",
+        "pub fn attach_motion(",
+        "pub struct ColorWheelMotion",
+        "ui_motion::spring::SpringConfig",
+    ] {
+        assert!(
+            motion_source.contains(needle),
+            "ColorWheel motion module should expose `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn color_wheel_uses_logic_state_model() {
     let logic_source = load_source("src/color_wheel/logic.rs");
     let view_source = load_source("src/color_wheel/view.rs");
@@ -41,7 +66,7 @@ fn color_wheel_uses_logic_state_model() {
 
     for needle in [
         "overlay_open::use_controllable_state(",
-        "slider_motion::attach_motion(root_ref, visual_percent, motion)",
+        "motion::attach_motion(root_ref, visual_percent, motion)",
         "logic::hue_from_pointer_event(&track, &ev)",
         "logic::resolve_state(ColorWheelStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
@@ -142,4 +167,14 @@ fn color_wheel_docs_playgrounds_lock_state_matrix_contract_values() {
             "color-wheel docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn color_wheel_check2_has_no_unchecked_items_after_verification() {
+    let source = load_source("src/color_wheel/check2.md");
+
+    assert!(
+        !source.contains("- [ ]"),
+        "color_wheel/check2.md should not keep unchecked checklist items after completion."
+    );
 }

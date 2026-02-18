@@ -1,9 +1,10 @@
 mod logic;
+mod motion;
 pub mod styles;
 mod view;
 
-pub use crate::slider::SliderMotion as ColorWheelMotion;
 pub use logic::DEFAULT_ARIA_LABEL;
+pub use motion::ColorWheelMotion;
 pub use view::ColorWheel;
 
 #[derive(Clone, Copy, Debug, PartialEq)]

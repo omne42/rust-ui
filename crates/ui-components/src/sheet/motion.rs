@@ -76,6 +76,7 @@ pub fn attach_motion(
     use leptos::wasm_bindgen::JsCast;
 
     let motion = StoredValue::new(sanitize_motion(motion));
+    let prefers_reduced_motion = StoredValue::new(ui_motion::web::prefers_reduced_motion());
     let last_state = StoredValue::new(None::<bool>);
     let springs = StoredValue::new_local(
         None::<(
@@ -98,6 +99,7 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
         let motion = motion.get_value();
+        let prefers_reduced_motion = prefers_reduced_motion.get_value();
 
         let open_now = is_open.get_untracked();
         let (x_initial, y_initial) = placement_offset(placement, motion.initial_offset_px);
@@ -115,6 +117,20 @@ pub fn attach_motion(
         );
         let _ = style.set_property("--ui-sheet-panel-x", &format!("{x_initial}px"));
         let _ = style.set_property("--ui-sheet-panel-y", &format!("{y_initial}px"));
+
+        if prefers_reduced_motion {
+            let (target_backdrop, target_opacity, target_x, target_y) = if open_now {
+                (1.0, 1.0, 0.0, 0.0)
+            } else {
+                (0.0, 0.0, x_initial, y_initial)
+            };
+            let _ =
+                style.set_property("--ui-sheet-backdrop-opacity", &format!("{target_backdrop}"));
+            let _ = style.set_property("--ui-sheet-panel-opacity", &format!("{target_opacity}"));
+            let _ = style.set_property("--ui-sheet-panel-x", &format!("{target_x}px"));
+            let _ = style.set_property("--ui-sheet-panel-y", &format!("{target_y}px"));
+            return;
+        }
 
         let style_for_backdrop = style.clone();
         let backdrop = ui_motion::spring::SpringAnimator::new(backdrop_initial, config, move |v| {
@@ -178,6 +194,32 @@ pub fn attach_motion(
 
         let motion = motion.get_value();
         let (x_initial, y_initial) = placement_offset(placement, motion.initial_offset_px);
+        let reduced_motion = prefers_reduced_motion.get_value();
+
+        if reduced_motion {
+            let Some(div) = node_ref.get() else {
+                return;
+            };
+            let element: leptos::web_sys::HtmlElement = div.unchecked_into();
+            let style = element.style();
+
+            let (target_backdrop, target_opacity, target_x, target_y) = if open {
+                (1.0, 1.0, 0.0, 0.0)
+            } else {
+                (0.0, 0.0, x_initial, y_initial)
+            };
+
+            let _ =
+                style.set_property("--ui-sheet-backdrop-opacity", &format!("{target_backdrop}"));
+            let _ = style.set_property("--ui-sheet-panel-opacity", &format!("{target_opacity}"));
+            let _ = style.set_property("--ui-sheet-panel-x", &format!("{target_x}px"));
+            let _ = style.set_property("--ui-sheet-panel-y", &format!("{target_y}px"));
+
+            if !open {
+                finish_exit.run(());
+            }
+            return;
+        }
 
         if open {
             backdrop.clear_on_rest();

@@ -95,6 +95,35 @@ pub(super) fn breadcrumb() -> AnyView {
         snippet.join("\n")
     });
 
+    let scenario_name = Signal::derive(move || match scenario_index.get().unwrap_or(0) {
+        1 => "label_only",
+        2 => "empty",
+        _ => "trail",
+    });
+
+    let actual_config = Signal::derive(move || {
+        let resolved_items = items.get();
+        let linked_items = resolved_items
+            .iter()
+            .filter(|item| item.href.is_some())
+            .count();
+
+        format!(
+            "BreadcrumbActualConfig {{\n  scenario: \"{}\",\n  item_count: {},\n  linked_item_count: {},\n  has_custom_aria_label: {},\n  class: \"ui-breadcrumb\",\n}}",
+            scenario_name.get(),
+            resolved_items.len(),
+            linked_items,
+            custom_aria_label.get()
+        )
+    });
+
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/breadcrumb/styles.rs */\n{}",
+            ui_components::breadcrumb::styles::CSS
+        )
+    });
+
     let states_code = Signal::derive(move || {
         r#"<Breadcrumb
   items=vec![
@@ -118,6 +147,9 @@ pub(super) fn breadcrumb() -> AnyView {
             <Playground
                 title="Trail"
                 code_signal=code
+                test_css_source=test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/breadcrumb/styles.rs".to_string()
+                test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Scenario"</div>

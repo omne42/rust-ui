@@ -7,6 +7,11 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn path_exists(rel_path: &str) -> bool {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir.join(rel_path).exists()
+}
+
 #[test]
 fn alert_banner_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/alert_banner/mod.rs");
@@ -173,7 +178,7 @@ fn alert_banner_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Bold + Hidden Icon + Custom Class\"",
         "tone=AlertBannerTone::Notice",
         "fill=AlertBannerFill::Bold",
-        "hide_icon=true",
+        "is_hide_icon=true",
         "class_name=\"docs-alert-banner-custom\".to_string()",
         "title=\"Custom motion contract\"",
         "motion=AlertBannerMotion {",
@@ -184,4 +189,80 @@ fn alert_banner_docs_playgrounds_lock_state_matrix_contract_values() {
             "alert-banner docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn alert_banner_api_exposes_a11y_locale_and_hide_icon_source_markers() {
+    let source = load_source("src/alert_banner/view.rs");
+
+    for needle in [
+        "is_hide_icon: Option<bool>",
+        "hide_icon: Option<bool>",
+        "locale_attrs(lang, dir)",
+        "lang=locale.lang",
+        "dir=locale.dir",
+        "data-hide-icon-source=hide_icon_source",
+        "data-icon-label-source=icon_label_source",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert banner view should keep `{needle}` to expose locale and icon-source semantics.",
+        );
+    }
+}
+
+#[test]
+fn alert_banner_docs_prefer_is_prefix_for_boolean_props() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    assert!(
+        source.contains("is_hide_icon=true"),
+        "AlertBanner docs should use `is_hide_icon` as the primary boolean prop name."
+    );
+}
+
+#[test]
+fn alert_banner_docs_are_beginner_friendly_via_readme_or_docs_entry() {
+    let has_readme = path_exists("src/alert_banner/README.md");
+    let display_extra =
+        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+
+    assert!(
+        has_readme || display_extra.contains("pub(super) fn alert_banner() -> AnyView"),
+        "AlertBanner should provide README or an equivalent docs-app entry."
+    );
+}
+
+#[test]
+fn alert_banner_e2e_contract_uses_semantic_selectors_and_stable_waits() {
+    let source = load_source("../../e2e/tests/docs_app_alert_banner_contract.spec.mjs");
+
+    for needle in [
+        "body:not(:has(#boot))",
+        "data-slot=\"alert-banner\"",
+        "data-hide-icon-source",
+        "data-motion-source",
+        "data-icon-visible",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert-banner e2e contract should include semantic marker `{needle}`.",
+        );
+    }
+
+    for forbidden in ["waitForTimeout", "setTimeout", "nth-child("] {
+        assert!(
+            !source.contains(forbidden),
+            "alert-banner e2e contract should avoid unstable token `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn alert_banner_check2_is_marked_complete() {
+    let source = load_source("src/alert_banner/check2.md");
+    assert!(
+        !source.contains("- [ ]"),
+        "alert_banner/check2.md should not keep unchecked checklist items after completion."
+    );
 }

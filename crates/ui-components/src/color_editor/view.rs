@@ -1,10 +1,14 @@
+use crate::color_area::ColorArea;
 use crate::color_editor::{
-    ColorEditorFormat, ColorEditorStateInput,
+    ColorEditorFormat, ColorEditorMotion, ColorEditorStateInput,
     logic::{self},
+    motion as motion_contract,
 };
-use crate::{ColorArea, ColorField, ColorSlider, ColorSliderChannel, ColorSliderMotion};
+use crate::color_field::ColorField;
+use crate::color_slider::{ColorSlider, ColorSliderChannel};
 use leptos::prelude::*;
 use ui_headless as overlay_open;
+use ui_headless::{A11yDirection, locale_attrs};
 
 #[component]
 pub fn ColorEditor(
@@ -29,8 +33,10 @@ pub fn ColorEditor(
     #[prop(optional, into)] value_label: Option<String>,
     #[prop(optional, into)] format_aria_label: Option<String>,
     #[prop(optional, into)] preview_color: Option<String>,
-    #[prop(optional)] motion: ColorSliderMotion,
+    #[prop(optional)] motion: ColorEditorMotion,
     #[prop(optional, into)] class_name: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
 ) -> impl IntoView {
     let default_selected_color = logic::sanitize_color(default_selected_color);
     let selected_state = overlay_open::use_controllable_state(
@@ -75,6 +81,7 @@ pub fn ColorEditor(
         logic::normalize_optional_text(value_label).unwrap_or_else(|| "Value".to_string());
     let format_aria_label = logic::normalize_optional_text(format_aria_label)
         .unwrap_or_else(|| "Color format".to_string());
+    let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
 
     let hue_signal: Signal<f64> = hue.into();
     let alpha_signal: Signal<f64> = alpha.into();
@@ -157,8 +164,8 @@ pub fn ColorEditor(
     let has_custom_class_name = class_name.is_some();
     let class_name = StoredValue::new(class_name);
 
-    let motion = StoredValue::new(motion);
-    let has_custom_motion = motion.get_value() != ColorSliderMotion::default();
+    let motion = StoredValue::new(motion_contract::sanitize_motion(motion));
+    let has_custom_motion = motion_contract::source_attr(motion.get_value()) == "custom";
 
     let state = Memo::new(move |_| {
         logic::resolve_state(ColorEditorStateInput {
@@ -220,6 +227,8 @@ pub fn ColorEditor(
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            lang=locale.lang.clone()
+            dir=locale.dir
         >
             <div class="ui-color-editor__header" data-slot="color-editor-header">
                 <label id=label_id class="ui-color-editor__label" data-slot="color-editor-label">

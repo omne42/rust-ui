@@ -100,8 +100,10 @@ fn keyboard_docs_page_covers_primary_playgrounds() {
         "title=\"Keyboard\"",
         "slug=\"keyboard\"",
         "description=\"Keyboard command primitive (`<kbd>`) with centralized tone/compact/source state contracts.\"",
-        "<Playground title=\"Tone\" code_signal=tone_code>",
-        "<Playground title=\"Compact + Custom Aria/Class\" code_signal=compact_code>",
+        "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
+        "title=\"Comparison Matrix (Tone / Compact / Source Markers)\"",
+        "test_css_source=keyboard_test_css_source",
+        "test_config_signal=workbench_config",
         "<Keyboard",
     ] {
         assert!(
@@ -116,12 +118,13 @@ fn keyboard_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
-        "title=\"Tone\"",
-        "<Keyboard>\"⌘K\"</Keyboard>",
-        "tone=KeyboardTone::Muted",
-        "\"⌥⇧P\"",
-        "title=\"Compact + Custom Aria/Class\"",
-        "compact=true",
+        "id_base=\"docs-keyboard-tone\".to_string()",
+        "id_base=\"docs-keyboard-key\".to_string()",
+        "\"is_compact\"",
+        "\"Custom aria_label\"",
+        "\"Custom class_name\"",
+        "title=\"Comparison Matrix (Tone / Compact / Source Markers)\"",
+        "is_compact=true",
         "aria_label=\"Open command palette\".to_string()",
         "class_name=\"docs-keyboard-custom\".to_string()",
         "\"Ctrl+Shift+P\"",

@@ -1,9 +1,9 @@
+use crate::checkbox::{Checkbox, CheckboxVariant};
 use crate::checkbox_field::CheckboxFieldMotion;
 use crate::checkbox_field::{
     CheckboxFieldIndicatorPlacement, CheckboxFieldStateInput, CheckboxFieldTone, logic,
     motion::{self},
 };
-use crate::{Checkbox, CheckboxVariant};
 use leptos::prelude::*;
 
 #[component]

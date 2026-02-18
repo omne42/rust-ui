@@ -6,9 +6,13 @@ test("docs-app mobile nav sheet opens and closes", async ({ page }) => {
 
   const openNav = page.getByRole("button", { name: "Open navigation" });
   await openNav.click();
-  await expect(page.locator(".docs-mobile-nav")).toBeVisible();
+  const navSheet = page.locator(
+    '[data-slot="sheet"][data-state="open"][data-placement="left"]'
+  );
+  const navPanel = page.locator('[data-slot="sheet-panel"][role="dialog"]').first();
+  await expect(navSheet).toBeVisible();
+  await expect(navPanel).toBeVisible();
 
   await page.keyboard.press("Escape");
-  await expect(page.locator(".docs-mobile-nav")).toHaveCount(0);
+  await expect(page.locator('[data-slot="sheet"][data-placement="left"]')).toHaveCount(0);
 });
-

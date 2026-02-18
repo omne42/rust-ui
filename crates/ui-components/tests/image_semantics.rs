@@ -8,13 +8,67 @@ fn load_source(rel_path: &str) -> String {
 }
 
 #[test]
-fn image_does_not_expose_logic_module() {
+fn image_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/image/mod.rs");
 
-    assert!(
-        !source.contains("pub mod logic"),
-        "Image's `logic` module should stay private to avoid leaking internal view-state helpers into the public API."
-    );
+    for needle in ["pub mod logic", "pub mod view"] {
+        assert!(
+            !source.contains(needle),
+            "Image internals should stay private; found `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn image_uses_logic_state_model() {
+    let view_source = load_source("src/image/view.rs");
+    let logic_source = load_source("src/image/logic.rs");
+    let primitive_source = load_source("../ui-state-primitives/src/image.rs");
+
+    for needle in [
+        "pub use ui_state_primitives::image::{",
+        "ImageRadius",
+        "ImageShadow",
+        "ImageStatus",
+        "ImageViewState",
+        "normalize_optional_text",
+        "resolve_view_state",
+    ] {
+        assert!(
+            logic_source.contains(needle),
+            "Image logic should re-export primitive contract `{needle}`."
+        );
+    }
+
+    for needle in [
+        "pub enum ImageStatus",
+        "pub enum ImageRadius",
+        "pub enum ImageShadow",
+        "pub struct ImageViewState",
+        "pub use crate::button::normalize_optional_text;",
+        "pub fn resolve_view_state(",
+        "pub fn as_attr(self) -> &'static str",
+        "pub fn class_name(self) -> &'static str",
+        "status_attr",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "Image primitives should include `{needle}` for centralized state derivation.",
+        );
+    }
+
+    for needle in [
+        "let src = logic::normalize_optional_text(src);",
+        "let fallback_src = logic::normalize_optional_text(fallback_src);",
+        "let locale = locale_attrs(logic::normalize_optional_text(lang), dir);",
+        "logic::resolve_view_state(",
+        "let motion = crate::image::motion::sanitize_motion(motion);",
+    ] {
+        assert!(
+            view_source.contains(needle),
+            "Image view should derive state via logic helpers; missing `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -26,10 +80,15 @@ fn image_requires_alt_text() {
         "Image should require `alt` text to align with baseline-style accessibility expectations."
     );
 
-    assert!(
-        source.contains("alt=alt.clone()"),
-        "Image should forward the provided `alt` text to the rendered <img>."
-    );
+    for needle in [
+        "alt=move || alt.get_value()",
+        "#[prop(optional, into)] lang: Option<String>,",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Image view should keep `{needle}`."
+        );
+    }
 }
 
 #[test]
@@ -38,11 +97,21 @@ fn image_emits_expected_data_slots_and_state_attributes() {
 
     for attr in [
         "data-slot=\"image-wrapper\"",
-        "data-loaded",
-        "data-zoomed",
+        "data-state=move || view_state.get().status_attr",
+        "data-loaded=move || view_state.get().is_loaded.then_some(\"true\")",
+        "data-zoomed=is_zoomed.then_some(\"true\")",
+        "data-fallback=move || view_state.get().show_fallback.then_some(\"true\")",
+        "data-skeleton=move || view_state.get().show_skeleton.then_some(\"true\")",
+        "data-blurred=move || view_state.get().show_blurred.then_some(\"true\")",
+        "data-radius=radius.as_attr()",
+        "data-shadow=shadow.as_attr()",
+        "data-motion-source=motion_source",
+        "data-custom-motion=(motion_source == \"custom\").then_some(\"true\")",
         "data-slot=\"image\"",
         "data-slot=\"image-fallback\"",
         "data-slot=\"image-skeleton\"",
+        "lang=locale.lang.clone()",
+        "dir=locale.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -56,7 +125,11 @@ fn image_uses_spring_driven_zoom_css_variable() {
     let styles = load_source("src/image/styles.rs");
     let motion = load_source("src/image/motion.rs");
 
-    for needle in ["--ui-image-zoom", "transform: scale(var(--ui-image-zoom"] {
+    for needle in [
+        "--ui-image-zoom",
+        "transform: scale(var(--ui-image-zoom",
+        ".ui-image[data-custom-motion=\"true\"] .ui-image__img",
+    ] {
         assert!(
             styles.contains(needle),
             "Image styles should reference `{needle}` for spring-driven zoom feedback."
@@ -70,13 +143,39 @@ fn image_uses_spring_driven_zoom_css_variable() {
 }
 
 #[test]
+fn image_styles_include_state_marker_contracts() {
+    let source = load_source("src/image/styles.rs");
+
+    for selector in [
+        ".ui-image[data-radius=\"sm\"]",
+        ".ui-image[data-radius=\"md\"]",
+        ".ui-image[data-radius=\"lg\"]",
+        ".ui-image[data-radius=\"full\"]",
+        ".ui-image[data-shadow=\"none\"]",
+        ".ui-image[data-shadow=\"sm\"]",
+        ".ui-image[data-shadow=\"md\"]",
+        ".ui-image[data-state=\"loaded\"] .ui-image__skeleton",
+        ".ui-image[data-loaded=\"true\"] .ui-image__skeleton",
+    ] {
+        assert!(
+            source.contains(selector),
+            "Image styles should include `{selector}` as stable state-marker contracts."
+        );
+    }
+}
+
+#[test]
 fn image_skeleton_respects_reduced_motion() {
     let styles = load_source("src/image/styles.rs");
 
-    for needle in ["@media (prefers-reduced-motion: reduce)", "animation: none"] {
+    for needle in [
+        "@media (prefers-reduced-motion: reduce)",
+        "animation: none",
+        "transform: none",
+    ] {
         assert!(
             styles.contains(needle),
-            "Image skeleton shimmer should disable animation under reduced-motion via `{needle}`."
+            "Image should disable motion-sensitive effects under reduced-motion via `{needle}`."
         );
     }
 }
@@ -112,7 +211,9 @@ fn image_docs_page_covers_primary_playgrounds() {
         "pub(super) fn image() -> AnyView",
         "title=\"Image\"",
         "slug=\"image\"",
-        "title=\"Image\"",
+        "<Playground title=\"Image\" code_signal=code>",
+        "<Playground title=\"Comparison Matrix: Loaded / Blurred / Fallback / Missing\" code_signal=matrix_code>",
+        "<Playground\n                title=\"Workbench: Display + Config + Code + CSS Test\"",
     ] {
         assert!(
             source.contains(needle),
@@ -127,16 +228,48 @@ fn image_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "let code = Signal::derive(move || {",
+        "let workbench_code = Signal::derive(move || {",
+        "let test_css_source = Signal::derive(move || {",
+        "let actual_config = Signal::derive(move || {",
         "<Image",
         "src=src.to_string()",
         "alt=\"Demo image\".to_string()",
         "radius=ImageRadius::Lg",
         "shadow=ImageShadow::Md",
         "is_zoomed=true",
+        "test_css_source=test_css_source",
+        "test_source_path=\"crates/ui-components/src/image/styles.rs\".to_string()",
+        "test_config_signal=actual_config",
+        "controls=move || view! {",
+        "SegmentedControl",
+        "Switch checked=is_zoomed set_checked=set_is_zoomed",
+        "Switch checked=is_blurred set_checked=set_is_blurred",
+        "Switch checked=disable_skeleton set_checked=set_disable_skeleton",
+        "Switch checked=with_fallback set_checked=set_with_fallback",
     ] {
         assert!(
             source.contains(needle),
             "image docs playground should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn image_readme_includes_display_config_code_css_test_sections() {
+    let source = load_source("src/image/README.md");
+
+    for needle in [
+        "# Image",
+        "## Docs Playground 展示区",
+        "展示（Display）",
+        "Config（配置面板）",
+        "Code（代码面板）",
+        "CSS Test（样式测试面板）",
+        "Comparison Matrix: Loaded / Blurred / Fallback / Missing",
+    ] {
+        assert!(
+            source.contains(needle),
+            "image README should include `{needle}` for docs workbench guidance.",
         );
     }
 }

@@ -5,12 +5,16 @@ pub const CSS: &str = r#"
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  background: color-mix(in oklch, var(--ui-fg), transparent 56%);
-  backdrop-filter: blur(1px);
-  z-index: 20;
+  background: color-mix(
+    in oklch,
+    var(--ui-fg),
+    transparent var(--ui-underlay-scrim-alpha, 56%)
+  );
+  backdrop-filter: blur(var(--ui-underlay-backdrop-blur, 1px));
+  z-index: var(--ui-underlay-z-index, var(--ui-overlay-z-index, 20));
   transition:
-    opacity 220ms cubic-bezier(0.22, 1, 0.36, 1),
-    visibility 220ms linear;
+    opacity var(--ui-underlay-runtime-duration, var(--ui-underlay-transition-duration, 220ms)) var(--ui-underlay-transition-easing, cubic-bezier(0.22, 1, 0.36, 1)),
+    visibility var(--ui-underlay-runtime-visibility-duration, var(--ui-underlay-visibility-duration, 220ms)) linear;
 }
 
 .ui-underlay--open,

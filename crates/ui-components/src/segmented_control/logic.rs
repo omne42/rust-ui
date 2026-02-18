@@ -1,6 +1,3 @@
-use std::collections::HashSet;
-use ui_headless::RovingOrientation;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SegmentedControlOrientation {
     #[default]
@@ -9,13 +6,6 @@ pub enum SegmentedControlOrientation {
 }
 
 impl SegmentedControlOrientation {
-    pub fn roving_orientation(self) -> RovingOrientation {
-        match self {
-            SegmentedControlOrientation::Horizontal => RovingOrientation::Horizontal,
-            SegmentedControlOrientation::Vertical => RovingOrientation::Vertical,
-        }
-    }
-
     pub fn class_name(self) -> &'static str {
         match self {
             SegmentedControlOrientation::Horizontal => "ui-segmented-control--horizontal",
@@ -33,53 +23,9 @@ impl SegmentedControlOrientation {
     pub fn data_orientation(self) -> &'static str {
         self.aria_orientation()
     }
-}
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct SegmentedControlState {
-    pub item_count: usize,
-    pub is_empty: bool,
-    pub has_items: bool,
-    pub is_disabled: bool,
-    pub has_disabled_options: bool,
-    pub disabled_option_count: usize,
-    pub selected_index: Option<usize>,
-    pub has_selection: bool,
-    pub selection_empty: bool,
-    pub is_horizontal: bool,
-    pub is_vertical: bool,
-    pub has_label: bool,
-}
-
-pub fn resolve_state(
-    item_count: usize,
-    is_disabled: bool,
-    disabled_indices: &HashSet<usize>,
-    selected_index: Option<usize>,
-    orientation: SegmentedControlOrientation,
-    has_label: bool,
-) -> SegmentedControlState {
-    let has_items = item_count > 0;
-    let selected_index = selected_index.filter(|index| *index < item_count);
-    let has_selection = selected_index.is_some();
-    let disabled_option_count = disabled_indices
-        .iter()
-        .filter(|index| **index < item_count)
-        .count();
-
-    SegmentedControlState {
-        item_count,
-        is_empty: !has_items,
-        has_items,
-        is_disabled,
-        has_disabled_options: disabled_option_count > 0,
-        disabled_option_count,
-        selected_index,
-        has_selection,
-        selection_empty: !has_selection,
-        is_horizontal: matches!(orientation, SegmentedControlOrientation::Horizontal),
-        is_vertical: matches!(orientation, SegmentedControlOrientation::Vertical),
-        has_label,
+    pub fn is_vertical(self) -> bool {
+        matches!(self, SegmentedControlOrientation::Vertical)
     }
 }
 
@@ -101,6 +47,123 @@ impl SegmentedControlSize {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SegmentedControlControlMode {
+    Controlled,
+}
+
+impl SegmentedControlControlMode {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            SegmentedControlControlMode::Controlled => "controlled",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SegmentedControlSelectionSource {
+    None,
+    Selected,
+    OutOfRange,
+}
+
+impl SegmentedControlSelectionSource {
+    pub fn from_indices(raw_selected: Option<usize>, normalized_selected: Option<usize>) -> Self {
+        match (raw_selected, normalized_selected) {
+            (None, None) => SegmentedControlSelectionSource::None,
+            (Some(_), Some(_)) => SegmentedControlSelectionSource::Selected,
+            (Some(_), None) => SegmentedControlSelectionSource::OutOfRange,
+            (None, Some(_)) => SegmentedControlSelectionSource::Selected,
+        }
+    }
+
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            SegmentedControlSelectionSource::None => "external-none",
+            SegmentedControlSelectionSource::Selected => "external-selected",
+            SegmentedControlSelectionSource::OutOfRange => "external-out-of-range",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum SegmentedControlSelectionOrigin {
+    #[default]
+    Programmatic,
+    Keyboard,
+    Pointer,
+}
+
+impl SegmentedControlSelectionOrigin {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            SegmentedControlSelectionOrigin::Programmatic => "programmatic",
+            SegmentedControlSelectionOrigin::Keyboard => "keyboard",
+            SegmentedControlSelectionOrigin::Pointer => "pointer",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SegmentedControlAgentSchemaVersion {
+    V1,
+}
+
+impl SegmentedControlAgentSchemaVersion {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            SegmentedControlAgentSchemaVersion::V1 => "v1",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SegmentedControlAgentIntent {
+    SingleChoiceSelection,
+}
+
+impl SegmentedControlAgentIntent {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            SegmentedControlAgentIntent::SingleChoiceSelection => "single-choice-selection",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum SegmentedControlAgentActionModel {
+    NavigateAndSelect,
+}
+
+impl SegmentedControlAgentActionModel {
+    pub fn as_attr(self) -> &'static str {
+        match self {
+            SegmentedControlAgentActionModel::NavigateAndSelect => "navigate|focus|select",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SegmentedControlAgentContract {
+    pub schema_attr: &'static str,
+    pub schema_version_attr: &'static str,
+    pub intent_attr: &'static str,
+    pub action_model_attr: &'static str,
+    pub state_axis_attr: &'static str,
+    pub source_axis_attr: &'static str,
+}
+
+pub fn segmented_control_agent_contract() -> SegmentedControlAgentContract {
+    SegmentedControlAgentContract {
+        schema_attr: "ui.segmented-control",
+        schema_version_attr: SegmentedControlAgentSchemaVersion::V1.as_attr(),
+        intent_attr: SegmentedControlAgentIntent::SingleChoiceSelection.as_attr(),
+        action_model_attr: SegmentedControlAgentActionModel::NavigateAndSelect.as_attr(),
+        state_axis_attr: "selection|availability|orientation|label",
+        source_axis_attr: "control-mode|selection-source|selection-origin|disabled-indices",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -114,18 +177,6 @@ mod tests {
         assert_eq!(
             SegmentedControlOrientation::Vertical.class_name(),
             "ui-segmented-control--vertical"
-        );
-    }
-
-    #[test]
-    fn roving_orientation_matches_headless_contract() {
-        assert_eq!(
-            SegmentedControlOrientation::Horizontal.roving_orientation(),
-            RovingOrientation::Horizontal
-        );
-        assert_eq!(
-            SegmentedControlOrientation::Vertical.roving_orientation(),
-            RovingOrientation::Vertical
         );
     }
 
@@ -150,55 +201,9 @@ mod tests {
     }
 
     #[test]
-    fn resolve_state_tracks_empty_disabled_group() {
-        let disabled = HashSet::new();
-        let state = resolve_state(
-            0,
-            true,
-            &disabled,
-            Some(0),
-            SegmentedControlOrientation::Horizontal,
-            false,
-        );
-
-        assert_eq!(state.item_count, 0);
-        assert!(state.is_empty);
-        assert!(!state.has_items);
-        assert!(state.is_disabled);
-        assert!(!state.has_disabled_options);
-        assert_eq!(state.disabled_option_count, 0);
-        assert_eq!(state.selected_index, None);
-        assert!(!state.has_selection);
-        assert!(state.selection_empty);
-        assert!(state.is_horizontal);
-        assert!(!state.is_vertical);
-        assert!(!state.has_label);
-    }
-
-    #[test]
-    fn resolve_state_tracks_selection_orientation_and_disabled_options() {
-        let disabled = HashSet::from([1_usize, 8_usize]);
-        let state = resolve_state(
-            3,
-            false,
-            &disabled,
-            Some(2),
-            SegmentedControlOrientation::Vertical,
-            true,
-        );
-
-        assert_eq!(state.item_count, 3);
-        assert!(!state.is_empty);
-        assert!(state.has_items);
-        assert!(!state.is_disabled);
-        assert!(state.has_disabled_options);
-        assert_eq!(state.disabled_option_count, 1);
-        assert_eq!(state.selected_index, Some(2));
-        assert!(state.has_selection);
-        assert!(!state.selection_empty);
-        assert!(!state.is_horizontal);
-        assert!(state.is_vertical);
-        assert!(state.has_label);
+    fn orientation_axis_flags_are_stable() {
+        assert!(!SegmentedControlOrientation::Horizontal.is_vertical());
+        assert!(SegmentedControlOrientation::Vertical.is_vertical());
     }
 
     #[test]
@@ -214,6 +219,79 @@ mod tests {
         assert_eq!(
             SegmentedControlSize::Lg.class_name(),
             "ui-segmented-control--size-lg"
+        );
+    }
+
+    #[test]
+    fn control_mode_attr_is_stable() {
+        assert_eq!(
+            SegmentedControlControlMode::Controlled.as_attr(),
+            "controlled"
+        );
+    }
+
+    #[test]
+    fn selection_source_attr_is_closed_set() {
+        assert_eq!(
+            SegmentedControlSelectionSource::None.as_attr(),
+            "external-none"
+        );
+        assert_eq!(
+            SegmentedControlSelectionSource::Selected.as_attr(),
+            "external-selected"
+        );
+        assert_eq!(
+            SegmentedControlSelectionSource::OutOfRange.as_attr(),
+            "external-out-of-range"
+        );
+    }
+
+    #[test]
+    fn selection_source_resolves_from_raw_and_normalized_selection() {
+        assert_eq!(
+            SegmentedControlSelectionSource::from_indices(None, None),
+            SegmentedControlSelectionSource::None
+        );
+        assert_eq!(
+            SegmentedControlSelectionSource::from_indices(Some(1), Some(1)),
+            SegmentedControlSelectionSource::Selected
+        );
+        assert_eq!(
+            SegmentedControlSelectionSource::from_indices(Some(8), None),
+            SegmentedControlSelectionSource::OutOfRange
+        );
+    }
+
+    #[test]
+    fn selection_origin_attr_is_stable() {
+        assert_eq!(
+            SegmentedControlSelectionOrigin::Programmatic.as_attr(),
+            "programmatic"
+        );
+        assert_eq!(
+            SegmentedControlSelectionOrigin::Keyboard.as_attr(),
+            "keyboard"
+        );
+        assert_eq!(
+            SegmentedControlSelectionOrigin::Pointer.as_attr(),
+            "pointer"
+        );
+    }
+
+    #[test]
+    fn agent_contract_is_schema_typed_and_stable() {
+        let contract = segmented_control_agent_contract();
+        assert_eq!(contract.schema_attr, "ui.segmented-control");
+        assert_eq!(contract.schema_version_attr, "v1");
+        assert_eq!(contract.intent_attr, "single-choice-selection");
+        assert_eq!(contract.action_model_attr, "navigate|focus|select");
+        assert_eq!(
+            contract.state_axis_attr,
+            "selection|availability|orientation|label"
+        );
+        assert_eq!(
+            contract.source_axis_attr,
+            "control-mode|selection-source|selection-origin|disabled-indices"
         );
     }
 }

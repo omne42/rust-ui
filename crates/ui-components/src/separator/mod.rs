@@ -1,6 +1,6 @@
 mod logic;
-pub mod motion;
-pub mod styles;
+pub(crate) mod motion;
+pub(crate) mod styles;
 mod view;
 
 pub use logic::{SeparatorElementType, SeparatorOrientation};

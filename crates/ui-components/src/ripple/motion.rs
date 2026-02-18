@@ -1,3 +1,5 @@
+use ui_theme::default_text_field_motion_tokens;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct RippleMotion {
     pub enabled: bool,
@@ -15,15 +17,28 @@ impl RippleMotion {
 
 impl Default for RippleMotion {
     fn default() -> Self {
+        let tokens = default_text_field_motion_tokens();
         Self {
             enabled: true,
-            duration_ms: 420,
+            duration_ms: u32::from(tokens.duration_ms),
         }
     }
 }
 
+fn duration_min_ms() -> u32 {
+    120
+}
+
+fn duration_max_ms() -> u32 {
+    1_600
+}
+
+pub fn easing() -> &'static str {
+    default_text_field_motion_tokens().easing
+}
+
 pub fn sanitize_duration_ms(duration_ms: u32) -> u32 {
-    duration_ms.clamp(120, 1_600)
+    duration_ms.clamp(duration_min_ms(), duration_max_ms())
 }
 
 pub fn sanitize_motion(motion: RippleMotion) -> RippleMotion {
@@ -31,6 +46,29 @@ pub fn sanitize_motion(motion: RippleMotion) -> RippleMotion {
         enabled: motion.enabled,
         duration_ms: sanitize_duration_ms(motion.duration_ms),
     }
+}
+
+pub fn source_attr(motion: RippleMotion) -> &'static str {
+    if sanitize_motion(motion) == RippleMotion::default() {
+        "default"
+    } else {
+        "custom"
+    }
+}
+
+pub fn attach_motion(base_vars: Option<String>, motion: RippleMotion) -> String {
+    let motion = sanitize_motion(motion);
+    let mut style = base_vars.unwrap_or_default();
+
+    if !style.trim().is_empty() && !style.trim_end().ends_with(';') {
+        style.push(';');
+    }
+
+    style.push_str(&format!(
+        " --ui-ripple-duration-ms: {}ms;",
+        motion.duration_ms
+    ));
+    style
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -61,7 +99,10 @@ fn trigger_ripple_with_origin_internal(
 
     let _ = style.set_property("--ui-ripple-origin-x", &format!("{origin_x_percent}%"));
     let _ = style.set_property("--ui-ripple-origin-y", &format!("{origin_y_percent}%"));
-    let _ = style.set_property("--ui-ripple-duration-ms", &motion.duration_ms.to_string());
+    let _ = style.set_property(
+        "--ui-ripple-duration-ms",
+        &format!("{}ms", motion.duration_ms),
+    );
 
     let element: leptos::web_sys::Element = html_element.unchecked_into();
     let frames = [
@@ -84,7 +125,7 @@ fn trigger_ripple_with_origin_internal(
         &frames,
         MotionOptions {
             duration_ms: motion.duration_ms,
-            easing: "cubic-bezier(0.2, 0, 0, 1)",
+            easing: easing(),
             ..Default::default()
         },
     );

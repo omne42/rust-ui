@@ -25,25 +25,23 @@ fn date_picker_uses_logic_state_model() {
     let view_source = load_source("src/date_picker/view.rs");
 
     for needle in [
-        "pub enum DatePickerTone",
-        "pub struct DatePickerIds",
-        "pub fn normalize_optional_text(",
-        "pub fn normalize_aria_label(",
-        "pub fn normalize_placeholder(",
-        "pub fn normalize_month(",
-        "pub fn normalize_selected_day(",
-        "pub fn resolve_ids(",
-        "pub fn resolve_state(",
+        "pub use ui_state_primitives::date_picker::{",
+        "DatePickerTone",
+        "DatePickerIds",
+        "DatePickerStateInput",
+        "normalize_optional_text",
+        "normalize_aria_label",
+        "normalize_placeholder",
+        "normalize_month",
+        "normalize_selected_day",
+        "resolve_ids",
+        "resolve_state",
+        "resolve_trigger_label",
         "pub fn compose_class_name(",
-        "placeholder_source_attr",
-        "aria_source_attr",
-        "class_source_attr",
-        "motion_source_attr",
-        "has_custom_motion",
     ] {
         assert!(
             logic_source.contains(needle),
-            "DatePicker logic should include `{needle}` for centralized state derivation."
+            "DatePicker logic should include `{needle}` for primitives re-export and centralized assembly."
         );
     }
 
@@ -56,6 +54,7 @@ fn date_picker_uses_logic_state_model() {
         "logic::resolve_state(DatePickerStateInput {",
         "has_custom_motion,",
         "logic::compose_class_name(class_name.get_value(), state.get())",
+        "locale_attrs(logic::normalize_optional_text(lang), dir);",
         "motion: DatePickerMotion",
         "motion=motion.popover",
     ] {
@@ -64,6 +63,37 @@ fn date_picker_uses_logic_state_model() {
             "DatePicker view should derive state via logic helpers; missing `{needle}`."
         );
     }
+}
+
+#[test]
+fn date_picker_state_primitives_are_sourced_from_ui_state_primitives() {
+    let primitive_source = load_source("../ui-state-primitives/src/date_picker.rs");
+    let logic_source = load_source("src/date_picker/logic.rs");
+
+    for needle in [
+        "pub struct DatePickerStateInput",
+        "pub struct DatePickerState",
+        "pub enum DatePickerTone",
+        "pub fn resolve_state(input: DatePickerStateInput) -> DatePickerState",
+        "pub fn resolve_ids(id_base: &str) -> DatePickerIds",
+    ] {
+        assert!(
+            primitive_source.contains(needle),
+            "ui-state-primitives::date_picker should include `{needle}`."
+        );
+    }
+
+    for banned in ["use leptos", "web_sys", "wasm_bindgen"] {
+        assert!(
+            !primitive_source.contains(banned),
+            "state primitives should stay platform-agnostic; found `{banned}`."
+        );
+    }
+
+    assert!(
+        logic_source.contains("pub use ui_state_primitives::date_picker::{"),
+        "date_picker logic should consume state primitives from ui-state-primitives."
+    );
 }
 
 #[test]
@@ -90,6 +120,10 @@ fn date_picker_emits_baseline_style_state_data_attributes() {
         "class_name=\"ui-date-picker__trigger\".to_string()",
         "class_name=\"ui-date-picker__calendar\".to_string()",
         "role=\"group\"",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "lang=locale.lang",
+        "dir=locale.dir",
     ] {
         assert!(
             source.contains(attr),
@@ -223,4 +257,80 @@ fn date_picker_docs_playgrounds_lock_state_matrix_contract_values() {
             "date_picker docs playgrounds should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn date_picker_docs_page_includes_workbench_css_test_and_comparison_matrix() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+
+    for needle in [
+        "title=\"展示 / Config / Code / CSS Test\"",
+        "test_css_source=workbench_test_css_source",
+        "test_source_path=\"crates/ui-components/src/date_picker/styles.rs\".to_string()",
+        "test_config_signal=workbench_actual_config",
+        "data-slot=\"date-picker-workbench-controls\"",
+        "data-slot=\"date-picker-workbench\"",
+        "data-slot=\"date-picker-workbench-summary\"",
+        "title=\"Comparison Matrix (Default / Quiet / Strong / Disabled)\"",
+        "data-slot=\"date-picker-comparison-matrix\"",
+        "id_base=\"docs-date-picker-compare-default\".to_string()",
+        "id_base=\"docs-date-picker-compare-quiet\".to_string()",
+        "id_base=\"docs-date-picker-compare-strong\".to_string()",
+        "id_base=\"docs-date-picker-compare-disabled\".to_string()",
+        "tone=DatePickerTone::Quiet",
+        "disabled=true",
+    ] {
+        assert!(
+            source.contains(needle),
+            "date_picker docs page should expose workbench/comparison marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn date_picker_readme_is_whitelisted_in_docs_shell() {
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+
+    for needle in [
+        "const DATE_PICKER_README_MD: &str =",
+        "include_str!(\"../../../../../crates/ui-components/src/date_picker/README.md\")",
+        "\"date-picker\" => Some(DATE_PICKER_README_MD),",
+        "let readme_html = component_readme_markdown(slug).map(crate::markdown::markdown_to_html);",
+    ] {
+        assert!(
+            shell_source.contains(needle),
+            "docs shell should include date_picker readme whitelist marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn date_picker_readme_includes_workbench_and_matrix_sections() {
+    let readme_source = load_source("src/date_picker/README.md");
+
+    for needle in [
+        "## Docs Playground（展示 / Config / Code / CSS Test）",
+        "展示区",
+        "Config 区",
+        "Code 区",
+        "CSS Test 区",
+        "Comparison Matrix (Default / Quiet / Strong / Disabled)",
+    ] {
+        assert!(
+            readme_source.contains(needle),
+            "date_picker README should include docs coverage marker `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn date_picker_feature_gate_includes_required_dependencies() {
+    let source = load_source("Cargo.toml");
+
+    assert!(
+        source.contains(
+            "component-date_picker = [\"component-button\", \"component-calendar\", \"component-popover\"]"
+        ),
+        "component-date_picker should pull button/calendar/popover features for minimal feature builds."
+    );
 }
