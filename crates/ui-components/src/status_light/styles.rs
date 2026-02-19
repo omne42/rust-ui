@@ -7,7 +7,7 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-sm);
   font-size: var(--ui-font-size-150);
   font-weight: 500;
-  line-height: 1.2;
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-status-light__dot {

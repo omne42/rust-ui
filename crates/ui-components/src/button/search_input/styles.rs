@@ -98,7 +98,7 @@ pub const CSS: &str = r#"
   border: 1px solid var(--ui-border);
   background: var(--ui-bg);
   padding: 2px 6px;
-  font-size: 10px;
+  font-size: calc(var(--ui-font-size-100, 12px) - 2px);
   font-weight: 600;
   line-height: var(--ui-line-height-100, 1rem);
   color: var(--ui-fg-muted);

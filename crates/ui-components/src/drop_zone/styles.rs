@@ -11,7 +11,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-drop-zone__label {
-  font-size: 13px;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   font-weight: 600;
   color: var(--ui-fg);
 }

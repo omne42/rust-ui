@@ -17,8 +17,8 @@ pub const CSS: &str = r#"
   align-items: center;
   gap: var(--ui-space-xs);
   color: var(--ui-fg-muted, currentColor);
-  font-size: 0.875rem;
-  line-height: 1.45;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-breadcrumb__item {

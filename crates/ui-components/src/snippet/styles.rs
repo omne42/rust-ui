@@ -91,7 +91,7 @@ pub const CSS: &str = r#"
 
   font-family: inherit;
   font-size: var(--ui-font-size-100);
-  line-height: 1;
+  line-height: var(--ui-line-height-100, 16px);
   user-select: none;
 }
 
@@ -104,7 +104,7 @@ pub const CSS: &str = r#"
   overflow-wrap: anywhere;
 
   font-size: var(--ui-font-size-100);
-  line-height: 1.4;
+  line-height: var(--ui-line-height-100, 16px);
   user-select: text;
 }
 

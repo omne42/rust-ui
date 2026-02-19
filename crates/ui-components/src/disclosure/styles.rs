@@ -27,7 +27,7 @@ pub const CSS: &str = r#"
 
   font-size: var(--ui-font-size-200, 14px);
   font-weight: var(--ui-font-weight-semibold, 600);
-  line-height: 1.2;
+  line-height: var(--ui-line-height-150, 20px);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }

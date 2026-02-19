@@ -38,13 +38,15 @@ pub const CSS: &str = r#"
 }
 
 .ui-color-picker__label {
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
 }
 
 .ui-color-picker__value {
   margin-inline-start: auto;
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
   font-variant-numeric: tabular-nums;
 }

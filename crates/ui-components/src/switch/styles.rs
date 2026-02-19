@@ -71,8 +71,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-switch__label {
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-switch[data-hovered="true"]:not(:disabled) .ui-switch__track {

@@ -27,8 +27,8 @@ pub const CSS: &str = r#"
   display: grid;
   gap: var(--ui-space-xs);
   color: var(--ui-fg-muted);
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-coachmark__footer {
@@ -37,7 +37,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-coachmark__steps {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-coachmark__actions {

@@ -30,7 +30,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-switch-group__label {
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
   color: var(--ui-fg);
 }
@@ -58,8 +59,8 @@ pub const CSS: &str = r#"
 .ui-switch-group__description,
 .ui-switch-group__error {
   margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.35;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-switch-group__description {

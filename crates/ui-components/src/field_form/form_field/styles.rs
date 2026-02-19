@@ -61,16 +61,16 @@ pub const CSS: &str = r#"
 
 .ui-form-field__label {
   margin: 0;
-  font-size: 0.9375rem;
-  line-height: 1.3;
+  font-size: var(--ui-button-size-l-font-size, 15px);
+  line-height: var(--ui-button-size-l-line-height, 22px);
   font-weight: 600;
 }
 
 .ui-form-field__description,
 .ui-form-field__error {
   margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.35;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-form-field__description {

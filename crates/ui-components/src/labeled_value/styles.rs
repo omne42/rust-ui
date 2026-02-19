@@ -64,7 +64,8 @@ pub const CSS: &str = r#"
 .ui-labeled-value__label {
   display: inline-flex;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 500;
   color: var(--ui-fg-muted);
 }
@@ -73,7 +74,8 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   min-width: 0;
-  font-size: 0.92rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 500;
   color: var(--ui-fg);
 }
@@ -81,7 +83,8 @@ pub const CSS: &str = r#"
 .ui-labeled-value__description {
   display: inline-flex;
   align-items: center;
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 "#;

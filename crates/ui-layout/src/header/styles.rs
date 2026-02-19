@@ -5,8 +5,8 @@ pub const CSS: &str = r#"
   min-width: 0;
   color: var(--ui-fg);
   font-weight: 600;
-  font-size: 1rem;
-  line-height: 1.35;
+  font-size: var(--ui-font-size-200, 16px);
+  line-height: var(--ui-line-height-200, 24px);
   transition:
     color var(--ui-header-motion-duration) ease,
     border-color var(--ui-header-motion-duration) ease;

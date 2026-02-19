@@ -1,10 +1,13 @@
 pub const CSS: &str = r#"
 .ui-icon {
+  --ui-icon-size-sm-token: var(--ui-font-size-150, 14px);
+  --ui-icon-size-md-token: var(--ui-font-size-200, 16px);
+  --ui-icon-size-lg-token: var(--ui-icon-size-100, 20px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--ui-fg);
-  line-height: 1;
+  line-height: var(--ui-line-height-100, 16px);
   flex: 0 0 auto;
 }
 
@@ -16,23 +19,23 @@ pub const CSS: &str = r#"
 
 .ui-icon--size-sm,
 .ui-icon[data-size="sm"] {
-  width: 0.875rem;
-  height: 0.875rem;
-  font-size: 0.875rem;
+  width: var(--ui-icon-size-sm-token);
+  height: var(--ui-icon-size-sm-token);
+  font-size: var(--ui-icon-size-sm-token);
 }
 
 .ui-icon--size-md,
 .ui-icon[data-size="md"] {
-  width: 1rem;
-  height: 1rem;
-  font-size: 1rem;
+  width: var(--ui-icon-size-md-token);
+  height: var(--ui-icon-size-md-token);
+  font-size: var(--ui-icon-size-md-token);
 }
 
 .ui-icon--size-lg,
 .ui-icon[data-size="lg"] {
-  width: 1.25rem;
-  height: 1.25rem;
-  font-size: 1.25rem;
+  width: var(--ui-icon-size-lg-token);
+  height: var(--ui-icon-size-lg-token);
+  font-size: var(--ui-icon-size-lg-token);
 }
 
 .ui-icon--tone-default,

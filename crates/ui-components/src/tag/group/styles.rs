@@ -6,7 +6,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-tag-group__label {
-  font-size: 13px;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   font-weight: 600;
   color: var(--ui-fg);
 }
@@ -53,12 +54,14 @@ pub const CSS: &str = r#"
 }
 
 .ui-tag-group__description {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 
 .ui-tag-group__error {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-danger-fg);
 }
 

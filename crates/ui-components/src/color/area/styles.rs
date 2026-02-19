@@ -11,9 +11,9 @@ pub const CSS: &str = r#"
 
 .ui-color-area__label {
   color: var(--ui-fg-muted);
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-color-area__preview {
@@ -83,7 +83,8 @@ pub const CSS: &str = r#"
 
 .ui-color-area__axis-label {
   color: var(--ui-fg-muted);
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-color-area__axis-input {

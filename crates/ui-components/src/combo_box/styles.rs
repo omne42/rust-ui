@@ -67,8 +67,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-combo-box__label {
-  font-size: var(--ui-font-size-150);
-  line-height: 1.2;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 500;
   color: var(--ui-fg);
 }
@@ -142,8 +142,8 @@ pub const CSS: &str = r#"
 
 .ui-combo-box__description,
 .ui-combo-box__error {
-  font-size: var(--ui-font-size-100);
-  line-height: 1.3;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-combo-box__description {

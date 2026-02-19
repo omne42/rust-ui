@@ -110,7 +110,7 @@ pub const CSS: &str = r#"
 .ui-drawer__title,
 .ui-drawer__title[data-slot="drawer-title"] {
   font-size: var(--ui-heading-h5-font-size, 16px);
-  line-height: var(--ui-heading-h5-line-height, 1.2);
+  line-height: var(--ui-heading-h5-line-height, 24px);
   font-weight: 700;
   margin: 0;
 }
@@ -121,8 +121,8 @@ pub const CSS: &str = r#"
 
 .ui-drawer__description,
 .ui-drawer__description[data-slot="drawer-description"] {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
   margin: 0;
 }

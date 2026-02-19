@@ -94,7 +94,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-tree__item--branch .ui-tree__chevron {
-  font-size: 0.7rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-tree__item--leaf .ui-tree__chevron {
@@ -127,7 +128,8 @@ pub const CSS: &str = r#"
 
 .ui-tree__label {
   min-width: 0;
-  font-size: 0.86rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

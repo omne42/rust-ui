@@ -78,20 +78,22 @@ pub const CSS: &str = r#"
 }
 
 .ui-contextual-help__heading {
-  font-size: 13px;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 20px);
   font-weight: 650;
   color: var(--ui-fg);
   margin: 0;
 }
 
 .ui-contextual-help__content {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
 }
 
 .ui-contextual-help__footer {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 "#;

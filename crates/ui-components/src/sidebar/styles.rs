@@ -20,7 +20,7 @@ pub const CSS: &str = r#"
   color: inherit;
   padding: 0.35rem 0.6rem;
   font: inherit;
-  line-height: 1.1;
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-sidebar__trigger:focus-visible,

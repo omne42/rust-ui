@@ -4,7 +4,7 @@ pub const CSS: &str = r#"
   margin: 0;
   min-width: 0;
   color: var(--ui-fg);
-  line-height: 1.25;
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
 }
 

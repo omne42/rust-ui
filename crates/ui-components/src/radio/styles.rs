@@ -15,7 +15,7 @@ pub const CSS: &str = r#"
 
 .ui-radio-group__label {
   font-size: var(--ui-font-size-100);
-  line-height: 1.2;
+  line-height: var(--ui-line-height-100);
   font-weight: 500;
   color: var(--ui-fg);
 }
@@ -29,8 +29,9 @@ pub const CSS: &str = r#"
   border: 1px solid transparent;
   background: transparent;
   color: var(--ui-fg);
-  font: inherit;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
+  font-weight: 500;
 
   transform: scale(var(--ui-radio-scale, 1));
   transform-origin: center;

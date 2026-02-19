@@ -36,7 +36,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-date-field__label {
-  font-size: 0.82rem;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   font-weight: 600;
 }
 

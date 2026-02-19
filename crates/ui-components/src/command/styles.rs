@@ -106,7 +106,7 @@ pub const CSS: &str = r#"
   background: var(--ui-bg);
   color: var(--ui-fg);
   font: inherit;
-  line-height: 1.35;
+  line-height: var(--ui-line-height-150, 20px);
   padding: 9px 12px;
   outline: none;
 }
@@ -140,8 +140,8 @@ pub const CSS: &str = r#"
 .ui-command__group-heading {
   margin: 0;
   padding-inline: 10px;
-  font-size: 12px;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 600;
   color: var(--ui-fg-muted);
   text-transform: uppercase;
@@ -188,8 +188,8 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-radius-sm);
   padding-inline: 6px;
   padding-block: 2px;
-  font-size: 11px;
-  line-height: 1;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
   background: color-mix(in oklab, var(--ui-bg) 88%, var(--ui-bg-muted) 12%);
 }
@@ -197,7 +197,7 @@ pub const CSS: &str = r#"
 .ui-command__empty {
   padding: 14px 12px;
   color: var(--ui-fg-muted);
-  font-size: 13px;
-  line-height: 1.3;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
 }
 "#;

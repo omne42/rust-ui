@@ -59,7 +59,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-calendar__title {
-  font-size: 0.92rem;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 20px);
   font-weight: 600;
 }
 
@@ -72,7 +73,8 @@ pub const CSS: &str = r#"
 
 .ui-calendar__weekday {
   text-align: center;
-  font-size: 0.72rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 

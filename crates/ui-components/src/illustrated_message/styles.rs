@@ -47,15 +47,16 @@ pub const CSS: &str = r#"
 
 .ui-illustrated-message__title {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 20px);
   font-weight: 700;
 }
 
 .ui-illustrated-message__description {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
-  line-height: 1.45;
 }
 
 .ui-illustrated-message__actions {

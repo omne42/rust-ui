@@ -53,7 +53,8 @@ pub const CSS: &str = r#"
 .ui-error-view[data-compact="true"] {
   gap: var(--ui-space-2xs);
   padding: var(--ui-space-2xs) var(--ui-space-xs);
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-error-view--bordered,
@@ -77,8 +78,8 @@ pub const CSS: &str = r#"
 .ui-error-view__text {
   margin: 0;
   min-width: 0;
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-error-view__actions {
@@ -100,7 +101,7 @@ pub const CSS: &str = r#"
 
 .ui-error-view--with-children,
 .ui-error-view[data-content="children"] {
-  line-height: 1.35;
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-error-view--custom-class,

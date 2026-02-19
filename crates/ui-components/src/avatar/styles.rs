@@ -88,7 +88,7 @@ pub const CSS: &str = r#"
 
 .ui-avatar__initials {
   font-size: calc(var(--ui-avatar-size, 32px) / 2.5);
-  line-height: 1;
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 600;
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -101,7 +101,7 @@ pub const AVATAR_GROUP_CSS: &str = r#"
 .ui-avatar-group {
   --ui-avatar-group-size: 2rem;
   --ui-avatar-group-overlap: 10px;
-  --ui-avatar-group-font-size: 0.75rem;
+  --ui-avatar-group-font-size: var(--ui-font-size-100, 12px);
   --ui-avatar-group-overflow-padding: 0.375rem;
   display: inline-flex;
   align-items: center;
@@ -141,7 +141,7 @@ pub const AVATAR_GROUP_CSS: &str = r#"
   color: var(--ui-fg);
   font-size: var(--ui-avatar-group-font-size);
   font-weight: 650;
-  line-height: 1;
+  line-height: var(--ui-line-height-100, 16px);
   box-shadow: var(--ui-shadow-sm);
 }
 
@@ -153,7 +153,7 @@ pub const AVATAR_GROUP_CSS: &str = r#"
 .ui-avatar-group[data-size="sm"] {
   --ui-avatar-group-size: 1.5rem;
   --ui-avatar-group-overlap: 8px;
-  --ui-avatar-group-font-size: 0.6875rem;
+  --ui-avatar-group-font-size: var(--ui-font-size-100, 12px);
   --ui-avatar-group-overflow-padding: 0.25rem;
 }
 
@@ -161,7 +161,7 @@ pub const AVATAR_GROUP_CSS: &str = r#"
 .ui-avatar-group[data-size="md"] {
   --ui-avatar-group-size: 2rem;
   --ui-avatar-group-overlap: 10px;
-  --ui-avatar-group-font-size: 0.75rem;
+  --ui-avatar-group-font-size: var(--ui-font-size-100, 12px);
   --ui-avatar-group-overflow-padding: 0.375rem;
 }
 
@@ -169,7 +169,7 @@ pub const AVATAR_GROUP_CSS: &str = r#"
 .ui-avatar-group[data-size="lg"] {
   --ui-avatar-group-size: 2.5rem;
   --ui-avatar-group-overlap: 12px;
-  --ui-avatar-group-font-size: 0.8125rem;
+  --ui-avatar-group-font-size: var(--ui-button-size-s-font-size, 13px);
   --ui-avatar-group-overflow-padding: 0.5rem;
 }
 

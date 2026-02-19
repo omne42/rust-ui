@@ -24,13 +24,15 @@ pub const CSS: &str = r#"
 }
 
 .ui-meter__label {
-  font-size: 13px;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
   color: var(--ui-fg);
 }
 
 .ui-meter__value-label {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 

@@ -15,8 +15,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-menu-section__header {
-  font-size: 0.75rem;
-  line-height: 1.25;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 600;
   color: var(--ui-menu-section-title-color);
   padding-inline: 10px;

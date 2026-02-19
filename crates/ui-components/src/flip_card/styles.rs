@@ -93,15 +93,15 @@ pub const CSS: &str = r#"
 }
 
 .ui-flip-card__title {
-  font-size: 0.95rem;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 20px);
   font-weight: 650;
-  line-height: 1.35;
 }
 
 .ui-flip-card__description {
   color: var(--ui-fg-muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 @media (prefers-reduced-motion: reduce) {

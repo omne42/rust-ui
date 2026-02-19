@@ -9,7 +9,8 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-radius-sm);
   background: color-mix(in oklab, var(--ui-bg-muted) 92%, var(--ui-bg) 8%);
   color: var(--ui-fg);
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
@@ -27,7 +28,8 @@ pub const CSS: &str = r#"
 .ui-keyboard[data-compact="true"] {
   min-height: 1.125rem;
   padding: 0.0625rem 0.25rem;
-  font-size: 0.6875rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-keyboard--custom-class,

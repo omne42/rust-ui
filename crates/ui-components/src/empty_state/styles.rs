@@ -68,7 +68,8 @@ pub const CSS: &str = r#"
 
 .ui-empty-state__title {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--ui-heading-h5-font-size, 16px);
+  line-height: var(--ui-heading-h5-line-height, 24px);
   font-weight: 600;
   color: var(--ui-fg);
 }
@@ -76,8 +77,8 @@ pub const CSS: &str = r#"
 .ui-empty-state__description {
   margin: 0;
   max-width: 46ch;
-  font-size: 0.875rem;
-  line-height: 1.45;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
 }
 

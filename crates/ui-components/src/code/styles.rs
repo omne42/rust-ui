@@ -12,14 +12,14 @@ pub const CSS: &str = r#"
 
 .ui-code--variant-inline,
 .ui-code[data-variant="inline"] {
-  font-size: 12px;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-code--variant-block,
 .ui-code[data-variant="block"] {
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-code--state-inline,

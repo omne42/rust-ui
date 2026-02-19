@@ -8,8 +8,8 @@ pub const CSS: &str = r#"
   border-radius: 999px;
   background: color-mix(in oklab, currentColor 12%, transparent);
   color: var(--ui-fg-muted, color-mix(in oklab, currentColor 70%, transparent));
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-variant-numeric: tabular-nums;
 }
 

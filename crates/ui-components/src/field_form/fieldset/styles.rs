@@ -97,7 +97,7 @@ pub const CSS: &str = r#"
 .ui-fieldset__error {
   margin: 0;
   font-size: var(--ui-font-size-100, 0.75rem);
-  line-height: 1.35;
+  line-height: var(--ui-line-height-100, 16px);
   transition:
     opacity var(--ui-fieldset-motion-duration, 170ms) ease,
     transform var(--ui-fieldset-motion-duration, 170ms) ease;

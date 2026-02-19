@@ -1,5 +1,7 @@
 pub const CSS: &str = r#"
 .ui-chip {
+  --ui-chip-font-size: var(--ui-button-size-s-font-size, 13px);
+  --ui-chip-line-height: var(--ui-button-size-s-line-height, 18px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -10,9 +12,9 @@ pub const CSS: &str = r#"
   border-radius: 9999px;
   border: 1px solid transparent;
   box-sizing: border-box;
-  font-size: 13px;
+  font-size: var(--ui-chip-font-size);
   font-weight: 500;
-  line-height: 1;
+  line-height: var(--ui-chip-line-height);
   color: var(--ui-fg);
   background: var(--ui-bg-muted);
   border-color: var(--ui-border);
@@ -26,20 +28,24 @@ pub const CSS: &str = r#"
 .ui-chip[data-size="sm"] {
   height: 24px;
   padding: 0 10px;
-  font-size: 12px;
+  --ui-chip-font-size: var(--ui-button-size-xs-font-size, 12px);
+  --ui-chip-line-height: var(--ui-button-size-xs-line-height, 16px);
 }
 
 .ui-chip--size-md,
 .ui-chip[data-size="md"] {
   height: 28px;
   padding: 0 12px;
+  --ui-chip-font-size: var(--ui-button-size-s-font-size, 13px);
+  --ui-chip-line-height: var(--ui-button-size-s-line-height, 18px);
 }
 
 .ui-chip--size-lg,
 .ui-chip[data-size="lg"] {
   height: 32px;
   padding: 0 14px;
-  font-size: 14px;
+  --ui-chip-font-size: var(--ui-button-size-m-font-size, 14px);
+  --ui-chip-line-height: var(--ui-button-size-m-line-height, 20px);
 }
 
 .ui-chip--variant-default,

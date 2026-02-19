@@ -50,7 +50,8 @@ pub const CSS: &str = r#"
   justify-content: center;
   min-width: 2.25rem;
   padding-inline: var(--ui-space-sm);
-  font-size: 0.85rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
   background: color-mix(in oklab, var(--ui-bg-muted), var(--ui-bg) 28%);
 }

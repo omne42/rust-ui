@@ -44,19 +44,22 @@ pub const CSS: &str = r#"
 
 .ui-native-select--size-sm .ui-native-select__control {
   min-height: 30px;
-  font-size: 12px;
+  font-size: var(--ui-button-size-xs-font-size, 12px);
+  line-height: var(--ui-button-size-xs-line-height, 16px);
   padding: 0 28px 0 10px;
 }
 
 .ui-native-select--size-md .ui-native-select__control {
   min-height: 34px;
-  font-size: 13px;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   padding: 0 32px 0 12px;
 }
 
 .ui-native-select--size-lg .ui-native-select__control {
   min-height: 38px;
-  font-size: 14px;
+  font-size: var(--ui-button-size-m-font-size, 14px);
+  line-height: var(--ui-button-size-m-line-height, 20px);
   padding: 0 34px 0 14px;
 }
 

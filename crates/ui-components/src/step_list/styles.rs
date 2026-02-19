@@ -59,7 +59,8 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 700;
   flex-shrink: 0;
   background: var(--ui-step-list-marker-bg);
@@ -75,15 +76,15 @@ pub const CSS: &str = r#"
 
 .ui-step-list__label {
   color: var(--ui-step-list-label);
-  font-size: 0.875rem;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
 }
 
 .ui-step-list__description {
   color: var(--ui-step-list-desc);
-  font-size: 0.75rem;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-step-list__connector {

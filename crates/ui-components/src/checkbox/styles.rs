@@ -96,8 +96,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-checkbox__label {
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-checkbox--size-default .ui-checkbox__box {
@@ -151,8 +151,8 @@ pub const CHECKBOX_GROUP_CSS: &str = r#"
   padding: 0;
   margin: 0;
 
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 500;
   color: var(--ui-fg);
 }
@@ -171,8 +171,8 @@ pub const CHECKBOX_GROUP_CSS: &str = r#"
 
 .ui-checkbox-group__description,
 .ui-checkbox-group__error {
-  font-size: 12px;
-  line-height: 1.3;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-checkbox-group__description {

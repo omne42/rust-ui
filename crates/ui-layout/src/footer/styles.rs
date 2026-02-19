@@ -3,8 +3,8 @@ pub const CSS: &str = r#"
   display: block;
   min-width: 0;
   color: var(--ui-fg-muted);
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-footer--tone-default,

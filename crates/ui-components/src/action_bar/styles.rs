@@ -44,9 +44,9 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-2xs);
   margin: 0;
   color: var(--ui-fg);
-  font-size: 0.9rem;
+  font-size: var(--ui-font-size-150, 14px);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--ui-line-height-150, 20px);
   white-space: nowrap;
 }
 
@@ -66,8 +66,8 @@ pub const CSS: &str = r#"
   padding: 0;
   color: var(--ui-accent);
   background: transparent;
-  font-size: 0.82rem;
-  line-height: 1;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   text-decoration: underline;
   text-underline-offset: 0.12em;
   cursor: pointer;
@@ -136,7 +136,8 @@ pub const CSS: &str = r#"
   }
 
   .ui-action-bar__selection {
-    font-size: 0.82rem;
+    font-size: var(--ui-button-size-s-font-size, 13px);
+    line-height: var(--ui-button-size-s-line-height, 18px);
   }
 }
 "#;

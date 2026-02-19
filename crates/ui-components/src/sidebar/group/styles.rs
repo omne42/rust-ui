@@ -18,7 +18,7 @@ pub const CSS: &str = r#"
   background: transparent;
   color: inherit;
   font: inherit;
-  line-height: 1.2;
+  line-height: var(--ui-line-height-100, 16px);
   border-radius: var(--ui-radius-xs, 0.375rem);
 }
 

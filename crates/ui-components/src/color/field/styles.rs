@@ -8,9 +8,9 @@ pub const CSS: &str = r#"
 
 .ui-color-field__label {
   color: var(--ui-fg-muted);
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-color-field__control {
@@ -36,8 +36,8 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-radius-sm);
   background: color-mix(in oklab, var(--ui-bg) 96%, transparent);
   color: var(--ui-fg);
-  font-size: 0.875rem;
-  line-height: 1.3;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   padding: 0.45rem 0.625rem;
 }
 
@@ -55,8 +55,8 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-radius-sm);
   background: color-mix(in oklab, var(--ui-bg) 98%, transparent);
   color: var(--ui-fg-muted);
-  font-size: 0.75rem;
-  line-height: 1;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   padding: 0.4rem 0.55rem;
   cursor: pointer;
 }

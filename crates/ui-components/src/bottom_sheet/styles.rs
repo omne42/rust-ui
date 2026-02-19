@@ -85,15 +85,15 @@ pub const CSS: &str = r#"
 
 .ui-bottom-sheet__title {
   margin: 0;
-  font-size: var(--ui-heading-h5-font-size, 1rem);
-  line-height: var(--ui-heading-h5-line-height, 1.35);
+  font-size: var(--ui-heading-h5-font-size, 16px);
+  line-height: var(--ui-heading-h5-line-height, 24px);
   font-weight: 700;
 }
 
 .ui-bottom-sheet__description {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
 }
 

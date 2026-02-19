@@ -2,8 +2,8 @@ pub const CSS: &str = r#"
 .ui-error-message {
   margin: 0;
   min-width: 0;
-  font-size: 0.75rem;
-  line-height: 1.35;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: color-mix(in oklab, var(--ui-danger) 74%, var(--ui-fg) 26%);
 }
 

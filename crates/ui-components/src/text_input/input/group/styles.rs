@@ -23,7 +23,8 @@ pub const CSS: &str = r#"
   justify-content: center;
   min-width: 2.25rem;
   padding: 0 var(--ui-space-sm);
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
   background: color-mix(in oklch, var(--ui-bg-muted), var(--ui-bg) 22%);
   border-inline-end: 1px solid color-mix(in oklch, var(--ui-border), transparent 24%);

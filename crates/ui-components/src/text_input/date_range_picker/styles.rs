@@ -62,7 +62,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-date-range-picker__field-label {
-  font-size: 0.8rem;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   font-weight: 600;
   color: var(--ui-fg-muted);
 }
@@ -72,7 +73,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-date-range-picker__hint {
-  font-size: 0.78rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 "#;

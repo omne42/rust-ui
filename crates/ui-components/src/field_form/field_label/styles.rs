@@ -4,8 +4,8 @@ pub const CSS: &str = r#"
   align-items: center;
   gap: var(--ui-space-2xs);
   color: var(--ui-fg);
-  font-size: 0.875rem;
-  line-height: 1.25;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 500;
 }
 

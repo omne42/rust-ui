@@ -97,14 +97,14 @@ pub const CSS: &str = r#"
 }
 
 .ui-code-block__label {
-  font-size: 13px;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   font-weight: 600;
-  line-height: 1;
 }
 
 .ui-code-block__language {
-  font-size: 12px;
-  line-height: 1;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 
@@ -112,8 +112,8 @@ pub const CSS: &str = r#"
   margin: 0;
   padding: var(--ui-space-md);
   overflow: auto;
-  font-size: 12px;
-  line-height: 1.55;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-code-block__code {

@@ -88,7 +88,8 @@ pub const CSS: &str = r#"
   caption-side: top;
   text-align: start;
   padding: var(--ui-space-sm) var(--ui-space-md);
-  font-size: 0.8rem;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
   color: var(--ui-fg-muted);
 }
 
@@ -100,7 +101,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-table__head-cell {
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--ui-fg-muted);

@@ -154,8 +154,8 @@ pub const SECTION_CSS: &str = r#"
 }
 
 .ui-listbox-section__header {
-  font-size: 0.75rem;
-  line-height: 1.25;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 600;
   color: var(--ui-listbox-section-title-color);
   padding-inline: 8px;

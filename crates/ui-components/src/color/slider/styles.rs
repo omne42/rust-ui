@@ -27,14 +27,16 @@ pub const CSS: &str = r#"
 }
 
 .ui-color-slider__label {
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
 }
 
 .ui-color-slider__value {
   font-variant-numeric: tabular-nums;
   color: var(--ui-fg-muted);
-  font-size: 0.8rem;
+  font-size: var(--ui-button-size-s-font-size, 13px);
+  line-height: var(--ui-button-size-s-line-height, 18px);
 }
 
 .ui-color-slider__control {

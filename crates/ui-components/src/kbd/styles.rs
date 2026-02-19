@@ -16,7 +16,7 @@ pub const CSS: &str = r#"
   box-sizing: border-box;
 
   font-family: inherit;
-  line-height: 1;
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 500;
 }
 
@@ -24,14 +24,14 @@ pub const CSS: &str = r#"
 .ui-kbd[data-size="sm"] {
   padding: 0 var(--ui-space-xs);
   min-height: 20px;
-  font-size: 11px;
+  font-size: var(--ui-font-size-100, 12px);
 }
 
 .ui-kbd--size-md,
 .ui-kbd[data-size="md"] {
   padding: calc(var(--ui-space-xs) / 2) var(--ui-space-sm);
   min-height: 24px;
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
 }
 
 .ui-kbd--state-with-keys,

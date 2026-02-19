@@ -80,7 +80,7 @@ pub const CSS: &str = r#"
   box-shadow: var(--ui-shadow-md);
 
   font-size: var(--ui-font-size-100, 12px);
-  line-height: 1.2;
+  line-height: var(--ui-line-height-100, 16px);
   max-width: var(--ui-tooltip-max-width, 280px);
 }
 

@@ -131,13 +131,13 @@ pub const CSS: &str = r#"
 
 .ui-toast__title {
   font-weight: 700;
-  font-size: var(--ui-font-size-100, 14px);
-  line-height: 1.2;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 20px);
 }
 
 .ui-toast__description {
-  font-size: calc(var(--ui-font-size-100, 14px) - 2px);
-  line-height: 1.35;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
 }
 

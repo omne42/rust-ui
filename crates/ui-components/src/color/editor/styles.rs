@@ -12,13 +12,15 @@ pub const CSS: &str = r#"
 }
 
 .ui-color-editor__label {
-  font-size: 0.875rem;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   font-weight: 600;
   color: var(--ui-fg);
 }
 
 .ui-color-editor__value {
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -62,7 +64,8 @@ pub const CSS: &str = r#"
   border: 0;
   background: transparent;
   color: var(--ui-fg-muted);
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-weight: 600;
   letter-spacing: 0.01em;
   padding: var(--ui-space-2xs) var(--ui-space-xs);
@@ -95,14 +98,16 @@ pub const CSS: &str = r#"
 }
 
 .ui-color-editor__channel-key {
-  font-size: 0.625rem;
+  font-size: calc(var(--ui-font-size-100, 12px) - 2px);
+  line-height: var(--ui-line-height-100, 16px);
   color: var(--ui-fg-muted);
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 
 .ui-color-editor__channel-value {
-  font-size: 0.75rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
   font-variant-numeric: tabular-nums;
   color: var(--ui-fg);
 }

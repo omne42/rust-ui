@@ -1,13 +1,16 @@
 pub const CSS: &str = r#"
 .ui-tag {
+  --ui-tag-font-size: var(--ui-button-size-s-font-size, 13px);
+  --ui-tag-line-height: var(--ui-button-size-s-line-height, 18px);
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
   border-radius: 9999px;
   border: 1px solid transparent;
+  font-size: var(--ui-tag-font-size);
   font-weight: 500;
-  line-height: 1;
+  line-height: var(--ui-tag-line-height);
   white-space: nowrap;
   user-select: none;
 }
@@ -16,21 +19,24 @@ pub const CSS: &str = r#"
 .ui-tag[data-size="sm"] {
   height: 24px;
   padding-inline: 8px;
-  font-size: 12px;
+  --ui-tag-font-size: var(--ui-button-size-xs-font-size, 12px);
+  --ui-tag-line-height: var(--ui-button-size-xs-line-height, 16px);
 }
 
 .ui-tag--size-md,
 .ui-tag[data-size="md"] {
   height: 28px;
   padding-inline: 10px;
-  font-size: 13px;
+  --ui-tag-font-size: var(--ui-button-size-s-font-size, 13px);
+  --ui-tag-line-height: var(--ui-button-size-s-line-height, 18px);
 }
 
 .ui-tag--size-lg,
 .ui-tag[data-size="lg"] {
   height: 32px;
   padding-inline: 12px;
-  font-size: 14px;
+  --ui-tag-font-size: var(--ui-button-size-m-font-size, 14px);
+  --ui-tag-line-height: var(--ui-button-size-m-line-height, 20px);
 }
 
 .ui-tag--variant-default,

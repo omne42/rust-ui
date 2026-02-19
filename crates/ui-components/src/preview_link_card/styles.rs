@@ -136,15 +136,15 @@ pub const CSS: &str = r#"
 }
 
 .ui-preview-link-card__title {
-  font-size: 0.95rem;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 20px);
   font-weight: 650;
-  line-height: 1.3;
 }
 
 .ui-preview-link-card__description {
   color: var(--ui-fg-muted);
-  font-size: 0.86rem;
-  line-height: 1.45;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
 }
 
 .ui-preview-link-card__meta {
@@ -154,7 +154,8 @@ pub const CSS: &str = r#"
   justify-content: space-between;
   gap: var(--ui-space-sm);
   color: var(--ui-fg-muted);
-  font-size: 0.76rem;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 16px);
 }
 
 .ui-preview-link-card__meta-link {

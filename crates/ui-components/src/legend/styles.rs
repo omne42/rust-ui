@@ -8,8 +8,8 @@ pub const CSS: &str = r#"
   margin: 0;
   padding: 0;
   color: var(--ui-fg);
-  font-size: 0.9375rem;
-  line-height: 1.25;
+  font-size: var(--ui-button-size-l-font-size, 15px);
+  line-height: var(--ui-button-size-l-line-height, 22px);
   font-weight: 600;
   transition:
     color var(--ui-legend-motion-duration) ease,

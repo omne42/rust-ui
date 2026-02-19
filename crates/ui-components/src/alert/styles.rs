@@ -41,12 +41,12 @@ pub const CSS: &str = r#"
 .ui-alert__title {
   font-weight: 650;
   font-size: var(--ui-heading-h6-font-size, 14px);
-  line-height: var(--ui-heading-h6-line-height, 1.2);
+  line-height: var(--ui-heading-h6-line-height, 20px);
 }
 
 .ui-alert__description {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: var(--ui-font-size-150, 14px);
+  line-height: var(--ui-line-height-150, 20px);
   color: var(--ui-fg-muted);
 }
 
