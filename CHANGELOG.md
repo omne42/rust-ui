@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-theme` + `ui-components` + `ui-layout`: adds explicit typography/body/heading CSS variables (`--ui-body-*`, `--ui-heading-h1..h6-*`, plus semantic size aliases), wires them into `UiRoot` and `heading` styles, and extends token baseline tests to lock the new theme-output contract.
+
 - `ui-visual-primitive` (**breaking**): migrates shared non-layout visual primitive `active_highlight` out of `ui-components`/`ui-layout` into new internal crate `crates/ui-visual-primitive`, removes compatibility wrappers, and updates source-level semantics/docs contracts to reference the new canonical path.
 
 - `workspace`: completes a full gate loop (`cargo fmt --all`, `./scripts/check.sh`, `cargo test --workspace --no-fail-fast`) after fixing docs/semantics regressions in `file_trigger`, `skeleton`, `time_field`, and `tree` contracts so all checks pass together.

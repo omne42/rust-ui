@@ -402,7 +402,103 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     );
     css_writeln!(
         css,
+        "  --ui-line-height-150: {}px;",
+        typography.line_height_150_px
+    );
+    css_writeln!(
+        css,
         "  --ui-font-size-200: {}px;",
+        typography.font_size_200_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-line-height-200: {}px;",
+        typography.line_height_200_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-body-font-size: {}px;",
+        typography.body_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-body-line-height: {}px;",
+        typography.body_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h1-font-size: {}px;",
+        typography.heading_h1_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h1-line-height: {}px;",
+        typography.heading_h1_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h2-font-size: {}px;",
+        typography.heading_h2_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h2-line-height: {}px;",
+        typography.heading_h2_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h3-font-size: {}px;",
+        typography.heading_h3_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h3-line-height: {}px;",
+        typography.heading_h3_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h4-font-size: {}px;",
+        typography.heading_h4_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h4-line-height: {}px;",
+        typography.heading_h4_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h5-font-size: {}px;",
+        typography.heading_h5_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h5-line-height: {}px;",
+        typography.heading_h5_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h6-font-size: {}px;",
+        typography.heading_h6_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-heading-h6-line-height: {}px;",
+        typography.heading_h6_line_height_px
+    );
+    // Semantic aliases used by some component styles.
+    css_writeln!(
+        css,
+        "  --ui-font-size-sm: {}px;",
+        typography.font_size_100_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-font-size-md: {}px;",
+        typography.font_size_150_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-font-size-lg: {}px;",
         typography.font_size_200_px
     );
     css_writeln!(

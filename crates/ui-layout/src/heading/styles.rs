@@ -25,32 +25,38 @@ pub const CSS: &str = r#"
 
 .ui-heading--level-1,
 .ui-heading[data-level="1"] {
-  font-size: 2rem;
+  font-size: var(--ui-heading-h1-font-size, 2rem);
+  line-height: var(--ui-heading-h1-line-height, 2.5rem);
 }
 
 .ui-heading--level-2,
 .ui-heading[data-level="2"] {
-  font-size: 1.5rem;
+  font-size: var(--ui-heading-h2-font-size, 1.5rem);
+  line-height: var(--ui-heading-h2-line-height, 2rem);
 }
 
 .ui-heading--level-3,
 .ui-heading[data-level="3"] {
-  font-size: 1.25rem;
+  font-size: var(--ui-heading-h3-font-size, 1.25rem);
+  line-height: var(--ui-heading-h3-line-height, 1.75rem);
 }
 
 .ui-heading--level-4,
 .ui-heading[data-level="4"] {
-  font-size: 1.125rem;
+  font-size: var(--ui-heading-h4-font-size, 1.125rem);
+  line-height: var(--ui-heading-h4-line-height, 1.5rem);
 }
 
 .ui-heading--level-5,
 .ui-heading[data-level="5"] {
-  font-size: 1rem;
+  font-size: var(--ui-heading-h5-font-size, 1rem);
+  line-height: var(--ui-heading-h5-line-height, 1.5rem);
 }
 
 .ui-heading--level-6,
 .ui-heading[data-level="6"] {
-  font-size: 0.875rem;
+  font-size: var(--ui-heading-h6-font-size, 0.875rem);
+  line-height: var(--ui-heading-h6-line-height, 1.25rem);
 }
 
 .ui-heading--truncate,

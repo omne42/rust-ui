@@ -178,6 +178,20 @@ pub struct TypographyTokens {
     pub line_height_100_px: u16,
     pub line_height_150_px: u16,
     pub line_height_200_px: u16,
+    pub body_font_size_px: u16,
+    pub body_line_height_px: u16,
+    pub heading_h1_font_size_px: u16,
+    pub heading_h1_line_height_px: u16,
+    pub heading_h2_font_size_px: u16,
+    pub heading_h2_line_height_px: u16,
+    pub heading_h3_font_size_px: u16,
+    pub heading_h3_line_height_px: u16,
+    pub heading_h4_font_size_px: u16,
+    pub heading_h4_line_height_px: u16,
+    pub heading_h5_font_size_px: u16,
+    pub heading_h5_line_height_px: u16,
+    pub heading_h6_font_size_px: u16,
+    pub heading_h6_line_height_px: u16,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

@@ -617,6 +617,22 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
                     line_height_100_px: 16,
                     line_height_150_px: 20,
                     line_height_200_px: 24,
+                    // Body uses the middle rung by default.
+                    body_font_size_px: 14,
+                    body_line_height_px: 20,
+                    // Heading ladder is explicit so h1-h6 never fall back to browser defaults.
+                    heading_h1_font_size_px: 28,
+                    heading_h1_line_height_px: 36,
+                    heading_h2_font_size_px: 24,
+                    heading_h2_line_height_px: 32,
+                    heading_h3_font_size_px: 20,
+                    heading_h3_line_height_px: 28,
+                    heading_h4_font_size_px: 18,
+                    heading_h4_line_height_px: 24,
+                    heading_h5_font_size_px: 16,
+                    heading_h5_line_height_px: 24,
+                    heading_h6_font_size_px: 14,
+                    heading_h6_line_height_px: 20,
                 },
                 ComponentLayoutTokens {
                     // Baseline: 32px for component-height-100 at medium scale.
@@ -644,6 +660,20 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
                     line_height_100_px: 20,
                     line_height_150_px: 24,
                     line_height_200_px: 28,
+                    body_font_size_px: 16,
+                    body_line_height_px: 24,
+                    heading_h1_font_size_px: 32,
+                    heading_h1_line_height_px: 40,
+                    heading_h2_font_size_px: 28,
+                    heading_h2_line_height_px: 36,
+                    heading_h3_font_size_px: 24,
+                    heading_h3_line_height_px: 32,
+                    heading_h4_font_size_px: 21,
+                    heading_h4_line_height_px: 28,
+                    heading_h5_font_size_px: 19,
+                    heading_h5_line_height_px: 28,
+                    heading_h6_font_size_px: 16,
+                    heading_h6_line_height_px: 24,
                 },
                 ComponentLayoutTokens {
                     // Baseline: 40px for component-height-100 at large scale.
@@ -757,6 +787,14 @@ mod tests {
         assert!(css.contains("--ui-font-size-200:"));
         assert!(css.contains("--ui-font-size-150:"));
         assert!(css.contains("--ui-font-size-100:"));
+        assert!(css.contains("--ui-line-height-150:"));
+        assert!(css.contains("--ui-line-height-200:"));
+        assert!(css.contains("--ui-body-font-size:"));
+        assert!(css.contains("--ui-body-line-height:"));
+        assert!(css.contains("--ui-heading-h1-font-size:"));
+        assert!(css.contains("--ui-heading-h6-font-size:"));
+        assert!(css.contains("--ui-font-size-sm:"));
+        assert!(css.contains("--ui-font-size-lg:"));
         assert!(css.contains("--ui-component-height-100:"));
         assert!(css.contains("--ui-separator-decorative-opacity:"));
         assert!(css.contains("--ui-overlay-panel-min-width:"));

@@ -88,6 +88,8 @@ body {
   background: var(--ui-bg);
   color: var(--ui-fg);
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-size: var(--ui-body-font-size, var(--ui-font-size-150, 14px));
+  line-height: var(--ui-body-line-height, var(--ui-line-height-150, 20px));
 }
 .ui-muted { color: var(--ui-fg-muted); }
 .ui-root {
@@ -96,6 +98,42 @@ body {
 .ui-root--safe-area,
 .ui-root[data-safe-area="true"] {
   min-height: 100%;
+}
+.ui-root h1,
+.ui-root h2,
+.ui-root h3,
+.ui-root h4,
+.ui-root h5,
+.ui-root h6 {
+  margin: 0;
+  color: var(--ui-fg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.ui-root h1 {
+  font-size: var(--ui-heading-h1-font-size, 2rem);
+  line-height: var(--ui-heading-h1-line-height, 2.5rem);
+}
+.ui-root h2 {
+  font-size: var(--ui-heading-h2-font-size, 1.75rem);
+  line-height: var(--ui-heading-h2-line-height, 2.25rem);
+}
+.ui-root h3 {
+  font-size: var(--ui-heading-h3-font-size, 1.5rem);
+  line-height: var(--ui-heading-h3-line-height, 2rem);
+}
+.ui-root h4 {
+  font-size: var(--ui-heading-h4-font-size, 1.3125rem);
+  line-height: var(--ui-heading-h4-line-height, 1.75rem);
+}
+.ui-root h5 {
+  font-size: var(--ui-heading-h5-font-size, 1.1875rem);
+  line-height: var(--ui-heading-h5-line-height, 1.75rem);
+}
+.ui-root h6 {
+  font-size: var(--ui-heading-h6-font-size, 1rem);
+  line-height: var(--ui-heading-h6-line-height, 1.5rem);
+  color: var(--ui-fg-muted);
 }
 "#,
         );

@@ -17,6 +17,10 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(medium.tokens.typography.line_height_100_px, 16);
     assert_eq!(medium.tokens.typography.line_height_150_px, 20);
     assert_eq!(medium.tokens.typography.line_height_200_px, 24);
+    assert_eq!(medium.tokens.typography.body_font_size_px, 14);
+    assert_eq!(medium.tokens.typography.body_line_height_px, 20);
+    assert_eq!(medium.tokens.typography.heading_h1_font_size_px, 28);
+    assert_eq!(medium.tokens.typography.heading_h6_font_size_px, 14);
     assert_eq!(medium.tokens.component_layout.component_height_100_px, 32);
     assert_eq!(
         medium
@@ -46,6 +50,10 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(large.tokens.typography.line_height_100_px, 20);
     assert_eq!(large.tokens.typography.line_height_150_px, 24);
     assert_eq!(large.tokens.typography.line_height_200_px, 28);
+    assert_eq!(large.tokens.typography.body_font_size_px, 16);
+    assert_eq!(large.tokens.typography.body_line_height_px, 24);
+    assert_eq!(large.tokens.typography.heading_h1_font_size_px, 32);
+    assert_eq!(large.tokens.typography.heading_h6_font_size_px, 16);
     assert_eq!(large.tokens.component_layout.component_height_100_px, 40);
     assert_eq!(
         large
@@ -76,6 +84,13 @@ fn css_variables_emit_theme_axes() {
     assert!(css.contains("--ui-color: dark;"));
     assert!(css.contains("--ui-scale: large;"));
     assert!(css.contains("--ui-line-height-100: 20px;"));
+    assert!(css.contains("--ui-line-height-150: 24px;"));
+    assert!(css.contains("--ui-line-height-200: 28px;"));
+    assert!(css.contains("--ui-body-font-size: 16px;"));
+    assert!(css.contains("--ui-heading-h1-font-size: 32px;"));
+    assert!(css.contains("--ui-heading-h6-font-size: 16px;"));
+    assert!(css.contains("--ui-font-size-sm: 14px;"));
+    assert!(css.contains("--ui-font-size-lg: 19px;"));
     assert!(css.contains("--ui-space-3xs: 2px;"));
     assert!(css.contains("--ui-space-2xs: 4px;"));
     assert!(css.contains("--ui-slider-max-width:"));
