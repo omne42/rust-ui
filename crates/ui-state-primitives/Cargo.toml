@@ -9,9 +9,7 @@ path = "src/lib.rs"
 
 [features]
 default = []
-logic-calendar = ["dep:ui-logic-calendar"]
 
 [dependencies]
-ui-logic-calendar = { path = "../ui-logic-calendar", optional = true }
 
 [dev-dependencies]

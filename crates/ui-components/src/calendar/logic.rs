@@ -1,4 +1,4 @@
-pub use ui_state_primitives::calendar::{
+pub use ui_logic_calendar::calendar::{
     CalendarFirstWeekday, CalendarGridCell, CalendarState, CalendarStateInput, CalendarTone,
     DEFAULT_ARIA_LABEL, build_month_grid, month_title, normalize_aria_label, normalize_month,
     normalize_optional_text, normalize_selected_day, resolve_state, weekday_labels,
@@ -165,7 +165,7 @@ mod tests {
         assert_eq!(
             normalize_aria_label(None),
             (
-                ui_state_primitives::calendar::DEFAULT_ARIA_LABEL.into(),
+                ui_logic_calendar::calendar::DEFAULT_ARIA_LABEL.into(),
                 false
             )
         );

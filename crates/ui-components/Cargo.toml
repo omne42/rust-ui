@@ -406,7 +406,7 @@ component-button_share = [
     "component-button_group",
 ]
 component-button_theme_toggle = ["component-button"]
-component-calendar = ["ui-state-primitives/logic-calendar"]
+component-calendar = ["dep:ui-logic-calendar"]
 component-carousel = ["component-active_highlight"]
 component-chart = ["component-active_highlight"]
 component-checkbox = []
@@ -452,11 +452,9 @@ component-date_picker = [
     "component-button",
     "component-calendar",
     "component-popover",
-    "ui-state-primitives/logic-calendar",
 ]
 component-date_range_picker = [
     "component-date_picker",
-    "ui-state-primitives/logic-calendar",
 ]
 component-description = []
 component-dialog = ["component-overlay", "component-button"]
@@ -582,7 +580,7 @@ component-thumbnail = []
 component-time_field = [
     "component-clear_button",
     "ui-headless/logic-calendar",
-    "ui-state-primitives/logic-calendar",
+    "dep:ui-logic-calendar",
 ]
 component-toast = ["component-close_button"]
 component-toaster = []
@@ -602,6 +600,7 @@ ui-ai-runtime = { path = "../ui-ai-runtime", optional = true }
 ui-accordion = { path = "../../components/accordion", optional = true }
 ui-layout = { path = "../ui-layout", default-features = false, features = ["inject-css"] }
 ui-motion = { path = "../ui-motion" }
+ui-logic-calendar = { path = "../ui-logic-calendar", optional = true }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-theme = { path = "../ui-theme" }
 tracing = { version = "0.1", optional = true }

@@ -25,7 +25,7 @@ fn date_picker_uses_logic_state_model() {
     let view_source = load_source("src/text_input/date_picker/view.rs");
 
     for needle in [
-        "pub use ui_state_primitives::date_picker::{",
+        "pub use ui_logic_calendar::date_picker::{",
         "DatePickerTone",
         "DatePickerIds",
         "DatePickerStateInput",
@@ -79,7 +79,7 @@ fn date_picker_state_primitives_are_sourced_from_ui_state_primitives() {
     ] {
         assert!(
             primitive_source.contains(needle),
-            "ui-state-primitives::date_picker should include `{needle}`."
+            "ui-logic-calendar::date_picker should include `{needle}`."
         );
     }
 
@@ -91,7 +91,7 @@ fn date_picker_state_primitives_are_sourced_from_ui_state_primitives() {
     }
 
     assert!(
-        logic_source.contains("pub use ui_state_primitives::date_picker::{"),
+        logic_source.contains("pub use ui_logic_calendar::date_picker::{"),
         "date_picker logic should consume state primitives from ui-state-primitives."
     );
 }
@@ -334,7 +334,6 @@ fn date_picker_feature_gate_includes_required_dependencies() {
         "\"component-button\"",
         "\"component-calendar\"",
         "\"component-popover\"",
-        "\"ui-state-primitives/logic-calendar\"",
     ] {
         assert!(
             source.contains(needle),

@@ -1,6 +1,6 @@
-use ui_state_primitives::date_range_picker as date_range_picker_state;
+use ui_logic_calendar::date_range_picker as date_range_picker_state;
 
-pub use ui_state_primitives::date_range_picker::{
+pub use ui_logic_calendar::date_range_picker::{
     DEFAULT_ARIA_LABEL, DateRangePickerState, DateRangePickerStateInput, DateRangePickerTone,
 };
 

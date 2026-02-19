@@ -25,7 +25,7 @@ fn date_range_picker_uses_logic_state_model() {
     let view_source = load_source("src/text_input/date_range_picker/view.rs");
 
     for needle in [
-        "pub use ui_state_primitives::date_range_picker::{",
+        "pub use ui_logic_calendar::date_range_picker::{",
         "pub fn normalize_optional_text(",
         "pub fn normalize_aria_label(",
         "pub fn normalize_month(",
@@ -196,7 +196,6 @@ fn date_range_picker_feature_gate_includes_required_dependencies() {
     for needle in [
         "component-date_range_picker = [",
         "\"component-date_picker\"",
-        "\"ui-state-primitives/logic-calendar\"",
     ] {
         assert!(
             source.contains(needle),

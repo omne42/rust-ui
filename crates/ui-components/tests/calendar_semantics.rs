@@ -42,7 +42,7 @@ fn calendar_logic_delegates_state_primitives() {
     let view_source = load_source("src/calendar/view.rs");
 
     for needle in [
-        "pub use ui_state_primitives::calendar::{",
+        "pub use ui_logic_calendar::calendar::{",
         "CalendarFirstWeekday",
         "CalendarGridCell",
         "CalendarState",

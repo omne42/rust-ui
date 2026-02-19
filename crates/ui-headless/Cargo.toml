@@ -11,11 +11,12 @@ path = "src/lib.rs"
 default = ["web"]
 web = ["leptos/csr"]
 ssr = ["leptos/ssr"]
-logic-calendar = ["ui-state-primitives/logic-calendar"]
+logic-calendar = ["dep:ui-logic-calendar"]
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false }
 ui-state-primitives = { path = "../ui-state-primitives" }
+ui-logic-calendar = { path = "../ui-logic-calendar", optional = true }
 
 [dev-dependencies]
 any_spawner = { version = "0.3", features = ["futures-executor"] }

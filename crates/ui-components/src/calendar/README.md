@@ -1,6 +1,6 @@
 # Calendar
 
-`Calendar` 是月视图日期网格组件，日期归一化与网格派生来自 `ui-state-primitives::calendar`。
+`Calendar` 是月视图日期网格组件，日期归一化与网格派生来自 `ui-logic-calendar::calendar`。
 
 ## 展示区（多场景对比）
 

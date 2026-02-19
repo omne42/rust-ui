@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-pub use ui_state_primitives::time_field::{
+pub use ui_logic_calendar::time_field::{
     DEFAULT_ARIA_LABEL, DEFAULT_CLEAR_ARIA_LABEL, DEFAULT_CLEAR_LABEL, DEFAULT_HOUR_ARIA_LABEL,
     DEFAULT_LABEL, DEFAULT_MINUTE_ARIA_LABEL, DEFAULT_PLACEHOLDER, TimeFieldIds, TimeFieldState,
     TimeFieldStateInput, TimeFieldTone, compose_class_name, normalize_aria_label,

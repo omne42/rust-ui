@@ -1,6 +1,6 @@
 # DatePicker
 
-`DatePicker` 是一个由 `ui-state-primitives` + `ui-headless` + `ui-motion` 组合的日期选择组件（按钮触发 + Popover 日历面板）。
+`DatePicker` 是一个由 `ui-logic-calendar` + `ui-headless` + `ui-motion` 组合的日期选择组件（按钮触发 + Popover 日历面板）。
 
 ## 目标 / 非目标 / 风险边界
 
@@ -10,7 +10,7 @@
 
 ## Architecture Layers
 
-- `logic.rs`：消费并 re-export `ui_state_primitives::date_picker`，仅保留组件装配逻辑（`compose_class_name`）。
+- `logic.rs`：消费并 re-export `ui_logic_calendar::date_picker`，仅保留组件装配逻辑（`compose_class_name`）。
 - `view.rs`：Leptos 结构渲染与 headless 契约挂载（controllable state、presence、aria 绑定）。
 - `motion.rs`：`DatePickerMotion` 契约与 `sanitize_motion`，委托 `popover` 动效清洗。
 - `styles.rs`：token-first 静态 CSS，只消费稳定语义标记与 `var(--ui-*)`。

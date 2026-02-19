@@ -1,6 +1,6 @@
 use crate::a11y::{A11yDirection, labeled_group_attrs};
 use leptos::prelude::*;
-use ui_state_primitives::time_field::{
+use ui_logic_calendar::time_field::{
     normalize_minute_step, normalize_time_value, resolve_time_parts, update_hour_from_input,
     update_minute_from_input,
 };

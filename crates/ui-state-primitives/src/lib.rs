@@ -88,23 +88,3 @@ pub mod tree;
 pub mod underlay;
 pub mod visually_hidden;
 pub mod well;
-
-#[cfg(feature = "logic-calendar")]
-pub mod calendar {
-    pub use ui_logic_calendar::calendar::*;
-}
-
-#[cfg(feature = "logic-calendar")]
-pub mod date_picker {
-    pub use ui_logic_calendar::date_picker::*;
-}
-
-#[cfg(feature = "logic-calendar")]
-pub mod date_range_picker {
-    pub use ui_logic_calendar::date_range_picker::*;
-}
-
-#[cfg(feature = "logic-calendar")]
-pub mod time_field {
-    pub use ui_logic_calendar::time_field::*;
-}

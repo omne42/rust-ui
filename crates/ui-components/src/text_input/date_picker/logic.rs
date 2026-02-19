@@ -1,4 +1,4 @@
-pub use ui_state_primitives::date_picker::{
+pub use ui_logic_calendar::date_picker::{
     DEFAULT_ARIA_LABEL, DEFAULT_PLACEHOLDER, DatePickerIds, DatePickerState, DatePickerStateInput,
     DatePickerTone, normalize_aria_label, normalize_month, normalize_optional_text,
     normalize_placeholder, normalize_selected_day, resolve_ids, resolve_state,
@@ -46,8 +46,8 @@ mod tests {
     fn state_primitives_are_reexported_from_ui_state_primitives() {
         assert_eq!(normalize_month(0), 1);
         assert_eq!(normalize_month(17), 12);
-        assert_eq!(ui_state_primitives::date_picker::days_in_month(2024, 2), 29);
-        assert_eq!(ui_state_primitives::date_picker::days_in_month(2023, 2), 28);
+        assert_eq!(ui_logic_calendar::date_picker::days_in_month(2024, 2), 29);
+        assert_eq!(ui_logic_calendar::date_picker::days_in_month(2023, 2), 28);
         assert_eq!(normalize_selected_day(Some(31), 2026, 4), None);
         assert_eq!(normalize_selected_day(Some(30), 2026, 4), Some(30));
         assert_eq!(
@@ -57,7 +57,7 @@ mod tests {
         assert_eq!(
             normalize_aria_label(None),
             (
-                ui_state_primitives::date_picker::DEFAULT_ARIA_LABEL.into(),
+                ui_logic_calendar::date_picker::DEFAULT_ARIA_LABEL.into(),
                 false
             )
         );

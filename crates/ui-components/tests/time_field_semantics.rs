@@ -383,7 +383,7 @@ fn time_field_uses_logic_state_model() {
     let headless_source = load_source("../ui-headless/src/time_field.rs");
 
     for needle in [
-        "pub use ui_state_primitives::time_field::{",
+        "pub use ui_logic_calendar::time_field::{",
         "DEFAULT_ARIA_LABEL",
         "DEFAULT_CLEAR_ARIA_LABEL",
         "TimeFieldIds",
@@ -1638,7 +1638,7 @@ fn time_field_tree_shaking_keeps_component_feature_and_css_boundaries() {
         "component-time_field = [",
         "\"component-clear_button\"",
         "\"ui-headless/logic-calendar\"",
-        "\"ui-state-primitives/logic-calendar\"",
+        "\"dep:ui-logic-calendar\"",
         "inject-css = []",
     ] {
         assert!(
@@ -2261,7 +2261,7 @@ fn time_field_component_file_responsibilities_remain_scoped() {
 
     for forbidden in [
         "pub fn resolve_state(",
-        "ui_state_primitives::time_field::resolve_state(",
+        "ui_logic_calendar::time_field::resolve_state(",
     ] {
         assert!(
             !view_source.contains(forbidden),
@@ -2845,7 +2845,7 @@ fn time_field_engineering_contract_marks_spec_serde_path_as_na_for_simple_compon
         cargo_source.contains("component-time_field = [")
             && cargo_source.contains("\"component-clear_button\"")
             && cargo_source.contains("\"ui-headless/logic-calendar\"")
-            && cargo_source.contains("\"ui-state-primitives/logic-calendar\""),
+            && cargo_source.contains("\"dep:ui-logic-calendar\""),
         "TimeField feature should explicitly gate calendar satellite dependencies without serde/spec fan-out."
     );
     assert!(
@@ -3465,7 +3465,7 @@ fn time_field_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_h
     let headless_source = load_source("../ui-headless/src/time_field.rs");
 
     for required in [
-        "pub use ui_state_primitives::time_field::{",
+        "pub use ui_logic_calendar::time_field::{",
         "resolve_state(TimeFieldStateInput {",
         "pub struct TimeFieldStateInput",
         "pub struct TimeFieldState",
