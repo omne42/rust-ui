@@ -19,8 +19,8 @@ pub const CSS: &str = r#"
   position: relative;
   --ui-button-bg: var(--ui-accent);
   --ui-button-fg: var(--ui-accent-fg);
-  --ui-button-soft: color-mix(in oklch, var(--ui-accent-soft), var(--ui-bg) 25%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-accent) 32%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-accent-soft), var(--ui-bg) 25%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-accent) 32%);
   --ui-button-radius: var(--ui-radius-md);
   border-radius: var(--ui-button-radius);
   border: 1px solid transparent;
@@ -40,43 +40,43 @@ pub const CSS: &str = r#"
 .ui-button--color-default {
   --ui-button-bg: var(--ui-default);
   --ui-button-fg: var(--ui-default-foreground);
-  --ui-button-soft: color-mix(in oklch, var(--ui-default), var(--ui-bg) 78%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-default) 32%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-default), var(--ui-bg) 78%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-default) 32%);
 }
 
 .ui-button--color-primary {
   --ui-button-bg: var(--ui-primary);
   --ui-button-fg: var(--ui-primary-foreground);
-  --ui-button-soft: color-mix(in oklch, var(--ui-primary), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-primary) 34%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-primary), var(--ui-bg) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-primary) 34%);
 }
 
 .ui-button--color-secondary {
   --ui-button-bg: var(--ui-secondary);
   --ui-button-fg: var(--ui-secondary-foreground);
-  --ui-button-soft: color-mix(in oklch, var(--ui-secondary), var(--ui-bg) 80%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-secondary) 34%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-secondary), var(--ui-bg) 80%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-secondary) 34%);
 }
 
 .ui-button--color-success {
   --ui-button-bg: var(--ui-success);
   --ui-button-fg: var(--ui-success-foreground);
-  --ui-button-soft: color-mix(in oklch, var(--ui-success), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-success) 34%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-success), var(--ui-bg) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-success) 34%);
 }
 
 .ui-button--color-warning {
   --ui-button-bg: var(--ui-warning);
   --ui-button-fg: var(--ui-warning-foreground);
-  --ui-button-soft: color-mix(in oklch, var(--ui-warning), var(--ui-bg) 84%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-warning) 34%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-warning), var(--ui-bg) 84%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-warning) 34%);
 }
 
 .ui-button--color-danger {
   --ui-button-bg: var(--ui-danger);
   --ui-button-fg: var(--ui-danger-foreground);
-  --ui-button-soft: color-mix(in oklch, var(--ui-danger), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-danger) 34%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-danger), var(--ui-bg) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-danger) 34%);
 }
 
 .ui-button--radius-none {
@@ -321,17 +321,17 @@ pub const CSS: &str = r#"
 
 .ui-button--variant-accent,
 .ui-button--variant-faded {
-  background: color-mix(in oklch, var(--ui-button-bg), var(--ui-bg) 90%);
-  color: color-mix(in oklch, var(--ui-button-bg), var(--ui-fg) 25%);
-  border-color: color-mix(in oklch, var(--ui-button-border-tone), transparent 20%);
+  background: color-mix(in oklab, var(--ui-button-bg), var(--ui-bg) 90%);
+  color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 25%);
+  border-color: color-mix(in oklab, var(--ui-button-border-tone), transparent 20%);
   box-shadow: var(--ui-shadow-sm);
 }
 
 .ui-button--variant-secondary,
 .ui-button--variant-flat {
   background: var(--ui-button-soft);
-  color: color-mix(in oklch, var(--ui-button-bg), var(--ui-fg) 20%);
-  border-color: color-mix(in oklch, var(--ui-button-border-tone), transparent 42%);
+  color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 20%);
+  border-color: color-mix(in oklab, var(--ui-button-border-tone), transparent 42%);
   box-shadow: var(--ui-shadow-sm);
 }
 
@@ -339,13 +339,13 @@ pub const CSS: &str = r#"
 .ui-button--variant-bordered {
   background: transparent;
   border-color: var(--ui-button-border-tone);
-  color: color-mix(in oklch, var(--ui-button-bg), var(--ui-fg) 20%);
+  color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 20%);
   box-shadow: var(--ui-shadow-sm);
 }
 
 .ui-button--variant-light {
   background: transparent;
-  color: color-mix(in oklch, var(--ui-button-bg), var(--ui-fg) 14%);
+  color: color-mix(in oklab, var(--ui-button-bg), var(--ui-fg) 14%);
   box-shadow: none;
 }
 
@@ -364,8 +364,8 @@ pub const CSS: &str = r#"
 .ui-button--variant-destructive {
   --ui-button-bg: var(--ui-danger);
   --ui-button-fg: var(--ui-danger-fg);
-  --ui-button-soft: color-mix(in oklch, var(--ui-danger), var(--ui-bg) 82%);
-  --ui-button-border-tone: color-mix(in oklch, var(--ui-border), var(--ui-danger) 34%);
+  --ui-button-soft: color-mix(in oklab, var(--ui-danger), var(--ui-bg) 82%);
+  --ui-button-border-tone: color-mix(in oklab, var(--ui-border), var(--ui-danger) 34%);
   background: var(--ui-button-bg);
   color: var(--ui-button-fg);
   box-shadow: var(--ui-shadow-sm);
@@ -391,7 +391,7 @@ pub const CSS: &str = r#"
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-outline,
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-bordered,
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-light {
-  background: color-mix(in oklch, var(--ui-button-soft), transparent 45%);
+  background: color-mix(in oklab, var(--ui-button-soft), transparent 45%);
 }
 
 .ui-button[data-hovered="true"]:not(:disabled).ui-button--variant-ghost {

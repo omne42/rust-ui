@@ -1637,6 +1637,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 - `apps/docs-app`: `ComboBox` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
 - `ui-components`: `Autocomplete` now normalizes label/placeholder/message text, exposes option focus + empty-result slots/state attrs, and aligns root `data-empty` to filtered results.
 - `apps/docs-app`: `Autocomplete` docs now include validation toggling, disabled collection, and empty collection playground scenarios.
+### Fixed
+
+- `ui-components`: switches `Button` color mixing from `oklch` to `oklab` to prevent hue drift (pink cast) in `secondary/flat/outline/light` variants when deriving soft/background tones from semantic colors.
+
 ### Changed
 
 - `ui-components` + `ui-state-primitives` + `apps/docs-app`: fixes gate regressions across clippy and semantics suites (combo-box closure hygiene, action/button docs defaults, avatar-group label-source contract, breadcrumb/coacmark/collapsible primitive re-export contracts, carousel helper routing, and share-button macro split), restoring green `./scripts/check.sh` (fmt/clippy/test/ssr/wasm).
