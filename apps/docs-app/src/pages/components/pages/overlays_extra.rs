@@ -113,7 +113,7 @@ pub(super) fn bottom_sheet() -> AnyView {
             <Playground title="Semantic Bottom Sheet" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_sheet>"Open bottom sheet"</Button>
-                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_semantic.get()>
@@ -146,7 +146,7 @@ pub(super) fn bottom_sheet() -> AnyView {
             <Playground title="Detached + Title Only + Custom Class" code_signal=detached_code>
                 <div class="docs-row">
                     <Button on_press=open_detached_sheet>"Open detached sheet"</Button>
-                    <span class="ui-muted">"open: " {move || open_detached_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_detached_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_detached.get()>
@@ -177,7 +177,7 @@ pub(super) fn bottom_sheet() -> AnyView {
             <Playground title="Custom Motion Contract" code_signal=custom_motion_code>
                 <div class="docs-row">
                     <Button on_press=open_custom_motion_sheet>"Open custom motion sheet"</Button>
-                    <span class="ui-muted">"open: " {move || open_custom_motion_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_custom_motion_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_custom_motion.get()>
@@ -290,7 +290,7 @@ pub(super) fn tray() -> AnyView {
             <Playground title="Tray + Footer Actions" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_tray>"Open tray"</Button>
-                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_semantic.get()>
@@ -323,7 +323,7 @@ pub(super) fn tray() -> AnyView {
             >
                 <div class="docs-row">
                     <Button on_press=open_custom_tray>"Open fixed tray"</Button>
-                    <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_custom_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_custom.get()>
@@ -1023,7 +1023,7 @@ let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
                     <Button on_press=open_scrim_underlay>
                         {move || if open_scrim_raw.get() { "Underlay open" } else { "Open underlay" }}
                     </Button>
-                    <span class="ui-muted">"open: " {move || open_scrim_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_scrim_raw.get()}</span>
                 </div>
 
                 <Underlay
@@ -1046,7 +1046,7 @@ let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
                         }}
                     </Button>
                     <span class="ui-muted">
-                        "transparent open: " {move || open_transparent_raw.get().to_string()}
+                        "transparent open: " {move || open_transparent_raw.get()}
                     </span>
                 </div>
 
@@ -1133,7 +1133,7 @@ let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
                     <span class="ui-muted" data-slot="underlay-ai-runtime">
                         "mode: " {move || ai_mode_raw.get().as_str()} " | status: "
                         {move || ai_output_status_raw.get().as_str()} " | open: "
-                        {move || open_ai_raw.get().to_string()}
+                        {move || open_ai_raw.get()}
                     </span>
                     <div class="ui-muted">
                         "Inspect data-ui-stream-support / data-ui-stream-fallback / data-ui-stream-mode / data-ui-output-status on the underlay root."

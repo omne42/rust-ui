@@ -1,6 +1,5 @@
 mod actions;
 mod actions_extra;
-mod actions_extra_icon_button;
 mod actions_extra_picker_button;
 mod collections;
 mod collections_breadcrumb;
@@ -44,9 +43,8 @@ mod theme_visual_baseline;
 mod ui_root;
 
 use self::{
-    actions as a, actions_extra as ax, actions_extra_icon_button as axib,
-    actions_extra_picker_button as apb, forms_extra_field_label as fxl, layout_extra as lx,
-    overlays as ov,
+    actions as a, actions_extra as ax, actions_extra_picker_button as apb,
+    forms_extra_field_label as fxl, layout_extra as lx, overlays as ov,
 };
 use super::ComponentDoc;
 
@@ -112,7 +110,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         actions::button_group
     ),
     component_doc!("FlipButton", "flip-button", "Actions", actions::flip_button),
-    component_doc!("IconButton", "icon-button", "Actions", axib::icon_button),
     component_doc!("LinkButton", "link-button", "Actions", actions::link_button),
     component_doc!(
         "SearchInputButton",

@@ -181,7 +181,7 @@ pub struct ThumbnailAgentContract {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ThumbnailState) -> String {
-    let mut classes = vec!["ui-thumbnail".to_string(), state.size_class.to_string()];
+    let mut classes = vec!["ui-thumbnail".to_string(), state.size_class.into()];
 
     if state.cover {
         classes.push("ui-thumbnail--cover".to_string());

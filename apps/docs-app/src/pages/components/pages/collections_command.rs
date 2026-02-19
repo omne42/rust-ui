@@ -190,16 +190,16 @@ let (last_action, set_last_action) = signal("none".to_string());
 
         let mut lines = vec![
             "<Command".to_string(),
-            "  id_base=\"docs-command-workbench\".to_string()".to_string(),
+            "  id_base=\"docs-command-workbench\".into()".to_string(),
             "  groups=groups.clone()".to_string(),
             "  on_action=Callback::new(move |id: String| set_last_action.set(id))".to_string(),
         ];
 
         if use_custom {
-            lines.push("  placeholder=\"Search docs actions...\".to_string()".to_string());
-            lines.push("  empty_label=\"No docs action found.\".to_string()".to_string());
-            lines.push("  aria_label=\"Docs command center\".to_string()".to_string());
-            lines.push("  class_name=\"docs-command-custom\".to_string()".to_string());
+            lines.push("  placeholder=\"Search docs actions...\".into()".to_string());
+            lines.push("  empty_label=\"No docs action found.\".into()".to_string());
+            lines.push("  aria_label=\"Docs command center\".into()".to_string());
+            lines.push("  class_name=\"docs-command-custom\".into()".to_string());
         }
 
         if is_disabled {
@@ -323,15 +323,15 @@ let (last_action, set_last_action) = signal("none".to_string());
 
                         <div class="ui-muted">
                             "disabled: "
-                            {move || workbench_disabled.get().to_string()}
+                            {move || workbench_disabled.get()}
                         </div>
                         <div class="ui-muted">
                             "custom labels: "
-                            {move || workbench_custom_text.get().to_string()}
+                            {move || workbench_custom_text.get()}
                         </div>
                         <div class="ui-muted">
                             "custom motion: "
-                            {move || workbench_custom_motion.get().to_string()}
+                            {move || workbench_custom_motion.get()}
                         </div>
                     </div>
                 }
@@ -810,7 +810,7 @@ pub(super) fn menubar() -> AnyView {
     let workbench_code = Signal::derive(move || {
         let mut lines = vec!["<Menubar".to_string()];
 
-        lines.push("  id_base=\"docs-menubar-workbench\".to_string()".to_string());
+        lines.push("  id_base=\"docs-menubar-workbench\".into()".to_string());
         lines.push("  menus=menus".to_string());
         lines.push("  on_action=on_action".to_string());
         lines.push(format!(
@@ -827,7 +827,7 @@ pub(super) fn menubar() -> AnyView {
             lines.push("  default_open_index=0".to_string());
         }
         if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-menubar-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-menubar-custom\".into()".to_string());
         }
         if workbench_custom_motion.get() {
             lines.push("  motion=ui_components::MenubarMotion {".to_string());
@@ -847,7 +847,7 @@ pub(super) fn menubar() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/menubar/styles.rs */\n{}",
+            "/* crates/ui-components/src/menu/menubar/styles.rs */\n{}",
             ui_components::menubar::styles::CSS
         )
     });
@@ -965,7 +965,7 @@ pub(super) fn menubar() -> AnyView {
                 description="Interactive display/config/code/css-test playground for Menubar."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menubar/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menu/menubar/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1326,15 +1326,15 @@ custom_motion.spring.damping = 24.0;
         let mode_line = if controlled {
             "  selected_id=Signal::derive(move || selected.get())\n  on_selected_id_change=Callback::new(move |next| set_selected.set(next))\n".to_string()
         } else {
-            "  default_selected_id=\"workspace\".to_string()\n".to_string()
+            "  default_selected_id=\"workspace\".into()\n".to_string()
         };
         let class_line = if custom_class {
-            "  class_name=\"docs-navigation-menu-custom\".to_string()\n".to_string()
+            "  class_name=\"docs-navigation-menu-custom\".into()\n".to_string()
         } else {
             String::new()
         };
         let aria_line = if custom_aria {
-            "  aria_label=\"Workbench navigation\".to_string()\n".to_string()
+            "  aria_label=\"Workbench navigation\".into()\n".to_string()
         } else {
             String::new()
         };
@@ -1348,13 +1348,13 @@ custom_motion.spring.damping = 24.0;
             String::new()
         };
         format!(
-            "<NavigationMenu\n  id_base=\"docs-navigation-menu-workbench\".to_string()\n  items=items /* second item disabled: {disable_second} */\n{mode_line}  activate_on_focus={activate_on_focus}\n{class_line}{aria_line}{motion_line}/>"
+            "<NavigationMenu\n  id_base=\"docs-navigation-menu-workbench\".into()\n  items=items /* second item disabled: {disable_second} */\n{mode_line}  activate_on_focus={activate_on_focus}\n{class_line}{aria_line}{motion_line}/>"
         )
     });
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/navigation_menu/styles.rs */\n{}",
+            "/* crates/ui-components/src/menu/navigation_menu/styles.rs */\n{}",
             ui_components::navigation_menu::styles::CSS
         )
     });
@@ -1475,7 +1475,7 @@ custom_motion.spring.damping = 24.0;
                 description="Button-style playground with baseline/configured comparison, live settings, copy-ready code, and scoped CSS test."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/navigation_menu/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menu/navigation_menu/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="navigation-menu-workbench-controls">
@@ -1783,8 +1783,7 @@ pub(super) fn carousel() -> AnyView {
     set_last_selected.set(next);
   })
 />
-<span class="ui-muted">"last selected: " {move || last_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}</span>"#
-        .to_string()
+<span class="ui-muted">"last selected: " {move || last_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}</span>"#.to_string()
     });
 
     let states_code = Signal::derive(move || {

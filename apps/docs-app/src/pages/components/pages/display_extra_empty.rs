@@ -27,16 +27,16 @@ pub(super) fn empty() -> AnyView {
 
         let mut out = vec!["<Empty".to_string()];
         if custom_class {
-            out.push("  class_name=\"docs-empty-custom\".to_string()".to_string());
+            out.push("  class_name=\"docs-empty-custom\".into()".to_string());
         }
         out.push(">".to_string());
         if custom_slot_classes {
-            out.push("  <EmptyHeader class_name=\"docs-empty-header\".to_string()>".to_string());
+            out.push("  <EmptyHeader class_name=\"docs-empty-header\".into()>".to_string());
             out.push(format!(
-                "    <EmptyMedia variant=EmptyMediaVariant::{media_variant:?} class_name=\"docs-empty-media\".to_string()>\"📦\"</EmptyMedia>"
+                "    <EmptyMedia variant=EmptyMediaVariant::{media_variant:?} class_name=\"docs-empty-media\".into()>\"📦\"</EmptyMedia>"
             ));
-            out.push("    <EmptyTitle class_name=\"docs-empty-title\".to_string()>\"No results\"</EmptyTitle>".to_string());
-            out.push("    <EmptyDescription class_name=\"docs-empty-description\".to_string()>\"Try adjusting filters.\"</EmptyDescription>".to_string());
+            out.push("    <EmptyTitle class_name=\"docs-empty-title\".into()>\"No results\"</EmptyTitle>".to_string());
+            out.push("    <EmptyDescription class_name=\"docs-empty-description\".into()>\"Try adjusting filters.\"</EmptyDescription>".to_string());
             out.push("  </EmptyHeader>".to_string());
         } else {
             out.push("  <EmptyHeader>".to_string());
@@ -51,9 +51,7 @@ pub(super) fn empty() -> AnyView {
         }
         if show_content {
             if custom_slot_classes {
-                out.push(
-                    "  <EmptyContent class_name=\"docs-empty-content\".to_string()>".to_string(),
-                );
+                out.push("  <EmptyContent class_name=\"docs-empty-content\".into()>".to_string());
             } else {
                 out.push("  <EmptyContent>".to_string());
             }
@@ -108,8 +106,7 @@ pub(super) fn empty() -> AnyView {
   <EmptyContent class_name="docs-empty-content".to_string()>
     <a href="#/components/search">"Open search"</a>
   </EmptyContent>
-</Empty>"##
-            .to_string()
+</Empty>"##.to_string()
     });
 
     view! {

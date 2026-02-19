@@ -61,7 +61,7 @@ mod tests {
 
     fn item(label: &str, href: Option<&str>) -> BreadcrumbItem {
         BreadcrumbItem {
-            label: label.to_string(),
+            label: label.into(),
             href: href.map(ToString::to_string),
         }
     }

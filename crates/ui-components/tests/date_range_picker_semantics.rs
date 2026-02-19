@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn date_range_picker_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/date_range_picker/mod.rs");
+    let source = load_source("src/text_input/date_range_picker/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn date_range_picker_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn date_range_picker_uses_logic_state_model() {
-    let logic_source = load_source("src/date_range_picker/logic.rs");
-    let view_source = load_source("src/date_range_picker/view.rs");
+    let logic_source = load_source("src/text_input/date_range_picker/logic.rs");
+    let view_source = load_source("src/text_input/date_range_picker/view.rs");
 
     for needle in [
         "pub use ui_state_primitives::date_range_picker::{",
@@ -66,7 +66,7 @@ fn date_range_picker_uses_logic_state_model() {
 
 #[test]
 fn date_range_picker_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/date_range_picker/view.rs");
+    let source = load_source("src/text_input/date_range_picker/view.rs");
 
     for attr in [
         "data-slot=\"date-range-picker\"",
@@ -98,7 +98,7 @@ fn date_range_picker_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn date_range_picker_styles_include_tone_partial_invalid_and_source_markers() {
-    let source = load_source("src/date_range_picker/styles.rs");
+    let source = load_source("src/text_input/date_range_picker/styles.rs");
 
     for selector in [
         ".ui-date-range-picker--tone-default",
@@ -185,6 +185,22 @@ fn date_range_picker_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "date_range_picker docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn date_range_picker_feature_gate_includes_required_dependencies() {
+    let source = load_source("Cargo.toml");
+
+    for needle in [
+        "component-date_range_picker = [",
+        "\"component-date_picker\"",
+        "\"ui-state-primitives/logic-calendar\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "component-date_range_picker feature gate should include `{needle}`."
         );
     }
 }

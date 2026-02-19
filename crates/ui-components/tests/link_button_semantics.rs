@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn link_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/link_button/mod.rs");
+    let source = load_source("src/button/link_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn link_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn link_button_uses_logic_state_model() {
-    let view_source = load_source("src/link_button/view.rs");
-    let logic_source = load_source("src/link_button/logic.rs");
+    let view_source = load_source("src/button/link_button/view.rs");
+    let logic_source = load_source("src/button/link_button/logic.rs");
 
     for needle in [
         "pub struct LinkButtonState",
@@ -56,7 +56,7 @@ fn link_button_uses_logic_state_model() {
 
 #[test]
 fn link_button_uses_headless_hover_and_focus_ring() {
-    let source = load_source("src/link_button/view.rs");
+    let source = load_source("src/button/link_button/view.rs");
 
     for needle in ["use_focus_ring", "use_hover"] {
         assert!(
@@ -68,7 +68,7 @@ fn link_button_uses_headless_hover_and_focus_ring() {
 
 #[test]
 fn link_button_supports_disabled_semantics_without_navigation() {
-    let source = load_source("src/link_button/view.rs");
+    let source = load_source("src/button/link_button/view.rs");
 
     for needle in [
         "href=if state.is_enabled { href } else { None }",
@@ -85,7 +85,7 @@ fn link_button_supports_disabled_semantics_without_navigation() {
 
 #[test]
 fn link_button_composes_button_variant_and_size_classes() {
-    let source = load_source("src/link_button/logic.rs");
+    let source = load_source("src/button/link_button/logic.rs");
 
     for needle in [
         "variant.class_name().to_string()",
@@ -102,7 +102,7 @@ fn link_button_composes_button_variant_and_size_classes() {
 
 #[test]
 fn link_button_emits_baseline_style_data_attributes() {
-    let source = load_source("src/link_button/view.rs");
+    let source = load_source("src/button/link_button/view.rs");
 
     for needle in [
         "data-slot=\"link-button\"",
@@ -162,7 +162,7 @@ fn link_button_docs_playgrounds_lock_state_matrix_contract_values() {
         "if open_in_new_tab.get() {",
         "target=Some(\\\"_blank\\\")",
         "if sponsored_rel.get() {",
-        "rel=Some(\\\"sponsored\\\".to_string())",
+        "rel=Some(\\\"sponsored\\\".into())",
         "aria_label=\"Open docs in a new tab\".to_string()",
         "<LinkButton href=\"https://example.com/changelog\".to_string()>",
         "<LinkButton href=\"   \".to_string() variant=ButtonVariant::Ghost>",

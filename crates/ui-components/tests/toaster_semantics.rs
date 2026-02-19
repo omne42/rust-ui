@@ -713,7 +713,7 @@ fn toaster_non_wasm_motion_fallback_is_safe_predictable_and_tooling_friendly() {
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "Effect::new(move |_| {",
         "if !is_open.get() {",
         "on_exit_complete.run(());",
@@ -2086,11 +2086,11 @@ fn toaster_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_sp
     for needle in [
         "#[cfg(target_arch = \"wasm32\")]",
         "if ui_motion::web::prefers_reduced_motion() {",
-        "let _ = style.set_property(\"--ui-toast-opacity\", \"1\");",
-        "let _ = style.set_property(\"--ui-toast-y\", \"0px\");",
-        "let _ = style.set_property(\"--ui-toast-scale\", \"1\");",
+        "drop(style.set_property(\"--ui-toast-opacity\", \"1\"));",
+        "drop(style.set_property(\"--ui-toast-y\", \"0px\"));",
+        "drop(style.set_property(\"--ui-toast-scale\", \"1\"));",
         "#[cfg(not(target_arch = \"wasm32\"))]",
-        "let _ = sanitize_motion(motion);",
+        "std::hint::black_box(sanitize_motion(motion));",
         "if !is_open.get() {",
         "on_exit_complete.run(());",
     ] {

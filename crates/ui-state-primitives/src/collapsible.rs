@@ -30,7 +30,7 @@ pub struct CollapsibleState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -38,7 +38,7 @@ pub fn normalize_id_base(value: String) -> String {
     let trimmed = value.trim();
 
     if trimmed.is_empty() {
-        return DEFAULT_ID_BASE.to_string();
+        return DEFAULT_ID_BASE.into();
     }
 
     let mut normalized = String::new();
@@ -68,14 +68,14 @@ pub fn normalize_id_base(value: String) -> String {
     let normalized = normalized.trim_matches('-').trim_matches('_').to_string();
 
     if normalized.is_empty() {
-        DEFAULT_ID_BASE.to_string()
+        DEFAULT_ID_BASE.into()
     } else {
         normalized
     }
 }
 
 pub fn resolve_title(value: String) -> String {
-    normalize_optional_text(Some(value)).unwrap_or_else(|| DEFAULT_TITLE.to_string())
+    normalize_optional_text(Some(value)).unwrap_or_else(|| DEFAULT_TITLE.into())
 }
 
 pub fn resolve_aria_label(title: &str, value: Option<String>) -> (String, bool) {
@@ -83,7 +83,7 @@ pub fn resolve_aria_label(title: &str, value: Option<String>) -> (String, bool) 
         return (label, true);
     }
 
-    (title.to_string(), false)
+    (title.into(), false)
 }
 
 pub fn resolve_state(input: CollapsibleStateInput) -> CollapsibleState {

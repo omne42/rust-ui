@@ -63,7 +63,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                             }
                                             on:click=move |ev| {
                                                 ev.prevent_default();
-                                                navigate.run(doc.route.to_string());
+                                                navigate.run(doc.route.into());
                                             }
                                         >
                                             {doc.title}

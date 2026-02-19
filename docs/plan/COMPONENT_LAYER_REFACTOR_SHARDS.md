@@ -2,6 +2,7 @@
 
 > 目标：并发修复 `ui-components` 组件分层实现，使其遵循 `logic -> (headless/a11y 组合) -> view + styles`。
 > 约束：子任务**禁止**运行 `cargo fmt/clippy/test/check`；统一由主编排流程集中执行。
+> 注意：本文档为分片执行历史快照，部分目录路径仍是迁移前平铺结构；当前目录落位请以 `docs/spec/component_domains.md` 为准。
 
 ## 执行规则
 
@@ -9,7 +10,7 @@
 - 每个 shard 允许执行：`rg`、`sed`、`apply_patch`、局部静态检查。
 - 每个 shard 禁止执行任何 cargo 命令（避免并发争用）。
 - 统一收敛后只执行一次：`cargo fmt --all`、`./scripts/check.sh`。
-- `provider/rac/s2/story_utils/style_macro_s1/test_utils/utils` 已迁移到 `crates/ui-compat/src/*.rs`，不属于 `ui-components` 分片范围。
+- 兼容命名桥接层已移除；`provider/rac/s2/story_utils/style_macro_s1/test_utils/utils` 不再作为 `ui-components` 分片范围。
 
 ## 子任务模板
 

@@ -141,7 +141,7 @@ pub struct RadioGroupAccessibleName {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -175,7 +175,7 @@ pub fn resolve_accessible_name(
     }
 
     RadioGroupAccessibleName {
-        aria_label: Some(DEFAULT_ARIA_LABEL.to_string()),
+        aria_label: Some(DEFAULT_ARIA_LABEL.into()),
         aria_labelledby: None,
     }
 }
@@ -325,7 +325,7 @@ mod tests {
         assert_eq!(
             resolve_accessible_name(None, None, None),
             RadioGroupAccessibleName {
-                aria_label: Some(DEFAULT_ARIA_LABEL.to_string()),
+                aria_label: Some(DEFAULT_ARIA_LABEL.into()),
                 aria_labelledby: None,
             }
         );

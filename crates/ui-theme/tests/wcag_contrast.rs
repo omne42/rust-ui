@@ -231,5 +231,11 @@ fn semantic_colors_meet_wcag_21_aa_for_text_pairs() {
             c.danger_fg,
             c.danger,
         );
+        let roles = theme.tokens.semantic_roles;
+        assert_wcag_aa_pair(
+            &format!("{color:?} secondary_fg/secondary"),
+            roles.secondary_fg,
+            roles.secondary,
+        );
     }
 }

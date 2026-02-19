@@ -26,7 +26,7 @@ pub fn animate(element: &web_sys::Element, keyframes: &[MotionKeyframe], options
     let Ok(animate) = animate.dyn_into::<js_sys::Function>() else {
         return;
     };
-    let _ = animate.call2(element, &keyframes, &options);
+    drop(animate.call2(element, &keyframes, &options));
 }
 
 fn keyframes_to_js(frames: &[MotionKeyframe]) -> JsValue {
@@ -34,18 +34,18 @@ fn keyframes_to_js(frames: &[MotionKeyframe]) -> JsValue {
     for frame in frames {
         let obj = js_sys::Object::new();
         if let Some(offset) = frame.offset {
-            let _ = js_sys::Reflect::set(
+            drop(js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str("offset"),
                 &JsValue::from_f64(offset),
-            );
+            ));
         }
         for prop in &frame.props {
-            let _ = js_sys::Reflect::set(
+            drop(js_sys::Reflect::set(
                 &obj,
                 &JsValue::from_str(&prop.name),
                 &JsValue::from_str(&prop.value),
-            );
+            ));
         }
         arr.push(&obj);
     }
@@ -54,20 +54,20 @@ fn keyframes_to_js(frames: &[MotionKeyframe]) -> JsValue {
 
 fn options_to_js(options: MotionOptions) -> JsValue {
     let obj = js_sys::Object::new();
-    let _ = js_sys::Reflect::set(
+    drop(js_sys::Reflect::set(
         &obj,
         &JsValue::from_str("duration"),
         &JsValue::from_f64(f64::from(options.duration_ms)),
-    );
-    let _ = js_sys::Reflect::set(
+    ));
+    drop(js_sys::Reflect::set(
         &obj,
         &JsValue::from_str("easing"),
         &JsValue::from_str(options.easing),
-    );
-    let _ = js_sys::Reflect::set(
+    ));
+    drop(js_sys::Reflect::set(
         &obj,
         &JsValue::from_str("fill"),
         &JsValue::from_str(options.fill.as_str()),
-    );
+    ));
     obj.into()
 }

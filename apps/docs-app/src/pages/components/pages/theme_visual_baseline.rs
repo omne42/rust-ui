@@ -94,7 +94,7 @@ let overlay_open: Signal<bool> = Signal::derive(move || overlay_open_raw.get());
                         <Button variant=ButtonVariant::Outline on_press=close_overlay>
                             "Close Overlay Baseline"
                         </Button>
-                        <span class="ui-muted">"overlay open: " {move || overlay_open_raw.get().to_string()}</span>
+                        <span class="ui-muted">"overlay open: " {move || overlay_open_raw.get()}</span>
                     </div>
                 </div>
 

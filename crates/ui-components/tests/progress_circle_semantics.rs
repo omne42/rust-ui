@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn progress_circle_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/progress_circle/mod.rs");
+    let source = load_source("src/progress/circle/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn progress_circle_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn progress_circle_uses_logic_state_model() {
-    let view_source = load_source("src/progress_circle/view.rs");
-    let logic_source = load_source("src/progress_circle/logic.rs");
+    let view_source = load_source("src/progress/circle/view.rs");
+    let logic_source = load_source("src/progress/circle/logic.rs");
 
     for needle in [
         "pub struct ProgressCircleStateInput",
@@ -66,7 +66,7 @@ fn progress_circle_uses_logic_state_model() {
 
 #[test]
 fn progress_circle_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/progress_circle/view.rs");
+    let source = load_source("src/progress/circle/view.rs");
 
     for attr in [
         "data-slot=\"progress-circle\"",
@@ -98,7 +98,7 @@ fn progress_circle_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn progress_circle_styles_include_state_source_contracts() {
-    let source = load_source("src/progress_circle/styles.rs");
+    let source = load_source("src/progress/circle/styles.rs");
 
     for selector in [
         ".ui-progress-circle--label-custom",
@@ -125,8 +125,8 @@ fn progress_circle_styles_include_state_source_contracts() {
 
 #[test]
 fn progress_circle_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/progress_circle/motion.rs");
-    let view_source = load_source("src/progress_circle/view.rs");
+    let motion_source = load_source("src/progress/circle/motion.rs");
+    let view_source = load_source("src/progress/circle/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ProgressCircleMotion) -> ProgressCircleMotion",

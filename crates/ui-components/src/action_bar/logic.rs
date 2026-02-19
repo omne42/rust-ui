@@ -64,9 +64,9 @@ pub fn resolve_selection_text(
 pub fn compose_class_name(base_class_name: Option<String>, state: ActionBarState) -> String {
     let mut classes = vec![
         "ui-action-bar".to_string(),
-        state.position_class.to_string(),
-        state.phase_class.to_string(),
-        state.selection_class.to_string(),
+        state.position_class.into(),
+        state.phase_class.into(),
+        state.selection_class.into(),
     ];
 
     if state.has_clear_action {

@@ -77,7 +77,7 @@ pub struct ContextualHelpState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -191,12 +191,12 @@ pub fn resolve_state(input: ContextualHelpStateInput) -> ContextualHelpState {
 pub fn compose_class_name(base_class_name: Option<String>, state: ContextualHelpState) -> String {
     let mut classes = vec![
         "ui-contextual-help".to_string(),
-        state.variant_class.to_string(),
-        state.placement_class.to_string(),
-        state.state_class.to_string(),
-        state.heading_class.to_string(),
-        state.footer_class.to_string(),
-        state.open_mode_class.to_string(),
+        state.variant_class.into(),
+        state.placement_class.into(),
+        state.state_class.into(),
+        state.heading_class.into(),
+        state.footer_class.into(),
+        state.open_mode_class.into(),
     ];
 
     if state.has_custom_class_name {

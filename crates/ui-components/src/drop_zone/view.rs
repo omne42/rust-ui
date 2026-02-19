@@ -158,7 +158,7 @@ pub fn DropZone(
 
                 if target.is_same_node(Some(&zone)) {
                     if let Some(button) = focus_button_ref.get_untracked() {
-                        let _ = button.focus();
+                        drop(button.focus());
                     }
                     return;
                 }

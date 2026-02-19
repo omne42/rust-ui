@@ -99,9 +99,9 @@ fn action_bar_component_files_follow_layered_responsibilities() {
 
     for needle in [
         "logic::resolve_view_state(logic::ActionBarViewStateInput {",
-        "let aria = use_button(ButtonOptions {",
-        "let focus_ring = use_focus_ring(FocusRingOptions::default());",
-        "let hover = use_hover(HoverOptions::default());",
+        "use crate::button::{Button, ButtonSize, ButtonVariant};",
+        "<Button",
+        "variant=ButtonVariant::Link",
         "motion::attach_motion(root_ref, visible, motion);",
         "data-state=move || state.get().phase_attr",
     ] {
@@ -223,7 +223,7 @@ fn action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_s
     for needle in [
         "logic::resolve_view_state(logic::ActionBarViewStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
-        "use ui_headless::use_button;",
+        "use crate::button::{Button, ButtonSize, ButtonVariant};",
         "motion::attach_motion(root_ref, visible, motion)",
     ] {
         assert!(
@@ -773,10 +773,10 @@ fn action_bar_a11y_i18n_and_locale_contract_is_wired() {
         "aria-label=aria_label",
         "lang=locale.lang.clone()",
         "dir=locale.dir",
-        "role=aria.attrs.role",
-        "aria-disabled=aria.attrs.aria_disabled",
-        "if aria.handlers.press.on_key_down.run(key) {",
-        "if aria.handlers.press.on_key_up.run(key) {",
+        "<Button",
+        "variant=ButtonVariant::Link",
+        "aria_label=clear_label_attr",
+        "on_press=on_press",
     ] {
         assert!(
             view_source.contains(needle),
@@ -829,24 +829,17 @@ fn action_bar_mounts_headless_contract_in_view_not_logic_layer() {
 
     for needle in [
         "use ui_headless::i18n;",
-        "use ui_headless::use_button;",
-        "use ui_headless::{ButtonOptions, FocusRingOptions, HoverOptions, use_focus_ring, use_hover};",
-        "let aria = use_button(ButtonOptions {",
-        "let focus_ring = use_focus_ring(FocusRingOptions::default());",
-        "let hover = use_hover(HoverOptions::default());",
-        "role=aria.attrs.role",
-        "tabindex=aria.attrs.tabindex",
-        "aria-disabled=aria.attrs.aria_disabled",
-        "on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())",
-        "on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())",
-        "on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())",
-        "on:click=move |_| aria.handlers.press.on_click.run(())",
-        "if aria.handlers.press.on_key_down.run(key) {",
-        "if aria.handlers.press.on_key_up.run(key) {",
+        "use crate::button::{Button, ButtonSize, ButtonVariant};",
+        "<Button",
+        "variant=ButtonVariant::Link",
+        "size=ButtonSize::S",
+        "class_name=\"ui-action-bar__clear\".to_string()",
+        "aria_label=clear_label_attr",
+        "on_press=on_press",
     ] {
         assert!(
             view_source.contains(needle),
-            "ActionBar view should mount ui-headless typed attrs/handlers; missing `{needle}`."
+            "ActionBar view should reuse Button contract for clear action; missing `{needle}`."
         );
     }
 
@@ -1074,9 +1067,9 @@ fn action_bar_styles_depend_on_explicit_state_markers_not_dom_guessing() {
         "data-clear-label-source=move || state.get().clear_label_source_attr",
         "data-motion-source=move || state.get().motion_source_attr",
         "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
-        "data-hovered=move || hover.is_hovered.get().then_some(\"true\")",
-        "data-pressed=move || aria.is_pressed.get().then_some(\"true\")",
-        "data-focus-visible=move || focus_ring.is_focus_visible.get().then_some(\"true\")",
+        "<Button",
+        "variant=ButtonVariant::Link",
+        "class_name=\"ui-action-bar__clear\".to_string()",
     ] {
         assert!(
             view_source.contains(needle),
@@ -1196,18 +1189,16 @@ fn action_bar_semantics_cover_data_aria_and_interaction_matrix() {
     for semantic_marker in [
         "role=\"toolbar\"",
         "aria-hidden=move || state.get().is_hidden.then_some(\"true\")",
-        "aria-disabled=aria.attrs.aria_disabled",
+        "data-slot=\"action-bar-clear\"",
         "data-state=move || state.get().phase_attr",
         "data-selection=move || state.get().selection_attr",
         "data-controlled=move || state.get().is_controlled_selected_count.then_some(\"true\")",
         "data-uncontrolled=move || state.get().is_uncontrolled_selected_count.then_some(\"true\")",
         "data-control-mode=move || state.get().control_mode_attr",
         "data-selected-count-source=move || state.get().selected_count_source_attr",
-        "on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())",
-        "on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())",
-        "on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())",
-        "if aria.handlers.press.on_key_down.run(key) {",
-        "if aria.handlers.press.on_key_up.run(key) {",
+        "<Button",
+        "variant=ButtonVariant::Link",
+        "on_press=on_press",
     ] {
         assert!(
             view_source.contains(semantic_marker),
@@ -1421,7 +1412,7 @@ fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
         "default = [\"inject-css\", \"all-components\"]",
         "all-components = [",
         "web-demo-components = [",
-        "component-action_bar = []",
+        "component-action_bar = [\"component-button\"]",
         "inject-css = []",
     ] {
         assert!(

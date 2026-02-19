@@ -35,15 +35,14 @@ where
 
         let element: leptos::web_sys::HtmlElement = node.unchecked_into();
         let style = element.style();
-        let _ = style.set_property("--ui-empty-state-enter", "0");
-
+        drop(style.set_property("--ui-empty-state-enter", "0"));
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(
             0.0,
             ui_motion::presets::spring_soft(),
             move |v| {
                 let v = v.clamp(0.0, 1.0);
-                let _ = style_for_apply.set_property("--ui-empty-state-enter", &format!("{v}"));
+                drop(style_for_apply.set_property("--ui-empty-state-enter", &format!("{v}")));
             },
         );
         animator.set_target(1.0);
@@ -66,7 +65,7 @@ where
     E: leptos::tachys::html::element::ElementType,
     E::Output: 'static,
 {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

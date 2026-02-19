@@ -36,7 +36,7 @@ pub fn use_modal(options: ModalOptions) {
 
     #[cfg(not(all(feature = "web", target_arch = "wasm32")))]
     {
-        let _ = options;
+        let _unused_options = options;
     }
 }
 
@@ -76,8 +76,7 @@ fn setup_modal(is_enabled: Signal<bool>) {
         let style = body.style();
         let previous_overflow = style.get_property_value("overflow").ok();
         state.body_overflow = previous_overflow;
-        let _ = style.set_property("overflow", "hidden");
-
+        drop(style.set_property("overflow", "hidden"));
         state.aria_hidden.clear();
 
         let children = body.children();
@@ -101,7 +100,7 @@ fn setup_modal(is_enabled: Signal<bool>) {
             state
                 .aria_hidden
                 .push((child.clone().unchecked_into(), original));
-            let _ = child.set_attribute("aria-hidden", "true");
+            drop(child.set_attribute("aria-hidden", "true"));
         }
     }
 
@@ -119,17 +118,17 @@ fn setup_modal(is_enabled: Signal<bool>) {
         if let Some(previous_overflow) = state.body_overflow.take() {
             let style = body.style();
             if previous_overflow.is_empty() {
-                let _ = style.remove_property("overflow");
+                drop(style.remove_property("overflow"));
             } else {
-                let _ = style.set_property("overflow", &previous_overflow);
+                drop(style.set_property("overflow", &previous_overflow));
             }
         }
 
         for (el, original) in state.aria_hidden.drain(..) {
             if let Some(original) = original {
-                let _ = el.set_attribute("aria-hidden", &original);
+                drop(el.set_attribute("aria-hidden", &original));
             } else {
-                let _ = el.remove_attribute("aria-hidden");
+                drop(el.remove_attribute("aria-hidden"));
             }
         }
     }

@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{Surface, SurfaceElevation, SurfaceTone};
+use ui_layout::{Surface, SurfaceElevation, SurfaceTone};
 
 pub(super) fn surface() -> AnyView {
     let tone_code = Signal::derive(move || {

@@ -101,26 +101,25 @@ pub fn attach_motion(
             0.0
         };
 
-        let _ = style.set_property("--ui-flip-card-rotation", &format!("{rotation_initial}deg"));
-        let _ = style.set_property("--ui-flip-card-scale", &format!("{scale_initial}"));
-        let _ = style.set_property("--ui-flip-card-tilt", &format!("{tilt_initial}deg"));
-
+        drop(style.set_property("--ui-flip-card-rotation", &format!("{rotation_initial}deg")));
+        drop(style.set_property("--ui-flip-card-scale", &format!("{scale_initial}")));
+        drop(style.set_property("--ui-flip-card-tilt", &format!("{tilt_initial}deg")));
         let style_for_rotation = style.clone();
         let rotation = ui_motion::spring::SpringAnimator::new(rotation_initial, config, move |v| {
             let v = v.clamp(-360.0, 360.0);
-            let _ = style_for_rotation.set_property("--ui-flip-card-rotation", &format!("{v}deg"));
+            drop(style_for_rotation.set_property("--ui-flip-card-rotation", &format!("{v}deg")));
         });
 
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
             let v = v.clamp(0.6, 1.8);
-            let _ = style_for_scale.set_property("--ui-flip-card-scale", &format!("{v}"));
+            drop(style_for_scale.set_property("--ui-flip-card-scale", &format!("{v}")));
         });
 
         let style_for_tilt = style.clone();
         let tilt = ui_motion::spring::SpringAnimator::new(tilt_initial, config, move |v| {
             let v = v.clamp(-12.0, 12.0);
-            let _ = style_for_tilt.set_property("--ui-flip-card-tilt", &format!("{v}deg"));
+            drop(style_for_tilt.set_property("--ui-flip-card-tilt", &format!("{v}deg")));
         });
 
         let springs_for_cleanup = springs;
@@ -167,7 +166,7 @@ pub fn attach_motion(
     _is_hovered: leptos::prelude::Signal<bool>,
     motion: FlipCardMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

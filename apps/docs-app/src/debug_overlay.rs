@@ -159,8 +159,10 @@ pub fn UiDebugOverlay(#[prop(optional)] enabled: bool) -> AnyView {
             )
                 as Box<dyn FnMut(leptos::web_sys::Event)>);
 
-            let _ = document
-                .add_event_listener_with_callback("pointerdown", listener.as_ref().unchecked_ref());
+            drop(document.add_event_listener_with_callback(
+                "pointerdown",
+                listener.as_ref().unchecked_ref(),
+            ));
             listener.forget();
         });
 
@@ -231,7 +233,7 @@ fn snapshot_from_element(el: &leptos::web_sys::Element) -> UiDebugSnapshot {
 #[cfg(target_arch = "wasm32")]
 fn non_empty(value: String) -> Option<String> {
     let trimmed = value.trim();
-    (!trimmed.is_empty()).then(|| trimmed.to_string())
+    (!trimmed.is_empty()).then(|| trimmed.into())
 }
 
 #[cfg(target_arch = "wasm32")]

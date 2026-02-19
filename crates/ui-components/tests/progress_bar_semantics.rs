@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn progress_bar_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/progress_bar/mod.rs");
+    let source = load_source("src/progress/bar/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn progress_bar_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn progress_bar_uses_logic_state_model() {
-    let view_source = load_source("src/progress_bar/view.rs");
-    let logic_source = load_source("src/progress_bar/logic.rs");
+    let view_source = load_source("src/progress/bar/view.rs");
+    let logic_source = load_source("src/progress/bar/logic.rs");
 
     for needle in [
         "pub struct ProgressBarStateInput",
@@ -58,7 +58,7 @@ fn progress_bar_uses_logic_state_model() {
 
 #[test]
 fn progress_bar_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/progress_bar/view.rs");
+    let source = load_source("src/progress/bar/view.rs");
 
     for attr in [
         "data-slot=\"progress-bar\"",
@@ -85,7 +85,7 @@ fn progress_bar_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn progress_bar_styles_include_variant_size_and_phase_contracts() {
-    let source = load_source("src/progress_bar/styles.rs");
+    let source = load_source("src/progress/bar/styles.rs");
 
     for selector in [
         ".ui-progress-bar--variant-default",

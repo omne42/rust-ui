@@ -42,8 +42,8 @@ pub fn resolve_agent_contract(state: BadgeState) -> BadgeAgentContract {
 pub fn compose_class_name(base_class_name: Option<String>, state: BadgeState) -> String {
     let mut classes = vec![
         "ui-badge".to_string(),
-        state.variant_class.to_string(),
-        state.fill_class.to_string(),
+        state.variant_class.into(),
+        state.fill_class.into(),
     ];
 
     if state.has_custom_class_name {

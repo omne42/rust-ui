@@ -52,14 +52,9 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-thumbnail", ".ui-thumbnail {"),
         (".ui-infield-button", ".ui-infield-button {"),
         (".ui-tag-group", ".ui-tag-group {"),
-        (".ui-card", ".ui-card {"),
         (".ui-carousel", ".ui-carousel {"),
         (".ui-switch", ".ui-switch {"),
-        (".ui-divider", ".ui-divider {"),
-        (".ui-separator", ".ui-separator {"),
-        (".ui-auto-height", ".ui-auto-height {"),
         (".ui-ripple", ".ui-ripple {"),
-        (".ui-resizable", ".ui-resizable {"),
         (".ui-overlay", ".ui-overlay {"),
         (".ui-underlay", ".ui-underlay {"),
         (".ui-popover", ".ui-popover {"),
@@ -92,7 +87,6 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-code-block", ".ui-code-block {"),
         (".ui-snippet", ".ui-snippet {"),
         (".ui-kbd", ".ui-kbd {"),
-        (".ui-spacer", ".ui-spacer {"),
         (".ui-progress-bar", ".ui-progress-bar {"),
         (".ui-progress", ".ui-progress {"),
         (".ui-progress-circle", ".ui-progress-circle {"),
@@ -115,8 +109,6 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-field-group", ".ui-field-group {"),
         (".ui-field-label", ".ui-field-label {"),
         (".ui-segmented-control", ".ui-segmented-control {"),
-        (".ui-scroll-area", ".ui-scroll-area {"),
-        (".ui-scroll-shadow", ".ui-scroll-shadow {"),
         (".ui-sheet", ".ui-sheet {"),
         (".ui-sidebar", ".ui-sidebar {"),
         (".ui-sidebar-content", ".ui-sidebar-content {"),
@@ -162,4 +154,20 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         "missing expected selectors in aggregated CSS:\n- {}",
         missing.join("\n- ")
     );
+
+    for forbidden in [
+        ".ui-card {",
+        ".ui-divider {",
+        ".ui-separator {",
+        ".ui-auto-height {",
+        ".ui-resizable {",
+        ".ui-spacer {",
+        ".ui-scroll-area {",
+        ".ui-scroll-shadow {",
+    ] {
+        assert!(
+            !css.contains(forbidden),
+            "ui-components aggregated CSS should not include layout selector `{forbidden}` after split to ui-layout."
+        );
+    }
 }

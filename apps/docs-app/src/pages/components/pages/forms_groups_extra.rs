@@ -49,14 +49,13 @@ pub(super) fn checkbox_field() -> AnyView {
             "<CheckboxField".to_string(),
             "  checked=checked".to_string(),
             "  set_checked=set_checked".to_string(),
-            "  id_base=\"docs-checkbox-field-interactive\".to_string()".to_string(),
-            "  label=\"Weekly release digest\".to_string()".to_string(),
+            "  id_base=\"docs-checkbox-field-interactive\".into()".to_string(),
+            "  label=\"Weekly release digest\".into()".to_string(),
         ];
 
         if show_description {
-            lines.push(
-                "  description=\"Receive product updates every Friday.\".to_string()".to_string(),
-            );
+            lines
+                .push("  description=\"Receive product updates every Friday.\".into()".to_string());
         }
         if tone != CheckboxFieldTone::Default {
             lines.push(format!("  tone=CheckboxFieldTone::{tone:?}"));
@@ -73,7 +72,7 @@ pub(super) fn checkbox_field() -> AnyView {
             lines.push("  invalid=true".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-checkbox-field-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-checkbox-field-custom\".into()".to_string());
         }
         if !checked {
             lines.push("  // current state: unchecked".to_string());
@@ -229,7 +228,7 @@ pub(super) fn checkbox_field() -> AnyView {
                                     }
                                 />
                                 <span class="ui-muted">
-                                    "checked: " {move || interactive_checked.get().to_string()}
+                                    "checked: " {move || interactive_checked.get()}
                                 </span>
                             </div>
                         }
@@ -253,7 +252,7 @@ pub(super) fn checkbox_field() -> AnyView {
                                     }
                                 />
                                 <span class="ui-muted">
-                                    "checked: " {move || interactive_checked.get().to_string()}
+                                    "checked: " {move || interactive_checked.get()}
                                 </span>
                             </div>
                         }
@@ -272,7 +271,7 @@ pub(super) fn checkbox_field() -> AnyView {
                         description="Receive release notes and occasional best-practice tips.".to_string()
                     />
                     <span class="ui-muted">
-                        "newsletter: " {move || newsletter.get().to_string()}
+                        "newsletter: " {move || newsletter.get()}
                     </span>
                 </div>
             </Playground>
@@ -303,8 +302,8 @@ pub(super) fn checkbox_field() -> AnyView {
                     />
 
                     <span class="ui-muted">
-                        "terms: " {move || terms.get().to_string()}
-                        " · read-only: " {move || read_only.get().to_string()}
+                        "terms: " {move || terms.get()}
+                        " · read-only: " {move || read_only.get()}
                     </span>
                 </div>
             </Playground>
@@ -369,7 +368,7 @@ pub(super) fn form_field() -> AnyView {
                         indicator_placement=FormFieldIndicatorPlacement::Start
                     />
                     <span class="ui-muted">
-                        "marketing: " {move || marketing.get().to_string()}
+                        "marketing: " {move || marketing.get()}
                     </span>
                 </div>
             </Playground>
@@ -403,8 +402,8 @@ pub(super) fn form_field() -> AnyView {
                     />
 
                     <span class="ui-muted">
-                        "tos: " {move || tos.get().to_string()}
-                        " · read-only: " {move || read_only.get().to_string()}
+                        "tos: " {move || tos.get()}
+                        " · read-only: " {move || read_only.get()}
                     </span>
                 </div>
             </Playground>
@@ -417,7 +416,7 @@ pub(super) fn legend() -> AnyView {
     let required_code = Signal::derive(move || {
         r#"<fieldset class=\"docs-stack\"> 
   <Legend
-    text=\"Notification settings\".to_string()
+    text=\"Notification settings\".into()
     is_required=true
   />
 </fieldset>"#
@@ -427,14 +426,14 @@ pub(super) fn legend() -> AnyView {
     let states_code = Signal::derive(move || {
         r#"<fieldset class=\"docs-stack\"> 
   <Legend
-    text=\"Billing preferences\".to_string()
+    text=\"Billing preferences\".into()
     tone=LegendTone::Muted
     is_required=true
-    required_indicator=\"(required)\".to_string()
-    class_name=\"docs-legend-custom\".to_string()
+    required_indicator=\"(required)\".into()
+    class_name=\"docs-legend-custom\".into()
   />
   <Legend
-    text=\"Read-only group\".to_string()
+    text=\"Read-only group\".into()
     tone=LegendTone::Strong
     is_disabled=true
   />

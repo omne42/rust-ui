@@ -8,10 +8,16 @@ pub fn Skeleton(
     #[prop(optional, into)] class_name: Option<String>,
 ) -> impl IntoView {
     let class_name = logic::normalize_optional_text(class_name);
+    let has_custom_class_name = class_name.is_some();
+    let source_state = logic::resolve_view_source_state(logic::SkeletonViewInput {
+        variant,
+        is_shimmer,
+        has_custom_class_name,
+    });
     let state_input = logic::normalize_state_input(logic::SkeletonViewInput {
         variant,
         is_shimmer,
-        has_custom_class_name: class_name.is_some(),
+        has_custom_class_name,
     });
     let state = logic::resolve_state(state_input);
     let class = logic::compose_class_name(class_name, state);
@@ -21,8 +27,10 @@ pub fn Skeleton(
             class=class
             data-slot="skeleton"
             data-variant=state.variant_attr
+            data-variant-source=source_state.variant_source_attr
             data-state=state.state_attr
             data-shimmer=state.has_shimmer.then_some("true")
+            data-shimmer-source=source_state.shimmer_source_attr
             data-still=state.is_still.then_some("true")
             data-custom-class=state.has_custom_class_name.then_some("true")
             aria-hidden="true"

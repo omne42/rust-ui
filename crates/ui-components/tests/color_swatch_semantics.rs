@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn color_swatch_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_swatch/mod.rs");
+    let source = load_source("src/color/swatch/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn color_swatch_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_swatch_uses_logic_state_model() {
-    let logic_source = load_source("src/color_swatch/logic.rs");
-    let view_source = load_source("src/color_swatch/view.rs");
+    let logic_source = load_source("src/color/swatch/logic.rs");
+    let view_source = load_source("src/color/swatch/view.rs");
 
     for needle in [
         "pub enum ColorSwatchSize",
@@ -52,8 +52,8 @@ fn color_swatch_uses_logic_state_model() {
         "logic::sanitize_color_value(color)",
         "logic::resolve_alpha(color.as_deref())",
         "logic::normalize_aria_label(aria_label, color_name, color.as_deref(), alpha)",
-        "logic::normalize_is_bordered(is_bordered, bordered)",
-        "logic::normalize_is_decorative(is_decorative, decorative)",
+        "logic::normalize_is_bordered(is_bordered)",
+        "logic::normalize_is_decorative(is_decorative)",
         "logic::resolve_state(ColorSwatchStateInput {",
         "logic::compose_class_name(class_name, state)",
         "let locale = locale_attrs(lang, dir);",
@@ -67,7 +67,7 @@ fn color_swatch_uses_logic_state_model() {
 
 #[test]
 fn color_swatch_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/color_swatch/view.rs");
+    let source = load_source("src/color/swatch/view.rs");
 
     for attr in [
         "data-slot=\"color-swatch\"",
@@ -105,7 +105,7 @@ fn color_swatch_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn color_swatch_styles_include_size_shape_and_alpha_markers() {
-    let source = load_source("src/color_swatch/styles.rs");
+    let source = load_source("src/color/swatch/styles.rs");
 
     for selector in [
         ".ui-color-swatch--size-xs",
@@ -154,7 +154,7 @@ fn color_swatch_docs_playgrounds_lock_state_matrix_contract_values() {
 
     for needle in [
         "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
-        "test_source_path=\"crates/ui-components/src/color_swatch/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui-components/src/color/swatch/styles.rs\".to_string()",
         "test_config_signal=workbench_config",
         "title=\"Comparison Matrix (Size / Alpha / Shape / Empty)\"",
         "size=ColorSwatchSize::Xs",
@@ -168,8 +168,7 @@ fn color_swatch_docs_playgrounds_lock_state_matrix_contract_values() {
         "class_name=\"docs-color-swatch-custom\".to_string()",
         "color_name=\"No fill\".to_string()",
         "is_bordered=true",
-        "bordered=is_bordered",
-        "decorative=is_decorative",
+        "is_decorative=is_decorative",
     ] {
         assert!(
             source.contains(needle),

@@ -31,21 +31,18 @@ pub(super) fn tag() -> AnyView {
     let states_code = Signal::derive(move || {
         vec![
             format!("let (remove_count, set_remove_count) = signal({}_u32);", remove_count.get()),
-            "let on_remove_alpha = Callback::new(move |_| set_remove_count.update(|count| *count += 1));"
-                .to_string(),
-            "let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));"
-                .to_string(),
+            "let on_remove_alpha = Callback::new(move |_| set_remove_count.update(|count| *count += 1));".to_string(),
+            "let on_remove_beta = Callback::new(move |_| set_remove_count.update(|count| *count += 1));".to_string(),
             String::new(),
             "<Tag".to_string(),
             "  variant=TagVariant::Surface".to_string(),
             "  removable=true".to_string(),
             "  on_remove=on_remove_alpha".to_string(),
-            "  remove_aria_label=\"Remove alpha release\".to_string()".to_string(),
+            "  remove_aria_label=\"Remove alpha release\".into()".to_string(),
             ">".to_string(),
             "  \"alpha\"".to_string(),
             "</Tag>".to_string(),
-            "<Tag removable=true on_remove=on_remove_beta class_name=\"docs-tag-custom\".to_string()>"
-                .to_string(),
+            "<Tag removable=true on_remove=on_remove_beta class_name=\"docs-tag-custom\".into()>".to_string(),
             "  \"beta\"".to_string(),
             "</Tag>".to_string(),
             "<Tag disabled=true removable=true>\"disabled\"</Tag>".to_string(),
@@ -122,7 +119,7 @@ pub(super) fn tag() -> AnyView {
                         </Tag>
                     </div>
                     <span class="ui-muted">
-                        "remove count: " {move || remove_count.get().to_string()}
+                        "remove count: " {move || remove_count.get()}
                     </span>
                 </div>
             </Playground>
@@ -141,8 +138,8 @@ pub(super) fn collapsible() -> AnyView {
             "let on_open_change = Callback::new(move |next: bool| set_open.set(next));".to_string(),
             String::new(),
             "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible\".to_string()".to_string(),
-            "  title=\"Advanced options\".to_string()".to_string(),
+            "  id_base=\"docs-collapsible\".into()".to_string(),
+            "  title=\"Advanced options\".into()".to_string(),
             "  open=open.into()".to_string(),
             "  on_open_change=on_open_change".to_string(),
             ">".to_string(),
@@ -155,11 +152,11 @@ pub(super) fn collapsible() -> AnyView {
     let states_code = Signal::derive(move || {
         vec![
             "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-disabled\".to_string()".to_string(),
-            "  title=\"Disabled section\".to_string()".to_string(),
+            "  id_base=\"docs-collapsible-disabled\".into()".to_string(),
+            "  title=\"Disabled section\".into()".to_string(),
             "  default_open=false".to_string(),
             "  disabled=true".to_string(),
-            "  class_name=\"docs-collapsible-custom\".to_string()".to_string(),
+            "  class_name=\"docs-collapsible-custom\".into()".to_string(),
             "  motion=CollapsibleMotion {".to_string(),
             "    panel_offset_y_px: 6.0,".to_string(),
             "    ..CollapsibleMotion::default()".to_string(),
@@ -175,11 +172,11 @@ pub(super) fn collapsible() -> AnyView {
     let markers_code = Signal::derive(move || {
         vec![
             "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-markers\".to_string()".to_string(),
-            "  title=\"Advanced settings\".to_string()".to_string(),
-            "  aria_label=\"Advanced settings panel\".to_string()".to_string(),
+            "  id_base=\"docs-collapsible-markers\".into()".to_string(),
+            "  title=\"Advanced settings\".into()".to_string(),
+            "  aria_label=\"Advanced settings panel\".into()".to_string(),
             "  default_open=true".to_string(),
-            "  class_name=\"docs-collapsible-state\".to_string()".to_string(),
+            "  class_name=\"docs-collapsible-state\".into()".to_string(),
             "  motion=CollapsibleMotion {".to_string(),
             "    panel_offset_y_px: 8.0,".to_string(),
             "    ..CollapsibleMotion::default()".to_string(),
@@ -236,8 +233,8 @@ pub(super) fn collapsible() -> AnyView {
 
         let mut lines = vec![
             "<Collapsible".to_string(),
-            "  id_base=\"docs-collapsible-interactive\".to_string()".to_string(),
-            "  title=\"Interactive collapsible\".to_string()".to_string(),
+            "  id_base=\"docs-collapsible-interactive\".into()".to_string(),
+            "  title=\"Interactive collapsible\".into()".to_string(),
         ];
 
         if controlled {
@@ -255,10 +252,10 @@ pub(super) fn collapsible() -> AnyView {
             lines.push("  disabled=true".to_string());
         }
         if custom_label {
-            lines.push("  aria_label=\"Interactive collapsible panel\".to_string()".to_string());
+            lines.push("  aria_label=\"Interactive collapsible panel\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-collapsible-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-collapsible-custom\".into()".to_string());
         }
         if motion_custom {
             lines.push("  motion=CollapsibleMotion { panel_offset_y_px: 10.0, ..CollapsibleMotion::default() }".to_string());
@@ -329,7 +326,7 @@ pub(super) fn collapsible() -> AnyView {
                             <div class="ui-muted">"Escape/keyboard behavior follows the trigger press contract."</div>
                         </div>
                     </Collapsible>
-                    <span class="ui-muted">"open: " {move || open.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open.get()}</span>
                 </div>
             </Playground>
 
@@ -454,7 +451,7 @@ pub(super) fn collapsible() -> AnyView {
                                     </div>
                                 </Collapsible>
                                 <span class="ui-muted">
-                                    "controlled open: " {move || controlled_open.get().to_string()}
+                                    "controlled open: " {move || controlled_open.get()}
                                 </span>
                             </div>
                         }
@@ -479,7 +476,7 @@ pub(super) fn collapsible() -> AnyView {
                                     </div>
                                 </Collapsible>
                                 <span class="ui-muted">
-                                    "default open: " {default_open_preview.to_string()}
+                                    "default open: " {default_open_preview}
                                 </span>
                             </div>
                         }

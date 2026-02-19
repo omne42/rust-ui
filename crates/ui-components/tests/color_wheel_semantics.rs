@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn color_wheel_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_wheel/mod.rs");
+    let source = load_source("src/color/wheel/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn color_wheel_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_wheel_has_local_motion_module_boundary() {
-    let mod_source = load_source("src/color_wheel/mod.rs");
-    let motion_source = load_source("src/color_wheel/motion.rs");
+    let mod_source = load_source("src/color/wheel/mod.rs");
+    let motion_source = load_source("src/color/wheel/motion.rs");
 
     for needle in ["mod motion;", "pub use motion::ColorWheelMotion;"] {
         assert!(
@@ -46,8 +46,8 @@ fn color_wheel_has_local_motion_module_boundary() {
 
 #[test]
 fn color_wheel_uses_logic_state_model() {
-    let logic_source = load_source("src/color_wheel/logic.rs");
-    let view_source = load_source("src/color_wheel/view.rs");
+    let logic_source = load_source("src/color/wheel/logic.rs");
+    let view_source = load_source("src/color/wheel/view.rs");
 
     for needle in [
         "pub const DEFAULT_LABEL",
@@ -80,7 +80,7 @@ fn color_wheel_uses_logic_state_model() {
 
 #[test]
 fn color_wheel_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color_wheel/view.rs");
+    let source = load_source("src/color/wheel/view.rs");
 
     for attr in [
         "data-slot=\"color-wheel\"",
@@ -102,7 +102,7 @@ fn color_wheel_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_wheel_styles_include_ring_orbit_and_state_contracts() {
-    let source = load_source("src/color_wheel/styles.rs");
+    let source = load_source("src/color/wheel/styles.rs");
 
     for selector in [
         ".ui-color-wheel",
@@ -171,7 +171,7 @@ fn color_wheel_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn color_wheel_check2_has_no_unchecked_items_after_verification() {
-    let source = load_source("src/color_wheel/check2.md");
+    let source = load_source("src/color/wheel/check2.md");
 
     assert!(
         !source.contains("- [ ]"),

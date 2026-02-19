@@ -1,6 +1,11 @@
 [workspace]
 resolver = "2"
-members = ["crates/*", "apps/*"]
+members = ["crates/*", "components/*", "apps/*"]
+
+[profile.dev]
+incremental = true
+codegen-units = 256
+debug = 1
 
 [profile.release]
 opt-level = "z"

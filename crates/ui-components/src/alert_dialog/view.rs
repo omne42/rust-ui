@@ -15,7 +15,7 @@ fn focus_button_soon(node_ref: NodeRef<html::Button>) {
         let Some(el) = node_ref.get_untracked() else {
             return false;
         };
-        let _ = el.focus();
+        drop(el.focus());
         true
     }
 
@@ -35,7 +35,7 @@ fn focus_button_soon(node_ref: NodeRef<html::Button>) {
         return;
     };
 
-    let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(callback, 0);
+    drop(window.set_timeout_with_callback_and_timeout_and_arguments_0(callback, 0));
 }
 
 #[cfg(not(target_arch = "wasm32"))]

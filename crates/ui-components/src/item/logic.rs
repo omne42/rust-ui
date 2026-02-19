@@ -53,14 +53,14 @@ impl ItemMediaVariant {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn compose_class(base: &'static str, class_name: Option<String>) -> String {
     normalize_optional_text(class_name)
         .map(|class_name| format!("{base} {class_name}"))
-        .unwrap_or_else(|| base.to_string())
+        .unwrap_or_else(|| base.into())
 }
 
 #[cfg(test)]

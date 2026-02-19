@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn text_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/text_field/mod.rs");
+    let source = load_source("src/text_input/text_field/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,11 +21,11 @@ fn text_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn text_field_component_files_keep_single_responsibility_boundaries() {
-    let module_source = load_source("src/text_field/mod.rs");
-    let logic_source = load_source("src/text_field/logic.rs");
-    let view_source = load_source("src/text_field/view.rs");
-    let styles_source = load_source("src/text_field/styles.rs");
-    let motion_source = load_source("src/text_field/motion.rs");
+    let module_source = load_source("src/text_input/text_field/mod.rs");
+    let logic_source = load_source("src/text_input/text_field/logic.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
+    let styles_source = load_source("src/text_input/text_field/styles.rs");
+    let motion_source = load_source("src/text_input/text_field/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -102,12 +102,12 @@ fn text_field_component_files_keep_single_responsibility_boundaries() {
 #[test]
 fn text_field_component_directory_standard_files_follow_contracts() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let text_field_dir = manifest_dir.join("src/text_field");
-    let mod_source = load_source("src/text_field/mod.rs");
-    let logic_source = load_source("src/text_field/logic.rs");
-    let styles_source = load_source("src/text_field/styles.rs");
-    let view_source = load_source("src/text_field/view.rs");
-    let motion_source = load_source("src/text_field/motion.rs");
+    let text_field_dir = manifest_dir.join("src/text_input/text_field");
+    let mod_source = load_source("src/text_input/text_field/mod.rs");
+    let logic_source = load_source("src/text_input/text_field/logic.rs");
+    let styles_source = load_source("src/text_input/text_field/styles.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
+    let motion_source = load_source("src/text_input/text_field/motion.rs");
 
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
         assert!(
@@ -241,7 +241,7 @@ fn text_field_component_directory_standard_files_follow_contracts() {
 
 #[test]
 fn text_field_logic_owns_props_and_value_normalization_only() {
-    let source = load_source("src/text_field/logic.rs");
+    let source = load_source("src/text_input/text_field/logic.rs");
 
     for needle in [
         "ui_state_primitives::text_field",
@@ -273,23 +273,22 @@ fn text_field_logic_owns_props_and_value_normalization_only() {
 
 #[test]
 fn text_field_api_naming_and_value_triplet_are_present_with_migration_aliases() {
-    let source = load_source("src/text_field/view.rs");
+    let source = load_source("src/text_input/text_field/view.rs");
 
     for needle in [
         "value: Option<Signal<String>>",
         "default_value: Option<String>",
         "on_value_change: Option<Callback<String>>",
-        "set_value: Option<WriteSignal<String>>",
         "is_disabled: Option<bool>",
-        "disabled: bool",
         "is_read_only: Option<bool>",
-        "read_only: bool",
         "is_required: Option<Signal<bool>>",
-        "required: Option<Signal<bool>>",
         "is_invalid: Option<Signal<bool>>",
-        "invalid: Option<Signal<bool>>",
         "logic::normalize_value_axis(logic::ValueAxisInput {",
+        "has_controlled_value: value.is_some()",
+        "has_on_value_change: on_value_change.is_some()",
         "logic::normalize_accessibility_state(logic::AccessibilityStateInput {",
+        "let is_required = Signal::derive(move || match is_required_input {",
+        "let is_invalid = Signal::derive(move || match is_invalid_input {",
     ] {
         assert!(
             source.contains(needle),
@@ -300,7 +299,7 @@ fn text_field_api_naming_and_value_triplet_are_present_with_migration_aliases() 
 
 #[test]
 fn text_field_uses_headless_a11y_contract_and_locale_passthrough() {
-    let source = load_source("src/text_field/view.rs");
+    let source = load_source("src/text_input/text_field/view.rs");
     let headless = load_source("../ui-headless/src/text_field.rs");
 
     for needle in [
@@ -332,7 +331,7 @@ fn text_field_uses_headless_a11y_contract_and_locale_passthrough() {
 
 #[test]
 fn text_field_emits_observable_state_and_source_markers() {
-    let source = load_source("src/text_field/view.rs");
+    let source = load_source("src/text_input/text_field/view.rs");
 
     for attr in [
         "data-ui-schema=agent_contract.schema_attr",
@@ -371,8 +370,8 @@ fn text_field_emits_observable_state_and_source_markers() {
 
 #[test]
 fn text_field_agent_contract_schema_is_typed_traceable_and_whitelisted() {
-    let logic_source = load_source("src/text_field/logic.rs");
-    let view_source = load_source("src/text_field/view.rs");
+    let logic_source = load_source("src/text_input/text_field/logic.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
 
     for needle in [
         "pub enum TextFieldAgentSchemaVersion",
@@ -436,9 +435,9 @@ fn text_field_agent_contract_schema_is_typed_traceable_and_whitelisted() {
 
 #[test]
 fn text_field_streaming_definition_is_llm_output_only_and_component_stays_non_streaming() {
-    let checklist_source = load_source("src/text_field/check2.md");
-    let logic_source = load_source("src/text_field/logic.rs");
-    let view_source = load_source("src/text_field/view.rs");
+    let checklist_source = load_source("src/text_input/text_field/check2.md");
+    let logic_source = load_source("src/text_input/text_field/logic.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_text_field.rs");
 
@@ -473,9 +472,9 @@ fn text_field_streaming_definition_is_llm_output_only_and_component_stays_non_st
 
 #[test]
 fn text_field_snapshot_baseline_consumes_complete_configuration_and_renders_stably() {
-    let checklist_source = load_source("src/text_field/check2.md");
-    let logic_source = load_source("src/text_field/logic.rs");
-    let view_source = load_source("src/text_field/view.rs");
+    let checklist_source = load_source("src/text_input/text_field/check2.md");
+    let logic_source = load_source("src/text_input/text_field/logic.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_text_field.rs");
 
@@ -558,8 +557,8 @@ fn text_field_snapshot_baseline_consumes_complete_configuration_and_renders_stab
 
 #[test]
 fn text_field_streaming_policy_is_optional_with_snapshot_fallback_and_semantic_continuity() {
-    let checklist_source = load_source("src/text_field/check2.md");
-    let view_source = load_source("src/text_field/view.rs");
+    let checklist_source = load_source("src/text_input/text_field/check2.md");
+    let view_source = load_source("src/text_input/text_field/view.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_text_field.rs");
 
@@ -649,7 +648,7 @@ fn text_field_semantics_suite_is_contract_first_not_snapshot_only() {
 
 #[test]
 fn text_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests() {
-    let view_source = load_source("src/text_field/view.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
     let semantics_source = load_source("tests/text_field_semantics.rs");
 
     for marker in [
@@ -789,7 +788,7 @@ fn text_field_e2e_ready_settled_flow_covers_keyboard_pointer_and_motion_related_
 #[test]
 fn text_field_e2e_repeatable_key_flow_is_in_regression_collection_with_semantic_breakpoints() {
     let e2e_source = load_source("../../e2e/tests/docs_app_text_field_contract.spec.mjs");
-    let checklist_source = load_source("src/text_field/check2.md");
+    let checklist_source = load_source("src/text_input/text_field/check2.md");
 
     for needle in [
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
@@ -846,7 +845,7 @@ fn text_field_e2e_repeatable_key_flow_is_in_regression_collection_with_semantic_
 
 #[test]
 fn text_field_styles_use_explicit_state_selectors_and_runtime_css_vars_only() {
-    let source = load_source("src/text_field/styles.rs");
+    let source = load_source("src/text_input/text_field/styles.rs");
 
     for selector in [
         "--ui-text-field-label-font-size: var(--ui-font-size-150);",
@@ -901,7 +900,9 @@ fn text_field_css_is_aggregated_and_ui_root_injects_components_css() {
     let root_source = load_source("src/root.rs");
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-text_field\")]\npub mod text_field;"),
+        lib_source.contains(
+            "#[cfg(feature = \"component-text_field\")]\n#[path = \"text_input/text_field/mod.rs\"]\npub mod text_field;"
+        ),
         "ui-components lib should gate `text_field` module with `component-text_field` feature."
     );
 
@@ -945,7 +946,7 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
 
     for needle in [
         "#[cfg(feature = \"component-active_highlight\")]\nmod active_highlight;",
-        "#[cfg(feature = \"component-text_field\")]\npub mod text_field;",
+        "#[cfg(feature = \"component-text_field\")]\n#[path = \"text_input/text_field/mod.rs\"]\npub mod text_field;",
         "pub mod root;",
         "pub use root::UiRoot;",
         "pub use ui_headless::{MenuItemKind, OnPress};",
@@ -1049,7 +1050,7 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
 
 #[test]
 fn text_field_motion_module_exposes_sanitized_contract_and_attach_api() {
-    let source = load_source("src/text_field/motion.rs");
+    let source = load_source("src/text_input/text_field/motion.rs");
 
     for needle in [
         "pub struct TextFieldMotion",
@@ -1068,8 +1069,8 @@ fn text_field_motion_module_exposes_sanitized_contract_and_attach_api() {
 
 #[test]
 fn text_field_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sys_usage() {
-    let view_source = load_source("src/text_field/view.rs");
-    let motion_source = load_source("src/text_field/motion.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
+    let motion_source = load_source("src/text_input/text_field/motion.rs");
     let ui_motion_source = load_source("../../crates/ui-motion/src/lib.rs");
 
     for needle in [
@@ -1121,7 +1122,7 @@ fn text_field_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_w
 #[test]
 fn text_field_headless_web_ssr_feature_mutex_is_compile_error_guarded() {
     let headless_lib = load_source("../../crates/ui-headless/src/lib.rs");
-    let view_source = load_source("src/text_field/view.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
 
     for needle in [
         "#[cfg(all(feature = \"web\", feature = \"ssr\"))]",
@@ -1140,7 +1141,7 @@ fn text_field_headless_web_ssr_feature_mutex_is_compile_error_guarded() {
 
 #[test]
 fn text_field_motion_dependency_exposes_non_wasm_noop_stub_contract() {
-    let motion_source = load_source("src/text_field/motion.rs");
+    let motion_source = load_source("src/text_input/text_field/motion.rs");
     let ui_motion_source = load_source("../../crates/ui-motion/src/lib.rs");
 
     for needle in [
@@ -1151,7 +1152,7 @@ fn text_field_motion_dependency_exposes_non_wasm_noop_stub_contract() {
         "fn non_wasm_web_backend_is_predictable_noop()",
         "if !motion.enabled || ui_motion::web::prefers_reduced_motion()",
         "ui_motion::web::animate(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             ui_motion_source.contains(needle) || motion_source.contains(needle),
@@ -1173,9 +1174,9 @@ fn text_field_motion_dependency_exposes_non_wasm_noop_stub_contract() {
 
 #[test]
 fn text_field_reduced_motion_ssr_wasm_paths_stay_semantically_consistent() {
-    let view_source = load_source("src/text_field/view.rs");
-    let motion_source = load_source("src/text_field/motion.rs");
-    let styles_source = load_source("src/text_field/styles.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
+    let motion_source = load_source("src/text_input/text_field/motion.rs");
+    let styles_source = load_source("src/text_input/text_field/styles.rs");
 
     for needle in [
         "if !motion.enabled || ui_motion::web::prefers_reduced_motion()",
@@ -1183,7 +1184,7 @@ fn text_field_reduced_motion_ssr_wasm_paths_stay_semantically_consistent() {
         "--ui-text-field-motion-duration: {}ms;",
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "@media (prefers-reduced-motion: reduce)",
         "transition: none;",
     ] {
@@ -1216,7 +1217,7 @@ fn text_field_reduced_motion_ssr_wasm_paths_stay_semantically_consistent() {
 
 #[test]
 fn text_field_static_fragments_are_constantized_with_stable_semantics() {
-    let view_source = load_source("src/text_field/view.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
 
     for needle in [
         "const SLOT_ROOT: &str = \"text-field\";",
@@ -1262,7 +1263,7 @@ fn text_field_static_fragments_are_constantized_with_stable_semantics() {
 
 #[test]
 fn text_field_view_functional_split_prefers_plain_functions_over_local_components() {
-    let view_source = load_source("src/text_field/view.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
 
     for needle in [
         "fn render_description(description: Option<String>, description_id: String) -> impl IntoView",
@@ -1296,11 +1297,11 @@ fn text_field_view_functional_split_prefers_plain_functions_over_local_component
 #[test]
 fn text_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
     let guarded_files = [
-        "src/text_field/mod.rs",
-        "src/text_field/logic.rs",
-        "src/text_field/styles.rs",
-        "src/text_field/motion.rs",
-        "src/text_field/view.rs",
+        "src/text_input/text_field/mod.rs",
+        "src/text_input/text_field/logic.rs",
+        "src/text_input/text_field/styles.rs",
+        "src/text_input/text_field/motion.rs",
+        "src/text_input/text_field/view.rs",
         "../../apps/docs-app/src/pages/components/pages/forms_text_field.rs",
     ];
 
@@ -1321,11 +1322,11 @@ fn text_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
 fn text_field_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated() {
     let cargo_source = load_source("Cargo.toml");
     let crate_root_source = load_source("src/lib.rs");
-    let text_field_mod_source = load_source("src/text_field/mod.rs");
-    let text_field_logic_source = load_source("src/text_field/logic.rs");
-    let text_field_motion_source = load_source("src/text_field/motion.rs");
-    let text_field_styles_source = load_source("src/text_field/styles.rs");
-    let text_field_view_source = load_source("src/text_field/view.rs");
+    let text_field_mod_source = load_source("src/text_input/text_field/mod.rs");
+    let text_field_logic_source = load_source("src/text_input/text_field/logic.rs");
+    let text_field_motion_source = load_source("src/text_input/text_field/motion.rs");
+    let text_field_styles_source = load_source("src/text_input/text_field/styles.rs");
+    let text_field_view_source = load_source("src/text_input/text_field/view.rs");
     let docs_lib_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../ui-headless/src/trace.rs");
@@ -1481,10 +1482,10 @@ fn text_field_dx_contract_uses_docs_playground_for_hot_css_iteration_and_context
 fn text_field_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnostic() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_source = load_source("Cargo.toml");
-    let text_field_mod_source = load_source("src/text_field/mod.rs");
-    let text_field_logic_source = load_source("src/text_field/logic.rs");
-    let text_field_motion_source = load_source("src/text_field/motion.rs");
-    let text_field_view_source = load_source("src/text_field/view.rs");
+    let text_field_mod_source = load_source("src/text_input/text_field/mod.rs");
+    let text_field_logic_source = load_source("src/text_input/text_field/logic.rs");
+    let text_field_motion_source = load_source("src/text_input/text_field/motion.rs");
+    let text_field_view_source = load_source("src/text_input/text_field/view.rs");
     let trace_source = load_source("../ui-headless/src/trace.rs");
 
     assert!(
@@ -1506,7 +1507,9 @@ fn text_field_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agno
     }
 
     assert!(
-        !manifest_dir.join("src/text_field/spec.rs").exists(),
+        !manifest_dir
+            .join("src/text_input/text_field/spec.rs")
+            .exists(),
         "TextField simple component scope should keep spec/config serde migration path as N/A without local spec.rs."
     );
 
@@ -1607,7 +1610,7 @@ fn text_field_docs_page_syncs_api_matrix_state_matrix_and_source_first_contracts
         "data-slot=\"text-field-api-matrix\"",
         "<h3>\"API Matrix\"</h3>",
         "data-slot=\"text-field-api-rows\"",
-        "ui_components::text_field::DEFAULT_LABEL",
+        "ui_components::text_input::text_field::DEFAULT_LABEL",
         "value + on_value_change + default_value",
         "data-slot=\"text-field-state-matrix\"",
         "<h3>\"State Matrix\"</h3>",
@@ -1620,10 +1623,10 @@ fn text_field_docs_page_syncs_api_matrix_state_matrix_and_source_first_contracts
         "label=\"Copy starter\".to_string()",
         "copyable=true",
         "text=\"use leptos::prelude::*;\\nuse ui_components::*;",
-        "id=\\\"email\\\".to_string()",
-        "label=\\\"Email\\\".to_string()",
+        "id=\\\"email\\\".into()",
+        "label=\\\"Email\\\".into()",
         "data-slot=\"text-field-source-paths\"",
-        "crates/ui-components/src/text_field/view.rs",
+        "crates/ui-components/src/text_input/text_field/view.rs",
         "data-slot=\"text-field-source-prerequisites\"",
         "component-text_field",
         "inject-css",
@@ -1657,7 +1660,7 @@ fn text_field_docs_entry_is_indexed_and_beginner_friendly() {
         "\"text-field\"",
         "forms_text_field::text_field",
         "<Playground title=\"Label + placeholder\" code_signal=code>",
-        "<TextField id=\\\"name\\\".to_string()",
+        "<TextField id=\\\"name\\\".into()",
     ] {
         assert!(
             docs_source.contains(needle) || catalog_source.contains(needle),
@@ -1699,10 +1702,10 @@ fn text_field_heroui_alignment_doc_records_text_field_sync() {
 
 #[test]
 fn text_field_heroui_sync_guard_keeps_catalog_and_parameter_contract_in_step() {
-    let view_source = load_source("src/text_field/view.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
     let docs_catalog_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let strategy_source = load_source("../../docs/spec/heroui-parameter-design-strategy.md");
-    let checklist_source = load_source("src/text_field/check2.md");
+    let checklist_source = load_source("src/text_input/text_field/check2.md");
 
     for needle in [
         "value + on_value_change + default_value",
@@ -1742,9 +1745,9 @@ fn text_field_heroui_sync_guard_keeps_catalog_and_parameter_contract_in_step() {
 fn text_field_rejects_cross_layer_anti_patterns() {
     let primitives_source = load_source("../ui-state-primitives/src/text_field.rs");
     let headless_source = load_source("../ui-headless/src/text_field.rs");
-    let logic_source = load_source("src/text_field/logic.rs");
-    let view_source = load_source("src/text_field/view.rs");
-    let mod_source = load_source("src/text_field/mod.rs");
+    let logic_source = load_source("src/text_input/text_field/logic.rs");
+    let view_source = load_source("src/text_input/text_field/view.rs");
+    let mod_source = load_source("src/text_input/text_field/mod.rs");
 
     for forbidden in ["view!", "data-slot=", "web_sys", "leptos::"] {
         assert!(
@@ -1796,10 +1799,10 @@ fn text_field_architecture_foundation_layers_are_checked_individually() {
     let primitives_source = load_source("../ui-state-primitives/src/text_field.rs");
     let headless_source = load_source("../ui-headless/src/text_field.rs");
     let ui_motion_source = load_source("../ui-motion/src/lib.rs");
-    let component_logic_source = load_source("src/text_field/logic.rs");
-    let component_view_source = load_source("src/text_field/view.rs");
-    let component_styles_source = load_source("src/text_field/styles.rs");
-    let checklist_source = load_source("src/text_field/check2.md");
+    let component_logic_source = load_source("src/text_input/text_field/logic.rs");
+    let component_view_source = load_source("src/text_input/text_field/view.rs");
+    let component_styles_source = load_source("src/text_input/text_field/styles.rs");
+    let checklist_source = load_source("src/text_input/text_field/check2.md");
 
     for forbidden in ["web_sys", "view!", "data-slot=", "class:ui-text-field"] {
         assert!(
@@ -1883,8 +1886,8 @@ fn text_field_performance_governance_contract_is_budgeted_traceable_and_blocking
     let perf_probe_source = load_source("../../crates/ui-headless/src/perf.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let check2_source = load_source("src/text_field/check2.md");
-    let view_source = load_source("src/text_field/view.rs");
+    let check2_source = load_source("src/text_input/text_field/check2.md");
+    let view_source = load_source("src/text_input/text_field/view.rs");
 
     for needle in [
         "\"button\" => UiPerfBudget {",
@@ -1966,8 +1969,8 @@ fn text_field_performance_governance_contract_is_budgeted_traceable_and_blocking
 
 #[test]
 fn text_field_view_macro_complexity_is_bounded_with_semantic_subblocks() {
-    let view_source = load_source("src/text_field/view.rs");
-    let check2_source = load_source("src/text_field/check2.md");
+    let view_source = load_source("src/text_input/text_field/view.rs");
+    let check2_source = load_source("src/text_input/text_field/check2.md");
 
     assert!(
         view_source.contains("view! {"),
@@ -2016,7 +2019,7 @@ fn text_field_view_macro_complexity_is_bounded_with_semantic_subblocks() {
 
 #[test]
 fn text_field_gate_completion_records_full_responsible_chain_commands() {
-    let check2_source = load_source("src/text_field/check2.md");
+    let check2_source = load_source("src/text_input/text_field/check2.md");
 
     assert!(
         check2_source.contains("- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。"),

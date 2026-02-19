@@ -9,6 +9,14 @@ use std::fmt::Write;
 use crate::theme::{Theme, text_field_motion_tokens};
 use crate::tokens::ColorScaleTokens;
 
+macro_rules! css_writeln {
+    ($target:expr $(, $arg:expr)*) => {{
+        match writeln!($target $(, $arg)*) {
+            Ok(()) | Err(_) => {}
+        }
+    }};
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SemanticVariable {
     Default,
@@ -112,26 +120,26 @@ impl SemanticOverrides {
         }
 
         let mut css = String::new();
-        let _ = writeln!(css, "{selector} {{");
+        css_writeln!(css, "{selector} {{");
         for (variable, value) in &self.entries {
-            let _ = writeln!(css, "  {}: {};", variable.as_css_var(), value);
+            css_writeln!(css, "  {}: {};", variable.as_css_var(), value);
         }
-        let _ = writeln!(css, "}}");
+        css_writeln!(css, "}}");
         css
     }
 }
 
 fn write_scale_variables(css: &mut String, name: &str, scale: ColorScaleTokens) {
-    let _ = writeln!(css, "  --ui-{name}-50: {};", scale.shade_50);
-    let _ = writeln!(css, "  --ui-{name}-100: {};", scale.shade_100);
-    let _ = writeln!(css, "  --ui-{name}-200: {};", scale.shade_200);
-    let _ = writeln!(css, "  --ui-{name}-300: {};", scale.shade_300);
-    let _ = writeln!(css, "  --ui-{name}-400: {};", scale.shade_400);
-    let _ = writeln!(css, "  --ui-{name}-500: {};", scale.shade_500);
-    let _ = writeln!(css, "  --ui-{name}-600: {};", scale.shade_600);
-    let _ = writeln!(css, "  --ui-{name}-700: {};", scale.shade_700);
-    let _ = writeln!(css, "  --ui-{name}-800: {};", scale.shade_800);
-    let _ = writeln!(css, "  --ui-{name}-900: {};", scale.shade_900);
+    css_writeln!(css, "  --ui-{name}-50: {};", scale.shade_50);
+    css_writeln!(css, "  --ui-{name}-100: {};", scale.shade_100);
+    css_writeln!(css, "  --ui-{name}-200: {};", scale.shade_200);
+    css_writeln!(css, "  --ui-{name}-300: {};", scale.shade_300);
+    css_writeln!(css, "  --ui-{name}-400: {};", scale.shade_400);
+    css_writeln!(css, "  --ui-{name}-500: {};", scale.shade_500);
+    css_writeln!(css, "  --ui-{name}-600: {};", scale.shade_600);
+    css_writeln!(css, "  --ui-{name}-700: {};", scale.shade_700);
+    css_writeln!(css, "  --ui-{name}-800: {};", scale.shade_800);
+    css_writeln!(css, "  --ui-{name}-900: {};", scale.shade_900);
 }
 
 pub fn theme_to_css_variables(theme: &Theme) -> String {
@@ -158,24 +166,24 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     let text_field_motion = text_field_motion_tokens(theme.ctx);
     let mut css = String::new();
 
-    let _ = writeln!(css, ":root {{");
-    let _ = writeln!(css, "  --ui-system: {system};");
-    let _ = writeln!(css, "  --ui-color: {color};");
-    let _ = writeln!(css, "  --ui-scale: {scale};");
-    let _ = writeln!(css, "  color-scheme: {scheme};");
-    let _ = writeln!(css);
+    css_writeln!(css, ":root {{");
+    css_writeln!(css, "  --ui-system: {system};");
+    css_writeln!(css, "  --ui-color: {color};");
+    css_writeln!(css, "  --ui-scale: {scale};");
+    css_writeln!(css, "  color-scheme: {scheme};");
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-palette-gray-50: {};", palette.gray_50);
-    let _ = writeln!(css, "  --ui-palette-gray-200: {};", palette.gray_200);
-    let _ = writeln!(css, "  --ui-palette-gray-700: {};", palette.gray_700);
-    let _ = writeln!(css, "  --ui-palette-gray-900: {};", palette.gray_900);
-    let _ = writeln!(css, "  --ui-palette-accent-500: {};", palette.accent_500);
-    let _ = writeln!(css, "  --ui-palette-accent-600: {};", palette.accent_600);
-    let _ = writeln!(css, "  --ui-palette-accent-700: {};", palette.accent_700);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-palette-gray-50: {};", palette.gray_50);
+    css_writeln!(css, "  --ui-palette-gray-200: {};", palette.gray_200);
+    css_writeln!(css, "  --ui-palette-gray-700: {};", palette.gray_700);
+    css_writeln!(css, "  --ui-palette-gray-900: {};", palette.gray_900);
+    css_writeln!(css, "  --ui-palette-accent-500: {};", palette.accent_500);
+    css_writeln!(css, "  --ui-palette-accent-600: {};", palette.accent_600);
+    css_writeln!(css, "  --ui-palette-accent-700: {};", palette.accent_700);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-common-white: {};", common_colors.white);
-    let _ = writeln!(css, "  --ui-common-black: {};", common_colors.black);
+    css_writeln!(css, "  --ui-common-white: {};", common_colors.white);
+    css_writeln!(css, "  --ui-common-black: {};", common_colors.black);
     write_scale_variables(&mut css, "common-blue", common_colors.blue);
     write_scale_variables(&mut css, "common-purple", common_colors.purple);
     write_scale_variables(&mut css, "common-green", common_colors.green);
@@ -184,7 +192,7 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     write_scale_variables(&mut css, "common-yellow", common_colors.yellow);
     write_scale_variables(&mut css, "common-cyan", common_colors.cyan);
     write_scale_variables(&mut css, "common-zinc", common_colors.zinc);
-    let _ = writeln!(css);
+    css_writeln!(css);
 
     write_scale_variables(&mut css, "default", semantic_scales.default);
     write_scale_variables(&mut css, "primary", semantic_scales.primary);
@@ -192,445 +200,525 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     write_scale_variables(&mut css, "success", semantic_scales.success);
     write_scale_variables(&mut css, "warning", semantic_scales.warning);
     write_scale_variables(&mut css, "danger", semantic_scales.danger);
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-default: {};", semantic_roles.default);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-default: {};", semantic_roles.default);
+    css_writeln!(
         css,
         "  --ui-default-foreground: {};",
         semantic_roles.default_fg
     );
-    let _ = writeln!(css, "  --ui-primary: {};", semantic_roles.primary);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-primary: {};", semantic_roles.primary);
+    css_writeln!(
         css,
         "  --ui-primary-foreground: {};",
         semantic_roles.primary_fg
     );
-    let _ = writeln!(css, "  --ui-secondary: {};", semantic_roles.secondary);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-secondary: {};", semantic_roles.secondary);
+    css_writeln!(
         css,
         "  --ui-secondary-foreground: {};",
         semantic_roles.secondary_fg
     );
-    let _ = writeln!(css, "  --ui-success: {};", semantic_roles.success);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-success: {};", semantic_roles.success);
+    css_writeln!(
         css,
         "  --ui-success-foreground: {};",
         semantic_roles.success_fg
     );
-    let _ = writeln!(css, "  --ui-warning: {};", semantic_roles.warning);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-warning: {};", semantic_roles.warning);
+    css_writeln!(
         css,
         "  --ui-warning-foreground: {};",
         semantic_roles.warning_fg
     );
-    let _ = writeln!(css, "  --ui-danger: {};", semantic_roles.danger);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-danger: {};", semantic_roles.danger);
+    css_writeln!(
         css,
         "  --ui-danger-foreground: {};",
         semantic_roles.danger_fg
     );
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-layout-background: {};",
         layout_semantic.background
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-layout-foreground: {};",
         layout_semantic.foreground
     );
-    let _ = writeln!(css, "  --ui-layout-divider: {};", layout_semantic.divider);
-    let _ = writeln!(css, "  --ui-layout-focus: {};", layout_semantic.focus);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-layout-divider: {};", layout_semantic.divider);
+    css_writeln!(css, "  --ui-layout-focus: {};", layout_semantic.focus);
+    css_writeln!(
         css,
         "  --ui-layout-content-1: {};",
         layout_semantic.content_1
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-layout-content-2: {};",
         layout_semantic.content_2
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-layout-content-3: {};",
         layout_semantic.content_3
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-layout-content-4: {};",
         layout_semantic.content_4
     );
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-semantic-fg: {};", colors.fg);
-    let _ = writeln!(css, "  --ui-semantic-fg-muted: {};", colors.fg_muted);
-    let _ = writeln!(css, "  --ui-semantic-bg: {};", colors.bg);
-    let _ = writeln!(css, "  --ui-semantic-bg-muted: {};", colors.bg_muted);
-    let _ = writeln!(css, "  --ui-semantic-accent: {};", colors.accent);
-    let _ = writeln!(css, "  --ui-semantic-accent-fg: {};", colors.accent_fg);
-    let _ = writeln!(css, "  --ui-semantic-accent-soft: {};", colors.accent_soft);
-    let _ = writeln!(css, "  --ui-semantic-danger: {};", colors.danger);
-    let _ = writeln!(css, "  --ui-semantic-danger-fg: {};", colors.danger_fg);
-    let _ = writeln!(css, "  --ui-semantic-border: {};", colors.border);
-    let _ = writeln!(css, "  --ui-semantic-focus-ring: {};", colors.focus_ring);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-semantic-fg: {};", colors.fg);
+    css_writeln!(css, "  --ui-semantic-fg-muted: {};", colors.fg_muted);
+    css_writeln!(css, "  --ui-semantic-bg: {};", colors.bg);
+    css_writeln!(css, "  --ui-semantic-bg-muted: {};", colors.bg_muted);
+    css_writeln!(css, "  --ui-semantic-accent: {};", colors.accent);
+    css_writeln!(css, "  --ui-semantic-accent-fg: {};", colors.accent_fg);
+    css_writeln!(css, "  --ui-semantic-accent-soft: {};", colors.accent_soft);
+    css_writeln!(css, "  --ui-semantic-danger: {};", colors.danger);
+    css_writeln!(css, "  --ui-semantic-danger-fg: {};", colors.danger_fg);
+    css_writeln!(css, "  --ui-semantic-border: {};", colors.border);
+    css_writeln!(css, "  --ui-semantic-focus-ring: {};", colors.focus_ring);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-alias-text-default: {};", aliases.text_default);
-    let _ = writeln!(css, "  --ui-alias-text-muted: {};", aliases.text_muted);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-alias-text-default: {};", aliases.text_default);
+    css_writeln!(css, "  --ui-alias-text-muted: {};", aliases.text_muted);
+    css_writeln!(
         css,
         "  --ui-alias-surface-default: {};",
         aliases.surface_default
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-alias-surface-muted: {};",
         aliases.surface_muted
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-alias-border-default: {};",
         aliases.border_default
     );
-    let _ = writeln!(css, "  --ui-alias-focus-ring: {};", aliases.focus_ring);
-    let _ = writeln!(css, "  --ui-alias-accent: {};", aliases.accent);
-    let _ = writeln!(css, "  --ui-alias-accent-fg: {};", aliases.accent_fg);
-    let _ = writeln!(css, "  --ui-alias-danger: {};", aliases.danger);
-    let _ = writeln!(css, "  --ui-alias-danger-fg: {};", aliases.danger_fg);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-alias-focus-ring: {};", aliases.focus_ring);
+    css_writeln!(css, "  --ui-alias-accent: {};", aliases.accent);
+    css_writeln!(css, "  --ui-alias-accent-fg: {};", aliases.accent_fg);
+    css_writeln!(css, "  --ui-alias-danger: {};", aliases.danger);
+    css_writeln!(css, "  --ui-alias-danger-fg: {};", aliases.danger_fg);
+    css_writeln!(css);
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-control-bg: {};",
         component_colors.control_bg
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-control-bg-hover: {};",
         component_colors.control_bg_hover
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-control-border: {};",
         component_colors.control_border
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-control-fg: {};",
         component_colors.control_fg
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-surface-raised: {};",
         component_colors.surface_raised
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-surface-overlay: {};",
         component_colors.surface_overlay
     );
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-icon-size-100: {}px;", icons.size_100_px);
-    let _ = writeln!(css, "  --ui-icon-size-200: {}px;", icons.size_200_px);
-    let _ = writeln!(css, "  --ui-icon-stroke-100: {};", icons.stroke_100);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-icon-size-100: {}px;", icons.size_100_px);
+    css_writeln!(css, "  --ui-icon-size-200: {}px;", icons.size_200_px);
+    css_writeln!(css, "  --ui-icon-stroke-100: {};", icons.stroke_100);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-fg: {};", colors.fg);
-    let _ = writeln!(css, "  --ui-fg-muted: {};", colors.fg_muted);
-    let _ = writeln!(css, "  --ui-bg: {};", colors.bg);
-    let _ = writeln!(css, "  --ui-bg-muted: {};", colors.bg_muted);
-    let _ = writeln!(css, "  --ui-accent: {};", colors.accent);
-    let _ = writeln!(css, "  --ui-accent-fg: {};", colors.accent_fg);
-    let _ = writeln!(css, "  --ui-accent-soft: {};", colors.accent_soft);
-    let _ = writeln!(css, "  --ui-border: {};", colors.border);
-    let _ = writeln!(css, "  --ui-focus-ring: {};", colors.focus_ring);
-    let _ = writeln!(css, "  --ui-background: {};", layout_semantic.background);
-    let _ = writeln!(css, "  --ui-foreground: {};", layout_semantic.foreground);
-    let _ = writeln!(css, "  --ui-divider: {};", layout_semantic.divider);
-    let _ = writeln!(css, "  --ui-focus: {};", layout_semantic.focus);
-    let _ = writeln!(css, "  --ui-content1: {};", layout_semantic.content_1);
-    let _ = writeln!(css, "  --ui-content2: {};", layout_semantic.content_2);
-    let _ = writeln!(css, "  --ui-content3: {};", layout_semantic.content_3);
-    let _ = writeln!(css, "  --ui-content4: {};", layout_semantic.content_4);
-    let _ = writeln!(css, "  --ui-danger-fg: {};", colors.danger_fg);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-fg: {};", colors.fg);
+    css_writeln!(css, "  --ui-fg-muted: {};", colors.fg_muted);
+    css_writeln!(css, "  --ui-bg: {};", colors.bg);
+    css_writeln!(css, "  --ui-bg-muted: {};", colors.bg_muted);
+    css_writeln!(css, "  --ui-accent: {};", colors.accent);
+    css_writeln!(css, "  --ui-accent-fg: {};", colors.accent_fg);
+    css_writeln!(css, "  --ui-accent-soft: {};", colors.accent_soft);
+    css_writeln!(css, "  --ui-border: {};", colors.border);
+    css_writeln!(css, "  --ui-focus-ring: {};", colors.focus_ring);
+    css_writeln!(css, "  --ui-background: {};", layout_semantic.background);
+    css_writeln!(css, "  --ui-foreground: {};", layout_semantic.foreground);
+    css_writeln!(css, "  --ui-divider: {};", layout_semantic.divider);
+    css_writeln!(css, "  --ui-focus: {};", layout_semantic.focus);
+    css_writeln!(css, "  --ui-content1: {};", layout_semantic.content_1);
+    css_writeln!(css, "  --ui-content2: {};", layout_semantic.content_2);
+    css_writeln!(css, "  --ui-content3: {};", layout_semantic.content_3);
+    css_writeln!(css, "  --ui-content4: {};", layout_semantic.content_4);
+    css_writeln!(css, "  --ui-danger-fg: {};", colors.danger_fg);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-radius-sm: {}px;", layout.radius.sm_px);
-    let _ = writeln!(css, "  --ui-radius-md: {}px;", layout.radius.md_px);
-    let _ = writeln!(css, "  --ui-radius-lg: {}px;", layout.radius.lg_px);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-radius-sm: {}px;", layout.radius.sm_px);
+    css_writeln!(css, "  --ui-radius-md: {}px;", layout.radius.md_px);
+    css_writeln!(css, "  --ui-radius-lg: {}px;", layout.radius.lg_px);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-space-3xs: {}px;", layout.space.space_3xs_px);
-    let _ = writeln!(css, "  --ui-space-2xs: {}px;", layout.space.space_2xs_px);
-    let _ = writeln!(css, "  --ui-space-xs: {}px;", layout.space.xs_px);
-    let _ = writeln!(css, "  --ui-space-sm: {}px;", layout.space.sm_px);
-    let _ = writeln!(css, "  --ui-space-md: {}px;", layout.space.md_px);
-    let _ = writeln!(css, "  --ui-space-lg: {}px;", layout.space.lg_px);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-space-3xs: {}px;", layout.space.space_3xs_px);
+    css_writeln!(css, "  --ui-space-2xs: {}px;", layout.space.space_2xs_px);
+    css_writeln!(css, "  --ui-space-xs: {}px;", layout.space.xs_px);
+    css_writeln!(css, "  --ui-space-sm: {}px;", layout.space.sm_px);
+    css_writeln!(css, "  --ui-space-md: {}px;", layout.space.md_px);
+    css_writeln!(css, "  --ui-space-lg: {}px;", layout.space.lg_px);
+    css_writeln!(css);
 
-    let _ = writeln!(css, "  --ui-shadow-sm: {};", layout.shadow.sm);
-    let _ = writeln!(css, "  --ui-shadow-md: {};", layout.shadow.md);
-    let _ = writeln!(css);
+    css_writeln!(css, "  --ui-shadow-sm: {};", layout.shadow.sm);
+    css_writeln!(css, "  --ui-shadow-md: {};", layout.shadow.md);
+    css_writeln!(css);
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-font-size-100: {}px;",
         typography.font_size_100_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-line-height-100: {}px;",
+        typography.line_height_100_px
+    );
+    css_writeln!(
         css,
         "  --ui-font-size-150: {}px;",
         typography.font_size_150_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-font-size-200: {}px;",
         typography.font_size_200_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-component-height-100: {}px;",
         component_layout.component_height_100_px
     );
     let separator_decorative_opacity =
         f64::from(component_layout.separator_decorative_opacity_percent) / 100.0;
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-separator-decorative-opacity: {};",
         separator_decorative_opacity
     );
-    let _ = writeln!(css, "  --ui-overlay-z-index: {};", overlay_layout.z_index);
-    let _ = writeln!(
+    css_writeln!(css, "  --ui-overlay-z-index: {};", overlay_layout.z_index);
+    css_writeln!(
         css,
         "  --ui-overlay-panel-min-width: {}px;",
         overlay_layout.panel_min_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-tooltip-max-width: {}px;",
         overlay_layout.panel_min_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-overlay-viewport-inset: {}px;",
         overlay_layout.viewport_inset_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-overlay-enter-offset-y: {}px;",
         overlay_layout.enter_offset_y_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-overlay-enter-scale: {};",
         overlay_layout.enter_scale
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-slider-max-width: {}px;",
         slider_layout.max_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-slider-thumb-border-width: {}px;",
         slider_layout.thumb_border_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-slider-focus-ring-width: {}px;",
         slider_layout.focus_ring_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-underlay-transition-duration: {}ms;",
         underlay_motion.transition_duration_ms
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-underlay-visibility-duration: {}ms;",
         underlay_motion.visibility_duration_ms
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-underlay-backdrop-blur: {}px;",
         underlay_motion.backdrop_blur_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-underlay-scrim-alpha: {}%;",
         underlay_motion.scrim_alpha_percent
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-underlay-transition-easing: {};",
         underlay_motion.transition_easing
     );
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-text-field-motion-duration: {}ms;",
         text_field_motion.duration_ms
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-text-field-motion-easing: {};",
         text_field_motion.easing
     );
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-min-width: {}px;",
         button_layout.min_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-font-size: {}px;",
         button_layout.font_size_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-spinner-size: {}px;",
         button_layout.spinner_size_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-spinner-border: {}px;",
         button_layout.spinner_border_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-spinner-duration: {}ms;",
         button_layout.spinner_duration_ms
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-focus-outline-width: {}px;",
         button_layout.focus_outline_width_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-focus-outline-offset: {}px;",
         button_layout.focus_outline_offset_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-radius-full: {}px;",
         button_layout.radius_full_px
     );
-    let _ = writeln!(css);
+    css_writeln!(css);
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-xs-height: {}px;",
         button_layout.xs.height_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-xs-min-width: {}px;",
+        button_layout.xs.min_width_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-xs-padding-x: {}px;",
         button_layout.xs.padding_inline_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-xs-font-size: {}px;",
+        button_layout.xs.font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-button-size-xs-line-height: {}px;",
+        button_layout.xs.line_height_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-xs-gap: {}px;",
         button_layout.xs.gap_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-xs-icon: {}px;",
         button_layout.xs.icon_size_px
     );
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-s-height: {}px;",
         button_layout.s.height_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-s-min-width: {}px;",
+        button_layout.s.min_width_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-s-padding-x: {}px;",
         button_layout.s.padding_inline_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-s-font-size: {}px;",
+        button_layout.s.font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-button-size-s-line-height: {}px;",
+        button_layout.s.line_height_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-s-gap: {}px;",
         button_layout.s.gap_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-s-icon: {}px;",
         button_layout.s.icon_size_px
     );
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-m-height: {}px;",
         button_layout.m.height_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-m-min-width: {}px;",
+        button_layout.m.min_width_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-m-padding-x: {}px;",
         button_layout.m.padding_inline_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-m-font-size: {}px;",
+        button_layout.m.font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-button-size-m-line-height: {}px;",
+        button_layout.m.line_height_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-m-gap: {}px;",
         button_layout.m.gap_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-m-icon: {}px;",
         button_layout.m.icon_size_px
     );
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-l-height: {}px;",
         button_layout.l.height_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-l-min-width: {}px;",
+        button_layout.l.min_width_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-l-padding-x: {}px;",
         button_layout.l.padding_inline_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-l-font-size: {}px;",
+        button_layout.l.font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-button-size-l-line-height: {}px;",
+        button_layout.l.line_height_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-l-gap: {}px;",
         button_layout.l.gap_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-l-icon: {}px;",
         button_layout.l.icon_size_px
     );
 
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-xl-height: {}px;",
         button_layout.xl.height_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-xl-min-width: {}px;",
+        button_layout.xl.min_width_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-xl-padding-x: {}px;",
         button_layout.xl.padding_inline_px
     );
-    let _ = writeln!(
+    css_writeln!(
+        css,
+        "  --ui-button-size-xl-font-size: {}px;",
+        button_layout.xl.font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-button-size-xl-line-height: {}px;",
+        button_layout.xl.line_height_px
+    );
+    css_writeln!(
         css,
         "  --ui-button-size-xl-gap: {}px;",
         button_layout.xl.gap_px
     );
-    let _ = writeln!(
+    css_writeln!(
         css,
         "  --ui-button-size-xl-icon: {}px;",
         button_layout.xl.icon_size_px
     );
-    let _ = writeln!(css, "}}");
+    css_writeln!(css, "}}");
     css
 }
 

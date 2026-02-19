@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn iconset_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/iconset/mod.rs");
+    let source = load_source("src/icon/set/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn iconset_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn iconset_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/iconset/mod.rs");
+    let module_source = load_source("src/icon/set/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -41,7 +41,7 @@ fn iconset_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn iconset_logic_exposes_state_helpers() {
-    let source = load_source("src/iconset/logic.rs");
+    let source = load_source("src/icon/set/logic.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -63,7 +63,7 @@ fn iconset_logic_exposes_state_helpers() {
 
 #[test]
 fn iconset_view_uses_logic_state_contracts() {
-    let source = load_source("src/iconset/view.rs");
+    let source = load_source("src/icon/set/view.rs");
 
     for needle in [
         "pub fn Iconset(",
@@ -92,7 +92,7 @@ fn iconset_view_uses_logic_state_contracts() {
 
 #[test]
 fn iconset_styles_include_state_and_source_markers() {
-    let source = load_source("src/iconset/styles.rs");
+    let source = load_source("src/icon/set/styles.rs");
 
     for selector in [
         ".ui-iconset {",
@@ -259,7 +259,7 @@ fn iconset_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn iconset_check2_marks_architecture_layer_definitions_complete() {
-    let check2_source = load_source("src/iconset/check2.md");
+    let check2_source = load_source("src/icon/set/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。",
@@ -277,7 +277,7 @@ fn iconset_check2_marks_architecture_layer_definitions_complete() {
 
 #[test]
 fn iconset_check2_marks_semantics_first_testing_complete() {
-    let check2_source = load_source("src/iconset/check2.md");
+    let check2_source = load_source("src/icon/set/check2.md");
 
     for needle in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
@@ -293,7 +293,7 @@ fn iconset_check2_marks_semantics_first_testing_complete() {
 
 #[test]
 fn iconset_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/iconset/check2.md");
+    let check2_source = load_source("src/icon/set/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -320,7 +320,7 @@ fn iconset_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn iconset_check2_has_no_remaining_unchecked_items() {
-    let check2_source = load_source("src/iconset/check2.md");
+    let check2_source = load_source("src/icon/set/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "iconset/check2.md should not keep unchecked checklist items once governance is complete."

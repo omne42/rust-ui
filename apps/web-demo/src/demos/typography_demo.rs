@@ -1,8 +1,8 @@
 use leptos::prelude::*;
 use ui_components::{
-    BreadcrumbItem, Breadcrumbs, Code, CodeVariant, Kbd, Link, ProgressBar, Snippet, Spacer,
-    SpacerAxis, SpacerSize,
+    BreadcrumbItem, Breadcrumbs, Code, CodeVariant, Kbd, Link, ProgressBar, Snippet,
 };
+use ui_layout::{Spacer, SpacerAxis, SpacerSize};
 
 #[component]
 pub fn TypographyDemo() -> impl IntoView {
@@ -31,7 +31,7 @@ pub fn TypographyDemo() -> impl IntoView {
                     <Link href="https://example.com".to_string() target="_blank">
                         "External Link"
                     </Link>
-                    <Link href="https://example.com".to_string() disabled=true>
+                    <Link href="https://example.com".to_string() is_disabled=true>
                         "Disabled"
                     </Link>
                 </div>

@@ -92,7 +92,7 @@
 
 ## 任务 DAG（v0，摘要）
 
-1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components/ui-compat` crate 壳 + `apps/tauri-demo`（`cargo check -p ...` 全过）
+1. `t1-workspace`：workspace + `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components` crate 壳 + `apps/tauri-demo`（`cargo check -p ...` 全过）
 2. `t2-headless-interaction`：最小交互系统（Press + FocusVisible）
 3. `t3-theme-tokens`：最小 tokens（颜色/圆角/间距…）
 4. `t4-components-button`：Button v0（组合 t2+t3）

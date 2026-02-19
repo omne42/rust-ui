@@ -72,7 +72,7 @@ for path in "${files[@]}"; do
     report "ui-state-primitives purity violation" "$path references platform/web APIs."
   fi
 
-  if printf '%s\n' "$content" | rg -n "\bui_(headless|components|theme|motion|compat)::" >/dev/null; then
+  if printf '%s\n' "$content" | rg -n "\bui_(headless|components|theme|motion)::" >/dev/null; then
     report "ui-state-primitives dependency direction violation" "$path references higher-layer internal crates."
   fi
 done
@@ -147,6 +147,18 @@ fi
 for path in "${files[@]}"; do
   [[ "$path" == crates/ui-components/src/*/render.rs ]] || continue
   report "ui-components forbidden file" "$path should be renamed to view.rs."
+done
+
+# 5) Block introducing historical compatibility debt markers in source files.
+#    We allow breaking changes in this repo; new code must not add legacy alias bridges.
+for path in "${files[@]}"; do
+  [[ "$path" =~ ^(crates|apps)/.*/src/.*\.rs$ ]] || continue
+  content="$(read_snapshot "$path" || true)"
+  [[ -n "$content" ]] || continue
+
+  if printf '%s\n' "$content" | rg -n "legacy-prop|legacy-alias|has_legacy_|Domain-compatibility shims|legacy flat module names stable|兼容别名|兼容输入|兼容路径|legacy alias|compatibility path" >/dev/null; then
+    report "compatibility-debt violation" "$path introduces legacy compatibility markers; remove alias bridges and keep canonical API only."
+  fi
 done
 
 if [[ "$failures" -ne 0 ]]; then

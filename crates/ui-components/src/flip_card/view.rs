@@ -145,7 +145,7 @@ pub fn FlipCard(
             id=move || id.with_value(|id| id.clone())
             role="button"
             tabindex=move || if disabled { -1 } else { 0 }
-            aria-pressed=move || is_flipped.get().to_string()
+            aria-pressed=move || is_flipped.get()
             aria-disabled=disabled.then_some("true")
             data-slot=move || root_state.get().slot_attr
             data-state=move || root_state.get().state_attr

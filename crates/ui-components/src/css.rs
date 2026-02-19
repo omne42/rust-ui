@@ -3,18 +3,14 @@ pub fn push_components_css(out: &mut String) {
     out.push_str("\n@layer ui {\n");
     #[cfg(feature = "component-active_highlight")]
     out.push_str(crate::active_highlight::CSS);
-    #[cfg(feature = "component-aspect_ratio")]
-    out.push_str(crate::aspect_ratio::styles::CSS);
     #[cfg(feature = "component-avatar")]
     out.push_str(crate::avatar::styles::CSS);
     #[cfg(feature = "component-avatar_group")]
-    out.push_str(crate::avatar::group::styles::CSS);
+    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);
     #[cfg(feature = "component-action_bar")]
     out.push_str(crate::action_bar::styles::CSS);
     #[cfg(feature = "component-button")]
     out.push_str(crate::button::styles::CSS);
-    #[cfg(feature = "component-icon_button")]
-    out.push_str(crate::icon_button::styles::CSS);
     #[cfg(feature = "component-clear_button")]
     out.push_str(crate::clear_button::styles::CSS);
     #[cfg(feature = "component-close_button")]
@@ -32,19 +28,17 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-button_share")]
     out.push_str(crate::button::share::styles::CSS);
     #[cfg(feature = "component-button_group")]
-    out.push_str(crate::button::group::styles::CSS);
+    out.push_str(crate::button::styles::BUTTON_GROUP_CSS);
     #[cfg(feature = "component-button_theme_toggle")]
     out.push_str(crate::button::theme_toggle::styles::CSS);
     #[cfg(feature = "component-ripple")]
     out.push_str(crate::ripple::styles::CSS);
-    #[cfg(feature = "component-resizable")]
-    out.push_str(crate::resizable::styles::CSS);
     #[cfg(feature = "component-toggle_button")]
     out.push_str(crate::button::toggle_button::styles::CSS);
     #[cfg(feature = "component-toggle_button_group")]
-    out.push_str(crate::button::toggle_button_group::styles::CSS);
+    out.push_str(crate::button::toggle_button::styles::TOGGLE_BUTTON_GROUP_CSS);
     #[cfg(feature = "component-toggle_group")]
-    out.push_str(crate::button::toggle_group::styles::CSS);
+    out.push_str(crate::button::toggle::styles::TOGGLE_GROUP_CSS);
     #[cfg(feature = "component-badge")]
     out.push_str(crate::badge::styles::CSS);
     #[cfg(feature = "component-status_light")]
@@ -54,25 +48,17 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-checkbox_field")]
     out.push_str(crate::checkbox_field::styles::CSS);
     #[cfg(feature = "component-checkbox_group")]
-    out.push_str(crate::checkbox::group::styles::CSS);
+    out.push_str(crate::checkbox::styles::CHECKBOX_GROUP_CSS);
     #[cfg(feature = "component-switch")]
     out.push_str(crate::switch::styles::CSS);
     #[cfg(feature = "component-switch_group")]
     out.push_str(crate::switch::group::styles::CSS);
-    #[cfg(feature = "component-surface")]
-    out.push_str(crate::surface::styles::CSS);
     #[cfg(feature = "component-circular_progress")]
     out.push_str(crate::circular_progress::styles::CSS);
     #[cfg(feature = "component-spinner")]
     out.push_str(crate::spinner::styles::CSS);
-    #[cfg(feature = "component-divider")]
-    out.push_str(crate::divider::styles::CSS);
-    #[cfg(feature = "component-separator")]
-    out.push_str(crate::separator::styles::CSS);
     #[cfg(feature = "component-calendar")]
     out.push_str(crate::calendar::styles::CSS);
-    #[cfg(feature = "component-card")]
-    out.push_str(crate::card::styles::CSS);
     #[cfg(feature = "component-carousel")]
     out.push_str(crate::carousel::styles::CSS);
     #[cfg(feature = "component-alert")]
@@ -92,27 +78,27 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-command_dialog")]
     out.push_str(crate::command_dialog::styles::CSS);
     #[cfg(feature = "component-color_area")]
-    out.push_str(crate::color_area::styles::CSS);
+    out.push_str(crate::color::area::styles::CSS);
     #[cfg(feature = "component-color_field")]
-    out.push_str(crate::color_field::styles::CSS);
+    out.push_str(crate::color::field::styles::CSS);
     #[cfg(feature = "component-color_handle")]
-    out.push_str(crate::color_handle::styles::CSS);
+    out.push_str(crate::color::handle::styles::CSS);
     #[cfg(feature = "component-color_loupe")]
-    out.push_str(crate::color_loupe::styles::CSS);
+    out.push_str(crate::color::loupe::styles::CSS);
     #[cfg(feature = "component-color_editor")]
-    out.push_str(crate::color_editor::styles::CSS);
+    out.push_str(crate::color::editor::styles::CSS);
     #[cfg(feature = "component-color_picker")]
-    out.push_str(crate::color_picker::styles::CSS);
+    out.push_str(crate::color::picker::styles::CSS);
     #[cfg(feature = "component-color_slider")]
-    out.push_str(crate::color_slider::styles::CSS);
+    out.push_str(crate::color::slider::styles::CSS);
     #[cfg(feature = "component-color_thumb")]
-    out.push_str(crate::color_thumb::styles::CSS);
+    out.push_str(crate::color::thumb::styles::CSS);
     #[cfg(feature = "component-color_wheel")]
-    out.push_str(crate::color_wheel::styles::CSS);
+    out.push_str(crate::color::wheel::styles::CSS);
     #[cfg(feature = "component-color_swatch")]
-    out.push_str(crate::color_swatch::styles::CSS);
+    out.push_str(crate::color::swatch::styles::CSS);
     #[cfg(feature = "component-color_swatch_picker")]
-    out.push_str(crate::color_swatch_picker::styles::CSS);
+    out.push_str(crate::color::swatch_picker::styles::CSS);
     #[cfg(feature = "component-swatch")]
     out.push_str(crate::swatch::styles::CSS);
     #[cfg(feature = "component-icon")]
@@ -160,7 +146,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-snippet")]
     out.push_str(crate::snippet::styles::CSS);
     #[cfg(feature = "component-text")]
-    out.push_str(crate::text::styles::CSS);
+    out.push_str(crate::text_input::text::styles::CSS);
     #[cfg(feature = "component-visually_hidden")]
     out.push_str(crate::visually_hidden::CSS);
     #[cfg(feature = "component-label")]
@@ -169,10 +155,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::labeled_value::styles::CSS);
     #[cfg(feature = "component-kbd")]
     out.push_str(crate::kbd::styles::CSS);
-    #[cfg(feature = "component-spacer")]
-    out.push_str(crate::spacer::styles::CSS);
-    #[cfg(feature = "component-well")]
-    out.push_str(crate::well::styles::CSS);
     #[cfg(feature = "component-progress_bar")]
     out.push_str(crate::progress_bar::styles::CSS);
     #[cfg(feature = "component-progress")]
@@ -192,35 +174,33 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-text_field")]
     out.push_str(crate::text_field::styles::CSS);
     #[cfg(feature = "component-date_field")]
-    out.push_str(crate::date_field::styles::CSS);
+    out.push_str(crate::text_input::date_field::styles::CSS);
     #[cfg(feature = "component-date_input_group")]
-    out.push_str(crate::date_input_group::styles::CSS);
+    out.push_str(crate::text_input::date_input_group::styles::CSS);
     #[cfg(feature = "component-time_field")]
     out.push_str(crate::time_field::styles::CSS);
     #[cfg(feature = "component-date_range_picker")]
-    out.push_str(crate::date_range_picker::styles::CSS);
+    out.push_str(crate::text_input::date_range_picker::styles::CSS);
     #[cfg(feature = "component-date_picker")]
-    out.push_str(crate::date_picker::styles::CSS);
+    out.push_str(crate::text_input::date_picker::styles::CSS);
     #[cfg(feature = "component-search_field")]
     out.push_str(crate::search_field::styles::CSS);
     #[cfg(feature = "component-text_area")]
-    out.push_str(crate::text_area::styles::CSS);
+    out.push_str(crate::text_input::text_area::styles::CSS);
     #[cfg(feature = "component-textarea")]
     out.push_str(crate::textarea::styles::CSS);
-    #[cfg(feature = "component-auto_height")]
-    out.push_str(crate::auto_height::styles::CSS);
     #[cfg(feature = "component-number_field")]
-    out.push_str(crate::number_field::styles::CSS);
+    out.push_str(crate::text_input::number_field::styles::CSS);
     #[cfg(feature = "component-number")]
     out.push_str(crate::number::styles::CSS);
     #[cfg(feature = "component-slider")]
     out.push_str(crate::slider::styles::CSS);
     #[cfg(feature = "component-input_group")]
-    out.push_str(crate::input::group::styles::CSS);
+    out.push_str(crate::text_input::input::group::styles::CSS);
     #[cfg(feature = "component-input")]
-    out.push_str(crate::input::styles::CSS);
+    out.push_str(crate::text_input::input::styles::CSS);
     #[cfg(feature = "component-input_otp")]
-    out.push_str(crate::input_otp::styles::CSS);
+    out.push_str(crate::text_input::input_otp::styles::CSS);
     #[cfg(feature = "component-file_trigger")]
     out.push_str(crate::file_trigger::styles::CSS);
     #[cfg(feature = "component-flip_card")]
@@ -234,31 +214,27 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-error_view")]
     out.push_str(crate::error_view::styles::CSS);
     #[cfg(feature = "component-field")]
-    out.push_str(crate::field::styles::CSS);
+    out.push_str(crate::field_form::field::styles::CSS);
     #[cfg(feature = "component-button")]
     out.push_str(crate::button::field::styles::CSS);
     #[cfg(feature = "component-picker_button")]
     out.push_str(crate::picker_button::styles::CSS);
     #[cfg(feature = "component-field_error")]
-    out.push_str(crate::field_error::styles::CSS);
+    out.push_str(crate::field_form::field_error::styles::CSS);
     #[cfg(feature = "component-field_group")]
-    out.push_str(crate::field::group::styles::CSS);
+    out.push_str(crate::field_form::field::group::styles::CSS);
     #[cfg(feature = "component-field_label")]
-    out.push_str(crate::field_label::styles::CSS);
+    out.push_str(crate::field_form::field_label::styles::CSS);
     #[cfg(feature = "component-error_message")]
     out.push_str(crate::error_message::styles::CSS);
     #[cfg(feature = "component-fieldset")]
-    out.push_str(crate::fieldset::styles::CSS);
+    out.push_str(crate::field_form::fieldset::styles::CSS);
     #[cfg(feature = "component-form")]
-    out.push_str(crate::form::styles::CSS);
+    out.push_str(crate::field_form::form::styles::CSS);
     #[cfg(feature = "component-form_field")]
-    out.push_str(crate::form_field::styles::CSS);
+    out.push_str(crate::field_form::form_field::styles::CSS);
     #[cfg(feature = "component-segmented_control")]
     out.push_str(crate::segmented_control::styles::CSS);
-    #[cfg(feature = "component-scroll_area")]
-    out.push_str(crate::scroll_area::styles::CSS);
-    #[cfg(feature = "component-scroll_shadow")]
-    out.push_str(crate::scroll_shadow::styles::CSS);
     #[cfg(feature = "component-radio")]
     out.push_str(crate::radio::styles::CSS);
     #[cfg(feature = "component-tabs")]
@@ -371,26 +347,12 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::navigation_menu::styles::CSS);
     #[cfg(feature = "component-tree")]
     out.push_str(crate::tree::styles::CSS);
-    #[cfg(feature = "component-grid")]
-    out.push_str(crate::grid::styles::CSS);
-    #[cfg(feature = "component-flex")]
-    out.push_str(crate::flex::styles::CSS);
-    #[cfg(feature = "component-view")]
-    out.push_str(crate::view::styles::CSS);
-    #[cfg(feature = "component-content")]
-    out.push_str(crate::content::styles::CSS);
     #[cfg(feature = "component-direction")]
     out.push_str(crate::direction::styles::CSS);
     #[cfg(feature = "component-description")]
-    out.push_str(crate::description::styles::CSS);
-    #[cfg(feature = "component-header")]
-    out.push_str(crate::header::styles::CSS);
-    #[cfg(feature = "component-footer")]
-    out.push_str(crate::footer::styles::CSS);
-    #[cfg(feature = "component-heading")]
-    out.push_str(crate::heading::styles::CSS);
+    out.push_str(crate::field_form::description::styles::CSS);
     #[cfg(feature = "component-help_text")]
-    out.push_str(crate::help_text::styles::CSS);
+    out.push_str(crate::field_form::help_text::styles::CSS);
     #[cfg(feature = "component-item")]
     out.push_str(crate::item::styles::CSS);
     #[cfg(feature = "component-keyboard")]

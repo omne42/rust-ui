@@ -19,9 +19,9 @@ pub struct StatusLightRootState {
 pub fn compose_class_name(base_class_name: Option<String>, state: StatusLightState) -> String {
     let mut classes = vec![
         "ui-status-light".to_string(),
-        state.variant_class.to_string(),
-        state.state_class.to_string(),
-        state.role_source_class.to_string(),
+        state.variant_class.into(),
+        state.state_class.into(),
+        state.role_source_class.into(),
     ];
 
     if state.has_custom_class_name {

@@ -953,7 +953,7 @@ fn action_button_implementation_covers_reduced_motion_ssr_and_wasm_paths() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             button_motion_source.contains(needle),
@@ -1022,7 +1022,7 @@ fn action_button_reuses_button_motion_and_ui_motion_has_non_wasm_stub() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             button_motion_source.contains(needle),

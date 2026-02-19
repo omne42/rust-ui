@@ -22,10 +22,8 @@ fn dialog_feature_gate_declares_required_component_dependencies() {
     let source = load_source("Cargo.toml");
 
     assert!(
-        source.contains(
-            "component-dialog = [\"component-overlay\", \"component-icon_button\", \"component-button\"]",
-        ),
-        "component-dialog feature must depend on component-overlay + component-icon_button + component-button so minimal feature builds stay valid.",
+        source.contains("component-dialog = [\"component-overlay\", \"component-button\"]",),
+        "component-dialog feature must depend on component-overlay + component-button so minimal feature builds stay valid.",
     );
 }
 
@@ -138,12 +136,12 @@ fn dialog_wires_aria_ids_and_optional_description_semantics() {
 }
 
 #[test]
-fn dialog_close_button_uses_icon_button_with_aria_label() {
+fn dialog_close_button_uses_button_icon_only_with_aria_label() {
     let source = load_source("src/dialog/view.rs");
 
     for needle in [
         "data-slot=close_state.slot_attr",
-        "<IconButton",
+        "<Button",
         "aria_label=close_label",
     ] {
         assert!(

@@ -378,9 +378,9 @@ pub fn Carousel(
             data-focus=move || root_state.get().focus_attr
             data-empty=move || root_state.get().is_empty.then_some("true")
             data-has-items=move || root_state.get().has_items.then_some("true")
-            data-item-count=move || root_state.get().item_count.to_string()
-            data-selected-index=move || root_state.get().selected_index.map(|index| index.to_string())
-            data-focused-index=move || root_state.get().focused_index.map(|index| index.to_string())
+            data-item-count=move || root_state.get().item_count
+            data-selected-index=move || root_state.get().selected_index
+            data-focused-index=move || root_state.get().focused_index
             data-has-selection=move || root_state.get().has_selection.then_some("true")
             data-has-focus=move || root_state.get().has_focus.then_some("true")
             data-has-disabled-items=move || root_state.get().has_disabled_items.then_some("true")

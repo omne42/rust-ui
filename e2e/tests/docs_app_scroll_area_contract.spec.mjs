@@ -111,7 +111,7 @@ test("docs-app scroll-area key flow is repeatable with semantic breakpoints", as
 
   await expect(readyRoot).toHaveAttribute("data-ui-action", "observe");
   await expect(readyRoot).toHaveAttribute("data-ui-state", "enabled");
-  await expect(readyRoot).toHaveAttribute("data-ui-source", "legacy-prop");
+  await expect(readyRoot).toHaveAttribute("data-ui-source", "default");
   await expect(readyRoot).toHaveAttribute("data-ui-output-status", "verified");
   await expect(readyViewport).toHaveAttribute("tabindex", "0");
 
@@ -134,7 +134,7 @@ test("docs-app scroll-area key flow is repeatable with semantic breakpoints", as
 
   await expect(readyRoot).toHaveAttribute("data-ui-action", "observe");
   await expect(readyRoot).toHaveAttribute("data-ui-state", "enabled");
-  await expect(readyRoot).toHaveAttribute("data-ui-source", "legacy-prop");
+  await expect(readyRoot).toHaveAttribute("data-ui-source", "default");
   await expect(readyRoot).toHaveAttribute("data-ui-output-status", "verified");
   await expect(readyViewport).toHaveAttribute("tabindex", "0");
 

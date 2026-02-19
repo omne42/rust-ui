@@ -15,7 +15,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn time_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/time_field/mod.rs");
+    let source = load_source("src/text_input/time_field/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -39,11 +39,11 @@ fn time_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn time_field_component_file_roles_are_explicit_and_scoped() {
-    let mod_source = load_source("src/time_field/mod.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for needle in [
         "mod i18n;",
@@ -122,7 +122,7 @@ fn time_field_component_file_roles_are_explicit_and_scoped() {
     for needle in [
         "view! {",
         "use_time_field(TimeFieldOptions {",
-        "use_button(ButtonOptions {",
+        "use_press(PressOptions {",
         "use_hover(HoverOptions {",
         "data-state=move || state.get().data_state_attr",
     ] {
@@ -179,9 +179,9 @@ fn time_field_component_file_roles_are_explicit_and_scoped() {
 #[test]
 fn time_field_spec_file_is_not_introduced_for_simple_component() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let spec_path = manifest_dir.join("src/time_field/spec.rs");
-    let mod_source = load_source("src/time_field/mod.rs");
-    let check_source = load_source("src/time_field/check2.md");
+    let spec_path = manifest_dir.join("src/text_input/time_field/spec.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let check_source = load_source("src/text_input/time_field/check2.md");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     assert!(
@@ -275,9 +275,9 @@ fn time_field_visual_desire_reuses_default_theme_baseline_and_visual_regression_
 fn time_field_token_first_static_style_pipeline_is_wired_through_css_and_ui_root() {
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for needle in [
         "#[cfg(feature = \"component-time_field\")]",
@@ -328,10 +328,10 @@ fn time_field_token_first_static_style_pipeline_is_wired_through_css_and_ui_root
 
 #[test]
 fn time_field_component_layer_does_not_default_to_utility_first_or_css_in_rust() {
-    let logic_source = load_source("src/time_field/logic.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for forbidden in [
         "class=\"flex",
@@ -377,9 +377,9 @@ fn time_field_component_layer_does_not_default_to_utility_first_or_css_in_rust()
 
 #[test]
 fn time_field_uses_logic_state_model() {
-    let logic_source = load_source("src/time_field/logic.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/time_field.rs");
-    let view_source = load_source("src/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let primitive_source = load_source("../ui-logic-calendar/src/time_field.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
     let headless_source = load_source("../ui-headless/src/time_field.rs");
 
     for needle in [
@@ -464,8 +464,8 @@ fn time_field_uses_logic_state_model() {
 
 #[test]
 fn time_field_a11y_i18n_and_locale_contract_is_wired() {
-    let view_source = load_source("src/time_field/view.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
     let headless_source = load_source("../ui-headless/src/time_field.rs");
     let a11y_source = load_source("../ui-headless/src/a11y.rs");
 
@@ -544,7 +544,7 @@ fn time_field_a11y_i18n_and_locale_contract_is_wired() {
 
 #[test]
 fn time_field_logic_does_not_reimplement_reusable_state_primitives() {
-    let logic_source = load_source("src/time_field/logic.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for forbidden in [
         "pub enum TimeFieldTone",
@@ -576,7 +576,7 @@ fn time_field_logic_does_not_reimplement_reusable_state_primitives() {
 
 #[test]
 fn time_field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/time_field/view.rs");
+    let source = load_source("src/text_input/time_field/view.rs");
 
     for attr in [
         "data-slot=SLOT_TIME_FIELD",
@@ -603,8 +603,8 @@ fn time_field_emits_baseline_style_state_data_attributes() {
         "data-slot=SLOT_TIME_FIELD_HOUR",
         "data-slot=SLOT_TIME_FIELD_SEPARATOR",
         "data-slot=SLOT_TIME_FIELD_MINUTE",
-        "data-slot=SLOT_TIME_FIELD_CLEAR",
-        "data-visible=move || state.get().has_value.then_some(BOOL_TRUE)",
+        "slot_name=SLOT_TIME_FIELD_CLEAR",
+        "is_visible=is_visible",
         "role=group_role",
         "lang=group_lang.get_value()",
         "dir=group_dir",
@@ -618,7 +618,7 @@ fn time_field_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn time_field_styles_include_tone_value_and_source_markers() {
-    let source = load_source("src/time_field/styles.rs");
+    let source = load_source("src/text_input/time_field/styles.rs");
 
     for selector in [
         ".ui-time-field--tone-default",
@@ -650,7 +650,7 @@ fn time_field_styles_include_tone_value_and_source_markers() {
 
 #[test]
 fn time_field_clear_visibility_is_marker_driven_not_dom_presence_driven() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
 
     assert!(
         !view_source.contains("<Show when=move || state.get().has_value>"),
@@ -660,8 +660,8 @@ fn time_field_clear_visibility_is_marker_driven_not_dom_presence_driven() {
 
 #[test]
 fn time_field_api_keeps_is_prefixed_boolean_and_value_triplet_contract() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "#[prop(optional)] is_disabled: Option<bool>",
@@ -681,15 +681,15 @@ fn time_field_api_keeps_is_prefixed_boolean_and_value_triplet_contract() {
 
 #[test]
 fn time_field_mounts_headless_contract_in_view_layer() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "use ui_headless::{",
         "use_time_field,",
-        "use_button,",
+        "use_press,",
         "let time_field = use_time_field(TimeFieldOptions {",
-        "let clear_button = use_button(ButtonOptions {",
+        "let clear_press = use_press(PressOptions {",
     ] {
         assert!(
             view_source.contains(needle),
@@ -707,8 +707,8 @@ fn time_field_mounts_headless_contract_in_view_layer() {
 
 #[test]
 fn time_field_default_value_priority_is_centralized_in_logic() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "pub struct ValueStateInput",
@@ -735,7 +735,7 @@ fn time_field_default_value_priority_is_centralized_in_logic() {
 
 #[test]
 fn time_field_source_markers_use_closed_enumerated_values() {
-    let primitive_source = load_source("../ui-state-primitives/src/time_field.rs");
+    let primitive_source = load_source("../ui-logic-calendar/src/time_field.rs");
 
     for needle in [
         "control_mode_attr = if input.is_controlled {",
@@ -759,7 +759,7 @@ fn time_field_source_markers_use_closed_enumerated_values() {
 
 #[test]
 fn time_field_motion_contract_is_split_into_motion_rs() {
-    let motion_source = load_source("src/time_field/motion.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for needle in [
         "pub struct TimeFieldMotion",
@@ -767,7 +767,7 @@ fn time_field_motion_contract_is_split_into_motion_rs() {
         "pub fn attach_clear_button_motion(",
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -783,7 +783,7 @@ fn time_field_interaction_matrix_covers_controlled_uncontrolled_disabled_keyboar
     let e2e_source = load_source("../../e2e/tests/docs_app_time_field_contract.spec.mjs");
     let headless_source = load_source("../ui-headless/src/time_field.rs");
     let headless_lib_source = load_source("../ui-headless/src/lib.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for needle in [
         "title=\"Controlled + Step 15\"",
@@ -860,7 +860,7 @@ fn time_field_semantics_suite_prioritizes_contract_assertions_over_snapshots() {
 
 #[test]
 fn time_field_check2_documents_semantics_first_testing_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
@@ -877,7 +877,7 @@ fn time_field_check2_documents_semantics_first_testing_rules() {
 
 #[test]
 fn time_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
     let semantics_source = load_source("tests/time_field_semantics.rs");
 
     for marker in [
@@ -892,15 +892,20 @@ fn time_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_test
         "data-ui-schema=move || agent_contract.get().schema_name",
         "data-ui-action=move || agent_contract.get().action.as_str()",
         "data-ui-source=move || agent_contract.get().source.as_str()",
-        "data-ui-stream-mode=move || {",
-        "data-ui-output-status=move || {",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(marker),
             "TimeField view should keep semantic marker `{marker}`."
         );
+        let semantics_marker = if marker == "data-ui-stream-mode=\"snapshot\"" {
+            "data-ui-stream-mode=\\\"snapshot\\\""
+        } else {
+            marker
+        };
         assert!(
-            semantics_source.contains(marker),
+            semantics_source.contains(semantics_marker),
             "TimeField semantic marker `{marker}` changed without matching semantics assertion update."
         );
     }
@@ -975,7 +980,7 @@ fn time_field_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn time_field_check2_documents_docs_sync_and_state_matrix_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
@@ -993,9 +998,9 @@ fn time_field_check2_documents_docs_sync_and_state_matrix_rules() {
 #[test]
 fn time_field_docs_examples_sync_with_logic_api_names_and_state_matrix() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/time_field.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let primitive_source = load_source("../ui-logic-calendar/src/time_field.rs");
 
     time_field_docs_page_covers_primary_playgrounds();
     time_field_docs_playgrounds_lock_state_matrix_contract_values();
@@ -1041,7 +1046,7 @@ fn time_field_docs_examples_sync_with_logic_api_names_and_state_matrix() {
 
 #[test]
 fn time_field_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
-    let has_readme = path_exists("src/time_field/README.md");
+    let has_readme = path_exists("src/text_input/time_field/README.md");
     let has_docs_page =
         path_exists("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
@@ -1067,7 +1072,7 @@ fn time_field_docs_are_beginner_friendly_with_default_then_advanced_path() {
         .map(|offset| section_start + offset)
         .expect("forms docs should place date_range_picker after time_field");
     let docs_source = &docs_source[section_start..section_end];
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "组件文档必须对新手友好（Documentation as Product）",
@@ -1170,7 +1175,7 @@ fn time_field_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wi
 
 #[test]
 fn time_field_check2_marks_documentation_as_product_complete() {
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。",
@@ -1190,7 +1195,7 @@ fn time_field_check2_marks_documentation_as_product_complete() {
 
 #[test]
 fn time_field_check2_documents_interactive_playground_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。",
@@ -1275,7 +1280,7 @@ fn time_field_interactive_playground_reuses_repeatable_semantic_e2e_flow() {
 
 #[test]
 fn time_field_check2_documents_source_first_copy_paste_ready_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
@@ -1295,8 +1300,8 @@ fn time_field_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let code_block_source = load_source("src/code_block/view.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "pub(super) fn time_field() -> AnyView",
@@ -1306,11 +1311,11 @@ fn time_field_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
         "copyable=true",
         "class_name=\"docs-time-field-source-copy\".to_string()",
         "data-slot=\"time-field-source-paths\"",
-        "\"crates/ui-components/src/time_field/mod.rs\"",
-        "\"crates/ui-components/src/time_field/logic.rs\"",
-        "\"crates/ui-components/src/time_field/view.rs\"",
-        "\"crates/ui-components/src/time_field/styles.rs\"",
-        "\"crates/ui-components/src/time_field/motion.rs\"",
+        "\"crates/ui-components/src/text_input/time_field/mod.rs\"",
+        "\"crates/ui-components/src/text_input/time_field/logic.rs\"",
+        "\"crates/ui-components/src/text_input/time_field/view.rs\"",
+        "\"crates/ui-components/src/text_input/time_field/styles.rs\"",
+        "\"crates/ui-components/src/text_input/time_field/motion.rs\"",
         "data-slot=\"time-field-source-prerequisites\"",
         "\"component-time_field\"",
         "\"inject-css\"",
@@ -1382,8 +1387,8 @@ fn time_field_heroui_strategy_and_component_docs_are_synced_for_parameter_model_
     let docs_index_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "### TimeField 同步记录（2026-02-17）",
@@ -1434,7 +1439,7 @@ fn time_field_heroui_strategy_and_component_docs_are_synced_for_parameter_model_
 
 #[test]
 fn time_field_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。",
@@ -1467,7 +1472,7 @@ fn time_field_contract_hygiene_script_covers_heroui_strategy_doc_sync_contract()
 
 #[test]
 fn time_field_check2_documents_e2e_selector_and_stable_wait_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
@@ -1555,7 +1560,7 @@ fn time_field_e2e_key_flow_is_repeatable_and_failure_points_are_semantic() {
 
 #[test]
 fn time_field_check2_documents_e2e_repeatable_key_flow_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
@@ -1630,7 +1635,10 @@ fn time_field_tree_shaking_keeps_component_feature_and_css_boundaries() {
         "default = [\"inject-css\", \"all-components\"]",
         "all-components = [",
         "web-demo-components = [",
-        "component-time_field = []",
+        "component-time_field = [",
+        "\"component-clear_button\"",
+        "\"ui-headless/logic-calendar\"",
+        "\"ui-state-primitives/logic-calendar\"",
         "inject-css = []",
     ] {
         assert!(
@@ -1640,8 +1648,10 @@ fn time_field_tree_shaking_keeps_component_feature_and_css_boundaries() {
     }
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-time_field\")]\npub mod time_field;"),
-        "lib.rs should feature-gate time_field module export for tree-shaking.",
+        lib_source.contains("#[cfg(feature = \"component-time_field\")]")
+            && lib_source.contains("#[path = \"text_input/time_field/mod.rs\"]")
+            && lib_source.contains("pub mod time_field;"),
+        "lib.rs should feature-gate time_field module declaration for tree-shaking.",
     );
     assert!(
         css_source.contains("#[cfg(feature = \"component-time_field\")]")
@@ -1704,12 +1714,12 @@ fn time_field_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
 
 #[test]
 fn time_field_platform_guards_keep_cfg_split_and_non_wasm_web_sys_free() {
-    let mod_source = load_source("src/time_field/mod.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for needle in [
         "#[cfg(target_arch = \"wasm32\")]",
@@ -1744,8 +1754,8 @@ fn time_field_platform_check_script_covers_default_ssr_wasm_compile_paths() {
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-time_field,inject-css",
-        "crates/ui-components/src/time_field/view.rs",
-        "crates/ui-components/src/time_field/motion.rs",
+        "crates/ui-components/src/text_input/time_field/view.rs",
+        "crates/ui-components/src/text_input/time_field/motion.rs",
         "cfg(target_arch = \"wasm32\")",
         "cfg(not(target_arch = \"wasm32\"))",
     ] {
@@ -1790,7 +1800,7 @@ fn time_field_ui_headless_feature_mutex_contract_is_guarded() {
 fn time_field_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
     let motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let motion_stub_test_source = load_source("../ui-motion/tests/non_wasm_stub.rs");
-    let time_field_motion_source = load_source("src/time_field/motion.rs");
+    let time_field_motion_source = load_source("src/text_input/time_field/motion.rs");
     let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
 
     for needle in [
@@ -1829,7 +1839,7 @@ fn time_field_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
         "_is_pressed: leptos::prelude::ReadSignal<bool>",
         "_is_disabled: bool",
         "motion: TimeFieldMotion",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             time_field_motion_source.contains(needle),
@@ -1853,8 +1863,8 @@ fn time_field_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
 
 #[test]
 fn time_field_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
     let script_source = load_source("../../scripts/check-ui-components-platforms.sh");
 
     for needle in [
@@ -1928,9 +1938,9 @@ fn time_field_performance_governance_budget_is_defined_and_blocking() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
     let script_source = load_source("../../scripts/check-ui-components-performance.sh");
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
 
     for needle in [
         "\"button\" => UiPerfBudget {",
@@ -2043,7 +2053,7 @@ fn time_field_performance_governance_budget_is_defined_and_blocking() {
 
 #[test]
 fn time_field_check2_documents_type_system_and_machine_readable_state_contract() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。",
@@ -2061,9 +2071,9 @@ fn time_field_check2_documents_type_system_and_machine_readable_state_contract()
 
 #[test]
 fn time_field_type_system_and_semantic_markers_form_machine_readable_contract() {
-    let primitives_source = load_source("../../crates/ui-state-primitives/src/time_field.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let view_source = load_source("src/time_field/view.rs");
+    let primitives_source = load_source("../../crates/ui-logic-calendar/src/time_field.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
 
     for required in [
         "pub enum TimeFieldTone",
@@ -2120,7 +2130,7 @@ fn time_field_type_system_and_semantic_markers_form_machine_readable_contract() 
 
 #[test]
 fn time_field_check2_documents_component_directory_standard_file_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] 组件目录标准文件落点正确。",
@@ -2141,12 +2151,12 @@ fn time_field_check2_documents_component_directory_standard_file_rules() {
 #[test]
 fn time_field_component_directory_has_standard_file_layout() {
     for required in [
-        "src/time_field/mod.rs",
-        "src/time_field/i18n.rs",
-        "src/time_field/logic.rs",
-        "src/time_field/styles.rs",
-        "src/time_field/view.rs",
-        "src/time_field/motion.rs",
+        "src/text_input/time_field/mod.rs",
+        "src/text_input/time_field/i18n.rs",
+        "src/text_input/time_field/logic.rs",
+        "src/text_input/time_field/styles.rs",
+        "src/text_input/time_field/view.rs",
+        "src/text_input/time_field/motion.rs",
     ] {
         assert!(
             path_exists(required),
@@ -2154,7 +2164,10 @@ fn time_field_component_directory_has_standard_file_layout() {
         );
     }
 
-    for forbidden in ["src/time_field/render.rs", "src/time_field/spec.rs"] {
+    for forbidden in [
+        "src/text_input/time_field/render.rs",
+        "src/text_input/time_field/spec.rs",
+    ] {
         assert!(
             !path_exists(forbidden),
             "time_field component directory should not include `{forbidden}`."
@@ -2164,7 +2177,7 @@ fn time_field_component_directory_has_standard_file_layout() {
 
 #[test]
 fn time_field_mod_rs_keeps_minimal_stable_exports() {
-    let mod_source = load_source("src/time_field/mod.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
 
     for needle in [
         "mod i18n;",
@@ -2197,10 +2210,10 @@ fn time_field_mod_rs_keeps_minimal_stable_exports() {
 
 #[test]
 fn time_field_component_file_responsibilities_remain_scoped() {
-    let logic_source = load_source("src/time_field/logic.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     for forbidden in [
         "view! {",
@@ -2235,7 +2248,7 @@ fn time_field_component_file_responsibilities_remain_scoped() {
         "#[component]",
         "pub fn TimeField(",
         "use_time_field(TimeFieldOptions {",
-        "use_button(ButtonOptions {",
+        "use_press(PressOptions {",
         "use_hover(HoverOptions {",
         "render_label(",
         "render_clear_button(",
@@ -2295,7 +2308,7 @@ fn time_field_component_files_check_script_covers_directory_contract() {
 
 #[test]
 fn time_field_check2_documents_ui_components_entrypoint_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] `ui-components` 固定入口文件落点正确。",
@@ -2366,7 +2379,7 @@ fn time_field_entrypoints_check_script_covers_fixed_entrypoint_contract() {
 
 #[test]
 fn time_field_view_macro_complexity_is_split_into_semantic_subrenders() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
     let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
 
     assert!(
@@ -2421,7 +2434,7 @@ fn time_field_view_macro_complexity_is_split_into_semantic_subrenders() {
 
 #[test]
 fn time_field_view_functional_split_prefers_plain_functions_over_local_components() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
     let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
 
     assert_eq!(
@@ -2461,9 +2474,9 @@ fn time_field_view_functional_split_prefers_plain_functions_over_local_component
 
 #[test]
 fn time_field_static_fragments_are_constantized_with_stable_semantics() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
     let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "const SLOT_TIME_FIELD: &str = \"time-field\";",
@@ -2477,7 +2490,7 @@ fn time_field_static_fragments_are_constantized_with_stable_semantics() {
         "const TIME_SEPARATOR: &str = \":\";",
         "data-slot=SLOT_TIME_FIELD",
         "data-slot=SLOT_TIME_FIELD_LABEL",
-        "data-visible=move || state.get().has_value.then_some(BOOL_TRUE)",
+        "is_visible=is_visible",
         "{TIME_SEPARATOR}",
     ] {
         assert!(
@@ -2519,14 +2532,14 @@ fn time_field_static_fragments_are_constantized_with_stable_semantics() {
 
 #[test]
 fn time_field_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
-    let mod_source = load_source("src/time_field/mod.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for forbidden in [
         "inner_html=",
@@ -2578,10 +2591,10 @@ fn time_field_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_is
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../ui-headless/src/trace.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
-    let check2_source = load_source("src/time_field/check2.md");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     assert!(
         cargo_source.contains("button-wasm-debug = [\"component-button\", \"dep:tracing\"]"),
@@ -2649,10 +2662,10 @@ fn time_field_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_is
         "data-value-change-source=move || state.get().value_change_source_attr",
         "data-label-source=move || state.get().label_source_attr",
         "data-motion-source=move || state.get().motion_source_attr",
-        "on:pointerdown=move |_| on_pointer_down.run(())",
-        "on:pointerup=move |_| on_pointer_up.run(())",
-        "if on_key_down.run(key) {",
-        "if on_key_up.run(key) {",
+        "on_pointer_down=Callback::new(move |_| on_pointer_down.run(()))",
+        "on_pointer_up=Callback::new(move |_| on_pointer_up.run(()))",
+        "on_key_down=Callback::new(move |key: String| on_key_down.run(key))",
+        "on_key_up=Callback::new(move |key: String| on_key_up.run(key))",
     ] {
         assert!(
             view_source.contains(needle),
@@ -2740,7 +2753,7 @@ fn time_field_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_wit
  {
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "let section_class = \"docs-card playground\";",
@@ -2814,21 +2827,26 @@ fn time_field_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
 fn time_field_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_source = load_source("Cargo.toml");
-    let mod_source = load_source("src/time_field/mod.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
-    let checklist_source = load_source("src/time_field/check2.md");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     assert!(
-        !manifest_dir.join("src/time_field/spec.rs").exists(),
+        !manifest_dir
+            .join("src/text_input/time_field/spec.rs")
+            .exists(),
         "TimeField should keep spec/schema boundary as N/A for simple component scope."
     );
     assert!(
-        cargo_source.contains("component-time_field = []"),
-        "TimeField feature should stay lightweight without serde/spec dependency fan-out."
+        cargo_source.contains("component-time_field = [")
+            && cargo_source.contains("\"component-clear_button\"")
+            && cargo_source.contains("\"ui-headless/logic-calendar\"")
+            && cargo_source.contains("\"ui-state-primitives/logic-calendar\""),
+        "TimeField feature should explicitly gate calendar satellite dependencies without serde/spec fan-out."
     );
     assert!(
         !cargo_source.contains("component-time_field = [\"dep:serde\"")
@@ -2874,12 +2892,12 @@ fn time_field_engineering_contract_keeps_tracing_semantics_unified_without_compo
     let cargo_source = load_source("Cargo.toml");
     let button_view_source = load_source("src/button/view.rs");
     let combined = [
-        load_source("src/time_field/mod.rs"),
-        load_source("src/time_field/i18n.rs"),
-        load_source("src/time_field/logic.rs"),
-        load_source("src/time_field/view.rs"),
-        load_source("src/time_field/styles.rs"),
-        load_source("src/time_field/motion.rs"),
+        load_source("src/text_input/time_field/mod.rs"),
+        load_source("src/text_input/time_field/i18n.rs"),
+        load_source("src/text_input/time_field/logic.rs"),
+        load_source("src/text_input/time_field/view.rs"),
+        load_source("src/text_input/time_field/styles.rs"),
+        load_source("src/text_input/time_field/motion.rs"),
     ]
     .join("\n");
 
@@ -2915,12 +2933,12 @@ fn time_field_engineering_contract_keeps_tracing_semantics_unified_without_compo
 
 #[test]
 fn time_field_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
-    let mod_source = load_source("src/time_field/mod.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
 
     let sources = [
         &mod_source,
@@ -2972,7 +2990,7 @@ fn time_field_engineering_check_script_covers_serde_tracing_and_runtime_boundari
 
 #[test]
 fn time_field_check2_documents_agent_contract_schema_governance_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
@@ -2990,8 +3008,8 @@ fn time_field_check2_documents_agent_contract_schema_governance_rules() {
 
 #[test]
 fn time_field_agent_contract_is_schema_typed_and_machine_readable() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "pub enum TimeFieldAgentSchemaVersion",
@@ -3031,12 +3049,12 @@ fn time_field_agent_contract_is_schema_typed_and_machine_readable() {
 
 #[test]
 fn time_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let mod_source = load_source("src/time_field/mod.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
     let combined = format!(
         "{view_source}\n{logic_source}\n{styles_source}\n{mod_source}\n{i18n_source}\n{motion_source}"
     );
@@ -3077,7 +3095,7 @@ fn time_field_contract_hygiene_script_covers_agent_contract_schema_guards() {
 
 #[test]
 fn time_field_check2_documents_streaming_definition_is_llm_output_only_with_two_modes() {
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
@@ -3094,16 +3112,15 @@ fn time_field_check2_documents_streaming_definition_is_llm_output_only_with_two_
 
 #[test]
 fn time_field_snapshot_baseline_and_streaming_fallback_contract_are_explicit() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for needle in [
         "data-ui-stream-support=move || agent_contract.get().stream_support.as_str()",
         "data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()",
-        "data-ui-stream-mode=move || {",
-        ".map(|state| state.get().mode.as_str())",
-        ".unwrap_or(\"snapshot\")",
-        "data-ui-output-status=move || {",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(needle),
@@ -3124,7 +3141,7 @@ fn time_field_snapshot_baseline_and_streaming_fallback_contract_are_explicit() {
 
 #[test]
 fn time_field_snapshot_baseline_consumes_complete_result_and_renders_stably() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
 
     for required in [
         "data-slot=SLOT_TIME_FIELD",
@@ -3133,8 +3150,8 @@ fn time_field_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         "data-value-source=move || state.get().value_source_attr",
         "data-default-value-source=move || state.get().default_value_source_attr",
         "data-value-change-source=move || state.get().value_change_source_attr",
-        "data-ui-stream-mode=move || {",
-        "data-ui-output-status=move || {",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(required),
@@ -3145,7 +3162,7 @@ fn time_field_snapshot_baseline_consumes_complete_result_and_renders_stably() {
 
 #[test]
 fn time_field_check2_documents_streaming_required_optional_classification_rules() {
-    let checklist_source = load_source("src/time_field/check2.md");
+    let checklist_source = load_source("src/text_input/time_field/check2.md");
 
     for required in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -3164,7 +3181,7 @@ fn time_field_check2_documents_streaming_required_optional_classification_rules(
 
 #[test]
 fn time_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous() {
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
 
     for required in [
         "role=group_role",
@@ -3175,10 +3192,10 @@ fn time_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuo
         "data-state=move || state.get().data_state_attr",
         "data-control-mode=move || state.get().control_mode_attr",
         "data-value-source=move || state.get().value_source_attr",
-        "data-ui-stream-mode=move || {",
-        ".map(|state| state.get().mode.as_str())",
-        "data-ui-output-status=move || {",
-        ".map(|state| state.get().output_status.as_str())",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(required),
@@ -3189,8 +3206,8 @@ fn time_field_streaming_optional_scope_keeps_role_aria_and_data_markers_continuo
 
 #[test]
 fn time_field_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
     let combined = format!("{view_source}\n{logic_source}");
 
     for forbidden in [
@@ -3231,7 +3248,7 @@ fn time_field_streaming_check_script_covers_snapshot_baseline_contract() {
 
 #[test]
 fn time_field_anti_pattern_status_primitives_remains_dom_and_style_free() {
-    let primitives_source = load_source("../ui-state-primitives/src/time_field.rs");
+    let primitives_source = load_source("../ui-logic-calendar/src/time_field.rs");
 
     for forbidden in [
         "use leptos",
@@ -3287,8 +3304,8 @@ fn time_field_anti_pattern_ui_headless_remains_visual_and_motion_free() {
 
 #[test]
 fn time_field_anti_pattern_view_keeps_decisions_in_logic_layer() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
 
     for required in [
         "logic::normalize_disabled_state(logic::DisabledStateInput {",
@@ -3328,9 +3345,9 @@ fn time_field_anti_pattern_view_keeps_decisions_in_logic_layer() {
 
 #[test]
 fn time_field_anti_pattern_new_params_follow_naming_type_default_and_semantic_contract() {
-    let view_source = load_source("src/time_field/view.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let primitives_source = load_source("../ui-state-primitives/src/time_field.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let primitives_source = load_source("../ui-logic-calendar/src/time_field.rs");
     let semantics_test_source = load_source("tests/time_field_semantics.rs");
 
     for required in [
@@ -3378,7 +3395,7 @@ fn time_field_anti_pattern_new_params_follow_naming_type_default_and_semantic_co
 #[test]
 fn time_field_anti_pattern_parallel_array_api_is_absent_for_time_field_scope() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let view_source = load_source("src/time_field/view.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
 
     for forbidden in [
         "labels + children",
@@ -3397,7 +3414,7 @@ fn time_field_anti_pattern_parallel_array_api_is_absent_for_time_field_scope() {
 
 #[test]
 fn time_field_anti_pattern_public_api_does_not_leak_platform_or_runtime_types() {
-    let mod_source = load_source("src/time_field/mod.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
 
     for forbidden in [
         "web_sys::",
@@ -3416,12 +3433,12 @@ fn time_field_anti_pattern_public_api_does_not_leak_platform_or_runtime_types() 
 
 #[test]
 fn time_field_anti_pattern_no_temporary_patch_contract_drift_tokens_in_time_field_scope() {
-    let mod_source = load_source("src/time_field/mod.rs");
-    let logic_source = load_source("src/time_field/logic.rs");
-    let view_source = load_source("src/time_field/view.rs");
-    let styles_source = load_source("src/time_field/styles.rs");
-    let motion_source = load_source("src/time_field/motion.rs");
-    let i18n_source = load_source("src/time_field/i18n.rs");
+    let mod_source = load_source("src/text_input/time_field/mod.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let view_source = load_source("src/text_input/time_field/view.rs");
+    let styles_source = load_source("src/text_input/time_field/styles.rs");
+    let motion_source = load_source("src/text_input/time_field/motion.rs");
+    let i18n_source = load_source("src/text_input/time_field/i18n.rs");
     let combined = format!(
         "{mod_source}\n{logic_source}\n{view_source}\n{styles_source}\n{motion_source}\n{i18n_source}"
     );
@@ -3443,8 +3460,8 @@ fn time_field_anti_pattern_no_temporary_patch_contract_drift_tokens_in_time_fiel
 
 #[test]
 fn time_field_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless() {
-    let logic_source = load_source("src/time_field/logic.rs");
-    let primitives_source = load_source("../ui-state-primitives/src/time_field.rs");
+    let logic_source = load_source("src/text_input/time_field/logic.rs");
+    let primitives_source = load_source("../ui-logic-calendar/src/time_field.rs");
     let headless_source = load_source("../ui-headless/src/time_field.rs");
 
     for required in [
@@ -3473,7 +3490,7 @@ fn time_field_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_h
 
 #[test]
 fn time_field_check2_marks_forbidden_anti_patterns_complete() {
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
@@ -3502,7 +3519,7 @@ fn time_field_check2_marks_forbidden_anti_patterns_complete() {
 
 #[test]
 fn time_field_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -3535,7 +3552,7 @@ fn time_field_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn time_field_check2_has_no_unchecked_checklist_items() {
-    let check2_source = load_source("src/time_field/check2.md");
+    let check2_source = load_source("src/text_input/time_field/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "TimeField check2.md should not keep unchecked checklist items after completion."

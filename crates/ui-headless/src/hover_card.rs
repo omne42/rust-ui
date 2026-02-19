@@ -278,7 +278,7 @@ impl HoverCardTimers {
             all(test, not(target_arch = "wasm32"))
         )))]
         {
-            let _ = delay_ms;
+            let _unused_delay_ms = delay_ms;
             set_open.set(true);
         }
     }
@@ -338,7 +338,7 @@ impl HoverCardTimers {
             all(test, not(target_arch = "wasm32"))
         )))]
         {
-            let _ = delay_ms;
+            let _unused_delay_ms = delay_ms;
             set_open.set(false);
         }
     }

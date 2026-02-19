@@ -57,7 +57,7 @@ pub struct LegendState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -65,7 +65,7 @@ pub fn normalize_text(value: Option<String>) -> (String, bool) {
     if let Some(text) = normalize_optional_text(value) {
         (text, true)
     } else {
-        (DEFAULT_TEXT.to_string(), false)
+        (DEFAULT_TEXT.into(), false)
     }
 }
 
@@ -73,7 +73,7 @@ pub fn normalize_required_indicator(value: Option<String>) -> (String, bool) {
     if let Some(indicator) = normalize_optional_text(value) {
         (indicator, true)
     } else {
-        (DEFAULT_REQUIRED_INDICATOR.to_string(), false)
+        (DEFAULT_REQUIRED_INDICATOR.into(), false)
     }
 }
 
@@ -127,7 +127,7 @@ mod tests {
             normalize_text(Some("  Notification settings  ".to_string())),
             ("Notification settings".to_string(), true)
         );
-        assert_eq!(normalize_text(None), (DEFAULT_TEXT.to_string(), false));
+        assert_eq!(normalize_text(None), (DEFAULT_TEXT.into(), false));
 
         assert_eq!(
             normalize_required_indicator(Some("  (required)  ".to_string())),
@@ -135,7 +135,7 @@ mod tests {
         );
         assert_eq!(
             normalize_required_indicator(None),
-            (DEFAULT_REQUIRED_INDICATOR.to_string(), false)
+            (DEFAULT_REQUIRED_INDICATOR.into(), false)
         );
     }
 

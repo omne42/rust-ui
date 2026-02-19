@@ -136,7 +136,7 @@ fn alert_banner_motion_sanitizes_custom_contract_values() {
         "pub fn sanitize_motion(motion: AlertBannerMotion) -> AlertBannerMotion",
         "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
         "let motion = StoredValue::new(sanitize_motion(motion));",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "fn sanitize_motion_falls_back_for_invalid_values()",
     ] {
         assert!(

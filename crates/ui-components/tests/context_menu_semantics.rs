@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn context_menu_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/context_menu/mod.rs");
+    let source = load_source("src/menu/context_menu/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn context_menu_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn context_menu_module_exposes_slot_and_state_contracts() {
-    let source = load_source("src/context_menu/mod.rs");
+    let source = load_source("src/menu/context_menu/mod.rs");
 
     for needle in [
         "pub enum ContextMenuSlot",
@@ -45,7 +45,7 @@ fn context_menu_module_exposes_slot_and_state_contracts() {
 
 #[test]
 fn context_menu_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/context_menu/mod.rs");
+    let module_source = load_source("src/menu/context_menu/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -60,7 +60,7 @@ fn context_menu_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn context_menu_logic_exposes_state_helpers() {
-    let source = load_source("src/context_menu/logic.rs");
+    let source = load_source("src/menu/context_menu/logic.rs");
 
     for needle in [
         "pub fn state_attr(is_open: bool, trigger_disabled: bool)",
@@ -85,7 +85,7 @@ fn context_menu_logic_exposes_state_helpers() {
 
 #[test]
 fn context_menu_view_uses_logic_contracts_and_source_markers() {
-    let source = load_source("src/context_menu/view.rs");
+    let source = load_source("src/menu/context_menu/view.rs");
 
     for needle in [
         "logic::normalize_id_base(id_base)",
@@ -142,7 +142,7 @@ fn context_menu_view_uses_logic_contracts_and_source_markers() {
 
 #[test]
 fn context_menu_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/context_menu/view.rs");
+    let source = load_source("src/menu/context_menu/view.rs");
 
     for needle in [
         "is_disabled: Option<bool>",
@@ -163,7 +163,7 @@ fn context_menu_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn context_menu_trigger_wires_context_and_keyboard_open_contract() {
-    let source = load_source("src/context_menu/view.rs");
+    let source = load_source("src/menu/context_menu/view.rs");
 
     for needle in [
         "on:contextmenu=on_context_menu",
@@ -184,7 +184,7 @@ fn context_menu_trigger_wires_context_and_keyboard_open_contract() {
 
 #[test]
 fn context_menu_renders_menu_inside_popover_with_presence() {
-    let source = load_source("src/context_menu/view.rs");
+    let source = load_source("src/menu/context_menu/view.rs");
 
     for needle in [
         "use_presence(open)",
@@ -203,7 +203,7 @@ fn context_menu_renders_menu_inside_popover_with_presence() {
 
 #[test]
 fn context_menu_styles_include_state_and_source_markers() {
-    let source = load_source("src/context_menu/styles.rs");
+    let source = load_source("src/menu/context_menu/styles.rs");
 
     for needle in [
         ".ui-context-menu {",
@@ -259,8 +259,8 @@ fn context_menu_styles_include_state_and_source_markers() {
 
 #[test]
 fn context_menu_uses_dropdown_menu_motion_alias_contract() {
-    let mod_source = load_source("src/context_menu/mod.rs");
-    let dropdown_motion_source = load_source("src/dropdown_menu/motion.rs");
+    let mod_source = load_source("src/menu/context_menu/mod.rs");
+    let dropdown_motion_source = load_source("src/menu/dropdown_menu/motion.rs");
 
     for needle in [
         "pub use crate::dropdown_menu::DropdownMenuMotion as ContextMenuMotion;",

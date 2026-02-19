@@ -44,10 +44,10 @@ echo "[view-macro] contract: tabs static fragment constantization"
 cargo test -p ui-components --test tabs_semantics tabs_static_fragments_are_constantized_with_stable_semantics
 
 echo "[view-macro] contract: well view macro complexity"
-cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders
 
 echo "[view-macro] contract: well function-first simple split"
-cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_view_functional_split_prefers_no_extra_local_components_for_simple_layout
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_view_functional_split_prefers_no_extra_local_components_for_simple_layout
 
 echo "[view-macro] contract: swatch view macro complexity"
 cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders
@@ -80,13 +80,13 @@ echo "[view-macro] contract: time-field static fragment constantization"
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_static_fragments_are_constantized_with_stable_semantics
 
 echo "[view-macro] contract: scroll-area view macro complexity"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_view_macro_complexity_is_small_and_does_not_require_semantic_subrenders
 
 echo "[view-macro] contract: scroll-area function-first simple split"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_view_functional_split_prefers_no_extra_local_components_for_simple_layout
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_view_functional_split_prefers_no_extra_local_components_for_simple_layout
 
 echo "[view-macro] contract: scroll-area static fragment scope"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_static_fragments_are_constantized_or_absent_for_simple_layout
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_static_fragments_are_constantized_or_absent_for_simple_layout
 
 echo "[view-macro] contract: slider view macro split"
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_view_macro_complexity_is_split_into_semantic_subrenders

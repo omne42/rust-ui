@@ -398,7 +398,7 @@ fn selection_indicator_ui_components_boundary_remains_feature_gated_and_layered(
 
     for needle in [
         "#[cfg(feature = \"component-accordion\")]",
-        "pub mod accordion;",
+        "pub use ui_accordion as accordion;",
         "#[cfg(feature = \"component-slider\")]",
         "pub mod slider;",
         "pub mod root;",

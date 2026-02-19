@@ -205,12 +205,11 @@ pub fn attach_indicator_motion(
         let element: leptos::web_sys::HtmlElement = indicator.unchecked_into();
         let style = element.style();
 
-        let _ = style.set_property("--ui-segmented-control-indicator-x", "0px");
-        let _ = style.set_property("--ui-segmented-control-indicator-y", "0px");
-        let _ = style.set_property("--ui-segmented-control-indicator-w", "0px");
-        let _ = style.set_property("--ui-segmented-control-indicator-h", "0px");
-        let _ = style.set_property("--ui-segmented-control-indicator-o", "0");
-
+        drop(style.set_property("--ui-segmented-control-indicator-x", "0px"));
+        drop(style.set_property("--ui-segmented-control-indicator-y", "0px"));
+        drop(style.set_property("--ui-segmented-control-indicator-w", "0px"));
+        drop(style.set_property("--ui-segmented-control-indicator-h", "0px"));
+        drop(style.set_property("--ui-segmented-control-indicator-o", "0"));
         let measure_layout = {
             let container_ref = container_ref;
             let active_index = active_index;
@@ -250,35 +249,31 @@ pub fn attach_indicator_motion(
         let style_for_x = style.clone();
         let set_x = move |v: f64| {
             let v = v.clamp(-10000.0, 10000.0);
-            let _ =
-                style_for_x.set_property("--ui-segmented-control-indicator-x", &format!("{v}px"));
+            drop(style_for_x.set_property("--ui-segmented-control-indicator-x", &format!("{v}px")));
         };
 
         let style_for_y = style.clone();
         let set_y = move |v: f64| {
             let v = v.clamp(-10000.0, 10000.0);
-            let _ =
-                style_for_y.set_property("--ui-segmented-control-indicator-y", &format!("{v}px"));
+            drop(style_for_y.set_property("--ui-segmented-control-indicator-y", &format!("{v}px")));
         };
 
         let style_for_w = style.clone();
         let set_w = move |v: f64| {
             let v = v.clamp(0.0, 10000.0);
-            let _ =
-                style_for_w.set_property("--ui-segmented-control-indicator-w", &format!("{v}px"));
+            drop(style_for_w.set_property("--ui-segmented-control-indicator-w", &format!("{v}px")));
         };
 
         let style_for_h = style.clone();
         let set_h = move |v: f64| {
             let v = v.clamp(0.0, 10000.0);
-            let _ =
-                style_for_h.set_property("--ui-segmented-control-indicator-h", &format!("{v}px"));
+            drop(style_for_h.set_property("--ui-segmented-control-indicator-h", &format!("{v}px")));
         };
 
         let style_for_o = style.clone();
         let set_o = move |v: f64| {
             let v = v.clamp(0.0, 1.0);
-            let _ = style_for_o.set_property("--ui-segmented-control-indicator-o", &format!("{v}"));
+            drop(style_for_o.set_property("--ui-segmented-control-indicator-o", &format!("{v}")));
         };
 
         let driver_instance = Rc::new(RefCell::new(IndicatorMotionDriver::new(
@@ -331,10 +326,9 @@ pub fn attach_indicator_motion(
     });
 
     Effect::new(move |_| {
-        let _ = active_index.get();
-        let _ = container_ref.get();
-        let _ = indicator_ref.get();
-
+        std::hint::black_box(active_index.get());
+        std::hint::black_box(container_ref.get());
+        std::hint::black_box(indicator_ref.get());
         let Some(driver) = driver.get_value() else {
             return;
         };
@@ -350,7 +344,7 @@ pub fn attach_indicator_motion(
     _option_id: leptos::prelude::Callback<usize, String>,
     motion: SegmentedControlMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

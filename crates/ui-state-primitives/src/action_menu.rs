@@ -52,12 +52,12 @@ pub fn open_mode_attr(is_controlled: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
 }
 
 pub fn resolve_id_pair(id_base: &str) -> (String, String) {
@@ -92,9 +92,9 @@ pub fn resolve_trigger_aria_label_with_fallback(
 
     let fallback = fallback_aria_label.trim();
     if fallback.is_empty() {
-        (DEFAULT_TRIGGER_ARIA_LABEL.to_string(), false)
+        (DEFAULT_TRIGGER_ARIA_LABEL.into(), false)
     } else {
-        (fallback.to_string(), false)
+        (fallback.into(), false)
     }
 }
 
@@ -179,7 +179,7 @@ mod tests {
     fn aria_label_uses_default_when_empty() {
         assert_eq!(
             resolve_trigger_aria_label(None),
-            (DEFAULT_TRIGGER_ARIA_LABEL.to_string(), false)
+            (DEFAULT_TRIGGER_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_trigger_aria_label(Some("  More  ".to_string())),
@@ -195,7 +195,7 @@ mod tests {
         );
         assert_eq!(
             resolve_trigger_aria_label_with_fallback(None, "   "),
-            (DEFAULT_TRIGGER_ARIA_LABEL.to_string(), false)
+            (DEFAULT_TRIGGER_ARIA_LABEL.into(), false)
         );
     }
 

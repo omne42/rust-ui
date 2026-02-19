@@ -90,7 +90,7 @@ impl SkeletonGroupDensity {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -98,7 +98,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     if let Some(value) = normalize_optional_text(value) {
         (value, true)
     } else {
-        (DEFAULT_ARIA_LABEL.to_string(), false)
+        (DEFAULT_ARIA_LABEL.into(), false)
     }
 }
 
@@ -109,6 +109,11 @@ pub fn normalize_state_input(input: SkeletonGroupViewInput) -> SkeletonGroupStat
         variant: input.variant.unwrap_or_default(),
         layout: input.layout.unwrap_or_default(),
         density: input.density.unwrap_or_default(),
+        has_custom_is_loading: input.is_loading.is_some(),
+        has_custom_is_skeleton_only: input.is_skeleton_only.is_some(),
+        has_custom_variant: input.variant.is_some(),
+        has_custom_layout: input.layout.is_some(),
+        has_custom_density: input.density.is_some(),
         has_custom_aria_label: input.has_custom_aria_label,
         has_custom_class_name: input.has_custom_class_name,
     }
@@ -153,6 +158,31 @@ pub fn resolve_state(input: SkeletonGroupStateInput) -> SkeletonGroupState {
         state_attr,
         visibility_attr,
         loading_mode_attr,
+        loading_source_attr: if input.has_custom_is_loading {
+            "prop"
+        } else {
+            "default"
+        },
+        skeleton_only_source_attr: if input.has_custom_is_skeleton_only {
+            "prop"
+        } else {
+            "default"
+        },
+        variant_source_attr: if input.has_custom_variant {
+            "prop"
+        } else {
+            "default"
+        },
+        layout_source_attr: if input.has_custom_layout {
+            "prop"
+        } else {
+            "default"
+        },
+        density_source_attr: if input.has_custom_density {
+            "prop"
+        } else {
+            "default"
+        },
         label_source_attr: if input.has_custom_aria_label {
             "custom"
         } else {
@@ -170,9 +200,9 @@ pub fn resolve_state(input: SkeletonGroupStateInput) -> SkeletonGroupState {
 pub fn compose_class_name(base_class_name: Option<String>, state: SkeletonGroupState) -> String {
     let mut classes = vec![
         "ui-skeleton-group".to_string(),
-        state.variant_class.to_string(),
-        state.layout_class.to_string(),
-        state.density_class.to_string(),
+        state.variant_class.into(),
+        state.layout_class.into(),
+        state.density_class.into(),
     ];
 
     if state.is_loading {
@@ -252,7 +282,7 @@ mod tests {
         );
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
     }
 
@@ -264,6 +294,11 @@ mod tests {
             variant: SkeletonGroupVariant::Pulse,
             layout: SkeletonGroupLayout::Horizontal,
             density: SkeletonGroupDensity::Compact,
+            has_custom_is_loading: true,
+            has_custom_is_skeleton_only: true,
+            has_custom_variant: true,
+            has_custom_layout: true,
+            has_custom_density: true,
             has_custom_aria_label: true,
             has_custom_class_name: true,
         });
@@ -277,6 +312,11 @@ mod tests {
         assert_eq!(state.variant_attr, "pulse");
         assert_eq!(state.layout_attr, "horizontal");
         assert_eq!(state.density_attr, "compact");
+        assert_eq!(state.loading_source_attr, "prop");
+        assert_eq!(state.skeleton_only_source_attr, "prop");
+        assert_eq!(state.variant_source_attr, "prop");
+        assert_eq!(state.layout_source_attr, "prop");
+        assert_eq!(state.density_source_attr, "prop");
         assert_eq!(state.label_source_attr, "custom");
         assert_eq!(state.class_source_attr, "custom");
     }
@@ -289,6 +329,11 @@ mod tests {
             variant: SkeletonGroupVariant::Shimmer,
             layout: SkeletonGroupLayout::Vertical,
             density: SkeletonGroupDensity::Comfortable,
+            has_custom_is_loading: false,
+            has_custom_is_skeleton_only: false,
+            has_custom_variant: false,
+            has_custom_layout: false,
+            has_custom_density: false,
             has_custom_aria_label: false,
             has_custom_class_name: true,
         });
@@ -328,6 +373,11 @@ mod tests {
         assert_eq!(state_input.variant, SkeletonGroupVariant::default());
         assert_eq!(state_input.layout, SkeletonGroupLayout::default());
         assert_eq!(state_input.density, SkeletonGroupDensity::default());
+        assert!(!state_input.has_custom_is_loading);
+        assert!(!state_input.has_custom_is_skeleton_only);
+        assert!(!state_input.has_custom_variant);
+        assert!(!state_input.has_custom_layout);
+        assert!(!state_input.has_custom_density);
         assert!(!state_input.has_custom_aria_label);
         assert!(!state_input.has_custom_class_name);
     }
@@ -349,6 +399,11 @@ mod tests {
         assert_eq!(state_input.variant, SkeletonGroupVariant::Pulse);
         assert_eq!(state_input.layout, SkeletonGroupLayout::Horizontal);
         assert_eq!(state_input.density, SkeletonGroupDensity::Compact);
+        assert!(state_input.has_custom_is_loading);
+        assert!(state_input.has_custom_is_skeleton_only);
+        assert!(state_input.has_custom_variant);
+        assert!(state_input.has_custom_layout);
+        assert!(state_input.has_custom_density);
         assert!(state_input.has_custom_aria_label);
         assert!(state_input.has_custom_class_name);
     }

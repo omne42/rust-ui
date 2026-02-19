@@ -27,7 +27,7 @@ pub fn keyboard_dismiss_attr(is_keyboard_dismiss_disabled: bool) -> &'static str
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -98,7 +98,7 @@ pub fn resolve_state(input: OverlayPartStateInput) -> OverlayPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: OverlayPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if state.slot == OverlaySlot::Root {
         if state.has_custom_motion {

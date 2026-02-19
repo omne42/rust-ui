@@ -1,5 +1,5 @@
 use leptos::prelude::*;
-use ui_components::{Divider, DividerOrientation};
+use ui_layout::{Divider, DividerOrientation};
 
 #[component]
 pub fn DividerDemo() -> impl IntoView {

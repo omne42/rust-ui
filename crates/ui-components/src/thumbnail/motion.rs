@@ -116,21 +116,20 @@ pub fn attach_motion(
             0.0
         };
 
-        let _ = style.set_property("--ui-thumbnail-scale", &format!("{initial_scale}"));
-        let _ = style.set_property("--ui-thumbnail-ring-opacity", &format!("{initial_ring}"));
-
+        drop(style.set_property("--ui-thumbnail-scale", &format!("{initial_scale}")));
+        drop(style.set_property("--ui-thumbnail-ring-opacity", &format!("{initial_ring}")));
         let style_scale = style.clone();
         let scale =
             ui_motion::spring::SpringAnimator::new(initial_scale, motion.spring, move |next| {
                 let next = next.clamp(0.9, 1.2);
-                let _ = style_scale.set_property("--ui-thumbnail-scale", &format!("{next}"));
+                drop(style_scale.set_property("--ui-thumbnail-scale", &format!("{next}")));
             });
 
         let style_ring = style.clone();
         let ring =
             ui_motion::spring::SpringAnimator::new(initial_ring, motion.spring, move |next| {
                 let next = next.clamp(0.0, 1.0);
-                let _ = style_ring.set_property("--ui-thumbnail-ring-opacity", &format!("{next}"));
+                drop(style_ring.set_property("--ui-thumbnail-ring-opacity", &format!("{next}")));
             });
 
         let springs_for_cleanup = springs;

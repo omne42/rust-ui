@@ -6,8 +6,11 @@ fn ping() -> &'static str {
 }
 
 fn main() {
-    tauri::Builder::default()
+    if let Err(error) = tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![ping])
         .run(tauri::generate_context!("tauri.conf.json"))
-        .expect("error while running tauri application");
+    {
+        eprintln!("tauri application failed to run: {error}");
+        std::process::exit(1);
+    }
 }

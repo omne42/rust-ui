@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn field_does_not_expose_logic_or_render_modules() {
-    let source = load_source("src/field/mod.rs");
+    let source = load_source("src/field_form/field/mod.rs");
 
     for needle in ["pub mod logic", "pub mod render"] {
         assert!(
@@ -21,8 +21,8 @@ fn field_does_not_expose_logic_or_render_modules() {
 
 #[test]
 fn field_uses_logic_state_model() {
-    let logic_source = load_source("src/field/logic.rs");
-    let render_source = load_source("src/field/view.rs");
+    let logic_source = load_source("src/field_form/field/logic.rs");
+    let render_source = load_source("src/field_form/field/view.rs");
 
     for needle in [
         "pub enum FieldOrientation",
@@ -59,7 +59,7 @@ fn field_uses_logic_state_model() {
 
 #[test]
 fn field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/field/view.rs");
+    let source = load_source("src/field_form/field/view.rs");
 
     for attr in [
         "data-slot=\"field\"",
@@ -87,7 +87,7 @@ fn field_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn field_styles_include_state_markers() {
-    let source = load_source("src/field/styles.rs");
+    let source = load_source("src/field_form/field/styles.rs");
 
     for selector in [
         ".ui-field--orientation-vertical",
@@ -164,7 +164,7 @@ fn field_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn field_check2_keeps_field_scope_and_na_rationale_explicit() {
-    let source = load_source("src/field/check2.md");
+    let source = load_source("src/field_form/field/check2.md");
 
     for needle in [
         "已核验（field，2026-02-18）：本组件是表单字段容器",
@@ -180,7 +180,7 @@ fn field_check2_keeps_field_scope_and_na_rationale_explicit() {
 
 #[test]
 fn field_check2_marks_semantics_streaming_and_docs_contract_complete() {
-    let source = load_source("src/field/check2.md");
+    let source = load_source("src/field_form/field/check2.md");
 
     for needle in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
@@ -201,7 +201,7 @@ fn field_check2_marks_semantics_streaming_and_docs_contract_complete() {
 
 #[test]
 fn field_check2_marks_final_merge_gates_complete() {
-    let source = load_source("src/field/check2.md");
+    let source = load_source("src/field_form/field/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -228,7 +228,7 @@ fn field_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn field_check2_has_no_remaining_unchecked_items() {
-    let source = load_source("src/field/check2.md");
+    let source = load_source("src/field_form/field/check2.md");
 
     assert!(
         !source.contains("- [ ]"),
@@ -238,7 +238,7 @@ fn field_check2_has_no_remaining_unchecked_items() {
 
 #[test]
 fn field_readme_covers_display_config_code_css_test_and_comparisons() {
-    let source = load_source("src/field/README.md");
+    let source = load_source("src/field_form/field/README.md");
 
     for needle in [
         "## Playground 展示区（Display / Config / Code / CSS Test）",

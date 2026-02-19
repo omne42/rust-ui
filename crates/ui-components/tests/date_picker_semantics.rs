@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn date_picker_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/date_picker/mod.rs");
+    let source = load_source("src/text_input/date_picker/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn date_picker_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn date_picker_uses_logic_state_model() {
-    let logic_source = load_source("src/date_picker/logic.rs");
-    let view_source = load_source("src/date_picker/view.rs");
+    let logic_source = load_source("src/text_input/date_picker/logic.rs");
+    let view_source = load_source("src/text_input/date_picker/view.rs");
 
     for needle in [
         "pub use ui_state_primitives::date_picker::{",
@@ -67,8 +67,8 @@ fn date_picker_uses_logic_state_model() {
 
 #[test]
 fn date_picker_state_primitives_are_sourced_from_ui_state_primitives() {
-    let primitive_source = load_source("../ui-state-primitives/src/date_picker.rs");
-    let logic_source = load_source("src/date_picker/logic.rs");
+    let primitive_source = load_source("../ui-logic-calendar/src/date_picker.rs");
+    let logic_source = load_source("src/text_input/date_picker/logic.rs");
 
     for needle in [
         "pub struct DatePickerStateInput",
@@ -98,7 +98,7 @@ fn date_picker_state_primitives_are_sourced_from_ui_state_primitives() {
 
 #[test]
 fn date_picker_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/date_picker/view.rs");
+    let source = load_source("src/text_input/date_picker/view.rs");
 
     for attr in [
         "data-slot=\"date-picker\"",
@@ -134,7 +134,7 @@ fn date_picker_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn date_picker_styles_include_tone_open_value_and_source_markers() {
-    let source = load_source("src/date_picker/styles.rs");
+    let source = load_source("src/text_input/date_picker/styles.rs");
 
     for selector in [
         ".ui-date-picker--tone-default",
@@ -166,8 +166,8 @@ fn date_picker_styles_include_tone_open_value_and_source_markers() {
 
 #[test]
 fn date_picker_exposes_motion_contract_and_internal_module() {
-    let mod_source = load_source("src/date_picker/mod.rs");
-    let motion_source = load_source("src/date_picker/motion.rs");
+    let mod_source = load_source("src/text_input/date_picker/mod.rs");
+    let motion_source = load_source("src/text_input/date_picker/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -184,8 +184,8 @@ fn date_picker_exposes_motion_contract_and_internal_module() {
 
 #[test]
 fn date_picker_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/date_picker/motion.rs");
-    let view_source = load_source("src/date_picker/view.rs");
+    let motion_source = load_source("src/text_input/date_picker/motion.rs");
+    let view_source = load_source("src/text_input/date_picker/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: DatePickerMotion) -> DatePickerMotion",
@@ -199,7 +199,9 @@ fn date_picker_motion_sanitizes_custom_contract_values() {
     }
 
     assert!(
-        view_source.contains("let motion = crate::date_picker::motion::sanitize_motion(motion);"),
+        view_source.contains(
+            "let motion = crate::text_input::date_picker::motion::sanitize_motion(motion);"
+        ),
         "DatePicker view should sanitize motion before forwarding to Popover.",
     );
 }
@@ -266,7 +268,7 @@ fn date_picker_docs_page_includes_workbench_css_test_and_comparison_matrix() {
     for needle in [
         "title=\"展示 / Config / Code / CSS Test\"",
         "test_css_source=workbench_test_css_source",
-        "test_source_path=\"crates/ui-components/src/date_picker/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui-components/src/text_input/date_picker/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "data-slot=\"date-picker-workbench-controls\"",
         "data-slot=\"date-picker-workbench\"",
@@ -293,7 +295,7 @@ fn date_picker_readme_is_whitelisted_in_docs_shell() {
 
     for needle in [
         "const DATE_PICKER_README_MD: &str =",
-        "include_str!(\"../../../../../crates/ui-components/src/date_picker/README.md\")",
+        "include_str!(\"../../../../../crates/ui-components/src/text_input/date_picker/README.md\")",
         "\"date-picker\" => Some(DATE_PICKER_README_MD),",
         "let readme_html = component_readme_markdown(slug).map(crate::markdown::markdown_to_html);",
     ] {
@@ -306,7 +308,7 @@ fn date_picker_readme_is_whitelisted_in_docs_shell() {
 
 #[test]
 fn date_picker_readme_includes_workbench_and_matrix_sections() {
-    let readme_source = load_source("src/date_picker/README.md");
+    let readme_source = load_source("src/text_input/date_picker/README.md");
 
     for needle in [
         "## Docs Playground（展示 / Config / Code / CSS Test）",
@@ -327,10 +329,16 @@ fn date_picker_readme_includes_workbench_and_matrix_sections() {
 fn date_picker_feature_gate_includes_required_dependencies() {
     let source = load_source("Cargo.toml");
 
-    assert!(
-        source.contains(
-            "component-date_picker = [\"component-button\", \"component-calendar\", \"component-popover\"]"
-        ),
-        "component-date_picker should pull button/calendar/popover features for minimal feature builds."
-    );
+    for needle in [
+        "component-date_picker = [",
+        "\"component-button\"",
+        "\"component-calendar\"",
+        "\"component-popover\"",
+        "\"ui-state-primitives/logic-calendar\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "component-date_picker feature gate should include `{needle}`."
+        );
+    }
 }

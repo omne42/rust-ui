@@ -123,11 +123,11 @@ pub fn resolve_state(input: AlertStateInput) -> AlertState {
 pub fn compose_class_name(base_class_name: Option<String>, state: AlertState) -> String {
     let mut classes = vec![
         "ui-alert".to_string(),
-        state.variant_class.to_string(),
-        state.state_class.to_string(),
-        state.title_class.to_string(),
-        state.description_class.to_string(),
-        state.actions_class.to_string(),
+        state.variant_class.into(),
+        state.state_class.into(),
+        state.title_class.into(),
+        state.description_class.into(),
+        state.actions_class.into(),
     ];
 
     if state.has_custom_class_name {

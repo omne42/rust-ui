@@ -91,7 +91,7 @@ let on_exit_complete = Callback::new(move |_| {});
             DialogSize::Md => "",
         };
         let description_line = if workbench_with_description.get() {
-            "  description=\"Configurable description\".to_string()\n"
+            "  description=\"Configurable description\".into()\n"
         } else {
             ""
         };
@@ -101,7 +101,7 @@ let on_exit_complete = Callback::new(move |_| {});
             ""
         };
         let class_line = if workbench_custom_class.get() {
-            "  class_name=\"docs-dialog-workbench\".to_string()\n"
+            "  class_name=\"docs-dialog-workbench\".into()\n"
         } else {
             ""
         };
@@ -112,7 +112,7 @@ let on_exit_complete = Callback::new(move |_| {});
         };
 
         format!(
-            "let (open_raw, set_open_raw) = signal(false);\n\n<Dialog\n  open=Signal::derive(move || open_raw.get())\n  on_close=Callback::new(move |_| set_open_raw.set(false))\n  id_base=\"docs-dialog-workbench\".to_string()\n  title=\"Workbench dialog\".to_string()\n{size_line}{description_line}{close_line}{class_line}{motion_line}>\n  ...\n</Dialog>"
+            "let (open_raw, set_open_raw) = signal(false);\n\n<Dialog\n  open=Signal::derive(move || open_raw.get())\n  on_close=Callback::new(move |_| set_open_raw.set(false))\n  id_base=\"docs-dialog-workbench\".into()\n  title=\"Workbench dialog\".into()\n{size_line}{description_line}{close_line}{class_line}{motion_line}>\n  ...\n</Dialog>"
         )
     });
 
@@ -228,7 +228,7 @@ let on_exit_complete = Callback::new(move |_| {});
                         <Button on_press=open_dialog variant=ButtonVariant::Secondary>
                             "Open marker dialog"
                         </Button>
-                        <span class="ui-muted">"open: " {move || open_raw.get().to_string()}</span>
+                        <span class="ui-muted">"open: " {move || open_raw.get()}</span>
                     </div>
                     <div class="ui-muted">
                         "Inspect data-id-source / data-title-source / data-description-source / data-close-source / data-motion-source in DevTools."
@@ -310,7 +310,7 @@ let on_exit_complete = Callback::new(move |_| {});
                         <Button on_press=open_workbench_dialog>"Open workbench dialog"</Button>
                         <span class="ui-muted">
                             "size: "
-                            {move || workbench_size.get().as_attr().to_string()}
+                            {move || workbench_size.get().as_attr()}
                             " / description: "
                             {move || if workbench_with_description.get() { "on" } else { "off" }}
                         </span>

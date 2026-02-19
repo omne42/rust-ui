@@ -287,7 +287,7 @@ fn tooltip_motion_sanitizes_custom_contract_values() {
         "initial_scale:",
         "offset_y_px:",
         "let motion = StoredValue::new(sanitize_motion(motion));",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "fn sanitize_motion_falls_back_for_invalid_values()",
         "fn sanitize_motion_clamps_scale_and_offset_ranges()",
     ] {

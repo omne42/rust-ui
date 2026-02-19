@@ -1,4 +1,6 @@
-use crate::button::logic::normalize_optional_text;
+use crate::button::logic::{
+    ButtonInputNormalizationInput, normalize_input as normalize_button_input,
+};
 use crate::button::{ButtonColor, ButtonType, ButtonVariant};
 use leptos::prelude::Callback;
 use ui_headless::OnPress;
@@ -78,10 +80,17 @@ pub struct FieldButtonResolved {
 }
 
 pub fn normalize_input(input: FieldButtonResolveInput) -> FieldButtonNormalizedInput {
-    let normalized_aria_label = normalize_optional_text(input.aria_label);
-    let normalized_class_name = normalize_optional_text(input.class_name);
-    let has_custom_aria_label = normalized_aria_label.is_some();
-    let has_custom_class_name = normalized_class_name.is_some();
+    let shared_normalized = normalize_button_input(ButtonInputNormalizationInput {
+        is_disabled: input.is_disabled,
+        is_full_width: false,
+        class_name: input.class_name.clone(),
+        aria_label: input.aria_label.clone(),
+        icon_only_fallback_aria_label: None,
+        is_icon_only: false,
+        button_type: input.button_type,
+    });
+    let has_custom_aria_label = shared_normalized.aria_label.is_some();
+    let has_custom_class_name = shared_normalized.has_custom_class_name;
     let has_custom_press_handler = input.on_press.is_some();
 
     FieldButtonNormalizedInput {
@@ -95,15 +104,15 @@ pub fn normalize_input(input: FieldButtonResolveInput) -> FieldButtonNormalizedI
         } else {
             FieldButtonValidation::Default
         },
-        is_disabled: input.is_disabled,
+        is_disabled: shared_normalized.is_disabled,
         is_active: input.is_active,
         has_custom_aria_label,
-        aria_label: normalized_aria_label,
+        aria_label: shared_normalized.aria_label,
         has_custom_class_name,
-        class_name: normalized_class_name,
+        class_name: shared_normalized.class_name,
         has_custom_press_handler,
         on_press: input.on_press,
-        button_type: input.button_type,
+        button_type: shared_normalized.button_type,
     }
 }
 
@@ -141,7 +150,7 @@ pub fn resolve_state(input: FieldButtonStateInput) -> FieldButtonState {
 }
 
 pub fn compose_class_name(state: FieldButtonState, custom_class_name: Option<&str>) -> String {
-    let mut classes = vec!["ui-field-button".to_string()];
+    let mut classes: Vec<String> = vec!["ui-field-button".to_string()];
     if matches!(state.tone, FieldButtonTone::Quiet) {
         classes.push("ui-field-button--quiet".to_string());
     }
@@ -165,7 +174,7 @@ pub fn compose_class_name(state: FieldButtonState, custom_class_name: Option<&st
         classes.push("ui-field-button--custom-class".to_string());
     }
     if let Some(class_name) = custom_class_name {
-        classes.push(class_name.to_string());
+        classes.push(class_name.into());
     }
 
     classes.join(" ")

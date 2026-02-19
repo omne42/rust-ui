@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn icons_ui_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/icons_ui/mod.rs");
+    let source = load_source("src/icon/ui/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn icons_ui_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn icons_ui_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/icons_ui/mod.rs");
+    let module_source = load_source("src/icon/ui/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -40,7 +40,7 @@ fn icons_ui_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn icons_ui_logic_exposes_state_helpers() {
-    let source = load_source("src/icons_ui/logic.rs");
+    let source = load_source("src/icon/ui/logic.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -58,7 +58,7 @@ fn icons_ui_logic_exposes_state_helpers() {
 
 #[test]
 fn icons_ui_view_uses_logic_state_contracts() {
-    let source = load_source("src/icons_ui/view.rs");
+    let source = load_source("src/icon/ui/view.rs");
 
     for needle in [
         "pub fn IconsUi(",
@@ -88,7 +88,7 @@ fn icons_ui_view_uses_logic_state_contracts() {
 
 #[test]
 fn icons_ui_styles_include_state_and_source_markers() {
-    let source = load_source("src/icons_ui/styles.rs");
+    let source = load_source("src/icon/ui/styles.rs");
 
     for selector in [
         ".ui-icons-ui {",
@@ -228,7 +228,7 @@ fn icons_ui_docs_interactive_playground_exposes_config_code_css_test_sections() 
         "id_base=\"docs-icons-ui-workbench-icon\".to_string()",
         "id_base=\"docs-icons-ui-workbench-size\".to_string()",
         "id_base=\"docs-icons-ui-workbench-tone\".to_string()",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icons_ui/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/ui/styles.rs\".to_string()",
     ] {
         assert!(
             source.contains(needle),
@@ -273,7 +273,7 @@ fn icons_ui_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn icons_ui_check2_marks_core_sections_complete() {
-    let source = load_source("src/icons_ui/check2.md");
+    let source = load_source("src/icon/ui/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -292,8 +292,8 @@ fn icons_ui_check2_marks_core_sections_complete() {
         "### 10. IconsUi 本轮验收证据",
         "component-icons_ui -> component-iconset",
         "component-iconset -> component-icon",
-        "crates/ui-components/src/icons_ui/view.rs",
-        "crates/ui-components/src/iconset/view.rs",
+        "crates/ui-components/src/icon/ui/view.rs",
+        "crates/ui-components/src/icon/set/view.rs",
     ] {
         assert!(
             source.contains(needle),
@@ -304,7 +304,7 @@ fn icons_ui_check2_marks_core_sections_complete() {
 
 #[test]
 fn icons_ui_check2_has_no_unchecked_checklist_items() {
-    let source = load_source("src/icons_ui/check2.md");
+    let source = load_source("src/icon/ui/check2.md");
     assert!(
         !source.contains("- [ ]"),
         "icons_ui check2 should not keep unchecked checklist items"

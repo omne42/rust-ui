@@ -3,12 +3,11 @@ use crate::action_bar::{
     logic::{self, resolve_selection_text},
     motion,
 };
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use leptos::{html, prelude::*};
 use ui_headless::i18n;
-use ui_headless::use_button;
 use ui_headless::use_controllable_state;
 use ui_headless::{A11yDirection, locale_attrs};
-use ui_headless::{ButtonOptions, FocusRingOptions, HoverOptions, use_focus_ring, use_hover};
 
 #[component]
 pub fn ActionBar(
@@ -125,7 +124,7 @@ pub fn ActionBar(
         >
             <p class="ui-action-bar__selection" data-slot="action-bar-selection">
                 <span class="ui-action-bar__selection-count" data-slot="action-bar-selection-count">
-                    {move || state.get().selected_count.to_string()}
+                    {move || state.get().selected_count}
                 </span>
                 <span class="ui-action-bar__selection-label" data-slot="action-bar-selection-label">
                     {move || selection_text.get()}
@@ -142,50 +141,18 @@ pub fn ActionBar(
                         request_selected_count_change.run(0);
                         on_clear_selection.run(());
                     });
-                    let aria = use_button(ButtonOptions {
-                        on_press: Some(on_press),
-                        ..Default::default()
-                    });
-                    let focus_ring = use_focus_ring(FocusRingOptions::default());
-                    let hover = use_hover(HoverOptions::default());
                     view! {
-                        <button
-                            type="button"
-                            class="ui-action-bar__clear"
-                            data-slot="action-bar-clear"
-                            data-hovered=move || hover.is_hovered.get().then_some("true")
-                            data-pressed=move || aria.is_pressed.get().then_some("true")
-                            data-focus-visible=move || focus_ring.is_focus_visible.get().then_some("true")
-                            aria-label=clear_label_attr
-                            role=aria.attrs.role
-                            tabindex=aria.attrs.tabindex
-                            aria-disabled=aria.attrs.aria_disabled
-                            on:pointerdown=move |_| aria.handlers.press.on_pointer_down.run(())
-                            on:pointerup=move |_| aria.handlers.press.on_pointer_up.run(())
-                            on:pointercancel=move |_| aria.handlers.press.on_pointer_cancel.run(())
-                            on:pointerenter=move |_| hover.handlers.on_pointer_enter.run(())
-                            on:pointerleave=move |_| hover.handlers.on_pointer_leave.run(())
-                            on:click=move |_| aria.handlers.press.on_click.run(())
-                            on:keydown=move |ev| {
-                                let key = ev.key();
-                                if aria.handlers.press.on_key_down.run(key) {
-                                    ev.prevent_default();
-                                }
-                            }
-                            on:keyup=move |ev| {
-                                let key = ev.key();
-                                if aria.handlers.press.on_key_up.run(key) {
-                                    ev.prevent_default();
-                                }
-                            }
-                            on:blur=move |_| {
-                                aria.handlers.press.on_blur.run(());
-                                focus_ring.handlers.on_blur.run(());
-                            }
-                            on:focus=move |_| focus_ring.handlers.on_focus.run(())
-                        >
-                            {clear_label_text}
-                        </button>
+                        <span data-slot="action-bar-clear">
+                            <Button
+                                variant=ButtonVariant::Link
+                                size=ButtonSize::S
+                                class_name="ui-action-bar__clear".to_string()
+                                aria_label=clear_label_attr
+                                on_press=on_press
+                            >
+                                {clear_label_text}
+                            </Button>
+                        </span>
                     }
                 })}
             </div>

@@ -148,7 +148,7 @@ let motion = OverlayMotion {
             <Playground title="Overlay presence" code_signal=code>
                 <div class="docs-row">
                     <Button on_press=open_overlay>"Open overlay"</Button>
-                    <span class="ui-muted">"open: " {move || open_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_raw.get()}</span>
                 </div>
 
                 <Show when=move || present.get()>
@@ -341,7 +341,7 @@ let custom_motion = PopoverMotion {
             lines.push("  is_modal=false".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-popover-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-popover-workbench\".into()".to_string());
         }
         lines.push("  on_exit_complete=on_exit_complete".to_string());
         lines.push(">".to_string());
@@ -497,7 +497,7 @@ let custom_motion = PopoverMotion {
                             />
                         </label>
                         <label class="docs-search__label">
-                            "Offset px (" {move || workbench_offset_px.get().to_string()} ")"
+                            "Offset px (" {move || workbench_offset_px.get()} ")"
                             <input
                                 type="range"
                                 min="0"
@@ -550,7 +550,7 @@ let custom_motion = PopoverMotion {
                         }}
                     </Button>
                     <span class="ui-muted">
-                        "open: " {move || workbench_open_raw.get().to_string()}
+                        "open: " {move || workbench_open_raw.get()}
                     </span>
                 </div>
 
@@ -643,29 +643,27 @@ pub(super) fn modal() -> AnyView {
             format!(
                 "  id_base={}",
                 if custom_id {
-                    "\"docs-modal-interactive\".to_string()"
+                    "\"docs-modal-interactive\".into()"
                 } else {
-                    "\" \".to_string()"
+                    "\" \".into()"
                 }
             ),
             format!(
                 "  title={}",
                 if custom_title {
-                    "\"Action required\".to_string()"
+                    "\"Action required\".into()"
                 } else {
-                    "\" \".to_string()"
+                    "\" \".into()"
                 }
             ),
             "  on_close=close".to_string(),
         ];
 
         if with_description {
-            lines.push(
-                "  description=\"Review settings before confirming.\".to_string()".to_string(),
-            );
+            lines.push("  description=\"Review settings before confirming.\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-modal-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-modal-custom\".into()".to_string());
         }
         if custom_motion {
             lines.push("  motion=OverlayMotion {".to_string());
@@ -890,7 +888,7 @@ let custom_motion = OverlayMotion {
                             <div class="docs-row">
                                 <Button on_press=open_interactive_modal>"Open interactive modal"</Button>
                                 <span class="ui-muted">
-                                    "open: " {move || interactive_open_raw.get().to_string()}
+                                    "open: " {move || interactive_open_raw.get()}
                                 </span>
                             </div>
 
@@ -954,7 +952,7 @@ let custom_motion = OverlayMotion {
             <Playground title="Label + Description" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_modal>"Open described modal"</Button>
-                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_semantic.get()>
@@ -987,7 +985,7 @@ let custom_motion = OverlayMotion {
             >
                 <div class="docs-row">
                     <Button on_press=open_custom_modal>"Open custom modal"</Button>
-                    <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_custom_raw.get()}</span>
                 </div>
 
                 <Show when=move || present_custom.get()>
@@ -1250,7 +1248,7 @@ let finish_exit = Callback::new(move |_| {});
             <Playground title="Right Drawer + Slots" code_signal=semantic_code>
                 <div class="docs-row">
                     <Button on_press=open_semantic_drawer>"Open right drawer"</Button>
-                    <span class="ui-muted">"open: " {move || open_semantic_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_semantic_raw.get()}</span>
                 </div>
                 <Show when=move || present_semantic.get()>
                     <Drawer
@@ -1282,7 +1280,7 @@ let finish_exit = Callback::new(move |_| {});
             >
                 <div class="docs-row">
                     <Button on_press=open_custom_drawer>"Open left drawer"</Button>
-                    <span class="ui-muted">"open: " {move || open_custom_raw.get().to_string()}</span>
+                    <span class="ui-muted">"open: " {move || open_custom_raw.get()}</span>
                 </div>
                 <Show when=move || present_custom.get()>
                     <Drawer
@@ -1621,13 +1619,13 @@ pub(super) fn contextual_help() -> AnyView {
         if disabled {
             lines.push("  disabled=true".to_string());
         }
-        lines.push("  heading=\"Contextual help\".to_string()".to_string());
+        lines.push("  heading=\"Contextual help\".into()".to_string());
         lines.push("  footer=move || view! { \"Popover-based\" }".to_string());
         if custom_aria {
-            lines.push("  aria_label=\"More info\".to_string()".to_string());
+            lines.push("  aria_label=\"More info\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-contextual-help-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-contextual-help-custom\".into()".to_string());
         }
         lines.push(">".to_string());
         lines.push("  <div>\"Workbench content\"</div>".to_string());
@@ -1685,8 +1683,7 @@ pub(super) fn contextual_help() -> AnyView {
 </ContextualHelp>
 <ContextualHelp variant=ContextualHelpVariant::Info disabled=true aria_label="Disabled info".to_string() class_name="docs-contextual-help-custom".to_string()>
   <div>"Disabled Trigger"</div>
-</ContextualHelp>"#
-            .to_string()
+</ContextualHelp>"#.to_string()
     });
 
     view! {
@@ -1716,7 +1713,7 @@ pub(super) fn contextual_help() -> AnyView {
                         <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
                             "Toggle controlled help"
                         </Button>
-                        <span class="ui-muted">"open: " {move || controlled_open_raw.get().to_string()}</span>
+                        <span class="ui-muted">"open: " {move || controlled_open_raw.get()}</span>
                     </div>
 
                     <ContextualHelp
@@ -1793,7 +1790,7 @@ pub(super) fn contextual_help() -> AnyView {
                                 </Button>
                                 <span class="ui-muted">
                                     "mode: " {if controlled_mode { "controlled" } else { "uncontrolled" }}
-                                    " | open: " {open.to_string()}
+                                    " | open: " {open}
                                 </span>
                             </div>
 

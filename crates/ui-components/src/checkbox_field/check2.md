@@ -52,6 +52,12 @@
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
+- [x] 纯逻辑与细粒度响应阻抗匹配：采用 Reducer + Selector 分层，`logic.rs` 负责状态转移，`view.rs` 负责 Leptos 响应式切片，避免整块状态广播。
+  - Reducer（状态转移）规范：`logic.rs` 保持纯函数（输入旧状态 + Action，输出新状态或最小变更），不在该层持有 `Signal`。
+  - Selector（细粒度响应）规范：`view.rs` 负责把 reducer 接入 Leptos，并以 `Memo` 或 `Signal::derive` 按需切片，只把被消费的状态片段绑定到对应 DOM。
+  - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
+  - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
+  - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
@@ -306,3 +312,11 @@
 - 已修复 `component-checkbox_field` 最小特性链路断裂：`crates/ui-components/Cargo.toml` 将 `component-checkbox_field` 改为依赖 `component-checkbox`，保证 `--no-default-features --features component-checkbox_field,inject-css` 可独立编译。
 - 已修复 `view` 层错误依赖根导出：`crates/ui-components/src/checkbox_field/view.rs` 改为 `use crate::checkbox::{Checkbox, CheckboxVariant};`，避免在非 `all-components` 模式下找不到符号。
 - 已新增回归测试锁定修复：`crates/ui-components/tests/checkbox_field_semantics.rs` 增加 `checkbox_field_minimal_feature_gate_keeps_checkbox_dependency_wired`，防止后续再次破坏特性依赖与模块导入路径。
+
+### 11. Checkbox 域拆分与 group 并入联动记录（2026-02-18）
+- [x] `checkbox_field` 与 `checkbox` 目录职责完成拆分：`checkbox` 已迁移到顶层 `crates/ui-components/src/checkbox/*`，`checkbox_field` 仅保留字段包装能力。
+- [x] `checkbox_field` 依赖路径保持稳定：`view.rs` 继续通过 `use crate::checkbox::{Checkbox, CheckboxVariant};` 组合复用，不依赖 root 扁平导出。
+- [x] 联动语义回归通过：
+  - `CARGO_TARGET_DIR=target/checkbox-refactor cargo test -p ui-components --no-default-features --features component-checkbox_field,component-checkbox,inject-css --test checkbox_field_semantics`
+  - `CARGO_TARGET_DIR=target/checkbox-refactor cargo test -p ui-components --no-default-features --features component-checkbox,inject-css --test checkbox_semantics`
+  - `CARGO_TARGET_DIR=target/checkbox-refactor cargo test -p ui-components --no-default-features --features component-checkbox_group,inject-css --test checkbox_group_semantics`

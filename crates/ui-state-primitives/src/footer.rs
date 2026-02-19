@@ -46,7 +46,7 @@ pub struct FooterState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -55,7 +55,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: FooterStateInput) -> FooterState {
@@ -93,7 +93,7 @@ pub fn resolve_state(input: FooterStateInput) -> FooterState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: FooterState) -> String {
-    let mut classes = vec!["ui-footer".to_string(), state.tone_class.to_string()];
+    let mut classes = vec!["ui-footer".to_string(), state.tone_class.into()];
 
     if state.is_bordered {
         classes.push("ui-footer--bordered".to_string());

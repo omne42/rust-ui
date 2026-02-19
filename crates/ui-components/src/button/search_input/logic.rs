@@ -64,7 +64,7 @@ pub fn resolve_effective_aria_label(
             has_custom_aria_label: true,
         },
         None => SearchInputButtonAriaLabelResolution {
-            aria_label: placeholder.to_string(),
+            aria_label: placeholder.into(),
             has_custom_aria_label: false,
         },
     }
@@ -156,12 +156,12 @@ pub fn resolve_view_state(
     let meta_key_label = meta_key_label
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .map(|value| value.to_string());
+        .map(Into::into);
 
     let key_label = key_label
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .map(|value| value.to_string());
+        .map(Into::into);
 
     let show_shortcut = meta_key_label.is_some() && key_label.is_some();
 
@@ -180,11 +180,11 @@ pub fn compose_class_name(
 ) -> String {
     let mut classes = vec![
         "ui-search-input-button".to_string(),
-        state.state_class.to_string(),
-        state.shortcut_class.to_string(),
-        state.placeholder_source_class.to_string(),
-        state.compact_placeholder_source_class.to_string(),
-        state.aria_label_source_class.to_string(),
+        state.state_class.into(),
+        state.shortcut_class.into(),
+        state.placeholder_source_class.into(),
+        state.compact_placeholder_source_class.into(),
+        state.aria_label_source_class.into(),
     ];
 
     if state.has_custom_class_name {

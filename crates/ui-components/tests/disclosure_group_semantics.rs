@@ -26,6 +26,8 @@ fn disclosure_group_uses_logic_state_model() {
 
     for needle in [
         "pub enum DisclosureGroupSelectionMode",
+        "pub struct DisclosureGroupExpandedAxisState",
+        "pub fn resolve_expanded_axis_state(",
         "pub fn normalize_optional_text(",
         "pub fn normalize_aria_label(",
         "pub fn normalize_expanded_indices(",
@@ -43,6 +45,7 @@ fn disclosure_group_uses_logic_state_model() {
 
     for needle in [
         "overlay_open::use_controllable_state",
+        "logic::resolve_expanded_axis_state(",
         "logic::normalize_expanded_indices(",
         "logic::normalize_aria_label(aria_label)",
         "logic::resolve_state(DisclosureGroupStateInput {",
@@ -61,12 +64,13 @@ fn disclosure_group_composes_accordion_with_motion() {
     let view_source = load_source("src/disclosure/group/view.rs");
 
     assert!(
-        mod_source.contains("AccordionMotion as DisclosureGroupMotion"),
-        "DisclosureGroup should expose `DisclosureGroupMotion` as the motion contract alias."
+        !mod_source.contains("DisclosureGroupMotion"),
+        "DisclosureGroup should not keep legacy motion alias export."
     );
 
     for needle in [
-        "motion: DisclosureGroupMotion",
+        "AccordionMotion",
+        "motion: AccordionMotion",
         "<Accordion",
         "<AccordionItem",
         "open=item_open",
@@ -98,8 +102,14 @@ fn disclosure_group_emits_baseline_style_state_data_attributes() {
         "data-disabled=move || state.get().is_disabled.then_some(\"true\")",
         "data-has-disabled-items=move || state.get().has_disabled_items.then_some(\"true\")",
         "data-aria-source=move || state.get().aria_source_attr",
+        "data-expanded-control-mode=expanded_axis_state.control_mode_attr",
+        "data-expanded-controlled=expanded_axis_state.is_controlled.then_some(\"true\")",
+        "data-expanded-uncontrolled=(!expanded_axis_state.is_controlled).then_some(\"true\")",
+        "data-default-expanded-source=expanded_axis_state.default_expanded_source_attr",
         "data-custom-class=move || state.get().has_custom_class_name.then_some(\"true\")",
         "data-class-source=move || state.get().class_source_attr",
+        "data-motion-source=motion_source",
+        "data-custom-motion=custom_motion",
     ] {
         assert!(
             source.contains(attr),
@@ -113,6 +123,8 @@ fn disclosure_group_styles_include_state_markers() {
     let source = load_source("src/disclosure/group/styles.rs");
 
     for selector in [
+        ".ui-disclosure-group[data-motion-source=\"custom\"]",
+        ".ui-disclosure-group[data-custom-motion=\"true\"]",
         ".ui-disclosure-group--selection-single",
         ".ui-disclosure-group[data-selection-mode=\"multiple\"]",
         ".ui-disclosure-group--empty",

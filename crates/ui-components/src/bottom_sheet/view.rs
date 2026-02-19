@@ -1,6 +1,8 @@
 use crate::{
-    BottomSheetMotion, ButtonSize, ButtonVariant, IconButton, OnPress, Sheet, SheetPlacement,
-    bottom_sheet::{BottomSheetStateInput, logic},
+    OnPress,
+    bottom_sheet::{BottomSheetMotion, BottomSheetStateInput, logic},
+    button::{Button, ButtonSize, ButtonVariant},
+    sheet::{Sheet, SheetPlacement},
 };
 use leptos::children::ViewFn;
 use leptos::prelude::*;
@@ -104,10 +106,11 @@ pub fn BottomSheet(
 
                             <Show when=move || state.show_close_button>
                                 <span class="ui-bottom-sheet__close" data-slot="bottom-sheet-close">
-                                    <IconButton
+                                    <Button
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
                                         size=ButtonSize::IconSm
+                                        is_icon_only=true
                                         on_press=on_close
                                     >
                                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -119,7 +122,7 @@ pub fn BottomSheet(
                                                 stroke_linejoin="round"
                                             />
                                         </svg>
-                                    </IconButton>
+                                    </Button>
                                 </span>
                             </Show>
 
@@ -202,10 +205,11 @@ pub fn BottomSheet(
 
                             <Show when=move || state.show_close_button>
                                 <span class="ui-bottom-sheet__close" data-slot="bottom-sheet-close">
-                                    <IconButton
+                                    <Button
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
                                         size=ButtonSize::IconSm
+                                        is_icon_only=true
                                         on_press=on_close
                                     >
                                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -217,7 +221,7 @@ pub fn BottomSheet(
                                                 stroke_linejoin="round"
                                             />
                                         </svg>
-                                    </IconButton>
+                                    </Button>
                                 </span>
                             </Show>
 

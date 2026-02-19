@@ -159,8 +159,7 @@ let on_selected_index_change = Callback::new(move |next: Option<usize>| set_sele
   selected_index=selected_index.into()
   on_selected_index_change=on_selected_index_change
   completed_indices=vec![0]
-/>"#
-        .to_string()
+/>"#.to_string()
     });
 
     let states_code = Signal::derive(move || {
@@ -199,7 +198,11 @@ let on_selected_index_change = Callback::new(move |next: Option<usize>| set_sele
                     />
                     <span class="ui-muted">
                         "selected index: "
-                        {move || selected_index.get().map_or("none".to_string(), |index| index.to_string())}
+                        {move || {
+                            selected_index
+                                .get()
+                                .map_or("none".to_string(), |index| index.to_string())
+                        }}
                     </span>
                 </div>
             </Playground>
@@ -526,7 +529,7 @@ pub(super) fn list_item() -> AnyView {
                     </ListItem>
                     <span class="ui-muted">
                         "selected: "
-                        {move || selected_default.get().to_string()}
+                        {move || selected_default.get()}
                     </span>
                 </div>
             </Playground>
@@ -552,7 +555,7 @@ pub(super) fn list_item() -> AnyView {
 
                     <span class="ui-muted">
                         "focused item selected: "
-                        {move || selected_states.get().to_string()}
+                        {move || selected_states.get()}
                     </span>
                 </div>
             </Playground>
@@ -679,9 +682,9 @@ pub(super) fn list_section() -> AnyView {
 
                     <span class="ui-muted">
                         "primary selected: "
-                        {move || selected_primary.get().to_string()}
+                        {move || selected_primary.get()}
                         " · secondary selected: "
-                        {move || selected_secondary.get().to_string()}
+                        {move || selected_secondary.get()}
                     </span>
                 </div>
             </Playground>
@@ -784,7 +787,7 @@ let radio_kind = MenuItemKind::Radio {
 
                     <span class="ui-muted">
                         "checkbox checked: "
-                        {move || checkbox_checked.get().to_string()}
+                        {move || checkbox_checked.get()}
                     </span>
                 </div>
             </Playground>
@@ -809,7 +812,7 @@ let radio_kind = MenuItemKind::Radio {
 
                     <span class="ui-muted">
                         "radio selected: "
-                        {move || radio_selected.get().to_string()}
+                        {move || radio_selected.get()}
                     </span>
                 </div>
             </Playground>
@@ -931,9 +934,9 @@ let radio_kind = MenuItemKind::Radio {
 
                     <span class="ui-muted">
                         "primary selected: "
-                        {move || primary_checked.get().to_string()}
+                        {move || primary_checked.get()}
                         " · pinned: "
-                        {move || pinned_checked.get().to_string()}
+                        {move || pinned_checked.get()}
                     </span>
                 </div>
             </Playground>
@@ -979,8 +982,7 @@ pub(super) fn dropdown() -> AnyView {
 
     let code = Signal::derive(move || {
         r#"let on_action = Callback::new(move |index: usize| {
-  let _ = index;
-});
+  drop(index);});
 
 <Dropdown
   id_base="profile-dropdown".to_string()
@@ -995,8 +997,7 @@ pub(super) fn dropdown() -> AnyView {
     let states_code = Signal::derive(move || {
         r#"let (open, set_open) = signal(false);
 let on_action = Callback::new(move |index: usize| {
-  let _ = index;
-});
+  drop(index);});
 
 <Dropdown
   id_base="controlled-dropdown".to_string()
@@ -1070,7 +1071,7 @@ let on_action = Callback::new(move |index: usize| {
 
         let mut lines = vec![
             "let on_action = Callback::new(move |index: usize| {".to_string(),
-            "  let _ = index;".to_string(),
+            "  drop(index);".to_string(),
             "});".to_string(),
             String::new(),
         ];
@@ -1089,9 +1090,9 @@ let on_action = Callback::new(move |index: usize| {
         }
 
         lines.push("<Dropdown".to_string());
-        lines.push("  id_base=\"dropdown-workbench\".to_string()".to_string());
+        lines.push("  id_base=\"dropdown-workbench\".into()".to_string());
         lines.push(
-            "  items=vec![\"Profile\".to_string(), \"Settings\".to_string(), \"Sign out\".to_string()]"
+            "  items=vec![\"Profile\".into(), \"Settings\".into(), \"Sign out\".into()]"
                 .to_string(),
         );
         lines.push("  on_action=on_action".to_string());
@@ -1113,20 +1114,18 @@ let on_action = Callback::new(move |index: usize| {
         }
         if has_item_kinds {
             lines.push(
-                "  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]"
-                    .to_string(),
+                "  item_kinds=vec![MenuItemKind::Action, MenuItemKind::Action, MenuItemKind::Action]".to_string(),
             );
         }
         if custom_motion {
             lines.push("  motion=DropdownMotion {".to_string());
             lines.push(
-                "    popover: PopoverMotion { initial_scale: 0.92, offset_y_px: 14.0, ..PopoverMotion::default() },"
-                    .to_string(),
+                "    popover: PopoverMotion { initial_scale: 0.92, offset_y_px: 14.0, ..PopoverMotion::default() },".to_string(),
             );
             lines.push("  }".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-dropdown-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-dropdown-workbench\".into()".to_string());
         }
 
         lines.push(">".to_string());
@@ -1138,7 +1137,7 @@ let on_action = Callback::new(move |index: usize| {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/dropdown/styles.rs */\n{}",
+            "/* crates/ui-components/src/menu/dropdown/styles.rs */\n{}",
             ui_components::dropdown::styles::CSS
         )
     });
@@ -1220,8 +1219,7 @@ let (open, set_open) = signal(false);
   <Dropdown id_base="matrix-empty".to_string() items=Vec::<String>::new() on_action=on_action>
     "Empty"
   </Dropdown>
-</div>"#
-            .to_string()
+</div>"#.to_string()
     });
     let (matrix_open_raw, set_matrix_open_raw) = signal(false);
     let matrix_open_signal: Signal<bool> = Signal::derive(move || matrix_open_raw.get());
@@ -1292,7 +1290,7 @@ let (open, set_open) = signal(false);
                     </Dropdown>
                     <span class="ui-muted" data-slot="dropdown-controlled-open">
                         "open: "
-                        {move || open_raw.get().to_string()}
+                        {move || open_raw.get()}
                     </span>
                 </div>
             </Playground>
@@ -1302,7 +1300,7 @@ let (open, set_open) = signal(false);
                 description="展示 / Config / Code / CSS Test 四区合一：用于快速比对 controlled、placement、motion 与状态来源标记。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/dropdown/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menu/dropdown/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1403,7 +1401,7 @@ let (open, set_open) = signal(false);
                                 </Dropdown>
                                 <span class="ui-muted">
                                     "open: "
-                                    {workbench_open_raw.get().to_string()}
+                                    {workbench_open_raw.get()}
                                     " · last action: "
                                     {workbench_last_action
                                         .get()
@@ -1499,7 +1497,7 @@ let (open, set_open) = signal(false);
 
                     <span class="ui-muted">
                         "controlled open: "
-                        {move || matrix_open_raw.get().to_string()}
+                        {move || matrix_open_raw.get()}
                         " · last action: "
                         {move || {
                             matrix_last_action

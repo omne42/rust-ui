@@ -79,15 +79,14 @@ pub fn attach_motion(
         let style = element.style();
         let motion = motion.get_value();
 
-        let _ = style.set_property("--ui-im-opacity", "0");
-        let _ = style.set_property("--ui-im-y", &format!("{}px", motion.initial_y_px));
-
+        drop(style.set_property("--ui-im-opacity", "0"));
+        drop(style.set_property("--ui-im-y", &format!("{}px", motion.initial_y_px)));
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(0.0, config, move |progress| {
             let progress = progress.clamp(0.0, 1.0);
             let y = motion.initial_y_px * (1.0 - progress);
-            let _ = style_for_apply.set_property("--ui-im-opacity", &format!("{progress}"));
-            let _ = style_for_apply.set_property("--ui-im-y", &format!("{y}px"));
+            drop(style_for_apply.set_property("--ui-im-opacity", &format!("{progress}")));
+            drop(style_for_apply.set_property("--ui-im-y", &format!("{y}px")));
         });
 
         let spring_for_cleanup = spring;
@@ -107,7 +106,7 @@ pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Div>,
     motion: IllustratedMessageMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

@@ -37,7 +37,7 @@ pub(super) fn icons() -> AnyView {
         let tone = picker_tone.get();
 
         format!(
-            "<Icons\n  name=\"{name}\".to_string()\n  set=IconsSet::{set:?}\n  scale=IconsScale::{scale:?}\n  tone=IconsTone::{tone:?}\n  decorative=false\n/>"
+            "<Icons\n  name=\"{name}\".into()\n  set=IconsSet::{set:?}\n  scale=IconsScale::{scale:?}\n  tone=IconsTone::{tone:?}\n  decorative=false\n/>"
         )
     });
     let picker_actual_config = Signal::derive(move || {

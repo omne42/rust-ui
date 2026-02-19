@@ -41,7 +41,7 @@ pub fn UiPerfProbe(
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let _ = set_mount_ms;
+        let _unused_set_mount_ms = set_mount_ms;
     }
 
     let violation = Signal::derive(move || {

@@ -2859,7 +2859,7 @@ fn sonner_tree_shaking_feature_gates_exist() {
 
     for needle in [
         "component-sonner = []",
-        "component-toast = []",
+        "component-toast = [\"component-close_button\"]",
         "component-toaster = []",
         "#[cfg(feature = \"component-sonner\")]",
         "pub mod sonner;",

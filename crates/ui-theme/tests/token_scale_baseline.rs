@@ -14,6 +14,9 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(medium.tokens.typography.font_size_100_px, 12);
     assert_eq!(medium.tokens.typography.font_size_150_px, 14);
     assert_eq!(medium.tokens.typography.font_size_200_px, 16);
+    assert_eq!(medium.tokens.typography.line_height_100_px, 16);
+    assert_eq!(medium.tokens.typography.line_height_150_px, 20);
+    assert_eq!(medium.tokens.typography.line_height_200_px, 24);
     assert_eq!(medium.tokens.component_layout.component_height_100_px, 32);
     assert_eq!(
         medium
@@ -40,6 +43,9 @@ fn token_scale_baselines_are_regression_testable() {
     assert_eq!(large.tokens.typography.font_size_100_px, 14);
     assert_eq!(large.tokens.typography.font_size_150_px, 16);
     assert_eq!(large.tokens.typography.font_size_200_px, 19);
+    assert_eq!(large.tokens.typography.line_height_100_px, 20);
+    assert_eq!(large.tokens.typography.line_height_150_px, 24);
+    assert_eq!(large.tokens.typography.line_height_200_px, 28);
     assert_eq!(large.tokens.component_layout.component_height_100_px, 40);
     assert_eq!(
         large
@@ -69,6 +75,7 @@ fn css_variables_emit_theme_axes() {
     assert!(css.contains("--ui-system: baseline-two;"));
     assert!(css.contains("--ui-color: dark;"));
     assert!(css.contains("--ui-scale: large;"));
+    assert!(css.contains("--ui-line-height-100: 20px;"));
     assert!(css.contains("--ui-space-3xs: 2px;"));
     assert!(css.contains("--ui-space-2xs: 4px;"));
     assert!(css.contains("--ui-slider-max-width:"));
@@ -210,7 +217,10 @@ fn button_layout_tokens_follow_theme_token_baseline() {
     assert_eq!(medium.focus_outline_offset_px, 2);
     assert_eq!(medium.radius_full_px, 9999);
     assert_eq!(medium.m.height_px, 32);
+    assert_eq!(medium.m.min_width_px, 80);
     assert_eq!(medium.m.padding_inline_px, 12);
+    assert_eq!(medium.m.font_size_px, 14);
+    assert_eq!(medium.m.line_height_px, 20);
     assert_eq!(medium.m.gap_px, 6);
     assert_eq!(medium.m.icon_size_px, 32);
 
@@ -371,6 +381,10 @@ fn semantic_roles_align_with_upstream_defaults() {
         "oklch(56.71% 0.2095 257.94)"
     );
     assert_eq!(
+        light.tokens.semantic_roles.secondary,
+        "oklch(48.78% 0.2254 300.51)"
+    );
+    assert_eq!(
         light.tokens.semantic_roles.success,
         "oklch(73.29% 0.1935 150.81)"
     );
@@ -400,6 +414,10 @@ fn semantic_roles_align_with_upstream_defaults() {
     assert_eq!(
         dark.tokens.semantic_roles.primary,
         "oklch(56.71% 0.2095 257.94)"
+    );
+    assert_eq!(
+        dark.tokens.semantic_roles.secondary,
+        "oklch(57.67% 0.1916 304.03)"
     );
     assert_eq!(
         dark.tokens.semantic_roles.warning,

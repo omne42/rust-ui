@@ -1,7 +1,6 @@
 use crate::OnPress;
-use crate::button::{ButtonSize, ButtonVariant};
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use crate::drawer::{DrawerMotion, DrawerPartStateInput, DrawerPlacement, DrawerSlot, logic};
-use crate::icon_button::IconButton;
 use crate::sheet::Sheet;
 use leptos::children::ViewFn;
 use leptos::prelude::*;
@@ -217,10 +216,11 @@ pub fn Drawer(
                                     data-state=close_state.state_attr
                                     data-close-source=close_state.close_source_attr
                                 >
-                                    <IconButton
+                                    <Button
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
                                         size=ButtonSize::IconSm
+                                        is_icon_only=true
                                         on_press=on_close
                                     >
                                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -232,7 +232,7 @@ pub fn Drawer(
                                                 stroke_linejoin="round"
                                             />
                                         </svg>
-                                    </IconButton>
+                                    </Button>
                                 </span>
                             </Show>
 
@@ -345,10 +345,11 @@ pub fn Drawer(
                                     data-state=close_state.state_attr
                                     data-close-source=close_state.close_source_attr
                                 >
-                                    <IconButton
+                                    <Button
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
                                         size=ButtonSize::IconSm
+                                        is_icon_only=true
                                         on_press=on_close
                                     >
                                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -360,7 +361,7 @@ pub fn Drawer(
                                                 stroke_linejoin="round"
                                             />
                                         </svg>
-                                    </IconButton>
+                                    </Button>
                                 </span>
                             </Show>
 

@@ -120,28 +120,27 @@ pub fn attach_motion(
             0.0
         };
 
-        let _ = style.set_property("--ui-pressable-feedback-scale", &format!("{initial_scale}"));
-        let _ = style.set_property(
+        drop(style.set_property("--ui-pressable-feedback-scale", &format!("{initial_scale}")));
+        drop(style.set_property(
             "--ui-pressable-feedback-highlight-opacity",
             &format!("{initial_highlight}"),
-        );
+        ));
 
         let style_scale = style.clone();
         let scale =
             ui_motion::spring::SpringAnimator::new(initial_scale, motion.spring, move |next| {
                 let next = next.clamp(0.6, 1.05);
-                let _ =
-                    style_scale.set_property("--ui-pressable-feedback-scale", &format!("{next}"));
+                drop(style_scale.set_property("--ui-pressable-feedback-scale", &format!("{next}")));
             });
 
         let style_highlight = style.clone();
         let highlight =
             ui_motion::spring::SpringAnimator::new(initial_highlight, motion.spring, move |next| {
                 let next = next.clamp(0.0, 0.6);
-                let _ = style_highlight.set_property(
+                drop(style_highlight.set_property(
                     "--ui-pressable-feedback-highlight-opacity",
                     &format!("{next}"),
-                );
+                ));
             });
 
         let springs_for_cleanup = springs;

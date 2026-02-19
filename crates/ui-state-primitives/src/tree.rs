@@ -68,7 +68,7 @@ pub struct TreeStateCore {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -77,7 +77,7 @@ pub fn resolve_aria_label(value: Option<String>, fallback: &str) -> (String, boo
         return (label, true);
     }
 
-    (fallback.trim().to_string(), false)
+    (fallback.trim().into(), false)
 }
 
 fn normalize_node(mut node: TreeNode, path: &[usize]) -> TreeNode {
@@ -188,7 +188,7 @@ pub fn toggle_expanded(
     }
 
     let mut next = expanded_ids;
-    if !next.insert(id.to_string()) {
+    if !next.insert(id.into()) {
         next.remove(id);
     }
     next

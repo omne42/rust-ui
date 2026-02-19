@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn menubar_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/menubar/mod.rs");
+    let source = load_source("src/menu/menubar/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn menubar_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn menubar_module_exposes_slot_and_state_contracts() {
-    let source = load_source("src/menubar/mod.rs");
+    let source = load_source("src/menu/menubar/mod.rs");
 
     for needle in [
         "pub struct MenubarMenu",
@@ -45,7 +45,7 @@ fn menubar_module_exposes_slot_and_state_contracts() {
 
 #[test]
 fn menubar_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/menubar/mod.rs");
+    let module_source = load_source("src/menu/menubar/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -60,7 +60,7 @@ fn menubar_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn menubar_logic_exposes_state_helpers() {
-    let source = load_source("src/menubar/logic.rs");
+    let source = load_source("src/menu/menubar/logic.rs");
 
     for needle in [
         "pub fn state_attr(menu_count: usize, has_open_menu: bool)",
@@ -84,7 +84,7 @@ fn menubar_logic_exposes_state_helpers() {
 
 #[test]
 fn menubar_view_uses_logic_contracts_and_source_markers() {
-    let source = load_source("src/menubar/view.rs");
+    let source = load_source("src/menu/menubar/view.rs");
 
     for needle in [
         "logic::normalize_id_base(id_base)",
@@ -118,7 +118,7 @@ fn menubar_view_uses_logic_contracts_and_source_markers() {
 
 #[test]
 fn menubar_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/menubar/view.rs");
+    let source = load_source("src/menu/menubar/view.rs");
 
     for needle in [
         "open_index: Option<Signal<Option<usize>>>",
@@ -137,7 +137,7 @@ fn menubar_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn menubar_exposes_keyboard_and_trigger_contracts() {
-    let source = load_source("src/menubar/view.rs");
+    let source = load_source("src/menu/menubar/view.rs");
 
     for needle in [
         "role=\"menubar\"",
@@ -158,7 +158,7 @@ fn menubar_exposes_keyboard_and_trigger_contracts() {
 
 #[test]
 fn menubar_renders_menu_in_popover_with_presence_and_motion() {
-    let source = load_source("src/menubar/view.rs");
+    let source = load_source("src/menu/menubar/view.rs");
 
     for needle in [
         "use_presence(open)",
@@ -177,7 +177,7 @@ fn menubar_renders_menu_in_popover_with_presence_and_motion() {
 
 #[test]
 fn menubar_styles_include_state_and_source_markers() {
-    let source = load_source("src/menubar/styles.rs");
+    let source = load_source("src/menu/menubar/styles.rs");
 
     for needle in [
         ".ui-menubar {",
@@ -208,8 +208,8 @@ fn menubar_styles_include_state_and_source_markers() {
 
 #[test]
 fn menubar_uses_dropdown_menu_motion_alias_contract() {
-    let mod_source = load_source("src/menubar/mod.rs");
-    let dropdown_motion_source = load_source("src/dropdown_menu/motion.rs");
+    let mod_source = load_source("src/menu/menubar/mod.rs");
+    let dropdown_motion_source = load_source("src/menu/dropdown_menu/motion.rs");
 
     for needle in [
         "pub use crate::dropdown_menu::DropdownMenuMotion as MenubarMotion;",
@@ -353,7 +353,7 @@ fn menubar_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn menubar_check2_marks_architecture_layer_definitions_complete() {
-    let check2_source = load_source("src/menubar/check2.md");
+    let check2_source = load_source("src/menu/menubar/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。",
@@ -371,7 +371,7 @@ fn menubar_check2_marks_architecture_layer_definitions_complete() {
 
 #[test]
 fn menubar_check2_marks_semantics_first_testing_complete() {
-    let check2_source = load_source("src/menubar/check2.md");
+    let check2_source = load_source("src/menu/menubar/check2.md");
 
     for needle in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
@@ -387,7 +387,7 @@ fn menubar_check2_marks_semantics_first_testing_complete() {
 
 #[test]
 fn menubar_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/menubar/check2.md");
+    let check2_source = load_source("src/menu/menubar/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -414,7 +414,7 @@ fn menubar_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn menubar_check2_has_no_remaining_unchecked_items() {
-    let check2_source = load_source("src/menubar/check2.md");
+    let check2_source = load_source("src/menu/menubar/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "menubar/check2.md should not keep unchecked checklist items once governance is complete."

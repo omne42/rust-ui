@@ -1,4 +1,3 @@
-use crate::ai_space::use_ai_space_state;
 use crate::tag::{
     TagSize, TagVariant,
     logic::{self},
@@ -77,7 +76,6 @@ pub fn Tag(
     let agent_source = RwSignal::new(logic::TagAgentSource::Init);
     let agent_contract =
         Signal::derive(move || logic::resolve_agent_contract(state, agent_source.get()));
-    let ai_space_state = StoredValue::new(use_ai_space_state());
 
     let class = logic::compose_class_name(normalized.class_name, state);
     let remove_aria_label = StoredValue::new(normalized.remove_aria_label);
@@ -111,18 +109,8 @@ pub fn Tag(
             data-ui-source=move || agent_contract.get().source.as_str()
             data-ui-stream-support=move || agent_contract.get().stream_support.as_str()
             data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()
-            data-ui-stream-mode=move || {
-                ai_space_state
-                    .get_value()
-                    .map(|state| state.get().mode.as_str())
-                    .unwrap_or("snapshot")
-            }
-            data-ui-output-status=move || {
-                ai_space_state
-                    .get_value()
-                    .map(|state| state.get().output_status.as_str())
-                    .unwrap_or(agent_contract.get().output_status.as_str())
-            }
+            data-ui-stream-mode="snapshot"
+            data-ui-output-status=move || agent_contract.get().output_status.as_str()
             data-ui-capability-remove=move || {
                 agent_contract.get().capabilities.can_remove.then_some("true")
             }

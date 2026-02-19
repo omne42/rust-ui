@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn button_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button/group/mod.rs");
+    let source = load_source("src/button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,13 +21,13 @@ fn button_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn button_group_uses_logic_state_model() {
-    let view_source = load_source("src/button/group/view.rs");
-    let logic_source = load_source("src/button/group/logic.rs");
+    let view_source = load_source("src/button/view.rs");
+    let logic_source = load_source("src/button/logic.rs");
 
     for needle in [
         "pub struct ButtonGroupState",
-        "pub fn normalize_aria_label(",
-        "pub fn resolve_state(",
+        "pub fn normalize_button_group_aria_label(",
+        "pub fn resolve_button_group_state(",
         "pub is_attached: bool",
         "pub has_explicit_label: bool",
     ] {
@@ -38,9 +38,9 @@ fn button_group_uses_logic_state_model() {
     }
 
     for needle in [
-        "let (aria_label, has_explicit_label) = logic::normalize_aria_label(aria_label);",
+        "let (aria_label, has_explicit_label) = logic::normalize_button_group_aria_label(aria_label);",
         "let state = Memo::new(move |_|",
-        "logic::resolve_state(orientation, attached, has_explicit_label)",
+        "logic::resolve_button_group_state(orientation, attached, has_explicit_label)",
     ] {
         assert!(
             view_source.contains(needle),
@@ -51,7 +51,7 @@ fn button_group_uses_logic_state_model() {
 
 #[test]
 fn button_group_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/button/group/view.rs");
+    let source = load_source("src/button/view.rs");
 
     for attr in [
         "data-slot=\"button-group\"",
@@ -72,7 +72,7 @@ fn button_group_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn button_group_defaults_accessible_group_label() {
-    let source = load_source("src/button/group/logic.rs");
+    let source = load_source("src/button/logic.rs");
 
     assert!(
         source.contains("\"Button group\".to_string()"),
@@ -82,7 +82,7 @@ fn button_group_defaults_accessible_group_label() {
 
 #[test]
 fn button_group_styles_define_attached_overlap_rule() {
-    let source = load_source("src/button/group/styles.rs");
+    let source = load_source("src/button/styles.rs");
 
     assert!(
         source.contains("--ui-button-group-border-overlap"),

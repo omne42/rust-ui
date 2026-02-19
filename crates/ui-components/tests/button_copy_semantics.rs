@@ -231,7 +231,7 @@ fn button_copy_emits_baseline_style_data_attributes() {
 
     for needle in [
         "data-slot=\"button-copy\"",
-        "data-state=if view_state.is_copyable {",
+        "data-state=view_state.state_attr",
         "data-mode=view_state.mode_attr",
         "data-icon-only=view_state.is_icon_only.then_some(\"true\")",
         "data-with-icon=view_state.shows_icon.then_some(\"true\")",

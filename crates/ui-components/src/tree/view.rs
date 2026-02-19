@@ -1,4 +1,3 @@
-use crate::ai_space::{AiRenderMode, use_ai_space_state};
 use crate::tree::{
     TreeDensity, TreeMotion, TreeNode, TreeStateInput, TreeVisibleNode,
     logic::{self, TreeTone},
@@ -119,7 +118,7 @@ fn render_tree_node(
                 type="button"
                 class=row_class
                 data-slot=TREE_ITEM_SLOT
-                data-depth=node.depth.to_string()
+                data-depth=node.depth
                 data-expanded=node.is_expanded.then_some("true")
                 data-selected=node.is_selected.then_some("true")
                 data-disabled=node.is_disabled.then_some("true")
@@ -288,19 +287,6 @@ pub fn Tree(
     });
     let agent_contract =
         Memo::new(move |_| logic::resolve_agent_contract(state.get(), agent_source.get()));
-    let ai_space_state = StoredValue::new(use_ai_space_state());
-    let stream_mode = Memo::new(move |_| {
-        ai_space_state
-            .get_value()
-            .map(|state| {
-                if state.get().mode == AiRenderMode::Streaming {
-                    logic::TreeStreamMode::Streaming
-                } else {
-                    logic::TreeStreamMode::Snapshot
-                }
-            })
-            .unwrap_or(logic::TreeStreamMode::Snapshot)
-    });
 
     let root_ref: NodeRef<html::Div> = NodeRef::new();
     let expanded_for_motion = Signal::derive(move || state.get().expanded_count > 0);
@@ -330,9 +316,9 @@ pub fn Tree(
             data-state=move || state.get().data_state_attr
             data-disabled=move || state.get().is_disabled.then_some("true")
             data-has-selection=move || state.get().has_selection.then_some("true")
-            data-node-count=move || state.get().node_count.to_string()
-            data-visible-count=move || state.get().visible_count.to_string()
-            data-expanded-count=move || state.get().expanded_count.to_string()
+            data-node-count=move || state.get().node_count
+            data-visible-count=move || state.get().visible_count
+            data-expanded-count=move || state.get().expanded_count
             data-aria-source=move || state.get().aria_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
@@ -352,13 +338,8 @@ pub fn Tree(
             data-ui-source=move || agent_contract.get().source.as_str()
             data-ui-stream-support=move || agent_contract.get().stream_support.as_str()
             data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()
-            data-ui-stream-mode=move || stream_mode.get().as_str()
-            data-ui-output-status=move || {
-                ai_space_state
-                    .get_value()
-                    .map(|state| state.get().output_status.as_str())
-                    .unwrap_or(agent_contract.get().output_status.as_str())
-            }
+            data-ui-stream-mode=logic::TreeStreamMode::Snapshot.as_str()
+            data-ui-output-status=move || agent_contract.get().output_status.as_str()
             data-ui-capability-expand=move || {
                 agent_contract.get().capabilities.can_expand.then_some("true")
             }

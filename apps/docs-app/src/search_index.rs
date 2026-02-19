@@ -45,10 +45,10 @@ pub fn build_records() -> Vec<SearchRecord> {
         out.push(SearchRecord::new(
             SearchKind::DocPage,
             format!("doc:{}", doc.route),
-            doc.title.to_string(),
-            doc.group.to_string(),
-            doc.route.to_string(),
-            doc.route.to_string(),
+            doc.title.into(),
+            doc.group.into(),
+            doc.route.into(),
+            doc.route.into(),
             content,
         ));
 
@@ -62,8 +62,8 @@ pub fn build_records() -> Vec<SearchRecord> {
         out.push(SearchRecord::new(
             SearchKind::Component,
             format!("component:{}", doc.slug),
-            doc.name.to_string(),
-            doc.group.to_string(),
+            doc.name.into(),
+            doc.group.into(),
             route.clone(),
             route,
             String::new(),

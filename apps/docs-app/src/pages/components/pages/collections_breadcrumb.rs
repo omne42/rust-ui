@@ -87,7 +87,7 @@ pub(super) fn breadcrumb() -> AnyView {
         ];
 
         if custom_aria_label.get() {
-            snippet.push("  aria_label=\"Documentation navigation\".to_string()".to_string());
+            snippet.push("  aria_label=\"Documentation navigation\".into()".to_string());
         }
 
         snippet.extend(["/>".to_string()]);

@@ -50,10 +50,10 @@ fn render_input(input: SliderInputRenderInput) -> impl IntoView {
             class=CLASS_SLIDER_INPUT
             data-slot=SLOT_SLIDER_INPUT
             type=INPUT_TYPE_RANGE
-            min=move || slider_aria.state.min.to_string()
-            max=move || slider_aria.state.max.to_string()
-            step=move || slider_aria.state.step.to_string()
-            prop:value=move || slider_aria.state.value.get().to_string()
+            min=move || slider_aria.state.min
+            max=move || slider_aria.state.max
+            step=move || slider_aria.state.step
+            prop:value=move || slider_aria.state.value.get()
             disabled=is_disabled
             role=slider_aria.input.role
             aria-label=move || label.with_value(|label| label.clone())
@@ -102,7 +102,7 @@ fn render_control(input: SliderInputRenderInput) -> impl IntoView {
 #[component]
 pub fn Slider(
     #[prop(optional, into)] id: Option<String>,
-    #[prop(optional, default = logic::DEFAULT_LABEL.to_string(), into)] label: String,
+    #[prop(optional, default = logic::DEFAULT_LABEL.into(), into)] label: String,
     #[prop(optional)] value: Option<Signal<f64>>,
     #[prop(optional)] default_value: Option<f64>,
     #[prop(optional)] on_value_change: Option<Callback<f64>>,
@@ -224,9 +224,9 @@ pub fn Slider(
             data-default-value-source=default_value_source_attr
             data-value-change-source=value_change_source_attr
             data-disabled-source=disabled_source_attr
-            data-min=move || state.get().min.to_string()
-            data-max=move || state.get().max.to_string()
-            data-step=move || state.get().step.to_string()
+            data-min=move || state.get().min
+            data-max=move || state.get().max
+            data-step=move || state.get().step
             data-value=move || state.get().value.to_string()
             data-value-percent=move || state.get().value_percent.to_string()
             data-ui-schema=agent_contract.schema_attr

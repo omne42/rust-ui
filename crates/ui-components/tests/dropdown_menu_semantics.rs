@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn dropdown_menu_does_not_expose_logic_module() {
-    let source = load_source("src/dropdown_menu/mod.rs");
+    let source = load_source("src/menu/dropdown_menu/mod.rs");
 
     for needle in ["pub mod logic", "pub use logic"] {
         assert!(
@@ -21,8 +21,8 @@ fn dropdown_menu_does_not_expose_logic_module() {
 
 #[test]
 fn dropdown_menu_uses_logic_state_model() {
-    let view_source = load_source("src/dropdown_menu/view.rs");
-    let logic_source = load_source("src/dropdown_menu/logic.rs");
+    let view_source = load_source("src/menu/dropdown_menu/view.rs");
+    let logic_source = load_source("src/menu/dropdown_menu/logic.rs");
 
     for needle in [
         "pub struct DropdownMenuStateInput",
@@ -54,7 +54,7 @@ fn dropdown_menu_uses_logic_state_model() {
 
 #[test]
 fn dropdown_menu_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/dropdown_menu/view.rs");
+    let source = load_source("src/menu/dropdown_menu/view.rs");
 
     for needle in [
         "open: Option<Signal<bool>>",
@@ -71,7 +71,7 @@ fn dropdown_menu_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn dropdown_menu_trigger_wires_overlay_aria_contract() {
-    let source = load_source("src/dropdown_menu/view.rs");
+    let source = load_source("src/menu/dropdown_menu/view.rs");
 
     for needle in [
         "aria_haspopup=\"menu\"",
@@ -89,7 +89,7 @@ fn dropdown_menu_trigger_wires_overlay_aria_contract() {
 
 #[test]
 fn dropdown_menu_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/dropdown_menu/view.rs");
+    let source = load_source("src/menu/dropdown_menu/view.rs");
 
     for needle in [
         "data-slot=\"dropdown-menu\"",
@@ -120,7 +120,7 @@ fn dropdown_menu_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn dropdown_menu_renders_menu_inside_popover_with_presence() {
-    let source = load_source("src/dropdown_menu/view.rs");
+    let source = load_source("src/menu/dropdown_menu/view.rs");
 
     for needle in [
         "use_presence(open)",
@@ -139,8 +139,8 @@ fn dropdown_menu_renders_menu_inside_popover_with_presence() {
 
 #[test]
 fn dropdown_menu_uses_logic_for_disabled_trigger_and_open_keys() {
-    let view_source = load_source("src/dropdown_menu/view.rs");
-    let logic_source = load_source("src/dropdown_menu/logic.rs");
+    let view_source = load_source("src/menu/dropdown_menu/view.rs");
+    let logic_source = load_source("src/menu/dropdown_menu/logic.rs");
 
     for needle in [
         "resolve_trigger_disabled",
@@ -167,7 +167,7 @@ fn dropdown_menu_uses_logic_for_disabled_trigger_and_open_keys() {
 
 #[test]
 fn dropdown_menu_styles_include_disabled_and_persistent_markers() {
-    let source = load_source("src/dropdown_menu/styles.rs");
+    let source = load_source("src/menu/dropdown_menu/styles.rs");
 
     for needle in [
         ".ui-dropdown-menu--persistent",
@@ -184,8 +184,8 @@ fn dropdown_menu_styles_include_disabled_and_persistent_markers() {
 
 #[test]
 fn dropdown_menu_exposes_motion_contract_and_internal_module() {
-    let mod_source = load_source("src/dropdown_menu/mod.rs");
-    let motion_source = load_source("src/dropdown_menu/motion.rs");
+    let mod_source = load_source("src/menu/dropdown_menu/mod.rs");
+    let motion_source = load_source("src/menu/dropdown_menu/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -202,8 +202,8 @@ fn dropdown_menu_exposes_motion_contract_and_internal_module() {
 
 #[test]
 fn dropdown_menu_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/dropdown_menu/motion.rs");
-    let view_source = load_source("src/dropdown_menu/view.rs");
+    let motion_source = load_source("src/menu/dropdown_menu/motion.rs");
+    let view_source = load_source("src/menu/dropdown_menu/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: DropdownMenuMotion) -> DropdownMenuMotion",
@@ -277,7 +277,7 @@ fn dropdown_menu_docs_playgrounds_lock_state_matrix_contract_values() {
 #[test]
 fn dropdown_menu_minimal_feature_gate_keeps_dependency_chain_and_module_paths_wired() {
     let cargo_toml = load_source("Cargo.toml");
-    let view_source = load_source("src/dropdown_menu/view.rs");
+    let view_source = load_source("src/menu/dropdown_menu/view.rs");
     let menu_motion_source = load_source("src/menu/motion.rs");
 
     assert!(
@@ -313,7 +313,7 @@ fn dropdown_menu_docs_include_interactive_playground_contract_panels() {
         "test_css_source=interactive_test_css",
         "test_config_signal=interactive_config",
         "controls=move || view!",
-        "test_source_path=\"crates/ui-components/src/dropdown_menu/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui-components/src/menu/dropdown_menu/styles.rs\".to_string()",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -324,7 +324,7 @@ fn dropdown_menu_docs_include_interactive_playground_contract_panels() {
 
 #[test]
 fn dropdown_menu_readme_and_docs_shell_register_display_config_code_css_contract() {
-    let readme_source = load_source("src/dropdown_menu/README.md");
+    let readme_source = load_source("src/menu/dropdown_menu/README.md");
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
 
     assert!(

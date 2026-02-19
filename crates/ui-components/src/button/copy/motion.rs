@@ -126,7 +126,7 @@ pub fn attach_motion(
     _is_copied: Signal<bool>,
     motion: ButtonCopyMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

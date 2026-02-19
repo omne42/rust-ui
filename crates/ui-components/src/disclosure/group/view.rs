@@ -1,8 +1,8 @@
 use super::{
-    DisclosureGroupMotion, DisclosureGroupStateInput,
+    DisclosureGroupStateInput,
     logic::{self, DisclosureGroupSelectionMode},
 };
-use crate::accordion::{Accordion, AccordionItem, AccordionSelectionMode};
+use crate::accordion::{Accordion, AccordionItem, AccordionMotion, AccordionSelectionMode};
 use leptos::{children::ChildrenFragment as Children, prelude::*};
 use std::collections::BTreeSet;
 use ui_headless as overlay_open;
@@ -17,7 +17,7 @@ pub fn DisclosureGroup(
     #[prop(optional)] selection_mode: DisclosureGroupSelectionMode,
     #[prop(optional)] disabled: bool,
     #[prop(optional)] disabled_indices: Vec<usize>,
-    #[prop(optional)] motion: DisclosureGroupMotion,
+    #[prop(optional)] motion: AccordionMotion,
     #[prop(optional, into)] aria_label: Option<String>,
     #[prop(optional, into)] class_name: Option<String>,
     children: Children,
@@ -26,6 +26,12 @@ pub fn DisclosureGroup(
     let item_count = labels.len().min(panels.iter().len());
     let labels = labels.into_iter().take(item_count);
     let panels = panels.into_iter().take(item_count);
+    let has_controlled_expanded_indices = expanded_indices.is_some();
+    let has_default_expanded_indices = default_expanded_indices.is_some();
+    let expanded_axis_state = logic::resolve_expanded_axis_state(
+        has_controlled_expanded_indices,
+        has_default_expanded_indices,
+    );
 
     let default_expanded_indices = logic::normalize_expanded_indices(
         selection_mode,
@@ -78,6 +84,12 @@ pub fn DisclosureGroup(
     });
 
     let class = Memo::new(move |_| logic::compose_class_name(class_name.get_value(), state.get()));
+    let motion_source = if motion == AccordionMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != AccordionMotion::default()).then_some("true");
 
     let accordion_selection_mode = match selection_mode {
         DisclosureGroupSelectionMode::Single => AccordionSelectionMode::Single,
@@ -129,8 +141,14 @@ pub fn DisclosureGroup(
             data-disabled=move || state.get().is_disabled.then_some("true")
             data-has-disabled-items=move || state.get().has_disabled_items.then_some("true")
             data-aria-source=move || state.get().aria_source_attr
+            data-expanded-control-mode=expanded_axis_state.control_mode_attr
+            data-expanded-controlled=expanded_axis_state.is_controlled.then_some("true")
+            data-expanded-uncontrolled=(!expanded_axis_state.is_controlled).then_some("true")
+            data-default-expanded-source=expanded_axis_state.default_expanded_source_attr
             data-custom-class=move || state.get().has_custom_class_name.then_some("true")
             data-class-source=move || state.get().class_source_attr
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
             role="group"
             aria-label=aria_label
         >

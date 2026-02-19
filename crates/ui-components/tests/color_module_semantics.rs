@@ -126,8 +126,8 @@ fn color_module_docs_playgrounds_lock_state_matrix_contract_values() {
     }
 
     for needle in [
-        "title=\"Size + Rounding\"",
-        "title=\"Transparency + Accessible Label + Shape\"",
+        "title=\"Comparison Matrix (Size / Alpha / Shape / Empty)\"",
+        "title=\"Rounded Large + Custom Label/Class\"",
         "title=\"Basic Selection\"",
         "title=\"Transparency + Disabled + Custom Class\"",
     ] {

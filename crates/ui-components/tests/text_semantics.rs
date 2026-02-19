@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn text_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/text/mod.rs");
+    let source = load_source("src/text_input/text/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn text_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn text_uses_logic_state_model() {
-    let logic_source = load_source("src/text/logic.rs");
-    let view_source = load_source("src/text/view.rs");
+    let logic_source = load_source("src/text_input/text/logic.rs");
+    let view_source = load_source("src/text_input/text/view.rs");
 
     for needle in [
         "pub enum TextTone",
@@ -59,7 +59,7 @@ fn text_uses_logic_state_model() {
 
 #[test]
 fn text_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/text/view.rs");
+    let source = load_source("src/text_input/text/view.rs");
 
     for attr in [
         "data-slot=\"text\"",
@@ -82,7 +82,7 @@ fn text_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn text_styles_include_tone_align_weight_and_markers() {
-    let source = load_source("src/text/styles.rs");
+    let source = load_source("src/text_input/text/styles.rs");
 
     for selector in [
         ".ui-text--tone-default",
@@ -152,6 +152,30 @@ fn text_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "display_extra text docs playgrounds should contain `{needle}` for state-matrix contracts.",
+        );
+    }
+}
+
+#[test]
+fn text_styles_use_typography_tokens_for_default_metrics() {
+    let source = load_source("src/text_input/text/styles.rs");
+
+    for needle in [
+        "--ui-text-font-size: var(--ui-font-size-150);",
+        "--ui-text-line-height: var(--ui-line-height-150);",
+        "font-size: var(--ui-text-font-size);",
+        "line-height: var(--ui-text-line-height);",
+    ] {
+        assert!(
+            source.contains(needle),
+            "Text styles should include tokenized typography metric `{needle}`."
+        );
+    }
+
+    for forbidden in ["font-size: 0.9rem;", "line-height: 1.5;"] {
+        assert!(
+            !source.contains(forbidden),
+            "Text styles should not keep legacy hardcoded metric `{forbidden}`."
         );
     }
 }

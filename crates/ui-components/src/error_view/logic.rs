@@ -9,9 +9,7 @@ pub struct ErrorViewNormalizeInput {
     pub tone: Option<ErrorViewTone>,
     pub is_invalid: bool,
     pub is_compact: Option<bool>,
-    pub compact: Option<bool>,
     pub is_bordered: Option<bool>,
-    pub bordered: Option<bool>,
     pub message: Option<String>,
     pub aria_label: Option<String>,
     pub class_name: Option<String>,
@@ -44,16 +42,9 @@ fn source_attr_from_presence(is_present: bool) -> &'static str {
     if is_present { "prop" } else { "default" }
 }
 
-fn resolve_bool_axis(
-    preferred: Option<bool>,
-    legacy: Option<bool>,
-    default_value: bool,
-) -> (bool, &'static str) {
-    if let Some(value) = preferred {
+fn resolve_bool_axis(value: Option<bool>, default_value: bool) -> (bool, &'static str) {
+    if let Some(value) = value {
         return (value, "is-prop");
-    }
-    if let Some(value) = legacy {
-        return (value, "legacy-prop");
     }
     (default_value, "default")
 }
@@ -62,9 +53,8 @@ pub fn normalize_props(input: ErrorViewNormalizeInput) -> ErrorViewNormalizedPro
     let tone = input.tone.unwrap_or_default();
     let tone_source_attr = source_attr_from_presence(input.tone.is_some());
 
-    let (compact, compact_source_attr) = resolve_bool_axis(input.is_compact, input.compact, false);
-    let (bordered, bordered_source_attr) =
-        resolve_bool_axis(input.is_bordered, input.bordered, false);
+    let (compact, compact_source_attr) = resolve_bool_axis(input.is_compact, false);
+    let (bordered, bordered_source_attr) = resolve_bool_axis(input.is_bordered, false);
 
     let (message, has_custom_message) = normalize_message(input.message);
     let (aria_label, has_custom_aria_label) = normalize_aria_label(input.aria_label);
@@ -112,9 +102,7 @@ mod tests {
             tone: None,
             is_invalid: true,
             is_compact: Some(true),
-            compact: Some(false),
             is_bordered: None,
-            bordered: Some(true),
             message: Some("  Email invalid  ".to_string()),
             aria_label: None,
             class_name: Some("  docs-error-view  ".to_string()),
@@ -127,7 +115,7 @@ mod tests {
         assert_eq!(normalized.state_input.tone, ErrorViewTone::Negative);
         assert!(normalized.state_input.is_invalid);
         assert!(normalized.state_input.compact);
-        assert!(normalized.state_input.bordered);
+        assert!(!normalized.state_input.bordered);
         assert!(normalized.state_input.has_custom_message);
         assert!(!normalized.state_input.has_custom_aria_label);
         assert!(normalized.state_input.has_custom_class_name);
@@ -137,6 +125,6 @@ mod tests {
         assert_eq!(normalized.class_name, Some("docs-error-view".to_string()));
         assert_eq!(normalized.tone_source_attr, "default");
         assert_eq!(normalized.compact_source_attr, "is-prop");
-        assert_eq!(normalized.bordered_source_attr, "legacy-prop");
+        assert_eq!(normalized.bordered_source_attr, "default");
     }
 }

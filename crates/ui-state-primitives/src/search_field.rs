@@ -38,7 +38,6 @@ impl SearchFieldControlMode {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SearchFieldValueChangeSource {
     OnValueChange,
-    SetValue,
     None,
 }
 
@@ -46,7 +45,6 @@ impl SearchFieldValueChangeSource {
     pub fn as_attr(self) -> &'static str {
         match self {
             Self::OnValueChange => "on_value_change",
-            Self::SetValue => "set_value",
             Self::None => "none",
         }
     }
@@ -57,7 +55,6 @@ pub struct SearchFieldValueAxisInput {
     pub is_controlled: bool,
     pub has_default_value: bool,
     pub has_on_value_change: bool,
-    pub has_legacy_set_value: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -82,8 +79,6 @@ pub fn resolve_value_axis_state(input: SearchFieldValueAxisInput) -> SearchField
 
     let value_change_source = if input.has_on_value_change {
         SearchFieldValueChangeSource::OnValueChange
-    } else if input.has_legacy_set_value {
-        SearchFieldValueChangeSource::SetValue
     } else {
         SearchFieldValueChangeSource::None
     };
@@ -93,7 +88,7 @@ pub fn resolve_value_axis_state(input: SearchFieldValueAxisInput) -> SearchField
         control_mode_attr: control_mode.as_attr(),
         default_value_source_attr: source_attr_from_presence(input.has_default_value),
         value_change_source_attr: value_change_source.as_attr(),
-        has_value_change_handler: input.has_on_value_change || input.has_legacy_set_value,
+        has_value_change_handler: input.has_on_value_change,
     }
 }
 
@@ -249,7 +244,6 @@ mod tests {
             is_controlled: true,
             has_default_value: true,
             has_on_value_change: true,
-            has_legacy_set_value: true,
         });
 
         assert!(state.is_controlled);
@@ -260,19 +254,18 @@ mod tests {
     }
 
     #[test]
-    fn resolve_value_axis_falls_back_to_legacy_set_value_marker() {
+    fn resolve_value_axis_without_change_callback_marks_none_source() {
         let state = resolve_value_axis_state(SearchFieldValueAxisInput {
             is_controlled: false,
             has_default_value: false,
             has_on_value_change: false,
-            has_legacy_set_value: true,
         });
 
         assert!(!state.is_controlled);
         assert_eq!(state.control_mode_attr, "uncontrolled");
         assert_eq!(state.default_value_source_attr, "default");
-        assert_eq!(state.value_change_source_attr, "set_value");
-        assert!(state.has_value_change_handler);
+        assert_eq!(state.value_change_source_attr, "none");
+        assert!(!state.has_value_change_handler);
     }
 
     #[test]
@@ -281,7 +274,6 @@ mod tests {
             is_controlled: false,
             has_default_value: false,
             has_on_value_change: false,
-            has_legacy_set_value: false,
         });
 
         assert_eq!(state.value_change_source_attr, "none");

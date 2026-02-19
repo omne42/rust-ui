@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn description_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/description/mod.rs");
+    let source = load_source("src/field_form/description/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn description_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn description_uses_logic_state_model() {
-    let logic_source = load_source("src/description/logic.rs");
-    let view_source = load_source("src/description/view.rs");
+    let logic_source = load_source("src/field_form/description/logic.rs");
+    let view_source = load_source("src/field_form/description/view.rs");
 
     for needle in [
         "pub enum DescriptionTone",
@@ -57,7 +57,7 @@ fn description_uses_logic_state_model() {
 
 #[test]
 fn description_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/description/view.rs");
+    let source = load_source("src/field_form/description/view.rs");
 
     for attr in [
         "data-slot=\"description\"",
@@ -79,7 +79,7 @@ fn description_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn description_styles_include_tone_state_and_markers() {
-    let source = load_source("src/description/styles.rs");
+    let source = load_source("src/field_form/description/styles.rs");
 
     for selector in [
         ".ui-description--tone-default",
@@ -154,7 +154,7 @@ fn description_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn description_check2_marks_architecture_layer_definitions_complete() {
-    let check2_source = load_source("src/description/check2.md");
+    let check2_source = load_source("src/field_form/description/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。",
@@ -172,7 +172,7 @@ fn description_check2_marks_architecture_layer_definitions_complete() {
 
 #[test]
 fn description_check2_marks_semantics_first_testing_complete() {
-    let check2_source = load_source("src/description/check2.md");
+    let check2_source = load_source("src/field_form/description/check2.md");
 
     for needle in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
@@ -188,7 +188,7 @@ fn description_check2_marks_semantics_first_testing_complete() {
 
 #[test]
 fn description_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/description/check2.md");
+    let check2_source = load_source("src/field_form/description/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -215,7 +215,7 @@ fn description_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn description_check2_has_no_remaining_unchecked_items() {
-    let check2_source = load_source("src/description/check2.md");
+    let check2_source = load_source("src/field_form/description/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "description/check2.md should not keep unchecked checklist items once governance is complete."

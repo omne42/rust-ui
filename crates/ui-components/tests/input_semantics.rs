@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn input_clears_on_escape_when_clearable_and_not_empty() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     assert!(
         source.contains("use_clearable_text_field"),
@@ -35,7 +35,7 @@ fn input_clears_on_escape_when_clearable_and_not_empty() {
 
 #[test]
 fn input_escape_clear_stops_propagation() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     assert!(
         source.contains("stop_propagation()"),
@@ -45,7 +45,7 @@ fn input_escape_clear_stops_propagation() {
 
 #[test]
 fn input_mounts_locale_attrs_from_headless_a11y_helpers() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     for needle in [
         "A11yDirection",
@@ -64,20 +64,20 @@ fn input_mounts_locale_attrs_from_headless_a11y_helpers() {
 
 #[test]
 fn input_clear_button_is_excluded_from_tab_order() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     assert!(
-        source.contains("tabindex=\"-1\""),
+        source.contains("exclude_from_tab_order=true"),
         "Input clear button should be excluded from tab order to avoid extra Tab stops."
     );
 }
 
 #[test]
 fn input_clear_button_is_presence_safe() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     assert!(
-        source.contains("data-visible"),
+        source.contains("is_visible=Signal::derive(move || view_state.get().show_clear)"),
         "Input should keep the clear button in the DOM and toggle visibility via data attributes."
     );
     assert!(
@@ -88,7 +88,7 @@ fn input_clear_button_is_presence_safe() {
 
 #[test]
 fn input_attaches_clear_motion_driver() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     assert!(
         source.contains("attach_clear_button_motion"),
@@ -98,7 +98,7 @@ fn input_attaches_clear_motion_driver() {
 
 #[test]
 fn input_styles_include_motion_marker_contracts() {
-    let source = load_source("src/input/styles.rs");
+    let source = load_source("src/text_input/input/styles.rs");
 
     for selector in [
         ".ui-input[data-motion-source=\"custom\"]",
@@ -113,7 +113,7 @@ fn input_styles_include_motion_marker_contracts() {
 
 #[test]
 fn input_styles_define_clear_motion_css_vars() {
-    let source = load_source("src/input/styles.rs");
+    let source = load_source("src/text_input/input/styles.rs");
 
     assert!(
         source.contains("--ui-input-clear-opacity"),
@@ -127,7 +127,7 @@ fn input_styles_define_clear_motion_css_vars() {
 
 #[test]
 fn input_motion_uses_spring_animator() {
-    let source = load_source("src/input/motion.rs");
+    let source = load_source("src/text_input/input/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -137,7 +137,7 @@ fn input_motion_uses_spring_animator() {
 
 #[test]
 fn input_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/input/view.rs");
+    let source = load_source("src/text_input/input/view.rs");
 
     for attr in [
         "data-focused",
@@ -158,7 +158,7 @@ fn input_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn input_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/input/motion.rs");
+    let source = load_source("src/text_input/input/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: InputMotion) -> InputMotion",
@@ -179,7 +179,7 @@ fn input_motion_sanitizes_custom_contract_values() {
 
 #[test]
 fn input_state_primitives_are_sourced_from_ui_state_primitives() {
-    let logic_source = load_source("src/input/logic.rs");
+    let logic_source = load_source("src/text_input/input/logic.rs");
 
     for needle in [
         "pub use ui_state_primitives::input::{",
@@ -242,9 +242,9 @@ fn input_performance_governance_contract_is_budgeted_traceable_and_blocking() {
     let perf_probe_source = load_source("../../crates/ui-headless/src/perf.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
-    let check2_source = load_source("src/input/check2.md");
+    let check2_source = load_source("src/text_input/input/check2.md");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let view_source = load_source("src/input/view.rs");
+    let view_source = load_source("src/text_input/input/view.rs");
 
     for needle in [
         "\"button\" => UiPerfBudget {",
@@ -358,8 +358,40 @@ fn input_performance_check_script_covers_budget_and_follow_up_gates() {
 }
 
 #[test]
+fn text_input_family_label_meta_text_metrics_use_typography_tokens() {
+    let style_files = [
+        "src/text_input/input/styles.rs",
+        "src/text_input/text_field/styles.rs",
+        "src/text_input/search_field/styles.rs",
+        "src/text_input/textarea/styles.rs",
+        "src/text_input/text_area/styles.rs",
+    ];
+
+    for style_file in style_files {
+        let source = load_source(style_file);
+
+        assert!(
+            source.contains("var(--ui-line-height-150)"),
+            "{style_file} should use `--ui-line-height-150` for control/label text metrics."
+        );
+        assert!(
+            source.contains("var(--ui-line-height-100)"),
+            "{style_file} should use `--ui-line-height-100` for meta text metrics."
+        );
+        assert!(
+            !source.contains("line-height: 1.2;"),
+            "{style_file} should not hardcode `line-height: 1.2;`."
+        );
+        assert!(
+            !source.contains("line-height: 1.3;"),
+            "{style_file} should not hardcode `line-height: 1.3;`."
+        );
+    }
+}
+
+#[test]
 fn input_check2_has_no_unchecked_items_after_verification() {
-    let source = load_source("src/input/check2.md");
+    let source = load_source("src/text_input/input/check2.md");
 
     assert!(
         !source.contains("- [ ]"),

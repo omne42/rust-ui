@@ -93,7 +93,7 @@ pub fn resolve_dismiss_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_DISMISS_ARIA_LABEL.to_string(), false)
+    (DEFAULT_DISMISS_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: ChipStateInput) -> ChipState {
@@ -184,7 +184,7 @@ mod tests {
     fn resolve_dismiss_aria_label_defaults_and_trims() {
         assert_eq!(
             resolve_dismiss_aria_label(None),
-            (DEFAULT_DISMISS_ARIA_LABEL.to_string(), false)
+            (DEFAULT_DISMISS_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_dismiss_aria_label(Some(" Dismiss assignee ".to_string())),

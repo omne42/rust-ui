@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn sidebar_menu_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sidebar_menu/mod.rs");
+    let source = load_source("src/sidebar/menu/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn sidebar_menu_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sidebar_menu_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/sidebar_menu/mod.rs");
+    let module_source = load_source("src/sidebar/menu/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -40,8 +40,8 @@ fn sidebar_menu_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn sidebar_menu_uses_logic_state_model() {
-    let logic_source = load_source("src/sidebar_menu/logic.rs");
-    let view_source = load_source("src/sidebar_menu/view.rs");
+    let logic_source = load_source("src/sidebar/menu/logic.rs");
+    let view_source = load_source("src/sidebar/menu/view.rs");
 
     for needle in [
         "pub struct SidebarMenuItem",
@@ -79,7 +79,7 @@ fn sidebar_menu_uses_logic_state_model() {
 
 #[test]
 fn sidebar_menu_supports_controlled_and_uncontrolled_active_state() {
-    let source = load_source("src/sidebar_menu/view.rs");
+    let source = load_source("src/sidebar/menu/view.rs");
 
     for needle in [
         "active_id: Option<Signal<Option<String>>>",
@@ -97,7 +97,7 @@ fn sidebar_menu_supports_controlled_and_uncontrolled_active_state() {
 
 #[test]
 fn sidebar_menu_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/sidebar_menu/view.rs");
+    let source = load_source("src/sidebar/menu/view.rs");
 
     for needle in [
         "data-slot=\"sidebar-menu\"",
@@ -120,7 +120,7 @@ fn sidebar_menu_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn sidebar_menu_styles_include_core_and_submenu_markers() {
-    let source = load_source("src/sidebar_menu/styles.rs");
+    let source = load_source("src/sidebar/menu/styles.rs");
 
     for needle in [
         ".ui-sidebar-menu {",

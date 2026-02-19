@@ -26,6 +26,14 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-sm);
 }
 
+.ui-skeleton-group[data-loading-source="prop"],
+.ui-skeleton-group[data-skeleton-only-source="prop"],
+.ui-skeleton-group[data-variant-source="prop"],
+.ui-skeleton-group[data-layout-source="prop"],
+.ui-skeleton-group[data-density-source="prop"] {
+  --ui-skeleton-group-prop-source: 1;
+}
+
 .ui-skeleton-group--variant-pulse .ui-skeleton,
 .ui-skeleton-group[data-variant="pulse"] .ui-skeleton {
   animation: ui-skeleton-group-pulse 1.15s ease-in-out infinite alternate;

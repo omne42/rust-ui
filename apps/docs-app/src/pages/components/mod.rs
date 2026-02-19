@@ -74,7 +74,7 @@ pub fn ComponentsIndex() -> impl IntoView {
     });
 
     let group_options: Vec<String> = std::iter::once("All".to_string())
-        .chain(GROUP_ORDER.iter().copied().map(|group| group.to_string()))
+        .chain(GROUP_ORDER.iter().copied().map(|group| group.into()))
         .collect();
 
     view! {
@@ -200,6 +200,14 @@ mod tests {
                 "color-editor",
                 "color-swatch-picker",
             ],
+            "area" => &["color-area"],
+            "editor" => &["color-editor"],
+            "handle" => &["color-handle"],
+            "loupe" => &["color-loupe"],
+            "swatch-picker" => &["color-swatch-picker"],
+            "thumb" => &["color-thumb"],
+            "wheel" => &["color-wheel"],
+            "field-form" => &["field"],
             "list" => &["list", "list-item", "list-section"],
             "selection-indicator" => &["list-item", "menu-item"],
             "shared-element-transition" => &["view"],
@@ -213,6 +221,7 @@ mod tests {
             "theme-light" => &["ui-root"],
             "example-theme" => &["ui-root"],
             "spinbutton" => &["number-field"],
+            "text-input" => &["input"],
             "toast" => &["toast-viewport"],
             "toolbar" => &["action-bar"],
             "ai-space" => &["accordion"],
@@ -257,14 +266,13 @@ mod tests {
 
     #[test]
     fn every_component_doc_page_renders_at_least_one_playground() {
-        let _ = any_spawner::Executor::init_futures_executor();
+        drop(any_spawner::Executor::init_futures_executor());
         for doc in component_catalog().iter().copied() {
             Owner::new().with(|| {
                 let _toc = crate::toc::provide_docs_toc();
                 let registry = crate::playground::provide_playground_registry();
 
-                let _ = (doc.page)();
-
+                drop((doc.page)());
                 let titles = registry.titles().get_untracked();
                 assert!(
                     !titles.is_empty(),

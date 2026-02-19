@@ -55,25 +55,25 @@ pub fn close_button_attr(show_close_button: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_required_text(value: String, fallback: &'static str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        fallback.to_string()
+        fallback.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
 pub fn normalize_id_base(value: String) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        DEFAULT_ID_BASE.to_string()
+        DEFAULT_ID_BASE.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -121,10 +121,10 @@ pub fn resolve_state(input: DialogPartStateInput) -> DialogPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: DialogPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if matches!(state.slot, DialogSlot::Root) {
-        classes.push(state.size_class.to_string());
+        classes.push(state.size_class.into());
 
         if state.show_description {
             classes.push("ui-dialog--with-description".to_string());

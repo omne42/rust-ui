@@ -150,12 +150,12 @@ pub fn resolve_initials(name: Option<&str>) -> String {
 }
 
 pub fn resolve_accessibility(name: Option<&str>, alt: Option<&str>) -> AvatarAccessibility {
-    let title = name.map(|value| value.to_string());
+    let title = name.map(str::to_string);
 
     if let Some(alt) = alt {
         return AvatarAccessibility {
-            aria_label: alt.to_string(),
-            img_alt: alt.to_string(),
+            aria_label: alt.into(),
+            img_alt: alt.into(),
             title,
             label_source: AvatarLabelSource::Alt,
         };
@@ -163,15 +163,15 @@ pub fn resolve_accessibility(name: Option<&str>, alt: Option<&str>) -> AvatarAcc
 
     if let Some(name) = name {
         return AvatarAccessibility {
-            aria_label: name.to_string(),
-            img_alt: name.to_string(),
+            aria_label: name.into(),
+            img_alt: name.into(),
             title,
             label_source: AvatarLabelSource::Name,
         };
     }
 
     AvatarAccessibility {
-        aria_label: DEFAULT_ARIA_LABEL.to_string(),
+        aria_label: DEFAULT_ARIA_LABEL.into(),
         img_alt: String::new(),
         title,
         label_source: AvatarLabelSource::Fallback,

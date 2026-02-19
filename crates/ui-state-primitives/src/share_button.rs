@@ -137,7 +137,7 @@ pub fn resolve_label_with_fallback(label: Option<String>, fallback_label: &str) 
     if trimmed_fallback.is_empty() {
         label.unwrap_or_else(|| "Share".to_string())
     } else {
-        label.unwrap_or_else(|| trimmed_fallback.to_string())
+        label.unwrap_or_else(|| trimmed_fallback.into())
     }
 }
 
@@ -152,9 +152,9 @@ fn normalize_item_label(
 ) -> String {
     let trimmed = label.trim();
     if trimmed.is_empty() {
-        labels.for_platform(platform).trim().to_string()
+        labels.for_platform(platform).trim().into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -267,11 +267,11 @@ mod tests {
     fn resolve_label_uses_custom_fallback_when_provided() {
         assert_eq!(
             resolve_label_with_fallback(None, "Partager"),
-            "Partager".to_string()
+            String::from("Partager")
         );
         assert_eq!(
             resolve_label_with_fallback(Some("Share docs".to_string()), "Partager"),
-            "Share docs".to_string()
+            String::from("Share docs")
         );
     }
 

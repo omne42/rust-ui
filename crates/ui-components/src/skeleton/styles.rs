@@ -17,6 +17,11 @@ pub const CSS: &str = r#"
   border-radius: 9999px;
 }
 
+.ui-skeleton[data-variant-source="prop"],
+.ui-skeleton[data-shimmer-source="prop"] {
+  --ui-skeleton-prop-source: 1;
+}
+
 .ui-skeleton--shimmer::after,
 .ui-skeleton[data-shimmer="true"]::after {
   content: "";

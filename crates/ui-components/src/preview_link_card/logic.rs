@@ -21,7 +21,7 @@ pub fn content_attr(has_image: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -42,7 +42,7 @@ pub fn resolve_title(value: Option<String>) -> (String, bool) {
         return (value, true);
     }
 
-    (DEFAULT_TITLE.to_string(), false)
+    (DEFAULT_TITLE.into(), false)
 }
 
 pub fn resolve_description(value: Option<String>) -> (String, bool) {
@@ -50,7 +50,7 @@ pub fn resolve_description(value: Option<String>) -> (String, bool) {
         return (value, true);
     }
 
-    (DEFAULT_DESCRIPTION.to_string(), false)
+    (DEFAULT_DESCRIPTION.into(), false)
 }
 
 pub fn resolve_url(value: Option<String>) -> (String, bool) {
@@ -58,7 +58,7 @@ pub fn resolve_url(value: Option<String>) -> (String, bool) {
         return (value, true);
     }
 
-    (DEFAULT_URL.to_string(), false)
+    (DEFAULT_URL.into(), false)
 }
 
 fn derive_site_label_from_url(url: &str) -> Option<String> {
@@ -82,7 +82,7 @@ fn derive_site_label_from_url(url: &str) -> Option<String> {
         return None;
     }
 
-    Some(host.trim_start_matches("www.").to_string())
+    Some(host.trim_start_matches("www.").into())
 }
 
 pub fn resolve_site_label(
@@ -97,7 +97,7 @@ pub fn resolve_site_label(
         return (derived, "derived");
     }
 
-    (DEFAULT_SITE_LABEL.to_string(), "default")
+    (DEFAULT_SITE_LABEL.into(), "default")
 }
 
 pub fn resolve_image_src(image_src: Option<String>) -> Option<String> {
@@ -146,7 +146,7 @@ pub fn compose_class_name(
     base_class_name: Option<String>,
     state: PreviewLinkCardPartState,
 ) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if matches!(state.slot, PreviewLinkCardSlot::Root) {
         if state.is_disabled {
@@ -239,7 +239,7 @@ mod tests {
             ("docs-preview".to_string(), true)
         );
 
-        assert_eq!(resolve_title(None), (DEFAULT_TITLE.to_string(), false));
+        assert_eq!(resolve_title(None), (DEFAULT_TITLE.into(), false));
         assert_eq!(
             resolve_title(Some("  GitHub  ".to_string())),
             ("GitHub".to_string(), true)
@@ -251,10 +251,10 @@ mod tests {
         );
         assert_eq!(
             resolve_description(None),
-            (DEFAULT_DESCRIPTION.to_string(), false)
+            (DEFAULT_DESCRIPTION.into(), false)
         );
 
-        assert_eq!(resolve_url(None), (DEFAULT_URL.to_string(), false));
+        assert_eq!(resolve_url(None), (DEFAULT_URL.into(), false));
         assert_eq!(
             resolve_url(Some(" https://github.com/adobe/ui-baseline ".to_string())),
             ("https://github.com/adobe/ui-baseline".to_string(), true)
@@ -275,7 +275,7 @@ mod tests {
 
         assert_eq!(
             resolve_site_label(None, "   "),
-            (DEFAULT_SITE_LABEL.to_string(), "default")
+            (DEFAULT_SITE_LABEL.into(), "default")
         );
     }
 

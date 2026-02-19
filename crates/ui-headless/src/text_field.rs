@@ -12,8 +12,8 @@ fn push_token(tokens: &mut Vec<String>, seen: &mut HashSet<String>, token: &str)
     if token.is_empty() {
         return;
     }
-    if seen.insert(token.to_string()) {
-        tokens.push(token.to_string());
+    if seen.insert(token.into()) {
+        tokens.push(token.into());
     }
 }
 

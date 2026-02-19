@@ -35,7 +35,7 @@ fn focus_option(option_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
     let Some(el) = node_ref.get_untracked() else {
         return;
     };
-    let _ = el.focus();
+    drop(el.focus());
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -47,7 +47,7 @@ fn option_label_for_index(options: &[String], index: usize) -> String {
         .cloned()
         .and_then(|value| {
             let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| trimmed.to_string())
+            (!trimmed.is_empty()).then(|| trimmed.into())
         })
         .unwrap_or_else(|| format!("Option {}", index + 1))
 }
@@ -169,11 +169,11 @@ pub fn SegmentedControl(
     let aria_label = aria_label
         .filter(|value| !value.trim().is_empty())
         .or_else(|| label.clone())
-        .unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string());
+        .unwrap_or_else(|| DEFAULT_ARIA_LABEL.into());
 
     let label = label.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     });
     let agent_contract = segmented_control_agent_contract();
     let has_label = label.is_some();

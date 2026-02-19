@@ -5,20 +5,20 @@ use ui_components::{FieldLabel, FieldLabelTone};
 
 pub(super) fn field_label() -> AnyView {
     let tone_code = Signal::derive(move || {
-        r#"<FieldLabel text=\"Email\".to_string() for_id=\"email\".to_string() required=true />
-<FieldLabel text=\"Helper\".to_string() tone=FieldLabelTone::Muted />
-<FieldLabel text=\"Critical\".to_string() tone=FieldLabelTone::Strong required=true />"#
+        r#"<FieldLabel text=\"Email\".into() for_id=\"email\".into() required=true />
+<FieldLabel text=\"Helper\".into() tone=FieldLabelTone::Muted />
+<FieldLabel text=\"Critical\".into() tone=FieldLabelTone::Strong required=true />"#
             .to_string()
     });
 
     let custom_code = Signal::derive(move || {
         r#"<FieldLabel
-  text=\"Assignee\".to_string()
-  for_id=\"assignee\".to_string()
+  text=\"Assignee\".into()
+  for_id=\"assignee\".into()
   required=true
-  required_indicator=\"(required)\".to_string()
-  aria_label=\"Assignee field label\".to_string()
-  class_name=\"docs-field-label-custom\".to_string()
+  required_indicator=\"(required)\".into()
+  aria_label=\"Assignee field label\".into()
+  class_name=\"docs-field-label-custom\".into()
 />"#
         .to_string()
     });
@@ -38,37 +38,37 @@ pub(super) fn field_label() -> AnyView {
 
     let workbench_code = Signal::derive(move || {
         format!(
-            "<FieldLabel\n  text=\"Workbench\".to_string()\n  tone=FieldLabelTone::{:?}\n  required={}\n  disabled={}\n  for_id={}\n  required_indicator={}\n  aria_label={}\n  class_name={}\n/>",
+            "<FieldLabel\n  text=\"Workbench\".into()\n  tone=FieldLabelTone::{:?}\n  required={}\n  disabled={}\n  for_id={}\n  required_indicator={}\n  aria_label={}\n  class_name={}\n/>",
             workbench_tone.get(),
             workbench_required.get(),
             workbench_disabled.get(),
             if workbench_has_for.get() {
-                "\"docs-field-label-workbench\".to_string()"
+                "\"docs-field-label-workbench\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             },
             if workbench_custom_indicator.get() {
-                "\"(required)\".to_string()"
+                "\"(required)\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             },
             if workbench_custom_aria.get() {
-                "\"Workbench field label\".to_string()"
+                "\"Workbench field label\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             },
             if workbench_custom_class.get() {
-                "\"docs-field-label-custom\".to_string()"
+                "\"docs-field-label-custom\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             }
         )
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_label/styles.rs */\n{}",
-            ui_components::field_label::styles::CSS
+            "/* crates/ui-components/src/field_form/field_label/styles.rs */\n{}",
+            ui_components::field_form::field_label::styles::CSS
         )
     });
 
@@ -81,7 +81,7 @@ pub(super) fn field_label() -> AnyView {
         let custom_aria = workbench_custom_aria.get();
         let custom_class = workbench_custom_class.get();
 
-        let mut classes = vec!["ui-field-label".to_string(), tone.class_name().to_string()];
+        let mut classes = vec!["ui-field-label".to_string(), tone.class_name().into()];
         if required {
             classes.push("ui-field-label--required".to_string());
         }
@@ -169,7 +169,7 @@ pub(super) fn field_label() -> AnyView {
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_label/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field_label/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="展示区对比 default/workbench；Config 调 tone/required/disabled/source，Code 与 CSS Test 用于契约检查。"
                 controls=move || view! {

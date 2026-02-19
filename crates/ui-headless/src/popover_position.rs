@@ -268,8 +268,8 @@ where
         let anchor_ref = _options.anchor_ref;
         let panel_ref = _options.panel_ref;
         move |_| {
-            let _ = anchor_ref.get();
-            let _ = panel_ref.get();
+            drop(anchor_ref.get());
+            drop(panel_ref.get());
             compute();
 
             if resize_observer.get_value().is_some() {
@@ -326,22 +326,25 @@ where
             Closure::wrap(Box::new(move || compute()) as Box<dyn FnMut()>)
         });
 
-        let _ =
-            window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
-        let _ = window.add_event_listener_with_callback_and_bool(
+        drop(window.add_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref()));
+        drop(window.add_event_listener_with_callback_and_bool(
             "scroll",
             on_scroll.as_ref().unchecked_ref(),
             true,
-        );
+        ));
 
         on_cleanup(move || {
-            let _ = window
-                .remove_event_listener_with_callback("resize", on_resize.as_ref().unchecked_ref());
-            let _ = window.remove_event_listener_with_callback_and_bool(
+            drop(
+                window.remove_event_listener_with_callback(
+                    "resize",
+                    on_resize.as_ref().unchecked_ref(),
+                ),
+            );
+            drop(window.remove_event_listener_with_callback_and_bool(
                 "scroll",
                 on_scroll.as_ref().unchecked_ref(),
                 true,
-            );
+            ));
         });
     }
 

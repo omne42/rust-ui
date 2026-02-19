@@ -56,5 +56,5 @@ docs-app 的 `Calendar` 页面提供三组对比：
 
 - docs 入口：`apps/docs-app/src/pages/components/pages/forms_extra.rs::calendar()`
 - 组件源码：`crates/ui-components/src/calendar/{mod,logic,view,styles,motion}.rs`
-- 状态原语：`crates/ui-state-primitives/src/calendar.rs`
+- 状态原语：`crates/ui-logic-calendar/src/calendar.rs`
 - package 模式前提：`component-calendar`（样式注入可选叠加 `inject-css`）

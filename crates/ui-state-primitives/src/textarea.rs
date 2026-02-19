@@ -101,7 +101,7 @@ pub fn resolve_label_with_fallback(value: String, fallback_label: &str) -> (Stri
     let trimmed = value.trim();
 
     if !trimmed.is_empty() {
-        return (trimmed.to_string(), true);
+        return (trimmed.into(), true);
     }
 
     let fallback_trimmed = fallback_label.trim();
@@ -109,7 +109,7 @@ pub fn resolve_label_with_fallback(value: String, fallback_label: &str) -> (Stri
         return (fallback_trimmed.to_string(), false);
     }
 
-    (DEFAULT_LABEL.to_string(), false)
+    (DEFAULT_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: TextareaStateInput) -> TextareaState {
@@ -175,7 +175,7 @@ mod tests {
     fn resolve_label_uses_default_for_blank_values() {
         assert_eq!(
             resolve_label("  ".to_string()),
-            (DEFAULT_LABEL.to_string(), false)
+            (DEFAULT_LABEL.into(), false)
         );
         assert_eq!(
             resolve_label("  Release summary  ".to_string()),
@@ -195,7 +195,7 @@ mod tests {
         );
         assert_eq!(
             resolve_label_with_fallback("   ".to_string(), "   "),
-            (DEFAULT_LABEL.to_string(), false)
+            (DEFAULT_LABEL.into(), false)
         );
     }
 

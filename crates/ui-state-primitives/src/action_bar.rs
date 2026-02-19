@@ -127,7 +127,7 @@ pub fn normalize_aria_label(value: Option<String>, fallback: &str) -> (String, b
         return (label, true);
     }
 
-    (fallback.to_string(), false)
+    (fallback.into(), false)
 }
 
 pub fn normalize_clear_label(value: Option<String>, fallback: &str) -> (String, bool) {
@@ -135,7 +135,7 @@ pub fn normalize_clear_label(value: Option<String>, fallback: &str) -> (String, 
         return (label, true);
     }
 
-    (fallback.to_string(), false)
+    (fallback.into(), false)
 }
 
 pub fn normalize_selection_text(value: Option<String>) -> (Option<String>, bool) {

@@ -42,7 +42,7 @@ pub struct CoachmarkState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -58,7 +58,7 @@ pub fn compose_heading(
     modifier_keys: Vec<String>,
     shortcut_key: Option<String>,
 ) -> String {
-    let title = normalize_optional_text(title).unwrap_or_else(|| DEFAULT_TITLE.to_string());
+    let title = normalize_optional_text(title).unwrap_or_else(|| DEFAULT_TITLE.into());
 
     let mut keys = normalize_modifier_keys(modifier_keys);
 

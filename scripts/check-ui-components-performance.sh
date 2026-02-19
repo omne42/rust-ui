@@ -41,7 +41,7 @@ echo "[perf] contract: slider performance governance"
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_performance_governance_budget_is_defined_and_blocking
 
 echo "[perf] contract: scroll-area performance governance"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_performance_governance_budget_is_defined_and_blocking
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_performance_governance_budget_is_defined_and_blocking
 
 echo "[perf] contract: docs perf probe budgets"
 cargo test -p ui-components --test accordion_semantics docs_perf_probe_budgets_are_wired_for_component_pages

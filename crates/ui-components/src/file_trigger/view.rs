@@ -66,17 +66,17 @@ pub fn FileTrigger(
             let input: leptos::web_sys::HtmlInputElement = input.unchecked_into();
 
             if accept_directory {
-                let _ = input.set_attribute("webkitdirectory", "");
+                drop(input.set_attribute("webkitdirectory", ""));
             } else {
-                let _ = input.remove_attribute("webkitdirectory");
+                drop(input.remove_attribute("webkitdirectory"));
             }
 
             match capture.as_deref().map(str::trim).filter(|v| !v.is_empty()) {
                 Some(value) => {
-                    let _ = input.set_attribute("capture", value);
+                    drop(input.set_attribute("capture", value));
                 }
                 None => {
-                    let _ = input.remove_attribute("capture");
+                    drop(input.remove_attribute("capture"));
                 }
             }
         });
@@ -84,8 +84,8 @@ pub fn FileTrigger(
 
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let _ = accept_directory;
-        let _ = capture;
+        std::hint::black_box(accept_directory);
+        std::hint::black_box(capture);
     }
 
     view! {

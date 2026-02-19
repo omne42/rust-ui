@@ -1,12 +1,13 @@
 use crate::OnPress;
+use crate::close_button::{CloseButton, CloseButtonSize, CloseButtonVariant};
 use crate::toast::{
     ToastMotion, ToastPartStateInput, ToastSlot, ToastStore, ToastStoreOptions, ToastStoreSource,
     ToastViewportSlot, ToastViewportStateInput, logic, motion,
 };
 use leptos::{ev, html, portal::Portal, prelude::*};
 use ui_headless::{
-    A11yDirection, ButtonOptions, CommonStrings, LiveRegionPriority, live_region_attrs,
-    locale_attrs, use_button, use_controllable_open_state_traced, use_ui_i18n,
+    A11yDirection, CommonStrings, LiveRegionPriority, live_region_attrs, locale_attrs,
+    use_controllable_open_state_traced, use_ui_i18n,
 };
 
 const TOAST_CLOSE_GLYPH: &str = "×";
@@ -120,52 +121,11 @@ pub fn Toast(
     let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
 
     let has_custom_motion = motion != ToastMotion::default();
-    let close_button = use_button(ButtonOptions {
-        on_press: Some(close_toast),
-        ..Default::default()
-    });
-    let close_role = close_button.attrs.role;
-    let close_tabindex = close_button.attrs.tabindex;
-    let close_aria_disabled = close_button.attrs.aria_disabled;
-    let close_press = close_button.handlers.press;
-    let on_close_pointer_down = {
-        let close_press = close_press.clone();
-        move |_| close_press.on_pointer_down.run(())
-    };
-    let on_close_pointer_up = {
-        let close_press = close_press.clone();
-        move |_| close_press.on_pointer_up.run(())
-    };
-    let on_close_pointer_cancel = {
-        let close_press = close_press.clone();
-        move |_| close_press.on_pointer_cancel.run(())
-    };
-    let on_close_click = {
-        let close_press = close_press.clone();
-        move |_| close_press.on_click.run(())
-    };
-    let on_close_key_down = {
-        let close_press = close_press.clone();
-        move |ev: ev::KeyboardEvent| {
-            if close_press.on_key_down.run(ev.key()) {
-                ev.prevent_default();
-            }
-        }
-    };
-    let on_close_key_up = {
-        let close_press = close_press.clone();
-        move |ev: ev::KeyboardEvent| {
-            if close_press.on_key_up.run(ev.key()) {
-                ev.prevent_default();
-            }
-        }
-    };
-    let on_close_blur = move |_| close_press.on_blur.run(());
 
     let i18n = use_ui_i18n();
     let common = i18n.strings::<CommonStrings>();
     let close_aria_label = logic::normalize_optional_text(close_aria_label)
-        .unwrap_or_else(|| common.close_aria_label.to_string());
+        .unwrap_or_else(|| common.close_aria_label.as_ref().into());
     let locale = locale_attrs(logic::normalize_optional_text(lang), dir);
     let live_region = if matches!(variant, crate::toast::ToastVariant::Danger) {
         live_region_attrs(LiveRegionPriority::Assertive)
@@ -251,24 +211,17 @@ pub fn Toast(
                     })
                 }}
             </div>
-            <button
-                type="button"
-                class="ui-toast__close"
-                data-slot=ToastSlot::Close.as_attr()
-                role=close_role
-                tabindex=close_tabindex
-                aria-disabled=close_aria_disabled
-                aria-label=close_aria_label
-                on:pointerdown=on_close_pointer_down
-                on:pointerup=on_close_pointer_up
-                on:pointercancel=on_close_pointer_cancel
-                on:click=on_close_click
-                on:keydown=on_close_key_down
-                on:keyup=on_close_key_up
-                on:blur=on_close_blur
-            >
-                {TOAST_CLOSE_GLYPH}
-            </button>
+            <span data-slot=ToastSlot::Close.as_attr()>
+                <CloseButton
+                    variant=CloseButtonVariant::Default
+                    size=CloseButtonSize::Md
+                    class_name="ui-toast__close".to_string()
+                    aria_label=close_aria_label
+                    on_press=close_toast
+                >
+                    {TOAST_CLOSE_GLYPH}
+                </CloseButton>
+            </span>
         </div>
     }
 }

@@ -203,7 +203,7 @@ pub fn ListItem(
 
     let selection_indicator = logic::item::resolve_selection_indicator(show_selection_indicator);
     let indicator_text = move || selection_indicator.marker(state.get().is_selected);
-    let index_text = index.map(|value| value.to_string());
+    let index_text = index;
 
     view! {
         <div
@@ -324,7 +324,7 @@ pub fn ListSection(
             data-slot="listbox-section"
             data-tone=move || state.get().heading_tone_attr
             data-state=move || state.get().data_state_attr
-            data-item-count=move || state.get().item_count.to_string()
+            data-item-count=move || state.get().item_count
             data-empty=move || state.get().is_empty.then_some("true")
             data-has-items=move || state.get().has_items.then_some("true")
             data-has-title=move || state.get().has_title.then_some("true")

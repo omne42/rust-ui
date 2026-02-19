@@ -359,7 +359,7 @@ fn ui_motion_and_flip_button_provide_non_wasm_safe_stub_path() {
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "crate::button::motion::sanitize_motion(",
     ] {
         assert!(
@@ -828,7 +828,7 @@ fn flip_button_motion_sanitizes_custom_contract_values() {
         "let sanitized = crate::button::motion::sanitize_motion(crate::button::motion::ButtonMotion {",
         "sanitize_spring_with_fallback(motion.spring, base.spring)",
         "fn sanitize_motion_falls_back_for_invalid_values()",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),

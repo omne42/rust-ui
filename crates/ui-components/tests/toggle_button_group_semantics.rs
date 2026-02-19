@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn toggle_button_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/button/toggle_button_group/mod.rs");
+    let source = load_source("src/button/toggle_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,13 +21,13 @@ fn toggle_button_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn toggle_button_group_uses_logic_state_model() {
-    let view_source = load_source("src/button/toggle_button_group/view.rs");
-    let logic_source = load_source("src/button/toggle_button_group/logic.rs");
+    let view_source = load_source("src/button/toggle_button/view.rs");
+    let logic_source = load_source("src/button/toggle_button/logic.rs");
 
     for needle in [
         "pub struct ToggleButtonGroupState",
-        "pub fn normalize_aria_label(",
-        "pub fn resolve_state(",
+        "pub fn normalize_toggle_button_group_aria_label(",
+        "pub fn resolve_toggle_button_group_state(",
         "pub is_attached: bool",
         "pub has_explicit_label: bool",
     ] {
@@ -38,9 +38,9 @@ fn toggle_button_group_uses_logic_state_model() {
     }
 
     for needle in [
-        "let (aria_label, has_explicit_label) = logic::normalize_aria_label(aria_label);",
+        "logic::normalize_toggle_button_group_aria_label(aria_label);",
         "let state = Memo::new(move |_|",
-        "logic::resolve_state(orientation, attached, has_explicit_label)",
+        "logic::resolve_toggle_button_group_state(orientation, attached, has_explicit_label)",
     ] {
         assert!(
             view_source.contains(needle),
@@ -51,7 +51,7 @@ fn toggle_button_group_uses_logic_state_model() {
 
 #[test]
 fn toggle_button_group_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/button/toggle_button_group/view.rs");
+    let source = load_source("src/button/toggle_button/view.rs");
 
     for attr in [
         "data-slot=\"toggle-button-group\"",
@@ -72,7 +72,7 @@ fn toggle_button_group_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn toggle_button_group_defaults_accessible_group_label() {
-    let source = load_source("src/button/toggle_button_group/logic.rs");
+    let source = load_source("src/button/toggle_button/logic.rs");
 
     assert!(
         source.contains("\"Toggle group\".to_string()"),
@@ -82,7 +82,7 @@ fn toggle_button_group_defaults_accessible_group_label() {
 
 #[test]
 fn toggle_button_group_styles_define_attached_overlap_rule() {
-    let source = load_source("src/button/toggle_button_group/styles.rs");
+    let source = load_source("src/button/toggle_button/styles.rs");
 
     assert!(
         source.contains("--ui-toggle-button-group-border-overlap"),

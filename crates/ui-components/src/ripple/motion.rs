@@ -97,12 +97,12 @@ fn trigger_ripple_with_origin_internal(
     let origin_x_percent = origin_x_percent.clamp(0.0, 100.0);
     let origin_y_percent = origin_y_percent.clamp(0.0, 100.0);
 
-    let _ = style.set_property("--ui-ripple-origin-x", &format!("{origin_x_percent}%"));
-    let _ = style.set_property("--ui-ripple-origin-y", &format!("{origin_y_percent}%"));
-    let _ = style.set_property(
+    drop(style.set_property("--ui-ripple-origin-x", &format!("{origin_x_percent}%")));
+    drop(style.set_property("--ui-ripple-origin-y", &format!("{origin_y_percent}%")));
+    drop(style.set_property(
         "--ui-ripple-duration-ms",
         &format!("{}ms", motion.duration_ms),
-    );
+    ));
 
     let element: leptos::web_sys::Element = html_element.unchecked_into();
     let frames = [

@@ -56,15 +56,15 @@ pub fn render_markdown(markdown: &str) -> MarkdownDoc {
                 }
 
                 let title = title_buf.split_whitespace().collect::<Vec<_>>().join(" ");
-                let title = title.trim().to_string();
+                let title: String = title.trim().into();
 
                 if !title.is_empty() {
                     plain_text.push_str(&title);
                     plain_text.push('\n');
                 }
 
-                let mut id_value =
-                    id.map(|value| value.as_ref().trim_start_matches('#').to_string());
+                let mut id_value: Option<String> =
+                    id.map(|value| value.as_ref().trim_start_matches('#').into());
                 if id_value.as_deref().unwrap_or_default().trim().is_empty() {
                     let base = slugify_id(&title);
                     id_value = Some(if base.is_empty() {

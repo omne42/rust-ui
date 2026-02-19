@@ -188,6 +188,27 @@ fn checkbox_field_minimal_feature_gate_keeps_checkbox_dependency_wired() {
 }
 
 #[test]
+fn checkbox_field_breaking_migration_removes_nested_checkbox_domain() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let legacy_dir = manifest_dir.join("src/checkbox_field/checkbox");
+    let lib_source = load_source("src/lib.rs");
+
+    assert!(
+        !legacy_dir.exists(),
+        "breaking migration should remove legacy nested checkbox domain at `{}`.",
+        legacy_dir.display()
+    );
+    assert!(
+        lib_source.contains("pub mod checkbox;"),
+        "crate root should expose top-level checkbox domain after migration."
+    );
+    assert!(
+        lib_source.contains("pub mod checkbox_field;"),
+        "crate root should keep checkbox_field as separate domain after split."
+    );
+}
+
+#[test]
 fn checkbox_field_docs_include_interactive_playground_contract_panels() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_groups_extra.rs");

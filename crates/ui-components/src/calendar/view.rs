@@ -114,7 +114,7 @@ pub fn Calendar(
                     .map(|(index, cell)| {
                         let month_source = if cell.in_current_month { "current" } else { "outside" };
                         if let Some(day) = cell.day {
-                            let mut class = String::from("ui-calendar__day");
+                            let mut class = "ui-calendar__day".to_string();
                             if !cell.in_current_month {
                                 class.push_str(" ui-calendar__day--outside");
                             }
@@ -140,7 +140,7 @@ pub fn Calendar(
                                     data-index=index
                                     data-year=cell.year.to_string()
                                     data-month=cell.month.to_string()
-                                    data-day=day.to_string()
+                                    data-day=day
                                     data-month-source=month_source
                                     data-selected=cell.is_selected.then_some("true")
                                     data-pressable=is_pressable.then_some("true")

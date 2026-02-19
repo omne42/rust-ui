@@ -34,16 +34,16 @@ pub fn agent_contract() -> BottomSheetAgentContract {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_required_text(value: String, fallback: &'static str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        fallback.to_string()
+        fallback.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -52,7 +52,7 @@ pub fn normalize_id_base(value: String) -> String {
     if trimmed.is_empty() {
         "ui-bottom-sheet".to_string()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -145,11 +145,11 @@ pub fn resolve_state(input: BottomSheetStateInput) -> BottomSheetState {
 pub fn compose_class_name(base_class_name: Option<String>, state: BottomSheetState) -> String {
     let mut classes = vec![
         "ui-bottom-sheet".to_string(),
-        state.state_class.to_string(),
-        state.handle_class.to_string(),
-        state.close_button_class.to_string(),
-        state.detached_class.to_string(),
-        state.inset_class.to_string(),
+        state.state_class.into(),
+        state.handle_class.into(),
+        state.close_button_class.into(),
+        state.detached_class.into(),
+        state.inset_class.into(),
     ];
 
     if state.show_footer {

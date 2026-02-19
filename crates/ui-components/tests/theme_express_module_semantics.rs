@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn theme_express_module_exports_express_theme_contract() {
-    let source = load_source("src/theme_express/mod.rs");
+    let source = load_source("src/theme/express/mod.rs");
 
     for needle in [
         "pub use ui_theme::Theme;",

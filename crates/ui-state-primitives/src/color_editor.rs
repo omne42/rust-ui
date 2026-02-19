@@ -75,7 +75,7 @@ pub struct ColorEditorState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -84,7 +84,7 @@ pub fn normalize_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_LABEL.to_string(), false)
+    (DEFAULT_LABEL.into(), false)
 }
 
 pub fn normalize_aria_label(value: Option<String>, label: &str) -> (String, bool) {
@@ -94,10 +94,10 @@ pub fn normalize_aria_label(value: Option<String>, label: &str) -> (String, bool
 
     let label = label.trim();
     if !label.is_empty() {
-        return (label.to_string(), false);
+        return (label.into(), false);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn sanitize_color(value: Option<String>) -> Option<String> {
@@ -309,10 +309,7 @@ pub fn resolve_state(input: ColorEditorStateInput) -> ColorEditorState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ColorEditorState) -> String {
-    let mut classes = vec![
-        "ui-color-editor".to_string(),
-        state.format_class.to_string(),
-    ];
+    let mut classes = vec!["ui-color-editor".to_string(), state.format_class.into()];
 
     if state.is_disabled {
         classes.push("ui-color-editor--disabled".to_string());
@@ -338,7 +335,7 @@ mod tests {
 
     #[test]
     fn normalize_contracts_use_defaults_or_trimmed_values() {
-        assert_eq!(normalize_label(None), (DEFAULT_LABEL.to_string(), false));
+        assert_eq!(normalize_label(None), (DEFAULT_LABEL.into(), false));
         assert_eq!(
             normalize_label(Some("  Brand color editor  ".to_string())),
             ("Brand color editor".to_string(), true)

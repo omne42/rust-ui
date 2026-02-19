@@ -73,10 +73,9 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = section.unchecked_into();
         let style = element.style();
 
-        let _ = style.set_property("--ui-alert-opacity", "0");
-        let _ = style.set_property("--ui-alert-translate-y", "8px");
-        let _ = style.set_property("--ui-alert-scale", "0.985");
-
+        drop(style.set_property("--ui-alert-opacity", "0"));
+        drop(style.set_property("--ui-alert-translate-y", "8px"));
+        drop(style.set_property("--ui-alert-scale", "0.985"));
         let style_for_apply = style.clone();
         let animator = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
             let v = v.clamp(0.0, 1.0);
@@ -85,10 +84,12 @@ pub fn attach_motion(
             let translate_y_px = (1.0 - v) * 8.0;
             let scale = 0.985 + (0.015 * v);
 
-            let _ = style_for_apply.set_property("--ui-alert-opacity", &format!("{opacity}"));
-            let _ = style_for_apply
-                .set_property("--ui-alert-translate-y", &format!("{translate_y_px}px"));
-            let _ = style_for_apply.set_property("--ui-alert-scale", &format!("{scale}"));
+            drop(style_for_apply.set_property("--ui-alert-opacity", &format!("{opacity}")));
+            drop(
+                style_for_apply
+                    .set_property("--ui-alert-translate-y", &format!("{translate_y_px}px")),
+            );
+            drop(style_for_apply.set_property("--ui-alert-scale", &format!("{scale}")));
         });
 
         animator.set_target(1.0);
@@ -110,7 +111,7 @@ pub fn attach_motion(
     _node_ref: leptos::prelude::NodeRef<leptos::html::Section>,
     motion: AlertMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

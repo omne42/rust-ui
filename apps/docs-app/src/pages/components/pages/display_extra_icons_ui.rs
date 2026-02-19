@@ -62,7 +62,7 @@ pub(super) fn icons_ui() -> AnyView {
 
         let mut lines = vec![
             "<IconsUi".to_string(),
-            format!("  icon=\"{icon}\".to_string()"),
+            format!("  icon=\"{icon}\".into()"),
             format!("  size=IconsUiSize::{size:?}"),
             format!("  tone=IconsUiTone::{tone:?}"),
             format!("  decorative={decorative}"),
@@ -72,15 +72,14 @@ pub(super) fn icons_ui() -> AnyView {
         }
         if custom_glyph {
             lines.push(
-                "  glyphs=vec![IconsetGlyph::new(\"ui:spark\", \"✦\").with_aria_label(\"UI Spark\")]"
-                    .to_string(),
+                "  glyphs=vec![IconsetGlyph::new(\"ui:spark\", \"✦\").with_aria_label(\"UI Spark\")]".to_string(),
             );
         }
         if custom_aria {
-            lines.push("  aria_label=\"Workbench icon\".to_string()".to_string());
+            lines.push("  aria_label=\"Workbench icon\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-icons-ui-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-icons-ui-workbench\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -88,7 +87,7 @@ pub(super) fn icons_ui() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/icons_ui/styles.rs */\n{}\n\n/* crates/ui-components/src/iconset/styles.rs */\n{}",
+            "/* crates/ui-components/src/icon/ui/styles.rs */\n{}\n\n/* crates/ui-components/src/icon/set/styles.rs */\n{}",
             ui_components::icons_ui::styles::CSS,
             ui_components::iconset::styles::CSS
         )
@@ -167,7 +166,7 @@ pub(super) fn icons_ui() -> AnyView {
                 description="Display + Config + Code + CSS Test workbench for icons-ui source/state contract tuning."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icons_ui/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/ui/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="icons-ui-workbench-controls">

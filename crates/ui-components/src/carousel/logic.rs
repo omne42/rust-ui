@@ -54,12 +54,12 @@ pub fn selection_mode_attr(is_controlled: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
 }
 
 fn sanitize_token(value: &str, fallback: &str) -> String {
@@ -84,7 +84,7 @@ fn sanitize_token(value: &str, fallback: &str) -> String {
     }
 
     if out.is_empty() {
-        return fallback.to_string();
+        return fallback.into();
     }
 
     out
@@ -95,7 +95,7 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_items(id_base: &str, items: Vec<CarouselItem>) -> Vec<CarouselItemResolved> {
@@ -248,10 +248,10 @@ pub fn resolve_state(input: CarouselPartStateInput) -> CarouselPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: CarouselPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if matches!(state.slot, CarouselSlot::Root) {
-        classes.push(state.orientation.class_name().to_string());
+        classes.push(state.orientation.class_name().into());
 
         if state.is_empty {
             classes.push("ui-carousel--empty".to_string());
@@ -347,10 +347,7 @@ mod tests {
         );
         assert_eq!(normalize_id_base(" ".to_string()), DEFAULT_ID_BASE);
 
-        assert_eq!(
-            resolve_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
-        );
+        assert_eq!(resolve_aria_label(None), (DEFAULT_ARIA_LABEL.into(), false));
         assert_eq!(
             resolve_aria_label(Some("  Product slides  ".to_string())),
             ("Product slides".to_string(), true)

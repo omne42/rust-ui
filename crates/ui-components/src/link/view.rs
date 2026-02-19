@@ -7,7 +7,6 @@ use ui_headless::{FocusRingOptions, HoverOptions, use_focus_ring, use_hover};
 pub fn Link(
     href: String,
     #[prop(optional, into)] is_disabled: Option<bool>,
-    #[prop(optional, into)] disabled: Option<bool>,
     #[prop(optional)] target: Option<&'static str>,
     #[prop(optional, into)] rel: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
@@ -18,7 +17,7 @@ pub fn Link(
 ) -> impl IntoView {
     let locale = locale_attrs(lang, dir);
     let href = logic::normalize_href(href);
-    let (is_disabled, disabled_source) = logic::normalize_is_disabled(is_disabled, disabled);
+    let (is_disabled, disabled_source) = logic::normalize_is_disabled(is_disabled);
     let rel = logic::normalize_optional_text(rel);
     let aria_label = logic::normalize_optional_text(aria_label);
     let class_name = logic::normalize_optional_text(class_name);

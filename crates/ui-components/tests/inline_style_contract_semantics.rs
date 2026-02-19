@@ -102,10 +102,10 @@ fn inline_style_bindings_use_css_variable_builders_only() {
 
 #[test]
 fn inline_style_helper_outputs_are_css_variable_assignments() {
-    let swatch_logic = load_source("src/swatch/logic.rs");
-    let color_swatch_logic = load_source("src/color_swatch/logic.rs");
+    let swatch_logic = load_source("src/color/swatch_core/logic.rs");
+    let color_swatch_logic = load_source("src/color/swatch/logic.rs");
     let thumbnail_logic = load_source("src/thumbnail/logic.rs");
-    let color_slider_logic = load_source("src/color_slider/logic.rs");
+    let color_slider_logic = load_source("src/color/slider/logic.rs");
     let circular_progress_logic = load_source("src/circular_progress/logic.rs");
     let circular_progress_primitive =
         load_source("../ui-state-primitives/src/circular_progress.rs");

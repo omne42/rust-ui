@@ -1,8 +1,9 @@
 use leptos::prelude::*;
 use ui_components::{
-    Alert, AlertVariant, AvatarGroup, AvatarGroupItem, Button, ButtonLoadingPlacement, Card, Chip,
+    Alert, AlertVariant, AvatarGroup, AvatarGroupItem, Button, ButtonLoadingPlacement, Chip,
     Skeleton, Spinner,
 };
+use ui_layout::Card;
 
 #[component]
 pub fn MiscDemo() -> impl IntoView {

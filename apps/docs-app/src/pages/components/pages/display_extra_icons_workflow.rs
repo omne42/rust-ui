@@ -64,7 +64,7 @@ pub(super) fn icons_workflow() -> AnyView {
 
         let mut snippet = vec![
             "<IconsWorkflow".to_string(),
-            format!("  icon=\"{icon}\".to_string()"),
+            format!("  icon=\"{icon}\".into()"),
             format!("  size=IconsWorkflowSize::{size:?}"),
             format!("  tone=IconsWorkflowTone::{tone:?}"),
             format!("  decorative={}", interactive_decorative.get()),
@@ -74,15 +74,14 @@ pub(super) fn icons_workflow() -> AnyView {
             snippet.push("  disabled=true".to_string());
         }
         if interactive_custom_aria.get() {
-            snippet.push("  aria_label=\"Interactive workflow icon\".to_string()".to_string());
+            snippet.push("  aria_label=\"Interactive workflow icon\".into()".to_string());
         }
         if interactive_custom_class.get() {
-            snippet.push("  class_name=\"docs-icons-workflow-workbench\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-icons-workflow-workbench\".into()".to_string());
         }
         if interactive_custom_glyph.get() {
             snippet.push(
-                "  glyphs=vec![IconsetGlyph::new(\"workflow:deploy\", \"🚀\").with_aria_label(\"Workflow Deploy\")]"
-                    .to_string(),
+                "  glyphs=vec![IconsetGlyph::new(\"workflow:deploy\", \"🚀\").with_aria_label(\"Workflow Deploy\")]".to_string(),
             );
         }
         snippet.push("/>".to_string());
@@ -90,7 +89,7 @@ pub(super) fn icons_workflow() -> AnyView {
     });
     let interactive_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/icons_workflow/styles.rs */\n{}",
+            "/* crates/ui-components/src/icon/workflow/styles.rs */\n{}",
             ui_components::icons_workflow::styles::CSS
         )
     });
@@ -212,7 +211,7 @@ pub(super) fn icons_workflow() -> AnyView {
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=interactive_code
                 test_css_source=interactive_test_css_source
-                test_source_path="crates/ui-components/src/icons_workflow/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/icon/workflow/styles.rs".to_string()
                 test_config_signal=interactive_actual_config
                 description="展示区用于 current 与 baseline 对比；Config/Code/CSS Test 区用于验证 icon/source/aria/class/glyph 合同。"
                 controls=move || view! {

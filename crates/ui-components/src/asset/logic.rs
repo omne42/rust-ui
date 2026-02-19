@@ -34,7 +34,7 @@ pub struct AssetState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -44,9 +44,9 @@ pub fn resolve_label(label: Option<String>, variant: AssetVariant) -> String {
     }
 
     match variant {
-        AssetVariant::File => DEFAULT_FILE_LABEL.to_string(),
-        AssetVariant::Folder => DEFAULT_FOLDER_LABEL.to_string(),
-        AssetVariant::Custom => DEFAULT_CUSTOM_LABEL.to_string(),
+        AssetVariant::File => DEFAULT_FILE_LABEL.into(),
+        AssetVariant::Folder => DEFAULT_FOLDER_LABEL.into(),
+        AssetVariant::Custom => DEFAULT_CUSTOM_LABEL.into(),
     }
 }
 

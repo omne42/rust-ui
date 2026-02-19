@@ -46,7 +46,7 @@ pub struct CodeState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -73,8 +73,8 @@ pub fn resolve_state(input: CodeStateInput) -> CodeState {
 pub fn compose_class_name(base_class_name: Option<String>, state: CodeState) -> String {
     let mut classes = vec![
         "ui-code".to_string(),
-        state.variant_class.to_string(),
-        state.state_class.to_string(),
+        state.variant_class.into(),
+        state.state_class.into(),
     ];
 
     if state.has_custom_class_name {

@@ -143,10 +143,10 @@ pub fn resolve_state(input: FlipButtonStateInput) -> FlipButtonState {
 pub fn compose_class_name(base_class_name: Option<String>, state: FlipButtonState) -> String {
     let mut classes = vec![
         "ui-flip-button".to_string(),
-        state.direction_class.to_string(),
-        state.state_class.to_string(),
-        state.hover_class.to_string(),
-        state.focus_within_class.to_string(),
+        state.direction_class.into(),
+        state.state_class.into(),
+        state.hover_class.into(),
+        state.focus_within_class.into(),
     ];
 
     if state.has_custom_class_name {

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn infield_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/infield_button/mod.rs");
+    let source = load_source("src/button/infield_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn infield_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn infield_button_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/infield_button/mod.rs");
+    let module_source = load_source("src/button/infield_button/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -36,8 +36,8 @@ fn infield_button_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn infield_button_uses_logic_state_model() {
-    let logic_source = load_source("src/infield_button/logic.rs");
-    let view_source = load_source("src/infield_button/view.rs");
+    let logic_source = load_source("src/button/infield_button/logic.rs");
+    let view_source = load_source("src/button/infield_button/view.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -68,7 +68,7 @@ fn infield_button_uses_logic_state_model() {
 
 #[test]
 fn infield_button_uses_headless_hooks() {
-    let source = load_source("src/infield_button/view.rs");
+    let source = load_source("src/button/infield_button/view.rs");
 
     for needle in ["use_button", "use_focus_ring", "use_hover"] {
         assert!(
@@ -80,7 +80,7 @@ fn infield_button_uses_headless_hooks() {
 
 #[test]
 fn infield_button_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/infield_button/view.rs");
+    let source = load_source("src/button/infield_button/view.rs");
 
     for attr in [
         "data-slot=\"infield-button\"",
@@ -109,7 +109,7 @@ fn infield_button_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn infield_button_styles_include_quiet_invalid_and_active_markers() {
-    let source = load_source("src/infield_button/styles.rs");
+    let source = load_source("src/button/infield_button/styles.rs");
 
     for selector in [
         ".ui-infield-button--quiet",
@@ -184,10 +184,9 @@ fn infield_button_docs_playgrounds_lock_state_matrix_contract_values() {
         "title=\"Invalid + Active + Disabled\"",
         "invalid=true",
         "is_active=true",
-        "aria_label=\"Invalid in-field trigger\".to_string()",
-        "class_name=\"docs-infield-button-custom\".to_string()",
+        "aria_label=\"Inspect in-field trigger\".to_string()",
         "disabled=true",
-        "aria_label=\"Disabled in-field trigger\".to_string()",
+        "\"Disabled\"</InfieldButton>",
     ] {
         assert!(
             source.contains(needle),

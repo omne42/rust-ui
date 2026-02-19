@@ -48,8 +48,8 @@ pub const CSS: &str = r#"
 .ui-field-button .ui-button__label {
   min-width: 0;
   white-space: nowrap;
-  font-size: var(--ui-button-font-size);
-  line-height: 1;
+  font-size: var(--ui-button-size-s-font-size, var(--ui-button-font-size));
+  line-height: var(--ui-button-size-s-line-height);
 }
 
 .ui-field-button--custom-class,

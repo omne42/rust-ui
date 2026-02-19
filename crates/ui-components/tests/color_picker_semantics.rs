@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn color_picker_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_picker/mod.rs");
+    let source = load_source("src/color/picker/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,8 +26,8 @@ fn color_picker_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_picker_uses_logic_state_model() {
-    let logic_source = load_source("src/color_picker/logic.rs");
-    let view_source = load_source("src/color_picker/view.rs");
+    let logic_source = load_source("src/color/picker/logic.rs");
+    let view_source = load_source("src/color/picker/view.rs");
 
     for needle in [
         "pub const DEFAULT_LABEL",
@@ -62,7 +62,7 @@ fn color_picker_uses_logic_state_model() {
 
 #[test]
 fn color_picker_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color_picker/view.rs");
+    let source = load_source("src/color/picker/view.rs");
 
     for attr in [
         "data-slot=\"color-picker\"",
@@ -88,7 +88,7 @@ fn color_picker_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_picker_styles_include_open_disabled_and_custom_contracts() {
-    let source = load_source("src/color_picker/styles.rs");
+    let source = load_source("src/color/picker/styles.rs");
 
     for selector in [
         ".ui-color-picker",
@@ -113,8 +113,8 @@ fn color_picker_styles_include_open_disabled_and_custom_contracts() {
 
 #[test]
 fn color_picker_exposes_motion_contract_and_internal_module() {
-    let mod_source = load_source("src/color_picker/mod.rs");
-    let motion_source = load_source("src/color_picker/motion.rs");
+    let mod_source = load_source("src/color/picker/mod.rs");
+    let motion_source = load_source("src/color/picker/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -131,8 +131,8 @@ fn color_picker_exposes_motion_contract_and_internal_module() {
 
 #[test]
 fn color_picker_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/color_picker/motion.rs");
-    let view_source = load_source("src/color_picker/view.rs");
+    let motion_source = load_source("src/color/picker/motion.rs");
+    let view_source = load_source("src/color/picker/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ColorPickerMotion) -> ColorPickerMotion",
@@ -214,7 +214,7 @@ fn color_picker_feature_dependency_chain_supports_minimal_component_builds() {
 
 #[test]
 fn color_picker_view_mounts_locale_and_headless_a11y_contracts() {
-    let source = load_source("src/color_picker/view.rs");
+    let source = load_source("src/color/picker/view.rs");
 
     for needle in [
         "#[prop(optional, into)] lang: Option<String>",
@@ -240,7 +240,7 @@ fn color_picker_tree_shaking_boundaries_stay_feature_gated() {
 
     for needle in [
         "#[cfg(feature = \"component-color_picker\")]",
-        "pub mod color_picker;",
+        "#[path = \"color/picker/mod.rs\"]\npub mod color_picker;",
         "pub use color_picker::{ColorPicker, ColorPickerMotion};",
     ] {
         assert!(
@@ -251,7 +251,7 @@ fn color_picker_tree_shaking_boundaries_stay_feature_gated() {
 
     for needle in [
         "#[cfg(feature = \"component-color_picker\")]",
-        "out.push_str(crate::color_picker::styles::CSS);",
+        "out.push_str(crate::color::picker::styles::CSS);",
     ] {
         assert!(
             css_source.contains(needle),
@@ -305,7 +305,7 @@ fn color_picker_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source() 
 
 #[test]
 fn color_picker_check2_marks_component_governance_complete() {
-    let check2_source = load_source("src/color_picker/check2.md");
+    let check2_source = load_source("src/color/picker/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -331,7 +331,7 @@ fn color_picker_check2_marks_component_governance_complete() {
 
 #[test]
 fn color_picker_check2_marks_forbidden_anti_patterns_complete() {
-    let check2_source = load_source("src/color_picker/check2.md");
+    let check2_source = load_source("src/color/picker/check2.md");
 
     for needle in [
         "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
@@ -352,7 +352,7 @@ fn color_picker_check2_marks_forbidden_anti_patterns_complete() {
 
 #[test]
 fn color_picker_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/color_picker/check2.md");
+    let check2_source = load_source("src/color/picker/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -379,7 +379,7 @@ fn color_picker_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn color_picker_check2_has_no_unchecked_checklist_items() {
-    let check2_source = load_source("src/color_picker/check2.md");
+    let check2_source = load_source("src/color/picker/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "ColorPicker check2.md should not keep unchecked checklist items after completion."

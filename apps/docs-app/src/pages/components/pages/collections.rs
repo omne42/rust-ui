@@ -51,7 +51,7 @@ fn save_workbench_open(indices: &BTreeSet<usize>) {
     if let Some(storage) =
         web_sys::window().and_then(|window| window.local_storage().ok().flatten())
     {
-        let _ = storage.set_item(ACCORDION_WORKBENCH_STORAGE_KEY, &encode_open_set(indices));
+        drop(storage.set_item(ACCORDION_WORKBENCH_STORAGE_KEY, &encode_open_set(indices)));
     }
 }
 
@@ -63,7 +63,7 @@ fn clear_workbench_open() {
     if let Some(storage) =
         web_sys::window().and_then(|window| window.local_storage().ok().flatten())
     {
-        let _ = storage.remove_item(ACCORDION_WORKBENCH_STORAGE_KEY);
+        drop(storage.remove_item(ACCORDION_WORKBENCH_STORAGE_KEY));
     }
 }
 
@@ -93,7 +93,8 @@ fn save_tabs_workbench_selected(selected_index: usize) {
     if let Some(storage) =
         web_sys::window().and_then(|window| window.local_storage().ok().flatten())
     {
-        let _ = storage.set_item(TABS_WORKBENCH_STORAGE_KEY, &selected_index.to_string());
+        let selected_index_attr = selected_index.to_string();
+        drop(storage.set_item(TABS_WORKBENCH_STORAGE_KEY, &selected_index_attr));
     }
 }
 
@@ -105,7 +106,7 @@ fn clear_tabs_workbench_selected() {
     if let Some(storage) =
         web_sys::window().and_then(|window| window.local_storage().ok().flatten())
     {
-        let _ = storage.remove_item(TABS_WORKBENCH_STORAGE_KEY);
+        drop(storage.remove_item(TABS_WORKBENCH_STORAGE_KEY));
     }
 }
 
@@ -179,7 +180,7 @@ fn build_streaming_snapshot_code(
     let mut out = String::new();
 
     out.push_str("<Accordion\n");
-    out.push_str("  id_base=\"docs-accordion-ai-stream\".to_string()\n");
+    out.push_str("  id_base=\"docs-accordion-ai-stream\".into()\n");
     out.push_str("  selection_mode=AccordionSelectionMode::Multiple\n");
     out.push_str("  variant=AccordionVariant::Splitted\n");
     out.push_str(">\n");
@@ -194,7 +195,7 @@ fn build_streaming_snapshot_code(
         let text = escape_rust_string_literal(&item.text);
         let is_open = open.contains(&key);
         out.push_str(&format!(
-            "  <AccordionItem key={key} label=\"{label}\".to_string() default_open={is_open}>\"{text}\"</AccordionItem>\n"
+            "  <AccordionItem key={key} label=\"{label}\".into() default_open={is_open}>\"{text}\"</AccordionItem>\n"
         ));
     }
 
@@ -211,7 +212,7 @@ fn compose_streaming_demo_code(
 ) -> String {
     let snapshot = build_streaming_snapshot_code(projection, open, mode, status);
     if snapshot.is_empty() {
-        input_code.to_string()
+        input_code.into()
     } else if input_code.trim().is_empty() {
         format!("SNAPSHOT\n{snapshot}")
     } else {
@@ -251,6 +252,86 @@ pub(super) fn breadcrumbs() -> AnyView {
     ];
 
     let empty_items = Vec::<BreadcrumbItem>::new();
+    let items_compare = items.clone();
+    let label_only_items_compare = label_only_items.clone();
+    let empty_items_compare = empty_items.clone();
+    let (workbench_include_links, set_workbench_include_links) = signal(true);
+    let (workbench_empty, set_workbench_empty) = signal(false);
+    let (workbench_long_trail, set_workbench_long_trail) = signal(false);
+    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
+    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
+
+    let workbench_items = Signal::derive(move || {
+        if workbench_empty.get() {
+            return Vec::<BreadcrumbItem>::new();
+        }
+
+        if workbench_long_trail.get() {
+            let mut long_items = vec![
+                BreadcrumbItem {
+                    label: "Home".to_string(),
+                    href: Some("#/docs".to_string()),
+                },
+                BreadcrumbItem {
+                    label: "Design".to_string(),
+                    href: Some("#/docs/design".to_string()),
+                },
+                BreadcrumbItem {
+                    label: "Tokens".to_string(),
+                    href: Some("#/docs/design/tokens".to_string()),
+                },
+                BreadcrumbItem {
+                    label: "Navigation".to_string(),
+                    href: Some("#/docs/design/tokens/navigation".to_string()),
+                },
+                BreadcrumbItem {
+                    label: "Current".to_string(),
+                    href: None,
+                },
+            ];
+
+            if !workbench_include_links.get() {
+                let non_last = long_items.len().saturating_sub(1);
+                for item in long_items.iter_mut().take(non_last) {
+                    item.href = None;
+                }
+            }
+
+            return long_items;
+        }
+
+        if workbench_include_links.get() {
+            vec![
+                BreadcrumbItem {
+                    label: "Home".to_string(),
+                    href: Some("#/docs/welcome".to_string()),
+                },
+                BreadcrumbItem {
+                    label: "Collections".to_string(),
+                    href: Some("#/components/collections".to_string()),
+                },
+                BreadcrumbItem {
+                    label: "Breadcrumbs".to_string(),
+                    href: None,
+                },
+            ]
+        } else {
+            vec![
+                BreadcrumbItem {
+                    label: "Library".to_string(),
+                    href: None,
+                },
+                BreadcrumbItem {
+                    label: "UI".to_string(),
+                    href: None,
+                },
+                BreadcrumbItem {
+                    label: "Current".to_string(),
+                    href: None,
+                },
+            ]
+        }
+    });
 
     let code = Signal::derive(move || {
         r##"let items = vec![
@@ -274,6 +355,126 @@ pub(super) fn breadcrumbs() -> AnyView {
 <Breadcrumbs items=Vec::<BreadcrumbItem>::new() aria_label="Empty trail".to_string() />"#
             .to_string()
     });
+    let workbench_code = Signal::derive(move || {
+        let include_links = workbench_include_links.get();
+        let use_empty = workbench_empty.get();
+        let use_long_trail = workbench_long_trail.get();
+        let use_custom_aria = workbench_custom_aria.get();
+        let use_custom_class = workbench_custom_class.get();
+        let mut lines: Vec<String> = vec!["<Breadcrumbs".into()];
+
+        if use_empty {
+            lines.push("  items=Vec::<BreadcrumbItem>::new()".into());
+        } else if use_long_trail {
+            lines.push("  items=vec![".into());
+            lines.push(format!(
+                "    BreadcrumbItem {{ label: \"Home\".to_string(), href: {} }},",
+                if include_links {
+                    "Some(\"#/docs\".to_string())"
+                } else {
+                    "None"
+                }
+            ));
+            lines.push(format!(
+                "    BreadcrumbItem {{ label: \"Design\".to_string(), href: {} }},",
+                if include_links {
+                    "Some(\"#/docs/design\".to_string())"
+                } else {
+                    "None"
+                }
+            ));
+            lines.push(format!(
+                "    BreadcrumbItem {{ label: \"Tokens\".to_string(), href: {} }},",
+                if include_links {
+                    "Some(\"#/docs/design/tokens\".to_string())"
+                } else {
+                    "None"
+                }
+            ));
+            lines.push(format!(
+                "    BreadcrumbItem {{ label: \"Navigation\".to_string(), href: {} }},",
+                if include_links {
+                    "Some(\"#/docs/design/tokens/navigation\".to_string())"
+                } else {
+                    "None"
+                }
+            ));
+            lines.push("    BreadcrumbItem { label: \"Current\".to_string(), href: None },".into());
+            lines.push("  ]".into());
+        } else {
+            lines.push("  items=vec![".into());
+            lines.push(format!(
+                "    BreadcrumbItem {{ label: \"Home\".to_string(), href: {} }},",
+                if include_links {
+                    "Some(\"#/docs/welcome\".to_string())"
+                } else {
+                    "None"
+                }
+            ));
+            lines.push(format!(
+                "    BreadcrumbItem {{ label: \"Collections\".to_string(), href: {} }},",
+                if include_links {
+                    "Some(\"#/components/collections\".to_string())"
+                } else {
+                    "None"
+                }
+            ));
+            lines.push(
+                "    BreadcrumbItem { label: \"Breadcrumbs\".to_string(), href: None },".into(),
+            );
+            lines.push("  ]".into());
+        }
+
+        if use_custom_aria {
+            lines.push("  aria_label=\"Docs breadcrumb trail\".to_string()".into());
+        }
+        if use_custom_class {
+            lines.push("  class_name=\"docs-breadcrumbs-custom\".to_string()".into());
+        }
+
+        lines.push("/>".into());
+        lines.join("\n")
+    });
+    let test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/breadcrumbs/styles.rs */\n{}",
+            ui_components::breadcrumbs::styles::CSS
+        )
+    });
+    let actual_config = Signal::derive(move || {
+        let items = workbench_items.get();
+        let item_count = items.len();
+        let has_links = items
+            .iter()
+            .enumerate()
+            .any(|(index, item)| index + 1 < item_count && item.href.is_some());
+        let data_state = if item_count == 0 {
+            "empty"
+        } else if has_links {
+            "with-links"
+        } else {
+            "label-only"
+        };
+        let aria_source = if workbench_custom_aria.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let class_source = if workbench_custom_class.get() {
+            "custom"
+        } else {
+            "default"
+        };
+        let class_name = if workbench_custom_class.get() {
+            "ui-breadcrumbs docs-breadcrumbs-custom"
+        } else {
+            "ui-breadcrumbs"
+        };
+
+        format!(
+            "BreadcrumbsActualConfig {{\n  item_count: {item_count},\n  has_links: {has_links},\n  data_state: \"{data_state}\",\n  aria_source: \"{aria_source}\",\n  class_source: \"{class_source}\",\n  class: \"{class_name}\",\n}}"
+        )
+    });
 
     view! {
         <ComponentPage
@@ -283,18 +484,147 @@ pub(super) fn breadcrumbs() -> AnyView {
             description="Breadcrumb nav with current-page semantics and baseline-style root state attrs."
         >
             <Playground title="Trail" code_signal=code>
-                <Breadcrumbs items=items />
+                <Breadcrumbs items=items.clone() />
             </Playground>
 
             <Playground title="Label-Only + Empty" code_signal=states_code>
                 <div class="docs-row">
                     <div class="docs-stack">
-                        <Breadcrumbs items=label_only_items aria_label="Label-only trail".to_string() />
+                        <Breadcrumbs
+                            items=label_only_items.clone()
+                            aria_label="Label-only trail".to_string()
+                        />
                         <span class="ui-muted">"all labels (no links)"</span>
                     </div>
                     <div class="docs-stack">
-                        <Breadcrumbs items=empty_items aria_label="Empty trail".to_string() />
+                        <Breadcrumbs items=empty_items.clone() aria_label="Empty trail".to_string() />
                         <span class="ui-muted">"empty trail (0 items)"</span>
+                    </div>
+                </div>
+            </Playground>
+
+            <Playground
+                title="Workbench (Display + Config + Code + CSS Test)"
+                description="展示区提供当前配置与多场景对比；Config/Code/CSS Test 区用于契约回归。"
+                code_signal=workbench_code
+                test_css_source=test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/breadcrumbs/styles.rs".to_string()
+                test_config_signal=actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight" data-slot="breadcrumbs-workbench-controls">
+                        <div class="docs-row">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_include_links.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_include_links.get() {
+                                    "Links: on"
+                                } else {
+                                    "Links: off"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_empty.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_empty.get() {
+                                    "Empty: on"
+                                } else {
+                                    "Empty: off"
+                                }}
+                            </ui_components::Button>
+                        </div>
+
+                        <div class="docs-row">
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_long_trail.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_long_trail.get() {
+                                    "Trail: long"
+                                } else {
+                                    "Trail: default"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_custom_aria.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_custom_aria.get() {
+                                    "Aria: custom"
+                                } else {
+                                    "Aria: default"
+                                }}
+                            </ui_components::Button>
+                            <ui_components::Button
+                                variant=ui_components::ButtonVariant::Secondary
+                                on_press=Callback::new(move |_| {
+                                    set_workbench_custom_class.update(|v| *v = !*v)
+                                })
+                            >
+                                {move || if workbench_custom_class.get() {
+                                    "Class: custom"
+                                } else {
+                                    "Class: default"
+                                }}
+                            </ui_components::Button>
+                        </div>
+                    </div>
+                }
+            >
+                <div class="docs-stack" data-slot="breadcrumbs-workbench-preview">
+                    <div class="docs-stack docs-stack--tight">
+                        <span class="ui-muted">"当前配置"</span>
+                        {move || {
+                            let items = workbench_items.get();
+                            let aria_label = if workbench_custom_aria.get() {
+                                "Docs breadcrumb trail".to_string()
+                            } else {
+                                String::new()
+                            };
+                            let class_name = if workbench_custom_class.get() {
+                                "docs-breadcrumbs-custom".to_string()
+                            } else {
+                                String::new()
+                            };
+
+                            view! {
+                                <Breadcrumbs
+                                    items=items
+                                    aria_label=aria_label
+                                    class_name=class_name
+                                />
+                            }
+                        }}
+                    </div>
+
+                    <div class="docs-row">
+                        <div class="docs-stack docs-stack--tight" style="min-width: 16rem;">
+                            <span class="ui-muted">"对比：With links"</span>
+                            <Breadcrumbs items=items_compare />
+                        </div>
+                        <div class="docs-stack docs-stack--tight" style="min-width: 16rem;">
+                            <span class="ui-muted">"对比：Label-only"</span>
+                            <Breadcrumbs
+                                items=label_only_items_compare
+                                aria_label="Label-only trail".to_string()
+                            />
+                        </div>
+                        <div class="docs-stack docs-stack--tight" style="min-width: 16rem;">
+                            <span class="ui-muted">"对比：Empty"</span>
+                            <Breadcrumbs
+                                items=empty_items_compare
+                                aria_label="Empty trail".to_string()
+                            />
+                        </div>
                     </div>
                 </div>
             </Playground>
@@ -497,8 +827,7 @@ let item_2_open = Signal::derive(move || open.get().contains(&2));
   <AccordionItem key=0 label="First" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Panel 1"</div></AccordionItem>
   <AccordionItem key=1 label="Second" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Panel 2"</div></AccordionItem>
   <AccordionItem key=2 label="Third" open=item_2_open on_open_change=on_item_open_change(set_open, 2)><div>"Panel 3"</div></AccordionItem>
-</Accordion>"#
-            .to_string()
+</Accordion>"#.to_string()
     });
 
     let states_code = Signal::derive(move || {
@@ -516,8 +845,7 @@ let item_2_open = Signal::derive(move || open.get().contains(&2));
   <AccordionItem key=0 label="Overview" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Overview"</div></AccordionItem>
   <AccordionItem key=1 label="Details" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Details"</div></AccordionItem>
   <AccordionItem key=2 label="History" open=item_2_open on_open_change=on_item_open_change(set_open, 2) is_disabled=true><div>"History"</div></AccordionItem>
-</Accordion>"#
-            .to_string()
+</Accordion>"#.to_string()
     });
 
     let workbench_code = Signal::derive(move || {
@@ -529,8 +857,7 @@ let item_1_open = Signal::derive(move || open.get().contains(&1));
 <Accordion id_base="accordion-workbench".to_string()>
   <AccordionItem key=0 label="Profile" open=item_0_open on_open_change=on_item_open_change(set_open, 0)><div>"Profile panel"</div></AccordionItem>
   <AccordionItem key=1 label="Security" open=item_1_open on_open_change=on_item_open_change(set_open, 1)><div>"Security panel"</div></AccordionItem>
-</Accordion>"#
-            .to_string()
+</Accordion>"#.to_string()
     });
 
     view! {
@@ -682,13 +1009,13 @@ let item_1_open = Signal::derive(move || open.get().contains(&1));
                         " | status: "
                         {move || streaming_output_status.get().as_str()}
                         " | chars: "
-                        {move || streaming_chars_clamped.get().to_string()}
+                        {move || streaming_chars_clamped.get()}
                         "/"
-                        {streaming_total_chars.to_string()}
+                        {streaming_total_chars}
                         " | items rendered: "
-                        {move || streaming_rendered_items.get().to_string()}
+                        {move || streaming_rendered_items.get()}
                         "/"
-                        {streaming_total_items.to_string()}
+                        {streaming_total_items}
                     </span>
                     <AiSpace mode=streaming_mode output_status=streaming_output_status>
                         <div class="docs-card" data-slot="accordion-streaming-canvas">
@@ -939,8 +1266,8 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
             "let (open, set_open) = signal(true);".to_string(),
             "let on_open_change = Callback::new(move |next: bool| set_open.set(next));".to_string(),
             "<Disclosure".to_string(),
-            "  id_base=\"docs-disclosure-workbench\".to_string()".to_string(),
-            "  label=\"Workbench details\".to_string()".to_string(),
+            "  id_base=\"docs-disclosure-workbench\".into()".to_string(),
+            "  label=\"Workbench details\".into()".to_string(),
         ];
 
         if controlled {
@@ -1028,7 +1355,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
                     </Disclosure>
                     <span class="ui-muted">
                         "open: "
-                        {move || open.get().to_string()}
+                        {move || open.get()}
                     </span>
                 </div>
             </Playground>
@@ -1304,7 +1631,7 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
                     </Tabs>
                     <span class="ui-muted">
                         "selected: "
-                        {move || selected_auto.get().to_string()}
+                        {move || selected_auto.get()}
                     </span>
                     <span class="ui-muted">
                         "Default theme baseline: clear hierarchy, layered contrast, and explicit hover/focus feedback."
@@ -1337,7 +1664,7 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
                     </Tabs>
                     <span class="ui-muted">
                         "manual selected: "
-                        {move || selected_manual.get().to_string()}
+                        {move || selected_manual.get()}
                     </span>
                     <span class="ui-muted">"disabled tab index: 2"</span>
                 </div>
@@ -1383,7 +1710,7 @@ let on_change = Callback::new(move |next: usize| set_selected.set(next));
                     </span>
                     <span class="ui-muted">
                         "workbench selected: "
-                        {move || tabs_workbench_selected.get().to_string()}
+                        {move || tabs_workbench_selected.get()}
                     </span>
                     <div class="docs-card" data-slot="tabs-workbench-canvas">
                         {move || {
@@ -1546,17 +1873,17 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
         let mut lines = vec![
             "let (selected, set_selected) = signal(Some(1_usize));".to_string(),
             "<List".to_string(),
-            "  id_base=\"docs-list-workbench\".to_string()".to_string(),
+            "  id_base=\"docs-list-workbench\".into()".to_string(),
             "  items=vec![".to_string(),
-            "    \"Overview\".to_string(),".to_string(),
-            "    \"Billing\".to_string(),".to_string(),
-            "    \"Integrations\".to_string(),".to_string(),
-            "    \"Audit Logs\".to_string(),".to_string(),
-            "    \"Security\".to_string(),".to_string(),
+            "    \"Overview\".into(),".to_string(),
+            "    \"Billing\".into(),".to_string(),
+            "    \"Integrations\".into(),".to_string(),
+            "    \"Audit Logs\".into(),".to_string(),
+            "    \"Security\".into(),".to_string(),
             "  ].into()".to_string(),
             "  selected_index=selected".to_string(),
             "  set_selected_index=set_selected".to_string(),
-            "  aria_label=\"List workbench\".to_string()".to_string(),
+            "  aria_label=\"List workbench\".into()".to_string(),
         ];
 
         if !sync_active {
@@ -1569,7 +1896,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             lines.push("  disabled_indices=vec![4]".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-list-workbench--custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-list-workbench--custom\".into()".to_string());
         }
 
         lines.push("/>".to_string());
@@ -1871,9 +2198,9 @@ pub(super) fn menu() -> AnyView {
                     </span>
                     <span class="ui-muted">
                         "share checked: "
-                        {move || share_checked.get().to_string()}
+                        {move || share_checked.get()}
                         " · sort ascending: "
-                        {move || sort_ascending.get().to_string()}
+                        {move || sort_ascending.get()}
                     </span>
                 </div>
             </Playground>
@@ -1998,9 +2325,8 @@ pub(super) fn menu_trigger() -> AnyView {
         let mut snippet = vec![
             "let (open, set_open) = signal(false);".to_string(),
             "<MenuTrigger".to_string(),
-            "  id_base=\"docs-menu-trigger-workbench\".to_string()".to_string(),
-            "  items=vec![\"Profile\".to_string(), \"Settings\".to_string(), \"Archive\".to_string()]"
-                .to_string(),
+            "  id_base=\"docs-menu-trigger-workbench\".into()".to_string(),
+            "  items=vec![\"Profile\".into(), \"Settings\".into(), \"Archive\".into()]".to_string(),
             "  on_action=Callback::new(move |_: usize| {})".to_string(),
             "  open=Signal::derive(move || open.get())".to_string(),
             "  on_open_change=Callback::new(move |next| set_open.set(next))".to_string(),
@@ -2018,10 +2344,10 @@ pub(super) fn menu_trigger() -> AnyView {
             snippet.push("  placement=PopoverPlacement::TopEnd".to_string());
         }
         if custom_label {
-            snippet.push("  aria_label=\"Workbench menu trigger\".to_string()".to_string());
+            snippet.push("  aria_label=\"Workbench menu trigger\".into()".to_string());
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-menu-trigger-workbench\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-menu-trigger-workbench\".into()".to_string());
         }
         snippet.extend([
             ">".to_string(),
@@ -2032,7 +2358,7 @@ pub(super) fn menu_trigger() -> AnyView {
     });
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/menu_trigger/styles.rs */\n{}",
+            "/* crates/ui-components/src/menu/trigger/styles.rs */\n{}",
             ui_components::menu_trigger::styles::CSS
         )
     });
@@ -2112,7 +2438,7 @@ pub(super) fn menu_trigger() -> AnyView {
                     </MenuTrigger>
                     <span class="ui-muted">
                         "open: "
-                        {move || controlled_open_raw.get().to_string()}
+                        {move || controlled_open_raw.get()}
                     </span>
                 </div>
             </Playground>
@@ -2143,7 +2469,7 @@ pub(super) fn menu_trigger() -> AnyView {
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/menu_trigger/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/menu/trigger/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="展示区用于 current 与 baseline 对比；Config/Code/CSS Test 区用于行为和样式契约验证。"
                 controls=move || view! {
@@ -2260,7 +2586,7 @@ pub(super) fn menu_trigger() -> AnyView {
                                     </MenuTrigger>
                                     <span class="ui-muted">
                                         "open: "
-                                        {workbench_open_raw.get().to_string()}
+                                        {workbench_open_raw.get()}
                                         " · last: "
                                         {workbench_last
                                             .get()
@@ -2326,8 +2652,7 @@ pub(super) fn select() -> AnyView {
 
     let hello_code = Signal::derive(move || {
         r#"let (selected, set_selected) = signal(None::<usize>);
-<Select id_base="select-hello".to_string() items=vec!["Apple".to_string(), "Banana".to_string()] selected_index=selected set_selected_index=set_selected />"#
-            .to_string()
+<Select id_base="select-hello".to_string() items=vec!["Apple".to_string(), "Banana".to_string()] selected_index=selected set_selected_index=set_selected />"#.to_string()
     });
 
     let code = Signal::derive(move || {
@@ -2411,16 +2736,16 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                         </ui_components::Button>
                         <span class="ui-muted">
                             "open: "
-                            {move || controlled_open_raw.get().to_string()}
+                            {move || controlled_open_raw.get()}
                         </span>
                     </div>
                     <span class="ui-muted">
                         "selected: "
                         {move || selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                         " · has selection: "
-                        {move || has_selection.get().to_string()}
+                        {move || has_selection.get()}
                         " · disabled options: "
-                        {disabled_option_count.to_string()}
+                        {disabled_option_count}
                     </span>
                 </div>
             </Playground>
@@ -2563,19 +2888,19 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
             "let (selected, set_selected) = signal(Some(1_usize));".to_string(),
             "let (open, set_open) = signal(false);".to_string(),
             "<ComboBox".to_string(),
-            "  id_base=\"docs-combo-box-workbench\".to_string()".to_string(),
-            "  label=\"Language\".to_string()".to_string(),
+            "  id_base=\"docs-combo-box-workbench\".into()".to_string(),
+            "  label=\"Language\".into()".to_string(),
             "  items=vec![".to_string(),
-            "    \"Rust\".to_string(),".to_string(),
-            "    \"TypeScript\".to_string(),".to_string(),
-            "    \"Go\".to_string(),".to_string(),
-            "    \"Python\".to_string(),".to_string(),
-            "    \"Zig\".to_string(),".to_string(),
+            "    \"Rust\".into(),".to_string(),
+            "    \"TypeScript\".into(),".to_string(),
+            "    \"Go\".into(),".to_string(),
+            "    \"Python\".into(),".to_string(),
+            "    \"Zig\".into(),".to_string(),
             "  ]".to_string(),
             "  selected_index=selected".to_string(),
             "  set_selected_index=set_selected".to_string(),
-            "  description=\"Pick one runtime language\".to_string()".to_string(),
-            "  error=\"Language is required\".to_string()".to_string(),
+            "  description=\"Pick one runtime language\".into()".to_string(),
+            "  error=\"Language is required\".into()".to_string(),
         ];
 
         if invalid {
@@ -2593,7 +2918,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                 .push("  on_open_change=Callback::new(move |next| set_open.set(next))".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-combo-box-workbench--custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-combo-box-workbench--custom\".into()".to_string());
         }
 
         lines.push("/>".to_string());
@@ -2698,7 +3023,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                             </ui_components::Button>
                             <span class="ui-muted">
                                 "open: "
-                                {move || controlled_open_raw.get().to_string()}
+                                {move || controlled_open_raw.get()}
                                 " · selected: "
                                 {move || controlled_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                             </span>
@@ -2803,7 +3128,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                         </ui_components::Button>
                         <span class="ui-muted">
                             "open: "
-                            {move || workbench_controlled_open.get().to_string()}
+                            {move || workbench_controlled_open.get()}
                             " · selected: "
                             {move || workbench_selected.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
                         </span>
@@ -3063,7 +3388,7 @@ let (empty_selected, set_empty_selected) = signal(None::<usize>);
                     />
                     <span class="ui-muted" data-slot="autocomplete-controlled-open">
                         "open: "
-                        {move || controlled_open_raw.get().to_string()}
+                        {move || controlled_open_raw.get()}
                     </span>
                     <span class="ui-muted" data-slot="autocomplete-controlled-selected">
                         "selected: "
@@ -3160,17 +3485,16 @@ pub(super) fn dropdown_menu() -> AnyView {
         let custom_motion = interactive_custom_motion.get();
 
         let items_code = match item_mode {
-            1 => "vec![\"Rename\".to_string(), \"Share\".to_string()]".to_string(),
+            1 => "vec![\"Rename\".into(), \"Share\".into()]".to_string(),
             2 => "Vec::<String>::new()".to_string(),
-            _ => "vec![\"Duplicate\".to_string(), \"Move\".to_string(), \"Archive\".to_string()]"
-                .to_string(),
+            _ => "vec![\"Duplicate\".into(), \"Move\".into(), \"Archive\".into()]".to_string(),
         };
 
         let mut lines = vec![
             format!("let items = {items_code};"),
             "".to_string(),
             "<DropdownMenu".to_string(),
-            "  id_base=\"docs-dropdown-interactive\".to_string()".to_string(),
+            "  id_base=\"docs-dropdown-interactive\".into()".to_string(),
             "  items=items".to_string(),
             "  on_action=Callback::new(move |index: usize| { /* ... */ })".to_string(),
         ];
@@ -3190,7 +3514,7 @@ pub(super) fn dropdown_menu() -> AnyView {
             lines.push("  disabled_indices=vec![1]".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-dropdown-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-dropdown-custom\".into()".to_string());
         }
         if custom_motion {
             lines.push("  motion=DropdownMenuMotion {".to_string());
@@ -3209,7 +3533,7 @@ pub(super) fn dropdown_menu() -> AnyView {
 
     let interactive_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/dropdown_menu/styles.rs */\n{}",
+            "/* crates/ui-components/src/menu/dropdown_menu/styles.rs */\n{}",
             ui_components::dropdown_menu::styles::CSS
         )
     });
@@ -3303,7 +3627,7 @@ pub(super) fn dropdown_menu() -> AnyView {
                 description="Display + Config + Code + CSS Test: tune close strategy, control mode, and state markers."
                 code_signal=interactive_code
                 test_css_source=interactive_test_css
-                test_source_path="crates/ui-components/src/dropdown_menu/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/menu/dropdown_menu/styles.rs".to_string()
                 test_config_signal=interactive_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -3410,7 +3734,7 @@ pub(super) fn dropdown_menu() -> AnyView {
                                     "last: "
                                     {move || interactive_last.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                                     " · open: "
-                                    {move || interactive_open_raw.get().to_string()}
+                                    {move || interactive_open_raw.get()}
                                 </span>
                             </div>
                         }
@@ -3483,7 +3807,7 @@ pub(super) fn dropdown_menu() -> AnyView {
                     </DropdownMenu>
                     <span class="ui-muted">
                         "open: "
-                        {move || controlled_open_raw.get().to_string()}
+                        {move || controlled_open_raw.get()}
                     </span>
                     <span class="ui-muted">"close_on_action: false (select keeps popover open)"</span>
                 </div>
@@ -3538,8 +3862,7 @@ let on_change = Callback::new(move |next: usize| { /* ... */ });
 
     let config_code = Signal::derive(move || {
         r#"<Pagination total_pages=20 page=compact_page set_page=set_compact_page siblings=0 boundaries=1 />
-<Pagination total_pages=20 page=wide_page set_page=set_wide_page siblings=2 boundaries=2 />"#
-            .to_string()
+<Pagination total_pages=20 page=wide_page set_page=set_wide_page siblings=2 boundaries=2 />"#.to_string()
     });
 
     let code_example = Signal::derive(move || {
@@ -3585,7 +3908,7 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                         boundaries=1
                         on_change=on_change
                     />
-                    <span class="ui-muted">"page: " {move || page.get().to_string()}</span>
+                    <span class="ui-muted">"page: " {move || page.get()}</span>
                     <span class="ui-muted">
                         "last change: "
                         {move || last_change.get().map(|value| value.to_string()).unwrap_or_else(|| "None".to_string())}
@@ -3605,7 +3928,7 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                         />
                         <span class="ui-muted">
                             "compact config (siblings=0 boundaries=1): "
-                            {move || compact_page.get().to_string()}
+                            {move || compact_page.get()}
                         </span>
                     </div>
 
@@ -3619,7 +3942,7 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                         />
                         <span class="ui-muted">
                             "wide config (siblings=2 boundaries=2): "
-                            {move || wide_page.get().to_string()}
+                            {move || wide_page.get()}
                         </span>
                     </div>
                 </div>
@@ -3635,7 +3958,7 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                     />
                     <span class="ui-muted">
                         "code sample page: "
-                        {move || code_page.get().to_string()}
+                        {move || code_page.get()}
                     </span>
                 </div>
             </Playground>
@@ -3669,17 +3992,17 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                 <div class="docs-row" data-slot="pagination-states-playground">
                     <div class="docs-stack" data-slot="pagination-state-first">
                         <Pagination total_pages=12 page=first_page set_page=set_first_page />
-                        <span class="ui-muted">"first page: " {move || first_page.get().to_string()}</span>
+                        <span class="ui-muted">"first page: " {move || first_page.get()}</span>
                     </div>
 
                     <div class="docs-stack" data-slot="pagination-state-middle">
                         <Pagination total_pages=12 page=middle_page set_page=set_middle_page />
-                        <span class="ui-muted">"middle page: " {move || middle_page.get().to_string()}</span>
+                        <span class="ui-muted">"middle page: " {move || middle_page.get()}</span>
                     </div>
 
                     <div class="docs-stack" data-slot="pagination-state-last">
                         <Pagination total_pages=12 page=last_page set_page=set_last_page />
-                        <span class="ui-muted">"last page: " {move || last_page.get().to_string()}</span>
+                        <span class="ui-muted">"last page: " {move || last_page.get()}</span>
                     </div>
 
                     <div class="docs-stack" data-slot="pagination-state-disabled">
@@ -3691,7 +4014,7 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                         />
                         <span class="ui-muted">
                             "disabled page: "
-                            {move || disabled_page.get().to_string()}
+                            {move || disabled_page.get()}
                         </span>
                     </div>
 
@@ -3703,7 +4026,7 @@ let on_change = Callback::new(move |next: usize| { /* sync route/query */ });
                         />
                         <span class="ui-muted">
                             "empty page signal: "
-                            {move || empty_page.get().to_string()}
+                            {move || empty_page.get()}
                         </span>
                     </div>
                 </div>
@@ -3844,11 +4167,11 @@ let invalid = Signal::derive(move || tags.get().is_empty());
                     />
                     <span class="ui-muted">
                         "count: "
-                        {move || removable_count.get().to_string()}
+                        {move || removable_count.get()}
                     </span>
                     <span class="ui-muted">
                         "has disabled tags: "
-                        {move || removable_has_disabled.get().to_string()}
+                        {move || removable_has_disabled.get()}
                     </span>
                 </div>
             </Playground>
@@ -3870,7 +4193,7 @@ let invalid = Signal::derive(move || tags.get().is_empty());
                     />
                     <span class="ui-muted">
                         "invalid: "
-                        {move || validation_invalid.get().to_string()}
+                        {move || validation_invalid.get()}
                     </span>
                 </div>
             </Playground>

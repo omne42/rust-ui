@@ -7,13 +7,21 @@ on:
 jobs:
   rust:
     runs-on: ubuntu-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: 1.93.1
           components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
 
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
@@ -27,3 +35,6 @@ jobs:
       - name: Tests
         run: cargo test --workspace --exclude tauri-demo
 
+      - name: sccache stats
+        if: always()
+        run: sccache --show-stats || true

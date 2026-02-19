@@ -99,7 +99,8 @@ pub fn ActionButton(
         is_full_width: false,
         class_name,
         aria_label,
-        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string()),
+        // icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string())
+        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.as_ref().into()),
         is_icon_only,
         button_type: button_type.unwrap_or_default(),
     });

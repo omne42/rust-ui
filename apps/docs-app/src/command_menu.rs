@@ -129,7 +129,7 @@ fn focus_input(input_ref: &NodeRef<html::Input>) {
     let Some(el) = input_ref.get_untracked() else {
         return;
     };
-    let _ = el.focus();
+    drop(el.focus());
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -272,7 +272,7 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                     size=ButtonSize::Sm
                     class_name="docs-command-menu__button".to_string()
                     on_press=on_press
-                    aria_label=record_title.to_string()
+                    aria_label=record_title.clone()
                 >
                     <span
                         class="docs-command-menu__button-inner"

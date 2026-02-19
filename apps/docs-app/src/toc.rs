@@ -110,7 +110,7 @@ impl DocsToc {
         self.items.update(|items| {
             items.push(TocItem {
                 id: id.clone(),
-                title: title.trim().to_string(),
+                title: title.trim().into(),
                 level,
             });
         });
@@ -147,7 +147,7 @@ pub fn DocsTocPanel(route: ReadSignal<String>, navigate: Callback<String>) -> An
                             });
 
                             view! {
-                                <li class="docs-toc__item" data-level=level.to_string() data-active=move || is_active.get().then_some("true")>
+                                <li class="docs-toc__item" data-level=level data-active=move || is_active.get().then_some("true")>
                                     <a
                                         href="#"
                                         on:click=move |ev| {
@@ -200,7 +200,7 @@ fn attach_scroll_spy(toc: DocsToc) {
             let Some(callback) = callback.dyn_ref::<js_sys::Function>() else {
                 return;
             };
-            let _ = window.request_animation_frame(callback);
+            drop(window.request_animation_frame(callback));
         }
     });
 

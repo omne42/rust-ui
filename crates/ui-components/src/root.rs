@@ -78,6 +78,7 @@ pub fn UiRoot(
         }
         if inject_components_css.get_value() {
             crate::css::push_components_css(&mut out);
+            ui_layout::push_components_css(&mut out);
         }
         out.push_str(
             r#"

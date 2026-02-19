@@ -3,20 +3,23 @@ use leptos::prelude::*;
 use ui_components::Snippet;
 use ui_headless::{UiPerfBudget, UiPerfProbe};
 
-const ACCORDION_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/accordion/README.md");
+const ACCORDION_README_MD: &str = include_str!("../../../../../components/accordion/src/README.md");
+const CHECKBOX_README_MD: &str =
+    include_str!("../../../../../crates/ui-components/src/checkbox/README.md");
 const CHECKBOX_FIELD_README_MD: &str =
     include_str!("../../../../../crates/ui-components/src/checkbox_field/README.md");
 const DATE_PICKER_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/date_picker/README.md");
+    include_str!("../../../../../crates/ui-components/src/text_input/date_picker/README.md");
 const DROPDOWN_MENU_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/dropdown_menu/README.md");
+    include_str!("../../../../../crates/ui-components/src/menu/dropdown_menu/README.md");
 const MODAL_README_MD: &str =
     include_str!("../../../../../crates/ui-components/src/modal/README.md");
 
 fn component_readme_markdown(slug: &str) -> Option<&'static str> {
     match slug {
         "accordion" => Some(ACCORDION_README_MD),
+        "checkbox" => Some(CHECKBOX_README_MD),
+        "checkbox-group" => Some(CHECKBOX_README_MD),
         "checkbox-field" => Some(CHECKBOX_FIELD_README_MD),
         "date-picker" => Some(DATE_PICKER_README_MD),
         "dropdown-menu" => Some(DROPDOWN_MENU_README_MD),

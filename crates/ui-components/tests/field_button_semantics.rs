@@ -105,7 +105,7 @@ fn field_button_new_params_must_follow_naming_and_contract_pipeline() {
         "pub on_press: Option<OnPress>,",
         "tone: if input.is_quiet {",
         "validation: if input.is_invalid {",
-        "is_disabled: input.is_disabled,",
+        "is_disabled: shared_normalized.is_disabled,",
         "is_active: input.is_active,",
     ] {
         assert!(
@@ -272,8 +272,7 @@ fn field_button_defaults_are_centralized_in_logic() {
 
     for needle in [
         "pub fn normalize_input(input: FieldButtonResolveInput) -> FieldButtonNormalizedInput {",
-        "let normalized_aria_label = normalize_optional_text(input.aria_label);",
-        "let normalized_class_name = normalize_optional_text(input.class_name);",
+        "let shared_normalized = normalize_button_input(ButtonInputNormalizationInput {",
         "tone: if input.is_quiet {",
         "validation: if input.is_invalid {",
         "pub fn resolve_state(input: FieldButtonStateInput) -> FieldButtonState {",
@@ -922,7 +921,7 @@ fn field_button_a11y_and_i18n_entrypoints_delegate_to_button_contract() {
     }
 
     for needle in [
-        "let normalized_aria_label = normalize_optional_text(input.aria_label);",
+        "let shared_normalized = normalize_button_input(ButtonInputNormalizationInput {",
         "pub const DEFAULT_ARIA_LABEL: &str = \"FieldButton\";",
         ".unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string())",
     ] {

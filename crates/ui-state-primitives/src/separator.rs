@@ -117,8 +117,8 @@ pub fn resolve_state(input: SeparatorStateInput) -> SeparatorState {
 pub fn compose_class_name(base_class_name: Option<String>, state: SeparatorState) -> String {
     let mut classes = vec![
         "ui-separator".to_string(),
-        state.orientation_class.to_string(),
-        state.element_class.to_string(),
+        state.orientation_class.into(),
+        state.element_class.into(),
     ];
 
     if state.is_semantic {

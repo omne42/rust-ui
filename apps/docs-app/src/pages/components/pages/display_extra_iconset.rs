@@ -51,7 +51,7 @@ pub(super) fn iconset() -> AnyView {
         let tone = tone_value.get();
         let mut lines = vec![
             "<Iconset".to_string(),
-            format!("  icon=\"{}\".to_string()", icon_value.get()),
+            format!("  icon=\"{}\".into()", icon_value.get()),
             "  glyphs=vec![".to_string(),
             "    IconsetGlyph::new(\"workflow:check\", \"✓\").with_aria_label(\"Workflow Check\"),"
                 .to_string(),
@@ -74,10 +74,10 @@ pub(super) fn iconset() -> AnyView {
             lines.push("  decorative=false".to_string());
         }
         if custom_aria_label.get() {
-            lines.push("  aria_label=\"Custom icon label\".to_string()".to_string());
+            lines.push("  aria_label=\"Custom icon label\".into()".to_string());
         }
         if custom_class.get() {
-            lines.push("  class_name=\"docs-iconset-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-iconset-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -118,7 +118,7 @@ pub(super) fn iconset() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/iconset/styles.rs */\n{}",
+            "/* crates/ui-components/src/icon/set/styles.rs */\n{}",
             ui_components::iconset::styles::CSS
         )
     });
@@ -128,8 +128,8 @@ pub(super) fn iconset() -> AnyView {
         let size = size_value.get();
         let mut classes = vec![
             "ui-icon".to_string(),
-            size.class_name().to_string(),
-            tone.class_name().to_string(),
+            size.class_name().into(),
+            tone.class_name().into(),
         ];
         if disabled.get() {
             classes.push("ui-icon--disabled".to_string());
@@ -194,7 +194,7 @@ pub(super) fn iconset() -> AnyView {
                 description="Interactive display/config/code/css-test playground for Iconset registry behavior."
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/iconset/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/icon/set/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

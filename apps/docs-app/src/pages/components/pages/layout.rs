@@ -1,11 +1,12 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::{
+use ui_components::Snippet;
+use ui_layout::{
     AutoHeight, AutoHeightMotion, Card, CardVariant, Content, ContentTone, Divider,
     DividerOrientation, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap, Footer,
     FooterTone, Header, HeaderTone, Heading, HeadingLevel, HeadingTone, ScrollShadow, Separator,
-    SeparatorElementType, SeparatorOrientation, Snippet, Spacer, SpacerAxis, SpacerSize, View,
+    SeparatorElementType, SeparatorOrientation, Spacer, SpacerAxis, SpacerSize, View,
     ViewBackground, ViewBorder, ViewElement, ViewPadding, ViewRadius, ViewShadow, Well,
     WellDensity, WellTone,
 };
@@ -33,7 +34,7 @@ pub(super) fn card() -> AnyView {
         };
         let padded_line = if padded { "" } else { "  padded=false\n" };
         let class_line = if custom_class {
-            "  class_name=\"docs-card-custom\".to_string()\n"
+            "  class_name=\"docs-card-custom\".into()\n"
         } else {
             ""
         };
@@ -45,8 +46,8 @@ pub(super) fn card() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/card/styles.rs */\n{}",
-            ui_components::card::styles::CSS
+            "/* crates/ui-layout/src/card/styles.rs */\n{}",
+            ui_layout::card::styles::CSS
         )
     });
 
@@ -57,7 +58,7 @@ pub(super) fn card() -> AnyView {
 
         let mut classes = vec![
             "ui-card".to_string(),
-            variant.class_name().to_string(),
+            variant.class_name().into(),
             if padded {
                 "ui-card--padded".to_string()
             } else {
@@ -165,7 +166,7 @@ pub(super) fn card() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for variant, padding, and class-source contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/card/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-layout/src/card/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="card-workbench-controls">
@@ -415,7 +416,7 @@ pub(super) fn flex() -> AnyView {
             snippet.push("  inline=true".to_string());
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-flex-workbench\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-flex-workbench\".into()".to_string());
         }
         snippet.extend([
             ">".to_string(),
@@ -428,8 +429,8 @@ pub(super) fn flex() -> AnyView {
     });
     let interactive_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/flex/styles.rs */\n{}",
-            ui_components::flex::styles::CSS
+            "/* crates/ui-layout/src/flex/styles.rs */\n{}",
+            ui_layout::flex::styles::CSS
         )
     });
     let interactive_actual_config = Signal::derive(move || {
@@ -543,7 +544,7 @@ pub(super) fn flex() -> AnyView {
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=interactive_code
                 test_css_source=interactive_test_css_source
-                test_source_path="crates/ui-components/src/flex/styles.rs".to_string()
+                test_source_path="crates/ui-layout/src/flex/styles.rs".to_string()
                 test_config_signal=interactive_actual_config
                 description="展示区用于当前配置与 baseline 对比；Config/Code/CSS Test 区用于调参与契约验证。"
                 controls=move || view! {
@@ -727,10 +728,10 @@ pub(super) fn content() -> AnyView {
             snippet.push("  padded=true".to_string());
         }
         if custom_aria {
-            snippet.push("  aria_label=\"Docs content area\".to_string()".to_string());
+            snippet.push("  aria_label=\"Docs content area\".into()".to_string());
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-content-workbench\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-content-workbench\".into()".to_string());
         }
         snippet.extend([
             ">".to_string(),
@@ -741,8 +742,8 @@ pub(super) fn content() -> AnyView {
     });
     let interactive_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/content/styles.rs */\n{}",
-            ui_components::content::styles::CSS
+            "/* crates/ui-layout/src/content/styles.rs */\n{}",
+            ui_layout::content::styles::CSS
         )
     });
     let interactive_actual_config = Signal::derive(move || {
@@ -818,7 +819,7 @@ pub(super) fn content() -> AnyView {
                 title="Interactive Playground (Display / Config / Code / CSS Test)"
                 code_signal=interactive_code
                 test_css_source=interactive_test_css_source
-                test_source_path="crates/ui-components/src/content/styles.rs".to_string()
+                test_source_path="crates/ui-layout/src/content/styles.rs".to_string()
                 test_config_signal=interactive_actual_config
                 description="展示区用于当前配置与 baseline 对比；Config/Code/CSS Test 区用于快速验证语义与样式契约。"
                 controls=move || view! {
@@ -956,8 +957,8 @@ let (bordered, set_bordered) = signal(false);
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/header/styles.rs */\n{}",
-            ui_components::header::styles::CSS
+            "/* crates/ui-layout/src/header/styles.rs */\n{}",
+            ui_layout::header::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
@@ -1026,7 +1027,7 @@ let (bordered, set_bordered) = signal(false);
                 title="Interactive Playground (State + Source Markers)"
                 code_signal=interactive_code
                 test_css_source=test_css_source
-                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/header/styles.rs".to_string()
+                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-layout/src/header/styles.rs".to_string()
                 test_config_signal=actual_config
                 description="Workbench canvas: 展示区负责状态对比；Config/Code/CSS Test 区用于快速验证契约。"
                 controls=move || view! {
@@ -1139,17 +1140,17 @@ let (bordered, set_bordered) = signal(false);
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Header>\n  <h3>\"Settings\"</h3>\n</Header>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_layout::*;\n\n<Header>\n  <h3>\"Settings\"</h3>\n</Header>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-header-source-copy".to_string()
                 />
                 <ul data-slot="header-source-paths">
-                    <li><code>"crates/ui-components/src/header/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/header/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/header/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/header/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/header/motion.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/header/mod.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/header/logic.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/header/view.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/header/styles.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/header/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="header-source-prerequisites">
                     <li><code>"component-header"</code></li>
@@ -1213,10 +1214,10 @@ pub(super) fn footer() -> AnyView {
             lines.push("  bordered=true".to_string());
         }
         if aria {
-            lines.push("  aria_label=\"Workbench footer\".to_string()".to_string());
+            lines.push("  aria_label=\"Workbench footer\".into()".to_string());
         }
         if class_name {
-            lines.push("  class_name=\"docs-footer-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-footer-workbench\".into()".to_string());
         }
         lines.extend([
             ">".to_string(),
@@ -1228,8 +1229,8 @@ pub(super) fn footer() -> AnyView {
 
     let footer_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/footer/styles.rs */\n{}",
-            ui_components::footer::styles::CSS
+            "/* crates/ui-layout/src/footer/styles.rs */\n{}",
+            ui_layout::footer::styles::CSS
         )
     });
 
@@ -1248,7 +1249,7 @@ pub(super) fn footer() -> AnyView {
             "Footer"
         };
 
-        let mut classes = vec!["ui-footer".to_string(), tone.class_name().to_string()];
+        let mut classes = vec!["ui-footer".to_string(), tone.class_name().into()];
         if bordered {
             classes.push("ui-footer--bordered".to_string());
         }
@@ -1315,7 +1316,7 @@ pub(super) fn footer() -> AnyView {
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=footer_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/footer/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-layout/src/footer/styles.rs".to_string()
                 test_config_signal=footer_actual_config
                 description="Footer workbench: 对比展示 + config 快照 + copy-ready code + scoped CSS test."
                 controls=move || view! {
@@ -1490,17 +1491,17 @@ pub(super) fn divider() -> AnyView {
             },
             workbench_custom_motion.get(),
             if workbench_custom_class.get() {
-                "\"docs-divider-custom docs-divider-rail\".to_string()"
+                "\"docs-divider-custom docs-divider-rail\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             }
         )
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/divider/styles.rs */\n{}",
-            ui_components::divider::styles::CSS
+            "/* crates/ui-layout/src/divider/styles.rs */\n{}",
+            ui_layout::divider::styles::CSS
         )
     });
 
@@ -1513,10 +1514,7 @@ pub(super) fn divider() -> AnyView {
         let custom_motion = workbench_custom_motion.get();
         let custom_class = workbench_custom_class.get();
 
-        let mut classes = vec![
-            "ui-divider".to_string(),
-            orientation.class_name().to_string(),
-        ];
+        let mut classes = vec!["ui-divider".to_string(), orientation.class_name().into()];
         if custom_class {
             classes.push("docs-divider-custom".to_string());
             if matches!(orientation, DividerOrientation::Vertical) {
@@ -1574,7 +1572,7 @@ pub(super) fn divider() -> AnyView {
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/divider/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-layout/src/divider/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="展示区对比 default/workbench；Config 控制 orientation/motion/class，Code 与 CSS Test 用于契约回归。"
                 controls=move || view! {
@@ -1650,11 +1648,11 @@ pub(super) fn divider() -> AnyView {
                                             <Divider
                                                 orientation=DividerOrientation::Vertical
                                                 motion=if workbench_custom_motion.get() {
-                                                    ui_components::divider::motion::DividerMotion {
+                                                    ui_layout::divider::motion::DividerMotion {
                                                         animate_in: true,
                                                     }
                                                 } else {
-                                                    ui_components::divider::motion::DividerMotion::default()
+                                                    ui_layout::divider::motion::DividerMotion::default()
                                                 }
                                                 class_name=if workbench_custom_class.get() {
                                                     "docs-divider-custom docs-divider-rail".to_string()
@@ -1673,11 +1671,11 @@ pub(super) fn divider() -> AnyView {
                                             <Divider
                                                 orientation=DividerOrientation::Horizontal
                                                 motion=if workbench_custom_motion.get() {
-                                                    ui_components::divider::motion::DividerMotion {
+                                                    ui_layout::divider::motion::DividerMotion {
                                                         animate_in: true,
                                                     }
                                                 } else {
-                                                    ui_components::divider::motion::DividerMotion::default()
+                                                    ui_layout::divider::motion::DividerMotion::default()
                                                 }
                                                 class_name=if workbench_custom_class.get() {
                                                     "docs-divider-custom".to_string()
@@ -2085,7 +2083,7 @@ let motion = AutoHeightMotion {
             lines.push("  motion=AutoHeightMotion { animate_height: false, ..AutoHeightMotion::default() }".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-auto-height-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-auto-height-workbench\".into()".to_string());
         }
         lines.extend([
             ">".to_string(),
@@ -2099,8 +2097,8 @@ let motion = AutoHeightMotion {
 
     let auto_height_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/auto_height/styles.rs */\n{}",
-            ui_components::auto_height::styles::CSS
+            "/* crates/ui-layout/src/auto_height/styles.rs */\n{}",
+            ui_layout::auto_height::styles::CSS
         )
     });
 
@@ -2189,7 +2187,7 @@ let motion = AutoHeightMotion {
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=auto_height_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/auto_height/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-layout/src/auto_height/styles.rs".to_string()
                 test_config_signal=auto_height_actual_config
                 description="AutoHeight workbench: 展示区 + config 快照 + code + scoped CSS test."
                 controls=move || view! {

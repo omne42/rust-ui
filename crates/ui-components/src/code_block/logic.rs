@@ -6,9 +6,9 @@ pub use ui_state_primitives::code_block::{
 pub fn compose_class_name(base_class_name: Option<String>, state: CodeBlockViewState) -> String {
     let mut classes = vec![
         "ui-code-block".to_string(),
-        state.state_class.to_string(),
-        state.header_class.to_string(),
-        state.motion_source_class.to_string(),
+        state.state_class.into(),
+        state.header_class.into(),
+        state.motion_source_class.into(),
     ];
 
     if state.copyable {

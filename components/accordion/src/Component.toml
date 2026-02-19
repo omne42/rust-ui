@@ -1,0 +1,171 @@
+schema_version = "1"
+
+[component]
+name = "Accordion"
+crate = "ui-accordion"
+
+[[inputs]]
+name = "id_base"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "selection_mode"
+ty = "AccordionSelectionMode"
+default = "Multiple"
+controlled = false
+
+[[inputs]]
+name = "variant"
+ty = "AccordionVariant"
+default = "Light"
+controlled = false
+
+[[inputs]]
+name = "disallow_empty_selection"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "AccordionMotion"
+default = "AccordionMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "items[].label"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "items[].key"
+ty = "Option<usize>"
+default = "None (auto-assign)"
+controlled = false
+
+[[inputs]]
+name = "items[].is_disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "items[].open"
+ty = "Option<Signal<bool>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "items[].default_open"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "items[].panel"
+ty = "Children"
+default = "required"
+controlled = false
+
+[[outputs]]
+name = "items[].on_open_change"
+ty = "Callback<bool>"
+scope = "item"
+
+[[outputs]]
+name = "root_data_ui_output_status"
+ty = "data-ui-output-status"
+scope = "root-attribute"
+
+[[slots]]
+name = "default"
+required = true
+description = "AccordionItem children composition slot"
+
+[[slots]]
+name = "item_panel"
+required = true
+description = "AccordionItem body content slot"
+
+[[capabilities]]
+name = "disclosure_semantics"
+enabled = true
+
+[[capabilities]]
+name = "roving_tabindex_keyboard_navigation"
+enabled = true
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_open_state"
+enabled = true
+
+[[capabilities]]
+name = "per_item_disabled_state"
+enabled = true
+
+[[capabilities]]
+name = "motion_spring_with_reduced_motion_fallback"
+enabled = true
+
+[[capabilities]]
+name = "schema_protocol_resolution"
+enabled = true
+
+[[capabilities]]
+name = "streaming_markup_projection"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-theme"
+kind = "motion-token-source"
+
+[[dependencies]]
+name = "ui-ai-runtime"
+kind = "ai-context-status"
+
+[[dependencies]]
+name = "serde"
+kind = "protocol-serialization"

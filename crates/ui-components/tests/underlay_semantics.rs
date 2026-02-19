@@ -94,7 +94,7 @@ fn underlay_view_mounts_headless_and_motion_contracts() {
     let source = load_source("src/underlay/view.rs");
 
     for needle in [
-        "use crate::ai_space::{AiOutputStatus, AiRenderMode, use_ai_space_state};",
+        "use crate::ai_runtime::{AiOutputStatus, AiRenderMode, use_ai_space_state};",
         "use ui_headless::{",
         "use_controllable_open_state_traced",
         "use_underlay",

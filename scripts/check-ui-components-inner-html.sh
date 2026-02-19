@@ -29,7 +29,7 @@ echo "[inner-html] contract: time-field component/docs reject raw html injection
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_inner_html_usage_is_forbidden_in_component_and_docs_examples
 
 echo "[inner-html] contract: scroll-area component/docs reject raw html injection"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_inner_html_usage_is_explicitly_na_and_guarded
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_inner_html_usage_is_explicitly_na_and_guarded
 
 echo "[inner-html] contract: slider component/docs reject raw html injection"
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_inner_html_usage_is_forbidden_in_component_and_docs

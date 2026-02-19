@@ -38,10 +38,10 @@ pub fn Snippet(
         copy_aria_label,
         copy_error_label,
         logic::SnippetTextFallbacks {
-            copy_label: Some(common_strings.snippet_copy_label.as_ref().to_string()),
-            copied_label: Some(common_strings.snippet_copied_label.as_ref().to_string()),
-            copy_aria_label: Some(common_strings.snippet_copy_aria_label.as_ref().to_string()),
-            copy_error_label: Some(common_strings.snippet_copy_retry_label.as_ref().to_string()),
+            copy_label: Some(common_strings.snippet_copy_label.as_ref().into()),
+            copied_label: Some(common_strings.snippet_copied_label.as_ref().into()),
+            copy_aria_label: Some(common_strings.snippet_copy_aria_label.as_ref().into()),
+            copy_error_label: Some(common_strings.snippet_copy_retry_label.as_ref().into()),
         },
     );
 

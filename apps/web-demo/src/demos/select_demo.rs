@@ -41,7 +41,7 @@ pub fn SelectDemo() -> impl IntoView {
                     on_open_change=on_select_open_change
                 />
                 <div class="demo-kv">
-                    "open: " {move || select_open.get().to_string()}
+                    "open: " {move || select_open.get()}
                 </div>
             </div>
         </section>

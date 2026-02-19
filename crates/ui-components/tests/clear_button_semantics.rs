@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn clear_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/clear_button/mod.rs");
+    let source = load_source("src/button/clear_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn clear_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn clear_button_uses_logic_state_model() {
-    let logic_source = load_source("src/clear_button/logic.rs");
-    let view_source = load_source("src/clear_button/view.rs");
+    let logic_source = load_source("src/button/clear_button/logic.rs");
+    let view_source = load_source("src/button/clear_button/view.rs");
 
     for needle in [
         "pub enum ClearButtonVariant",
@@ -56,7 +56,7 @@ fn clear_button_uses_logic_state_model() {
 
 #[test]
 fn clear_button_uses_headless_hooks() {
-    let source = load_source("src/clear_button/view.rs");
+    let source = load_source("src/button/clear_button/view.rs");
 
     for needle in ["use_button", "use_focus_ring", "use_hover"] {
         assert!(
@@ -68,10 +68,11 @@ fn clear_button_uses_headless_hooks() {
 
 #[test]
 fn clear_button_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/clear_button/view.rs");
+    let source = load_source("src/button/clear_button/view.rs");
 
     for attr in [
-        "data-slot=\"clear-button\"",
+        "#[prop(optional, default = \"clear-button\")] slot_name: &'static str",
+        "data-slot=slot_name",
         "data-state=state.data_state_attr",
         "data-variant=state.variant_attr",
         "data-inset=state.is_inset.then_some(\"true\")",
@@ -95,7 +96,7 @@ fn clear_button_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn clear_button_styles_include_variant_and_state_markers() {
-    let source = load_source("src/clear_button/styles.rs");
+    let source = load_source("src/button/clear_button/styles.rs");
 
     for selector in [
         ".ui-clear-button--variant-default",

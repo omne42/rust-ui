@@ -96,7 +96,7 @@ pub fn attach_motion(
 
         let animator = ui_motion::spring::SpringAnimator::new(1.0, config, move |scale| {
             let scale = scale.clamp(0.0, 10.0);
-            let _ = style.set_property("--ui-radio-scale", &format!("{scale}"));
+            drop(style.set_property("--ui-radio-scale", &format!("{scale}")));
         });
 
         let spring_for_cleanup = spring;
@@ -145,7 +145,7 @@ pub fn attach_motion(
     _is_disabled: bool,
     motion: RadioMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

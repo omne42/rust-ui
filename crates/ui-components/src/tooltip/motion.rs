@@ -90,26 +90,25 @@ pub fn attach_motion(
         let scale_initial = motion.initial_scale;
         let y_initial = offset_y;
 
-        let _ = style.set_property("--ui-tooltip-opacity", &format!("{opacity_initial}"));
-        let _ = style.set_property("--ui-tooltip-scale", &format!("{scale_initial}"));
-        let _ = style.set_property("--ui-tooltip-y", &format!("{y_initial}px"));
-
+        drop(style.set_property("--ui-tooltip-opacity", &format!("{opacity_initial}")));
+        drop(style.set_property("--ui-tooltip-scale", &format!("{scale_initial}")));
+        drop(style.set_property("--ui-tooltip-y", &format!("{y_initial}px")));
         let style_for_opacity = style.clone();
         let opacity = ui_motion::spring::SpringAnimator::new(opacity_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            let _ = style_for_opacity.set_property("--ui-tooltip-opacity", &format!("{v}"));
+            drop(style_for_opacity.set_property("--ui-tooltip-opacity", &format!("{v}")));
         });
 
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(scale_initial, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            let _ = style_for_scale.set_property("--ui-tooltip-scale", &format!("{v}"));
+            drop(style_for_scale.set_property("--ui-tooltip-scale", &format!("{v}")));
         });
 
         let style_for_y = style.clone();
         let y = ui_motion::spring::SpringAnimator::new(y_initial, config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
-            let _ = style_for_y.set_property("--ui-tooltip-y", &format!("{v}px"));
+            drop(style_for_y.set_property("--ui-tooltip-y", &format!("{v}px")));
         });
 
         let springs_for_cleanup = springs;
@@ -178,8 +177,7 @@ pub fn attach_motion(
 ) {
     use leptos::prelude::*;
 
-    let _ = sanitize_motion(motion);
-
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
     Effect::new(move |_| {
         if !is_open.get() {
             on_exit_complete.run(());

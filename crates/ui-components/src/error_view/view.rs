@@ -12,9 +12,7 @@ pub fn ErrorView(
     #[prop(optional)] is_invalid: bool,
     #[prop(optional)] tone: Option<ErrorViewTone>,
     #[prop(optional)] is_compact: Option<bool>,
-    #[prop(optional)] compact: Option<bool>,
     #[prop(optional)] is_bordered: Option<bool>,
-    #[prop(optional)] bordered: Option<bool>,
     #[prop(optional)] motion: ErrorViewMotion,
     #[prop(optional, into)] message: Option<String>,
     #[prop(optional, into)] aria_label: Option<String>,
@@ -35,9 +33,7 @@ pub fn ErrorView(
         tone,
         is_invalid,
         is_compact,
-        compact,
         is_bordered,
-        bordered,
         message,
         aria_label,
         class_name,
@@ -110,8 +106,7 @@ pub fn ErrorView(
             lang=locale.lang
             dir=locale.dir
         >
-            {state.get().has_icon.then(|| {
-                let icon = icon.expect("checked has_icon");
+            {icon.map(|icon| {
                 view! {
                     <span class="ui-error-view__icon" data-slot="error-view-icon" aria-hidden="true">
                         {icon.get_value().run()}
@@ -121,8 +116,7 @@ pub fn ErrorView(
 
             {content}
 
-            {state.get().has_actions.then(|| {
-                let actions = actions.expect("checked has_actions");
+            {actions.map(|actions| {
                 view! {
                     <div class="ui-error-view__actions" data-slot="error-view-actions">
                         {actions.get_value().run()}

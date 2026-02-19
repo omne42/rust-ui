@@ -32,7 +32,7 @@ impl TableVariant {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -41,11 +41,11 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_empty_text(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_EMPTY_TEXT.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_EMPTY_TEXT.into())
 }
 
 pub fn normalize_columns(columns: Vec<TableColumn>) -> Vec<TableColumn> {
@@ -87,15 +87,14 @@ pub fn normalize_rows(rows: Vec<TableRow>, column_count: usize) -> Vec<TableRow>
                 .cells
                 .into_iter()
                 .map(|cell| {
-                    normalize_optional_text(Some(cell))
-                        .unwrap_or_else(|| DEFAULT_EMPTY_TEXT.to_string())
+                    normalize_optional_text(Some(cell)).unwrap_or_else(|| DEFAULT_EMPTY_TEXT.into())
                 })
                 .collect();
 
             if cells.len() > effective_column_count {
                 cells.truncate(effective_column_count);
             } else if cells.len() < effective_column_count {
-                cells.resize(effective_column_count, DEFAULT_EMPTY_TEXT.to_string());
+                cells.resize(effective_column_count, DEFAULT_EMPTY_TEXT.into());
             }
 
             TableRow { id, cells }
@@ -143,9 +142,9 @@ pub fn resolve_state(input: TableStateInput) -> TableState {
 pub fn compose_class_name(base_class_name: Option<String>, state: TableState) -> String {
     let mut classes = vec![
         "ui-table".to_string(),
-        state.variant_class.to_string(),
-        state.density_class.to_string(),
-        state.layout_class.to_string(),
+        state.variant_class.into(),
+        state.density_class.into(),
+        state.layout_class.into(),
     ];
 
     if state.is_striped {
@@ -223,7 +222,7 @@ mod tests {
         assert_eq!(rows[0].id, "row-1");
         assert_eq!(
             rows[0].cells,
-            vec!["API".to_string(), DEFAULT_EMPTY_TEXT.to_string()]
+            vec!["API".to_string(), DEFAULT_EMPTY_TEXT.into()]
         );
     }
 

@@ -1,9 +1,10 @@
 use leptos::{html, prelude::*};
 use ui_components::{
-    AutoHeight, Button, InputOtp, Meter, MotionRipple, NumberField, OnPress, Progress,
-    ProgressCircle, RippleMotion, ScrollShadow, SegmentedControl, SegmentedControlSize, Separator,
-    SeparatorOrientation, Sheet, SheetPlacement, SlidingNumber, StaticNumber,
+    Button, InputOtp, Meter, MotionRipple, NumberField, OnPress, Progress, ProgressCircle,
+    RippleMotion, SegmentedControl, SegmentedControlSize, Sheet, SheetPlacement, SlidingNumber,
+    StaticNumber,
 };
+use ui_layout::{AutoHeight, ScrollShadow, Separator, SeparatorOrientation};
 
 #[component]
 pub fn NewComponentsDemo() -> impl IntoView {
@@ -172,7 +173,7 @@ pub fn NewComponentsDemo() -> impl IntoView {
 
                 <div class="demo-row">
                     <Button on_press=open_sheet>"Open Sheet"</Button>
-                    <span class="demo-kv">"open: " {move || sheet_open.get().to_string()}</span>
+                    <span class="demo-kv">"open: " {move || sheet_open.get()}</span>
                 </div>
 
                 <div class="demo-divider"></div>

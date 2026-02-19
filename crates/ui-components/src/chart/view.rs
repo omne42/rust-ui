@@ -224,7 +224,7 @@ pub fn Chart(
                                         <rect
                                             class="ui-chart__bar"
                                             data-slot="chart-bar"
-                                            data-index=index.to_string()
+                                            data-index=index
                                             data-active=move || is_active().then_some("true")
                                             id=move || format!("{}-plot-{index}", id_base.get_value())
                                             x=rect_x
@@ -246,7 +246,7 @@ pub fn Chart(
                                         <circle
                                             class="ui-chart__dot"
                                             data-slot="chart-dot"
-                                            data-index=index.to_string()
+                                            data-index=index
                                             data-active=move || is_active().then_some("true")
                                             id=move || format!("{}-plot-{index}", id_base.get_value())
                                             cx=x
@@ -317,7 +317,7 @@ pub fn Chart(
                                 <button
                                     class="ui-chart__legend-item"
                                     data-slot="chart-legend-item"
-                                    data-index=index.to_string()
+                                    data-index=index
                                     data-active=move || (state.get().active_index == index).then_some("true")
                                     id=move || format!("{}-legend-{index}", id_base.get_value())
                                     type="button"

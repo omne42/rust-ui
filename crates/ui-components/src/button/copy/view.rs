@@ -123,7 +123,7 @@ fn render_copy_button(
             };
             view! {
                 <Button
-                    class_name="ui-button-copy__button".to_string()
+                    class_name="ui-button-copy__button"
                     variant=variant
                     size=size
                     motion=motion.button
@@ -192,11 +192,11 @@ pub fn ButtonCopy(
     let lang = logic::normalize_optional_text(lang);
     let locale = ui_headless::a11y::locale_attrs(lang, dir);
     let default_label =
-        logic::normalize_optional_text(Some(strings.copy_button_label.as_ref().to_string()));
+        logic::normalize_optional_text(Some(strings.copy_button_label.as_ref().into()));
     let default_copied_label =
-        logic::normalize_optional_text(Some(strings.copied_status_text.as_ref().to_string()));
+        logic::normalize_optional_text(Some(strings.copied_status_text.as_ref().into()));
     let copy_failed_status_text =
-        logic::normalize_optional_text(Some(strings.copy_failed_status_text.as_ref().to_string()))
+        logic::normalize_optional_text(Some(strings.copy_failed_status_text.as_ref().into()))
             .or_else(|| {
                 logic::normalize_optional_text(Some(
                     super::i18n::ButtonCopyStrings::default()
@@ -255,13 +255,7 @@ pub fn ButtonCopy(
             lang=locale.lang.clone()
             dir=locale.dir
             data-slot="button-copy"
-            data-state=if view_state.is_copyable {
-                "copyable"
-            } else if view_state.is_disabled {
-                "disabled"
-            } else {
-                "empty"
-            }
+            data-state=view_state.state_attr
             data-mode=view_state.mode_attr
             data-icon-only=view_state.is_icon_only.then_some("true")
             data-with-icon=view_state.shows_icon.then_some("true")
@@ -283,15 +277,11 @@ pub fn ButtonCopy(
             data-copying=move || logic.is_copying.get().then_some("true")
             data-copy-error=move || logic.has_copy_error.get().then_some("true")
             data-copy-status=move || {
-                if logic.is_copying.get() {
-                    "loading"
-                } else if logic.has_copy_error.get() {
-                    "error"
-                } else if logic.copied.get() {
-                    "copied"
-                } else {
-                    "idle"
-                }
+                super::logic::resolve_agent_output_status_attr(
+                    logic.is_copying.get(),
+                    logic.has_copy_error.get(),
+                    logic.copied.get(),
+                )
             }
             data-motion-source=if motion == ButtonCopyMotion::default() {
                 "default"
@@ -307,12 +297,11 @@ pub fn ButtonCopy(
             data-ui-action=agent_contract.action.as_str()
             data-ui-state=agent_contract.state.as_str()
             data-ui-output-status=move || {
-                super::logic::resolve_agent_output_status(
+                super::logic::resolve_agent_output_status_attr(
                     logic.is_copying.get(),
                     logic.has_copy_error.get(),
                     logic.copied.get(),
                 )
-                .as_str()
             }
             data-ui-capability-copy=agent_contract.capabilities.can_copy.then_some("true")
             data-ui-capability-visual-feedback=agent_contract

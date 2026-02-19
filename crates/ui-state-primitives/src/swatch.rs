@@ -164,7 +164,7 @@ impl SwatchAriaLabelFallbacks<'_> {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -227,9 +227,9 @@ pub fn resolve_aria_label_with_fallbacks(
     if mixed_value {
         return (
             if mixed_label.is_empty() {
-                DEFAULT_MIXED_ARIA_LABEL.to_string()
+                DEFAULT_MIXED_ARIA_LABEL.into()
             } else {
-                mixed_label.to_string()
+                mixed_label.into()
             },
             "mixed",
         );
@@ -238,9 +238,9 @@ pub fn resolve_aria_label_with_fallbacks(
     if nothing {
         return (
             if nothing_label.is_empty() {
-                DEFAULT_NOTHING_ARIA_LABEL.to_string()
+                DEFAULT_NOTHING_ARIA_LABEL.into()
             } else {
-                nothing_label.to_string()
+                nothing_label.into()
             },
             "nothing",
         );
@@ -252,9 +252,9 @@ pub fn resolve_aria_label_with_fallbacks(
 
     (
         if default_label.is_empty() {
-            DEFAULT_ARIA_LABEL.to_string()
+            DEFAULT_ARIA_LABEL.into()
         } else {
-            default_label.to_string()
+            default_label.into()
         },
         "default",
     )

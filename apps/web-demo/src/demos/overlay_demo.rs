@@ -40,7 +40,7 @@ pub fn OverlayDemo() -> impl IntoView {
                 <div class="demo-row">
                     <Button on_press=open_overlay>"Open Modal"</Button>
                     <span class="demo-kv">
-                        "open: " {move || is_modal_open.get().to_string()}
+                        "open: " {move || is_modal_open.get()}
                     </span>
                 </div>
             </section>

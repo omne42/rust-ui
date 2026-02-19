@@ -35,16 +35,16 @@ pub fn open_mode_attr(is_controlled: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_id_base(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ID_BASE.into())
 }
 
 pub fn normalize_title(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TITLE.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TITLE.into())
 }
 
 fn source_attr(is_custom: bool) -> &'static str {
@@ -107,7 +107,7 @@ pub fn compose_class_name(
     base_class_name: Option<String>,
     state: CommandDialogPartState,
 ) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if matches!(state.slot, CommandDialogSlot::Root) {
         if state.is_open {

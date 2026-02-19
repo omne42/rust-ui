@@ -69,6 +69,6 @@ test("docs-app resizable playground source remains copy-paste ready", async ({ p
 
   const code = docsRoot.locator('[data-slot="code-block-code"]').first();
   await expect(code).toContainText("use leptos::prelude::*;");
-  await expect(code).toContainText("use ui_components::{Resizable, ResizableOrientation};");
+  await expect(code).toContainText("use ui_layout::{Resizable, ResizableOrientation};");
   await expect(code).toContainText("<Resizable");
 });

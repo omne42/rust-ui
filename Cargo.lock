@@ -802,6 +802,7 @@ dependencies = [
  "pulldown-cmark",
  "ui-components",
  "ui-headless",
+ "ui-layout",
  "web-sys",
 ]
 
@@ -4639,11 +4640,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
 
 [[package]]
-name = "ui-compat"
+name = "ui-accordion"
 version = "0.0.0"
 dependencies = [
- "ui-components",
+ "js-sys",
+ "leptos",
+ "serde",
+ "tracing",
+ "ui-ai-runtime",
  "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-ai-runtime"
+version = "0.0.0"
+dependencies = [
+ "leptos",
 ]
 
 [[package]]
@@ -4656,7 +4672,10 @@ dependencies = [
  "serde_json",
  "tachys",
  "tracing",
+ "ui-accordion",
+ "ui-ai-runtime",
  "ui-headless",
+ "ui-layout",
  "ui-motion",
  "ui-state-primitives",
  "ui-theme",
@@ -4677,6 +4696,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "ui-layout"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "tachys",
+ "tracing",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-logic-calendar"
+version = "0.0.0"
+
+[[package]]
 name = "ui-motion"
 version = "0.0.0"
 dependencies = [
@@ -4688,6 +4726,9 @@ dependencies = [
 [[package]]
 name = "ui-state-primitives"
 version = "0.0.0"
+dependencies = [
+ "ui-logic-calendar",
+]
 
 [[package]]
 name = "ui-theme"
@@ -4994,6 +5035,7 @@ dependencies = [
  "leptos",
  "ui-components",
  "ui-headless",
+ "ui-layout",
  "ui-state-primitives",
 ]
 

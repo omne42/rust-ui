@@ -3,6 +3,13 @@ use std::collections::BTreeSet;
 
 pub const DEFAULT_ARIA_LABEL: &str = "DisclosureGroup";
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct DisclosureGroupExpandedAxisState {
+    pub control_mode_attr: &'static str,
+    pub default_expanded_source_attr: &'static str,
+    pub is_controlled: bool,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum DisclosureGroupSelectionMode {
     Single,
@@ -26,10 +33,29 @@ impl DisclosureGroupSelectionMode {
     }
 }
 
+pub fn resolve_expanded_axis_state(
+    has_controlled_expanded_indices: bool,
+    has_default_expanded_indices: bool,
+) -> DisclosureGroupExpandedAxisState {
+    DisclosureGroupExpandedAxisState {
+        control_mode_attr: if has_controlled_expanded_indices {
+            "controlled"
+        } else {
+            "uncontrolled"
+        },
+        default_expanded_source_attr: if has_default_expanded_indices {
+            "prop"
+        } else {
+            "implicit-default"
+        },
+        is_controlled: has_controlled_expanded_indices,
+    }
+}
+
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -38,7 +64,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_expanded_indices(
@@ -120,7 +146,7 @@ pub fn resolve_state(input: DisclosureGroupStateInput) -> DisclosureGroupState {
 pub fn compose_class_name(base_class_name: Option<String>, state: DisclosureGroupState) -> String {
     let mut classes = vec![
         "ui-disclosure-group".to_string(),
-        state.selection_mode_class.to_string(),
+        state.selection_mode_class.into(),
     ];
 
     if state.is_empty {
@@ -172,12 +198,28 @@ mod tests {
         );
         assert_eq!(
             normalize_aria_label(Some("  \n  ".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
+    }
+
+    #[test]
+    fn expanded_axis_state_tracks_control_mode_and_default_source() {
+        let controlled = resolve_expanded_axis_state(true, true);
+        assert_eq!(controlled.control_mode_attr, "controlled");
+        assert_eq!(controlled.default_expanded_source_attr, "prop");
+        assert!(controlled.is_controlled);
+
+        let uncontrolled = resolve_expanded_axis_state(false, false);
+        assert_eq!(uncontrolled.control_mode_attr, "uncontrolled");
+        assert_eq!(
+            uncontrolled.default_expanded_source_attr,
+            "implicit-default"
+        );
+        assert!(!uncontrolled.is_controlled);
     }
 
     #[test]

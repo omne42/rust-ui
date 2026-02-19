@@ -37,12 +37,16 @@ pub fn IllustratedMessage(
     view! {
         <div class=class data-slot="illustrated-message" node_ref=root_ref>
             {state.show_illustration.then(|| {
-                let illustration = illustration.expect("checked show_illustration");
-                view! {
-                    <div class="ui-illustrated-message__illustration" data-slot="illustrated-message-illustration">
-                        {illustration.get_value().run()}
-                    </div>
-                }
+                illustration
+                    .map(|illustration| {
+                        view! {
+                            <div class="ui-illustrated-message__illustration" data-slot="illustrated-message-illustration">
+                                {illustration.get_value().run()}
+                            </div>
+                        }
+                        .into_any()
+                    })
+                    .unwrap_or_else(|| ().into_any())
             })}
 
             <div class="ui-illustrated-message__content" data-slot="illustrated-message-content">
@@ -65,12 +69,16 @@ pub fn IllustratedMessage(
                 })}
 
                 {state.show_actions.then(|| {
-                    let actions = actions.expect("checked show_actions");
-                    view! {
-                        <div class="ui-illustrated-message__actions" data-slot="illustrated-message-actions">
-                            {actions.get_value().run()}
-                        </div>
-                    }
+                    actions
+                        .map(|actions| {
+                            view! {
+                                <div class="ui-illustrated-message__actions" data-slot="illustrated-message-actions">
+                                    {actions.get_value().run()}
+                                </div>
+                            }
+                            .into_any()
+                        })
+                        .unwrap_or_else(|| ().into_any())
                 })}
             </div>
         </div>

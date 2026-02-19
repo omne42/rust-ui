@@ -17,7 +17,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_href(value: Option<String>) -> Option<String> {
@@ -45,7 +45,7 @@ pub fn compose_class_name(
     class_name: Option<String>,
     has_custom_class_name: bool,
 ) -> String {
-    let mut classes = vec![base_class_name.to_string()];
+    let mut classes = vec![base_class_name.into()];
 
     if has_custom_class_name {
         classes.push(format!("{base_class_name}--custom-class"));
@@ -109,7 +109,7 @@ mod tests {
         );
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
     }
 

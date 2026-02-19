@@ -59,7 +59,7 @@ pub struct LabelState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -68,7 +68,7 @@ pub fn normalize_label_text(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_required_indicator(value: Option<String>) -> (String, bool) {
@@ -76,7 +76,7 @@ pub fn normalize_required_indicator(value: Option<String>) -> (String, bool) {
         return (indicator, true);
     }
 
-    (DEFAULT_REQUIRED_INDICATOR.to_string(), false)
+    (DEFAULT_REQUIRED_INDICATOR.into(), false)
 }
 
 pub fn resolve_state(input: LabelStateInput) -> LabelState {
@@ -115,7 +115,7 @@ pub fn resolve_state(input: LabelStateInput) -> LabelState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: LabelState) -> String {
-    let mut classes = vec!["ui-label".to_string(), state.emphasis_class.to_string()];
+    let mut classes = vec!["ui-label".to_string(), state.emphasis_class.into()];
 
     if state.is_required {
         classes.push("ui-label--required".to_string());

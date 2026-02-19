@@ -24,7 +24,7 @@ impl ProgressRange {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -34,7 +34,7 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
         return (label, is_custom);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_value_label(value: Option<String>) -> (Option<String>, bool) {
@@ -150,9 +150,9 @@ pub fn resolve_state(input: ProgressStateInput) -> ProgressState {
 pub fn compose_class_name(base_class_name: Option<String>, state: ProgressState) -> String {
     let mut classes = vec![
         "ui-progress".to_string(),
-        state.label_source_class.to_string(),
-        state.value_label_source_class.to_string(),
-        state.motion_source_class.to_string(),
+        state.label_source_class.into(),
+        state.value_label_source_class.into(),
+        state.motion_source_class.into(),
     ];
 
     if state.has_custom_class_name {
@@ -193,17 +193,14 @@ mod tests {
 
     #[test]
     fn resolve_aria_label_defaults_and_detects_custom_source() {
-        assert_eq!(
-            resolve_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
-        );
+        assert_eq!(resolve_aria_label(None), (DEFAULT_ARIA_LABEL.into(), false));
         assert_eq!(
             resolve_aria_label(Some("\n\t".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("  Progress  ".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("  Uploading dataset  ".to_string())),

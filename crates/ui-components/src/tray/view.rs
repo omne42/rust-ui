@@ -1,7 +1,6 @@
 use crate::{
     OnPress,
-    button::{ButtonSize, ButtonVariant},
-    icon_button::IconButton,
+    button::{Button, ButtonSize, ButtonVariant},
     sheet::{Sheet, SheetPlacement},
     tray::{TrayMotion, TrayPartStateInput, TraySlot, logic},
 };
@@ -263,10 +262,11 @@ pub fn Tray(
                                     data-state=close_state.state_attr
                                     data-close-source=close_state.close_source_attr
                                 >
-                                    <IconButton
+                                    <Button
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
                                         size=ButtonSize::IconSm
+                                        is_icon_only=true
                                         on_press=on_close
                                     >
                                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -278,7 +278,7 @@ pub fn Tray(
                                                 stroke_linejoin="round"
                                             />
                                         </svg>
-                                    </IconButton>
+                                    </Button>
                                 </span>
                             </Show>
 
@@ -404,10 +404,11 @@ pub fn Tray(
                                     data-state=close_state.state_attr
                                     data-close-source=close_state.close_source_attr
                                 >
-                                    <IconButton
+                                    <Button
                                         aria_label=close_label
                                         variant=ButtonVariant::Ghost
                                         size=ButtonSize::IconSm
+                                        is_icon_only=true
                                         on_press=on_close
                                     >
                                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -419,7 +420,7 @@ pub fn Tray(
                                                 stroke_linejoin="round"
                                             />
                                         </svg>
-                                    </IconButton>
+                                    </Button>
                                 </span>
                             </Show>
 

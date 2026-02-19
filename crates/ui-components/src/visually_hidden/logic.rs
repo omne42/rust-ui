@@ -130,7 +130,7 @@ pub fn normalize_props(input: VisuallyHiddenLogicInput) -> VisuallyHiddenLogicSt
 }
 
 pub fn compose_class_name(class_name: Option<String>, state: VisuallyHiddenState) -> String {
-    let mut class = String::from("ui-visually-hidden");
+    let mut class = "ui-visually-hidden".to_string();
     if let Some(focusable_class) = state.focusable_class {
         class.push(' ');
         class.push_str(focusable_class);

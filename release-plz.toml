@@ -1,0 +1,47 @@
+[workspace]
+# Keep dependency requirements in sync when internal package versions change.
+dependencies_update = true
+# Follow Conventional Commits for release intent extraction.
+release_commits = "^(feat|fix|perf|refactor)(\\(.+\\))?!?:"
+pr_name = "chore(release): release-plz"
+pr_labels = ["release-plz"]
+
+[[package]]
+name = "ui-state-primitives"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-headless"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-theme"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-motion"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-layout"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-components"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-ai-runtime"
+version_group = "ui-workspace"
+release_always = true
+
+[[package]]
+name = "ui-accordion"
+version_group = "ui-workspace"
+release_always = true

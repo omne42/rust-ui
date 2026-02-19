@@ -189,7 +189,7 @@ fn segmented_control_motion_sanitizes_custom_contract_values() {
         "pub fn sanitize_motion(motion: SegmentedControlMotion) -> SegmentedControlMotion",
         "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
         "fn sanitize_motion_falls_back_for_invalid_values()",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -267,7 +267,7 @@ fn segmented_control_motion_boundary_is_enforced() {
         "SpringAnimator",
         "default_button_motion_tokens",
         "#[cfg(not(target_arch = \"wasm32\"))]",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -2059,7 +2059,7 @@ fn segmented_control_platform_paths_are_cfg_gated_and_non_wasm_safe() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_indicator_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "leptos::web_sys::ResizeObserver",
     ] {
         assert!(
@@ -2139,7 +2139,7 @@ fn segmented_control_motion_non_wasm_noop_contract_is_enforced() {
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_indicator_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -2204,7 +2204,7 @@ fn segmented_control_reduced_motion_ssr_and_wasm_branches_keep_semantic_contract
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_indicator_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),

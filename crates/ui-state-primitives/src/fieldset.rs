@@ -90,7 +90,7 @@ pub struct FieldsetState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -99,7 +99,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_error_message(value: Option<String>, invalid: bool) -> (Option<String>, bool) {
@@ -111,7 +111,7 @@ pub fn normalize_error_message(value: Option<String>, invalid: bool) -> (Option<
         return (Some(message), true);
     }
 
-    (Some(DEFAULT_ERROR_MESSAGE.to_string()), false)
+    (Some(DEFAULT_ERROR_MESSAGE.into()), false)
 }
 
 pub fn resolve_state(input: FieldsetStateInput) -> FieldsetState {
@@ -235,7 +235,7 @@ mod tests {
         assert!(custom);
 
         let (message, custom) = normalize_error_message(None, true);
-        assert_eq!(message, Some(DEFAULT_ERROR_MESSAGE.to_string()));
+        assert_eq!(message, Some(DEFAULT_ERROR_MESSAGE.into()));
         assert!(!custom);
 
         let (message, custom) = normalize_error_message(Some("Ignored".to_string()), false);

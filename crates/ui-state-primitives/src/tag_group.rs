@@ -155,11 +155,11 @@ pub fn merge_describedby_ids(
     }
 
     if let Some(description_id) = description_id {
-        ids.push(description_id.to_string());
+        ids.push(description_id.into());
     }
 
     if let Some(error_id) = error_id {
-        ids.push(error_id.to_string());
+        ids.push(error_id.into());
     }
 
     (!ids.is_empty()).then(|| ids.join(" "))

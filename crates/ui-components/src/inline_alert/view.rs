@@ -35,12 +35,12 @@ pub fn InlineAlert(
         .map(|value| format!("{base_class} {value}"))
         .unwrap_or(base_class);
 
-    let icon_label = icon_label
+    let icon_label: Option<String> = icon_label
         .as_deref()
         .map(str::trim)
         .filter(|v| !v.is_empty())
-        .map(|v| v.to_string())
-        .or_else(|| tone.default_icon_label().map(|v| v.to_string()));
+        .map(|v| v.into())
+        .or_else(|| tone.default_icon_label().map(|v| v.into()));
     let icon_label = StoredValue::new(icon_label.unwrap_or_default());
 
     let start_content = start_content.map(StoredValue::new);
@@ -62,7 +62,9 @@ pub fn InlineAlert(
         >
             <Show when=move || state.show_icon>
                 <span class="ui-inline-alert__icon" data-slot="inline-alert-icon">
-                    <span class="ui-inline-alert__sr-only">{move || icon_label.get_value()}</span>
+                    <span class="ui-inline-alert__sr-only">
+                        {move || icon_label.with_value(|label| label.clone())}
+                    </span>
                     {match tone {
                         InlineAlertTone::Neutral => ().into_any(),
                         InlineAlertTone::Info => view! {
@@ -100,14 +102,13 @@ pub fn InlineAlert(
                 </span>
             </Show>
 
-            <Show when=move || start_content.is_some()>
-                <span class="ui-inline-alert__start" data-slot="inline-alert-start">
-                    {start_content
-                        .expect("checked start_content")
-                        .get_value()
-                        .run()}
-                </span>
-            </Show>
+            {start_content.map(|content| {
+                view! {
+                    <span class="ui-inline-alert__start" data-slot="inline-alert-start">
+                        {content.get_value().run()}
+                    </span>
+                }
+            })}
 
             <div class="ui-inline-alert__body" data-slot="inline-alert-body">
                 {state.show_title.then(|| {
@@ -121,14 +122,13 @@ pub fn InlineAlert(
                 <div class="ui-inline-alert__content" data-slot="inline-alert-content">{children()}</div>
             </div>
 
-            <Show when=move || end_content.is_some()>
-                <span class="ui-inline-alert__end" data-slot="inline-alert-end">
-                    {end_content
-                        .expect("checked end_content")
-                        .get_value()
-                        .run()}
-                </span>
-            </Show>
+            {end_content.map(|content| {
+                view! {
+                    <span class="ui-inline-alert__end" data-slot="inline-alert-end">
+                        {content.get_value().run()}
+                    </span>
+                }
+            })}
         </section>
     }
 }

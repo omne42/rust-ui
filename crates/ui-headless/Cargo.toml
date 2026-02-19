@@ -11,6 +11,7 @@ path = "src/lib.rs"
 default = ["web"]
 web = ["leptos/csr"]
 ssr = ["leptos/ssr"]
+logic-calendar = ["ui-state-primitives/logic-calendar"]
 
 [dependencies]
 leptos = { version = "0.8.15", default-features = false }

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn color_handle_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_handle/mod.rs");
+    let source = load_source("src/color/handle/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn color_handle_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_handle_uses_logic_state_model() {
-    let logic_source = load_source("src/color_handle/logic.rs");
-    let view_source = load_source("src/color_handle/view.rs");
+    let logic_source = load_source("src/color/handle/logic.rs");
+    let view_source = load_source("src/color/handle/view.rs");
 
     for needle in [
         "pub const DEFAULT_ARIA_LABEL",
@@ -51,7 +51,7 @@ fn color_handle_uses_logic_state_model() {
 
 #[test]
 fn color_handle_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color_handle/view.rs");
+    let source = load_source("src/color/handle/view.rs");
 
     for attr in [
         "data-slot=\"color-handle\"",
@@ -70,7 +70,7 @@ fn color_handle_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_handle_styles_include_focus_drag_disabled_and_custom_contracts() {
-    let source = load_source("src/color_handle/styles.rs");
+    let source = load_source("src/color/handle/styles.rs");
 
     for selector in [
         ".ui-color-handle",
@@ -144,7 +144,7 @@ fn color_handle_docs_workbench_exposes_display_config_code_and_css_test_contract
         "title=\"Workbench (Display + Config + Code + CSS Test)\"",
         "code_signal=workbench_code",
         "test_css_source=workbench_test_css",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color_handle/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color/handle/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "data-slot=\"color-handle-workbench-controls\"",
         "display: baseline vs configured",
@@ -159,9 +159,9 @@ fn color_handle_docs_workbench_exposes_display_config_code_and_css_test_contract
 
 #[test]
 fn color_handle_exposes_motion_contract_and_view_mount() {
-    let mod_source = load_source("src/color_handle/mod.rs");
-    let motion_source = load_source("src/color_handle/motion.rs");
-    let view_source = load_source("src/color_handle/view.rs");
+    let mod_source = load_source("src/color/handle/mod.rs");
+    let motion_source = load_source("src/color/handle/motion.rs");
+    let view_source = load_source("src/color/handle/view.rs");
 
     for needle in ["pub mod motion;", "pub use motion::ColorHandleMotion;"] {
         assert!(
@@ -196,7 +196,7 @@ fn color_handle_exposes_motion_contract_and_view_mount() {
 
 #[test]
 fn color_handle_readme_covers_workbench_display_config_code_css_test_sections() {
-    let source = load_source("src/color_handle/README.md");
+    let source = load_source("src/color/handle/README.md");
 
     for needle in [
         "# ColorHandle",
@@ -217,7 +217,7 @@ fn color_handle_readme_covers_workbench_display_config_code_css_test_sections() 
 
 #[test]
 fn color_handle_check2_has_no_remaining_unchecked_items() {
-    let check2_source = load_source("src/color_handle/check2.md");
+    let check2_source = load_source("src/color/handle/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "ColorHandle check2.md should not keep unchecked checklist items after completion."

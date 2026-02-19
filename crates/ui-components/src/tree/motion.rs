@@ -120,25 +120,24 @@ pub fn attach_motion(
             motion.collapsed_opacity
         };
 
-        let _ = style.set_property("--ui-tree-motion-scale", &format!("{initial_scale}"));
-        let _ = style.set_property("--ui-tree-motion-opacity", &format!("{initial_opacity}"));
-
+        drop(style.set_property("--ui-tree-motion-scale", &format!("{initial_scale}")));
+        drop(style.set_property("--ui-tree-motion-opacity", &format!("{initial_opacity}")));
         let scale_style = style.clone();
         let scale =
             ui_motion::spring::SpringAnimator::new(initial_scale, motion.spring, move |next| {
-                let _ = scale_style.set_property(
+                drop(scale_style.set_property(
                     "--ui-tree-motion-scale",
                     &format!("{}", next.clamp(0.0, 2.0)),
-                );
+                ));
             });
 
         let opacity_style = style.clone();
         let opacity =
             ui_motion::spring::SpringAnimator::new(initial_opacity, motion.spring, move |next| {
-                let _ = opacity_style.set_property(
+                drop(opacity_style.set_property(
                     "--ui-tree-motion-opacity",
                     &format!("{}", next.clamp(0.0, 1.0)),
-                );
+                ));
             });
 
         let springs_for_cleanup = springs;

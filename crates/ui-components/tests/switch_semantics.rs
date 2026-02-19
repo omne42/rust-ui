@@ -194,6 +194,20 @@ fn switch_view_uses_token_backed_pressed_width_default() {
 }
 
 #[test]
+fn switch_checked_callback_contract_is_breaking_and_no_legacy_alias_remains() {
+    let source = load_source("src/switch/view.rs");
+
+    assert!(
+        source.contains("#[prop(optional)] on_checked_change: Option<Callback<bool>>"),
+        "Switch should expose only `on_checked_change` for checked-state callback contract.",
+    );
+    assert!(
+        !source.contains("#[prop(optional)] on_change: Option<Callback<bool>>"),
+        "Switch should not keep legacy callback alias `on_change`.",
+    );
+}
+
+#[test]
 fn switch_motion_sanitizes_custom_contract_values() {
     let source = load_source("src/switch/motion.rs");
 
@@ -225,7 +239,7 @@ fn switch_docs_page_covers_primary_playgrounds() {
         "title=\"Switch\"",
         "slug=\"switch\"",
         "description=\"Switch toggle with baseline-level spring thumb motion and baseline-style root state attrs.\"",
-        "<Playground title=\"Controlled + on_change\" code_signal=code>",
+        "<Playground title=\"Controlled + on_checked_change\" code_signal=code>",
         "<Playground title=\"State matrix\" code_signal=states_code>",
         "<Switch",
     ] {
@@ -241,15 +255,15 @@ fn switch_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in [
-        "title=\"Controlled + on_change\"",
+        "title=\"Controlled + on_checked_change\"",
         "checked=checked",
         "set_checked=set_checked",
-        "on_change=on_system_change",
+        "on_checked_change=on_system_checked_change",
         "title=\"State matrix\"",
         "<Switch checked=system_enabled set_checked=set_system_enabled>",
         "<Switch checked=disabled_checked set_checked=set_disabled_checked disabled=true>",
         "<Switch checked=disabled_unchecked set_checked=set_disabled_unchecked disabled=true>",
-        "\"last on_change: \"",
+        "\"last on_checked_change: \"",
     ] {
         assert!(
             source.contains(needle),

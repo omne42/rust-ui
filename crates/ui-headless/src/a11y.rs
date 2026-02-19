@@ -83,7 +83,7 @@ pub struct RegionA11yAttrs {
 pub fn locale_attrs(lang: Option<String>, dir: Option<A11yDirection>) -> A11yLocaleAttrs {
     let lang = lang.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     });
 
     A11yLocaleAttrs {
@@ -146,7 +146,7 @@ pub fn overlay_dialog_attrs(
     fn normalize_optional_text(value: Option<String>) -> Option<String> {
         value.and_then(|value| {
             let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| trimmed.to_string())
+            (!trimmed.is_empty()).then(|| trimmed.into())
         })
     }
 

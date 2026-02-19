@@ -105,12 +105,11 @@ pub fn attach_motion(
             1.0
         };
 
-        let _ = style.set_property("--ui-snippet-scale", &format!("{initial}"));
-
+        drop(style.set_property("--ui-snippet-scale", &format!("{initial}")));
         let style_for_animator = style.clone();
         let spring = ui_motion::spring::SpringAnimator::new(initial, motion.spring, move |next| {
             let next = next.clamp(0.94, 1.22);
-            let _ = style_for_animator.set_property("--ui-snippet-scale", &format!("{next}"));
+            drop(style_for_animator.set_property("--ui-snippet-scale", &format!("{next}")));
         });
 
         animator.set_value(Some(spring));
@@ -151,7 +150,7 @@ pub fn attach_motion(
     _copied: leptos::prelude::Signal<bool>,
     motion: SnippetMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

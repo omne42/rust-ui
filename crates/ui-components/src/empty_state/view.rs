@@ -96,8 +96,7 @@ pub fn EmptyState(
             lang=locale.lang.clone()
             dir=locale.dir
         >
-            {state.get().has_icon.then(|| {
-                let icon = icon.expect("checked has_icon");
+            {icon.map(|icon| {
                 view! {
                     <div class="ui-empty-state__icon" data-slot="empty-state-icon" aria-hidden="true">
                         {icon.get_value().run()}
@@ -108,8 +107,7 @@ pub fn EmptyState(
             <p class="ui-empty-state__description" data-slot="empty-state-description">
                 {description.get_value()}
             </p>
-            {state.get().has_actions.then(|| {
-                let actions = actions.expect("checked has_actions");
+            {actions.map(|actions| {
                 view! {
                     <div class="ui-empty-state__actions" data-slot="empty-state-actions">
                         {actions.get_value().run()}

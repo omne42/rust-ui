@@ -5,6 +5,8 @@ use ui_components::{SearchField, TextField};
 pub fn TextFieldDemo() -> impl IntoView {
     let (email, set_email) = signal(String::new());
     let (query, set_query) = signal(String::new());
+    let on_email_change = Callback::new(move |next: String| set_email.set(next));
+    let on_query_change = Callback::new(move |next: String| set_query.set(next));
     let invalid = Signal::derive(move || {
         let value = email.get();
         !value.is_empty() && !value.contains('@')
@@ -20,9 +22,9 @@ pub fn TextFieldDemo() -> impl IntoView {
                     id="demo-email".to_string()
                     label="Email".to_string()
                     value=email
-                    set_value=set_email
-                    required=true
-                    invalid=invalid
+                    on_value_change=on_email_change
+                    is_required=Signal::derive(|| true)
+                    is_invalid=invalid
                     description="We’ll never share your email.".to_string()
                     error="Please enter a valid email address.".to_string()
                     placeholder="name@example.com".to_string()
@@ -35,10 +37,8 @@ pub fn TextFieldDemo() -> impl IntoView {
                     id="demo-search".to_string()
                     label="Search".to_string()
                     value=query
-                    set_value=set_query
+                    on_value_change=on_query_change
                     placeholder="Type to search…".to_string()
-                    required=false
-                    invalid=false
                 />
             </div>
         </section>

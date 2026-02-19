@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn help_text_does_not_expose_logic_or_render_modules() {
-    let source = load_source("src/help_text/mod.rs");
+    let source = load_source("src/field_form/help_text/mod.rs");
 
     for needle in ["pub mod logic", "pub mod render"] {
         assert!(
@@ -21,8 +21,8 @@ fn help_text_does_not_expose_logic_or_render_modules() {
 
 #[test]
 fn help_text_uses_logic_state_model() {
-    let logic_source = load_source("src/help_text/logic.rs");
-    let render_source = load_source("src/help_text/view.rs");
+    let logic_source = load_source("src/field_form/help_text/logic.rs");
+    let render_source = load_source("src/field_form/help_text/view.rs");
 
     for needle in [
         "pub enum HelpTextTone",
@@ -59,7 +59,7 @@ fn help_text_uses_logic_state_model() {
 
 #[test]
 fn help_text_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/help_text/view.rs");
+    let source = load_source("src/field_form/help_text/view.rs");
 
     for attr in [
         "data-slot=\"help-text\"",
@@ -85,7 +85,7 @@ fn help_text_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn help_text_styles_include_state_markers() {
-    let source = load_source("src/help_text/styles.rs");
+    let source = load_source("src/field_form/help_text/styles.rs");
 
     for selector in [
         ".ui-help-text--tone-auto",

@@ -175,10 +175,7 @@ pub fn resolve_state(input: ToastPartStateInput) -> ToastPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ToastPartState) -> String {
-    let mut classes = vec![
-        state.base_class.to_string(),
-        state.variant.class_name().to_string(),
-    ];
+    let mut classes = vec![state.base_class.into(), state.variant.class_name().into()];
 
     if state.is_open {
         classes.push("ui-toast--open".to_string());
@@ -251,7 +248,7 @@ pub fn compose_viewport_class_name(
     base_class_name: Option<String>,
     state: ToastViewportState,
 ) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if state.portal {
         classes.push("ui-toast-viewport--portal".to_string());
@@ -285,16 +282,16 @@ pub fn compose_viewport_class_name(
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_title(value: String) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        DEFAULT_TITLE.to_string()
+        DEFAULT_TITLE.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -491,7 +488,7 @@ pub fn provide_toast_store(options: ToastStoreOptions) -> ToastStore {
                                     toast_state::ToastStateOptions { max_toasts },
                                     to_primitive_records(list),
                                 );
-                                let _ = state.dismiss(&id_for_timeout);
+                                drop(state.dismiss(&id_for_timeout));
                                 *list = from_primitive_records(state.into_records());
                             });
                         }

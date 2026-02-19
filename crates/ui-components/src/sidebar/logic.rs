@@ -62,12 +62,12 @@ pub struct SidebarState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.into())
 }
 
 pub fn normalize_default_open(value: Option<bool>) -> bool {
@@ -80,7 +80,7 @@ pub fn normalize_shortcut_key(value: Option<String>, enable_shortcut: bool) -> O
     }
 
     let normalized = normalize_optional_text(value)
-        .unwrap_or_else(|| DEFAULT_SHORTCUT_KEY.to_string())
+        .unwrap_or_else(|| DEFAULT_SHORTCUT_KEY.into())
         .to_ascii_lowercase();
 
     let mut chars = normalized.chars();
@@ -234,7 +234,7 @@ mod tests {
     fn normalize_shortcut_key_defaults_and_trims() {
         assert_eq!(
             normalize_shortcut_key(None, true),
-            Some(DEFAULT_SHORTCUT_KEY.to_string())
+            Some(DEFAULT_SHORTCUT_KEY.into())
         );
         assert_eq!(
             normalize_shortcut_key(Some("  K  ".to_string()), true),

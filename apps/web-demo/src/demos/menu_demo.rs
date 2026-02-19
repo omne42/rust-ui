@@ -101,7 +101,7 @@ pub fn MenuDemo() -> impl IntoView {
                     "Controlled Menu"
                 </MenuTrigger>
                 <div class="demo-kv">
-                    "open: " {move || controlled_open.get().to_string()}
+                    "open: " {move || controlled_open.get()}
                 </div>
             </div>
 
@@ -120,9 +120,9 @@ pub fn MenuDemo() -> impl IntoView {
                         "Options"
                     </MenuTrigger>
                     <div class="demo-kv">
-                        "grid: " {move || show_grid.get().to_string()}
-                        ", rulers: " {move || show_rulers.get().to_string()}
-                        ", snap: " {move || snap_to_grid.get().to_string()}
+                        "grid: " {move || show_grid.get()}
+                        ", rulers: " {move || show_rulers.get()}
+                        ", snap: " {move || snap_to_grid.get()}
                     </div>
                 </div>
 
@@ -138,7 +138,7 @@ pub fn MenuDemo() -> impl IntoView {
                         "Alignment"
                     </MenuTrigger>
                     <div class="demo-kv">
-                        "selected: " {move || alignment.get().to_string()}
+                        "selected: " {move || alignment.get()}
                     </div>
                 </div>
             </div>

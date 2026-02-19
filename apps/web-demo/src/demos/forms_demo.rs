@@ -60,7 +60,7 @@ pub fn FormsDemo() -> impl IntoView {
                         "Disabled (checked)"
                     </Checkbox>
                     <div class="demo-kv">
-                        "enabled checked: " {move || checkbox_enabled.get().to_string()}
+                        "enabled checked: " {move || checkbox_enabled.get()}
                     </div>
                 </div>
 
@@ -79,7 +79,7 @@ pub fn FormsDemo() -> impl IntoView {
                         "Disabled (checked)"
                     </Switch>
                     <div class="demo-kv">
-                        "enabled checked: " {move || switch_enabled.get().to_string()}
+                        "enabled checked: " {move || switch_enabled.get()}
                     </div>
                 </div>
             </div>

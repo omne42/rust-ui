@@ -42,7 +42,7 @@ pub struct KbdState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -67,8 +67,8 @@ pub fn resolve_state(input: KbdStateInput) -> KbdState {
 pub fn compose_class_name(base_class_name: Option<String>, state: KbdState) -> String {
     let mut classes = vec![
         "ui-kbd".to_string(),
-        state.size_class.to_string(),
-        state.state_class.to_string(),
+        state.size_class.into(),
+        state.state_class.into(),
     ];
 
     if state.has_custom_class_name {

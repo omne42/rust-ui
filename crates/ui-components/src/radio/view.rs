@@ -14,7 +14,7 @@ fn focus_radio(radio_refs: &Arc<Vec<NodeRef<html::Button>>>, index: usize) {
     let Some(el) = node_ref.get_untracked() else {
         return;
     };
-    let _ = el.focus();
+    drop(el.focus());
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -133,7 +133,7 @@ pub fn RadioGroup(
                     .cloned()
                     .and_then(|label| {
                         let trimmed = label.trim();
-                        (!trimmed.is_empty()).then(|| trimmed.to_string())
+                        (!trimmed.is_empty()).then(|| trimmed.into())
                     })
                     .unwrap_or_else(|| format!("Option {}", index + 1));
                 let node_ref = radio_refs[index];

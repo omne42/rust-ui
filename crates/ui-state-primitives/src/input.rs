@@ -25,7 +25,7 @@ pub struct InputViewState {
 }
 
 pub fn resolve_clear_aria_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_CLEAR_ARIA_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_CLEAR_ARIA_LABEL.into())
 }
 
 pub fn resolve_view_state(

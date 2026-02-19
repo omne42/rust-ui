@@ -47,7 +47,6 @@
   - [x] `crates/ui-theme`
   - [x] `crates/ui-motion`
   - [x] `crates/ui-components`
-  - [x] `crates/ui-compat`
   - [x] `apps/web-demo`
   - [x] `apps/docs-app`
   - [x] `apps/tauri-demo`（Phase 2，可先占位）
@@ -65,7 +64,6 @@
   - [ ] `ui-headless`：可依赖 `ui-state-primitives`（可选），不可依赖 `ui-components/ui-theme`
   - [ ] `ui-motion`：无内部依赖
   - [ ] `ui-components`：仅依赖 `ui-headless` + `ui-theme`（必要时再依赖 `ui-state-primitives`，但优先不依赖）
-  - [ ] `ui-compat`：可依赖 `ui-headless/ui-components`，但核心分层不得反向依赖
   - [ ] `apps/*`：依赖 `ui-components`（可间接使用 headless/theme）
 
 **Stop Gate**
@@ -74,7 +72,7 @@
 ## 2) 门禁与开发体验（把质量变成默认）
 
 - [x] `t02` 新增 `scripts/check.sh`：顺序跑 Gate A→B→C→D→E→F（失败即退出）
-- [ ] （可选）新增 `rust-toolchain.toml` 固定 toolchain（降低环境差异）
+- [x] （可选）新增 `rust-toolchain.toml` 固定 toolchain（降低环境差异）
 - [ ] （可选）新增 `scripts/ci.sh`（CI 用；本地同样可跑；当前仓库尚未提供该脚本）
 - [ ] （可选）添加 `.gitignore` 条目：`target/`（等 workspace 落地后再加）
 
@@ -197,8 +195,19 @@
 - [x] `t11` 输出 base CSS variables（字符串常量/生成函数二选一）
 - [x] （可选）safe-area CSS：作为可选片段导出，不强制所有组件启用
 
+### 6.1 样式孤岛防御（Defensive Variables + Lazy Injection）
+
+> 规范基线：`docs/spec/style_island_defense.md`
+
+- [ ] `t11b` 在 `ui-theme` 输出统一 fallback 变量（`--ui-fallback-*`），作为终值 SSOT
+- [ ] `t11b` 建立 fallback 常量统一来源（建议轻量 token 常量层），禁止组件各自写 Hex/裸尺寸终值
+- [ ] `t11b` 组件样式迁移为防御性变量链：`var(--ui-*, var(--ui-fallback-*))`
+- [ ] `t11b` 增加样式门禁：阻断组件 `styles.rs` 新增硬编码颜色/尺寸 fallback 终值
+- [ ] `t11b` 保持“默认注入 + 裸奔容错”策略：漏挂主题提供者时组件仍可读可用
+
 **Stop Gate**
 - [ ] `cargo test -p ui-theme`
+- [ ] `cargo test -p ui-components --test style_rules --no-default-features --features inject-css`
 
 ## 7) ui-components（Spectrum v0：组件实现）
 
@@ -212,6 +221,28 @@
 - [x] 其余组件迁移到相同结构（Checkbox/Switch/Overlay/Popover/Modal/Menu/ListBox/Select/MenuTrigger）
 - [x] 清理 `ui-components` 的 inline style（改为 `styles.rs` + `data-*` + CSS variables）
 
+### 7.0.1 受控“外交特区”（Foreign Zone / Escape Hatch）
+
+> 目标：在不破坏 `Action -> Logic -> View` 主路径的前提下，合法容纳命令式第三方库（ECharts/Google Maps 等）。  
+> 规范基线：`docs/spec/foreign_zone_escape_hatches.md`
+
+- [ ] 定义 `ForeignZone` 最小契约：
+  - [ ] `view` 层提供标准 `use_foreign_ref`（获取受控 DOM 容器 ref）
+  - [ ] `logic` 层引入受控命令：`YieldControl` / `CleanupForeign`
+  - [ ] 约束：只允许在显式 Foreign Zone 作用域内使用，不向通用 API 扩散
+- [ ] 生命周期治理：
+  - [ ] mount：`YieldControl` 后由 view adapter 执行第三方初始化
+  - [ ] unmount/close：必须触发 `CleanupForeign`，调用 `destroy/dispose`，防止泄漏
+  - [ ] 禁止组件销毁后保留第三方实例或事件监听
+- [ ] 可观测与审计：
+  - [ ] 输出稳定标记（如 `data-foreign-zone` / `data-foreign-state` / `data-foreign-source`）
+  - [ ] 建立 escape hatch 白名单与风险标注（默认关闭，显式开启）
+  - [ ] docs-app 增加至少一个 Foreign Zone 工作台示例（命令式库适配最小闭环）
+- [ ] 边界约束（防熵增）：
+  - [ ] Foreign Zone 只接管“容器内部渲染”，容器生命周期仍由 Rust 逻辑层控制
+  - [ ] 禁止第三方库反向写入组件核心状态机（通过 adapter/command 桥接）
+  - [ ] 禁止为第三方库需求破坏 core/headless/components 分层
+
 ### 7.1 Button v0
 
 - [x] `t30` 实现 `<Button>`：
@@ -222,6 +253,8 @@
 
 **Stop Gate**
 - [ ] `cargo check -p ui-components --target wasm32-unknown-unknown`
+- [ ] `cargo check -p docs-app --target wasm32-unknown-unknown`
+- [ ] `cargo test -p ui-components`
 
 ### 7.1.1 组件级裁剪（Tree Shaking）v0
 
@@ -282,6 +315,18 @@
 - [ ] 增量补齐：Overlay 的键盘可达性（更完整 focus trap、aria-hidden 等）
 - [ ] 引入更严格的兼容测试（需要时才上 wasm-bindgen-test）
 
+### 11.1 release-plz 固定版本发布落地（收尾）
+
+- [ ] 配置仓库 Secrets：`CARGO_REGISTRY_TOKEN`（用于 `release-plz release` 发布到 crates.io）
+- [ ] 在 `main` 手动触发一次 `Release Plz` workflow（`run_release=false`），验证 `release-pr` 自动生成/更新链路
+- [ ] 首次发布演练：在 release PR 合并后，手动触发 `Release Plz` workflow（`run_release=true`）完成一次真实发布
+- [ ] 公开发布切换前评审并执行 `publish = false -> true`（仅对纳入对外发布的 crate；apps 保持不发布）
+- [ ] 发布后回归：校验 workspace UI 包版本保持同步（`version_group = ui-workspace` + `release_always = true`）且内部依赖版本已级联更新
+
+**Stop Gate**
+- [ ] `gh workflow run "Release Plz" -f run_release=false`（验证 release PR 链路）
+- [ ] `gh workflow run "Release Plz" -f run_release=true`（执行真实发布，需先确认 release PR 已合并）
+
 ## 12) Backlog：向 React Spectrum 对齐（Phase 5+，按“先 core/headless 后 components”推进）
 
 > 这些任务不属于 MVP/Phase 1，但用于保证路线图“完整”。每个条目在落地时都应拆成 tXX 级任务并加入 `task_dag.json`。
@@ -305,6 +350,11 @@
 - [x] per-item disabled（Menu/ListBox：跳过 focus/activation/typeahead；通过 `is_item_disabled`）
 - [x] `use_menu_item`（Action/Checkbox/Radio：role + aria-checked + handlers）
 - [x] Overlay v2（v0）：`use_modal`（scroll lock + aria-hidden；排除 overlay portal）
+- [ ] Focus Manager v1：全局 `Stack<FocusTrap>`（push/pop/invalidate），统一管理层叠弹层焦点恢复
+- [ ] Restore 策略化：逻辑层记录 selector/policy，不保存 `NodeRef` 作为恢复真相源
+- [ ] 焦点墓地回收：上层 scope 强制卸载时，自动失效检查与 restore re-parent，防止 Zombie target
+- [ ] 焦点回归回退链：优先策略目标 -> 邻近可聚焦 -> 应用安全锚点 -> body（仅最后兜底）
+- [ ] 增加层叠弹层焦点危机回归用例（外层销毁后关闭内层）
 - [ ] Overlay v2+：aria-hidden 进一步收敛到 topmost modal、inert/scroll lock 补全、嵌套 overlay 细节、Android Back 集成（History/Tauri 双通道）
 - [ ] Overlay v2+：打开 topmost overlay 时 `pushState` 占位，避免 Back 直接触发路由回退/应用退出
 - [ ] Overlay v2+：`popstate` 与 Tauri back 事件统一走 headless 关闭通道（先关闭 topmost overlay，再决定是否放行路由回退）
@@ -356,7 +406,7 @@
 - [ ] 5.14 样式哲学：token-first + `styles.rs` 静态契约，应用层可用 utility 但不反向污染组件契约
 - [ ] 5.15 可裁剪交付：组件级 feature + CSS 同步裁剪，禁止破坏 DCE 的全局可达反模式
 
-### 13.2 AI 原生特性（6.1-6.12）
+### 13.2 AI 原生特性（6.1-6.13）
 
 - [ ] 6.1 战略假设落地：以 Rust 类型系统 + 编译反馈降低 AI 幻觉成本
 - [ ] 6.2 类型化落地：`logic.rs` 归一化、enum 限定、source markers、语义测试
@@ -370,6 +420,7 @@
 - [ ] 6.10 能力协商：版本区间 + capability negotiation，失败可降级可诊断
 - [ ] 6.11 双层校验：预检（轻量）+ 重检（门禁）分层
 - [ ] 6.12 策略配置：Fetch 白名单与 SetState 作用域约束，默认拒绝高风险能力
+- [ ] 6.13 上下文压缩索引：每组件提供 `Component.toml + .rbi`，默认“先索引后源码”读取策略
 
 ### 13.3 实施方法特性（7.1-7.10）
 
@@ -398,6 +449,7 @@
 - [ ] 12.2 受控逃生舱口：显式命名、显式风险、显式作用域、默认关闭、可审计
 - [ ] 12.3 ADR 判例化：关键架构决策可追溯（含被否决方案）
 - [ ] 12.4 商业/社区平衡：核心开源透明，商业能力不反向锁死核心演进
+- [ ] 12.5 受控演化沙盒：建立 `ui-contrib` 与 Graduation 流程，防止“完美教条”扼杀创新
 
 ### 13.6 路线对比约束（10.1-10.8）
 
@@ -451,3 +503,42 @@
 - [ ] 建立 ADR 模板与目录规范
 - [ ] 设计 escape hatches 白名单与风险标注规范
 - [ ] 在不破边界前提下持续扩展组件能力
+
+## 14) 本轮辩论遗留落地（文档已定，代码待实现）
+
+> 说明：以下条目对应已补齐的 `docs/spec/*` 与 `check2` 小骨架约束；当前仍需代码级落地与回归验证。
+
+- [ ] 14.1 副作用命令化全链路收敛：组件 `logic.rs` 统一输出 `Command`，`view.rs/adapter` 统一执行副作用（禁止回调里分散决策）
+  - 规范：`docs/spec/side_effect_command_pattern.md`
+- [ ] 14.2 WASM 泛型膨胀治理落地：审计高频组件核心路径泛型扩散，必要处收敛到具体类型或 `dyn` 边界，并补体积预算基线
+  - 规范：`docs/spec/wasm_generic_bloat.md`
+- [ ] 14.3 几何两段式渲染落地：Tooltip/Popover/Menu 等几何依赖组件实现 `Intent -> Measure -> Rectification`，并加循环收敛门
+  - 规范：`docs/spec/ui_physics_two_pass_rendering.md`
+- [ ] 14.4 异步阻抗落地：异步状态改为“请求元数据 + 命令执行 + RequestId 竞态仲裁”，逻辑层禁持 `Future`
+  - 规范：`docs/spec/async_state_as_data_command.md`
+- [ ] 14.5 Headless 去状态化落地：复杂交互状态机上收 `ui-state-primitives/logic`，`ui-headless` 仅保留语义映射与输入归一
+  - 规范：`docs/spec/headless_purification.md`
+- [ ] 14.6 宏观/微观双状态机落地：拖拽/手势类组件在高频阶段本地物理更新，边界事件回流 logic 收敛
+  - 规范：`docs/spec/macro_micro_dual_state_machine.md`
+- [ ] 14.7 集合组件注册协议落地：Accordion/Tabs/Menu/Select 动态 `Register/Unregister` + `items_order` 收敛，修复动态 children 导航一致性
+  - 规范：`docs/spec/collection_registration_protocol.md`
+- [ ] 14.8 环境订阅流落地：环境输入（resize/media/intersection）在 view 层采样语义化后再入 logic，禁止高频原始事件洪泛
+  - 规范：`docs/spec/environment_subscription_streams.md`
+- [ ] 14.9 Kernel/Shell 总线契约代码化：组件模板与审查脚本显式校验 Slicer/Executor/Physicist/Bridge 边界
+  - 规范：`docs/spec/kernel_shell_architecture.md`
+- [ ] 14.10 SSR Hydration 断裂治理落地：实现 `Serialize/Deserialize + hydrate` 路径、确定性 `IdProvider/NowProvider`、`server-state` 注入恢复
+  - 规范：`docs/spec/ssr_hydration_discontinuity.md`
+- [ ] 14.11 兼容债务清理：全仓移除“为上游/历史债务保留”的兼容导出、别名与测试断言（含 `rac`/legacy compat 标记）并更新规范与测试
+- [ ] 14.12 文档与演示收口：对“本轮实际改动组件”补齐 README 与 docs-app Button 风格 playground（Display/Config/Code/CSS Test + 对比矩阵）
+- [ ] 14.13 AI 索引层落地：为优先组件生成并校验 `Component.toml + .rbi`，建立 drift gate（签名变化自动失败）
+  - 规范：`docs/spec/ai_context_projection_protocol.md`
+- [ ] 14.14 受控演化沙盒落地：建立 `ui-contrib` 隔离域、风险标签与生命周期治理，并定义毕业审查模板
+  - 规范：`docs/spec/controlled_evolution_sandbox.md`
+- [ ] 14.15 状态原语 Core/Satellite 落地：按 Litmus Test 清点模块归属，Core 保持低依赖，领域重依赖迁入 `ui-logic-*`
+  - 规范：`docs/spec/state_primitives_core_satellite_split.md`
+
+**Stop Gate**
+- [ ] `cargo fmt --all -- --check`
+- [ ] `cargo clippy --workspace --all-targets -- -D warnings`
+- [ ] `cargo test --workspace`
+- [ ] `cargo check -p docs-app --target wasm32-unknown-unknown`

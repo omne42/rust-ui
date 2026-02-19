@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn form_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/form_field/mod.rs");
+    let source = load_source("src/field_form/form_field/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,9 +26,9 @@ fn form_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn form_field_uses_logic_state_model() {
-    let mod_source = load_source("src/form_field/mod.rs");
-    let logic_source = load_source("src/form_field/logic.rs");
-    let view_source = load_source("src/form_field/view.rs");
+    let mod_source = load_source("src/field_form/form_field/mod.rs");
+    let logic_source = load_source("src/field_form/form_field/logic.rs");
+    let view_source = load_source("src/field_form/form_field/view.rs");
 
     for needle in [
         "pub struct FormFieldStateInput",
@@ -72,14 +72,14 @@ fn form_field_uses_logic_state_model() {
 
 #[test]
 fn form_field_composes_switch_and_checkbox_indicators() {
-    let source = load_source("src/form_field/view.rs");
+    let source = load_source("src/field_form/form_field/view.rs");
 
     for needle in [
         "FormFieldIndicatorVariant::Switch",
         "FormFieldIndicatorVariant::Checkbox",
         "<Switch",
         "<Checkbox",
-        "on_change=on_selected_change",
+        "on_checked_change=on_selected_change",
         "checked=selected",
         "set_checked=set_selected",
     ] {
@@ -92,7 +92,7 @@ fn form_field_composes_switch_and_checkbox_indicators() {
 
 #[test]
 fn form_field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/form_field/view.rs");
+    let source = load_source("src/field_form/form_field/view.rs");
 
     for attr in [
         "data-slot=\"form-field\"",
@@ -120,7 +120,7 @@ fn form_field_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn form_field_styles_include_state_marker_contracts() {
-    let source = load_source("src/form_field/styles.rs");
+    let source = load_source("src/field_form/form_field/styles.rs");
 
     for selector in [
         ".ui-form-field--placement-end",
@@ -203,7 +203,7 @@ fn form_field_feature_dependency_chain_supports_minimal_component_builds() {
 
 #[test]
 fn form_field_view_mounts_locale_and_headless_a11y_contracts() {
-    let source = load_source("src/form_field/view.rs");
+    let source = load_source("src/field_form/form_field/view.rs");
 
     for needle in [
         "#[prop(optional, into)] lang: Option<String>",
@@ -225,22 +225,26 @@ fn form_field_view_mounts_locale_and_headless_a11y_contracts() {
 #[test]
 fn form_field_tree_shaking_boundaries_stay_feature_gated() {
     let lib_source = load_source("src/lib.rs");
+    let domain_mod_source = load_source("src/field_form/mod.rs");
     let css_source = load_source("src/css.rs");
 
-    for needle in [
-        "#[cfg(feature = \"component-form_field\")]",
-        "pub mod form_field;",
-        "pub use form_field::{",
-    ] {
-        assert!(
-            lib_source.contains(needle),
-            "ui-components lib boundary should include `{needle}` for FormField feature gating."
-        );
-    }
+    assert!(
+        lib_source.contains("pub mod field_form;"),
+        "ui-components lib boundary should expose `field_form` domain module."
+    );
+    assert!(
+        lib_source.contains("pub use field_form::form_field::{"),
+        "ui-components lib boundary should re-export FormField from field_form domain."
+    );
+    assert!(
+        domain_mod_source.contains("#[cfg(feature = \"component-form_field\")]")
+            && domain_mod_source.contains("pub mod form_field;"),
+        "field_form domain module should feature-gate `form_field`."
+    );
 
     for needle in [
         "#[cfg(feature = \"component-form_field\")]",
-        "out.push_str(crate::form_field::styles::CSS);",
+        "out.push_str(crate::field_form::form_field::styles::CSS);",
     ] {
         assert!(
             css_source.contains(needle),
@@ -293,7 +297,7 @@ fn form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source() {
 
 #[test]
 fn form_field_check2_marks_component_governance_complete() {
-    let check2_source = load_source("src/form_field/check2.md");
+    let check2_source = load_source("src/field_form/form_field/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -319,7 +323,7 @@ fn form_field_check2_marks_component_governance_complete() {
 
 #[test]
 fn form_field_check2_marks_forbidden_anti_patterns_complete() {
-    let check2_source = load_source("src/form_field/check2.md");
+    let check2_source = load_source("src/field_form/form_field/check2.md");
 
     for needle in [
         "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
@@ -340,7 +344,7 @@ fn form_field_check2_marks_forbidden_anti_patterns_complete() {
 
 #[test]
 fn form_field_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/form_field/check2.md");
+    let check2_source = load_source("src/field_form/form_field/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -367,7 +371,7 @@ fn form_field_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn form_field_check2_has_no_unchecked_checklist_items() {
-    let check2_source = load_source("src/form_field/check2.md");
+    let check2_source = load_source("src/field_form/form_field/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "FormField check2.md should not keep unchecked checklist items after completion."

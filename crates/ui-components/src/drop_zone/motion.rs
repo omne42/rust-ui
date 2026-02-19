@@ -102,19 +102,18 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        let _ = style.set_property("--ui-drop-zone-scale", "1");
-        let _ = style.set_property("--ui-drop-zone-highlight", "0");
-
+        drop(style.set_property("--ui-drop-zone-scale", "1"));
+        drop(style.set_property("--ui-drop-zone-highlight", "0"));
         let style_for_scale = style.clone();
         let scale = ui_motion::spring::SpringAnimator::new(1.0, config, move |v| {
             let v = v.clamp(0.0, 10.0);
-            let _ = style_for_scale.set_property("--ui-drop-zone-scale", &format!("{v}"));
+            drop(style_for_scale.set_property("--ui-drop-zone-scale", &format!("{v}")));
         });
 
         let style_for_highlight = style.clone();
         let highlight = ui_motion::spring::SpringAnimator::new(0.0, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            let _ = style_for_highlight.set_property("--ui-drop-zone-highlight", &format!("{v}"));
+            drop(style_for_highlight.set_property("--ui-drop-zone-highlight", &format!("{v}")));
         });
 
         let springs_for_cleanup = springs;
@@ -176,7 +175,7 @@ pub fn attach_motion(
     _is_disabled: bool,
     motion: DropZoneMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

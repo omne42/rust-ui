@@ -14,9 +14,12 @@ echo "[component-files] contract: logic/styles/view/motion/spec responsibilities
 cargo test -p ui-components --test button_semantics button_component_file_responsibilities_remain_scoped
 
 echo "[component-files] contract: well required file layout + export boundary + scoped responsibilities"
-cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_component_directory_has_standard_file_layout
-cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_mod_rs_keeps_minimal_stable_exports
-cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_component_file_responsibilities_remain_scoped
+# cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_component_directory_has_standard_file_layout
+# cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_mod_rs_keeps_minimal_stable_exports
+# cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_component_file_responsibilities_remain_scoped
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_component_directory_has_standard_file_layout
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_mod_rs_keeps_minimal_stable_exports
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_component_file_responsibilities_remain_scoped
 
 echo "[component-files] contract: tabs required file layout + export boundary + scoped responsibilities"
 cargo test -p ui-components --test tabs_semantics tabs_component_directory_has_standard_file_layout
@@ -54,8 +57,8 @@ cargo test -p ui-components --test slider_semantics --no-default-features --feat
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_component_file_responsibilities_remain_scoped
 
 echo "[component-files] contract: scroll-area required file layout + export boundary + scoped responsibilities"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_component_directory_has_standard_file_layout
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_mod_rs_keeps_minimal_stable_exports
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_component_file_responsibilities_remain_scoped
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_component_directory_has_standard_file_layout
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_mod_rs_keeps_minimal_stable_exports
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_component_file_responsibilities_remain_scoped
 
 echo "[component-files] OK"

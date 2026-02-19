@@ -205,15 +205,14 @@ pub fn use_tooltip_focus_a11y(options: TooltipFocusA11yOptions) -> TooltipFocusH
     } = options;
 
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = (&anchor_ref, &tooltip_id, is_open);
-
+    let _unused_focus_a11y = (&anchor_ref, &tooltip_id, is_open);
     #[cfg(target_arch = "wasm32")]
     let focus_target = StoredValue::new_local(None::<leptos::web_sys::Element>);
 
     #[cfg(target_arch = "wasm32")]
     on_cleanup(move || {
         if let Some(target) = focus_target.get_value() {
-            let _ = target.remove_attribute("aria-describedby");
+            drop(target.remove_attribute("aria-describedby"));
         }
     });
 
@@ -226,9 +225,9 @@ pub fn use_tooltip_focus_a11y(options: TooltipFocusA11yOptions) -> TooltipFocusH
 
         let id = tooltip_id.with_value(|id| id.clone());
         if open_now {
-            let _ = target.set_attribute("aria-describedby", &id);
+            drop(target.set_attribute("aria-describedby", &id));
         } else {
-            let _ = target.remove_attribute("aria-describedby");
+            drop(target.remove_attribute("aria-describedby"));
         }
     });
 
@@ -236,14 +235,13 @@ pub fn use_tooltip_focus_a11y(options: TooltipFocusA11yOptions) -> TooltipFocusH
         on_focus.run(());
 
         #[cfg(not(target_arch = "wasm32"))]
-        let _ = &ev;
-
+        let _unused_event = &ev;
         #[cfg(target_arch = "wasm32")]
         {
             use leptos::wasm_bindgen::JsCast;
 
             if let Some(target) = focus_target.get_value() {
-                let _ = target.remove_attribute("aria-describedby");
+                drop(target.remove_attribute("aria-describedby"));
             }
 
             let Some(target) = ev.target() else {
@@ -258,7 +256,7 @@ pub fn use_tooltip_focus_a11y(options: TooltipFocusA11yOptions) -> TooltipFocusH
 
             if is_open.get_untracked() {
                 let id = tooltip_id.with_value(|id| id.clone());
-                let _ = target.set_attribute("aria-describedby", &id);
+                drop(target.set_attribute("aria-describedby", &id));
             }
 
             focus_target.set_value(Some(target));
@@ -267,14 +265,13 @@ pub fn use_tooltip_focus_a11y(options: TooltipFocusA11yOptions) -> TooltipFocusH
 
     let on_focus_out = Callback::new(move |ev: ev::FocusEvent| {
         #[cfg(not(target_arch = "wasm32"))]
-        let _ = &ev;
-
+        let _unused_event = &ev;
         #[cfg(target_arch = "wasm32")]
         {
             use leptos::wasm_bindgen::JsCast;
 
             if let Some(target) = focus_target.get_value() {
-                let _ = target.remove_attribute("aria-describedby");
+                drop(target.remove_attribute("aria-describedby"));
             }
             focus_target.set_value(None);
 
@@ -398,7 +395,7 @@ pub fn use_tooltip_trigger(
 
     let on_key_down = {
         Callback::new(move |key: String| {
-            let _ = key;
+            drop(key);
             on_press_start.run(());
         })
     };
@@ -470,18 +467,18 @@ fn attach_escape_listener(state: TooltipTriggerState) {
             }) as Box<dyn FnMut(_)>)
         });
 
-        let _ = target.add_event_listener_with_callback_and_bool(
+        drop(target.add_event_listener_with_callback_and_bool(
             "keydown",
             keydown.as_ref().unchecked_ref(),
             true,
-        );
+        ));
 
         on_cleanup(move || {
-            let _ = target.remove_event_listener_with_callback_and_bool(
+            drop(target.remove_event_listener_with_callback_and_bool(
                 "keydown",
                 keydown.as_ref().unchecked_ref(),
                 true,
-            );
+            ));
         });
     });
 }
@@ -640,7 +637,7 @@ impl TooltipGlobal {
             all(test, not(target_arch = "wasm32"))
         )))]
         {
-            let _ = (delay_ms, owner);
+            drop((delay_ms, owner));
             callback();
         }
     }
@@ -665,7 +662,7 @@ impl TooltipGlobal {
             all(test, not(target_arch = "wasm32"))
         )))]
         {
-            let _ = delay_ms;
+            let _unused_delay_ms = delay_ms;
             callback();
         }
     }
@@ -776,7 +773,7 @@ impl TooltipTimers {
             all(test, not(target_arch = "wasm32"))
         )))]
         {
-            let _ = (close_delay_ms, immediate);
+            let _unused_close_cfg = (close_delay_ms, immediate);
             request_open_change.run(false);
         }
     }

@@ -5,8 +5,8 @@ pub use ui_state_primitives::tray::{
 };
 
 pub fn compose_class_name(base_class_name: Option<String>, state: TrayPartState) -> String {
-    let _ = DEFAULT_ID_BASE;
-    let mut classes = vec![state.base_class.to_string()];
+    std::hint::black_box(DEFAULT_ID_BASE);
+    let mut classes = vec![state.base_class.into()];
 
     if state.slot == TraySlot::Root {
         if state.show_description {

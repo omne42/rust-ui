@@ -23,11 +23,12 @@
 
 ### 工程与门禁
 
-- [ ] Workspace 至少包含核心五层 crate：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`（当前仓库另有 `ui-compat` 兼容层）
+- [ ] Workspace 至少包含核心五层 crate：`ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`
 - [ ] 存在可提交 demo：`apps/web-demo`
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --workspace --all-targets -- -D warnings`
 - [ ] `cargo test --workspace`
+- [ ] `./scripts/check-rust-hygiene.sh`（非测试代码禁 `unwrap/expect`、禁 `let _ =`、字符串克隆热点收敛至 `Cow<'static, str>`）
 
 ### WASM 编译验证（不要求跑浏览器）
 

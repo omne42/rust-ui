@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn theme_default_module_exports_default_theme_contract() {
-    let source = load_source("src/theme_default/mod.rs");
+    let source = load_source("src/theme/default/mod.rs");
 
     for needle in [
         "pub use ui_theme::Theme;",

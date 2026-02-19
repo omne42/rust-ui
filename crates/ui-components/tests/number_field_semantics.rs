@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn number_field_uses_headless_spinbutton_semantics() {
-    let source = load_source("src/number_field/view.rs");
+    let source = load_source("src/text_input/number_field/view.rs");
 
     assert!(
         source.contains("use_number_field"),
@@ -39,7 +39,7 @@ fn number_field_uses_headless_spinbutton_semantics() {
 
 #[test]
 fn number_field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/number_field/view.rs");
+    let source = load_source("src/text_input/number_field/view.rs");
 
     for attr in [
         "data-focused",
@@ -123,7 +123,7 @@ fn number_field_docs_interactive_playground_exposes_config_code_css_test_section
         "data-slot=\"number-field-workbench-controls\"",
         "id_base=\"docs-number-field-workbench-bounds\".to_string()",
         "id_base=\"docs-number-field-workbench-step\".to_string()",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/number_field/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/text_input/number_field/styles.rs\".to_string()",
     ] {
         assert!(
             source.contains(needle),
@@ -134,7 +134,7 @@ fn number_field_docs_interactive_playground_exposes_config_code_css_test_section
 
 #[test]
 fn number_field_check2_marks_core_sections_complete() {
-    let source = load_source("src/number_field/check2.md");
+    let source = load_source("src/text_input/number_field/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -152,7 +152,7 @@ fn number_field_check2_marks_core_sections_complete() {
         "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
         "### 10. NumberField 本轮验收证据",
         "component-number_field -> component-button",
-        "crates/ui-components/src/number_field/view.rs",
+        "crates/ui-components/src/text_input/number_field/view.rs",
     ] {
         assert!(
             source.contains(needle),
@@ -163,9 +163,35 @@ fn number_field_check2_marks_core_sections_complete() {
 
 #[test]
 fn number_field_check2_has_no_unchecked_checklist_items() {
-    let source = load_source("src/number_field/check2.md");
+    let source = load_source("src/text_input/number_field/check2.md");
     assert!(
         !source.contains("- [ ]"),
         "number_field check2 should not keep unchecked checklist items"
     );
+}
+
+#[test]
+fn number_field_text_metrics_use_typography_tokens() {
+    let source = load_source("src/text_input/number_field/styles.rs");
+
+    for needle in [
+        "--ui-number-field-label-font-size: var(--ui-font-size-150);",
+        "--ui-number-field-label-line-height: var(--ui-line-height-150);",
+        "--ui-number-field-input-font-size: var(--ui-font-size-150);",
+        "--ui-number-field-input-line-height: var(--ui-line-height-150);",
+        "--ui-number-field-meta-font-size: var(--ui-font-size-100);",
+        "--ui-number-field-meta-line-height: var(--ui-line-height-100);",
+    ] {
+        assert!(
+            source.contains(needle),
+            "NumberField styles should include tokenized text metric `{needle}`."
+        );
+    }
+
+    for forbidden in ["font-size: 14px;", "font-size: 13px;", "font-size: 12px;"] {
+        assert!(
+            !source.contains(forbidden),
+            "NumberField styles should not hardcode legacy text size `{forbidden}`."
+        );
+    }
 }

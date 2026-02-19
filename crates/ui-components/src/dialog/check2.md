@@ -10,8 +10,8 @@
 组件目标、非目标、风险边界已写清楚；发现跨组件/跨层系统性问题时升级为仓库级任务。
 
 ### 本轮执行证据（Dialog / check2）
-- 修复项 1：`crates/ui-components/Cargo.toml` 将 `component-dialog` 从空特性修正为 `["component-overlay", "component-icon_button", "component-button"]`，修复最小特性构建缺依赖问题。
-- 修复项 2：`crates/ui-components/src/dialog/view.rs` 导入改为 `crate::button::{ButtonSize, ButtonVariant}` + `crate::icon_button::IconButton` + `crate::OnPress`，避免最小特性下根导出缺失导致编译失败。
+- 修复项 1：`crates/ui-components/Cargo.toml` 将 `component-dialog` 从空特性修正为 `["component-overlay", "component-button"]`，修复最小特性构建缺依赖问题。
+- 修复项 2：`crates/ui-components/src/dialog/view.rs` 导入改为 `crate::button::{Button, ButtonSize, ButtonVariant}` + `crate::OnPress`，并以 `Button(is_icon_only=true)` 实现关闭按钮，避免冗余组件依赖导致最小特性构建失败。
 - 回归项：`crates/ui-components/tests/dialog_semantics.rs` 新增 `dialog_feature_gate_declares_required_component_dependencies` 与 `dialog_e2e_contract_uses_semantic_selectors`，锁定 feature 依赖与 E2E 语义选择器契约。
 - 文档与工作台补齐：`apps/docs-app/src/pages/components/pages/overlays_dialog.rs` 新增 `Interactive Playground`（展示/Config/Code/CSS Test）与 `Scenario Comparison`（多场景对比）。
 - README 补齐：新增 `crates/ui-components/src/dialog/README.md`，包含 `展示区（Display）`、`Config 区`、`Code 区`、`CSS Test 区`、`多种情况对比显示`。
@@ -76,6 +76,12 @@
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
+- [x] 纯逻辑与细粒度响应阻抗匹配：采用 Reducer + Selector 分层，`logic.rs` 负责状态转移，`view.rs` 负责 Leptos 响应式切片，避免整块状态广播。
+  - Reducer（状态转移）规范：`logic.rs` 保持纯函数（输入旧状态 + Action，输出新状态或最小变更），不在该层持有 `Signal`。
+  - Selector（细粒度响应）规范：`view.rs` 负责把 reducer 接入 Leptos，并以 `Memo` 或 `Signal::derive` 按需切片，只把被消费的状态片段绑定到对应 DOM。
+  - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
+  - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
+  - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。

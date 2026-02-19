@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn color_swatch_picker_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_swatch_picker/mod.rs");
+    let source = load_source("src/color/swatch_picker/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn color_swatch_picker_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_swatch_picker_uses_logic_state_model() {
-    let logic_source = load_source("src/color_swatch_picker/logic.rs");
-    let view_source = load_source("src/color_swatch_picker/view.rs");
+    let logic_source = load_source("src/color/swatch_picker/logic.rs");
+    let view_source = load_source("src/color/swatch_picker/view.rs");
 
     for needle in [
         "pub struct ColorSwatchPickerItem",
@@ -58,7 +58,7 @@ fn color_swatch_picker_uses_logic_state_model() {
 
 #[test]
 fn color_swatch_picker_exposes_baseline_a11y_and_state_markers() {
-    let source = load_source("src/color_swatch_picker/view.rs");
+    let source = load_source("src/color/swatch_picker/view.rs");
 
     for attr in [
         "role=aria.attrs.role",
@@ -81,7 +81,7 @@ fn color_swatch_picker_exposes_baseline_a11y_and_state_markers() {
 
 #[test]
 fn color_swatch_picker_styles_include_selected_focus_and_disabled_contracts() {
-    let source = load_source("src/color_swatch_picker/styles.rs");
+    let source = load_source("src/color/swatch_picker/styles.rs");
 
     for selector in [
         ".ui-color-swatch-picker",

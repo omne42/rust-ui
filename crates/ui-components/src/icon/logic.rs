@@ -60,7 +60,7 @@ impl IconTone {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -69,7 +69,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: IconStateInput) -> IconState {
@@ -114,8 +114,8 @@ pub fn resolve_state(input: IconStateInput) -> IconState {
 pub fn compose_class_name(base_class_name: Option<String>, state: IconState) -> String {
     let mut classes = vec![
         "ui-icon".to_string(),
-        state.size_class.to_string(),
-        state.tone_class.to_string(),
+        state.size_class.into(),
+        state.tone_class.into(),
     ];
 
     if state.is_disabled {
@@ -174,7 +174,7 @@ mod tests {
         );
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
     }
 

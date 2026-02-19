@@ -85,11 +85,11 @@ pub struct ToasterAgentContract {
 }
 
 pub fn agent_contract() -> ToasterAgentContract {
-    let _ = [
+    std::hint::black_box([
         ToasterAgentOutputStatus::Draft.as_attr(),
         ToasterAgentOutputStatus::Verified.as_attr(),
         ToasterAgentOutputStatus::Submittable.as_attr(),
-    ];
+    ]);
 
     ToasterAgentContract {
         schema_attr: "ui.toaster.v1",
@@ -177,7 +177,7 @@ pub fn resolve_state(input: ToasterPartStateInput) -> ToasterPartState /* delega
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ToasterPartState) -> String {
     let mut classes = vec![
-        state.base_class.to_string(),
+        state.base_class.into(),
         format!("{}--{}", state.base_class, state.position.class_suffix()),
     ];
 
@@ -246,7 +246,7 @@ mod tests {
 
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             normalize_aria_label(Some(" Alerts host ".to_string())),

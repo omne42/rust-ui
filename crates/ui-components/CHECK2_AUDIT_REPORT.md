@@ -1,249 +1,217 @@
 # Check2 Audit Report
 
-- Timestamp: 2026-02-13T22:18:08Z
+- Timestamp: 2026-02-18T23:24:49Z
 
 | Component | logic.rs | styles.rs | view.rs | motion.rs | check2 unchecked |
 |---|---|---|---|---|---|
-| accordion | yes | yes | yes | yes | 31 |
-| action_bar | yes | yes | yes | yes | 31 |
-| action_button | yes | yes | yes | yes | 31 |
-| action_button_group | yes | yes | yes | no | 31 |
-| action_group | yes | yes | yes | no | 31 |
-| action_menu | yes | yes | yes | yes | 31 |
-| alert | yes | yes | yes | no | 31 |
-| alert_banner | yes | yes | yes | yes | 31 |
-| alert_dialog | yes | yes | yes | yes | 31 |
-| aspect_ratio | yes | yes | yes | no | 31 |
-| asset | yes | yes | yes | no | 31 |
-| auto_height | yes | yes | yes | yes | 31 |
-| autocomplete | yes | yes | yes | yes | 31 |
-| avatar | yes | yes | yes | no | 31 |
-| avatar_group | yes | yes | yes | no | 31 |
-| badge | yes | yes | yes | no | 31 |
-| bottom_sheet | yes | yes | yes | yes | 31 |
-| breadcrumb | yes | yes | yes | no | 31 |
-| breadcrumbs | yes | yes | yes | no | 31 |
-| button | yes | yes | yes | yes | 31 |
-| button_copy | yes | yes | yes | yes | 31 |
-| button_flip | yes | yes | yes | yes | 31 |
-| button_group | yes | yes | yes | no | 31 |
-| button_search_input | yes | yes | yes | yes | 31 |
-| button_share | yes | yes | yes | yes | 31 |
-| button_theme_toggle | yes | yes | yes | yes | 31 |
-| calendar | yes | yes | yes | no | 31 |
-| card | yes | yes | yes | no | 31 |
-| carousel | yes | yes | yes | no | 31 |
-| chart | yes | yes | yes | no | 31 |
-| checkbox | yes | yes | yes | yes | 31 |
-| checkbox_field | yes | yes | yes | no | 31 |
-| checkbox_group | yes | yes | yes | no | 31 |
-| chip | yes | yes | yes | no | 31 |
-| circular_progress | yes | yes | yes | no | 31 |
-| clear_button | yes | yes | yes | no | 31 |
-| close_button | yes | yes | yes | no | 31 |
-| coachmark | yes | yes | yes | no | 31 |
-| code | yes | yes | yes | no | 31 |
-| code_block | yes | yes | yes | yes | 31 |
-| collapsible | yes | yes | yes | no | 31 |
-| collection | no | no | no | no | 31 |
-| color | no | no | no | no | 31 |
-| color_area | yes | yes | yes | no | 31 |
-| color_editor | yes | yes | yes | no | 31 |
-| color_field | yes | yes | yes | no | 31 |
-| color_handle | yes | yes | yes | no | 31 |
-| color_loupe | yes | yes | yes | no | 31 |
-| color_picker | yes | yes | yes | yes | 31 |
-| color_slider | yes | yes | yes | no | 31 |
-| color_swatch | yes | yes | yes | no | 31 |
-| color_swatch_picker | yes | yes | yes | no | 31 |
-| color_thumb | yes | yes | yes | no | 31 |
-| color_wheel | yes | yes | yes | no | 31 |
-| combo_box | yes | yes | yes | yes | 31 |
-| combobox | yes | yes | yes | no | 31 |
-| command | yes | yes | yes | no | 31 |
-| command_dialog | yes | yes | yes | no | 31 |
-| content | yes | yes | yes | no | 31 |
-| context_menu | yes | yes | yes | no | 31 |
-| contextual_help | yes | yes | yes | yes | 31 |
-| date_field | yes | yes | yes | no | 31 |
-| date_input_group | yes | yes | yes | no | 31 |
-| date_picker | yes | yes | yes | yes | 31 |
-| date_range_picker | yes | yes | yes | no | 31 |
-| description | yes | yes | yes | no | 31 |
-| dialog | yes | yes | yes | yes | 31 |
-| direction | yes | yes | yes | no | 31 |
-| disclosure | yes | yes | yes | yes | 31 |
-| disclosure_group | yes | yes | yes | no | 31 |
-| divider | yes | yes | yes | no | 31 |
-| dnd | no | no | no | no | 31 |
-| drag_and_drop | no | no | no | no | 31 |
-| drawer | yes | yes | yes | yes | 31 |
-| drop_zone | yes | yes | yes | yes | 31 |
-| dropdown | yes | yes | yes | yes | 31 |
-| dropdown_menu | yes | yes | yes | yes | 31 |
-| dropzone | yes | yes | yes | no | 31 |
-| empty | yes | yes | yes | no | 31 |
-| empty_state | yes | yes | yes | no | 31 |
-| error_message | yes | yes | yes | no | 31 |
-| error_view | yes | yes | yes | yes | 31 |
-| example_theme | no | no | no | no | 31 |
-| field | yes | yes | yes | no | 31 |
-| field_button | yes | yes | yes | no | 31 |
-| field_error | yes | yes | yes | no | 31 |
-| field_group | yes | yes | yes | no | 31 |
-| field_label | yes | yes | yes | no | 31 |
-| fieldset | yes | yes | yes | no | 31 |
-| file_trigger | yes | yes | yes | yes | 31 |
-| flex | yes | yes | yes | no | 31 |
-| flip_card | yes | yes | yes | yes | 31 |
-| footer | yes | yes | yes | no | 31 |
-| form | yes | yes | yes | no | 31 |
-| form_field | yes | yes | yes | no | 31 |
-| grid | yes | yes | yes | no | 31 |
-| grid_list | no | no | no | no | 31 |
-| gridlist | no | no | no | no | 31 |
-| group | no | no | no | no | 31 |
-| header | yes | yes | yes | no | 31 |
-| heading | yes | yes | yes | no | 31 |
-| help_text | yes | yes | yes | no | 31 |
-| hidden_date_input | no | no | no | no | 31 |
-| hover_card | yes | yes | yes | yes | 31 |
-| icon | yes | yes | yes | no | 31 |
-| icon_button | yes | yes | yes | no | 31 |
-| icons | yes | yes | yes | no | 31 |
-| icons_ui | yes | yes | yes | no | 31 |
-| icons_workflow | yes | yes | yes | no | 31 |
-| iconset | yes | yes | yes | no | 31 |
-| illustrated_message | yes | yes | yes | yes | 31 |
-| image | yes | yes | yes | yes | 31 |
-| infield_button | yes | yes | yes | no | 31 |
-| inline_alert | yes | yes | yes | yes | 31 |
-| input | yes | yes | yes | yes | 31 |
-| input_group | yes | yes | yes | no | 31 |
-| input_otp | yes | yes | yes | no | 31 |
-| item | yes | yes | yes | no | 31 |
-| kbd | yes | yes | yes | no | 31 |
-| keyboard | yes | yes | yes | no | 31 |
-| label | yes | yes | yes | no | 31 |
-| labeled_value | yes | yes | yes | no | 31 |
-| layout | no | no | no | no | 31 |
-| legend | yes | yes | yes | no | 31 |
-| link | yes | yes | yes | no | 31 |
-| link_button | yes | yes | yes | no | 31 |
-| list | no | no | no | no | 31 |
-| list_box | no | no | no | no | 31 |
-| listbox | yes | yes | yes | no | 31 |
-| listbox_item | yes | yes | yes | no | 31 |
-| listbox_section | yes | yes | yes | no | 31 |
-| logic_button | yes | yes | yes | no | 31 |
-| menu | yes | yes | yes | no | 31 |
-| menu_item | yes | yes | yes | no | 31 |
-| menu_section | yes | yes | yes | no | 31 |
-| menu_trigger | yes | yes | yes | yes | 31 |
-| menubar | yes | yes | yes | no | 31 |
-| meter | yes | yes | yes | yes | 31 |
-| modal | yes | yes | yes | no | 31 |
-| native_select | yes | yes | yes | no | 31 |
-| navigation_menu | yes | yes | yes | no | 31 |
-| number | yes | yes | yes | yes | 31 |
-| number_field | yes | yes | yes | no | 31 |
-| overlay | yes | yes | yes | yes | 31 |
-| overlay_arrow | no | no | no | no | 31 |
-| overlays | no | no | no | no | 31 |
-| pagination | yes | yes | yes | no | 31 |
-| picker | yes | yes | yes | no | 31 |
-| picker_button | yes | yes | yes | no | 31 |
-| popover | yes | yes | yes | yes | 31 |
-| pressable_feedback | yes | yes | yes | yes | 31 |
-| preview_card | yes | yes | yes | yes | 31 |
-| preview_link_card | yes | yes | yes | yes | 31 |
-| progress | yes | yes | yes | yes | 31 |
-| progress_bar | yes | yes | yes | no | 31 |
-| progress_circle | yes | yes | yes | yes | 31 |
-| provider | no | no | no | no | 31 |
-| rac | no | no | no | no | 31 |
-| radio | yes | yes | yes | yes | 31 |
-| radio_group | no | no | no | no | 31 |
-| resizable | yes | yes | yes | no | 31 |
-| ripple | yes | yes | yes | yes | 31 |
-| s2 | no | no | no | no | 31 |
-| scroll_area | yes | yes | yes | no | 31 |
-| scroll_shadow | yes | yes | yes | no | 31 |
-| search | yes | yes | yes | no | 31 |
-| search_field | yes | yes | yes | yes | 31 |
-| segmented_control | yes | yes | yes | yes | 31 |
-| select | yes | yes | yes | yes | 31 |
-| selection_indicator | no | no | no | no | 31 |
-| separator | yes | yes | yes | yes | 31 |
-| shared_element_transition | no | no | no | no | 31 |
-| sheet | yes | yes | yes | yes | 31 |
-| sidebar | yes | yes | yes | no | 31 |
-| sidebar_content | yes | yes | yes | no | 31 |
-| sidebar_footer | yes | yes | yes | no | 31 |
-| sidebar_group | yes | yes | yes | no | 31 |
-| sidebar_header | yes | yes | yes | no | 31 |
-| sidebar_inset | yes | yes | yes | no | 31 |
-| sidebar_menu | yes | yes | yes | no | 31 |
-| sidebar_menu_action | yes | yes | yes | no | 31 |
-| sidebar_menu_badge | yes | yes | yes | no | 31 |
-| sidebar_rail | yes | yes | yes | no | 31 |
-| sidebar_trigger | yes | yes | yes | no | 31 |
-| sidenav | yes | yes | yes | no | 31 |
-| skeleton | yes | yes | yes | no | 31 |
-| skeleton_group | yes | yes | yes | no | 31 |
-| slider | yes | yes | yes | yes | 31 |
-| snippet | yes | yes | yes | no | 31 |
-| sonner | yes | yes | yes | no | 31 |
-| spacer | yes | yes | yes | no | 31 |
-| spinbutton | no | no | no | no | 31 |
-| spinner | yes | yes | yes | no | 31 |
-| split_view | yes | yes | yes | no | 31 |
-| status_light | yes | yes | yes | no | 31 |
-| step_list | yes | yes | yes | no | 31 |
-| story_utils | no | no | no | no | 31 |
-| style_macro_s1 | no | no | no | no | 31 |
-| surface | yes | yes | yes | no | 31 |
-| swatch | yes | yes | yes | yes | 31 |
-| switch | yes | yes | yes | yes | 31 |
-| switch_group | yes | yes | yes | no | 31 |
-| table | yes | yes | yes | no | 31 |
-| tabs | yes | yes | yes | yes | 31 |
-| tag | yes | yes | yes | no | 31 |
-| tag_group | yes | yes | yes | no | 31 |
-| tags | yes | yes | yes | no | 31 |
-| test_utils | no | no | no | no | 31 |
-| text | yes | yes | yes | no | 31 |
-| text_area | yes | yes | yes | no | 31 |
-| text_field | yes | yes | yes | no | 31 |
-| textarea | yes | yes | yes | no | 31 |
-| textfield | yes | yes | yes | no | 31 |
-| theme_dark | no | no | no | no | 31 |
-| theme_default | no | no | no | no | 31 |
-| theme_express | no | no | no | no | 31 |
-| theme_light | no | no | no | no | 31 |
-| thumbnail | yes | yes | yes | yes | 31 |
-| time_field | yes | yes | yes | no | 31 |
-| toast | yes | yes | yes | yes | 31 |
-| toaster | yes | yes | yes | no | 31 |
-| toggle | yes | yes | yes | no | 31 |
-| toggle_button | yes | yes | yes | yes | 31 |
-| toggle_button_group | yes | yes | yes | no | 31 |
-| toggle_group | yes | yes | yes | no | 31 |
-| toolbar | no | no | no | no | 31 |
-| tooltip | yes | yes | yes | yes | 31 |
-| top_nav | yes | yes | yes | no | 31 |
-| tray | yes | yes | yes | yes | 31 |
-| tree | yes | yes | yes | no | 31 |
-| underlay | yes | yes | yes | no | 31 |
-| utils | no | no | no | no | 31 |
-| view | yes | yes | yes | no | 31 |
-| virtualizer | no | no | no | no | 31 |
-| visually_hidden | no | no | no | no | 31 |
-| well | yes | yes | yes | no | 31 |
+| action_bar | yes | yes | yes | yes | 21 |
+| alert | yes | yes | yes | yes | 58 |
+| alert_banner | yes | yes | yes | yes | 0 |
+| alert_dialog | yes | yes | yes | yes | 0 |
+| asset | yes | yes | yes | yes | 0 |
+| autocomplete | yes | yes | yes | yes | 0 |
+| avatar | yes | yes | yes | no | 48 |
+| badge | yes | yes | yes | yes | 0 |
+| bottom_sheet | yes | yes | yes | yes | 72 |
+| breadcrumb | yes | yes | yes | no | 0 |
+| breadcrumbs | yes | yes | yes | no | 0 |
+| button_action | yes | yes | yes | yes | 0 |
+| button | yes | yes | yes | yes | 0 |
+| button_clear_button | yes | yes | yes | yes | 72 |
+| button_close_button | yes | yes | yes | no | 72 |
+| button_copy | yes | yes | yes | yes | 0 |
+| button_field | yes | yes | no | no | 0 |
+| button_flip | yes | yes | yes | yes | 0 |
+| button_icon_button | yes | yes | yes | no | 72 |
+| button_infield_button | yes | yes | yes | yes | 72 |
+| button_link_button | yes | yes | yes | no | 72 |
+| button_logic_button | yes | yes | yes | yes | 72 |
+| button_picker_button | yes | yes | yes | no | 72 |
+| button_search_input | yes | yes | yes | yes | 6 |
+| button_share | yes | yes | yes | yes | 43 |
+| button_spinbutton | no | no | no | no | 72 |
+| button_theme_toggle | yes | yes | yes | yes | 72 |
+| button_toggle | yes | yes | yes | no | 72 |
+| button_toggle_button | yes | yes | yes | yes | 72 |
+| calendar | yes | yes | yes | yes | 0 |
+| carousel | yes | yes | yes | yes | 0 |
+| chart | yes | yes | yes | yes | 0 |
+| checkbox | yes | yes | yes | yes | 0 |
+| checkbox_field | yes | yes | yes | yes | 0 |
+| chip | yes | yes | yes | no | 0 |
+| circular_progress | yes | yes | yes | no | 0 |
+| coachmark | yes | yes | yes | no | 0 |
+| code | yes | yes | yes | no | 0 |
+| code_block | yes | yes | yes | yes | 0 |
+| collapsible | yes | yes | yes | yes | 0 |
+| color_area | yes | yes | yes | yes | 0 |
+| color_editor | yes | yes | yes | yes | 0 |
+| color_field | yes | yes | yes | no | 0 |
+| color_handle | yes | yes | yes | yes | 0 |
+| color_loupe | yes | yes | yes | no | 0 |
+| color_picker | yes | yes | yes | yes | 0 |
+| color_slider | yes | yes | yes | yes | 0 |
+| color_swatch | yes | yes | yes | yes | 0 |
+| color_swatch_core | yes | yes | yes | yes | 72 |
+| color_swatch_picker | yes | yes | yes | yes | 72 |
+| color_thumb | yes | yes | yes | yes | 72 |
+| color_wheel | yes | yes | yes | yes | 0 |
+| combo_box | yes | yes | yes | yes | 0 |
+| command | yes | yes | yes | no | 0 |
+| command_dialog | yes | yes | yes | yes | 0 |
+| contextual_help | yes | yes | yes | yes | 0 |
+| dialog | yes | yes | yes | yes | 0 |
+| direction | yes | yes | yes | no | 0 |
+| disclosure | yes | yes | yes | yes | 0 |
+| drawer | yes | yes | yes | yes | 0 |
+| drop_zone | yes | yes | yes | yes | 0 |
+| empty | yes | yes | yes | no | 0 |
+| empty_state | yes | yes | yes | yes | 0 |
+| error_message | yes | yes | yes | yes | 0 |
+| error_view | yes | yes | yes | yes | 0 |
+| example_theme | no | no | no | no | 72 |
+| field_form_description | yes | yes | yes | no | 0 |
+| field_form_field | yes | yes | yes | yes | 0 |
+| field_form_field_error | yes | yes | yes | no | 0 |
+| field_form_field_label | yes | yes | yes | no | 0 |
+| field_form_fieldset | yes | yes | yes | yes | 0 |
+| field_form_form | yes | yes | yes | no | 72 |
+| field_form_form_field | yes | yes | yes | no | 0 |
+| field_form_help_text | yes | yes | yes | yes | 0 |
+| file_trigger | yes | yes | yes | yes | 0 |
+| flip_card | yes | yes | yes | yes | 0 |
+| hover_card | yes | yes | yes | yes | 72 |
+| icon | yes | yes | yes | no | 72 |
+| icon_icons | yes | yes | yes | no | 72 |
+| icon_set | yes | yes | yes | no | 0 |
+| icon_ui | yes | yes | yes | no | 0 |
+| icon_workflow | yes | yes | yes | no | 0 |
+| illustrated_message | yes | yes | yes | yes | 0 |
+| image | yes | yes | yes | yes | 0 |
+| inline_alert | yes | yes | yes | yes | 0 |
+| item | yes | yes | yes | no | 72 |
+| kbd | yes | yes | yes | no | 0 |
+| keyboard | yes | yes | yes | no | 0 |
+| label | yes | yes | yes | yes | 0 |
+| labeled_value | yes | yes | yes | yes | 0 |
+| legend | yes | yes | yes | yes | 0 |
+| link | yes | yes | yes | no | 0 |
+| list | yes | yes | yes | yes | 0 |
+| menu_action_menu | yes | yes | yes | yes | 53 |
+| menu | yes | yes | yes | yes | 72 |
+| menu_context_menu | yes | yes | yes | yes | 0 |
+| menu_dropdown | yes | yes | yes | yes | 0 |
+| menu_dropdown_menu | yes | yes | yes | yes | 0 |
+| menu_menubar | yes | yes | yes | no | 0 |
+| menu_navigation_menu | yes | yes | yes | yes | 0 |
+| menu_trigger | yes | yes | yes | yes | 0 |
+| meter | yes | yes | yes | yes | 0 |
+| modal | yes | yes | yes | no | 0 |
+| native_select | yes | yes | yes | no | 0 |
+| overlay | yes | yes | yes | yes | 0 |
+| overlays | yes | yes | yes | yes | 0 |
+| pagination | yes | yes | yes | no | 0 |
+| popover | yes | yes | yes | yes | 0 |
+| pressable_feedback | yes | yes | yes | yes | 72 |
+| preview_card | yes | yes | yes | yes | 72 |
+| preview_link_card | yes | yes | yes | yes | 72 |
+| progress_bar | yes | yes | yes | no | 72 |
+| progress | yes | yes | yes | yes | 72 |
+| progress_circle | yes | yes | yes | yes | 72 |
+| radio | yes | yes | yes | yes | 0 |
+| ripple | yes | yes | yes | yes | 0 |
+| segmented_control | yes | yes | yes | yes | 30 |
+| select | yes | yes | yes | yes | 0 |
+| selection_indicator | no | no | no | no | 0 |
+| shared_element_transition | no | no | no | no | 0 |
+| sheet | yes | yes | yes | yes | 0 |
+| sidebar | yes | yes | yes | no | 72 |
+| sidebar_content | yes | yes | yes | no | 72 |
+| sidebar_footer | yes | yes | yes | yes | 72 |
+| sidebar_header | yes | yes | yes | no | 72 |
+| sidebar_inset | yes | yes | yes | no | 72 |
+| sidebar_menu | yes | yes | yes | no | 72 |
+| sidebar_menu_action | yes | yes | yes | yes | 72 |
+| sidebar_menu_badge | yes | yes | yes | no | 72 |
+| sidebar_rail | yes | yes | yes | no | 72 |
+| sidebar_trigger | yes | yes | yes | yes | 72 |
+| skeleton | yes | yes | yes | no | 0 |
+| slider | yes | yes | yes | yes | 0 |
+| snippet | yes | yes | yes | yes | 0 |
+| sonner | yes | yes | yes | yes | 1 |
+| spinner | yes | yes | yes | yes | 0 |
+| status_light | yes | yes | yes | no | 0 |
+| step_list | yes | yes | yes | no | 0 |
+| switch | yes | yes | yes | yes | 72 |
+| table | yes | yes | yes | no | 72 |
+| tabs | yes | yes | yes | yes | 72 |
+| tag | yes | yes | yes | no | 72 |
+| text_input_date_field | yes | yes | yes | yes | 72 |
+| text_input_date_input_group | yes | yes | yes | yes | 72 |
+| text_input_date_picker | yes | yes | yes | yes | 0 |
+| text_input_date_range_picker | yes | yes | yes | no | 0 |
+| text_input_input | yes | yes | yes | yes | 0 |
+| text_input_input_otp | yes | yes | yes | no | 0 |
+| text_input_number | yes | yes | yes | yes | 0 |
+| text_input_number_field | yes | yes | yes | no | 0 |
+| text_input_search_field | yes | yes | yes | yes | 0 |
+| text_input_text | yes | yes | yes | no | 72 |
+| text_input_text_area | yes | yes | yes | yes | 0 |
+| text_input_text_field | yes | yes | yes | yes | 0 |
+| text_input_textarea | yes | yes | yes | yes | 33 |
+| text_input_time_field | yes | yes | yes | yes | 0 |
+| theme_dark | no | no | no | no | 72 |
+| theme_default | no | no | no | no | 72 |
+| theme_express | no | no | no | no | 72 |
+| theme_light | no | no | no | no | 72 |
+| thumbnail | yes | yes | yes | yes | 72 |
+| toast | yes | yes | yes | yes | 61 |
+| toaster | yes | yes | yes | yes | 0 |
+| tooltip | yes | yes | yes | yes | 72 |
+| tray | yes | yes | yes | yes | 72 |
+| tree | yes | yes | yes | yes | 41 |
+| underlay | yes | yes | yes | yes | 0 |
+| visually_hidden | yes | yes | yes | no | 0 |
 
-- Processed component directories: 236
-- Missing logic.rs: 32
-- Missing styles.rs: 32
-- Missing view.rs: 32
-- Missing motion.rs: 175
-- Total unchecked checklist boxes: 7316
+- Processed component directories: 168
+- Missing logic.rs: 8
+- Missing styles.rs: 8
+- Missing view.rs: 9
+- Missing motion.rs: 62
+- Total unchecked checklist boxes: 4139
+
+## Incremental Check2 Run (2026-02-19T01:18:02Z)
+
+### Sequential check status
+
+- `scripts/check-ui-components-wasm-debug.sh`: pass
+- `scripts/check-ui-components-tree-shaking.sh`: pass
+- `scripts/check-ui-components-e2e-alert-banner.sh`: pass
+- `scripts/check-ui-components-e2e-button.sh`: pass
+- `scripts/check-ui-components-e2e-color-area.sh`: pass
+- `scripts/check-ui-components-e2e-color-field.sh`: pass
+- `scripts/check-ui-components-e2e-error-view.sh`: pass
+- `scripts/check-ui-components-e2e-pagination.sh`: pass
+- `scripts/check-ui-components-e2e-scroll-area.sh`: pass
+- `scripts/check-ui-components-e2e-segmented-control.sh`: pass
+- `scripts/check-ui-components-e2e-separator.sh`: pass
+- `scripts/check-ui-components-e2e-slider.sh`: pass
+- `scripts/check-ui-components-e2e-tabs.sh`: pass
+- `scripts/check-ui-components-e2e-tag.sh`: pass
+- `scripts/check-ui-components-e2e-textarea.sh`: pass
+- `scripts/check-ui-components-e2e-time-field.sh`: pass
+
+### Minimal fixes applied in this run
+
+- Scoped button e2e to minimal features to avoid unrelated all-components compilation:
+  - `scripts/check-ui-components-e2e-button.sh`
+- Synced moved layout components in legacy ui-components e2e scripts:
+  - `scripts/check-ui-components-e2e-scroll-area.sh` (`ui-components` -> `ui-layout`)
+  - `scripts/check-ui-components-e2e-separator.sh` (`ui-components` -> `ui-layout`)
+- Scoped tabs e2e to minimal features:
+  - `scripts/check-ui-components-e2e-tabs.sh`
+- Fixed blocking type errors exposed by the reduced checks:
+  - `crates/ui-components/src/button/copy/view.rs`
+  - `crates/ui-components/src/pagination/view.rs`
+  - `crates/ui-state-primitives/src/avatar.rs`
+  - `crates/ui-headless/src/number_field.rs`

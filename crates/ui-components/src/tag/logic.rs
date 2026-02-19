@@ -177,9 +177,9 @@ pub fn normalize_tag_input(
 pub fn compose_class_name(base_class_name: Option<String>, state: TagState) -> String {
     let mut classes = vec![
         "ui-tag".to_string(),
-        state.variant_class.to_string(),
-        state.size_class.to_string(),
-        state.state_class.to_string(),
+        state.variant_class.into(),
+        state.size_class.into(),
+        state.state_class.into(),
     ];
 
     if state.is_enabled {

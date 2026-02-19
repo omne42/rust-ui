@@ -1,0 +1,83 @@
+[package]
+name = "ui-layout"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = ["inject-css", "all-components"]
+
+inject-css = []
+accordion-wasm-debug = ["component-accordion", "dep:tracing"]
+button-wasm-debug = ["component-button", "dep:tracing"]
+# target: "ui_layout::button::state_change"
+web-demo-components = [
+    "component-auto_height",
+    "component-card",
+    "component-divider",
+    "component-scroll_shadow",
+    "component-separator",
+    "component-spacer",
+]
+all-components = [
+    "component-active_highlight",
+    "component-aspect_ratio",
+    "component-auto_height",
+    "component-card",
+    "component-content",
+    "component-divider",
+    "component-flex",
+    "component-footer",
+    "component-grid",
+    "component-header",
+    "component-heading",
+    "component-resizable",
+    "component-scroll_area",
+    "component-scroll_shadow",
+    "component-separator",
+    "component-spacer",
+    "component-surface",
+    "component-view",
+    "component-well",
+]
+dev-all-components = ["all-components"]
+
+component-accordion = []
+component-active_highlight = []
+component-aspect_ratio = []
+component-auto_height = []
+component-button = []
+component-card = []
+component-content = []
+component-divider = []
+component-flex = []
+component-footer = []
+component-grid = []
+component-header = []
+component-heading = []
+component-resizable = []
+component-scroll_area = []
+component-scroll_shadow = []
+component-separator = []
+component-spacer = []
+component-surface = []
+component-view = []
+component-well = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../ui-headless" }
+ui-motion = { path = "../ui-motion" }
+ui-state-primitives = { path = "../ui-state-primitives" }
+ui-theme = { path = "../ui-theme" }
+tracing = { version = "0.1", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["DataTransfer", "DragEvent", "File", "FileList", "HtmlInputElement", "ResizeObserver", "ResizeObserverEntry"] }
+
+[dev-dependencies]
+tachys = "0.2.11"

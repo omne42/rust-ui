@@ -22,12 +22,12 @@ pub(super) fn coachmark() -> AnyView {
 
     let basic_code = Signal::derive(move || {
         r#"<Coachmark
-  title=\"Welcome to the tour\".to_string()
+  title=\"Welcome to the tour\".into()
   default_open=true
   current_step=2
   total_steps=5
-  primary_cta=\"Next\".to_string()
-  secondary_cta=\"Back\".to_string()
+  primary_cta=\"Next\".into()
+  secondary_cta=\"Back\".into()
   asset_variant=CoachmarkAssetVariant::Folder
 >
   <div>Tour copy</div>
@@ -39,29 +39,29 @@ pub(super) fn coachmark() -> AnyView {
         r#"let (open, set_open) = signal(false);
 
 <Coachmark
-  title=\"Keyboard shortcuts\".to_string()
+  title=\"Keyboard shortcuts\".into()
   open=Signal::derive(move || open.get())
   on_open_change=Callback::new(move |next| set_open.set(next))
-  primary_cta=\"Got it\".to_string()
-  shortcut_key=\"K\".to_string()
-  modifier_keys=vec![\"⌘\".to_string()]
-  asset_src=\"https://picsum.photos/420/260\".to_string()
+  primary_cta=\"Got it\".into()
+  shortcut_key=\"K\".into()
+  modifier_keys=vec![\"⌘\".into()]
+  asset_src=\"https://picsum.photos/420/260\".into()
 />"#
         .to_string()
     });
 
     let markers_code = Signal::derive(move || {
         r#"<Coachmark
-  title=\"Shortcuts\".to_string()
-  aria_label=\"Coachmark help\".to_string()
+  title=\"Shortcuts\".into()
+  aria_label=\"Coachmark help\".into()
   current_step=2
   total_steps=6
-  primary_cta=\"Next\".to_string()
-  secondary_cta=\"Back\".to_string()
-  shortcut_key=\"K\".to_string()
-  modifier_keys=vec![\"⌘\".to_string()]
+  primary_cta=\"Next\".into()
+  secondary_cta=\"Back\".into()
+  shortcut_key=\"K\".into()
+  modifier_keys=vec![\"⌘\".into()]
   asset_variant=CoachmarkAssetVariant::Folder
-  class_name=\"docs-coachmark-state\".to_string()
+  class_name=\"docs-coachmark-state\".into()
 >
   <div>Inspect data-state/source markers on root + content.</div>
 </Coachmark>"#
@@ -69,16 +69,15 @@ pub(super) fn coachmark() -> AnyView {
     });
 
     let display_code = Signal::derive(move || {
-        r#"<Coachmark title=\"Help variant\".to_string() default_open=true current_step=1 total_steps=3 primary_cta=\"Next\".to_string() asset_variant=CoachmarkAssetVariant::Folder>
+        r#"<Coachmark title=\"Help variant\".into() default_open=true current_step=1 total_steps=3 primary_cta=\"Next\".into() asset_variant=CoachmarkAssetVariant::Folder>
   <div>Default help intent with built-in asset.</div>
 </Coachmark>
-<Coachmark variant=CoachmarkVariant::Info title=\"Info variant\".to_string() default_open=true primary_cta=\"Understood\".to_string() asset_src=\"https://picsum.photos/420/260\".to_string()>
+<Coachmark variant=CoachmarkVariant::Info title=\"Info variant\".into() default_open=true primary_cta=\"Understood\".into() asset_src=\"https://picsum.photos/420/260\".into()>
   <div>Info intent with external image source.</div>
 </Coachmark>
-<Coachmark title=\"Disabled preview\".to_string() default_open=true disabled=true secondary_cta=\"Dismiss\".to_string()>
+<Coachmark title=\"Disabled preview\".into() default_open=true disabled=true secondary_cta=\"Dismiss\".into()>
   <div>Disabled state keeps semantic markers for testing.</div>
-</Coachmark>"#
-            .to_string()
+</Coachmark>"#.to_string()
     });
 
     let (workbench_open_raw, set_workbench_open_raw) = signal(true);
@@ -113,23 +112,23 @@ pub(super) fn coachmark() -> AnyView {
             ""
         };
         let cta = if workbench_dual_cta.get() {
-            "  primary_cta=\"Next\".to_string()\n  secondary_cta=\"Back\".to_string()\n"
+            "  primary_cta=\"Next\".into()\n  secondary_cta=\"Back\".into()\n"
         } else {
-            "  primary_cta=\"Got it\".to_string()\n"
+            "  primary_cta=\"Got it\".into()\n"
         };
         let asset = if workbench_use_image.get() {
-            "  asset_src=\"https://picsum.photos/420/260\".to_string()\n"
+            "  asset_src=\"https://picsum.photos/420/260\".into()\n"
         } else {
             "  asset_variant=CoachmarkAssetVariant::Folder\n"
         };
         let class_name = if workbench_use_custom_class.get() {
-            "  class_name=\"docs-coachmark-state\".to_string()\n"
+            "  class_name=\"docs-coachmark-state\".into()\n"
         } else {
             ""
         };
 
         format!(
-            "let (open, set_open) = signal({});\n\n<Coachmark\n  title=\"Workbench coachmark\".to_string()\n{variant}{disabled}  open=Signal::derive(move || open.get())\n  on_open_change=Callback::new(move |next| set_open.set(next))\n{steps}{cta}{asset}{class_name}>\n  <div>Inspect display/config/code/css-test panels together.</div>\n</Coachmark>",
+            "let (open, set_open) = signal({});\n\n<Coachmark\n  title=\"Workbench coachmark\".into()\n{variant}{disabled}  open=Signal::derive(move || open.get())\n  on_open_change=Callback::new(move |next| set_open.set(next))\n{steps}{cta}{asset}{class_name}>\n  <div>Inspect display/config/code/css-test panels together.</div>\n</Coachmark>",
             workbench_open_raw.get()
         )
     });
@@ -211,7 +210,7 @@ pub(super) fn coachmark() -> AnyView {
                         <Button variant=ButtonVariant::Secondary on_press=toggle_controlled>
                             "Toggle controlled coachmark"
                         </Button>
-                        <span class="ui-muted">"open: " {move || controlled_open_raw.get().to_string()}</span>
+                        <span class="ui-muted">"open: " {move || controlled_open_raw.get()}</span>
                     </div>
 
                     <Coachmark

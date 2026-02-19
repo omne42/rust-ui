@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn navigation_menu_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/navigation_menu/mod.rs");
+    let source = load_source("src/menu/navigation_menu/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn navigation_menu_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn navigation_menu_module_exposes_slot_and_state_contracts() {
-    let source = load_source("src/navigation_menu/mod.rs");
+    let source = load_source("src/menu/navigation_menu/mod.rs");
 
     for needle in [
         "pub struct NavigationMenuItem",
@@ -43,7 +43,7 @@ fn navigation_menu_module_exposes_slot_and_state_contracts() {
 
 #[test]
 fn navigation_menu_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/navigation_menu/mod.rs");
+    let module_source = load_source("src/menu/navigation_menu/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -60,7 +60,7 @@ fn navigation_menu_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn navigation_menu_logic_exposes_state_helpers() {
-    let source = load_source("src/navigation_menu/logic.rs");
+    let source = load_source("src/menu/navigation_menu/logic.rs");
 
     for needle in [
         "pub fn state_attr(item_count: usize, has_selection: bool, has_focus: bool)",
@@ -88,7 +88,7 @@ fn navigation_menu_logic_exposes_state_helpers() {
 
 #[test]
 fn navigation_menu_view_uses_logic_contracts_and_source_markers() {
-    let source = load_source("src/navigation_menu/view.rs");
+    let source = load_source("src/menu/navigation_menu/view.rs");
 
     for needle in [
         "logic::normalize_id_base(id_base)",
@@ -126,7 +126,7 @@ fn navigation_menu_view_uses_logic_contracts_and_source_markers() {
 
 #[test]
 fn navigation_menu_items_use_native_anchor_semantics() {
-    let source = load_source("src/navigation_menu/view.rs");
+    let source = load_source("src/menu/navigation_menu/view.rs");
 
     assert!(
         source.contains(
@@ -143,7 +143,7 @@ fn navigation_menu_items_use_native_anchor_semantics() {
 
 #[test]
 fn navigation_menu_supports_controlled_and_uncontrolled_selection_state() {
-    let source = load_source("src/navigation_menu/view.rs");
+    let source = load_source("src/menu/navigation_menu/view.rs");
 
     for needle in [
         "selected_id: Option<Signal<Option<String>>>",
@@ -162,7 +162,7 @@ fn navigation_menu_supports_controlled_and_uncontrolled_selection_state() {
 
 #[test]
 fn navigation_menu_exposes_keyboard_and_focus_contracts() {
-    let source = load_source("src/navigation_menu/view.rs");
+    let source = load_source("src/menu/navigation_menu/view.rs");
 
     for needle in [
         "on:keydown=on_key_down",
@@ -183,7 +183,7 @@ fn navigation_menu_exposes_keyboard_and_focus_contracts() {
 
 #[test]
 fn navigation_menu_uses_active_highlight_motion_contract() {
-    let source = load_source("src/navigation_menu/view.rs");
+    let source = load_source("src/menu/navigation_menu/view.rs");
 
     for needle in [
         "use crate::active_highlight::{",
@@ -204,7 +204,7 @@ fn navigation_menu_uses_active_highlight_motion_contract() {
 
 #[test]
 fn navigation_menu_styles_include_state_and_source_markers() {
-    let source = load_source("src/navigation_menu/styles.rs");
+    let source = load_source("src/menu/navigation_menu/styles.rs");
 
     for needle in [
         ".ui-navigation-menu {",
@@ -370,7 +370,7 @@ fn navigation_menu_docs_workbench_exposes_display_config_code_and_css_test_contr
         "title=\"Workbench (Display + Config + Code + CSS Test)\"",
         "code_signal=workbench_code",
         "test_css_source=workbench_test_css",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/navigation_menu/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/menu/navigation_menu/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "data-slot=\"navigation-menu-workbench-controls\"",
         "display: baseline vs configured",
@@ -385,7 +385,7 @@ fn navigation_menu_docs_workbench_exposes_display_config_code_and_css_test_contr
 
 #[test]
 fn navigation_menu_readme_covers_workbench_display_config_code_css_test_sections() {
-    let source = load_source("src/navigation_menu/README.md");
+    let source = load_source("src/menu/navigation_menu/README.md");
 
     for needle in [
         "# NavigationMenu",
@@ -406,7 +406,7 @@ fn navigation_menu_readme_covers_workbench_display_config_code_css_test_sections
 
 #[test]
 fn navigation_menu_check2_has_no_remaining_unchecked_items() {
-    let source = load_source("src/navigation_menu/check2.md");
+    let source = load_source("src/menu/navigation_menu/check2.md");
     assert!(
         !source.contains("- [ ]"),
         "navigation_menu/check2.md still contains unchecked checklist items."

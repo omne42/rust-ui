@@ -900,9 +900,9 @@ fn thumbnail_docs_inner_html_is_restricted_to_trusted_whitelisted_markdown_sourc
 
     for needle in [
         "const ACCORDION_README_MD: &str =",
-        "include_str!(\"../../../../../crates/ui-components/src/accordion/README.md\")",
+        "include_str!(\"../../../../../components/accordion/src/README.md\")",
         "const DATE_PICKER_README_MD: &str =",
-        "include_str!(\"../../../../../crates/ui-components/src/date_picker/README.md\")",
+        "include_str!(\"../../../../../crates/ui-components/src/text_input/date_picker/README.md\")",
         "fn component_readme_markdown(slug: &str) -> Option<&'static str> {",
         "\"accordion\" => Some(ACCORDION_README_MD),",
         "\"date-picker\" => Some(DATE_PICKER_README_MD),",

@@ -814,7 +814,7 @@ fn snippet_motion_non_wasm_noop_contract_is_present_and_toolchain_safe() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             snippet_motion_source.contains(needle),

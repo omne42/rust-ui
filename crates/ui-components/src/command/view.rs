@@ -187,8 +187,8 @@ pub fn Command(
             data-disabled=move || root_state.get().disabled_attr
             data-empty=move || root_state.get().is_empty.then_some("true")
             data-has-items=move || root_state.get().has_items.then_some("true")
-            data-item-count=move || root_state.get().item_count.to_string()
-            data-group-count=move || root_state.get().group_count.to_string()
+            data-item-count=move || root_state.get().item_count
+            data-group-count=move || root_state.get().group_count
             data-has-query=move || root_state.get().has_query.then_some("true")
             data-is-disabled=move || root_state.get().is_disabled.then_some("true")
             data-is-enabled=move || root_state.get().is_enabled.then_some("true")
@@ -287,19 +287,15 @@ pub fn Command(
                                                 >
                                                     {item_indices
                                                         .into_iter()
-                                                        .map(|index| {
+                                                        .filter_map(|index| {
                                                             let id = option_id.run(index);
-                                                            let item = state
-                                                                .items
-                                                                .get(index)
-                                                                .cloned()
-                                                                .expect("filtered command item index should always exist");
+                                                            let item = state.items.get(index).cloned()?;
                                                             let has_shortcut = item.shortcut.is_some();
                                                             let shortcut = StoredValue::new(item.shortcut.unwrap_or_default());
                                                             let item_label = StoredValue::new(item.label);
                                                             let item_disabled = item.disabled;
 
-                                                            view! {
+                                                            Some(view! {
                                                                 <div
                                                                     id=id
                                                                     role="option"
@@ -344,7 +340,7 @@ pub fn Command(
                                                                     </Show>
                                                                 </div>
                                                             }
-                                                            .into_any()
+                                                            .into_any())
                                                         })
                                                         .collect_view()}
                                                 </div>

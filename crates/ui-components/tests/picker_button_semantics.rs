@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn picker_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/picker_button/mod.rs");
+    let source = load_source("src/button/picker_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn picker_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn picker_button_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/picker_button/mod.rs");
+    let module_source = load_source("src/button/picker_button/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -36,7 +36,7 @@ fn picker_button_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn picker_button_logic_exposes_state_helpers() {
-    let source = load_source("src/picker_button/logic.rs");
+    let source = load_source("src/button/picker_button/logic.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -54,7 +54,7 @@ fn picker_button_logic_exposes_state_helpers() {
 
 #[test]
 fn picker_button_view_uses_logic_state_contracts() {
-    let source = load_source("src/picker_button/view.rs");
+    let source = load_source("src/button/picker_button/view.rs");
 
     for needle in [
         "pub fn PickerButton(",
@@ -88,7 +88,7 @@ fn picker_button_view_uses_logic_state_contracts() {
 
 #[test]
 fn picker_button_styles_include_state_and_source_markers() {
-    let source = load_source("src/picker_button/styles.rs");
+    let source = load_source("src/button/picker_button/styles.rs");
 
     for selector in [
         ".ui-picker-button {",

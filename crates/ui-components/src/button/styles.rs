@@ -3,7 +3,10 @@ pub const CSS: &str = r#"
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: var(--ui-button-min-width);
+  --ui-button-current-min-width: var(--ui-button-size-m-min-width, var(--ui-button-min-width));
+  --ui-button-current-font-size: var(--ui-button-size-m-font-size, var(--ui-button-font-size));
+  --ui-button-current-line-height: var(--ui-button-size-m-line-height, var(--ui-line-height-150));
+  min-width: var(--ui-button-current-min-width);
   --ui-button-padding-x: var(--ui-button-size-m-padding-x);
   --ui-button-gap: var(--ui-button-size-m-gap);
   --ui-button-inline-spinner-size: min(
@@ -22,9 +25,9 @@ pub const CSS: &str = r#"
   border-radius: var(--ui-button-radius);
   border: 1px solid transparent;
   box-sizing: border-box;
-  line-height: 1;
+  line-height: var(--ui-button-current-line-height);
   font-weight: 500;
-  font-size: var(--ui-button-font-size);
+  font-size: var(--ui-button-current-font-size);
   user-select: none;
   -webkit-tap-highlight-color: transparent;
   text-decoration: none;
@@ -225,30 +228,45 @@ pub const CSS: &str = r#"
 
 .ui-button--size-xs {
   height: var(--ui-button-size-xs-height);
+  --ui-button-current-min-width: var(--ui-button-size-xs-min-width);
+  --ui-button-current-font-size: var(--ui-button-size-xs-font-size);
+  --ui-button-current-line-height: var(--ui-button-size-xs-line-height, var(--ui-line-height-100));
   --ui-button-padding-x: var(--ui-button-size-xs-padding-x);
   --ui-button-gap: var(--ui-button-size-xs-gap);
 }
 
 .ui-button--size-s {
   height: var(--ui-button-size-s-height);
+  --ui-button-current-min-width: var(--ui-button-size-s-min-width);
+  --ui-button-current-font-size: var(--ui-button-size-s-font-size);
+  --ui-button-current-line-height: var(--ui-button-size-s-line-height, var(--ui-line-height-100));
   --ui-button-padding-x: var(--ui-button-size-s-padding-x);
   --ui-button-gap: var(--ui-button-size-s-gap);
 }
 
 .ui-button--size-m {
   height: var(--ui-button-size-m-height);
+  --ui-button-current-min-width: var(--ui-button-size-m-min-width);
+  --ui-button-current-font-size: var(--ui-button-size-m-font-size);
+  --ui-button-current-line-height: var(--ui-button-size-m-line-height, var(--ui-line-height-150));
   --ui-button-padding-x: var(--ui-button-size-m-padding-x);
   --ui-button-gap: var(--ui-button-size-m-gap);
 }
 
 .ui-button--size-l {
   height: var(--ui-button-size-l-height);
+  --ui-button-current-min-width: var(--ui-button-size-l-min-width);
+  --ui-button-current-font-size: var(--ui-button-size-l-font-size);
+  --ui-button-current-line-height: var(--ui-button-size-l-line-height, var(--ui-line-height-150));
   --ui-button-padding-x: var(--ui-button-size-l-padding-x);
   --ui-button-gap: var(--ui-button-size-l-gap);
 }
 
 .ui-button--size-xl {
   height: var(--ui-button-size-xl-height);
+  --ui-button-current-min-width: var(--ui-button-size-xl-min-width);
+  --ui-button-current-font-size: var(--ui-button-size-xl-font-size);
+  --ui-button-current-line-height: var(--ui-button-size-xl-line-height, var(--ui-line-height-200));
   --ui-button-padding-x: var(--ui-button-size-xl-padding-x);
   --ui-button-gap: var(--ui-button-size-xl-gap);
 }
@@ -384,5 +402,71 @@ pub const CSS: &str = r#"
   text-decoration: underline;
   text-decoration-thickness: 2px;
   text-underline-offset: 4px;
+}
+"#;
+
+#[cfg(feature = "component-button_group")]
+pub const BUTTON_GROUP_CSS: &str = r#"
+.ui-button-group {
+  --ui-button-group-border-overlap: calc(var(--ui-space-xs) / 4);
+
+  display: inline-flex;
+  gap: var(--ui-space-xs);
+  transform: scale(var(--ui-button-group-scale, 1));
+  transform-origin: center;
+  will-change: transform;
+}
+
+.ui-button-group[data-motion-source="custom"],
+.ui-button-group[data-custom-motion="true"] {
+  --ui-button-group-custom-motion: 1;
+}
+
+.ui-button-group--horizontal {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.ui-button-group--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.ui-button-group--attached {
+  gap: 0;
+}
+
+.ui-button-group--attached > .ui-button {
+  position: relative;
+}
+
+.ui-button-group--attached > .ui-button.ui-button--focus-visible {
+  z-index: 1;
+}
+
+.ui-button-group--attached.ui-button-group--horizontal > .ui-button:not(:first-child) {
+  margin-left: calc(var(--ui-button-group-border-overlap) * -1);
+
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.ui-button-group--attached.ui-button-group--horizontal > .ui-button:not(:last-child) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.ui-button-group--attached.ui-button-group--vertical > .ui-button:not(:first-child) {
+  margin-top: calc(var(--ui-button-group-border-overlap) * -1);
+
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.ui-button-group--attached.ui-button-group--vertical > .ui-button:not(:last-child) {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 "#;

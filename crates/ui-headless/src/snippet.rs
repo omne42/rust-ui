@@ -107,8 +107,7 @@ pub fn use_snippet_copy(options: SnippetCopyOptions) -> SnippetCopyContract {
     #[cfg(target_arch = "wasm32")]
     let request_copied = copied_state.request_change;
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = on_copy_error;
-
+    let _unused_on_copy_error = on_copy_error;
     let (is_loading, set_is_loading) = signal(false);
     let (has_error, set_has_error) = signal(false);
     #[cfg(target_arch = "wasm32")]
@@ -176,7 +175,7 @@ pub fn use_snippet_copy(options: SnippetCopyOptions) -> SnippetCopyContract {
 
         #[cfg(not(target_arch = "wasm32"))]
         {
-            let _ = text;
+            let _unused_text = &text;
             set_is_loading.set(false);
         }
     });

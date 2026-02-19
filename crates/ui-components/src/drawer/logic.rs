@@ -46,25 +46,25 @@ pub fn placement_attr(placement: DrawerPlacement) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_required_text(value: String, fallback: &'static str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        fallback.to_string()
+        fallback.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
 pub fn normalize_id_base(value: String) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        DEFAULT_ID_BASE.to_string()
+        DEFAULT_ID_BASE.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -107,10 +107,10 @@ pub fn resolve_state(input: DrawerPartStateInput) -> DrawerPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: DrawerPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if state.slot == DrawerSlot::Root {
-        classes.push(state.placement_class.to_string());
+        classes.push(state.placement_class.into());
 
         if state.show_description {
             classes.push("ui-drawer--with-description".to_string());

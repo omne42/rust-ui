@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn icons_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/icons/mod.rs");
+    let source = load_source("src/icon/icons/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn icons_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn icons_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/icons/mod.rs");
+    let module_source = load_source("src/icon/icons/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -45,7 +45,7 @@ fn icons_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn icons_logic_exposes_state_helpers() {
-    let source = load_source("src/icons/logic.rs");
+    let source = load_source("src/icon/icons/logic.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -64,7 +64,7 @@ fn icons_logic_exposes_state_helpers() {
 
 #[test]
 fn icons_view_uses_logic_state_contracts() {
-    let source = load_source("src/icons/view.rs");
+    let source = load_source("src/icon/icons/view.rs");
 
     for needle in [
         "pub fn Icons(",
@@ -94,7 +94,7 @@ fn icons_view_uses_logic_state_contracts() {
 
 #[test]
 fn icons_styles_include_state_and_source_markers() {
-    let source = load_source("src/icons/styles.rs");
+    let source = load_source("src/icon/icons/styles.rs");
 
     for selector in [
         ".ui-icons {",

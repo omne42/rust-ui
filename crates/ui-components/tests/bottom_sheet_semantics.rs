@@ -142,7 +142,7 @@ fn bottom_sheet_close_button_contracts_are_preserved() {
 
     for needle in [
         "data-slot=\"bottom-sheet-close\"",
-        "<IconButton",
+        "<Button",
         "aria_label=close_label",
         "on_press=on_close",
     ] {

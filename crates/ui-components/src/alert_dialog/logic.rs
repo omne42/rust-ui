@@ -83,30 +83,30 @@ pub fn disabled_attr(disabled: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_required_text(value: String, fallback: &'static str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        fallback.to_string()
+        fallback.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
 pub fn normalize_id_base(value: String) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        DEFAULT_ID_BASE.to_string()
+        DEFAULT_ID_BASE.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
 pub fn normalize_cancel_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_CANCEL_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_CANCEL_LABEL.into())
 }
 
 pub fn normalize_secondary_label(value: Option<String>) -> Option<String> {
@@ -175,10 +175,10 @@ pub fn resolve_state(input: AlertDialogPartStateInput) -> AlertDialogPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: AlertDialogPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if matches!(state.slot, AlertDialogSlot::Root) {
-        classes.push(state.variant_class.to_string());
+        classes.push(state.variant_class.into());
 
         if state.state_attr == "open" {
             classes.push("ui-alert-dialog--open".to_string());

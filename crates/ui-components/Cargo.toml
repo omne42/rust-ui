@@ -21,7 +21,6 @@ web-demo-components = [
     "component-action_menu",
     "component-alert",
     "component-alert_dialog",
-    "component-auto_height",
     "component-autocomplete",
     "component-avatar",
     "component-avatar_group",
@@ -34,7 +33,6 @@ web-demo-components = [
     "component-button_search_input",
     "component-button_share",
     "component-button_theme_toggle",
-    "component-card",
     "component-checkbox",
     "component-checkbox_group",
     "component-chip",
@@ -45,7 +43,6 @@ web-demo-components = [
     "component-contextual_help",
     "component-dialog",
     "component-disclosure",
-    "component-divider",
     "component-drawer",
     "component-drop_zone",
     "component-dropdown_menu",
@@ -59,7 +56,6 @@ web-demo-components = [
     "component-form_field",
     "component-help_text",
     "component-hover_card",
-    "component-icon_button",
     "component-illustrated_message",
     "component-image",
     "component-inline_alert",
@@ -86,15 +82,12 @@ web-demo-components = [
     "component-progress_circle",
     "component-radio",
     "component-ripple",
-    "component-scroll_shadow",
     "component-search_field",
     "component-segmented_control",
     "component-select",
-    "component-separator",
     "component-sheet",
     "component-skeleton",
     "component-snippet",
-    "component-spacer",
     "component-spinner",
     "component-status_light",
     "component-switch",
@@ -120,9 +113,7 @@ all-components = [
     "component-alert",
     "component-alert_banner",
     "component-alert_dialog",
-    "component-aspect_ratio",
     "component-asset",
-    "component-auto_height",
     "component-autocomplete",
     "component-avatar",
     "component-avatar_group",
@@ -138,7 +129,6 @@ all-components = [
     "component-button_share",
     "component-button_theme_toggle",
     "component-calendar",
-    "component-card",
     "component-carousel",
     "component-chart",
     "component-checkbox",
@@ -166,7 +156,6 @@ all-components = [
     "component-combo_box",
     "component-command",
     "component-command_dialog",
-    "component-content",
     "component-context_menu",
     "component-contextual_help",
     "component-date_field",
@@ -178,7 +167,6 @@ all-components = [
     "component-direction",
     "component-disclosure",
     "component-disclosure_group",
-    "component-divider",
     "component-drawer",
     "component-drop_zone",
     "component-dropdown",
@@ -194,18 +182,12 @@ all-components = [
     "component-field_label",
     "component-fieldset",
     "component-file_trigger",
-    "component-flex",
     "component-flip_card",
-    "component-footer",
     "component-form",
     "component-form_field",
-    "component-grid",
-    "component-header",
-    "component-heading",
     "component-help_text",
     "component-hover_card",
     "component-icon",
-    "component-icon_button",
     "component-icons",
     "component-icons_ui",
     "component-icons_workflow",
@@ -250,14 +232,10 @@ all-components = [
     "component-progress_bar",
     "component-progress_circle",
     "component-radio",
-    "component-resizable",
     "component-ripple",
-    "component-scroll_area",
-    "component-scroll_shadow",
     "component-search_field",
     "component-segmented_control",
     "component-select",
-    "component-separator",
     "component-sheet",
     "component-sidebar",
     "component-sidebar_content",
@@ -275,11 +253,9 @@ all-components = [
     "component-slider",
     "component-snippet",
     "component-sonner",
-    "component-spacer",
     "component-spinner",
     "component-status_light",
     "component-step_list",
-    "component-surface",
     "component-swatch",
     "component-switch",
     "component-switch_group",
@@ -307,13 +283,100 @@ all-components = [
     "component-tray",
     "component-tree",
     "component-underlay",
-    "component-view",
     "component-visually_hidden",
-    "component-well",
+]
+dev-all-components = ["all-components"]
+
+# Domain bundles for staged directory migration.
+# These are additive compatibility features and do not replace existing `component-*` flags.
+component-domain-sidebar = [
+    "component-sidebar",
+    "component-sidebar_content",
+    "component-sidebar_footer",
+    "component-sidebar_group",
+    "component-sidebar_header",
+    "component-sidebar_inset",
+    "component-sidebar_menu",
+    "component-sidebar_menu_action",
+    "component-sidebar_menu_badge",
+    "component-sidebar_rail",
+    "component-sidebar_trigger",
+]
+component-domain-theme = [
+    "component-theme_dark",
+    "component-theme_default",
+    "component-theme_express",
+    "component-theme_light",
+]
+component-domain-progress = [
+    "component-progress",
+    "component-progress_bar",
+    "component-progress_circle",
+]
+component-domain-menu = [
+    "component-action_menu",
+    "component-context_menu",
+    "component-dropdown",
+    "component-dropdown_menu",
+    "component-menu",
+    "component-menu_item",
+    "component-menu_section",
+    "component-menu_trigger",
+    "component-menubar",
+    "component-navigation_menu",
+]
+component-domain-icon = [
+    "component-icon",
+    "component-icons",
+    "component-icons_ui",
+    "component-icons_workflow",
+    "component-iconset",
+]
+component-domain-field_form = [
+    "component-description",
+    "component-field",
+    "component-field_error",
+    "component-field_group",
+    "component-field_label",
+    "component-fieldset",
+    "component-form",
+    "component-form_field",
+    "component-help_text",
+]
+component-domain-text_input = [
+    "component-date_field",
+    "component-date_input_group",
+    "component-date_picker",
+    "component-date_range_picker",
+    "component-input",
+    "component-input_group",
+    "component-input_otp",
+    "component-number",
+    "component-number_field",
+    "component-search_field",
+    "component-text",
+    "component-text_area",
+    "component-text_field",
+    "component-textarea",
+    "component-time_field",
+]
+component-domain-color = [
+    "component-color_area",
+    "component-color_editor",
+    "component-color_field",
+    "component-color_handle",
+    "component-color_loupe",
+    "component-color_picker",
+    "component-color_slider",
+    "component-color_swatch",
+    "component-color_swatch_picker",
+    "component-color_thumb",
+    "component-color_wheel",
+    "component-swatch",
 ]
 
-component-accordion = ["dep:serde"]
-component-action_bar = []
+component-accordion = ["dep:ui-accordion"]
+component-action_bar = ["component-button"]
 component-action_button_group = ["component-button"]
 component-action_group = ["component-button"]
 component-action_menu = ["component-button", "component-menu", "component-popover"]
@@ -321,16 +384,13 @@ component-active_highlight = []
 component-alert = []
 component-alert_banner = []
 component-alert_dialog = ["component-overlay", "component-button"]
-component-aspect_ratio = []
 component-asset = ["component-thumbnail"]
-component-auto_height = []
 component-autocomplete = ["component-active_highlight", "component-popover"]
 component-avatar = []
 component-avatar_group = ["component-avatar"]
 component-badge = []
 component-bottom_sheet = [
     "component-sheet",
-    "component-icon_button",
     "component-button",
 ]
 component-breadcrumb = []
@@ -346,8 +406,7 @@ component-button_share = [
     "component-button_group",
 ]
 component-button_theme_toggle = ["component-button"]
-component-calendar = []
-component-card = []
+component-calendar = ["ui-state-primitives/logic-calendar"]
 component-carousel = ["component-active_highlight"]
 component-chart = ["component-active_highlight"]
 component-checkbox = []
@@ -373,7 +432,7 @@ component-color_editor = [
     "component-color_swatch",
     "component-slider",
 ]
-component-color_field = ["component-color_swatch"]
+component-color_field = ["component-color_swatch", "component-clear_button"]
 component-color_handle = ["component-color_thumb"]
 component-color_loupe = ["component-color_swatch"]
 component-color_picker = ["component-color_swatch", "component-popover"]
@@ -385,20 +444,26 @@ component-color_wheel = []
 component-combo_box = ["component-active_highlight", "component-popover"]
 component-command = ["component-active_highlight"]
 component-command_dialog = ["component-command", "component-modal"]
-component-content = []
 component-context_menu = ["component-dropdown_menu"]
 component-contextual_help = ["component-button", "component-popover"]
-component-date_field = []
+component-date_field = ["component-clear_button"]
 component-date_input_group = []
-component-date_picker = ["component-button", "component-calendar", "component-popover"]
-component-date_range_picker = ["component-date_picker"]
+component-date_picker = [
+    "component-button",
+    "component-calendar",
+    "component-popover",
+    "ui-state-primitives/logic-calendar",
+]
+component-date_range_picker = [
+    "component-date_picker",
+    "ui-state-primitives/logic-calendar",
+]
 component-description = []
-component-dialog = ["component-overlay", "component-icon_button", "component-button"]
+component-dialog = ["component-overlay", "component-button"]
 component-direction = []
 component-disclosure = []
 component-disclosure_group = ["component-disclosure"]
-component-divider = []
-component-drawer = ["component-sheet", "component-icon_button", "component-button"]
+component-drawer = ["component-sheet", "component-button"]
 component-drop_zone = []
 component-dropdown = ["component-button", "component-menu", "component-popover"]
 component-dropdown_menu = ["component-button", "component-menu", "component-popover"]
@@ -413,18 +478,12 @@ component-field_group = ["component-field"]
 component-field_label = []
 component-fieldset = []
 component-file_trigger = []
-component-flex = []
 component-flip_card = []
-component-footer = []
 component-form = []
 component-form_field = ["component-switch", "component-checkbox"]
-component-grid = []
-component-header = []
-component-heading = []
 component-help_text = []
 component-hover_card = []
 component-icon = []
-component-icon_button = []
 component-icons = []
 component-icons_ui = ["component-iconset"]
 component-icons_workflow = []
@@ -433,7 +492,7 @@ component-illustrated_message = []
 component-image = []
 component-infield_button = []
 component-inline_alert = []
-component-input = []
+component-input = ["component-clear_button"]
 component-input_group = ["component-input"]
 component-input_otp = []
 component-item = []
@@ -468,7 +527,6 @@ component-overlays = [
     "component-modal",
     "component-tray",
     "component-sheet",
-    "component-icon_button",
     "component-button",
 ]
 component-pagination = ["component-button"]
@@ -481,14 +539,10 @@ component-progress = []
 component-progress_bar = []
 component-progress_circle = []
 component-radio = []
-component-resizable = []
 component-ripple = []
-component-scroll_area = []
-component-scroll_shadow = []
-component-search_field = []
+component-search_field = ["component-clear_button"]
 component-segmented_control = []
 component-select = ["component-button", "component-list", "component-popover"]
-component-separator = []
 component-sheet = []
 component-sidebar = []
 component-sidebar_content = []
@@ -506,11 +560,9 @@ component-skeleton_group = ["component-skeleton"]
 component-slider = []
 component-snippet = []
 component-sonner = []
-component-spacer = []
 component-spinner = ["component-circular_progress"]
 component-status_light = []
 component-step_list = []
-component-surface = []
 component-swatch = []
 component-switch = []
 component-switch_group = ["component-switch"]
@@ -527,8 +579,12 @@ component-theme_default = []
 component-theme_express = []
 component-theme_light = []
 component-thumbnail = []
-component-time_field = []
-component-toast = []
+component-time_field = [
+    "component-clear_button",
+    "ui-headless/logic-calendar",
+    "ui-state-primitives/logic-calendar",
+]
+component-toast = ["component-close_button"]
 component-toaster = []
 component-toggle = ["component-button", "component-toggle_button"]
 component-toggle_button = ["component-button"]
@@ -537,13 +593,14 @@ component-toggle_group = ["component-button", "component-toggle_button"]
 component-tooltip = []
 component-tray = []
 component-tree = []
-component-underlay = []
-component-view = []
+component-underlay = ["dep:ui-ai-runtime"]
 component-visually_hidden = []
-component-well = []
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../ui-headless" }
+ui-ai-runtime = { path = "../ui-ai-runtime", optional = true }
+ui-accordion = { path = "../../components/accordion", optional = true }
+ui-layout = { path = "../ui-layout", default-features = false, features = ["inject-css"] }
 ui-motion = { path = "../ui-motion" }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-theme = { path = "../ui-theme" }

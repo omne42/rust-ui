@@ -2,31 +2,22 @@ use std::collections::BTreeSet;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum LinkDisabledSource {
-    IsPrefixed,
-    LegacyAlias,
+    IsProp,
     Default,
 }
 
 impl LinkDisabledSource {
     pub const fn as_attr(self) -> &'static str {
         match self {
-            Self::IsPrefixed => "is-prefixed",
-            Self::LegacyAlias => "legacy-alias",
+            Self::IsProp => "is-prop",
             Self::Default => "default",
         }
     }
 }
 
-pub fn normalize_is_disabled(
-    is_disabled: Option<bool>,
-    disabled: Option<bool>,
-) -> (bool, LinkDisabledSource) {
+pub fn normalize_is_disabled(is_disabled: Option<bool>) -> (bool, LinkDisabledSource) {
     if let Some(value) = is_disabled {
-        return (value, LinkDisabledSource::IsPrefixed);
-    }
-
-    if let Some(value) = disabled {
-        return (value, LinkDisabledSource::LegacyAlias);
+        return (value, LinkDisabledSource::IsProp);
     }
 
     (false, LinkDisabledSource::Default)
@@ -60,13 +51,13 @@ pub struct LinkState {
 
 pub fn normalize_href(href: String) -> Option<String> {
     let trimmed = href.trim();
-    (!trimmed.is_empty()).then(|| trimmed.to_string())
+    (!trimmed.is_empty()).then(|| trimmed.into())
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -77,7 +68,7 @@ pub fn resolve_rel(target: Option<&'static str>, rel: Option<String>) -> Option<
         for token in rel.split_whitespace() {
             let token = token.trim();
             if !token.is_empty() {
-                tokens.insert(token.to_string());
+                tokens.insert(token.into());
             }
         }
     }
@@ -134,8 +125,8 @@ pub fn resolve_state(input: LinkStateInput) -> LinkState {
 pub fn compose_class_name(base_class_name: Option<String>, state: LinkState) -> String {
     let mut classes = vec![
         "ui-link".to_string(),
-        state.state_class.to_string(),
-        state.rel_source_class.to_string(),
+        state.state_class.into(),
+        state.rel_source_class.into(),
     ];
 
     if state.opens_new_context {
@@ -180,17 +171,13 @@ mod tests {
     }
 
     #[test]
-    fn normalize_is_disabled_prefers_is_prefix_with_legacy_fallback() {
+    fn normalize_is_disabled_uses_is_prefixed_or_default() {
         assert_eq!(
-            normalize_is_disabled(Some(true), Some(false)),
-            (true, LinkDisabledSource::IsPrefixed)
+            normalize_is_disabled(Some(true)),
+            (true, LinkDisabledSource::IsProp)
         );
         assert_eq!(
-            normalize_is_disabled(None, Some(true)),
-            (true, LinkDisabledSource::LegacyAlias)
-        );
-        assert_eq!(
-            normalize_is_disabled(None, None),
+            normalize_is_disabled(None),
             (false, LinkDisabledSource::Default)
         );
     }

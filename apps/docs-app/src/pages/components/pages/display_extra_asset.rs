@@ -5,8 +5,8 @@ use ui_components::{Asset, AssetSize, AssetVariant};
 
 pub(super) fn asset() -> AnyView {
     let variant_code = Signal::derive(move || {
-        r#"<Asset variant=AssetVariant::File size=AssetSize::Size600 label=\"Build Report\".to_string() />
-<Asset variant=AssetVariant::Folder size=AssetSize::Size600 label=\"Design Assets\".to_string() />"#.to_string()
+        r#"<Asset variant=AssetVariant::File size=AssetSize::Size600 label=\"Build Report\".into() />
+<Asset variant=AssetVariant::Folder size=AssetSize::Size600 label=\"Design Assets\".into() />"#.to_string()
     });
 
     let custom_code = Signal::derive(move || {
@@ -20,10 +20,10 @@ pub(super) fn asset() -> AnyView {
         r#"<Asset
   variant=AssetVariant::Custom
   size=AssetSize::Size800
-  label=\"Featured Artwork\".to_string()
+  label=\"Featured Artwork\".into()
   selected=true
   focused=true
-  class_name=\"docs-asset-state\".to_string()
+  class_name=\"docs-asset-state\".into()
 >
   <img src=\"https://picsum.photos/500/360\" alt=\"Cover artwork\" />
 </Asset>"#

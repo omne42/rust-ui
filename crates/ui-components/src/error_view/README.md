@@ -1,29 +1,52 @@
 # ErrorView
 
-`ErrorView` 用于展示字段级或局部表单错误信息，支持默认文本/自定义内容、可选图标与操作区、以及可配置的可见性动效合同。
+`ErrorView` 用于展示字段级/局部错误信息，使用 canonical API：`is_compact`、`is_bordered`。
 
-## Hello World
+## 展示（Display）
 
-```rust
-use leptos::prelude::*;
-use ui_components::ErrorView;
+docs-app 页面：`apps/docs-app/src/pages/components/pages/display_extra.rs::error_view()`
 
-view! {
-    <ErrorView is_invalid=true message="Please enter a valid email".to_string() />
+对比场景：
+
+| 场景 | 关键输入 | 预期状态 |
+| --- | --- | --- |
+| Hidden | `is_invalid=false` | `data-state="hidden"` |
+| Invalid | `is_invalid=true` | `data-state="visible"` |
+| Compact | `is_compact=true` | `data-compact="true"` |
+| Bordered | `is_bordered=true` | `data-bordered="true"` |
+
+## config（Actual Config）
+
+```text
+ErrorViewActualConfig {
+  tone: Neutral,
+  is_invalid: true,
+  is_compact: true,
+  is_bordered: true,
+  has_icon: true,
+  has_actions: true,
 }
 ```
 
-## 常用参数
+## code（Copy/Paste）
 
-- `is_invalid`: 控制错误区是否可见。
-- `tone`: 视觉语义（默认 `Negative`）。
-- `is_compact` / `compact`: 紧凑布局（推荐 `is_compact`，`compact` 为兼容别名）。
-- `is_bordered` / `bordered`: 边框样式（推荐 `is_bordered`，`bordered` 为兼容别名）。
-- `message`: 无 children 时的错误文本。
-- `icon` / `actions`: 前置图标与操作区插槽。
-- `lang` / `dir`: locale 语义透传。
+```rust
+<ErrorView
+  is_invalid=true
+  tone=ErrorViewTone::Neutral
+  is_compact=true
+  is_bordered=true
+  message="Validation failed".to_string()
+/>
+```
 
-## 文档入口
+## css test（Scoped CSS Test）
 
-- docs-app: `/#/components/error-view`
-- 源码: `crates/ui-components/src/error_view/`
+- `test_source_path="crates/ui-components/src/error_view/styles.rs"`
+- `test_css_source=ui_components::error_view::styles::CSS`
+
+```css
+:scope .ui-error-view[data-state="visible"] {
+  outline: 1px dashed var(--ui-danger);
+}
+```

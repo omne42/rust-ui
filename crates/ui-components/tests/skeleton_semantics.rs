@@ -233,8 +233,10 @@ fn skeleton_emits_baseline_style_state_data_attributes() {
     for attr in [
         "data-slot=\"skeleton\"",
         "data-variant=state.variant_attr",
+        "data-variant-source=source_state.variant_source_attr",
         "data-state=state.state_attr",
         "data-shimmer=state.has_shimmer.then_some(\"true\")",
+        "data-shimmer-source=source_state.shimmer_source_attr",
         "data-still=state.is_still.then_some(\"true\")",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
     ] {
@@ -253,7 +255,9 @@ fn skeleton_semantic_contract_covers_aria_and_state_source_markers() {
         "aria-hidden=\"true\"",
         "data-state=state.state_attr",
         "data-variant=state.variant_attr",
+        "data-variant-source=source_state.variant_source_attr",
         "data-shimmer=state.has_shimmer.then_some(\"true\")",
+        "data-shimmer-source=source_state.shimmer_source_attr",
         "data-custom-class=state.has_custom_class_name.then_some(\"true\")",
     ] {
         assert!(
@@ -518,8 +522,10 @@ fn skeleton_styles_include_variant_and_shimmer_markers() {
     for selector in [
         ".ui-skeleton--variant-rect",
         ".ui-skeleton[data-variant=\"circle\"]",
+        ".ui-skeleton[data-variant-source=\"prop\"]",
         ".ui-skeleton--shimmer::after",
         ".ui-skeleton[data-shimmer=\"true\"]::after",
+        ".ui-skeleton[data-shimmer-source=\"prop\"]",
         ".ui-skeleton--still",
         ".ui-skeleton[data-still=\"true\"]",
     ] {
@@ -538,7 +544,9 @@ fn skeleton_styles_depend_on_explicit_state_markers_not_dom_guessing() {
     for needle in [
         ".ui-skeleton[data-variant=\"rect\"]",
         ".ui-skeleton[data-variant=\"circle\"]",
+        ".ui-skeleton[data-variant-source=\"prop\"]",
         ".ui-skeleton[data-shimmer=\"true\"]::after",
+        ".ui-skeleton[data-shimmer-source=\"prop\"]",
         ".ui-skeleton[data-still=\"true\"]",
     ] {
         assert!(

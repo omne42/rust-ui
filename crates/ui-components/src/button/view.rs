@@ -569,7 +569,7 @@ fn render_debug_panel(
                             view! {
                                 <li
                                     data-slot="button-debug-event"
-                                    data-debug-sequence=event.sequence.to_string()
+                                    data-debug-sequence=event.sequence
                                     data-debug-source=source.clone()
                                     data-debug-before=before_attr
                                     data-debug-after=after_attr
@@ -702,7 +702,8 @@ pub fn Button(
         is_full_width,
         class_name,
         aria_label,
-        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string()),
+        // icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.to_string())
+        icon_only_fallback_aria_label: Some(common_strings.icon_button_aria_label.as_ref().into()),
         is_icon_only,
         button_type,
     });
@@ -939,5 +940,64 @@ pub fn Button(
             {render_button_content(state, render, start_content, end_content, children)}
         </button>
         {debug_panel}
+    }
+}
+
+#[cfg(feature = "component-button_group")]
+#[leptos::component]
+pub fn ButtonGroup(
+    #[prop(optional)] orientation: logic::ButtonGroupOrientation,
+    #[prop(optional)] attached: bool,
+    #[prop(optional)] motion: motion::ButtonGroupMotion,
+    #[prop(optional)] node_ref: NodeRef<html::Div>,
+    #[prop(optional, into)] aria_label: Option<String>,
+    #[prop(optional, into)] class_name: Option<String>,
+    children: Children,
+) -> impl IntoView {
+    let (aria_label, has_explicit_label) = logic::normalize_button_group_aria_label(aria_label);
+    let state = Memo::new(move |_| {
+        logic::resolve_button_group_state(orientation, attached, has_explicit_label)
+    });
+
+    let base_class = format!("ui-button-group {}", orientation.class_name());
+    let base_class = if attached {
+        format!("{base_class} ui-button-group--attached")
+    } else {
+        base_class
+    };
+
+    let class = class_name
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| format!("{base_class} {value}"))
+        .unwrap_or(base_class);
+
+    motion::attach_button_group_motion(node_ref, motion);
+
+    let motion_source = if motion == motion::ButtonGroupMotion::default() {
+        "default"
+    } else {
+        "custom"
+    };
+    let custom_motion = (motion != motion::ButtonGroupMotion::default()).then_some("true");
+
+    view! {
+        <div
+            node_ref=node_ref
+            class=class
+            data-slot="button-group"
+            data-orientation=orientation.data_orientation()
+            data-horizontal=move || state.get().is_horizontal.then_some("true")
+            data-vertical=move || state.get().is_vertical.then_some("true")
+            data-attached=move || state.get().is_attached.then_some("true")
+            data-detached=move || state.get().is_detached.then_some("true")
+            data-has-explicit-label=move || state.get().has_explicit_label.then_some("true")
+            data-has-fallback-label=move || state.get().has_fallback_label.then_some("true")
+            data-motion-source=motion_source
+            data-custom-motion=custom_motion
+            role="group"
+            aria-label=aria_label
+        >
+            {children()}
+        </div>
     }
 }

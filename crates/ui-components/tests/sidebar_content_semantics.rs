@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn sidebar_content_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sidebar_content/mod.rs");
+    let source = load_source("src/sidebar/content/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn sidebar_content_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sidebar_content_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/sidebar_content/mod.rs");
+    let module_source = load_source("src/sidebar/content/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -36,8 +36,8 @@ fn sidebar_content_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn sidebar_content_uses_logic_state_model() {
-    let logic_source = load_source("src/sidebar_content/logic.rs");
-    let view_source = load_source("src/sidebar_content/view.rs");
+    let logic_source = load_source("src/sidebar/content/logic.rs");
+    let view_source = load_source("src/sidebar/content/view.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -65,7 +65,7 @@ fn sidebar_content_uses_logic_state_model() {
 
 #[test]
 fn sidebar_content_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/sidebar_content/view.rs");
+    let source = load_source("src/sidebar/content/view.rs");
 
     for needle in [
         "data-slot=\"sidebar-content\"",
@@ -91,7 +91,7 @@ fn sidebar_content_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn sidebar_content_styles_include_state_markers() {
-    let source = load_source("src/sidebar_content/styles.rs");
+    let source = load_source("src/sidebar/content/styles.rs");
 
     for needle in [
         ".ui-sidebar-content {",

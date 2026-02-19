@@ -56,9 +56,9 @@ pub fn CodeBlock(
 ) -> impl IntoView {
     let i18n = i18n::use_ui_i18n();
     let strings = i18n.strings::<CodeBlockStrings>();
-    let copy_to_clipboard_aria_label = strings.copy_to_clipboard_aria_label.as_ref().to_string();
+    let copy_to_clipboard_aria_label: String = strings.copy_to_clipboard_aria_label.as_ref().into();
     let copy_to_clipboard_aria_label = StoredValue::new(copy_to_clipboard_aria_label);
-    let copied_status_text = strings.copied_status_text.as_ref().to_string();
+    let copied_status_text = strings.copied_status_text.as_ref().into();
     let motion = crate::code_block::motion::sanitize_motion(motion);
     let label = logic::normalize_optional_text(label);
     let language = logic::normalize_optional_text(language);

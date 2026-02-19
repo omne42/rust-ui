@@ -40,7 +40,7 @@ pub fn RadioDemo() -> impl IntoView {
                         disabled_indices=vec![2]
                         orientation=RadioGroupOrientation::Horizontal
                     />
-                    <div class="demo-kv">"selected index: " {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".into())}</div>
+                    <div class="demo-kv">"selected index: " {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}</div>
                 </div>
             </div>
         </section>

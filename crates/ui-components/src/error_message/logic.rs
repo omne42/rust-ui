@@ -5,7 +5,7 @@ pub use ui_state_primitives::error_message::{
 };
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ErrorMessageState) -> String {
-    let mut classes = vec!["ui-error-message".to_string(), state.tone_class.to_string()];
+    let mut classes = vec!["ui-error-message".to_string(), state.tone_class.into()];
 
     if state.is_disabled {
         classes.push("ui-error-message--disabled".to_string());

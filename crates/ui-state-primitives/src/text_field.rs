@@ -22,9 +22,9 @@ pub struct TextFieldState {
 pub fn resolve_label(label: String) -> (String, &'static str) {
     let trimmed = label.trim();
     if trimmed.is_empty() {
-        (DEFAULT_LABEL.to_string(), "default")
+        (DEFAULT_LABEL.into(), "default")
     } else {
-        (trimmed.to_string(), "custom")
+        (trimmed.into(), "custom")
     }
 }
 
@@ -91,11 +91,11 @@ mod tests {
     fn resolve_label_falls_back_to_default_when_blank() {
         assert_eq!(
             resolve_label("".to_string()),
-            (DEFAULT_LABEL.to_string(), "default")
+            (DEFAULT_LABEL.into(), "default")
         );
         assert_eq!(
             resolve_label("   ".to_string()),
-            (DEFAULT_LABEL.to_string(), "default")
+            (DEFAULT_LABEL.into(), "default")
         );
         assert_eq!(
             resolve_label(" Name ".to_string()),

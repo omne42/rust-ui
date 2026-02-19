@@ -1,16 +1,14 @@
 use leptos::children::ViewFn;
 use leptos::prelude::*;
 use std::collections::HashSet;
-use ui_components::{
-    Button, ButtonSize, ButtonVariant, CodeBlock, IconButton, OnPress, push_components_css,
-};
+use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, OnPress, push_components_css};
 use ui_headless::UiPerfProbe;
 
 const DEFAULT_PLAYGROUND_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::*;";
 
 fn normalize_code_snippet(raw: &str) -> Option<String> {
     let trimmed = raw.trim();
-    (!trimmed.is_empty()).then(|| trimmed.to_string())
+    (!trimmed.is_empty()).then(|| trimmed.into())
 }
 
 fn import_root(line: &str) -> Option<&str> {
@@ -83,7 +81,7 @@ fn sanitize_scope_key(raw: &str) -> String {
     if trimmed.is_empty() {
         "playground-scope".to_string()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
@@ -137,7 +135,7 @@ impl PlaygroundRegistry {
 
     pub fn register(self, title: &str) {
         self.titles
-            .update(|titles| titles.push(title.trim().to_string()));
+            .update(|titles| titles.push(title.trim().into()));
     }
 }
 
@@ -233,10 +231,11 @@ pub fn Playground(
                 <div class="playground__actions">
                     {on_link.map(|on_link| {
                         view! {
-                            <IconButton
+                            <Button
                                 aria_label="Link to section".to_string()
                                 variant=ButtonVariant::Ghost
                                 size=ButtonSize::IconSm
+                                is_icon_only=true
                                 on_press=on_link
                             >
                                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -255,7 +254,7 @@ pub fn Playground(
                                         stroke_linejoin="round"
                                     />
                                 </svg>
-                            </IconButton>
+                            </Button>
                         }
                     })}
 
@@ -312,8 +311,8 @@ pub fn Playground(
                             <aside class="playground__panel playground__controls" data-slot="playground-controls">
                                 {controls
                                     .get_value()
-                                    .expect("checked controls")
-                                    .run()}
+                                    .map(|panel| panel.run())
+                                    .unwrap_or_else(|| ().into_any())}
                             </aside>
                         </Show>
                     }

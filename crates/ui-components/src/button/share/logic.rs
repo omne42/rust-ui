@@ -25,11 +25,11 @@ pub fn resolve_icon_button_size(size: ButtonSize) -> ButtonSize {
 pub fn compose_class_name(base_class_name: Option<String>, state: ShareButtonState) -> String {
     let mut classes = vec![
         "ui-share-button".to_string(),
-        state.state_class.to_string(),
-        state.items_source_class.to_string(),
-        state.icon_placement_class.to_string(),
-        state.label_source_class.to_string(),
-        state.handler_source_class.to_string(),
+        state.state_class.into(),
+        state.items_source_class.into(),
+        state.icon_placement_class.into(),
+        state.label_source_class.into(),
+        state.handler_source_class.into(),
     ];
 
     if state.has_items {

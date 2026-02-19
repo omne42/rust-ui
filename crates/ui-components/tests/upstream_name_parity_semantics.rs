@@ -3,6 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 fn collect_local_component_modules() -> BTreeSet<String> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut names = BTreeSet::new();
 
@@ -24,13 +25,33 @@ fn collect_local_component_modules() -> BTreeSet<String> {
         names.insert(name.to_string());
     }
 
-    // Component relocations that now live under a grouped parent directory.
+    // Component relocations that still live under grouped parent directories.
     // Keep parity checks focused on semantic coverage rather than top-level folder shape.
-    if src_root.join("checkbox_field/checkbox").exists() {
-        names.insert("checkbox".to_string());
-    }
     if src_root.join("button/toggle").exists() {
         names.insert("toggle".to_string());
+    }
+    if src_root.join("menu/dropdown").exists() {
+        names.insert("dropdown_menu".to_string());
+    }
+    if src_root.join("text_input/input").exists() {
+        names.insert("input".to_string());
+    }
+    if manifest_dir.join("../../components/accordion/src").exists() {
+        names.insert("accordion".to_string());
+    }
+
+    // Layout components are split into the `ui-layout` crate. Keep upstream parity checks
+    // aligned to semantic coverage across the workspace, not crate-local folder ownership.
+    let layout_root = manifest_dir.join("../ui-layout/src");
+    for (name, rel) in [
+        ("card", "card"),
+        ("resizable", "resizable"),
+        ("scroll_area", "scroll_area"),
+        ("separator", "separator"),
+    ] {
+        if layout_root.join(rel).exists() {
+            names.insert(name.to_string());
+        }
     }
 
     names

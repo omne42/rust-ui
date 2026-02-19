@@ -19,7 +19,7 @@ fn function_signature(source: &str, fn_name: &str) -> String {
 
 #[test]
 fn avatar_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/avatar/group/mod.rs");
+    let source = load_source("src/avatar/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -31,22 +31,22 @@ fn avatar_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn avatar_group_uses_logic_state_model() {
-    let view_source = load_source("src/avatar/group/view.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
 
     for needle in [
         "pub use ui_state_primitives::avatar_group::{",
         "AvatarGroupStateInput",
         "normalize_optional_text",
-        "normalize_max_visible",
-        "resolve_aria_label",
-        "pub fn normalize_group_input(",
-        "pub fn normalize_item_fields(",
-        "pub fn resolve_aria_label_with_fallback(",
+        "normalize_avatar_group_max_visible",
+        "resolve_avatar_group_aria_label",
+        "pub fn normalize_avatar_group_input(",
+        "pub fn normalize_avatar_group_item_fields(",
+        "pub fn resolve_avatar_group_aria_label_with_fallback(",
         "AvatarGroupRenderState",
         "resolve_render_state",
         "resolve_state",
-        "pub fn compose_class_name(",
+        "pub fn compose_avatar_group_class_name(",
         "ui-avatar-group--custom-class",
     ] {
         assert!(
@@ -72,11 +72,11 @@ fn avatar_group_uses_logic_state_model() {
     for needle in [
         "let i18n = i18n::use_ui_i18n();",
         "let common = i18n.strings::<CommonStrings>();",
-        "let normalized = logic::normalize_group_input(",
+        "let normalized = logic::normalize_avatar_group_input(",
         "let group_a11y = labeled_group_attrs(normalized.aria_label, normalized.lang.clone(), dir);",
-        "logic::resolve_render_state(AvatarGroupStateInput {",
-        "let class = logic::compose_class_name(normalized.class_name, state);",
-        "let fields = logic::normalize_item_fields(item.name, item.src, item.alt);",
+        "logic::resolve_avatar_group_render_state(logic::AvatarGroupStateInput {",
+        "let class = logic::compose_avatar_group_class_name(normalized.class_name, state);",
+        "let fields = logic::normalize_avatar_group_item_fields(item.name, item.src, item.alt);",
     ] {
         assert!(
             view_source.contains(needle),
@@ -87,7 +87,7 @@ fn avatar_group_uses_logic_state_model() {
 
 #[test]
 fn avatar_group_emits_baseline_style_root_data_attributes() {
-    let source = load_source("src/avatar/group/view.rs");
+    let source = load_source("src/avatar/view.rs");
 
     for attr in [
         "data-slot=\"avatar-group\"",
@@ -118,12 +118,12 @@ fn avatar_group_emits_baseline_style_root_data_attributes() {
 
 #[test]
 fn avatar_group_a11y_i18n_l10n_contract_is_headless_driven_and_no_view_hardcoded_copy() {
-    let view_source = load_source("src/avatar/group/view.rs");
+    let view_source = load_source("src/avatar/view.rs");
     let headless_a11y_source = load_source("../ui-headless/src/a11y.rs");
     let i18n_common_source = load_source("../ui-headless/src/i18n/common.rs");
 
     for required in [
-        "use ui_headless::{A11yDirection, labeled_group_attrs};",
+        "use ui_headless::labeled_group_attrs;",
         "let i18n = i18n::use_ui_i18n();",
         "let common = i18n.strings::<CommonStrings>();",
         "common.avatar_group_aria_label.as_ref()",
@@ -177,7 +177,7 @@ fn avatar_group_a11y_i18n_l10n_contract_is_headless_driven_and_no_view_hardcoded
 
 #[test]
 fn avatar_group_exposes_item_and_overflow_slots() {
-    let source = load_source("src/avatar/group/view.rs");
+    let source = load_source("src/avatar/view.rs");
 
     for attr in [
         "data-slot=\"avatar-group-item\"",
@@ -196,12 +196,12 @@ fn avatar_group_exposes_item_and_overflow_slots() {
 
 #[test]
 fn avatar_group_has_no_async_loading_protocol_and_keeps_sync_render_contract() {
-    let view_source = load_source("src/avatar/group/view.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
 
     for needle in [
-        "let state = logic::resolve_render_state(AvatarGroupStateInput {",
-        "let fields = logic::normalize_item_fields(item.name, item.src, item.alt);",
+        "let state = logic::resolve_avatar_group_render_state(logic::AvatarGroupStateInput {",
+        "let fields = logic::normalize_avatar_group_item_fields(item.name, item.src, item.alt);",
         "<Show when=move || state.visual_state.has_overflow()>",
     ] {
         assert!(
@@ -229,7 +229,7 @@ fn avatar_group_has_no_async_loading_protocol_and_keeps_sync_render_contract() {
 
 #[test]
 fn avatar_group_styles_include_state_source_and_marker_contracts() {
-    let source = load_source("src/avatar/group/styles.rs");
+    let source = load_source("src/avatar/styles.rs");
 
     for selector in [
         ".ui-avatar-group--size-sm",
@@ -328,13 +328,13 @@ fn avatar_group_docs_expose_hello_world_path_without_state_machine_wiring() {
 #[test]
 fn avatar_group_does_not_define_component_motion_runtime() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let view_source = load_source("src/avatar/group/view.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
 
     assert!(
-        !manifest_dir.join("src/avatar/group/motion.rs").exists(),
-        "AvatarGroup should not define `src/avatar/group/motion.rs` when no runtime animation contract is needed."
+        !manifest_dir.join("src/avatar/motion.rs").exists(),
+        "AvatarGroup should not define `src/avatar/motion.rs` when no runtime animation contract is needed."
     );
 
     for forbidden in [
@@ -360,9 +360,9 @@ fn avatar_group_does_not_define_component_motion_runtime() {
 
 #[test]
 fn avatar_group_theme_contract_consumes_ui_variables_only() {
-    let styles_source = load_source("src/avatar/group/styles.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
 
     for required_var in [
         "var(--ui-bg)",
@@ -398,10 +398,10 @@ fn avatar_group_theme_contract_consumes_ui_variables_only() {
 
 #[test]
 fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage() {
-    let mod_source = load_source("src/avatar/group/mod.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
+    let mod_source = load_source("src/avatar/mod.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
     let lib_source = load_source("src/lib.rs");
 
     for required in [
@@ -418,7 +418,7 @@ fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage()
 
     for required in [
         "pub use ui_state_primitives::avatar_group::{",
-        "pub fn compose_class_name(",
+        "pub fn compose_avatar_group_class_name(",
     ] {
         assert!(
             logic_source.contains(required),
@@ -435,8 +435,8 @@ fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage()
 
     for required in [
         "view! {",
-        "logic::resolve_render_state(",
-        "logic::compose_class_name(",
+        "logic::resolve_avatar_group_render_state(",
+        "logic::compose_avatar_group_class_name(",
         "labeled_group_attrs(",
     ] {
         assert!(
@@ -460,10 +460,9 @@ fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage()
         "AvatarGroup styles should be token-first and consume `--ui-*` variables."
     );
 
-    let required = "pub use avatar::group::{AvatarGroup, AvatarGroupItem};";
     assert!(
-        lib_source.contains(required),
-        "ui-components public API should expose stable AvatarGroup exports via `{required}`."
+        lib_source.contains("AvatarGroup") && lib_source.contains("AvatarGroupItem"),
+        "ui-components public API should expose stable AvatarGroup exports."
     );
 
     for forbidden in [
@@ -480,7 +479,7 @@ fn avatar_group_stays_as_ui_components_assembly_layer_without_platform_leakage()
 
 #[test]
 fn avatar_group_public_api_naming_contract_is_stable_and_prefix_ready() {
-    let view_source = load_source("src/avatar/group/view.rs");
+    let view_source = load_source("src/avatar/view.rs");
     let sig = function_signature(&view_source, "AvatarGroup");
 
     for required in [
@@ -514,14 +513,14 @@ fn avatar_group_public_api_naming_contract_is_stable_and_prefix_ready() {
 
 #[test]
 fn avatar_group_composition_api_uses_typed_item_specs_and_rejects_parallel_arrays() {
-    let view_source = load_source("src/avatar/group/view.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
     let sig = function_signature(&view_source, "AvatarGroup");
 
     for required in [
         "items: Vec<AvatarGroupItem>",
-        "let fields = logic::normalize_item_fields(item.name, item.src, item.alt);",
+        "let fields = logic::normalize_avatar_group_item_fields(item.name, item.src, item.alt);",
         ".map(|(index, item)| {",
         "data-slot=\"avatar-group-item\"",
     ] {
@@ -559,7 +558,7 @@ fn avatar_group_composition_api_uses_typed_item_specs_and_rejects_parallel_array
 
 #[test]
 fn avatar_group_has_no_controllable_state_axis_and_no_half_controlled_api() {
-    let view_source = load_source("src/avatar/group/view.rs");
+    let view_source = load_source("src/avatar/view.rs");
     let sig = function_signature(&view_source, "AvatarGroup");
 
     for forbidden in [" value:", "default_", "on_value_change", "on_open_change"] {
@@ -586,13 +585,13 @@ fn avatar_group_has_no_controllable_state_axis_and_no_half_controlled_api() {
 
 #[test]
 fn avatar_group_defaults_are_centralized_in_logic() {
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
 
     for required in [
-        "pub fn normalize_group_input(",
-        "pub fn normalize_item_fields(",
-        "pub fn resolve_aria_label_with_fallback(",
+        "pub fn normalize_avatar_group_input(",
+        "pub fn normalize_avatar_group_item_fields(",
+        "pub fn resolve_avatar_group_aria_label_with_fallback(",
         "name: name.unwrap_or_default()",
         "src: src.unwrap_or_default()",
         "alt: alt.unwrap_or_default()",
@@ -613,8 +612,8 @@ fn avatar_group_defaults_are_centralized_in_logic() {
 
 #[test]
 fn avatar_group_state_primitive_source_boundary_is_enforced() {
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
     let primitive_source = load_source("../ui-state-primitives/src/avatar_group.rs");
     let sig = function_signature(&view_source, "AvatarGroup");
 
@@ -665,16 +664,16 @@ fn avatar_group_state_primitive_source_boundary_is_enforced() {
 
 #[test]
 fn avatar_group_state_normalization_is_centralized_in_logic() {
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
 
     for required in [
         "pub struct AvatarGroupNormalizedInput",
         "pub struct AvatarGroupItemFields",
         "AvatarGroupRenderState",
-        "pub fn normalize_group_input(",
-        "pub fn normalize_item_fields(",
+        "pub fn normalize_avatar_group_input(",
+        "pub fn normalize_avatar_group_item_fields(",
         "resolve_render_state",
     ] {
         assert!(
@@ -696,9 +695,9 @@ fn avatar_group_state_normalization_is_centralized_in_logic() {
     }
 
     for required in [
-        "let normalized = logic::normalize_group_input(",
-        "let state = logic::resolve_render_state(AvatarGroupStateInput {",
-        "let fields = logic::normalize_item_fields(item.name, item.src, item.alt);",
+        "let normalized = logic::normalize_avatar_group_input(",
+        "let state = logic::resolve_avatar_group_render_state(logic::AvatarGroupStateInput {",
+        "let fields = logic::normalize_avatar_group_item_fields(item.name, item.src, item.alt);",
         "<Show when=move || state.visual_state.has_overflow()>",
     ] {
         assert!(
@@ -733,8 +732,8 @@ fn avatar_group_state_normalization_is_centralized_in_logic() {
 
 #[test]
 fn avatar_group_state_markers_are_observable_and_closed_set_contracts() {
-    let view_source = load_source("src/avatar/group/view.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
     let primitive_source = load_source("../ui-state-primitives/src/avatar_group.rs");
 
     for required in [
@@ -798,8 +797,8 @@ fn avatar_group_state_markers_are_observable_and_closed_set_contracts() {
 
 #[test]
 fn avatar_group_styles_depend_on_explicit_state_markers_not_dom_guessing() {
-    let styles_source = load_source("src/avatar/group/styles.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
+    let view_source = load_source("src/avatar/view.rs");
 
     for required in [
         ".ui-avatar-group[data-state=\"stable\"]",
@@ -877,10 +876,10 @@ fn avatar_group_semantics_suite_prioritizes_contract_assertions_over_snapshots()
 #[test]
 fn avatar_group_component_files_follow_layered_responsibilities() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let mod_source = load_source("src/avatar/group/mod.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
+    let mod_source = load_source("src/avatar/mod.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
+    let view_source = load_source("src/avatar/view.rs");
 
     for required in [
         "mod logic;",
@@ -894,7 +893,11 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
         );
     }
 
-    for forbidden in ["view! {", "pub fn normalize_group_input(", "pub const CSS:"] {
+    for forbidden in [
+        "view! {",
+        "pub fn normalize_avatar_group_input(",
+        "pub const CSS:",
+    ] {
         assert!(
             !mod_source.contains(forbidden),
             "AvatarGroup `mod.rs` should not carry implementation detail `{forbidden}`."
@@ -902,11 +905,11 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
     }
 
     for required in [
-        "pub fn normalize_group_input(",
-        "pub fn normalize_item_fields(",
-        "pub fn resolve_aria_label_with_fallback(",
-        "pub fn compose_class_name(",
-        "resolve_render_state(",
+        "pub fn normalize_avatar_group_input(",
+        "pub fn normalize_avatar_group_item_fields(",
+        "pub fn resolve_avatar_group_aria_label_with_fallback(",
+        "pub fn compose_avatar_group_class_name(",
+        "resolve_avatar_group_render_state(",
     ] {
         assert!(
             logic_source.contains(required),
@@ -948,11 +951,11 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
     }
 
     for required in [
-        "use crate::avatar::{Avatar, AvatarSize};",
+        "use crate::avatar::logic::{self, AvatarSize};",
         "view! {",
-        "logic::normalize_group_input(",
-        "logic::resolve_render_state(",
-        "logic::compose_class_name(",
+        "logic::normalize_avatar_group_input(",
+        "logic::resolve_avatar_group_render_state(",
+        "logic::compose_avatar_group_class_name(",
         "labeled_group_attrs(",
         "<Avatar",
         "data-slot=\"avatar-group\"",
@@ -976,7 +979,7 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
     }
 
     assert!(
-        !manifest_dir.join("src/avatar/group/motion.rs").exists(),
+        !manifest_dir.join("src/avatar/motion.rs").exists(),
         "AvatarGroup is static in current scope; `motion.rs` should remain absent until motion contract is required."
     );
 }
@@ -984,11 +987,11 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
 #[test]
 fn avatar_group_does_not_introduce_spec_rs_and_keeps_lightweight_exports() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let group_mod_source = load_source("src/avatar/group/mod.rs");
+    let group_mod_source = load_source("src/avatar/mod.rs");
 
     assert!(
-        !manifest_dir.join("src/avatar/group/spec.rs").exists(),
-        "AvatarGroup should not introduce `src/avatar/group/spec.rs` without stable external schema need."
+        !manifest_dir.join("src/avatar/spec.rs").exists(),
+        "AvatarGroup should not introduce `src/avatar/spec.rs` without stable external schema need."
     );
 
     for required in [
@@ -1015,13 +1018,13 @@ fn avatar_group_does_not_introduce_spec_rs_and_keeps_lightweight_exports() {
 fn avatar_group_token_first_static_styles_contract_is_enforced_via_ui_root_css_pipeline() {
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
 
     for required in [
         "#[cfg(feature = \"component-avatar_group\")]",
-        "out.push_str(crate::avatar::group::styles::CSS);",
+        "out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
     ] {
         assert!(
             css_source.contains(required),
@@ -1168,7 +1171,7 @@ fn avatar_group_tree_shaking_contract_enforces_source_mode_reachability_boundari
 
     for needle in [
         "#[cfg(feature = \"component-avatar\")]\n    out.push_str(crate::avatar::styles::CSS);",
-        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar::group::styles::CSS);",
+        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
     ] {
         assert!(
             css_source.contains(needle),
@@ -1191,9 +1194,9 @@ fn avatar_group_tree_shaking_contract_enforces_source_mode_reachability_boundari
 #[test]
 fn avatar_group_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
     let primitive_source = load_source("../ui-state-primitives/src/avatar_group.rs");
-    let logic_source = load_source("src/avatar/group/logic.rs");
-    let view_source = load_source("src/avatar/group/view.rs");
-    let styles_source = load_source("src/avatar/group/styles.rs");
+    let logic_source = load_source("src/avatar/logic.rs");
+    let view_source = load_source("src/avatar/view.rs");
+    let styles_source = load_source("src/avatar/styles.rs");
 
     for required in [
         "pub struct AvatarGroupStateInput",

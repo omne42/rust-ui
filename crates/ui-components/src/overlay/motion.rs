@@ -99,46 +99,43 @@ pub fn attach_motion(
         let panel_scale_initial = motion.initial_scale;
         let panel_y_initial = motion.initial_y_px;
 
-        let _ = style.set_property(
+        drop(style.set_property(
             "--ui-overlay-backdrop-opacity",
             &format!("{backdrop_initial}"),
-        );
-        let _ = style.set_property(
+        ));
+        drop(style.set_property(
             "--ui-overlay-panel-opacity",
             &format!("{panel_opacity_initial}"),
-        );
-        let _ = style.set_property(
+        ));
+        drop(style.set_property(
             "--ui-overlay-panel-scale",
             &format!("{panel_scale_initial}"),
-        );
-        let _ = style.set_property("--ui-overlay-panel-y", &format!("{panel_y_initial}px"));
-
+        ));
+        drop(style.set_property("--ui-overlay-panel-y", &format!("{panel_y_initial}px")));
         let style_for_backdrop = style.clone();
         let backdrop = ui_motion::spring::SpringAnimator::new(backdrop_initial, config, move |v| {
             let v = v.clamp(0.0, 1.0);
-            let _ =
-                style_for_backdrop.set_property("--ui-overlay-backdrop-opacity", &format!("{v}"));
+            drop(style_for_backdrop.set_property("--ui-overlay-backdrop-opacity", &format!("{v}")));
         });
 
         let style_for_opacity = style.clone();
         let panel_opacity =
             ui_motion::spring::SpringAnimator::new(panel_opacity_initial, config, move |v| {
                 let v = v.clamp(0.0, 1.0);
-                let _ =
-                    style_for_opacity.set_property("--ui-overlay-panel-opacity", &format!("{v}"));
+                drop(style_for_opacity.set_property("--ui-overlay-panel-opacity", &format!("{v}")));
             });
 
         let style_for_scale = style.clone();
         let panel_scale =
             ui_motion::spring::SpringAnimator::new(panel_scale_initial, config, move |v| {
                 let v = v.clamp(0.0, 10.0);
-                let _ = style_for_scale.set_property("--ui-overlay-panel-scale", &format!("{v}"));
+                drop(style_for_scale.set_property("--ui-overlay-panel-scale", &format!("{v}")));
             });
 
         let style_for_y = style.clone();
         let panel_y = ui_motion::spring::SpringAnimator::new(panel_y_initial, config, move |v| {
             let v = v.clamp(-1000.0, 1000.0);
-            let _ = style_for_y.set_property("--ui-overlay-panel-y", &format!("{v}px"));
+            drop(style_for_y.set_property("--ui-overlay-panel-y", &format!("{v}px")));
         });
 
         let springs_for_cleanup = springs;

@@ -16,7 +16,7 @@ pub(super) fn breadcrumb_primitives() -> AnyView {
         let mut snippet = vec!["<Breadcrumb".to_string()];
 
         if custom_aria_label.get() {
-            snippet.push("  aria_label=\"Documentation navigation\".to_string()".to_string());
+            snippet.push("  aria_label=\"Documentation navigation\".into()".to_string());
         }
 
         snippet.extend([">".to_string(), "  <BreadcrumbList>".to_string()]);

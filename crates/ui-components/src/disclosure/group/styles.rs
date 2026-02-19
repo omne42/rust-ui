@@ -4,6 +4,11 @@ pub const CSS: &str = r#"
   gap: var(--ui-space-sm);
 }
 
+.ui-disclosure-group[data-motion-source="custom"],
+.ui-disclosure-group[data-custom-motion="true"] {
+  --ui-disclosure-group-custom-motion: 1;
+}
+
 .ui-disclosure-group--selection-single,
 .ui-disclosure-group[data-selection-mode="single"] {
   --ui-disclosure-group-gap: var(--ui-space-xs);

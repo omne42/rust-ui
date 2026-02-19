@@ -1196,9 +1196,8 @@ fn tag_snapshot_baseline_and_streaming_fallback_contract_are_explicit() {
     for needle in [
         "data-ui-stream-support=move || agent_contract.get().stream_support.as_str()",
         "data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()",
-        "data-ui-stream-mode=move || {",
-        "unwrap_or(\"snapshot\")",
-        "data-ui-output-status=move || {",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(needle),
@@ -1261,10 +1260,8 @@ fn tag_streaming_optional_scope_keeps_aria_and_data_markers_continuous() {
         "data-class-source=state.class_source_attr",
         "data-remove-label-source=state.remove_label_source_attr",
         "aria-label=move || remove_aria_label.get_value()",
-        "data-ui-stream-mode=move || {",
-        ".map(|state| state.get().mode.as_str())",
-        "data-ui-output-status=move || {",
-        ".map(|state| state.get().output_status.as_str())",
+        "data-ui-stream-mode=\"snapshot\"",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(required),
@@ -1394,7 +1391,7 @@ fn tag_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests() {
         "data-ui-schema=move || agent_contract.get().schema_name",
         "data-ui-action=move || agent_contract.get().action.as_str()",
         "data-ui-source=move || agent_contract.get().source.as_str()",
-        "data-ui-output-status=move || {",
+        "data-ui-output-status=move || agent_contract.get().output_status.as_str()",
     ] {
         assert!(
             view_source.contains(marker),

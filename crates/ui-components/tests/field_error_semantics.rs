@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn field_error_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/field_error/mod.rs");
+    let source = load_source("src/field_form/field_error/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn field_error_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn field_error_uses_logic_state_model() {
-    let logic_source = load_source("src/field_error/logic.rs");
-    let view_source = load_source("src/field_error/view.rs");
+    let logic_source = load_source("src/field_form/field_error/logic.rs");
+    let view_source = load_source("src/field_form/field_error/view.rs");
 
     for needle in [
         "pub enum FieldErrorTone",
@@ -58,7 +58,7 @@ fn field_error_uses_logic_state_model() {
 
 #[test]
 fn field_error_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/field_error/view.rs");
+    let source = load_source("src/field_form/field_error/view.rs");
 
     for attr in [
         "data-slot=\"field-error\"",
@@ -83,7 +83,7 @@ fn field_error_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn field_error_styles_include_tone_state_and_markers() {
-    let source = load_source("src/field_error/styles.rs");
+    let source = load_source("src/field_form/field_error/styles.rs");
 
     for selector in [
         ".ui-field-error--tone-auto",

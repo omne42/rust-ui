@@ -64,7 +64,7 @@ view! {
 
 - `Tray` 通过 `overlay_dialog_attrs` 生成 `aria-labelledby` / `aria-describedby` / `lang` / `dir`。
 - 根节点暴露完整状态和来源字段，覆盖 description/footer/close/size/dismiss/motion/exit 等轴。
-- 关闭按钮通过 `IconButton` 暴露可访问标签（`close_label`）。
+- 关闭按钮通过 `Button`（`is_icon_only=true`）暴露可访问标签（`close_label`）。
 
 ## Motion and Fallback
 
@@ -77,4 +77,3 @@ view! {
 - docs 入口：`apps/docs-app/src/pages/components/pages/overlays_extra.rs::tray()`
 - 组件源码：`crates/ui-components/src/tray/{mod,logic,view,styles,motion}.rs`
 - package 模式 feature：`component-tray`（样式注入可选叠加 `inject-css`）
-

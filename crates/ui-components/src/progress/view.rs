@@ -55,8 +55,7 @@ pub fn Progress(
         Some(format!("{:.0}%", progress * 100.0))
     });
 
-    let aria_value_now =
-        Signal::derive(move || clamped_value.get().map(|value: f64| value.to_string()));
+    let aria_value_now = Signal::derive(move || clamped_value.get().map(|value: f64| value));
 
     view! {
         <div

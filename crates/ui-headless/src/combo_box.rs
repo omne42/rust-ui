@@ -317,7 +317,7 @@ mod tests {
     use super::*;
 
     fn init_executor() {
-        let _ = any_spawner::Executor::init_futures_executor();
+        drop(any_spawner::Executor::init_futures_executor());
     }
 
     #[test]

@@ -8,7 +8,7 @@ use ui_components::{
     Field, FieldError, FieldErrorTone, FieldOrientation, FieldTone, Fieldset, FieldsetOrientation,
     FieldsetTone, HelpText, HelpTextTone, Label, LabelEmphasis, PopoverMotion, SegmentedControl,
     SegmentedControlSize, Slider, SliderMotion, Snippet, Switch, Textarea, TimeField,
-    TimeFieldTone, field::FieldMotion,
+    TimeFieldTone, field_form::field::FieldMotion,
 };
 
 pub(super) fn field_error() -> AnyView {
@@ -169,18 +169,18 @@ pub(super) fn error_message() -> AnyView {
             ""
         };
         let class_line = if workbench_custom_class.get() {
-            "  class_name=\"docs-error-message-custom\".to_string()\n"
+            "  class_name=\"docs-error-message-custom\".into()\n"
         } else {
             ""
         };
         let aria_line = if workbench_custom_aria.get() {
-            "  aria_label=\"Workbench error\".to_string()\n"
+            "  aria_label=\"Workbench error\".into()\n"
         } else {
             ""
         };
 
         format!(
-            "<ErrorMessage\n  text=\"Config + code + css test workbench message\".to_string()\n{tone_line}{element_line}{disabled_line}{truncate_line}{class_line}{aria_line}/>"
+            "<ErrorMessage\n  text=\"Config + code + css test workbench message\".into()\n{tone_line}{element_line}{disabled_line}{truncate_line}{class_line}{aria_line}/>"
         )
     });
 
@@ -442,7 +442,7 @@ pub(super) fn description() -> AnyView {
         let element = selected_element.get();
         let mut lines = vec![
             "<Description".to_string(),
-            "  text=\"Helper text for this field.\".to_string()".to_string(),
+            "  text=\"Helper text for this field.\".into()".to_string(),
         ];
 
         if tone != DescriptionTone::Default {
@@ -458,10 +458,10 @@ pub(super) fn description() -> AnyView {
             lines.push("  truncate=true".to_string());
         }
         if custom_aria_label.get() {
-            lines.push("  aria_label=\"Description helper text\".to_string()".to_string());
+            lines.push("  aria_label=\"Description helper text\".into()".to_string());
         }
         if custom_class.get() {
-            lines.push("  class_name=\"docs-description-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-description-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -469,15 +469,15 @@ pub(super) fn description() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/description/styles.rs */\n{}",
-            ui_components::description::styles::CSS
+            "/* crates/ui-components/src/field_form/description/styles.rs */\n{}",
+            ui_components::field_form::description::styles::CSS
         )
     });
 
     let actual_config = Signal::derive(move || {
         let tone = selected_tone.get();
         let element = selected_element.get();
-        let mut classes = vec!["ui-description".to_string(), tone.class_name().to_string()];
+        let mut classes = vec!["ui-description".to_string(), tone.class_name().into()];
         if is_disabled.get() {
             classes.push("ui-description--disabled".to_string());
         }
@@ -527,8 +527,7 @@ pub(super) fn description() -> AnyView {
   text="Disabled helper text".to_string()
   disabled=true
   tone=DescriptionTone::Muted
-/>"#
-        .to_string()
+/>"#.to_string()
     });
 
     view! {
@@ -543,7 +542,7 @@ pub(super) fn description() -> AnyView {
                 description="Interactive display/config/code/css-test playground for Description state contracts."
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/description/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/description/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -747,29 +746,26 @@ pub(super) fn fieldset() -> AnyView {
         }
         if invalid {
             lines.push("  is_invalid=true".to_string());
-            lines.push("  error_message=\"Pick at least one channel\".to_string()".to_string());
+            lines.push("  error_message=\"Pick at least one channel\".into()".to_string());
         } else if show_description {
-            lines.push(
-                "  description=\"Choose channels for release updates.\".to_string()".to_string(),
-            );
+            lines.push("  description=\"Choose channels for release updates.\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-fieldset-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-fieldset-custom\".into()".to_string());
         }
         if let Some(lang) = lang {
-            lines.push(format!("  lang=\"{lang}\".to_string()"));
+            lines.push(format!("  lang=\"{lang}\".into()"));
         }
         if rtl {
             lines.push("  dir=ui_headless::A11yDirection::Rtl".to_string());
         }
         if show_actions {
             lines.push(
-                "  actions=move || view! { <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>\"Manage\"</ui_components::Button> }"
-                    .to_string(),
+                "  actions=move || view! { <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>\"Manage\"</ui_components::Button> }".to_string(),
             );
         }
         lines.extend([
-            "  legend=\"Notification channels\".to_string()".to_string(),
+            "  legend=\"Notification channels\".into()".to_string(),
             ">".to_string(),
             "  <label><input type=\"checkbox\" /> \"Email\"</label>".to_string(),
             "  <label><input type=\"checkbox\" /> \"SMS\"</label>".to_string(),
@@ -780,8 +776,8 @@ pub(super) fn fieldset() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/fieldset/styles.rs */\n{}",
-            ui_components::fieldset::styles::CSS
+            "/* crates/ui-components/src/field_form/fieldset/styles.rs */\n{}",
+            ui_components::field_form::fieldset::styles::CSS
         )
     });
 
@@ -804,8 +800,8 @@ pub(super) fn fieldset() -> AnyView {
 
         let mut class = vec![
             "ui-fieldset".to_string(),
-            orientation.class_name().to_string(),
-            tone.class_name().to_string(),
+            orientation.class_name().into(),
+            tone.class_name().into(),
         ];
         if required {
             class.push("ui-fieldset--required".to_string());
@@ -910,7 +906,7 @@ pub(super) fn fieldset() -> AnyView {
                 description="展示 / config / code / css test 一体化工作台，并提供多场景对比。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/fieldset/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/field_form/fieldset/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="fieldset-workbench-controls">
@@ -1153,16 +1149,16 @@ pub(super) fn label() -> AnyView {
         ];
 
         if custom_text.get() {
-            lines.push("  text=\"Assignee\".to_string()".to_string());
+            lines.push("  text=\"Assignee\".into()".to_string());
         }
         if has_for_id.get() {
-            lines.push("  for_id=\"docs-label-workbench-input\".to_string()".to_string());
+            lines.push("  for_id=\"docs-label-workbench-input\".into()".to_string());
         }
         if custom_indicator.get() {
-            lines.push("  required_indicator=\"(required)\".to_string()".to_string());
+            lines.push("  required_indicator=\"(required)\".into()".to_string());
         }
         if custom_class.get() {
-            lines.push("  class_name=\"docs-label-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-label-workbench\".into()".to_string());
         }
 
         lines.push("/>".to_string());
@@ -1448,22 +1444,21 @@ pub(super) fn field() -> AnyView {
             snippet.push("  disabled=true".to_string());
         }
         if custom_error {
-            snippet.push("  error_message=\"Custom validation error\".to_string()".to_string());
+            snippet.push("  error_message=\"Custom validation error\".into()".to_string());
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-field-custom\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-field-custom\".into()".to_string());
         }
         if motion_ms != 160 {
             snippet.push(format!(
                 "  motion=FieldMotion {{ duration_ms: {motion_ms}.0 }}"
             ));
         }
-        snippet.push("  label=\"Email\".to_string()".to_string());
-        snippet.push("  description=\"Inspect contracts in test panel.\".to_string()".to_string());
+        snippet.push("  label=\"Email\".into()".to_string());
+        snippet.push("  description=\"Inspect contracts in test panel.\".into()".to_string());
         snippet.push(">".to_string());
         snippet.push(
-            "  <input class=\"docs-search__input\" type=\"email\" placeholder=\"owner@company.com\" />"
-                .to_string(),
+            "  <input class=\"docs-search__input\" type=\"email\" placeholder=\"owner@company.com\" />".to_string(),
         );
         snippet.push("</Field>".to_string());
         snippet.join("\n")
@@ -1471,8 +1466,8 @@ pub(super) fn field() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field/styles.rs */\n{}",
-            ui_components::field::styles::CSS
+            "/* crates/ui-components/src/field_form/field/styles.rs */\n{}",
+            ui_components::field_form::field::styles::CSS
         )
     });
 
@@ -1488,8 +1483,8 @@ pub(super) fn field() -> AnyView {
 
         let mut classes = vec![
             "ui-field".to_string(),
-            orientation.class_name().to_string(),
-            tone.class_name().to_string(),
+            orientation.class_name().into(),
+            tone.class_name().into(),
         ];
         if required {
             classes.push("ui-field--required".to_string());
@@ -1607,7 +1602,7 @@ pub(super) fn field() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for field state/source contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/field/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="field-workbench-controls">
@@ -1634,7 +1629,7 @@ pub(super) fn field() -> AnyView {
                             </select>
                         </label>
                         <label class="docs-search__label">
-                            "Motion ms (" {move || workbench_motion_ms.get().to_string()} ")"
+                            "Motion ms (" {move || workbench_motion_ms.get()} ")"
                             <input
                                 type="range"
                                 min="1"
@@ -1883,16 +1878,16 @@ pub(super) fn help_text() -> AnyView {
             format!("  show_error_icon={show_icon}"),
         ];
         if let Some(description) = description {
-            lines.push(format!("  description={description:?}.to_string()"));
+            lines.push(format!("  description={description:?}.into()"));
         }
         if let Some(error_message) = error_message {
-            lines.push(format!("  error_message={error_message:?}.to_string()"));
+            lines.push(format!("  error_message={error_message:?}.into()"));
         }
         if let Some(aria) = aria {
-            lines.push(format!("  aria_label={aria:?}.to_string()"));
+            lines.push(format!("  aria_label={aria:?}.into()"));
         }
         if let Some(class_name) = class_name {
-            lines.push(format!("  class_name={class_name:?}.to_string()"));
+            lines.push(format!("  class_name={class_name:?}.into()"));
         }
         lines.push("/>".to_string());
 
@@ -1900,8 +1895,8 @@ pub(super) fn help_text() -> AnyView {
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/help_text/styles.rs */\n{}",
-            ui_components::help_text::styles::CSS
+            "/* crates/ui-components/src/field_form/help_text/styles.rs */\n{}",
+            ui_components::field_form::help_text::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
@@ -1959,7 +1954,7 @@ pub(super) fn help_text() -> AnyView {
                 title="Interactive Playground"
                 code_signal=interactive_code
                 test_css_source=test_css_source
-                test_source_path="crates/ui-components/src/help_text/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/field_form/help_text/styles.rs".to_string()
                 test_config_signal=actual_config
                 description="展示区 + Config 区 + Code 区 + CSS Test 区；支持 description/error/disabled/tone 的多场景对比。"
                 controls=move || view! {
@@ -2093,7 +2088,7 @@ let (invalid, set_invalid) = signal(false);
             title="Textarea"
             slug="textarea"
             group="Forms"
-            description="baseline-compatible textarea primitive with baseline-style text-field semantics and stable state/source markers. value axis uses `value/on_value_change/default_value`; legacy `set_value` remains accepted for migration compatibility. prefer `is_required`/`is_invalid`; legacy `required`/`invalid` remain accepted."
+            description="baseline-compatible textarea primitive with baseline-style text-field semantics and stable state/source markers. value axis uses `value/on_value_change/default_value`, and state booleans use canonical `is_*` inputs."
         >
             <Playground title="Basic Textarea" code_signal=basic_code>
                 <Textarea
@@ -2279,7 +2274,7 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Slider\n  id=\"volume\".to_string()\n  label=\"Volume\".to_string()\n  default_value=36.0\n  min=0.0\n  max=100.0\n  step=1.0\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<Slider\n  id=\"volume\".into()\n  label=\"Volume\".into()\n  default_value=36.0\n  min=0.0\n  max=100.0\n  step=1.0\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-slider-source-copy".to_string()
@@ -2347,8 +2342,7 @@ let (strong_tone, set_strong_tone) = signal(false);
   tone=if strong_tone.get() { CalendarTone::Strong } else { CalendarTone::Default }
   first_weekday=if monday_first.get() { CalendarFirstWeekday::Monday } else { CalendarFirstWeekday::Sunday }
   show_outside_days=show_outside_days.get()
-/>"#
-            .to_string()
+/>"#.to_string()
     });
     let test_css_source = Signal::derive(move || {
         format!(
@@ -2723,22 +2717,22 @@ pub(super) fn date_picker() -> AnyView {
             "DatePickerMotion::default()"
         };
         let placeholder = if workbench_custom_text.get() {
-            "\"Pick ship date\".to_string()"
+            "\"Pick ship date\".into()"
         } else {
-            "\"\".to_string()"
+            "\"\".into()"
         };
         let aria_label = if workbench_custom_text.get() {
-            "\"Ship date picker\".to_string()"
+            "\"Ship date picker\".into()"
         } else {
-            "\"\".to_string()"
+            "\"\".into()"
         };
         let class_name = if workbench_custom_text.get() {
-            "\"docs-date-picker-custom\".to_string()"
+            "\"docs-date-picker-custom\".into()"
         } else {
-            "\"\".to_string()"
+            "\"\".into()"
         };
         format!(
-            "let (open, set_open) = signal({open});\nlet (selected_day, set_selected_day) = signal({selected_day:?});\n\n<DatePicker\n  id_base=\"docs-date-picker-workbench\".to_string()\n  year=2026\n  month={month}\n  tone={tone}\n  disabled={disabled}\n  open=Signal::derive(move || open.get())\n  on_open_change=Callback::new(move |next| set_open.set(next))\n  selected_day=Signal::derive(move || selected_day.get())\n  on_selected_day_change=Callback::new(move |next| set_selected_day.set(next))\n  first_weekday={first_weekday}\n  show_outside_days={show_outside_days}\n  motion={motion}\n  placeholder={placeholder}\n  aria_label={aria_label}\n  class_name={class_name}\n/>"
+            "let (open, set_open) = signal({open});\nlet (selected_day, set_selected_day) = signal({selected_day:?});\n\n<DatePicker\n  id_base=\"docs-date-picker-workbench\".into()\n  year=2026\n  month={month}\n  tone={tone}\n  disabled={disabled}\n  open=Signal::derive(move || open.get())\n  on_open_change=Callback::new(move |next| set_open.set(next))\n  selected_day=Signal::derive(move || selected_day.get())\n  on_selected_day_change=Callback::new(move |next| set_selected_day.set(next))\n  first_weekday={first_weekday}\n  show_outside_days={show_outside_days}\n  motion={motion}\n  placeholder={placeholder}\n  aria_label={aria_label}\n  class_name={class_name}\n/>"
         )
     });
 
@@ -2765,8 +2759,9 @@ pub(super) fn date_picker() -> AnyView {
         )
     });
 
-    let workbench_test_css_source = Signal::derive(move || {
-        include_str!("../../../../../../crates/ui-components/src/date_picker/styles.rs").to_string()
+    let workbench_test_css_source: Signal<String> = Signal::derive(move || {
+        include_str!("../../../../../../crates/ui-components/src/text_input/date_picker/styles.rs")
+            .to_string()
     });
 
     view! {
@@ -2814,7 +2809,7 @@ pub(super) fn date_picker() -> AnyView {
                 description="Workbench canvas: preview (展示) + settings panel (config) + copy-ready source (code) + scoped css verification (css test)."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/date_picker/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/text_input/date_picker/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="date-picker-workbench-controls">
@@ -3220,8 +3215,8 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                     </div>
                     <span class="ui-muted" data-slot="time-field-marker-summary">
                         "value: " {move || marker_value.get().unwrap_or_else(|| "none".to_string())}
-                        " · disabled: " {move || marker_is_disabled.get().to_string()}
-                        " · step: " {move || marker_minute_step.get().to_string()}
+                        " · disabled: " {move || marker_is_disabled.get()}
+                        " · step: " {move || marker_minute_step.get()}
                         " · tone: "
                         {move || if marker_strong_tone.get() {
                             "strong"
@@ -3279,17 +3274,17 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<TimeField\n  id_base=\"meeting-time\".to_string()\n  label=\"Meeting time\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<TimeField\n  id_base=\"meeting-time\".into()\n  label=\"Meeting time\".into()\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-time-field-source-copy".to_string()
                 />
                 <ul data-slot="time-field-source-paths">
-                    <li><code>"crates/ui-components/src/time_field/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/time_field/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/time_field/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/time_field/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/time_field/motion.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/time_field/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/time_field/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/time_field/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/time_field/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/time_field/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="time-field-source-prerequisites">
                     <li><code>"component-time_field"</code></li>
@@ -3354,7 +3349,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
     let workbench_code = Signal::derive(move || {
         let mut lines = vec![
             "<DateRangePicker".to_string(),
-            "  id_base=\"docs-date-range-picker-workbench\".to_string()".to_string(),
+            "  id_base=\"docs-date-range-picker-workbench\".into()".to_string(),
             "  start_year=2026".to_string(),
             "  start_month=8".to_string(),
             "  end_year=2026".to_string(),
@@ -3376,22 +3371,22 @@ let (end_day, set_end_day) = signal(Some(19_u8));
             lines.push("  disabled=true".to_string());
         }
         if workbench_custom_labels.get() {
-            lines.push("  start_label=\"From\".to_string()".to_string());
-            lines.push("  end_label=\"To\".to_string()".to_string());
-            lines.push("  start_placeholder=\"Start window\".to_string()".to_string());
-            lines.push("  end_placeholder=\"End window\".to_string()".to_string());
-            lines.push("  invalid_range_message=\"Range is reversed\".to_string()".to_string());
+            lines.push("  start_label=\"From\".into()".to_string());
+            lines.push("  end_label=\"To\".into()".to_string());
+            lines.push("  start_placeholder=\"Start window\".into()".to_string());
+            lines.push("  end_placeholder=\"End window\".into()".to_string());
+            lines.push("  invalid_range_message=\"Range is reversed\".into()".to_string());
         }
         if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-date-range-picker-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-date-range-picker-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/date_range_picker/styles.rs */\n{}",
-            ui_components::date_range_picker::styles::CSS
+            "/* crates/ui-components/src/text_input/date_range_picker/styles.rs */\n{}",
+            ui_components::text_input::date_range_picker::styles::CSS
         )
     });
     let actual_config = Signal::derive(move || {
@@ -3422,10 +3417,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
             "empty"
         };
 
-        let mut classes = vec![
-            "ui-date-range-picker".to_string(),
-            tone.class_name().to_string(),
-        ];
+        let mut classes = vec!["ui-date-range-picker".to_string(), tone.class_name().into()];
         if disabled {
             classes.push("ui-date-range-picker--disabled".to_string());
         }
@@ -3502,7 +3494,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
                 description="展示区含实时配置与对比样例；Config/Code/CSS Test 区用于契约回归。"
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/date_range_picker/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/text_input/date_range_picker/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="date-range-picker-workbench-controls">

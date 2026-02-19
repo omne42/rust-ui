@@ -430,7 +430,7 @@ fn tabs_tree_shaking_feature_gates_stay_explicit() {
     );
     assert!(
         cargo_source.contains("default = [\"inject-css\", \"all-components\"]"),
-        "default feature set should remain explicit and rely on feature flags."
+        "default feature set should keep inject-css and all-components while feature gates stay explicit."
     );
 
     assert_line_guarded_by_cfg(
@@ -698,7 +698,7 @@ fn tabs_semantics_cover_wasm_and_non_wasm_platform_branches() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -760,7 +760,7 @@ fn tabs_ui_motion_non_wasm_noop_stub_contract_is_guarded() {
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             tabs_motion_source.contains(needle),
@@ -806,7 +806,7 @@ fn tabs_motion_wasm_browser_bindings_are_cfg_scoped() {
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "use leptos::wasm_bindgen::{JsCast, closure::Closure};",
         "let resize_observer = StoredValue::new_local(None::<leptos::web_sys::ResizeObserver>);",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),

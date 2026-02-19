@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn color_thumb_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_thumb/mod.rs");
+    let source = load_source("src/color/thumb/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn color_thumb_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_thumb_uses_logic_state_model() {
-    let logic_source = load_source("src/color_thumb/logic.rs");
-    let view_source = load_source("src/color_thumb/view.rs");
+    let logic_source = load_source("src/color/thumb/logic.rs");
+    let view_source = load_source("src/color/thumb/view.rs");
 
     for needle in [
         "pub const DEFAULT_COLOR",
@@ -55,7 +55,7 @@ fn color_thumb_uses_logic_state_model() {
 
 #[test]
 fn color_thumb_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color_thumb/view.rs");
+    let source = load_source("src/color/thumb/view.rs");
 
     for attr in [
         "data-slot=\"color-thumb\"",
@@ -79,7 +79,7 @@ fn color_thumb_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_thumb_styles_include_focus_drag_disabled_and_custom_contracts() {
-    let source = load_source("src/color_thumb/styles.rs");
+    let source = load_source("src/color/thumb/styles.rs");
 
     for selector in [
         ".ui-color-thumb",

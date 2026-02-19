@@ -88,26 +88,26 @@ pub struct EmptyStateState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_title(value: Option<String>, default: &str) -> (String, bool) {
     normalize_optional_text(value)
         .map(|title| (title, true))
-        .unwrap_or_else(|| (default.to_string(), false))
+        .unwrap_or_else(|| (default.into(), false))
 }
 
 pub fn normalize_description(value: Option<String>, default: &str) -> (String, bool) {
     normalize_optional_text(value)
         .map(|description| (description, true))
-        .unwrap_or_else(|| (default.to_string(), false))
+        .unwrap_or_else(|| (default.into(), false))
 }
 
 pub fn normalize_aria_label(value: Option<String>, default: &str) -> (String, bool) {
     normalize_optional_text(value)
         .map(|label| (label, true))
-        .unwrap_or_else(|| (default.to_string(), false))
+        .unwrap_or_else(|| (default.into(), false))
 }
 
 pub fn resolve_state(input: EmptyStateStateInput) -> EmptyStateState {
@@ -168,8 +168,8 @@ pub fn resolve_state(input: EmptyStateStateInput) -> EmptyStateState {
 pub fn compose_class_name(base_class_name: Option<String>, state: EmptyStateState) -> String {
     let mut classes = vec![
         "ui-empty-state".to_string(),
-        state.tone_class.to_string(),
-        state.align_class.to_string(),
+        state.tone_class.into(),
+        state.align_class.into(),
     ];
 
     if state.is_compact {

@@ -139,25 +139,25 @@ pub fn keyboard_dismiss_attr(is_keyboard_dismiss_disabled: bool) -> &'static str
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_required_text(value: String, fallback: &'static str) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        fallback.to_string()
+        fallback.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
 pub fn normalize_id_base(value: String) -> String {
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        DEFAULT_ID_BASE.to_string()
+        DEFAULT_ID_BASE.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 

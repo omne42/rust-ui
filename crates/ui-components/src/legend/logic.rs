@@ -207,7 +207,7 @@ pub fn resolve_agent_contract() -> LegendAgentContract {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: LegendState) -> String {
-    let mut classes = vec!["ui-legend".to_string(), state.tone_class.to_string()];
+    let mut classes = vec!["ui-legend".to_string(), state.tone_class.into()];
 
     if state.is_required {
         classes.push("ui-legend--required".to_string());
@@ -263,7 +263,7 @@ mod tests {
             normalize_text(Some("  Notification settings  ".to_string())),
             ("Notification settings".to_string(), true)
         );
-        assert_eq!(normalize_text(None), (DEFAULT_TEXT.to_string(), false));
+        assert_eq!(normalize_text(None), (DEFAULT_TEXT.into(), false));
 
         assert_eq!(
             normalize_required_indicator(Some("  (required)  ".to_string())),
@@ -271,7 +271,7 @@ mod tests {
         );
         assert_eq!(
             normalize_required_indicator(None),
-            (DEFAULT_REQUIRED_INDICATOR.to_string(), false)
+            (DEFAULT_REQUIRED_INDICATOR.into(), false)
         );
     }
 

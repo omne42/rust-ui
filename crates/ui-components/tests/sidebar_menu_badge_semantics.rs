@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn sidebar_menu_badge_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sidebar_menu_badge/mod.rs");
+    let source = load_source("src/sidebar/menu_badge/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn sidebar_menu_badge_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sidebar_menu_badge_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/sidebar_menu_badge/mod.rs");
+    let module_source = load_source("src/sidebar/menu_badge/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -36,8 +36,8 @@ fn sidebar_menu_badge_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn sidebar_menu_badge_uses_logic_state_model() {
-    let logic_source = load_source("src/sidebar_menu_badge/logic.rs");
-    let view_source = load_source("src/sidebar_menu_badge/view.rs");
+    let logic_source = load_source("src/sidebar/menu_badge/logic.rs");
+    let view_source = load_source("src/sidebar/menu_badge/view.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -65,7 +65,7 @@ fn sidebar_menu_badge_uses_logic_state_model() {
 
 #[test]
 fn sidebar_menu_badge_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/sidebar_menu_badge/view.rs");
+    let source = load_source("src/sidebar/menu_badge/view.rs");
 
     for needle in [
         "data-slot=\"sidebar-menu-badge\"",
@@ -86,7 +86,7 @@ fn sidebar_menu_badge_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn sidebar_menu_badge_styles_include_state_markers() {
-    let source = load_source("src/sidebar_menu_badge/styles.rs");
+    let source = load_source("src/sidebar/menu_badge/styles.rs");
 
     for needle in [
         ".ui-sidebar-menu-badge {",

@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn number_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/number/mod.rs");
+    let source = load_source("src/text_input/number/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,7 +26,7 @@ fn number_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn number_module_exports_primitives_and_motion_contracts() {
-    let source = load_source("src/number/mod.rs");
+    let source = load_source("src/text_input/number/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     for needle in [
@@ -41,8 +41,9 @@ fn number_module_exports_primitives_and_motion_contracts() {
     }
 
     for needle in [
-        "pub mod number;",
-        "pub use number::{NumberFormatOptions, SlidingNumber, SlidingNumberMotion, StaticNumber};",
+        "pub mod text_input;",
+        "pub use text_input::number::{",
+        "NumberFormatOptions, SlidingNumber, SlidingNumberMotion, StaticNumber,",
     ] {
         assert!(
             crate_source.contains(needle),
@@ -53,7 +54,7 @@ fn number_module_exports_primitives_and_motion_contracts() {
 
 #[test]
 fn number_logic_exposes_format_state_helpers() {
-    let source = load_source("src/number/logic.rs");
+    let source = load_source("src/text_input/number/logic.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -77,10 +78,10 @@ fn number_logic_exposes_format_state_helpers() {
 
 #[test]
 fn number_view_wires_motion_sanitization_and_state_markers() {
-    let source = load_source("src/number/view.rs");
+    let source = load_source("src/text_input/number/view.rs");
 
     for needle in [
-        "let motion = crate::number::motion::sanitize_motion(motion);",
+        "let motion = crate::text_input::number::motion::sanitize_motion(motion);",
         "logic::resolve_static_number_state(logic::StaticNumberStateInput {",
         "logic::resolve_sliding_number_state(logic::SlidingNumberStateInput {",
         "data-slot=\"static-number\"",
@@ -100,7 +101,7 @@ fn number_view_wires_motion_sanitization_and_state_markers() {
 
 #[test]
 fn number_motion_contract_defaults_and_reduced_motion_paths_are_locked() {
-    let source = load_source("src/number/motion.rs");
+    let source = load_source("src/text_input/number/motion.rs");
 
     for needle in [
         "pub struct SlidingNumberMotion",
@@ -119,7 +120,7 @@ fn number_motion_contract_defaults_and_reduced_motion_paths_are_locked() {
 
 #[test]
 fn number_styles_and_css_aggregation_include_stable_selectors() {
-    let styles_source = load_source("src/number/styles.rs");
+    let styles_source = load_source("src/text_input/number/styles.rs");
     let css_source = load_source("src/css.rs");
 
     for selector in [
@@ -305,7 +306,7 @@ fn number_docs_page_includes_button_style_workbench_playgrounds() {
 
 #[test]
 fn number_readme_covers_display_config_code_css_test_sections_and_comparisons() {
-    let rel = "src/number/README.md";
+    let rel = "src/text_input/number/README.md";
     assert!(path_exists(rel), "number README should exist at `{rel}`.");
     let source = load_source(rel);
 
@@ -344,7 +345,7 @@ fn number_feature_dependency_chain_supports_minimal_component_builds() {
 
 #[test]
 fn number_view_mounts_locale_and_headless_a11y_contracts() {
-    let source = load_source("src/number/view.rs");
+    let source = load_source("src/text_input/number/view.rs");
 
     for needle in [
         "#[prop(optional, into)] lang: Option<String>",
@@ -365,18 +366,24 @@ fn number_view_mounts_locale_and_headless_a11y_contracts() {
 #[test]
 fn number_tree_shaking_boundaries_stay_feature_gated() {
     let lib_source = load_source("src/lib.rs");
+    let domain_mod_source = load_source("src/text_input/mod.rs");
     let css_source = load_source("src/css.rs");
 
-    for needle in [
-        "#[cfg(feature = \"component-number\")]",
-        "pub mod number;",
-        "pub use number::{NumberFormatOptions, SlidingNumber, SlidingNumberMotion, StaticNumber};",
-    ] {
-        assert!(
-            lib_source.contains(needle),
-            "ui-components lib boundary should include `{needle}` for number feature gating."
-        );
-    }
+    assert!(
+        lib_source.contains("pub mod text_input;"),
+        "ui-components lib boundary should expose `text_input` domain module."
+    );
+    assert!(
+        lib_source.contains("pub use text_input::number::{")
+            && lib_source
+                .contains("NumberFormatOptions, SlidingNumber, SlidingNumberMotion, StaticNumber,"),
+        "ui-components lib boundary should re-export number contracts from text_input domain."
+    );
+    assert!(
+        domain_mod_source.contains("#[cfg(feature = \"component-number\")]")
+            && domain_mod_source.contains("pub mod number;"),
+        "text_input domain module should feature-gate `number`."
+    );
 
     for needle in [
         "#[cfg(feature = \"component-number\")]",
@@ -433,7 +440,7 @@ fn number_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source() {
 
 #[test]
 fn number_check2_marks_component_governance_complete() {
-    let check2_source = load_source("src/number/check2.md");
+    let check2_source = load_source("src/text_input/number/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -459,7 +466,7 @@ fn number_check2_marks_component_governance_complete() {
 
 #[test]
 fn number_check2_marks_forbidden_anti_patterns_complete() {
-    let check2_source = load_source("src/number/check2.md");
+    let check2_source = load_source("src/text_input/number/check2.md");
 
     for needle in [
         "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
@@ -480,7 +487,7 @@ fn number_check2_marks_forbidden_anti_patterns_complete() {
 
 #[test]
 fn number_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/number/check2.md");
+    let check2_source = load_source("src/text_input/number/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -507,7 +514,7 @@ fn number_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn number_check2_has_no_unchecked_checklist_items() {
-    let check2_source = load_source("src/number/check2.md");
+    let check2_source = load_source("src/text_input/number/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "Number check2.md should not keep unchecked checklist items after completion."

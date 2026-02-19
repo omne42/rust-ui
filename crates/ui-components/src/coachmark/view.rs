@@ -40,7 +40,7 @@ pub fn Coachmark(
     let normalized_secondary_cta = logic::normalize_optional_text(secondary_cta);
     let normalized_asset_src = logic::normalize_optional_text(asset_src);
     let normalized_asset_label = logic::normalize_optional_text(asset_label)
-        .unwrap_or_else(|| logic::DEFAULT_ASSET_LABEL.to_string());
+        .unwrap_or_else(|| logic::DEFAULT_ASSET_LABEL.into());
     let normalized_asset_alt =
         logic::normalize_optional_text(asset_alt).unwrap_or_else(|| normalized_asset_label.clone());
 

@@ -28,7 +28,7 @@ impl KeyboardTone {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -37,7 +37,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: KeyboardStateInput) -> KeyboardState {
@@ -73,7 +73,7 @@ pub fn resolve_state(input: KeyboardStateInput) -> KeyboardState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: KeyboardState) -> String {
-    let mut classes = vec!["ui-keyboard".to_string(), state.tone_class.to_string()];
+    let mut classes = vec!["ui-keyboard".to_string(), state.tone_class.into()];
 
     if state.is_compact {
         classes.push("ui-keyboard--compact".to_string());

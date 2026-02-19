@@ -31,10 +31,22 @@ fn non_test_source(content: &str) -> &str {
 }
 
 fn component_sources() -> Vec<PathBuf> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let manifest_root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let root = manifest_root.join("src");
     let mut files = Vec::new();
     collect_rs_files(&root.join("button"), &mut files);
-    collect_rs_files(&root.join("accordion"), &mut files);
+
+    let accordion_legacy = root.join("accordion");
+    if accordion_legacy.exists() {
+        collect_rs_files(&accordion_legacy, &mut files);
+    }
+
+    // Accordion was moved out of ui-components during workspace split.
+    let accordion_component = manifest_root.join("../../components/accordion/src");
+    if accordion_component.exists() {
+        collect_rs_files(&accordion_component, &mut files);
+    }
+
     files.sort();
     files
 }
@@ -86,7 +98,7 @@ fn button_and_accordion_non_test_code_forbids_let_result_swallowing() {
         }
 
         // Non-wasm motion stub keeps sanitize marker intentionally.
-        !line.contains("let _ = sanitize_motion(motion);")
+        !line.contains("drop(sanitize_motion(motion));")
     });
 
     assert!(

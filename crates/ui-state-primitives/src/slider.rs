@@ -70,10 +70,10 @@ pub fn resolve_label(value: String) -> (String, bool) {
     let trimmed = value.trim();
 
     if trimmed.is_empty() {
-        return (DEFAULT_LABEL.to_string(), false);
+        return (DEFAULT_LABEL.into(), false);
     }
 
-    let label = trimmed.to_string();
+    let label = trimmed.into();
     let has_custom_label = label != DEFAULT_LABEL;
     (label, has_custom_label)
 }
@@ -185,9 +185,9 @@ pub fn resolve_state(input: SliderStateInput) -> SliderState {
 pub fn compose_class_name(base_class_name: Option<String>, state: SliderState) -> String {
     let mut classes = vec![
         "ui-slider".to_string(),
-        state.phase_class.to_string(),
-        state.motion_source_class.to_string(),
-        state.label_source_class.to_string(),
+        state.phase_class.into(),
+        state.motion_source_class.into(),
+        state.label_source_class.into(),
     ];
 
     if state.has_custom_class_name {
@@ -232,7 +232,7 @@ mod tests {
     fn resolve_label_falls_back_to_default_for_empty_text() {
         assert_eq!(
             resolve_label("  ".to_string()),
-            (DEFAULT_LABEL.to_string(), false)
+            (DEFAULT_LABEL.into(), false)
         );
         assert_eq!(
             resolve_label(" Volume ".to_string()),

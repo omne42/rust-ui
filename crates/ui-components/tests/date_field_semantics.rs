@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn date_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/date_field/mod.rs");
+    let source = load_source("src/text_input/date_field/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn date_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn date_field_uses_logic_state_model() {
-    let logic_source = load_source("src/date_field/logic.rs");
-    let view_source = load_source("src/date_field/view.rs");
+    let logic_source = load_source("src/text_input/date_field/logic.rs");
+    let view_source = load_source("src/text_input/date_field/view.rs");
 
     for needle in [
         "pub enum DateFieldTone",
@@ -73,7 +73,7 @@ fn date_field_uses_logic_state_model() {
 
 #[test]
 fn date_field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/date_field/view.rs");
+    let source = load_source("src/text_input/date_field/view.rs");
 
     for attr in [
         "data-slot=\"date-field\"",
@@ -92,7 +92,7 @@ fn date_field_emits_baseline_style_state_data_attributes() {
         "data-slot=\"date-field-month\"",
         "data-slot=\"date-field-day\"",
         "data-slot=\"date-field-separator\"",
-        "data-slot=\"date-field-clear\"",
+        "slot_name=\"date-field-clear\"",
         "role=\"group\"",
     ] {
         assert!(
@@ -104,7 +104,7 @@ fn date_field_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn date_field_styles_include_tone_value_and_source_markers() {
-    let source = load_source("src/date_field/styles.rs");
+    let source = load_source("src/text_input/date_field/styles.rs");
 
     for selector in [
         ".ui-date-field--tone-default",

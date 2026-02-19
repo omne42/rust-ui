@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn checkbox_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/checkbox_field/checkbox/group/mod.rs");
+    let source = load_source("src/checkbox/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,12 +21,12 @@ fn checkbox_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn checkbox_group_uses_logic_state_model() {
-    let view_source = load_source("src/checkbox_field/checkbox/group/view.rs");
-    let logic_source = load_source("src/checkbox_field/checkbox/group/logic.rs");
+    let view_source = load_source("src/checkbox/view.rs");
+    let logic_source = load_source("src/checkbox/logic.rs");
 
     for needle in [
         "pub struct CheckboxGroupState",
-        "pub fn resolve_state(",
+        "pub fn resolve_checkbox_group_state(",
         "pub is_disabled: bool",
         "pub is_invalid: bool",
         "pub shows_error: bool",
@@ -40,7 +40,7 @@ fn checkbox_group_uses_logic_state_model() {
 
     for needle in [
         "let state = Memo::new(move |_|",
-        "resolve_state(",
+        "logic::resolve_checkbox_group_state(",
         "state.get().shows_error",
     ] {
         assert!(
@@ -52,13 +52,13 @@ fn checkbox_group_uses_logic_state_model() {
 
 #[test]
 fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
-    let view_source = load_source("src/checkbox_field/checkbox/group/view.rs");
-    let logic_source = load_source("src/checkbox_field/checkbox/group/logic.rs");
+    let view_source = load_source("src/checkbox/view.rs");
+    let logic_source = load_source("src/checkbox/logic.rs");
 
     for needle in [
-        "resolve_ids",
-        "normalize_label",
-        "normalize_optional_text",
+        "resolve_checkbox_group_ids",
+        "normalize_checkbox_group_label",
+        "normalize_checkbox_group_optional_text",
         "aria-labelledby=legend_id.get_value()",
         "id=legend_id.get_value()",
     ] {
@@ -76,7 +76,7 @@ fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
 
 #[test]
 fn checkbox_group_uses_headless_text_field_contract() {
-    let source = load_source("src/checkbox_field/checkbox/group/logic.rs");
+    let source = load_source("src/checkbox/logic.rs");
 
     for needle in [
         "use_text_field",
@@ -92,7 +92,7 @@ fn checkbox_group_uses_headless_text_field_contract() {
 
 #[test]
 fn checkbox_group_emits_baseline_state_data_attributes() {
-    let source = load_source("src/checkbox_field/checkbox/group/view.rs");
+    let source = load_source("src/checkbox/view.rs");
 
     for needle in [
         "data-slot=\"checkbox-group\"",
@@ -116,7 +116,7 @@ fn checkbox_group_emits_baseline_state_data_attributes() {
 
 #[test]
 fn checkbox_group_only_renders_error_slot_when_invalid() {
-    let source = load_source("src/checkbox_field/checkbox/group/view.rs");
+    let source = load_source("src/checkbox/view.rs");
 
     for needle in [
         "<Show when=move || state.get().shows_error>",
@@ -171,4 +171,68 @@ fn checkbox_group_docs_playgrounds_lock_state_matrix_contract_values() {
             "checkbox-group docs playground should contain `{needle}`.",
         );
     }
+}
+
+#[test]
+fn checkbox_group_docs_include_interactive_playground_contract_panels() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
+
+    for needle in [
+        "title=\"Interactive Playground\"",
+        "test_css_source=interactive_test_css",
+        "test_config_signal=interactive_config",
+        "controls=move || view!",
+        "test_source_path=\"crates/ui-components/src/checkbox/styles.rs\".to_string()",
+        "title=\"Validation + Required\"",
+        "title=\"Disabled + Optional\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "checkbox-group interactive playground should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn checkbox_group_readme_and_docs_shell_register_display_config_code_css_contract() {
+    let readme_source = load_source("src/checkbox/README.md");
+    let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
+
+    assert!(
+        readme_source.contains("## Playground 展示区（Display / Config / Code / CSS Test）"),
+        "checkbox-group README should document display/config/code/css test playground layout.",
+    );
+    assert!(
+        shell_source.contains("\"checkbox-group\" => Some(CHECKBOX_README_MD)"),
+        "docs shell should map checkbox-group slug to CHECKBOX_README_MD.",
+    );
+}
+
+#[test]
+fn checkbox_group_breaking_migration_removes_legacy_namespace_and_path_shim() {
+    let lib_source = load_source("src/lib.rs");
+
+    for forbidden in [
+        "checkbox::group::CheckboxGroup",
+        "#[path = \"checkbox_field/checkbox/mod.rs\"]",
+    ] {
+        assert!(
+            !lib_source.contains(forbidden),
+            "checkbox breaking migration should not keep legacy compatibility token `{forbidden}`.",
+        );
+    }
+}
+
+#[test]
+fn checkbox_group_css_aggregation_uses_new_top_level_contract() {
+    let css_source = load_source("src/css.rs");
+
+    assert!(
+        css_source.contains("out.push_str(crate::checkbox::styles::CHECKBOX_GROUP_CSS);"),
+        "css aggregation should use merged checkbox group css constant.",
+    );
+    assert!(
+        !css_source.contains("out.push_str(crate::checkbox::group::styles::CSS);"),
+        "css aggregation should not keep legacy checkbox::group css path.",
+    );
 }

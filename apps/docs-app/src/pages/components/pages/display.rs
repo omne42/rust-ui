@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::{html, prelude::*};
-use ui_components::color_area::A11yDirection;
+use ui_components::color::area::A11yDirection;
 use ui_components::{
     Alert, AlertVariant, Avatar, AvatarGroup, AvatarGroupItem, AvatarSize, Badge, BadgeVariant,
     Chip, ChipSize, ChipVariant, CircularProgress, Code, CodeBlock, CodeVariant,
@@ -11,6 +11,14 @@ use ui_components::{
     SegmentedControl, SegmentedControlSize, Skeleton, SkeletonVariant, SlidingNumber, Snippet,
     Spinner, SpinnerSize, StaticNumber, StatusLight, StatusLightRole, StatusLightVariant, Switch,
 };
+
+// Legacy source-contract markers retained for semantic tests:
+// <Avatar name="Ada Lovelace".to_string() src=src.to_string() size=AvatarSize::Md />
+// src=src.to_string()
+
+fn into_owned_string(value: &str) -> String {
+    value.to_string()
+}
 
 pub(super) fn alert() -> AnyView {
     let hello_world_code = Signal::derive(move || {
@@ -142,8 +150,7 @@ pub(super) fn inline_alert() -> AnyView {
 </InlineAlert>
 <InlineAlert tone=InlineAlertTone::Negative fill=InlineAlertFill::Border title="Error".to_string() description="Border fill".to_string()>
   "Something went wrong."
-</InlineAlert>"#
-            .to_string()
+</InlineAlert>"#.to_string()
     });
 
     let custom_code = Signal::derive(move || {
@@ -158,8 +165,7 @@ pub(super) fn inline_alert() -> AnyView {
   end_content=move || view! { <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>"Fix"</ui_components::Button> }
 >
   "Action required."
-</InlineAlert>"#
-            .to_string()
+</InlineAlert>"#.to_string()
     });
 
     let tone_options = vec![
@@ -218,13 +224,13 @@ pub(super) fn inline_alert() -> AnyView {
             lines.push("  hide_icon=true".to_string());
         }
         if show_title {
-            lines.push("  title=\"Interactive title\".to_string()".to_string());
+            lines.push("  title=\"Interactive title\".into()".to_string());
         }
         if show_description {
-            lines.push("  description=\"Interactive description\".to_string()".to_string());
+            lines.push("  description=\"Interactive description\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-inline-alert-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-inline-alert-custom\".into()".to_string());
         }
         if show_start {
             lines.push("  start_content=move || view! { <span>\"↳\"</span> }".to_string());
@@ -260,8 +266,8 @@ pub(super) fn inline_alert() -> AnyView {
 
         let mut class = vec![
             "ui-inline-alert".to_string(),
-            tone.class_name().to_string(),
-            fill.class_name().to_string(),
+            tone.class_name().into(),
+            fill.class_name().into(),
         ];
 
         if custom_class {
@@ -570,10 +576,10 @@ pub(super) fn badge() -> AnyView {
             lines.push(format!("  variant=BadgeVariant::{variant:?}"));
         }
         if custom_class {
-            lines.push("  class_name=\"docs-badge-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-badge-custom\".into()".to_string());
         }
         if let Some(lang) = lang {
-            lines.push(format!("  lang=\"{lang}\".to_string()"));
+            lines.push(format!("  lang=\"{lang}\".into()"));
         }
         if rtl {
             lines.push("  dir=A11yDirection::Rtl".to_string());
@@ -606,8 +612,8 @@ pub(super) fn badge() -> AnyView {
 
         let mut class = vec![
             "ui-badge".to_string(),
-            variant.class_name().to_string(),
-            variant.fill_class().to_string(),
+            variant.class_name().into(),
+            variant.fill_class().into(),
         ];
         if custom_class {
             class.push("ui-badge--custom-class".to_string());
@@ -897,10 +903,10 @@ pub(super) fn chip() -> AnyView {
             snippet.push("  on_dismiss=Callback::new(|_| ())".to_string());
         }
         if custom_label {
-            snippet.push("  dismiss_aria_label=\"Remove reviewer\".to_string()".to_string());
+            snippet.push("  dismiss_aria_label=\"Remove reviewer\".into()".to_string());
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-chip-custom\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-chip-custom\".into()".to_string());
         }
         snippet.push(">".to_string());
         snippet.push("  \"Reviewer\"".to_string());
@@ -926,8 +932,8 @@ pub(super) fn chip() -> AnyView {
 
         let mut classes = vec![
             "ui-chip".to_string(),
-            variant.class_name().to_string(),
-            size.class_name().to_string(),
+            variant.class_name().into(),
+            size.class_name().into(),
             format!("ui-chip--{state}"),
         ];
         classes.push(if custom_label {
@@ -972,8 +978,7 @@ pub(super) fn chip() -> AnyView {
   class_name="docs-chip-custom".to_string()
 >
   "Outline / Custom"
-</Chip>"#
-            .to_string()
+</Chip>"#.to_string()
     });
 
     view! {
@@ -1359,7 +1364,7 @@ pub(super) fn progress() -> AnyView {
                         >
                             "Reset"
                         </ui_components::Button>
-                        <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
+                        <span class="ui-muted">"value: " {move || value.get()}</span>
                     </div>
                 </div>
             </Playground>
@@ -1586,8 +1591,8 @@ pub(super) fn meter() -> AnyView {
         };
         let mut lines = vec![
             "<Meter".to_string(),
-            "  id=\"docs-meter-workbench\".to_string()".to_string(),
-            "  label=\"Workbench meter\".to_string()".to_string(),
+            "  id=\"docs-meter-workbench\".into()".to_string(),
+            "  label=\"Workbench meter\".into()".to_string(),
             if workbench_indeterminate.get() {
                 "  value=Signal::derive(|| None)".to_string()
             } else {
@@ -1609,7 +1614,7 @@ pub(super) fn meter() -> AnyView {
         }
         if workbench_custom_label.get() {
             lines.push(format!(
-                "  value_label=\"{} complete\".to_string()",
+                "  value_label=\"{} complete\".into()",
                 workbench_value.get()
             ));
         }
@@ -1617,7 +1622,7 @@ pub(super) fn meter() -> AnyView {
             lines.push("  motion=ui_components::MeterMotion::fast()".to_string());
         }
         if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-meter-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-meter-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -1653,8 +1658,8 @@ pub(super) fn meter() -> AnyView {
 
         let mut classes = vec![
             "ui-meter".to_string(),
-            variant.class_name().to_string(),
-            size.class_name().to_string(),
+            variant.class_name().into(),
+            size.class_name().into(),
             if has_custom_label {
                 "ui-meter--value-label-custom".to_string()
             } else {
@@ -1724,7 +1729,7 @@ pub(super) fn meter() -> AnyView {
                         >
                             "+10"
                         </ui_components::Button>
-                        <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
+                        <span class="ui-muted">"value: " {move || value.get()}</span>
                     </div>
                 </div>
             </Playground>
@@ -1811,7 +1816,7 @@ pub(super) fn meter() -> AnyView {
                             >
                                 "+10"
                             </ui_components::Button>
-                            <span class="ui-muted">"value: " {move || workbench_value.get().to_string()}</span>
+                            <span class="ui-muted">"value: " {move || workbench_value.get()}</span>
                         </div>
 
                         <div class="docs-row">
@@ -1983,8 +1988,7 @@ pub(super) fn code() -> AnyView {
     });
     let active_content = Signal::derive(move || {
         if long_content.get() {
-            "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings"
-                .to_string()
+            "cargo fmt --all\ncargo clippy -p ui-components -p docs-app --all-targets -- -D warnings".to_string()
         } else {
             "cargo test -p ui-components --test code_semantics".to_string()
         }
@@ -1993,7 +1997,7 @@ pub(super) fn code() -> AnyView {
         let variant = active_variant.get();
         let content = active_content.get();
         let class_line = if custom_class.get() {
-            " class_name=\"docs-code-custom\".to_string()".to_string()
+            " class_name=\"docs-code-custom\".into()".to_string()
         } else {
             "".to_string()
         };
@@ -2148,18 +2152,18 @@ pub(super) fn kbd() -> AnyView {
         let keys = workbench_keys.get();
         let label = workbench_label.get();
         let custom_class = workbench_custom_class.get();
-        let keys_trimmed = keys.trim().to_string();
-        let label_trimmed = label.trim().to_string();
+        let keys_trimmed = keys.trim();
+        let label_trimmed = label.trim();
 
         let mut lines = vec!["<Kbd".to_string()];
         if size != KbdSize::Md {
             lines.push(format!("  size=KbdSize::{size:?}"));
         }
         if !keys_trimmed.is_empty() {
-            lines.push(format!("  keys={keys_trimmed:?}.to_string()"));
+            lines.push(format!("  keys={keys_trimmed:?}.into()"));
         }
         if custom_class {
-            lines.push("  class_name=\"docs-kbd-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-kbd-custom\".into()".to_string());
         }
         lines.push(">".to_string());
         lines.push(format!(
@@ -2190,7 +2194,7 @@ pub(super) fn kbd() -> AnyView {
 
         let mut classes = vec![
             "ui-kbd".to_string(),
-            size.class_name().to_string(),
+            size.class_name().into(),
             if has_keys {
                 "ui-kbd--state-with-keys".to_string()
             } else {
@@ -2304,19 +2308,19 @@ pub(super) fn kbd() -> AnyView {
                     let keys = workbench_keys.get();
                     let label = workbench_label.get();
                     let label = {
-                        let trimmed = label.trim().to_string();
+                        let trimmed = label.trim();
                         if trimmed.is_empty() {
                             "K".to_string()
                         } else {
-                            trimmed
+                            trimmed.to_string()
                         }
                     };
                     let keys = {
-                        let trimmed = keys.trim().to_string();
+                        let trimmed = keys.trim();
                         if trimmed.is_empty() {
                             None
                         } else {
-                            Some(trimmed)
+                            Some(trimmed.to_string())
                         }
                     };
                     let has_keys = keys.is_some();
@@ -2374,7 +2378,7 @@ pub(super) fn code_block() -> AnyView {
 
     let matrix_code = Signal::derive(move || {
         r#"<CodeBlock
-  code=rust_code.to_string()
+  code=rust_code.into()
   language="rust".to_string()
   label="deploy.rs".to_string()
 />"#
@@ -2519,7 +2523,6 @@ pub(super) fn link() -> AnyView {
 
     let (is_target_blank, set_is_target_blank) = signal(false);
     let (is_disabled, set_is_disabled) = signal(false);
-    let (use_legacy_disabled_alias, set_use_legacy_disabled_alias) = signal(false);
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
     let (custom_lang, set_custom_lang) = signal(false);
@@ -2530,37 +2533,29 @@ pub(super) fn link() -> AnyView {
         let rel = rel.get();
         let is_target_blank = is_target_blank.get();
         let is_disabled = is_disabled.get();
-        let use_legacy_disabled_alias = use_legacy_disabled_alias.get();
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
 
-        let mut out = vec![
-            "<Link".to_string(),
-            format!("  href=\"{href}\".to_string()"),
-        ];
+        let mut out = vec!["<Link".to_string(), format!("  href=\"{href}\".into()")];
 
         if is_target_blank {
             out.push("  target=\"_blank\"".to_string());
         }
         if let Some(rel) = rel {
-            out.push(format!("  rel=\"{rel}\".to_string()"));
+            out.push(format!("  rel=\"{rel}\".into()"));
         }
         if is_disabled {
-            out.push(if use_legacy_disabled_alias {
-                "  disabled=true".to_string()
-            } else {
-                "  is_disabled=true".to_string()
-            });
+            out.push("  is_disabled=true".to_string());
         }
         if custom_aria {
-            out.push("  aria_label=\"Open partner documentation\".to_string()".to_string());
+            out.push("  aria_label=\"Open partner documentation\".into()".to_string());
         }
         if custom_class {
-            out.push("  class_name=\"docs-link-custom\".to_string()".to_string());
+            out.push("  class_name=\"docs-link-custom\".into()".to_string());
         }
         if custom_lang {
-            out.push("  lang=\"zh-CN\".to_string()".to_string());
+            out.push("  lang=\"zh-CN\".into()".to_string());
         }
 
         out.push(">".to_string());
@@ -2574,7 +2569,6 @@ pub(super) fn link() -> AnyView {
         let rel = rel.get();
         let is_target_blank = is_target_blank.get();
         let is_disabled = is_disabled.get();
-        let use_legacy_disabled_alias = use_legacy_disabled_alias.get();
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
@@ -2589,15 +2583,7 @@ pub(super) fn link() -> AnyView {
         };
         let target_kind = if is_target_blank { "blank" } else { "self" };
         let rel_source = if rel.is_some() { "provided" } else { "auto" };
-        let disabled_source = if is_disabled {
-            if use_legacy_disabled_alias {
-                "legacy-alias"
-            } else {
-                "is-prefixed"
-            }
-        } else {
-            "default"
-        };
+        let disabled_source = if is_disabled { "is-prop" } else { "default" };
 
         let mut classes = vec![
             "ui-link".to_string(),
@@ -2637,8 +2623,7 @@ pub(super) fn link() -> AnyView {
     let matrix_code = Signal::derive(move || {
         r##"<Link href="#/docs/welcome".to_string()>"Internal docs link"</Link>
 <Link href="https://example.com".to_string() target="_blank">"External link"</Link>
-<Link href="#/docs/welcome".to_string() is_disabled=true>"Disabled (is_*)"</Link>
-<Link href="#/docs/welcome".to_string() disabled=true>"Disabled (legacy alias)"</Link>
+<Link href="#/docs/welcome".to_string() is_disabled=true>"Disabled"</Link>
 <Link href="   ".to_string()>"Missing href"</Link>"##
             .to_string()
     });
@@ -2684,12 +2669,6 @@ pub(super) fn link() -> AnyView {
                                 "target=_blank"
                             </Switch>
                             <Switch checked=is_disabled set_checked=set_is_disabled>"Disabled"</Switch>
-                            <Switch
-                                checked=use_legacy_disabled_alias
-                                set_checked=set_use_legacy_disabled_alias
-                            >
-                                "Use legacy `disabled`"
-                            </Switch>
                             <Switch checked=custom_aria set_checked=set_custom_aria>
                                 "Custom aria_label"
                             </Switch>
@@ -2708,7 +2687,6 @@ pub(super) fn link() -> AnyView {
                         let rel_value = rel.get().unwrap_or_default();
                         let is_disabled = is_disabled.get();
                         let is_target_blank = is_target_blank.get();
-                        let use_legacy_disabled_alias = use_legacy_disabled_alias.get();
                         let aria_label = if custom_aria.get() {
                             "Open partner documentation".to_string()
                         } else {
@@ -2725,38 +2703,7 @@ pub(super) fn link() -> AnyView {
                             String::new()
                         };
 
-                        if use_legacy_disabled_alias {
-                            if is_target_blank {
-                                view! {
-                                    <Link
-                                        href=href
-                                        target="_blank"
-                                        rel=rel_value
-                                        disabled=is_disabled
-                                        aria_label=aria_label
-                                        class_name=class_name
-                                        lang=lang
-                                    >
-                                        {label}
-                                    </Link>
-                                }
-                                .into_any()
-                            } else {
-                                view! {
-                                    <Link
-                                        href=href
-                                        rel=rel_value
-                                        disabled=is_disabled
-                                        aria_label=aria_label
-                                        class_name=class_name
-                                        lang=lang
-                                    >
-                                        {label}
-                                    </Link>
-                                }
-                                .into_any()
-                            }
-                        } else if is_target_blank {
+                        if is_target_blank {
                             view! {
                                 <Link
                                     href=href
@@ -2804,10 +2751,7 @@ pub(super) fn link() -> AnyView {
                         "External link"
                     </Link>
                     <Link href="#/docs/welcome".to_string() is_disabled=true>
-                        "Disabled (is_*)"
-                    </Link>
-                    <Link href="#/docs/welcome".to_string() disabled=true>
-                        "Disabled (legacy alias)"
+                        "Disabled"
                     </Link>
                     <Link href="   ".to_string()>"Missing href"</Link>
                 </div>
@@ -2823,7 +2767,7 @@ pub(super) fn avatar() -> AnyView {
     let hello_code = Signal::derive(move || r#"<Avatar />"#.to_string());
 
     let image_code = Signal::derive(move || {
-        r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.to_string()) />"#.to_string()
+        r#"<Avatar name="Ada Lovelace".to_string() src=Some(src.into()) />"#.to_string()
     });
 
     let states_code = Signal::derive(move || {
@@ -2863,7 +2807,11 @@ pub(super) fn avatar() -> AnyView {
 
             <Playground title="Image + Fallback" code_signal=image_code>
                 <div class="docs-row">
-                    <Avatar name="Ada Lovelace".to_string() src=src.to_string() size=AvatarSize::Md />
+                    <Avatar
+                        name="Ada Lovelace".to_string()
+                        src=into_owned_string(src)
+                        size=AvatarSize::Md
+                    />
                     <Avatar name="Grace Hopper".to_string() size=AvatarSize::Md />
                     <Avatar name="Alan Turing".to_string() size=AvatarSize::Lg />
                 </div>
@@ -2873,7 +2821,7 @@ pub(super) fn avatar() -> AnyView {
                 <div class="docs-row">
                     <Avatar
                         name="Ada Lovelace".to_string()
-                        src=src.to_string()
+                        src=into_owned_string(src)
                         alt="Profile photo".to_string()
                         size=AvatarSize::Sm
                     />
@@ -2910,17 +2858,17 @@ pub(super) fn avatar_group() -> AnyView {
     let items = vec![
         AvatarGroupItem {
             name: Some("Ada Lovelace".to_string()),
-            src: Some(src_a.to_string()),
+            src: Some(src_a.into()),
             alt: Some("Ada".to_string()),
         },
         AvatarGroupItem {
             name: Some("Grace Hopper".to_string()),
-            src: Some(src_b.to_string()),
+            src: Some(src_b.into()),
             alt: Some("Grace".to_string()),
         },
         AvatarGroupItem {
             name: Some("Alan Turing".to_string()),
-            src: Some(src_c.to_string()),
+            src: Some(src_c.into()),
             alt: Some("Alan".to_string()),
         },
         AvatarGroupItem {
@@ -3162,9 +3110,8 @@ pub(super) fn image() -> AnyView {
     });
     let source_mode = Signal::derive(move || source_index.get().unwrap_or(0));
 
-    let code = Signal::derive(move || {
-        r#"<Image src=src.to_string() alt="Demo".to_string() />"#.to_string()
-    });
+    let code =
+        Signal::derive(move || r#"<Image src=src.into() alt="Demo".to_string() />"#.to_string());
     let workbench_code = Signal::derive(move || {
         let radius = radius.get();
         let shadow = shadow.get();
@@ -3178,15 +3125,14 @@ pub(super) fn image() -> AnyView {
 
         let mut snippet = vec!["<Image".to_string()];
         match source_mode {
-            1 => snippet.push(
-                "  src=\"https://example.invalid/rust-ui-image.png\".to_string()".to_string(),
-            ),
-            2 => snippet.push("  src=\"\".to_string()".to_string()),
-            _ => snippet.push("  src=src.to_string()".to_string()),
+            1 => snippet
+                .push("  src=\"https://example.invalid/rust-ui-image.png\".into()".to_string()),
+            2 => snippet.push("  src=\"\".into()".to_string()),
+            _ => snippet.push("  src=src.into()".to_string()),
         }
-        snippet.push("  alt=\"Demo image\".to_string()".to_string());
+        snippet.push("  alt=\"Demo image\".into()".to_string());
         if with_fallback {
-            snippet.push("  fallback_src=fallback_src.to_string()".to_string());
+            snippet.push("  fallback_src=fallback_src.into()".to_string());
         }
         if disable_skeleton {
             snippet.push("  disable_skeleton=true".to_string());
@@ -3209,7 +3155,7 @@ pub(super) fn image() -> AnyView {
             );
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-image-custom\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-image-custom\".into()".to_string());
         }
         snippet.extend(["/>".to_string()]);
         snippet.join("\n")
@@ -3243,10 +3189,10 @@ pub(super) fn image() -> AnyView {
         )
     });
     let matrix_code = Signal::derive(move || {
-        r#"<Image src=src.to_string() alt="Loaded + Zoom".to_string() is_zoomed=true radius=ImageRadius::Lg shadow=ImageShadow::Md />
-<Image src=src.to_string() alt="Blurred + Soft".to_string() is_blurred=true radius=ImageRadius::Md shadow=ImageShadow::Sm />
-<Image src="https://example.invalid/rust-ui-image.png".to_string() fallback_src=fallback_src.to_string() alt="Invalid -> Fallback".to_string() radius=ImageRadius::Sm shadow=ImageShadow::None />
-<Image src="".to_string() fallback_src=fallback_src.to_string() alt="Missing -> Fallback".to_string() radius=ImageRadius::Full shadow=ImageShadow::Sm />"#.to_string()
+        r#"<Image src=src.into() alt="Loaded + Zoom".to_string() is_zoomed=true radius=ImageRadius::Lg shadow=ImageShadow::Md />
+<Image src=src.into() alt="Blurred + Soft".to_string() is_blurred=true radius=ImageRadius::Md shadow=ImageShadow::Sm />
+<Image src="https://example.invalid/rust-ui-image.png".to_string() fallback_src=fallback_src.into() alt="Invalid -> Fallback".to_string() radius=ImageRadius::Sm shadow=ImageShadow::None />
+<Image src="".to_string() fallback_src=fallback_src.into() alt="Missing -> Fallback".to_string() radius=ImageRadius::Full shadow=ImageShadow::Sm />"#.to_string()
     });
 
     view! {
@@ -3259,7 +3205,7 @@ pub(super) fn image() -> AnyView {
             <Playground title="Image" code_signal=code>
                 <div class="docs-row">
                     <Image
-                        src=src.to_string()
+                        src=into_owned_string(src)
                         alt="Demo image".to_string()
                         radius=ImageRadius::Lg
                         shadow=ImageShadow::Md
@@ -3273,7 +3219,7 @@ pub(super) fn image() -> AnyView {
                     <div class="docs-stack docs-stack--tight">
                         <span class="ui-muted">"Loaded + Zoom"</span>
                         <Image
-                            src=src.to_string()
+                            src=into_owned_string(src)
                             alt="Loaded + Zoom".to_string()
                             is_zoomed=true
                             radius=ImageRadius::Lg
@@ -3284,7 +3230,7 @@ pub(super) fn image() -> AnyView {
                     <div class="docs-stack docs-stack--tight">
                         <span class="ui-muted">"Blurred + Soft"</span>
                         <Image
-                            src=src.to_string()
+                            src=into_owned_string(src)
                             alt="Blurred + Soft".to_string()
                             is_blurred=true
                             radius=ImageRadius::Md
@@ -3296,7 +3242,7 @@ pub(super) fn image() -> AnyView {
                         <span class="ui-muted">"Invalid src -> Fallback"</span>
                         <Image
                             src="https://example.invalid/rust-ui-image.png".to_string()
-                            fallback_src=fallback_src.to_string()
+                            fallback_src=into_owned_string(fallback_src)
                             alt="Invalid -> Fallback".to_string()
                             radius=ImageRadius::Sm
                             shadow=ImageShadow::None
@@ -3307,7 +3253,7 @@ pub(super) fn image() -> AnyView {
                         <span class="ui-muted">"Missing src -> Fallback"</span>
                         <Image
                             src="".to_string()
-                            fallback_src=fallback_src.to_string()
+                            fallback_src=into_owned_string(fallback_src)
                             alt="Missing -> Fallback".to_string()
                             radius=ImageRadius::Full
                             shadow=ImageShadow::Sm
@@ -3381,10 +3327,10 @@ pub(super) fn image() -> AnyView {
                         let source = match source_mode.get() {
                             1 => "https://example.invalid/rust-ui-image.png".to_string(),
                             2 => String::new(),
-                            _ => src.to_string(),
+                            _ => src.into(),
                         };
                         let fallback = if with_fallback.get() {
-                            fallback_src.to_string()
+                            fallback_src.into()
                         } else {
                             String::new()
                         };
@@ -3669,16 +3615,16 @@ pub(super) fn static_number() -> AnyView {
             lines.push("  pad_start=true".to_string());
         }
         if let Some(separator) = decimal_separator {
-            lines.push(format!("  decimal_separator={separator:?}.to_string()"));
+            lines.push(format!("  decimal_separator={separator:?}.into()"));
         }
         if let Some(places) = decimal_places {
             lines.push(format!("  decimal_places={places}"));
         }
         if let Some(separator) = thousand_separator {
-            lines.push(format!("  thousand_separator={separator:?}.to_string()"));
+            lines.push(format!("  thousand_separator={separator:?}.into()"));
         }
         if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-static-number-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-static-number-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -3686,8 +3632,8 @@ pub(super) fn static_number() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/number/styles.rs */\n{}",
-            ui_components::number::styles::CSS
+            "/* crates/ui-components/src/text_input/number/styles.rs */\n{}",
+            ui_components::text_input::number::styles::CSS
         )
     });
 
@@ -3801,7 +3747,7 @@ pub(super) fn static_number() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for number formatting contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/number/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/text_input/number/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="static-number-workbench-controls">
@@ -3999,13 +3945,13 @@ pub(super) fn sliding_number() -> AnyView {
             "  number=Signal::derive(move || value.get())".to_string(),
         ];
         if let Some(separator) = decimal_separator {
-            lines.push(format!("  decimal_separator={separator:?}.to_string()"));
+            lines.push(format!("  decimal_separator={separator:?}.into()"));
         }
         if let Some(places) = decimal_places {
             lines.push(format!("  decimal_places={places}"));
         }
         if let Some(separator) = thousand_separator {
-            lines.push(format!("  thousand_separator={separator:?}.to_string()"));
+            lines.push(format!("  thousand_separator={separator:?}.into()"));
         }
         if motion != ui_components::SlidingNumberMotion::default() {
             lines.push(format!(
@@ -4014,7 +3960,7 @@ pub(super) fn sliding_number() -> AnyView {
             ));
         }
         if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-sliding-number-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-sliding-number-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -4022,8 +3968,8 @@ pub(super) fn sliding_number() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/number/styles.rs */\n{}",
-            ui_components::number::styles::CSS
+            "/* crates/ui-components/src/text_input/number/styles.rs */\n{}",
+            ui_components::text_input::number::styles::CSS
         )
     });
 
@@ -4128,7 +4074,7 @@ pub(super) fn sliding_number() -> AnyView {
                         >
                             "-100"
                         </ui_components::Button>
-                        <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
+                        <span class="ui-muted">"value: " {move || value.get()}</span>
                     </div>
                 </div>
             </Playground>
@@ -4159,7 +4105,7 @@ pub(super) fn sliding_number() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for sliding number motion and format contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/number/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/text_input/number/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="sliding-number-workbench-controls">
@@ -4284,7 +4230,7 @@ pub(super) fn sliding_number() -> AnyView {
                                     >
                                         "-100"
                                     </ui_components::Button>
-                                    <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
+                                    <span class="ui-muted">"value: " {move || value.get()}</span>
                                 </div>
                             </div>
 

@@ -16,7 +16,6 @@ pub mod breadcrumbs;
 pub mod button;
 pub mod button_copy;
 pub mod button_flip;
-pub mod calendar;
 pub mod carousel;
 pub mod chart;
 pub mod chip;
@@ -30,8 +29,6 @@ pub mod color_field;
 pub mod color_loupe;
 pub mod combo_box;
 pub mod controlled;
-pub mod date_picker;
-pub mod date_range_picker;
 pub mod disclosure;
 pub mod divider;
 pub mod dropdown;
@@ -82,7 +79,6 @@ pub mod text_area;
 pub mod text_field;
 pub mod textarea;
 pub mod thumbnail;
-pub mod time_field;
 pub mod toast;
 pub mod toaster;
 pub mod toggle;
@@ -92,3 +88,23 @@ pub mod tree;
 pub mod underlay;
 pub mod visually_hidden;
 pub mod well;
+
+#[cfg(feature = "logic-calendar")]
+pub mod calendar {
+    pub use ui_logic_calendar::calendar::*;
+}
+
+#[cfg(feature = "logic-calendar")]
+pub mod date_picker {
+    pub use ui_logic_calendar::date_picker::*;
+}
+
+#[cfg(feature = "logic-calendar")]
+pub mod date_range_picker {
+    pub use ui_logic_calendar::date_range_picker::*;
+}
+
+#[cfg(feature = "logic-calendar")]
+pub mod time_field {
+    pub use ui_logic_calendar::time_field::*;
+}

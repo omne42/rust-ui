@@ -142,7 +142,7 @@ pub fn keyboard_dismiss_attr(is_keyboard_dismiss_disabled: bool) -> &'static str
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -211,10 +211,10 @@ pub fn resolve_state(input: SheetPartStateInput) -> SheetPartState {
 }
 
 pub fn compose_class_name(state: SheetPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if state.slot == SheetSlot::Root {
-        classes.push(state.placement_class.to_string());
+        classes.push(state.placement_class.into());
 
         if state.has_custom_motion {
             classes.push("ui-sheet--custom-motion".to_string());

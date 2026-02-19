@@ -169,23 +169,23 @@ pub(super) fn labeled_value() -> AnyView {
             _ => "LabeledValueTone::Strong",
         };
         let description_line = if show_description.get() {
-            "  description=\"Updated 2 minutes ago\".to_string()\n"
+            "  description=\"Updated 2 minutes ago\".into()\n"
         } else {
             ""
         };
         let aria_line = if custom_aria.get() {
-            "  aria_label=\"Build status\".to_string()\n"
+            "  aria_label=\"Build status\".into()\n"
         } else {
             ""
         };
         let class_line = if custom_class.get() {
-            "  class_name=\"docs-labeled-value-workbench\".to_string()\n"
+            "  class_name=\"docs-labeled-value-workbench\".into()\n"
         } else {
             ""
         };
 
         format!(
-            "<LabeledValue\n  label=\"Build\".to_string()\n  value=\"passing\".to_string()\n  orientation={orientation_variant} // {orientation}\n  tone={tone_variant}\n{description_line}{aria_line}{class_line}/>"
+            "<LabeledValue\n  label=\"Build\".into()\n  value=\"passing\".into()\n  orientation={orientation_variant} // {orientation}\n  tone={tone_variant}\n{description_line}{aria_line}{class_line}/>"
         )
     });
 
@@ -388,10 +388,10 @@ pub(super) fn keyboard() -> AnyView {
             snippet.push("  is_compact=true".to_string());
         }
         if custom_aria {
-            snippet.push("  aria_label=\"Open command palette\".to_string()".to_string());
+            snippet.push("  aria_label=\"Open command palette\".into()".to_string());
         }
         if custom_class {
-            snippet.push("  class_name=\"docs-keyboard-custom\".to_string()".to_string());
+            snippet.push("  class_name=\"docs-keyboard-custom\".into()".to_string());
         }
         snippet.push(">".to_string());
         snippet.push(format!("  \"{key_text}\""));
@@ -676,17 +676,14 @@ pub(super) fn icon() -> AnyView {
         let decorative = workbench_decorative.get();
         let custom_class = workbench_custom_class.get();
         let class_line = if custom_class {
-            "  class_name=\"docs-icon-custom\".to_string()\n".to_string()
+            "  class_name=\"docs-icon-custom\".into()\n".to_string()
         } else {
             String::new()
         };
         let aria_line = if decorative {
             String::new()
         } else {
-            format!(
-                "  aria_label=\"{}\".to_string()\n",
-                workbench_label.get().trim()
-            )
+            format!("  aria_label=\"{}\".into()\n", workbench_label.get().trim())
         };
         format!(
             "<Icon\n  size=IconSize::{}\n  tone=IconTone::{}\n  disabled={disabled}\n  decorative={decorative}\n{aria_line}{class_line}>\n  \"{glyph}\"\n</Icon>",
@@ -736,11 +733,7 @@ pub(super) fn icon() -> AnyView {
             "labeled"
         };
 
-        let mut classes = vec![
-            "ui-icon".to_string(),
-            size_class.to_string(),
-            tone_class.to_string(),
-        ];
+        let mut classes = vec!["ui-icon".to_string(), size_class.into(), tone_class.into()];
         if disabled {
             classes.push("ui-icon--disabled".to_string());
         }
@@ -1304,7 +1297,6 @@ pub(super) fn color_swatch() -> AnyView {
 
     let (is_bordered, set_is_bordered) = signal(true);
     let (is_decorative, set_is_decorative) = signal(false);
-    let (use_legacy_alias, set_use_legacy_alias) = signal(false);
     let (custom_aria, set_custom_aria) = signal(false);
     let (custom_class, set_custom_class) = signal(false);
     let (custom_lang, set_custom_lang) = signal(false);
@@ -1317,17 +1309,16 @@ pub(super) fn color_swatch() -> AnyView {
         let rounding = rounding.get();
         let is_bordered = is_bordered.get();
         let is_decorative = is_decorative.get();
-        let use_legacy_alias = use_legacy_alias.get();
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
 
         let mut out = vec![
             "<ColorSwatch".to_string(),
-            format!("  color=\"{color}\".to_string()"),
+            format!("  color=\"{color}\".into()"),
         ];
         if let Some(color_name) = color_name {
-            out.push(format!("  color_name=\"{color_name}\".to_string()"));
+            out.push(format!("  color_name=\"{color_name}\".into()"));
         }
         if size != ColorSwatchSize::Md {
             out.push(format!("  size=ColorSwatchSize::{size:?}"));
@@ -1338,26 +1329,18 @@ pub(super) fn color_swatch() -> AnyView {
         if shape != ColorSwatchShape::Square {
             out.push(format!("  shape=ColorSwatchShape::{shape:?}"));
         }
-        out.push(if use_legacy_alias {
-            format!("  bordered={is_bordered}")
-        } else {
-            format!("  is_bordered={is_bordered}")
-        });
+        out.push(format!("  is_bordered={is_bordered}"));
         if is_decorative {
-            out.push(if use_legacy_alias {
-                "  decorative=true".to_string()
-            } else {
-                "  is_decorative=true".to_string()
-            });
+            out.push("  is_decorative=true".to_string());
         }
         if custom_aria {
-            out.push("  aria_label=\"Background color\".to_string()".to_string());
+            out.push("  aria_label=\"Background color\".into()".to_string());
         }
         if custom_class {
-            out.push("  class_name=\"docs-color-swatch-custom\".to_string()".to_string());
+            out.push("  class_name=\"docs-color-swatch-custom\".into()".to_string());
         }
         if custom_lang {
-            out.push("  lang=\"zh-CN\".to_string()".to_string());
+            out.push("  lang=\"zh-CN\".into()".to_string());
         }
         out.push("/>".to_string());
         out.join("\n")
@@ -1370,7 +1353,6 @@ pub(super) fn color_swatch() -> AnyView {
         let rounding = rounding.get();
         let is_bordered = is_bordered.get();
         let is_decorative = is_decorative.get();
-        let use_legacy_alias = use_legacy_alias.get();
         let custom_aria = custom_aria.get();
         let custom_class = custom_class.get();
         let custom_lang = custom_lang.get();
@@ -1391,9 +1373,9 @@ pub(super) fn color_swatch() -> AnyView {
 
         let mut classes = vec![
             "ui-color-swatch".to_string(),
-            size.class_name().to_string(),
-            rounding.class_name().to_string(),
-            shape.class_name().to_string(),
+            size.class_name().into(),
+            rounding.class_name().into(),
+            shape.class_name().into(),
             format!("ui-color-swatch--alpha-{alpha_attr}"),
         ];
         if is_bordered {
@@ -1406,11 +1388,7 @@ pub(super) fn color_swatch() -> AnyView {
 
         format!(
             "ColorSwatchActualConfig {{\n  color: \"{color}\",\n  size: {size:?},\n  rounding: {rounding:?},\n  shape: {shape:?},\n  is_bordered: {is_bordered},\n  is_decorative: {is_decorative},\n  bool_source: \"{}\",\n  custom_aria: {custom_aria},\n  custom_class: {custom_class},\n  lang: {},\n  data_alpha: \"{alpha_attr}\",\n  data_state: \"{data_state}\",\n  class: \"{}\",\n}}",
-            if use_legacy_alias {
-                "legacy-alias"
-            } else {
-                "is-prefixed"
-            },
+            "is-prop",
             if custom_lang { "\"zh-CN\"" } else { "None" },
             classes.join(" ")
         )
@@ -1418,8 +1396,8 @@ pub(super) fn color_swatch() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color_swatch/styles.rs */\n{}",
-            ui_components::color_swatch::styles::CSS
+            "/* crates/ui-components/src/color/swatch/styles.rs */\n{}",
+            ui_components::color::swatch::styles::CSS
         )
     });
 
@@ -1428,13 +1406,8 @@ pub(super) fn color_swatch() -> AnyView {
 <ColorSwatch color="#ffcc00".to_string() size=ColorSwatchSize::Sm />
 <ColorSwatch color="rgba(38, 99, 235, 0.35)".to_string() color_name="Brand blue / 35%".to_string() shape=ColorSwatchShape::Wide />
 <ColorSwatch color="rgba(255, 0, 0, 0)".to_string() color_name="No fill".to_string() is_bordered=true />
-<ColorSwatch color="".to_string() is_bordered=true />"##
-            .to_string()
+<ColorSwatch color="".to_string() is_bordered=true />"##.to_string()
     });
-    // Legacy contract anchors for color module compatibility tests:
-    // title="Size + Rounding"
-    // title="Transparency + Accessible Label + Shape"
-
     view! {
         <ComponentPage
             title="ColorSwatch"
@@ -1446,7 +1419,7 @@ pub(super) fn color_swatch() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/color_swatch/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/color/swatch/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="切换尺寸/形状/圆角/透明度/边框/装饰模式，并实时查看 config + code + scoped css test。"
                 controls=move || {
@@ -1496,9 +1469,6 @@ pub(super) fn color_swatch() -> AnyView {
                             <Switch checked=is_decorative set_checked=set_is_decorative>
                                 "Decorative"
                             </Switch>
-                            <Switch checked=use_legacy_alias set_checked=set_use_legacy_alias>
-                                "Use legacy `bordered/decorative`"
-                            </Switch>
                             <Switch checked=custom_aria set_checked=set_custom_aria>
                                 "Custom aria_label"
                             </Switch>
@@ -1519,7 +1489,6 @@ pub(super) fn color_swatch() -> AnyView {
                         let rounding = rounding.get();
                         let is_bordered = is_bordered.get();
                         let is_decorative = is_decorative.get();
-                        let use_legacy_alias = use_legacy_alias.get();
                         let aria_label = if custom_aria.get() {
                             "Background color".to_string()
                         } else {
@@ -1536,39 +1505,21 @@ pub(super) fn color_swatch() -> AnyView {
                             String::new()
                         };
 
-                        if use_legacy_alias {
-                            view! {
-                                <ColorSwatch
-                                    color=color
-                                    color_name=color_name
-                                    size=size
-                                    shape=shape
-                                    rounding=rounding
-                                    bordered=is_bordered
-                                    decorative=is_decorative
-                                    aria_label=aria_label
-                                    class_name=class_name
-                                    lang=lang
-                                />
-                            }
-                            .into_any()
-                        } else {
-                            view! {
-                                <ColorSwatch
-                                    color=color
-                                    color_name=color_name
-                                    size=size
-                                    shape=shape
-                                    rounding=rounding
-                                    is_bordered=is_bordered
-                                    is_decorative=is_decorative
-                                    aria_label=aria_label
-                                    class_name=class_name
-                                    lang=lang
-                                />
-                            }
-                            .into_any()
+                        view! {
+                            <ColorSwatch
+                                color=color
+                                color_name=color_name
+                                size=size
+                                shape=shape
+                                rounding=rounding
+                                is_bordered=is_bordered
+                                is_decorative=is_decorative
+                                aria_label=aria_label
+                                class_name=class_name
+                                lang=lang
+                            />
                         }
+                        .into_any()
                     }}
                     <span class="ui-muted">
                         {move || format!(
@@ -1900,10 +1851,10 @@ pub(super) fn flip_card() -> AnyView {
             lines.push("  flip_on_hover=true".to_string());
         }
         if custom_id {
-            lines.push("  id=\"docs-flip-card-workbench\".to_string()".to_string());
+            lines.push("  id=\"docs-flip-card-workbench\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-flip-card-state\".to_string()".to_string());
+            lines.push("  class_name=\"docs-flip-card-state\".into()".to_string());
         }
         if motion_index != 0 {
             lines.push(format!(
@@ -1976,8 +1927,7 @@ pub(super) fn flip_card() -> AnyView {
         r#"<FlipCard front=... back=... />
 <FlipCard flip_on_hover=true front=... back=... />
 <FlipCard disabled=true front=... back=... />
-<FlipCard motion=FlipCardMotion { hover_scale: 1.06, hover_tilt_deg: 7.5, ..FlipCardMotion::default() } front=... back=... />"#
-            .to_string()
+<FlipCard motion=FlipCardMotion { hover_scale: 1.06, hover_tilt_deg: 7.5, ..FlipCardMotion::default() } front=... back=... />"#.to_string()
     });
 
     let basic_code = Signal::derive(move || {
@@ -2389,14 +2339,12 @@ pub(super) fn chart() -> AnyView {
         1 => ChartKind::Line,
         _ => ChartKind::Bar,
     });
-    let workbench_dataset_name = Signal::derive(move || {
-        match workbench_dataset_index.get().unwrap_or(0) {
+    let workbench_dataset_name: Signal<&'static str> =
+        Signal::derive(move || match workbench_dataset_index.get().unwrap_or(0) {
             1 => "growth",
             2 => "flat",
             _ => "revenue",
-        }
-        .to_string()
-    });
+        });
     let workbench_points =
         Signal::derive(move || match workbench_dataset_index.get().unwrap_or(0) {
             1 => line_points_for_workbench.clone(),
@@ -2425,7 +2373,7 @@ pub(super) fn chart() -> AnyView {
 
         let mut out = vec![
             "<Chart".to_string(),
-            "  id_base=\"docs-chart-workbench\".to_string()".to_string(),
+            "  id_base=\"docs-chart-workbench\".into()".to_string(),
             format!("  // dataset: {dataset}"),
             "  points=/* see preview dataset */".to_string(),
             format!("  kind=ChartKind::{kind:?}"),
@@ -2438,10 +2386,10 @@ pub(super) fn chart() -> AnyView {
             out.push("  show_grid=false".to_string());
         }
         if custom_class {
-            out.push("  class_name=\"docs-chart-custom\".to_string()".to_string());
+            out.push("  class_name=\"docs-chart-custom\".into()".to_string());
         }
         if lang {
-            out.push("  lang=\"en-US\".to_string()".to_string());
+            out.push("  lang=\"en-US\".into()".to_string());
         }
         out.push("  on_action=Callback::new(move |id: String| { /* ... */ })".to_string());
         out.push("/>".to_string());
@@ -2533,8 +2481,7 @@ pub(super) fn chart() -> AnyView {
         r#"<Chart id_base="docs-chart-matrix-bar".to_string() kind=ChartKind::Bar points=vec![...] />
 <Chart id_base="docs-chart-matrix-line".to_string() kind=ChartKind::Line points=vec![...] />
 <Chart id_base="docs-chart-matrix-disabled".to_string() kind=ChartKind::Bar is_disabled=Some(true) points=vec![...] />
-<Chart id_base="docs-chart-matrix-empty".to_string() kind=ChartKind::Line points=vec![] />"#
-            .to_string()
+<Chart id_base="docs-chart-matrix-empty".to_string() kind=ChartKind::Line points=vec![] />"#.to_string()
     });
 
     view! {
@@ -2700,7 +2647,7 @@ pub(super) fn chart() -> AnyView {
                     />
                     <span class="ui-muted">
                         "controlled active index: "
-                        {move || controlled_active_raw.get().to_string()}
+                        {move || controlled_active_raw.get()}
                     </span>
                 </div>
             </Playground>

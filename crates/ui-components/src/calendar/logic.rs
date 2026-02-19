@@ -7,8 +7,8 @@ pub use ui_state_primitives::calendar::{
 pub fn compose_class_name(base_class_name: Option<String>, state: CalendarState) -> String {
     let mut classes = vec![
         "ui-calendar".to_string(),
-        state.tone_class.to_string(),
-        state.first_weekday_class.to_string(),
+        state.tone_class.into(),
+        state.first_weekday_class.into(),
     ];
 
     if state.show_outside_days {
@@ -165,7 +165,7 @@ mod tests {
         assert_eq!(
             normalize_aria_label(None),
             (
-                ui_state_primitives::calendar::DEFAULT_ARIA_LABEL.to_string(),
+                ui_state_primitives::calendar::DEFAULT_ARIA_LABEL.into(),
                 false
             )
         );

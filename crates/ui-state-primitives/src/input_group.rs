@@ -81,15 +81,15 @@ pub struct InputGroupState {
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     let Some(value) = value else {
-        return (DEFAULT_ARIA_LABEL.to_string(), false);
+        return (DEFAULT_ARIA_LABEL.into(), false);
     };
 
     let trimmed = value.trim();
     if trimmed.is_empty() {
-        return (DEFAULT_ARIA_LABEL.to_string(), false);
+        return (DEFAULT_ARIA_LABEL.into(), false);
     }
 
-    let label = trimmed.to_string();
+    let label = trimmed.into();
     let has_custom_label = label != DEFAULT_ARIA_LABEL;
 
     (label, has_custom_label)

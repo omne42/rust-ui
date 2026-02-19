@@ -3,7 +3,21 @@ use std::path::{Path, PathBuf};
 
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = if let Some(suffix) = rel_path.strip_prefix("src/accordion/") {
+        manifest_dir
+            .join("../../components/accordion/src")
+            .join(suffix)
+    } else {
+        manifest_dir.join(rel_path)
+    };
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_accordion_test_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir
+        .join("../../components/accordion/test")
+        .join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -426,7 +440,7 @@ fn accordion_streaming_contract_is_explicit_for_na_and_fallback() {
     let readme_source = load_source("src/accordion/README.md");
 
     for needle in [
-        "use crate::ai_space::use_ai_space_state;",
+        "use ui_ai_runtime::use_ai_space_state;",
         "let ai_space_state = StoredValue::new(use_ai_space_state());",
         "data-ui-stream-support=move || {",
         "data-ui-stream-fallback=move || {",
@@ -576,6 +590,8 @@ fn accordion_motion_defaults_come_from_ui_theme_tokens() {
 #[test]
 fn accordion_motion_sanitizes_custom_contract_values() {
     let source = load_source("src/accordion/motion.rs");
+    let tests_source = load_accordion_test_source("motion_tests.rs");
+    let combined_source = format!("{source}\n{tests_source}");
 
     for needle in [
         "pub fn sanitize_motion(motion: AccordionMotion) -> AccordionMotion",
@@ -588,7 +604,7 @@ fn accordion_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_clamps_rotation_and_offset_ranges()",
     ] {
         assert!(
-            source.contains(needle),
+            combined_source.contains(needle),
             "Accordion motion should include `{needle}` so invalid custom values cannot leak into runtime animation state.",
         );
     }
@@ -721,9 +737,9 @@ fn accordion_tree_shaking_feature_wiring_is_component_scoped() {
     let css_source = load_source("src/css.rs");
 
     for needle in [
-        "component-accordion = [\"dep:serde\"]",
+        "component-accordion = [\"dep:ui-accordion\"]",
         "#[cfg(feature = \"component-accordion\")]",
-        "pub mod accordion;",
+        "pub use ui_accordion as accordion;",
         "out.push_str(crate::accordion::styles::CSS);",
     ] {
         assert!(
@@ -1392,7 +1408,7 @@ fn ui_components_entry_file_locations_follow_contract() {
 
     for needle in [
         "#[cfg(feature = \"component-accordion\")]",
-        "pub mod accordion;",
+        "pub use ui_accordion as accordion;",
         "#[cfg(feature = \"component-active_highlight\")]",
         "mod active_highlight;",
     ] {
@@ -1436,7 +1452,13 @@ fn ui_components_entry_file_locations_follow_contract() {
 #[test]
 fn accordion_directory_standard_files_follow_contract() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let accordion_dir = manifest_dir.join("src/accordion");
+    let accordion_dir = manifest_dir.join("../../components/accordion/src");
+    let legacy_accordion_dir = manifest_dir.join("src/accordion");
+
+    assert!(
+        !legacy_accordion_dir.exists(),
+        "Legacy ui-components accordion directory should be removed after split."
+    );
 
     for required in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
         let path = accordion_dir.join(required);

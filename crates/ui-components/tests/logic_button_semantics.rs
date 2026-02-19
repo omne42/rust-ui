@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn logic_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/logic_button/mod.rs");
+    let source = load_source("src/button/logic_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn logic_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn logic_button_uses_logic_state_model() {
-    let logic_source = load_source("src/logic_button/logic.rs");
-    let view_source = load_source("src/logic_button/view.rs");
+    let logic_source = load_source("src/button/logic_button/logic.rs");
+    let view_source = load_source("src/button/logic_button/view.rs");
 
     for needle in [
         "pub enum LogicButtonVariant",
@@ -54,7 +54,7 @@ fn logic_button_uses_logic_state_model() {
 
 #[test]
 fn logic_button_uses_headless_hooks() {
-    let source = load_source("src/logic_button/view.rs");
+    let source = load_source("src/button/logic_button/view.rs");
 
     for needle in ["use_button", "use_focus_ring", "use_hover"] {
         assert!(
@@ -66,7 +66,7 @@ fn logic_button_uses_headless_hooks() {
 
 #[test]
 fn logic_button_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/logic_button/view.rs");
+    let source = load_source("src/button/logic_button/view.rs");
 
     for attr in [
         "data-slot=\"logic-button\"",
@@ -89,7 +89,7 @@ fn logic_button_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn logic_button_styles_include_variant_and_state_markers() {
-    let source = load_source("src/logic_button/styles.rs");
+    let source = load_source("src/button/logic_button/styles.rs");
 
     for selector in [
         ".ui-logic-button--variant-and",
@@ -120,8 +120,8 @@ fn logic_button_docs_page_covers_primary_playgrounds() {
         "title=\"LogicButton\"",
         "slug=\"logic-button\"",
         "description=\"baseline-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts.\"",
-        "<Playground title=\"AND + OR variants\" code_signal=basic_code>",
-        "<Playground title=\"Custom class + Disabled\" code_signal=state_code>",
+        "title=\"Interactive Playground (Display + Config + Code + CSS Test)\"",
+        "<Playground title=\"Comparison Matrix (AND / OR / Custom / Disabled)\" code_signal=comparison_code>",
         "<LogicButton",
     ] {
         assert!(
@@ -136,12 +136,11 @@ fn logic_button_docs_playgrounds_lock_state_matrix_contract_values() {
     let source = load_source("../../apps/docs-app/src/pages/components/pages/actions_extra.rs");
 
     for needle in [
-        "title=\"AND + OR variants\"",
+        "title=\"Comparison Matrix (AND / OR / Custom / Disabled)\"",
         "variant=LogicButtonVariant::And",
         "\"AND\"",
         "variant=LogicButtonVariant::Or",
         "\"OR\"",
-        "title=\"Custom class + Disabled\"",
         "class_name=\"docs-logic-button-custom\".to_string()",
         "\"Custom\"",
         "disabled=true",

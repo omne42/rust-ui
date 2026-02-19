@@ -1,10 +1,11 @@
+use crate::snippet::logic as snippet_logic;
 use ui_state_primitives::button_copy::{
     ButtonCopyStateInput, normalize_optional_text as normalize_state_text,
     resolve_state as resolve_copy_state,
 };
 
-pub const DEFAULT_COPY_LABEL: &str = "Copy";
-pub const DEFAULT_COPIED_LABEL: &str = "Copied";
+pub const DEFAULT_COPY_LABEL: &str = snippet_logic::DEFAULT_COPY_LABEL;
+pub const DEFAULT_COPIED_LABEL: &str = snippet_logic::DEFAULT_COPIED_LABEL;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum ButtonCopyMode {
@@ -134,6 +135,7 @@ pub struct ButtonCopyViewState {
     pub is_disabled: bool,
     pub is_enabled: bool,
     pub has_text: bool,
+    pub state_attr: &'static str,
     pub mode: ButtonCopyMode,
     pub mode_attr: &'static str,
     pub shows_text: bool,
@@ -161,13 +163,26 @@ pub fn resolve_text_contract(
     copied_label: Option<String>,
     aria_label: Option<String>,
 ) -> ButtonCopyTextContract {
-    let label = normalize_optional_text(label).unwrap_or_else(|| DEFAULT_COPY_LABEL.to_string());
-    let copied_label =
-        normalize_optional_text(copied_label).unwrap_or_else(|| DEFAULT_COPIED_LABEL.to_string());
-    let aria_label = normalize_optional_text(aria_label).unwrap_or_else(|| label.clone());
+    let snippet_logic::SnippetTextContract {
+        copy_label,
+        copied_label,
+        ..
+    } = snippet_logic::resolve_text_contract(
+        label,
+        copied_label,
+        None,
+        None,
+        snippet_logic::SnippetTextFallbacks {
+            copy_label: Some(DEFAULT_COPY_LABEL.into()),
+            copied_label: Some(DEFAULT_COPIED_LABEL.into()),
+            copy_aria_label: None,
+            copy_error_label: None,
+        },
+    );
+    let aria_label = normalize_optional_text(aria_label).unwrap_or_else(|| copy_label.clone());
 
     ButtonCopyTextContract {
-        label,
+        label: copy_label,
         copied_label,
         aria_label,
     }
@@ -192,6 +207,7 @@ pub fn resolve_view_state(
         is_disabled: state.is_disabled,
         is_enabled: state.is_enabled,
         has_text: state.has_text,
+        state_attr: state.state_attr,
         mode,
         mode_attr: mode.as_attr(),
         shows_text: mode.shows_text(),
@@ -243,6 +259,14 @@ pub fn resolve_agent_output_status(
     } else {
         ButtonCopyAgentOutputStatus::Idle
     }
+}
+
+pub fn resolve_agent_output_status_attr(
+    is_copying: bool,
+    has_copy_error: bool,
+    copied: bool,
+) -> &'static str {
+    resolve_agent_output_status(is_copying, has_copy_error, copied).as_str()
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: ButtonCopyViewState) -> String {
@@ -429,6 +453,7 @@ mod tests {
         assert!(!state.is_disabled);
         assert!(state.is_enabled);
         assert!(state.has_text);
+        assert_eq!(state.state_attr, "copyable");
         assert_eq!(state.mode_attr, "icon-and-text");
         assert!(state.shows_text);
         assert!(state.shows_icon);
@@ -533,6 +558,22 @@ mod tests {
         );
         assert_eq!(
             resolve_agent_output_status(false, false, false).as_str(),
+            "idle"
+        );
+        assert_eq!(
+            resolve_agent_output_status_attr(true, false, false),
+            "loading"
+        );
+        assert_eq!(
+            resolve_agent_output_status_attr(false, true, false),
+            "error"
+        );
+        assert_eq!(
+            resolve_agent_output_status_attr(false, false, true),
+            "copied"
+        );
+        assert_eq!(
+            resolve_agent_output_status_attr(false, false, false),
             "idle"
         );
     }

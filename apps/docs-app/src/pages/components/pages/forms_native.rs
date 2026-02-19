@@ -126,7 +126,7 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
 
         let mut lines = vec![
             "<NativeSelect".to_string(),
-            "  id_base=\"docs-native-select-workbench\".to_string()".to_string(),
+            "  id_base=\"docs-native-select-workbench\".into()".to_string(),
             "  options=vec![".to_string(),
             "    NativeSelectOption::new(\"system\", \"System\"),".to_string(),
             "    NativeSelectOption::new(\"manual\", \"Manual\"),".to_string(),
@@ -139,10 +139,10 @@ let selected: Signal<Option<usize>> = Signal::derive(move || selected_raw.get())
             format!("  size=NativeSelectSize::{size:?}"),
         ];
         if placeholder {
-            lines.push("  placeholder=\"Choose mode\".to_string()".to_string());
+            lines.push("  placeholder=\"Choose mode\".into()".to_string());
         }
         if custom_class {
-            lines.push("  class_name=\"docs-native-select-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-native-select-custom\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")

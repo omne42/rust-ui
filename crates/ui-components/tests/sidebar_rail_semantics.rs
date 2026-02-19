@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn sidebar_rail_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sidebar_rail/mod.rs");
+    let source = load_source("src/sidebar/rail/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn sidebar_rail_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sidebar_rail_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/sidebar_rail/mod.rs");
+    let module_source = load_source("src/sidebar/rail/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -36,8 +36,8 @@ fn sidebar_rail_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn sidebar_rail_uses_logic_state_model() {
-    let logic_source = load_source("src/sidebar_rail/logic.rs");
-    let view_source = load_source("src/sidebar_rail/view.rs");
+    let logic_source = load_source("src/sidebar/rail/logic.rs");
+    let view_source = load_source("src/sidebar/rail/view.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -69,7 +69,7 @@ fn sidebar_rail_uses_logic_state_model() {
 
 #[test]
 fn sidebar_rail_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/sidebar_rail/view.rs");
+    let source = load_source("src/sidebar/rail/view.rs");
 
     for needle in [
         "open: Option<Signal<bool>>",
@@ -87,7 +87,7 @@ fn sidebar_rail_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn sidebar_rail_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/sidebar_rail/view.rs");
+    let source = load_source("src/sidebar/rail/view.rs");
 
     for needle in [
         "data-slot=\"sidebar-rail\"",
@@ -109,7 +109,7 @@ fn sidebar_rail_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn sidebar_rail_styles_include_state_markers() {
-    let source = load_source("src/sidebar_rail/styles.rs");
+    let source = load_source("src/sidebar/rail/styles.rs");
 
     for needle in [
         ".ui-sidebar-rail {",

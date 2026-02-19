@@ -33,7 +33,7 @@ pub struct ColorLoupeState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -54,7 +54,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (aria_label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn position_bucket(value: f32) -> (&'static str, &'static str) {
@@ -167,7 +167,7 @@ mod tests {
     fn normalize_aria_label_uses_default_or_custom_values() {
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             normalize_aria_label(Some("  Accent loupe  ".to_string())),

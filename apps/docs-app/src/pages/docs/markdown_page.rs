@@ -11,7 +11,7 @@ pub fn MarkdownPage(markdown: &'static str) -> impl IntoView {
     #[cfg(target_arch = "wasm32")]
     let toc_ids = toc_items
         .iter()
-        .map(|item| item.id.to_string())
+        .map(|item| item.id.clone())
         .collect::<Vec<_>>();
 
     if let Some(toc) = crate::toc::use_docs_toc() {
@@ -62,8 +62,7 @@ pub fn MarkdownPage(markdown: &'static str) -> impl IntoView {
                         }
 
                         let anchor = r#"<button type="button" class="docs-heading-anchor" aria-label="Link to section">#</button>"#;
-                        let _ = heading.insert_adjacent_html("afterbegin", anchor);
-                    }
+                        drop(heading.insert_adjacent_html("afterbegin", anchor));                    }
                 });
 
                 let element: leptos::web_sys::Element = div.unchecked_into();

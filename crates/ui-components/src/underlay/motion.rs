@@ -27,7 +27,7 @@ pub fn attach_motion(
     let motion = StoredValue::new(motion);
 
     Effect::new(move |_| {
-        let _ = is_open.get();
+        std::hint::black_box(is_open.get());
         let Some(node) = node_ref.get() else {
             return;
         };
@@ -38,13 +38,13 @@ pub fn attach_motion(
             !motion.get_value().enabled || ui_motion::web::prefers_reduced_motion();
 
         if disable_motion {
-            let _ = style.set_property("--ui-underlay-runtime-duration", "1ms");
-            let _ = style.set_property("--ui-underlay-runtime-visibility-duration", "1ms");
+            drop(style.set_property("--ui-underlay-runtime-duration", "1ms"));
+            drop(style.set_property("--ui-underlay-runtime-visibility-duration", "1ms"));
             return;
         }
 
-        let _ = style.remove_property("--ui-underlay-runtime-duration");
-        let _ = style.remove_property("--ui-underlay-runtime-visibility-duration");
+        drop(style.remove_property("--ui-underlay-runtime-duration"));
+        drop(style.remove_property("--ui-underlay-runtime-visibility-duration"));
     });
 }
 

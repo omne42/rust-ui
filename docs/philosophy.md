@@ -626,6 +626,7 @@ E2E 基线要求：
 - 是否暴露了必要语义标记？
 - 是否覆盖 reduced-motion / SSR / wasm 分支？
 - 文档与示例是否同步更新？
+- 是否执行死命令 `./scripts/check-rust-hygiene.sh` 并通过（非测试代码禁 `unwrap/expect`、禁 `let _ =`、字符串克隆热点收敛到 `Cow<'static, str>`）？
 - 门禁是否完整通过？
 
 ## 8.3 明确禁止的反模式

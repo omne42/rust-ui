@@ -69,7 +69,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-search-input-button__placeholder {
-  font-size: 12px;
+  font-size: var(--ui-font-size-100, 12px);
+  line-height: var(--ui-line-height-100, 1rem);
   color: var(--ui-search-input-button-placeholder-color);
   white-space: nowrap;
 }
@@ -99,7 +100,7 @@ pub const CSS: &str = r#"
   padding: 2px 6px;
   font-size: 10px;
   font-weight: 600;
-  line-height: 1;
+  line-height: var(--ui-line-height-100, 1rem);
   color: var(--ui-fg-muted);
 }
 

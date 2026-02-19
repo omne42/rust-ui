@@ -48,7 +48,7 @@ pub fn Breadcrumbs(
             data-has-items=state.has_items.then_some("true")
             data-has-links=state.has_links.then_some("true")
             data-has-current-page=state.has_current_page.then_some("true")
-            data-count=state.item_count.to_string()
+            data-count=state.item_count
         >
             <ol class="ui-breadcrumbs__list" data-slot="breadcrumbs-list">
                 {items

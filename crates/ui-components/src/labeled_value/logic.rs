@@ -7,8 +7,8 @@ pub use ui_state_primitives::labeled_value::{
 pub fn compose_class_name(base_class_name: Option<String>, state: LabeledValueState) -> String {
     let mut classes = vec![
         "ui-labeled-value".to_string(),
-        state.orientation_class.to_string(),
-        state.tone_class.to_string(),
+        state.orientation_class.into(),
+        state.tone_class.into(),
     ];
 
     if state.has_description {

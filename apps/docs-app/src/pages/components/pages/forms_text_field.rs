@@ -10,33 +10,33 @@ pub(super) fn text_field() -> AnyView {
     let (marker_disabled, set_marker_disabled) = signal(false);
 
     let code = Signal::derive(move || {
-        r#"<TextField id=\"name\".to_string()
-  label=\"Name\".to_string()
-  placeholder=\"Jane\".to_string()
+        r#"<TextField id=\"name\".into()
+  label=\"Name\".into()
+  placeholder=\"Jane\".into()
 />"#
         .to_string()
     });
 
     let markers_code = Signal::derive(move || {
-        r#"let (marker_value, set_marker_value) = signal(\"release@omne.rs\".to_string());
+        r#"let (marker_value, set_marker_value) = signal(\"release@omne.rs\".into());
 let (marker_invalid, set_marker_invalid) = signal(false);
 let (marker_read_only, set_marker_read_only) = signal(false);
 let (marker_disabled, set_marker_disabled) = signal(false);
 
 <TextField
-  id=\"docs-text-field-markers\".to_string()
-  label=\"Email\".to_string()
+  id=\"docs-text-field-markers\".into()
+  label=\"Email\".into()
   value=marker_value
   on_value_change=Callback::new(move |next| set_marker_value.set(next))
   is_disabled=marker_disabled.get()
   is_required=Signal::derive(|| true)
   is_invalid=Signal::derive(move || marker_invalid.get())
   is_read_only=marker_read_only.get()
-  description=\"Inspect source/state marker contracts\".to_string()
-  error=\"Email is required\".to_string()
-  placeholder=\"release@omne.rs\".to_string()
+  description=\"Inspect source/state marker contracts\".into()
+  error=\"Email is required\".into()
+  placeholder=\"release@omne.rs\".into()
   input_type=\"email\"
-  class_name=\"docs-text-field-state\".to_string()
+  class_name=\"docs-text-field-state\".into()
 />"#
         .to_string()
     });
@@ -135,7 +135,7 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     </li>
                     <li>
                         <code>"label: String"</code>
-                        " default fallback = ui_components::text_field::DEFAULT_LABEL"
+                        " default fallback = ui_components::text_input::text_field::DEFAULT_LABEL"
                     </li>
                     <li>
                         <code>"value + on_value_change + default_value"</code>
@@ -181,7 +181,7 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     </li>
                     <li>
                         <code>"data-default-value-source / data-value-change-source"</code>
-                        " = default | custom and on_value_change | set_value | none"
+                        " = default | custom and on_value_change | none"
                     </li>
                     <li>
                         <code>"data-label-source / data-description-source / data-error-source / data-placeholder-source / data-type-source / data-class-source"</code>
@@ -200,17 +200,17 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<TextField\n  id=\"email\".to_string()\n  label=\"Email\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<TextField\n  id=\"email\".into()\n  label=\"Email\".into()\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-text-field-source-copy".to_string()
                 />
                 <ul data-slot="text-field-source-paths">
-                    <li><code>"crates/ui-components/src/text_field/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_field/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_field/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_field/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_field/motion.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/text_field/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/text_field/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/text_field/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/text_field/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/text_field/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="text-field-source-prerequisites">
                     <li><code>"component-text_field"</code></li>

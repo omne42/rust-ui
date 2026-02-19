@@ -58,7 +58,7 @@ mod tests {
     use crate::roving_tabindex::RovingOrientation;
 
     fn init_executor() {
-        let _ = any_spawner::Executor::init_futures_executor();
+        drop(any_spawner::Executor::init_futures_executor());
     }
 
     fn poll_effects() {

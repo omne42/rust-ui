@@ -43,7 +43,7 @@ fn link_uses_logic_state_model() {
 
     for needle in [
         "let href = logic::normalize_href(href);",
-        "let (is_disabled, disabled_source) = logic::normalize_is_disabled(is_disabled, disabled);",
+        "let (is_disabled, disabled_source) = logic::normalize_is_disabled(is_disabled);",
         "let rel = logic::normalize_optional_text(rel);",
         "let aria_label = logic::normalize_optional_text(aria_label);",
         "let class_name = logic::normalize_optional_text(class_name);",
@@ -180,7 +180,6 @@ fn link_docs_playgrounds_lock_state_matrix_contract_values() {
         "<Link href=\"#/docs/welcome\".to_string()>\"Internal docs link\"</Link>",
         "<Link href=\"https://example.com\".to_string() target=\"_blank\">",
         "<Link href=\"#/docs/welcome\".to_string() is_disabled=true>",
-        "<Link href=\"#/docs/welcome\".to_string() disabled=true>",
         "<Link href=\"   \".to_string()>\"Missing href\"</Link>",
         "Some(\"sponsored\".to_string())",
         "\"docs-link-custom\".to_string()",

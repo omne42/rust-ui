@@ -7,7 +7,7 @@ pub fn Switch(
     checked: ReadSignal<bool>,
     set_checked: WriteSignal<bool>,
     #[prop(optional)] disabled: bool,
-    #[prop(optional)] on_change: Option<Callback<bool>>,
+    #[prop(optional)] on_checked_change: Option<Callback<bool>>,
     #[prop(optional, default = motion::default_pressed_width_px())] pressed_width_px: f64,
     #[prop(optional)] motion: SwitchMotion,
     #[prop(optional, into)] class_name: Option<String>,
@@ -18,8 +18,8 @@ pub fn Switch(
     let toggle: OnPress = Callback::new(move |_| {
         let next = !checked.get_untracked();
         set_checked.set(next);
-        if let Some(on_change) = on_change {
-            on_change.run(next);
+        if let Some(on_checked_change) = on_checked_change {
+            on_checked_change.run(next);
         }
     });
 

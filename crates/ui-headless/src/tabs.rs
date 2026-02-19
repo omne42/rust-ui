@@ -36,7 +36,7 @@ pub fn tabs_list_a11y_attrs(
     let locale = locale_attrs(lang, dir);
     let aria_label = aria_label.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     });
 
     TabsListA11yAttrs {

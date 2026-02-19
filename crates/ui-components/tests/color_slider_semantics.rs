@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn color_slider_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_slider/mod.rs");
+    let source = load_source("src/color/slider/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,9 +26,9 @@ fn color_slider_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_slider_uses_logic_state_model() {
-    let logic_source = load_source("src/color_slider/logic.rs");
-    let motion_source = load_source("src/color_slider/motion.rs");
-    let view_source = load_source("src/color_slider/view.rs");
+    let logic_source = load_source("src/color/slider/logic.rs");
+    let motion_source = load_source("src/color/slider/motion.rs");
+    let view_source = load_source("src/color/slider/view.rs");
 
     for needle in [
         "pub enum ColorSliderChannel",
@@ -80,9 +80,9 @@ fn color_slider_uses_logic_state_model() {
 
 #[test]
 fn color_slider_feature_dependencies_are_self_contained() {
-    let mod_source = load_source("src/color_slider/mod.rs");
-    let logic_source = load_source("src/color_slider/logic.rs");
-    let view_source = load_source("src/color_slider/view.rs");
+    let mod_source = load_source("src/color/slider/mod.rs");
+    let logic_source = load_source("src/color/slider/logic.rs");
+    let view_source = load_source("src/color/slider/view.rs");
 
     for forbidden in ["crate::slider::", "crate::slider ", "crate::color_swatch::"] {
         assert!(
@@ -102,7 +102,7 @@ fn color_slider_feature_dependencies_are_self_contained() {
 
 #[test]
 fn color_slider_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color_slider/view.rs");
+    let source = load_source("src/color/slider/view.rs");
 
     for attr in [
         "data-slot=\"color-slider\"",
@@ -143,7 +143,7 @@ fn color_slider_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_slider_styles_include_channel_and_custom_contracts() {
-    let source = load_source("src/color_slider/styles.rs");
+    let source = load_source("src/color/slider/styles.rs");
 
     for selector in [
         ".ui-color-slider",
@@ -213,7 +213,7 @@ fn color_slider_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn color_slider_readme_is_copy_paste_ready() {
-    let source = load_source("src/color_slider/README.md");
+    let source = load_source("src/color/slider/README.md");
 
     for needle in [
         "# ColorSlider",

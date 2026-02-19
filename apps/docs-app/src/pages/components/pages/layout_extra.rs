@@ -28,11 +28,13 @@ pub(super) const SCROLL_AREA_DOC: ComponentDoc = ComponentDoc {
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
+    Sidebar, SidebarCollapsible, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuSubItem,
+    SidebarSide, SidebarVariant, Snippet,
+};
+use ui_layout::{
     AspectRatio, AspectRatioPreset, AspectRatioRadius, Grid, GridAlign, GridColumns, GridGap,
     GridJustify, GridRows, Resizable, ResizableOrientation, ScrollArea, ScrollAreaOrientation,
-    Sidebar, SidebarCollapsible, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuSubItem,
-    SidebarSide, SidebarVariant, Snippet, View, ViewBackground, ViewBorder, ViewPadding,
-    ViewRadius,
+    View, ViewBackground, ViewBorder, ViewPadding, ViewRadius,
 };
 
 pub(super) fn aspect_ratio() -> AnyView {
@@ -102,22 +104,22 @@ pub(super) fn aspect_ratio() -> AnyView {
         format!(
             "<AspectRatio\n  ratio=AspectRatioPreset::{ratio:?}\n  radius=AspectRatioRadius::{radius:?}\n  bordered={bordered}\n  fill={fill}\n  aria_label={}\n  class_name={}\n>\n  <View background=ViewBackground::Accent border=ViewBorder::None padding=ViewPadding::Sm radius=ViewRadius::None>\n    \"Workbench preview\"\n  </View>\n</AspectRatio>",
             if custom_aria {
-                "\"Workbench media region\".to_string()"
+                "\"Workbench media region\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             },
             if custom_class {
-                "\"docs-aspect-ratio-custom\".to_string()"
+                "\"docs-aspect-ratio-custom\".into()"
             } else {
-                "\"\".to_string()"
+                "\"\".into()"
             }
         )
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/aspect_ratio/styles.rs */\n{}",
-            ui_components::aspect_ratio::styles::CSS
+            "/* crates/ui-layout/src/aspect_ratio/styles.rs */\n{}",
+            ui_layout::aspect_ratio::styles::CSS
         )
     });
 
@@ -131,8 +133,8 @@ pub(super) fn aspect_ratio() -> AnyView {
 
         let mut classes = vec![
             "ui-aspect-ratio".to_string(),
-            ratio.class_name().to_string(),
-            radius.class_name().to_string(),
+            ratio.class_name().into(),
+            radius.class_name().into(),
         ];
         if bordered {
             classes.push("ui-aspect-ratio--bordered".to_string());
@@ -235,7 +237,7 @@ pub(super) fn aspect_ratio() -> AnyView {
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/aspect_ratio/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-layout/src/aspect_ratio/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="展示区对比 default/workbench 两组；Config 调参，Code 查看当前调用，CSS Test 验证样式契约。"
                 controls=move || view! {
@@ -543,8 +545,7 @@ pub(super) fn scroll_area() -> AnyView {
       })
       .collect_view()}
   </div>
-</ScrollArea>"#
-            .to_string()
+</ScrollArea>"#.to_string()
     });
 
     let marker_code = Signal::derive(move || {
@@ -568,8 +569,7 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
       })
       .collect_view()}
   </div>
-</ScrollArea>"#
-            .to_string()
+</ScrollArea>"#.to_string()
     });
 
     view! {
@@ -832,17 +832,17 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{ScrollArea, ScrollAreaOrientation};\n\n<ScrollArea\n  orientation=ScrollAreaOrientation::Vertical\n  max_height_px=180\n  aria_label=\"Release feed\".to_string()\n>\n  <div class=\"docs-stack docs-stack--tight\">\n    <div>\"Release note 1\"</div>\n    <div>\"Release note 2\"</div>\n  </div>\n</ScrollArea>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_layout::{ScrollArea, ScrollAreaOrientation};\n\n<ScrollArea\n  orientation=ScrollAreaOrientation::Vertical\n  max_height_px=180\n  aria_label=\"Release feed\".into()\n>\n  <div class=\"docs-stack docs-stack--tight\">\n    <div>\"Release note 1\"</div>\n    <div>\"Release note 2\"</div>\n  </div>\n</ScrollArea>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-scroll-area-source-copy".to_string()
                 />
                 <ul data-slot="scroll-area-source-paths">
-                    <li><code>"crates/ui-components/src/scroll_area/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/scroll_area/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/scroll_area/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/scroll_area/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/scroll_area/motion.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/scroll_area/mod.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/scroll_area/logic.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/scroll_area/view.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/scroll_area/styles.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/scroll_area/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="scroll-area-source-prerequisites">
                     <li><code>"component-scroll_area"</code></li>
@@ -862,12 +862,12 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                         " default = None (no custom max-height marker)"
                     </li>
                     <li>
-                        <code>"is_disabled: Option<bool> + disabled: bool"</code>
-                        " `is_disabled` has priority; `disabled` is legacy compatibility path"
+                        <code>"is_disabled: Option<bool>"</code>
+                        " None -> default(false), Some(v) -> is-prop"
                     </li>
                     <li>
                         <code>"aria_label: Option<String>"</code>
-                        " fallback = ui_components::scroll_area::DEFAULT_ARIA_LABEL"
+                        " fallback = ui_layout::scroll_area::DEFAULT_ARIA_LABEL"
                     </li>
                     <li>
                         <code>"class_name / lang / dir / motion"</code>
@@ -889,7 +889,7 @@ let (marker_has_custom_aria, set_marker_has_custom_aria) = signal(false);
                     </li>
                     <li>
                         <code>"data-disabled / data-disabled-source"</code>
-                        " = true? and is-prop | legacy-prop source provenance"
+                        " = true? and is-prop | default source provenance"
                     </li>
                     <li>
                         <code>"data-max-height / data-aria-source / data-class-source / data-custom-class"</code>
@@ -1104,17 +1104,17 @@ let split: Signal<f64> = Signal::derive(move || split_raw.get());
                     "."
                 </p>
                 <Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::{Resizable, ResizableOrientation};\n\n<Resizable\n  orientation=ResizableOrientation::Horizontal\n  default_value=40.0\n  first=move || view! { <div>\"Left\"</div> }\n  second=move || view! { <div>\"Right\"</div> }\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_layout::{Resizable, ResizableOrientation};\n\n<Resizable\n  orientation=ResizableOrientation::Horizontal\n  default_value=40.0\n  first=move || view! { <div>\"Left\"</div> }\n  second=move || view! { <div>\"Right\"</div> }\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-resizable-source-copy".to_string()
                 />
                 <ul data-slot="resizable-source-paths">
-                    <li><code>"crates/ui-components/src/resizable/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/resizable/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/resizable/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/resizable/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/resizable/motion.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/resizable/mod.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/resizable/logic.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/resizable/view.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/resizable/styles.rs"</code></li>
+                    <li><code>"crates/ui-layout/src/resizable/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="resizable-source-prerequisites">
                     <li><code>"component-resizable"</code></li>
@@ -1493,8 +1493,7 @@ let (last_item_action, set_last_item_action) = signal("none".to_string());
   on_action=Callback::new(move |id: String| set_last_action.set(id))
   on_item_action=Callback::new(move |id: String| set_last_item_action.set(id))
 />
-<span class="ui-muted">"Action: " {move || last_action.get()} " · Item action: " {move || last_item_action.get()}</span>"#
-        .to_string()
+<span class="ui-muted">"Action: " {move || last_action.get()} " · Item action: " {move || last_item_action.get()}</span>"#.to_string()
     });
 
     let controlled_code = Signal::derive(move || {
@@ -1547,8 +1546,7 @@ let (last_item_action, set_last_item_action) = signal("none".to_string());
   show_badges=false
   show_actions=true
 />
-<span class="ui-muted">"active: " {move || active_raw.get().unwrap_or_else(|| "none".to_string())}</span>"#
-        .to_string()
+<span class="ui-muted">"active: " {move || active_raw.get().unwrap_or_else(|| "none".to_string())}</span>"#.to_string()
     });
 
     view! {

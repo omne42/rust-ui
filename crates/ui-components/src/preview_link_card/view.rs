@@ -152,7 +152,7 @@ pub fn PreviewLinkCard(
     #[cfg(target_arch = "wasm32")]
     on_cleanup(move || {
         if let Some(target) = focus_target.get_value() {
-            let _ = target.remove_attribute("aria-describedby");
+            drop(target.remove_attribute("aria-describedby"));
         }
     });
 
@@ -165,9 +165,9 @@ pub fn PreviewLinkCard(
 
         let id = id.with_value(|id| id.clone());
         if is_open {
-            let _ = target.set_attribute("aria-describedby", &id);
+            drop(target.set_attribute("aria-describedby", &id));
         } else {
-            let _ = target.remove_attribute("aria-describedby");
+            drop(target.remove_attribute("aria-describedby"));
         }
     });
 
@@ -179,7 +179,7 @@ pub fn PreviewLinkCard(
             use leptos::wasm_bindgen::JsCast;
 
             if let Some(target) = focus_target.get_value() {
-                let _ = target.remove_attribute("aria-describedby");
+                drop(target.remove_attribute("aria-describedby"));
             }
 
             let Some(target) = _ev.target() else {
@@ -194,7 +194,7 @@ pub fn PreviewLinkCard(
 
             if open_signal.get_untracked() {
                 let id = id.with_value(|id| id.clone());
-                let _ = target.set_attribute("aria-describedby", &id);
+                drop(target.set_attribute("aria-describedby", &id));
             }
 
             focus_target.set_value(Some(target));
@@ -207,7 +207,7 @@ pub fn PreviewLinkCard(
         #[cfg(target_arch = "wasm32")]
         {
             if let Some(target) = focus_target.get_value() {
-                let _ = target.remove_attribute("aria-describedby");
+                drop(target.remove_attribute("aria-describedby"));
             }
             focus_target.set_value(None);
         }

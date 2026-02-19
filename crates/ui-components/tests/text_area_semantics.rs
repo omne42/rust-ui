@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn text_area_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/text_area/mod.rs");
+    let source = load_source("src/text_input/text_area/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn text_area_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn text_area_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/text_area/mod.rs");
+    let module_source = load_source("src/text_input/text_area/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -33,14 +33,14 @@ fn text_area_is_exported_from_module_and_crate_root() {
         "text_area module should export `TextAreaMotion`.",
     );
     assert!(
-        crate_source.contains("pub use text_area::TextArea;"),
+        crate_source.contains("pub use text_input::text_area::TextArea;"),
         "crate root should re-export `TextArea`.",
     );
 }
 
 #[test]
 fn text_area_logic_exposes_state_helpers() {
-    let logic_source = load_source("src/text_area/logic.rs");
+    let logic_source = load_source("src/text_input/text_area/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/text_area.rs");
 
     for needle in [
@@ -77,7 +77,7 @@ fn text_area_logic_exposes_state_helpers() {
 
 #[test]
 fn text_area_view_uses_logic_state_and_a11y_contracts() {
-    let source = load_source("src/text_area/view.rs");
+    let source = load_source("src/text_input/text_area/view.rs");
 
     for needle in [
         "use_focus_ring",
@@ -124,7 +124,7 @@ fn text_area_view_uses_logic_state_and_a11y_contracts() {
 
 #[test]
 fn text_area_styles_include_state_source_and_reduced_motion_markers() {
-    let source = load_source("src/text_area/styles.rs");
+    let source = load_source("src/text_input/text_area/styles.rs");
 
     for selector in [
         ".ui-text-area[data-state=\"disabled\"]",
@@ -135,7 +135,6 @@ fn text_area_styles_include_state_source_and_reduced_motion_markers() {
         ".ui-text-area[data-value-control-mode=\"controlled\"]",
         ".ui-text-area[data-default-value-source=\"custom\"]",
         ".ui-text-area[data-value-change-source=\"on_value_change\"]",
-        ".ui-text-area[data-value-change-source=\"set_value\"]",
         ".ui-text-area[data-label-source=\"custom\"]",
         ".ui-text-area[data-description-source=\"custom\"]",
         ".ui-text-area[data-error-source=\"custom\"]",
@@ -160,7 +159,7 @@ fn text_area_css_is_aggregated() {
     let source = load_source("src/css.rs");
 
     assert!(
-        source.contains("out.push_str(crate::text_area::styles::CSS);"),
+        source.contains("out.push_str(crate::text_input::text_area::styles::CSS);"),
         "ui-components css aggregator should include text_area styles.",
     );
 }
@@ -211,7 +210,7 @@ fn text_area_docs_state_source_playground_locks_contract_values() {
 
 #[test]
 fn text_area_motion_module_uses_token_backed_contract() {
-    let source = load_source("src/text_area/motion.rs");
+    let source = load_source("src/text_input/text_area/motion.rs");
 
     for needle in [
         "pub struct TextAreaMotion",

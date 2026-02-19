@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::color_handle::ColorHandleMotion;
+use ui_components::color::handle::ColorHandleMotion;
 use ui_components::{
     ColorArea, ColorEditor, ColorEditorFormat, ColorField, ColorHandle, ColorLoupe, ColorPicker,
     ColorSlider, ColorSliderChannel, ColorSliderMotion, ColorSwatchPicker, ColorSwatchPickerItem,
@@ -127,7 +127,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
   default_value=(0.25, 0.85)
   grid_size=15
   step=0.05
-  disabled=true
+  is_disabled=true
   class_name="docs-color-area-custom".to_string()
 />"##
             .to_string()
@@ -161,7 +161,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
         let show_preview = show_preview.get();
 
         format!(
-            "<ColorArea\n  id_base=\"docs-color-area-workbench\".to_string()\n  label=\"Color workbench\".to_string()\n  default_value=({:.2}, {:.2})\n  grid_size={}\n  step={:.2}\n  is_disabled={}\n  preview_color=\"{}\".to_string()\n  x_axis_label=\"{}\".to_string()\n  y_axis_label=\"{}\".to_string()\n  class_name=\"{}\".to_string()\n/>",
+            "<ColorArea\n  id_base=\"docs-color-area-workbench\".into()\n  label=\"Color workbench\".into()\n  default_value=({:.2}, {:.2})\n  grid_size={}\n  step={:.2}\n  is_disabled={}\n  preview_color=\"{}\".into()\n  x_axis_label=\"{}\".into()\n  y_axis_label=\"{}\".into()\n  class_name=\"{}\".into()\n/>",
             default_value.0,
             default_value.1,
             grid_size,
@@ -230,8 +230,8 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color_area/styles.rs */\n{}",
-            ui_components::color_area::styles::CSS
+            "/* crates/ui-components/src/color/area/styles.rs */\n{}",
+            ui_components::color::area::styles::CSS
         )
     });
 
@@ -278,7 +278,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
                 description="展示 / Config / Code / CSS Test 集成工作台（含可调主样例 + 固定对照样例）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/color_area/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/color/area/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -958,17 +958,14 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
         };
 
         let mut lines = vec![
-            "let (selected_color, set_selected_color) = signal(Some(\"#4f46e5\".to_string()));"
-                .to_string(),
-            "let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));"
-                .to_string(),
+            "let (selected_color, set_selected_color) = signal(Some(\"#4f46e5\".into()));".to_string(),
+            "let on_selected_change = Callback::new(move |next: Option<String>| set_selected_color.set(next));".to_string(),
             String::new(),
             format!("let (format, set_format) = signal({format_literal});"),
-            "let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.set(next));"
-                .to_string(),
+            "let on_format_change = Callback::new(move |next: ColorEditorFormat| set_format.set(next));".to_string(),
             String::new(),
             "<ColorEditor".to_string(),
-            "  id_base=\"docs-color-editor-workbench\".to_string()".to_string(),
+            "  id_base=\"docs-color-editor-workbench\".into()".to_string(),
             "  selected_color=selected_color.into()".to_string(),
             "  on_selected_change=on_selected_change".to_string(),
             "  format=format.into()".to_string(),
@@ -976,7 +973,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
         ];
 
         if workbench_custom_label.get() {
-            lines.push("  label=\"Brand color workspace\".to_string()".to_string());
+            lines.push("  label=\"Brand color workspace\".into()".to_string());
         }
         if workbench_disabled.get() {
             lines.push("  disabled=true".to_string());
@@ -985,7 +982,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
             lines.push("  hide_alpha_channel=true".to_string());
         }
         if workbench_custom_class.get() {
-            lines.push("  class_name=\"docs-color-editor-workbench\".to_string()".to_string());
+            lines.push("  class_name=\"docs-color-editor-workbench\".into()".to_string());
         }
         if workbench_reduced_motion.get() {
             lines.push("  motion=ColorSliderMotion::disabled()".to_string());
@@ -997,8 +994,8 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color_editor/styles.rs */\n{}",
-            ui_components::color_editor::styles::CSS
+            "/* crates/ui-components/src/color/editor/styles.rs */\n{}",
+            ui_components::color::editor::styles::CSS
         )
     });
 
@@ -1023,10 +1020,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
         let data_label_source = if custom_label { "custom" } else { "default" };
         let data_class_source = if custom_class { "custom" } else { "default" };
 
-        let mut classes = vec![
-            "ui-color-editor".to_string(),
-            format.class_name().to_string(),
-        ];
+        let mut classes = vec!["ui-color-editor".to_string(), format.class_name().into()];
         if disabled {
             classes.push("ui-color-editor--disabled".to_string());
         }
@@ -1056,7 +1050,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color_editor/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color/editor/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1270,12 +1264,12 @@ pub(super) fn color_handle() -> AnyView {
             _ => "#f59e0b",
         };
         let class_name_line = if workbench_custom_class.get() {
-            "  class_name=\"docs-color-handle-custom\".to_string()\n".to_string()
+            "  class_name=\"docs-color-handle-custom\".into()\n".to_string()
         } else {
             String::new()
         };
         format!(
-            "<ColorHandle\n  id_base=\"docs-color-handle-workbench\".to_string()\n  color=\"{color}\".to_string()\n  x_percent={:.1}\n  y_percent={:.1}\n  disabled={}\n  focused={}\n  dragging={}\n  show_loupe={}\n  motion=ColorHandleMotion {{ duration_ms: {} }}\n{class_name_line}/>",
+            "<ColorHandle\n  id_base=\"docs-color-handle-workbench\".into()\n  color=\"{color}\".into()\n  x_percent={:.1}\n  y_percent={:.1}\n  disabled={}\n  focused={}\n  dragging={}\n  show_loupe={}\n  motion=ColorHandleMotion {{ duration_ms: {} }}\n{class_name_line}/>",
             workbench_x_percent.get(),
             workbench_y_percent.get(),
             workbench_disabled.get(),
@@ -1288,8 +1282,8 @@ pub(super) fn color_handle() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color_handle/styles.rs */\n{}",
-            ui_components::color_handle::styles::CSS
+            "/* crates/ui-components/src/color/handle/styles.rs */\n{}",
+            ui_components::color::handle::styles::CSS
         )
     });
 
@@ -1390,7 +1384,7 @@ pub(super) fn color_handle() -> AnyView {
                 description="Button-style playground with interactive config, copy-ready code, and scoped CSS test panel."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color_handle/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color/handle/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="color-handle-workbench-controls">
@@ -1646,7 +1640,7 @@ pub(super) fn color_loupe() -> AnyView {
         };
 
         format!(
-            "<ColorLoupe\n  id_base=\"docs-color-loupe-workbench\".to_string()\n  color=\"{color}\".to_string() // {color_label}\n  open={open}\n  disabled={disabled}\n  x_percent={x_percent}\n  y_percent={y_percent} // {position_label}\n  aria_label=\"{aria_label}\".to_string()\n  class_name=\"{class_name}\".to_string()\n/>"
+            "<ColorLoupe\n  id_base=\"docs-color-loupe-workbench\".into()\n  color=\"{color}\".into() // {color_label}\n  open={open}\n  disabled={disabled}\n  x_percent={x_percent}\n  y_percent={y_percent} // {position_label}\n  aria_label=\"{aria_label}\".into()\n  class_name=\"{class_name}\".into()\n/>"
         )
     });
 
@@ -1737,7 +1731,7 @@ pub(super) fn color_loupe() -> AnyView {
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
-                test_source_path="crates/ui-components/src/color_loupe/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/color/loupe/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

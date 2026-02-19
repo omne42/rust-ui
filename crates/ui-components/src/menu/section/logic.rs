@@ -28,7 +28,7 @@ impl MenuSectionHeadingTone {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -37,7 +37,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: MenuSectionStateInput) -> MenuSectionState {
@@ -89,7 +89,7 @@ pub fn resolve_state(input: MenuSectionStateInput) -> MenuSectionState {
 pub fn compose_class_name(base_class_name: Option<String>, state: MenuSectionState) -> String {
     let mut classes = vec![
         "ui-menu-section".to_string(),
-        state.heading_tone_class.to_string(),
+        state.heading_tone_class.into(),
     ];
 
     if state.has_title {
@@ -155,7 +155,7 @@ mod tests {
         );
         assert_eq!(
             normalize_aria_label(Some("".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
     }
 

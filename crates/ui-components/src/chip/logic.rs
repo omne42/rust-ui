@@ -6,10 +6,10 @@ pub use ui_state_primitives::chip::{
 pub fn compose_class_name(base_class_name: Option<String>, state: ChipState) -> String {
     let mut classes = vec![
         "ui-chip".to_string(),
-        state.variant_class.to_string(),
-        state.size_class.to_string(),
-        state.state_class.to_string(),
-        state.dismiss_label_source_class.to_string(),
+        state.variant_class.into(),
+        state.size_class.into(),
+        state.state_class.into(),
+        state.dismiss_label_source_class.into(),
     ];
 
     if state.is_enabled {

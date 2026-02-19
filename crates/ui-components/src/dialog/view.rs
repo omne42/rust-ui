@@ -1,7 +1,6 @@
 use crate::OnPress;
-use crate::button::{ButtonSize, ButtonVariant};
+use crate::button::{Button, ButtonSize, ButtonVariant};
 use crate::dialog::{DialogMotion, DialogPartStateInput, DialogSize, DialogSlot, logic};
-use crate::icon_button::IconButton;
 use crate::overlay::Overlay;
 use leptos::children::ViewFn;
 use leptos::prelude::*;
@@ -220,10 +219,11 @@ pub fn Dialog(
                         data-close-button=close_state.close_button_attr
                         data-close-source=close_state.close_source_attr
                     >
-                        <IconButton
+                        <Button
                             aria_label=close_label
                             variant=ButtonVariant::Ghost
                             size=ButtonSize::IconSm
+                            is_icon_only=true
                             on_press=on_close.get_value()
                         >
                             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -235,7 +235,7 @@ pub fn Dialog(
                                     stroke_linejoin="round"
                                 />
                             </svg>
-                        </IconButton>
+                        </Button>
                     </span>
                 </Show>
 

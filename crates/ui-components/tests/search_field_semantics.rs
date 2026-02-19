@@ -27,7 +27,7 @@ fn search_field_clears_on_escape_when_not_empty() {
 
 #[test]
 fn search_field_escape_clear_stops_propagation() {
-    let source = load_source("src/search_field/view.rs");
+    let source = load_source("src/text_input/search_field/view.rs");
 
     assert!(
         source.contains("stop_propagation()"),
@@ -37,20 +37,22 @@ fn search_field_escape_clear_stops_propagation() {
 
 #[test]
 fn search_field_clear_button_is_excluded_from_tab_order() {
-    let source = load_source("src/search_field/view.rs");
+    let source = load_source("src/text_input/search_field/view.rs");
 
     assert!(
-        source.contains("tabindex=\"-1\""),
+        source.contains("exclude_from_tab_order=true"),
         "SearchField clear button should be excluded from tab order like UI Baseline."
     );
 }
 
 #[test]
 fn search_field_clear_button_is_presence_safe() {
-    let source = load_source("src/search_field/view.rs");
+    let source = load_source("src/text_input/search_field/view.rs");
 
     assert!(
-        source.contains("data-visible"),
+        source.contains(
+            "is_visible=Signal::derive(move || search_field_contract.state.can_clear.get())"
+        ),
         "SearchField should keep the clear button in the DOM and toggle visibility via data attributes."
     );
     assert!(
@@ -61,7 +63,7 @@ fn search_field_clear_button_is_presence_safe() {
 
 #[test]
 fn search_field_attaches_clear_motion_driver() {
-    let source = load_source("src/search_field/view.rs");
+    let source = load_source("src/text_input/search_field/view.rs");
 
     assert!(
         source.contains("attach_clear_motion"),
@@ -71,7 +73,7 @@ fn search_field_attaches_clear_motion_driver() {
 
 #[test]
 fn search_field_styles_define_clear_motion_css_vars() {
-    let source = load_source("src/search_field/styles.rs");
+    let source = load_source("src/text_input/search_field/styles.rs");
 
     assert!(
         source.contains("--ui-search-field-clear-opacity"),
@@ -85,7 +87,7 @@ fn search_field_styles_define_clear_motion_css_vars() {
 
 #[test]
 fn search_field_motion_uses_spring_animator() {
-    let source = load_source("src/search_field/motion.rs");
+    let source = load_source("src/text_input/search_field/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -95,7 +97,7 @@ fn search_field_motion_uses_spring_animator() {
 
 #[test]
 fn search_field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/search_field/view.rs");
+    let source = load_source("src/text_input/search_field/view.rs");
 
     for attr in [
         "data-state",
@@ -121,7 +123,7 @@ fn search_field_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn search_field_view_supports_locale_and_i18n_wiring() {
-    let source = load_source("src/search_field/view.rs");
+    let source = load_source("src/text_input/search_field/view.rs");
 
     for needle in [
         "use_ui_i18n",
@@ -140,7 +142,7 @@ fn search_field_view_supports_locale_and_i18n_wiring() {
 
 #[test]
 fn search_field_styles_respect_prefers_reduced_motion() {
-    let source = load_source("src/search_field/styles.rs");
+    let source = load_source("src/text_input/search_field/styles.rs");
 
     assert!(
         source.contains("prefers-reduced-motion: reduce"),
@@ -154,7 +156,7 @@ fn search_field_styles_respect_prefers_reduced_motion() {
 
 #[test]
 fn search_field_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/search_field/motion.rs");
+    let source = load_source("src/text_input/search_field/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: SearchFieldMotion) -> SearchFieldMotion",
@@ -229,8 +231,8 @@ fn search_field_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn search_field_agent_contract_schema_is_typed_traceable_and_whitelisted() {
-    let logic_source = load_source("src/search_field/logic.rs");
-    let view_source = load_source("src/search_field/view.rs");
+    let logic_source = load_source("src/text_input/search_field/logic.rs");
+    let view_source = load_source("src/text_input/search_field/view.rs");
 
     for needle in [
         "pub enum SearchFieldAgentSchemaVersion",
@@ -267,8 +269,8 @@ fn search_field_agent_contract_schema_is_typed_traceable_and_whitelisted() {
 
 #[test]
 fn search_field_streaming_policy_is_optional_with_snapshot_fallback() {
-    let readme_source = load_source("src/search_field/README.md");
-    let view_source = load_source("src/search_field/view.rs");
+    let readme_source = load_source("src/text_input/search_field/README.md");
+    let view_source = load_source("src/text_input/search_field/view.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms.rs");
 
     for needle in ["Snapshot", "Streaming Optional", "fallback=snapshot"] {
@@ -389,8 +391,8 @@ fn search_field_tree_shaking_and_feature_gate_contract_are_explicit() {
     let css_source = load_source("src/css.rs");
 
     for needle in [
-        "component-search_field = []",
-        "#[cfg(feature = \"component-search_field\")]\npub mod search_field;",
+        "component-search_field = [\"component-clear_button\"]",
+        "#[cfg(feature = \"component-search_field\")]\n#[path = \"text_input/search_field/mod.rs\"]\npub mod search_field;",
         "#[cfg(feature = \"component-search_field\")]\n    out.push_str(crate::search_field::styles::CSS);",
     ] {
         assert!(
@@ -405,9 +407,9 @@ fn search_field_tree_shaking_and_feature_gate_contract_are_explicit() {
 #[test]
 fn search_field_engineering_contract_is_runtime_agnostic_and_spec_free() {
     let cargo_source = load_source("Cargo.toml");
-    let logic_source = load_source("src/search_field/logic.rs");
-    let view_source = load_source("src/search_field/view.rs");
-    let motion_source = load_source("src/search_field/motion.rs");
+    let logic_source = load_source("src/text_input/search_field/logic.rs");
+    let view_source = load_source("src/text_input/search_field/view.rs");
+    let motion_source = load_source("src/text_input/search_field/motion.rs");
 
     assert!(
         !cargo_source.contains("search_field-wasm-debug"),
@@ -448,7 +450,7 @@ fn search_field_heroui_strategy_and_docs_entry_stay_in_sync() {
 
 #[test]
 fn search_field_checklist_has_no_unchecked_items() {
-    let checklist = load_source("src/search_field/check2.md");
+    let checklist = load_source("src/text_input/search_field/check2.md");
     assert!(
         !checklist.contains("- [ ]"),
         "SearchField checklist should be fully checked after scoped verification."

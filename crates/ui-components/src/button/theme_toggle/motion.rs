@@ -224,7 +224,7 @@ pub fn attach_motion(
     _mode: leptos::prelude::Signal<ThemeMode>,
     motion: ThemeToggleMotion,
 ) {
-    sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

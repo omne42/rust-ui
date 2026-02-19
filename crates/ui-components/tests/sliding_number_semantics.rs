@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn number_module_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/number/mod.rs");
+    let source = load_source("src/text_input/number/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn number_module_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sliding_number_uses_logic_state_model() {
-    let view_source = load_source("src/number/view.rs");
-    let logic_source = load_source("src/number/logic.rs");
+    let view_source = load_source("src/text_input/number/view.rs");
+    let logic_source = load_source("src/text_input/number/logic.rs");
 
     for needle in [
         "pub struct SlidingNumberStateInput",
@@ -61,7 +61,7 @@ fn sliding_number_uses_logic_state_model() {
 
 #[test]
 fn sliding_number_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/number/view.rs");
+    let source = load_source("src/text_input/number/view.rs");
 
     for attr in [
         "data-slot=\"sliding-number\"",
@@ -91,7 +91,7 @@ fn sliding_number_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn sliding_number_styles_include_sign_phase_and_source_contracts() {
-    let source = load_source("src/number/styles.rs");
+    let source = load_source("src/text_input/number/styles.rs");
 
     for selector in [
         ".ui-sliding-number--sign-negative",
@@ -119,7 +119,7 @@ fn sliding_number_styles_include_sign_phase_and_source_contracts() {
 
 #[test]
 fn sliding_number_motion_uses_spring_animator() {
-    let source = load_source("src/number/motion.rs");
+    let source = load_source("src/text_input/number/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -129,8 +129,8 @@ fn sliding_number_motion_uses_spring_animator() {
 
 #[test]
 fn sliding_number_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/number/motion.rs");
-    let view_source = load_source("src/number/view.rs");
+    let motion_source = load_source("src/text_input/number/motion.rs");
+    let view_source = load_source("src/text_input/number/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: SlidingNumberMotion) -> SlidingNumberMotion",
@@ -138,7 +138,7 @@ fn sliding_number_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_falls_back_for_invalid_values()",
         "let motion = sanitize_motion(motion);",
         "let motion = StoredValue::new(motion);",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),

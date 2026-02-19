@@ -242,14 +242,12 @@ impl TreeAgentOutputStatus {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TreeStreamMode {
     Snapshot,
-    Streaming,
 }
 
 impl TreeStreamMode {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::Snapshot => "snapshot",
-            Self::Streaming => "streaming",
         }
     }
 }
@@ -518,8 +516,8 @@ pub fn resolve_state(input: TreeStateInput) -> TreeState {
 pub fn compose_class_name(base_class_name: Option<String>, state: TreeState) -> String {
     let mut classes = vec![
         "ui-tree".to_string(),
-        state.tone_class.to_string(),
-        state.density_class.to_string(),
+        state.tone_class.into(),
+        state.density_class.into(),
     ];
 
     if state.is_disabled {
@@ -818,6 +816,5 @@ mod tests {
     #[test]
     fn tree_stream_mode_strings_are_stable() {
         assert_eq!(TreeStreamMode::Snapshot.as_str(), "snapshot");
-        assert_eq!(TreeStreamMode::Streaming.as_str(), "streaming");
     }
 }

@@ -180,13 +180,13 @@ pub fn normalize_id(id: String) -> IdState {
     let trimmed = id.trim();
     if trimmed.is_empty() {
         IdState {
-            id: DEFAULT_ID.to_string(),
+            id: DEFAULT_ID.into(),
             id_source_attr: "default",
             has_custom_id: false,
         }
     } else {
         IdState {
-            id: trimmed.to_string(),
+            id: trimmed.into(),
             id_source_attr: "custom",
             has_custom_id: true,
         }

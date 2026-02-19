@@ -25,7 +25,7 @@ pub fn TextAreaDemo() -> impl IntoView {
                     placeholder="Write something…".to_string()
                 />
                 <div class="demo-kv">
-                    "len: " {move || bio.get().len().to_string()}
+                    "len: " {move || bio.get().len()}
                 </div>
             </div>
         </section>

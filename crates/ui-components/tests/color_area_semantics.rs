@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn color_area_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_area/mod.rs");
+    let source = load_source("src/color/area/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,8 +26,8 @@ fn color_area_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_area_uses_state_primitives_headless_logic_layers() {
-    let logic_source = load_source("src/color_area/logic.rs");
-    let view_source = load_source("src/color_area/view.rs");
+    let logic_source = load_source("src/color/area/logic.rs");
+    let view_source = load_source("src/color/area/view.rs");
     let primitive_source = load_source("../ui-state-primitives/src/color_area.rs");
     let headless_source = load_source("../ui-headless/src/color_area.rs");
 
@@ -142,7 +142,7 @@ fn color_area_headless_and_primitives_are_exported_and_boundary_safe() {
 
 #[test]
 fn color_area_exposes_baseline_style_and_agent_data_markers() {
-    let source = load_source("src/color_area/view.rs");
+    let source = load_source("src/color/area/view.rs");
 
     for attr in [
         "const SLOT_COLOR_AREA: &str = \"color-area\";",
@@ -184,13 +184,12 @@ fn color_area_exposes_baseline_style_and_agent_data_markers() {
 
 #[test]
 fn color_area_api_naming_prefers_is_disabled_and_keeps_compatibility() {
-    let source = load_source("src/color_area/view.rs");
-    let logic_source = load_source("src/color_area/logic.rs");
+    let source = load_source("src/color/area/view.rs");
+    let logic_source = load_source("src/color/area/logic.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_color.rs");
 
     for needle in [
         "#[prop(optional)] is_disabled: Option<bool>",
-        "#[prop(optional)] disabled: bool",
         "ColorAreaDisableInput",
         "normalize_disable_state",
         "ColorAreaDisabledSourceAttr",
@@ -209,8 +208,8 @@ fn color_area_api_naming_prefers_is_disabled_and_keeps_compatibility() {
 
 #[test]
 fn color_area_default_value_and_state_normalization_are_centralized_in_logic() {
-    let source = load_source("src/color_area/view.rs");
-    let logic_source = load_source("src/color_area/logic.rs");
+    let source = load_source("src/color/area/view.rs");
+    let logic_source = load_source("src/color/area/logic.rs");
 
     for needle in [
         "pub fn normalize_default_value(default_value: Option<(f32, f32)>) -> (f32, f32)",
@@ -237,19 +236,19 @@ fn color_area_default_value_and_state_normalization_are_centralized_in_logic() {
 
 #[test]
 fn color_area_a11y_i18n_and_locale_are_headless_driven() {
-    let source = load_source("src/color_area/view.rs");
+    let source = load_source("src/color/area/view.rs");
     let i18n_source = load_source("../ui-headless/src/i18n/common.rs");
     let headless_source = load_source("../ui-headless/src/color_area.rs");
 
     for needle in [
         "use_ui_i18n",
         "CommonStrings",
-        "fallback_label: common.color_area_label.as_ref().to_string()",
-        "fallback_aria_label: common.color_area_aria_label.as_ref().to_string()",
-        "fallback_x_axis_label: common.color_area_x_axis_label.as_ref().to_string()",
-        "fallback_y_axis_label: common.color_area_y_axis_label.as_ref().to_string()",
+        "fallback_label: common.color_area_label.as_ref().into()",
+        "fallback_aria_label: common.color_area_aria_label.as_ref().into()",
+        "fallback_x_axis_label: common.color_area_x_axis_label.as_ref().into()",
+        "fallback_y_axis_label: common.color_area_y_axis_label.as_ref().into()",
         "#[prop(optional, into)] lang: Option<String>",
-        "#[prop(optional)] dir: Option<crate::color_area::A11yDirection>",
+        "#[prop(optional)] dir: Option<crate::color::area::A11yDirection>",
     ] {
         assert!(
             source.contains(needle),
@@ -281,8 +280,8 @@ fn color_area_a11y_i18n_and_locale_are_headless_driven() {
 
 #[test]
 fn color_area_styles_and_motion_use_explicit_state_contracts() {
-    let style_source = load_source("src/color_area/styles.rs");
-    let motion_source = load_source("src/color_area/motion.rs");
+    let style_source = load_source("src/color/area/styles.rs");
+    let motion_source = load_source("src/color/area/motion.rs");
 
     for selector in [
         ".ui-color-area",
@@ -356,18 +355,22 @@ fn color_area_tree_shaking_feature_gates_keep_css_and_module_conditional() {
     let css_source = load_source("src/css.rs");
     let cargo_source = load_source("Cargo.toml");
 
-    let needle = "#[cfg(feature = \"component-color_area\")]\npub mod color_area;";
+    let grouped_gate = "#[cfg(any(\n    feature = \"component-color_area\",";
     assert!(
-        lib_source.contains(needle),
-        "ui-components lib should gate color-area export by feature `{needle}`."
+        lib_source.contains(grouped_gate),
+        "ui-components lib should gate grouped color domain by feature `{grouped_gate}`."
     );
     assert!(
-        lib_source.contains("pub use color_area::ColorArea;"),
-        "ui-components all-components export should include color-area public re-export."
+        !lib_source.contains("pub mod color_area;"),
+        "no-compat migration should avoid flat `color_area` module export."
+    );
+    assert!(
+        lib_source.contains("pub use color::area::ColorArea;"),
+        "ui-components all-components export should re-export grouped color-area API."
     );
 
     assert!(
-        css_source.contains("#[cfg(feature = \"component-color_area\")]\n    out.push_str(crate::color_area::styles::CSS);"),
+        css_source.contains("#[cfg(feature = \"component-color_area\")]\n    out.push_str(crate::color::area::styles::CSS);"),
         "css aggregation should gate color-area css by feature."
     );
     assert!(
@@ -378,8 +381,8 @@ fn color_area_tree_shaking_feature_gates_keep_css_and_module_conditional() {
 
 #[test]
 fn color_area_forbids_inner_html_and_platform_type_leakage() {
-    let view_source = load_source("src/color_area/view.rs");
-    let logic_source = load_source("src/color_area/logic.rs");
+    let view_source = load_source("src/color/area/view.rs");
+    let logic_source = load_source("src/color/area/logic.rs");
 
     for forbidden in ["inner_html", "web_sys", "wasm_bindgen", "NodeRef<"] {
         assert!(
@@ -395,7 +398,7 @@ fn color_area_forbids_inner_html_and_platform_type_leakage() {
 
 #[test]
 fn color_area_check2_documents_e2e_selector_and_stable_wait_rules() {
-    let check2 = load_source("src/color_area/check2.md");
+    let check2 = load_source("src/color/area/check2.md");
 
     for needle in [
         "### 7. 测试与文档（验证闭环）",
@@ -431,7 +434,7 @@ fn color_area_e2e_selector_contract_uses_semantic_markers_and_stable_waits() {
 
 #[test]
 fn color_area_check2_documents_e2e_repeatable_key_flow_rules() {
-    let check2 = load_source("src/color_area/check2.md");
+    let check2 = load_source("src/color/area/check2.md");
 
     for needle in ["关键流程纳入可重复回归集合", "高风险路径", "键盘"] {
         assert!(

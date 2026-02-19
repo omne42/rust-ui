@@ -73,7 +73,7 @@ pub struct ColorAreaState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -81,28 +81,28 @@ pub fn normalize_label(value: Option<String>) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
-    (DEFAULT_LABEL.to_string(), false)
+    (DEFAULT_LABEL.into(), false)
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_x_axis_label(value: Option<String>) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
-    (DEFAULT_X_AXIS_LABEL.to_string(), false)
+    (DEFAULT_X_AXIS_LABEL.into(), false)
 }
 
 pub fn normalize_y_axis_label(value: Option<String>) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         return (label, true);
     }
-    (DEFAULT_Y_AXIS_LABEL.to_string(), false)
+    (DEFAULT_Y_AXIS_LABEL.into(), false)
 }
 
 pub fn sanitize_step(step: f32) -> f32 {
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn normalize_and_sanitize_helpers_work() {
-        assert_eq!(normalize_label(None), (DEFAULT_LABEL.to_string(), false));
+        assert_eq!(normalize_label(None), (DEFAULT_LABEL.into(), false));
         assert_eq!(
             normalize_label(Some("  Saturation/Lightness  ".to_string())),
             ("Saturation/Lightness".to_string(), true)
@@ -224,7 +224,7 @@ mod tests {
 
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             normalize_aria_label(Some("  Fill area  ".to_string())),
@@ -232,11 +232,11 @@ mod tests {
         );
         assert_eq!(
             normalize_x_axis_label(None),
-            (DEFAULT_X_AXIS_LABEL.to_string(), false)
+            (DEFAULT_X_AXIS_LABEL.into(), false)
         );
         assert_eq!(
             normalize_y_axis_label(None),
-            (DEFAULT_Y_AXIS_LABEL.to_string(), false)
+            (DEFAULT_Y_AXIS_LABEL.into(), false)
         );
 
         assert_eq!(sanitize_step(0.0), 0.01);

@@ -333,7 +333,7 @@ pub fn attach_indicator_motion(
         let initial = motion.get_value().closed_rotation_deg;
 
         let animator = ui_motion::spring::SpringAnimator::new(initial, config, move |deg| {
-            let _ = style.set_property("--ui-disclosure-indicator-rotation", &format!("{deg}deg"));
+            drop(style.set_property("--ui-disclosure-indicator-rotation", &format!("{deg}deg")));
         });
 
         let spring_for_cleanup = spring;
@@ -423,22 +423,21 @@ pub fn attach_panel_motion(
             let style = style.clone();
             move |height_px: f64| {
                 let height_px = height_px.clamp(0.0, 100000.0);
-                let _ =
-                    style.set_property("--ui-disclosure-panel-height", &format!("{height_px}px"));
+                drop(style.set_property("--ui-disclosure-panel-height", &format!("{height_px}px")));
             }
         };
 
         let set_opacity = {
             let style = style.clone();
             move |opacity: f64| {
-                let _ = style.set_property("--ui-disclosure-panel-opacity", &format!("{opacity}"));
+                drop(style.set_property("--ui-disclosure-panel-opacity", &format!("{opacity}")));
             }
         };
 
         let set_y = {
             let style = style.clone();
             move |y_px: f64| {
-                let _ = style.set_property("--ui-disclosure-panel-y", &format!("{y_px}px"));
+                drop(style.set_property("--ui-disclosure-panel-y", &format!("{y_px}px")));
             }
         };
 

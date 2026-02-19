@@ -15,7 +15,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn color_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color_field/mod.rs");
+    let source = load_source("src/color/field/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -27,8 +27,8 @@ fn color_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_field_consumes_state_primitives_and_centralized_logic() {
-    let logic_source = load_source("src/color_field/logic.rs");
-    let view_source = load_source("src/color_field/view.rs");
+    let logic_source = load_source("src/color/field/logic.rs");
+    let view_source = load_source("src/color/field/view.rs");
     let primitives_source = load_source("../ui-state-primitives/src/color_field.rs");
 
     for needle in [
@@ -78,7 +78,7 @@ fn color_field_consumes_state_primitives_and_centralized_logic() {
 
 #[test]
 fn color_field_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color_field/view.rs");
+    let source = load_source("src/color/field/view.rs");
 
     for attr in [
         "data-slot=\"color-field\"",
@@ -91,7 +91,7 @@ fn color_field_exposes_baseline_style_data_markers() {
         "data-aria-source=move || state.get().aria_source_attr",
         "data-slot=\"color-field-preview\"",
         "data-slot=\"color-field-input\"",
-        "data-slot=\"color-field-clear\"",
+        "slot_name=\"color-field-clear\"",
     ] {
         assert!(
             source.contains(attr),
@@ -102,7 +102,7 @@ fn color_field_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_field_styles_include_valid_invalid_disabled_and_custom_contracts() {
-    let source = load_source("src/color_field/styles.rs");
+    let source = load_source("src/color/field/styles.rs");
 
     for selector in [
         ".ui-color-field",
@@ -171,7 +171,9 @@ fn color_field_docs_playgrounds_lock_state_matrix_contract_values() {
 fn color_field_feature_chain_includes_color_swatch_for_preview_contract() {
     let cargo_toml = load_source("Cargo.toml");
     assert!(
-        cargo_toml.contains("component-color_field = [\"component-color_swatch\"]"),
+        cargo_toml.contains(
+            "component-color_field = [\"component-color_swatch\", \"component-clear_button\"]"
+        ),
         "component-color_field must depend on component-color_swatch to keep minimal feature compilation green."
     );
 }
@@ -222,7 +224,7 @@ fn color_field_e2e_contract_covers_repeatable_flow_and_copy_ready_source() {
 
 #[test]
 fn color_field_check2_marks_component_governance_complete() {
-    let check2_source = load_source("src/color_field/check2.md");
+    let check2_source = load_source("src/color/field/check2.md");
 
     assert!(
         !check2_source.contains("- [ ]"),

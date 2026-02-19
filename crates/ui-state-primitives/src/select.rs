@@ -49,16 +49,16 @@ pub struct SelectState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
 }
 
 pub fn resolve_placeholder(placeholder: Option<String>) -> String {
-    normalize_optional_text(placeholder).unwrap_or_else(|| DEFAULT_PLACEHOLDER.to_string())
+    normalize_optional_text(placeholder).unwrap_or_else(|| DEFAULT_PLACEHOLDER.into())
 }
 
 pub fn resolve_disabled_option_count(

@@ -24,7 +24,7 @@ pub struct CircularProgressState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -34,7 +34,7 @@ pub fn resolve_aria_label(value: Option<String>, default_aria_label: &str) -> (S
         return (label, is_custom);
     }
 
-    (default_aria_label.to_string(), false)
+    (default_aria_label.into(), false)
 }
 
 pub fn sanitize_dimension(value: Option<f64>) -> Option<f64> {
@@ -136,15 +136,15 @@ mod tests {
     fn resolve_aria_label_defaults_and_detects_custom_source() {
         assert_eq!(
             resolve_aria_label(None, DEFAULT_ARIA_LABEL),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("  ".to_string()), DEFAULT_ARIA_LABEL),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("Loading".to_string()), DEFAULT_ARIA_LABEL),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("  Syncing mailbox ".to_string()), DEFAULT_ARIA_LABEL),

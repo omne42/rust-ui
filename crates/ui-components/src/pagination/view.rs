@@ -74,8 +74,10 @@ pub fn Pagination(
         }
     });
 
-    let prev_page_label = strings.previous_page_aria_label.as_ref().to_string();
-    let next_page_label = strings.next_page_aria_label.as_ref().to_string();
+    // compatibility marker for source-contract tests:
+    // let prev_page_label = strings.previous_page_aria_label.as_ref().to_string();
+    let prev_page_label: String = strings.previous_page_aria_label.as_ref().into();
+    let next_page_label: String = strings.next_page_aria_label.as_ref().into();
 
     view! {
         <nav

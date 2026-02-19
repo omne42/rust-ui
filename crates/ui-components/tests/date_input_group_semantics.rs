@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn date_input_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/date_input_group/mod.rs");
+    let source = load_source("src/text_input/date_input_group/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn date_input_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn date_input_group_uses_logic_state_model() {
-    let logic_source = load_source("src/date_input_group/logic.rs");
-    let view_source = load_source("src/date_input_group/view.rs");
+    let logic_source = load_source("src/text_input/date_input_group/logic.rs");
+    let view_source = load_source("src/text_input/date_input_group/view.rs");
 
     for needle in [
         "pub enum DateInputGroupVariant",
@@ -55,7 +55,7 @@ fn date_input_group_uses_logic_state_model() {
 
 #[test]
 fn date_input_group_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/date_input_group/view.rs");
+    let source = load_source("src/text_input/date_input_group/view.rs");
 
     for attr in [
         "data-slot=\"date-input-group\"",
@@ -85,7 +85,7 @@ fn date_input_group_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn date_input_group_styles_include_variant_and_state_markers() {
-    let source = load_source("src/date_input_group/styles.rs");
+    let source = load_source("src/text_input/date_input_group/styles.rs");
 
     for selector in [
         ".ui-date-input-group--variant-primary",
@@ -110,7 +110,7 @@ fn date_input_group_styles_include_variant_and_state_markers() {
 
 #[test]
 fn date_input_group_supports_group_accessibility_and_children_layout() {
-    let source = load_source("src/date_input_group/view.rs");
+    let source = load_source("src/text_input/date_input_group/view.rs");
 
     for needle in [
         "<div",

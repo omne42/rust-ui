@@ -203,7 +203,7 @@ pub fn normalize_group_input(
     } else {
         TagGroupValueSource::Default
     };
-    let id_base = normalized_id_base.unwrap_or_else(|| DEFAULT_ID_BASE.to_string());
+    let id_base = normalized_id_base.unwrap_or_else(|| DEFAULT_ID_BASE.into());
 
     let label = normalize_optional_text(label);
     let description = normalize_optional_text(description);
@@ -214,7 +214,7 @@ pub fn normalize_group_input(
     } else {
         TagGroupValueSource::Default
     };
-    let aria_label = normalized_aria_label.unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string());
+    let aria_label = normalized_aria_label.unwrap_or_else(|| DEFAULT_ARIA_LABEL.into());
 
     let base_class = "ui-tag-group".to_string();
     let normalized_class_name = class_name.and_then(|value| {

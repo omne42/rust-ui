@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn action_menu_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/action_menu/mod.rs");
+    let source = load_source("src/menu/action_menu/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +21,7 @@ fn action_menu_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn action_menu_module_exposes_slot_and_state_contracts() {
-    let source = load_source("src/action_menu/mod.rs");
+    let source = load_source("src/menu/action_menu/mod.rs");
 
     for needle in [
         "pub type MenuOpenFocusStrategy = ui_headless::MenuOpenFocusStrategy;",
@@ -48,7 +48,7 @@ fn action_menu_module_exposes_slot_and_state_contracts() {
 
 #[test]
 fn action_menu_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/action_menu/mod.rs");
+    let module_source = load_source("src/menu/action_menu/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -64,7 +64,7 @@ fn action_menu_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn action_menu_logic_exposes_state_helpers() {
-    let source = load_source("src/action_menu/logic.rs");
+    let source = load_source("src/menu/action_menu/logic.rs");
 
     for needle in [
         "pub struct ActionMenuItemsInput",
@@ -101,7 +101,7 @@ fn action_menu_logic_exposes_state_helpers() {
 
 #[test]
 fn action_menu_state_primitives_are_sourced_from_ui_state_primitives() {
-    let source = load_source("src/action_menu/logic.rs");
+    let source = load_source("src/menu/action_menu/logic.rs");
 
     for needle in [
         "use ui_state_primitives::action_menu as action_menu_state;",
@@ -137,7 +137,7 @@ fn action_menu_state_primitives_are_sourced_from_ui_state_primitives() {
 
 #[test]
 fn action_menu_view_uses_logic_contracts_and_source_markers() {
-    let source = load_source("src/action_menu/view.rs");
+    let source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "logic::normalize_menu_items(logic::ActionMenuItemsInput {",
@@ -195,7 +195,7 @@ fn action_menu_view_uses_logic_contracts_and_source_markers() {
 
 #[test]
 fn action_menu_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/action_menu/view.rs");
+    let source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "open: Option<Signal<bool>>",
@@ -215,8 +215,8 @@ fn action_menu_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn action_menu_api_naming_uses_prefixed_props_with_legacy_alias_migration_path() {
-    let view_source = load_source("src/action_menu/view.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
     let state_primitives_source = load_source("../ui-state-primitives/src/action_menu.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/actions.rs");
 
@@ -248,8 +248,8 @@ fn action_menu_api_naming_uses_prefixed_props_with_legacy_alias_migration_path()
 
 #[test]
 fn action_menu_default_values_have_single_source_in_logic_layer() {
-    let logic_source = load_source("src/action_menu/logic.rs");
-    let view_source = load_source("src/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "pub fn normalize_discrete_props(",
@@ -276,8 +276,8 @@ fn action_menu_default_values_have_single_source_in_logic_layer() {
 
 #[test]
 fn action_menu_state_normalization_is_centralized_in_logic_layer() {
-    let logic_source = load_source("src/action_menu/logic.rs");
-    let view_source = load_source("src/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "pub struct ActionMenuNormalizeInput",
@@ -328,9 +328,9 @@ fn action_menu_state_normalization_is_centralized_in_logic_layer() {
 
 #[test]
 fn action_menu_discrete_state_axes_use_enum_contracts() {
-    let mod_source = load_source("src/action_menu/mod.rs");
-    let view_source = load_source("src/action_menu/view.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
+    let mod_source = load_source("src/menu/action_menu/mod.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
 
     for needle in [
         "pub enum ActionMenuDisabledState",
@@ -357,8 +357,8 @@ fn action_menu_discrete_state_axes_use_enum_contracts() {
 
 #[test]
 fn action_menu_component_uses_state_primitive_boundary_without_business_store_binding() {
-    let logic_source = load_source("src/action_menu/logic.rs");
-    let view_source = load_source("src/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
 
     assert!(
         logic_source.contains("use ui_state_primitives::action_menu as action_menu_state;"),
@@ -404,8 +404,8 @@ fn action_menu_component_uses_state_primitive_boundary_without_business_store_bi
 
 #[test]
 fn action_menu_has_no_async_loading_protocol_and_keeps_sync_action_contract() {
-    let view_source = load_source("src/action_menu/view.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
 
     for needle in [
         "on_action: Callback<usize>",
@@ -439,7 +439,7 @@ fn action_menu_has_no_async_loading_protocol_and_keeps_sync_action_contract() {
 
 #[test]
 fn action_menu_open_axis_is_complete_controllable_contract_without_half_controlled_state() {
-    let view_source = load_source("src/action_menu/view.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
     let headless_controllable_source = load_source("../ui-headless/src/controllable_state.rs");
 
     for needle in [
@@ -479,8 +479,8 @@ fn action_menu_open_axis_is_complete_controllable_contract_without_half_controll
 
 #[test]
 fn action_menu_open_key_model_is_delegated_to_ui_headless() {
-    let mod_source = load_source("src/action_menu/mod.rs");
-    let view_source = load_source("src/action_menu/view.rs");
+    let mod_source = load_source("src/menu/action_menu/mod.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "ui_headless::menu_trigger_open_focus_strategy_for_key(key)",
@@ -507,8 +507,8 @@ fn action_menu_open_key_model_is_delegated_to_ui_headless() {
 
 #[test]
 fn action_menu_a11y_i18n_and_locale_contract_is_wired() {
-    let view_source = load_source("src/action_menu/view.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
     let i18n_source = load_source("../ui-headless/src/i18n/common.rs");
     let a11y_source = load_source("../ui-headless/src/a11y.rs");
 
@@ -554,7 +554,7 @@ fn action_menu_a11y_i18n_and_locale_contract_is_wired() {
 
 #[test]
 fn action_menu_trigger_uses_action_button_with_overlay_aria_contract() {
-    let source = load_source("src/action_menu/view.rs");
+    let source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "<ActionButton",
@@ -573,7 +573,7 @@ fn action_menu_trigger_uses_action_button_with_overlay_aria_contract() {
 
 #[test]
 fn action_menu_renders_menu_inside_popover_with_presence() {
-    let source = load_source("src/action_menu/view.rs");
+    let source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "use_presence(open)",
@@ -592,7 +592,7 @@ fn action_menu_renders_menu_inside_popover_with_presence() {
 
 #[test]
 fn action_menu_styles_include_state_and_source_markers() {
-    let source = load_source("src/action_menu/styles.rs");
+    let source = load_source("src/menu/action_menu/styles.rs");
 
     for needle in [
         ".ui-action-menu {",
@@ -647,8 +647,8 @@ fn action_menu_styles_include_state_and_source_markers() {
 
 #[test]
 fn action_menu_styles_depend_on_explicit_state_markers_not_dom_guessing() {
-    let view_source = load_source("src/action_menu/view.rs");
-    let styles_source = load_source("src/action_menu/styles.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let styles_source = load_source("src/menu/action_menu/styles.rs");
 
     for needle in [
         "data-state=move || root_state.get().state_attr",
@@ -738,9 +738,9 @@ fn action_menu_semantics_suite_prioritizes_contract_assertions_over_snapshots() 
 
 #[test]
 fn action_menu_state_markers_are_observable_and_closed_set_contracts() {
-    let view_source = load_source("src/action_menu/view.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
     let menu_view_source = load_source("src/menu/view.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/action_menu.rs");
 
     for needle in [
@@ -798,9 +798,9 @@ fn action_menu_state_markers_are_observable_and_closed_set_contracts() {
 
 #[test]
 fn action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild() {
-    let action_menu_styles_source = load_source("src/action_menu/styles.rs");
-    let action_menu_logic_source = load_source("src/action_menu/logic.rs");
-    let action_menu_view_source = load_source("src/action_menu/view.rs");
+    let action_menu_styles_source = load_source("src/menu/action_menu/styles.rs");
+    let action_menu_logic_source = load_source("src/menu/action_menu/logic.rs");
+    let action_menu_view_source = load_source("src/menu/action_menu/view.rs");
     let ui_root_source = load_source("src/root.rs");
     let ui_theme_tokens_source = load_source("../ui-theme/src/tokens.rs");
     let ui_theme_theme_source = load_source("../ui-theme/src/theme.rs");
@@ -861,11 +861,11 @@ fn action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild()
 
 #[test]
 fn action_menu_ui_components_layer_assembles_four_layers_without_public_dom_leakage() {
-    let mod_source = load_source("src/action_menu/mod.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
-    let view_source = load_source("src/action_menu/view.rs");
-    let styles_source = load_source("src/action_menu/styles.rs");
-    let motion_source = load_source("src/action_menu/motion.rs");
+    let mod_source = load_source("src/menu/action_menu/mod.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let styles_source = load_source("src/menu/action_menu/styles.rs");
+    let motion_source = load_source("src/menu/action_menu/motion.rs");
     let crate_source = load_source("src/lib.rs");
 
     for needle in [
@@ -910,11 +910,11 @@ fn action_menu_ui_components_layer_assembles_four_layers_without_public_dom_leak
 
 #[test]
 fn action_menu_file_roles_are_explicit_and_non_overlapping() {
-    let mod_source = load_source("src/action_menu/mod.rs");
-    let logic_source = load_source("src/action_menu/logic.rs");
-    let styles_source = load_source("src/action_menu/styles.rs");
-    let view_source = load_source("src/action_menu/view.rs");
-    let motion_source = load_source("src/action_menu/motion.rs");
+    let mod_source = load_source("src/menu/action_menu/mod.rs");
+    let logic_source = load_source("src/menu/action_menu/logic.rs");
+    let styles_source = load_source("src/menu/action_menu/styles.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
+    let motion_source = load_source("src/menu/action_menu/motion.rs");
 
     for needle in [
         "mod logic;",
@@ -1048,8 +1048,8 @@ fn action_menu_file_roles_are_explicit_and_non_overlapping() {
 
 #[test]
 fn action_menu_exposes_motion_contract_and_internal_module() {
-    let mod_source = load_source("src/action_menu/mod.rs");
-    let motion_source = load_source("src/action_menu/motion.rs");
+    let mod_source = load_source("src/menu/action_menu/mod.rs");
+    let motion_source = load_source("src/menu/action_menu/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -1091,8 +1091,8 @@ fn action_menu_docs_page_contains_state_source_playground() {
 
 #[test]
 fn action_menu_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/action_menu/motion.rs");
-    let view_source = load_source("src/action_menu/view.rs");
+    let motion_source = load_source("src/menu/action_menu/motion.rs");
+    let view_source = load_source("src/menu/action_menu/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ActionMenuMotion) -> ActionMenuMotion",
@@ -1113,8 +1113,8 @@ fn action_menu_motion_sanitizes_custom_contract_values() {
 
 #[test]
 fn action_menu_motion_layering_delegates_to_popover_and_ui_motion_backends() {
-    let action_menu_motion_source = load_source("src/action_menu/motion.rs");
-    let action_menu_view_source = load_source("src/action_menu/view.rs");
+    let action_menu_motion_source = load_source("src/menu/action_menu/motion.rs");
+    let action_menu_view_source = load_source("src/menu/action_menu/view.rs");
     let popover_motion_source = load_source("src/popover/motion.rs");
     let ui_motion_lib_source = load_source("../ui-motion/src/lib.rs");
     let ui_motion_spring_source = load_source("../ui-motion/src/spring.rs");

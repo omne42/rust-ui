@@ -36,20 +36,20 @@ pub struct SidebarGroupState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_aria_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ARIA_LABEL.into())
 }
 
 pub fn normalize_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_LABEL.into())
 }
 
 pub fn normalize_action_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ACTION_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_ACTION_LABEL.into())
 }
 
 pub fn normalize_default_open(value: Option<bool>) -> bool {

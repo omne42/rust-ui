@@ -86,11 +86,11 @@ pub struct SonnerAgentContract {
 }
 
 pub fn agent_contract() -> SonnerAgentContract {
-    let _ = [
+    std::hint::black_box([
         SonnerAgentOutputStatus::Draft.as_attr(),
         SonnerAgentOutputStatus::Verified.as_attr(),
         SonnerAgentOutputStatus::Submittable.as_attr(),
-    ];
+    ]);
 
     SonnerAgentContract {
         schema_attr: "ui.sonner.v1",
@@ -168,7 +168,7 @@ pub fn resolve_state(input: SonnerPartStateInput) -> SonnerPartState {
 
 pub fn compose_class_name(base_class_name: Option<String>, state: SonnerPartState) -> String {
     let mut classes = vec![
-        state.base_class.to_string(),
+        state.base_class.into(),
         format!("{}--{}", state.base_class, state.position.class_suffix()),
     ];
 
@@ -226,7 +226,7 @@ mod tests {
 
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             normalize_aria_label(Some(" Status host ".to_string())),

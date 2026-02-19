@@ -43,7 +43,7 @@ pub fn MenuItem(
     let class =
         Signal::derive(move || logic::compose_class_name(class_name.get_value(), state.get()));
 
-    let index_text = index.map(|value| value.to_string());
+    let index_text = index;
     let selection_indicator = logic::resolve_selection_indicator(kind);
 
     let indicator_text = move || selection_indicator.marker(state.get().is_checked);

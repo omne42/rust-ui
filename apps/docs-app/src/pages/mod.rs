@@ -6,7 +6,7 @@ use leptos::prelude::*;
 
 pub fn title_for_path(path: &str) -> String {
     if let Some(doc) = docs::docs_catalog().iter().find(|doc| doc.route == path) {
-        return doc.title.to_string();
+        return doc.title.into();
     }
 
     if path == "components" {
@@ -18,7 +18,7 @@ pub fn title_for_path(path: &str) -> String {
             .iter()
             .find(|doc| doc.slug == slug)
     {
-        return doc.name.to_string();
+        return doc.name.into();
     }
 
     "Not found".to_string()

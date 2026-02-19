@@ -196,7 +196,7 @@
 - 参数模型同步：`Swatch` 保持 display primitive 定位，参数聚焦 `color/label/size/border/rounding/shape/is_nothing/is_mixed_value/is_disabled/is_decorative/selected/default_selected/on_selected_change/lang/dir/class_name/motion`，维持统一 `is_* / on_* / default_*` 语义命名。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Swatch", "swatch", "Display", display_extra_swatch::swatch)` 暴露入口；`#/components/swatch` 可索引访问。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra_swatch.rs` 提供 `Hello World`、`Size + Shape + Rounding`、`Mixed + Nothing + Disabled + Controlled`、`Custom Motion Contract`，覆盖默认路径、状态矩阵与受控示例。
-- Copy-Paste Ready 同步：Swatch playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `crates/ui-components/src/swatch/view.rs` 便于源码追溯。
+- Copy-Paste Ready 同步：Swatch playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `crates/ui-components/src/color/swatch_core/view.rs` 便于源码追溯。
 - HeroUI 对齐结论：继续遵循“先用起来，再进阶”，默认 API 路径前置，高级控制后置；参数语义变更需先同步本策略文档与 docs 入口。
 
 ### Toaster 同步记录（2026-02-18）

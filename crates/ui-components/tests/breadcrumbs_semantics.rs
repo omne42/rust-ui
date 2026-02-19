@@ -66,7 +66,7 @@ fn breadcrumbs_emits_baseline_style_slots_and_root_attrs() {
         "data-has-items=state.has_items.then_some(\"true\")",
         "data-has-links=state.has_links.then_some(\"true\")",
         "data-has-current-page=state.has_current_page.then_some(\"true\")",
-        "data-count=state.item_count.to_string()",
+        "data-count=state.item_count",
         "data-index=index",
         "data-last=is_last.then_some(\"true\")",
         "data-href=href_for_attr",
@@ -133,6 +133,44 @@ fn breadcrumbs_docs_playgrounds_lock_state_matrix_contract_values() {
         assert!(
             source.contains(needle),
             "breadcrumbs docs playgrounds should contain `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn breadcrumbs_docs_page_includes_workbench_display_config_code_css_test() {
+    let source = load_source("../../apps/docs-app/src/pages/components/pages/collections.rs");
+
+    for needle in [
+        "title=\"Workbench (Display + Config + Code + CSS Test)\"",
+        "data-slot=\"breadcrumbs-workbench-controls\"",
+        "data-slot=\"breadcrumbs-workbench-preview\"",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/breadcrumbs/styles.rs\".to_string()",
+        "\"对比：With links\"",
+        "\"对比：Label-only\"",
+        "\"对比：Empty\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "breadcrumbs docs workbench should include `{needle}`.",
+        );
+    }
+}
+
+#[test]
+fn breadcrumbs_readme_documents_workbench_contract_sections() {
+    let source = load_source("src/breadcrumbs/README.md");
+
+    for needle in [
+        "# Breadcrumbs",
+        "## API (Table)",
+        "## Semantics and Accessibility",
+        "## docs-app Workbench（Display / Config / Code / CSS Test）",
+        "With links` / `Label-only` / `Empty`",
+    ] {
+        assert!(
+            source.contains(needle),
+            "breadcrumbs README should include `{needle}`.",
         );
     }
 }

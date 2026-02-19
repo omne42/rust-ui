@@ -1,0 +1,26 @@
+[package]
+name = "ui-accordion"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/mod.rs"
+
+[features]
+default = []
+accordion-wasm-debug = ["dep:tracing"]
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../../crates/ui-headless" }
+ui-ai-runtime = { path = "../../crates/ui-ai-runtime" }
+ui-motion = { path = "../../crates/ui-motion" }
+ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+ui-theme = { path = "../../crates/ui-theme" }
+serde = { version = "1.0", features = ["derive"] }
+tracing = { version = "0.1", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["DataTransfer", "DragEvent", "File", "FileList", "HtmlInputElement", "ResizeObserver", "ResizeObserverEntry"] }

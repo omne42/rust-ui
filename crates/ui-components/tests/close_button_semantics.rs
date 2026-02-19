@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn close_button_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/close_button/mod.rs");
+    let source = load_source("src/button/close_button/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn close_button_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn close_button_uses_logic_state_model() {
-    let logic_source = load_source("src/close_button/logic.rs");
-    let view_source = load_source("src/close_button/view.rs");
+    let logic_source = load_source("src/button/close_button/logic.rs");
+    let view_source = load_source("src/button/close_button/view.rs");
 
     for needle in [
         "pub enum CloseButtonVariant",
@@ -57,7 +57,7 @@ fn close_button_uses_logic_state_model() {
 
 #[test]
 fn close_button_uses_headless_hooks() {
-    let source = load_source("src/close_button/view.rs");
+    let source = load_source("src/button/close_button/view.rs");
 
     for needle in ["use_button", "use_focus_ring", "use_hover"] {
         assert!(
@@ -69,7 +69,7 @@ fn close_button_uses_headless_hooks() {
 
 #[test]
 fn close_button_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/close_button/view.rs");
+    let source = load_source("src/button/close_button/view.rs");
 
     for attr in [
         "data-slot=\"close-button\"",
@@ -93,7 +93,7 @@ fn close_button_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn close_button_styles_include_variant_size_and_state_markers() {
-    let source = load_source("src/close_button/styles.rs");
+    let source = load_source("src/button/close_button/styles.rs");
 
     for selector in [
         ".ui-close-button--variant-default",

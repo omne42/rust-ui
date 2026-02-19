@@ -140,7 +140,7 @@ fn toast_view_uses_logic_state_contracts() {
         "data-custom-exit=move || state.get().has_custom_on_exit_complete.then_some(\"true\")",
         "use_controllable_open_state_traced(",
         "logic::resolve_open_state_config(",
-        "use_button(ButtonOptions {",
+        "use crate::close_button::{CloseButton, CloseButtonSize, CloseButtonVariant};",
         "common.close_aria_label",
         "locale_attrs(logic::normalize_optional_text(lang), dir)",
     ] {
@@ -197,7 +197,7 @@ fn toast_has_baseline_style_accessibility_semantics() {
         "role=live_region.role",
         "aria-live=live_region.aria_live",
         "aria-atomic=\"true\"",
-        "aria-label=close_aria_label",
+        "aria_label=close_aria_label",
         "if ev.key() == \"Escape\"",
     ] {
         assert!(
@@ -299,9 +299,9 @@ fn toast_wasm_debug_capability_reuses_global_trace_and_stays_feature_isolated() 
         "use_controllable_open_state_traced(\"toast\",",
         "request_open_change.run(false);",
         "if ev.key() == \"Escape\" {",
-        "on:pointerdown=on_close_pointer_down",
-        "on:click=on_close_click",
-        "on:keydown=on_close_key_down",
+        "<CloseButton",
+        "aria_label=close_aria_label",
+        "on_press=close_toast",
     ] {
         assert!(
             toast_view_source.contains(needle),
@@ -399,7 +399,7 @@ fn toast_engineering_contract_is_spec_free_tracing_aligned_and_runtime_agnostic(
     let checklist_source = load_source("src/toast/check2.md");
 
     assert!(
-        cargo_source.contains("component-toast = []"),
+        cargo_source.contains("component-toast = [\"component-close_button\"]"),
         "Toast feature should stay lightweight and avoid implicit engineering dependency fan-out."
     );
     for forbidden in [
@@ -744,7 +744,7 @@ fn toast_component_directory_standard_files_follow_responsibility_boundaries() {
         "logic::resolve_state(ToastPartStateInput {",
         "logic::resolve_viewport_state(ToastViewportStateInput {",
         "use_controllable_open_state_traced(\"toast\",",
-        "use_button(ButtonOptions {",
+        "<CloseButton",
         "live_region_attrs(",
         "locale_attrs(",
     ] {
@@ -1235,7 +1235,7 @@ fn toast_motion_sanitizes_custom_contract_values() {
         "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
         "fn sanitize_number(value: f64, fallback: f64) -> f64",
         "fn sanitize_motion_falls_back_for_invalid_values()",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),

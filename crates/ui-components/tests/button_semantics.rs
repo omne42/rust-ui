@@ -273,10 +273,25 @@ fn button_styles_consume_theme_layout_variables() {
         "--ui-button-focus-outline-offset",
         "--ui-button-radius-full",
         "--ui-button-size-xs-height",
+        "--ui-button-size-xs-min-width",
+        "--ui-button-size-xs-font-size",
+        "--ui-button-size-xs-line-height",
         "--ui-button-size-s-height",
+        "--ui-button-size-s-min-width",
+        "--ui-button-size-s-font-size",
+        "--ui-button-size-s-line-height",
         "--ui-button-size-m-height",
+        "--ui-button-size-m-min-width",
+        "--ui-button-size-m-font-size",
+        "--ui-button-size-m-line-height",
         "--ui-button-size-l-height",
+        "--ui-button-size-l-min-width",
+        "--ui-button-size-l-font-size",
+        "--ui-button-size-l-line-height",
         "--ui-button-size-xl-height",
+        "--ui-button-size-xl-min-width",
+        "--ui-button-size-xl-font-size",
+        "--ui-button-size-xl-line-height",
     ] {
         assert!(
             styles.contains(var_name),
@@ -331,6 +346,35 @@ fn button_styles_flow_through_css_registry_and_ui_root_injection() {
         assert!(
             root_source.contains(needle),
             "UiRoot should inject component styles via `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn button_family_text_metrics_use_tokenized_line_height_and_no_label_translate_nudges() {
+    let style_files = [
+        "src/button/styles.rs",
+        "src/button/field/styles.rs",
+        "src/button/clear_button/styles.rs",
+        "src/button/infield_button/styles.rs",
+        "src/button/logic_button/styles.rs",
+        "src/button/toggle_button/styles.rs",
+        "src/button/search_input/styles.rs",
+    ];
+
+    for style_file in style_files {
+        let source = load_source(style_file);
+        assert!(
+            source.contains("line-height: var(--ui-"),
+            "{style_file} should use tokenized line-height instead of local literal hacks."
+        );
+        assert!(
+            !source.contains("line-height: 1;"),
+            "{style_file} should not use `line-height: 1;` which tends to create optical vertical-centering issues."
+        );
+        assert!(
+            !source.contains("translateY("),
+            "{style_file} should not nudge text alignment via translateY hacks."
         );
     }
 }
@@ -492,7 +536,7 @@ fn button_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_falls_back_for_invalid_values()",
         "fn sanitize_motion_clamps_scale_values()",
         "#[cfg(not(target_arch = \"wasm32\"))]",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             source.contains(needle),
@@ -1738,7 +1782,7 @@ fn button_ui_motion_non_wasm_stub_contract_is_enforced() {
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             button_motion_source.contains(needle),
@@ -1810,7 +1854,7 @@ fn button_reduced_motion_and_ssr_wasm_semantics_contract_is_enforced() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "let element: leptos::web_sys::HtmlElement = button.unchecked_into();",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             button_motion_source.contains(needle),
@@ -2080,9 +2124,9 @@ fn docs_inner_html_is_restricted_to_trusted_whitelisted_markdown_sources() {
 
     for needle in [
         "const ACCORDION_README_MD: &str =",
-        "include_str!(\"../../../../../crates/ui-components/src/accordion/README.md\")",
+        "include_str!(\"../../../../../components/accordion/src/README.md\")",
         "const DATE_PICKER_README_MD: &str =",
-        "include_str!(\"../../../../../crates/ui-components/src/date_picker/README.md\")",
+        "include_str!(\"../../../../../crates/ui-components/src/text_input/date_picker/README.md\")",
         "fn component_readme_markdown(slug: &str) -> Option<&'static str> {",
         "\"accordion\" => Some(ACCORDION_README_MD),",
         "\"date-picker\" => Some(DATE_PICKER_README_MD),",

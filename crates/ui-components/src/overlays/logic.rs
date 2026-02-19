@@ -51,7 +51,7 @@ pub const DEFAULT_ID_BASE: &str = "overlays-root";
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -60,7 +60,7 @@ pub fn normalize_id_base(value: Option<String>) -> (String, bool) {
         return (id_base, true);
     }
 
-    (DEFAULT_ID_BASE.to_string(), false)
+    (DEFAULT_ID_BASE.into(), false)
 }
 
 pub fn resolve_root_state(input: OverlaysRootStateInput) -> OverlaysRootState {
@@ -96,10 +96,7 @@ pub fn compose_root_class_name(
     base_class_name: Option<String>,
     state: OverlaysRootState,
 ) -> String {
-    let mut classes = vec![
-        "ui-overlays".to_string(),
-        state.layer_kind_class.to_string(),
-    ];
+    let mut classes = vec!["ui-overlays".to_string(), state.layer_kind_class.into()];
 
     if state.is_open {
         classes.push("ui-overlays--open".to_string());
@@ -133,12 +130,9 @@ mod tests {
         );
         assert_eq!(
             normalize_id_base(Some(" \n\t ".to_string())),
-            (DEFAULT_ID_BASE.to_string(), false)
+            (DEFAULT_ID_BASE.into(), false)
         );
-        assert_eq!(
-            normalize_id_base(None),
-            (DEFAULT_ID_BASE.to_string(), false)
-        );
+        assert_eq!(normalize_id_base(None), (DEFAULT_ID_BASE.into(), false));
     }
 
     #[test]

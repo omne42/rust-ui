@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn number_module_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/number/mod.rs");
+    let source = load_source("src/text_input/number/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn number_module_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn static_number_uses_logic_state_model() {
-    let view_source = load_source("src/number/view.rs");
-    let logic_source = load_source("src/number/logic.rs");
+    let view_source = load_source("src/text_input/number/view.rs");
+    let logic_source = load_source("src/text_input/number/logic.rs");
 
     for needle in [
         "pub struct StaticNumberStateInput",
@@ -65,7 +65,7 @@ fn static_number_uses_logic_state_model() {
 
 #[test]
 fn static_number_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/number/view.rs");
+    let source = load_source("src/text_input/number/view.rs");
 
     for attr in [
         "data-slot=\"static-number\"",
@@ -89,7 +89,7 @@ fn static_number_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn static_number_styles_include_sign_and_source_contracts() {
-    let source = load_source("src/number/styles.rs");
+    let source = load_source("src/text_input/number/styles.rs");
 
     for selector in [
         ".ui-static-number--sign-negative",

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn form_does_not_accept_an_unused_motion_prop() {
-    let source = load_source("src/form/view.rs");
+    let source = load_source("src/field_form/form/view.rs");
 
     assert!(
         !source.contains("let _ = motion"),
@@ -23,7 +23,7 @@ fn form_does_not_accept_an_unused_motion_prop() {
 
 #[test]
 fn form_module_does_not_export_a_placeholder_motion_contract() {
-    let source = load_source("src/form/mod.rs");
+    let source = load_source("src/field_form/form/mod.rs");
 
     assert!(
         !source.contains("pub mod motion"),

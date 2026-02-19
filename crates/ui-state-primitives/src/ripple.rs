@@ -74,7 +74,7 @@ pub struct RippleState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -127,9 +127,9 @@ pub fn resolve_state(input: RippleStateInput) -> RippleState {
 pub fn compose_class_name(base_class_name: Option<String>, state: RippleState) -> String {
     let mut classes = vec![
         "ui-ripple".to_string(),
-        state.phase_class.to_string(),
-        state.boundary_class.to_string(),
-        state.motion_source_class.to_string(),
+        state.phase_class.into(),
+        state.boundary_class.into(),
+        state.motion_source_class.into(),
     ];
 
     if state.has_custom_class_name {

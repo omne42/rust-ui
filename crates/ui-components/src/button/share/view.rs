@@ -3,8 +3,7 @@ use super::{
     ShareButtonIconPlacement, ShareButtonItem, ShareButtonMotion, SharePlatform,
     logic::{self, ShareButtonStateInput},
 };
-use crate::button::group::ButtonGroup;
-use crate::button::{Button, ButtonSize, ButtonVariant};
+use crate::button::{Button, ButtonGroup, ButtonSize, ButtonVariant};
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, CommonStrings, labeled_group_attrs, use_ui_i18n};
 

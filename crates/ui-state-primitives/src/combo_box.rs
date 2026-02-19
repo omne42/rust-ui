@@ -53,33 +53,33 @@ pub struct ComboBoxState {
 pub fn normalize_label(label: String) -> String {
     let trimmed = label.trim();
     if trimmed.is_empty() {
-        DEFAULT_LABEL.to_string()
+        DEFAULT_LABEL.into()
     } else {
-        trimmed.to_string()
+        trimmed.into()
     }
 }
 
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
 }
 
 pub fn resolve_placeholder(placeholder: Option<String>) -> String {
-    normalize_optional_text(placeholder).unwrap_or_else(|| DEFAULT_PLACEHOLDER.to_string())
+    normalize_optional_text(placeholder).unwrap_or_else(|| DEFAULT_PLACEHOLDER.into())
 }
 
 pub fn resolve_empty_message(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_EMPTY_MESSAGE.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_EMPTY_MESSAGE.into())
 }
 
 pub fn resolve_toggle_aria_label(value: Option<String>) -> String {
-    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TOGGLE_ARIA_LABEL.to_string())
+    normalize_optional_text(value).unwrap_or_else(|| DEFAULT_TOGGLE_ARIA_LABEL.into())
 }
 
 pub fn normalize_disabled_indices(disabled_indices: Vec<usize>, item_count: usize) -> Vec<usize> {
@@ -189,7 +189,11 @@ mod tests {
     use super::*;
 
     fn items() -> Vec<String> {
-        vec!["Apple".into(), "Banana".into(), "Apricot".into()]
+        vec![
+            "Apple".to_string(),
+            "Banana".to_string(),
+            "Apricot".to_string(),
+        ]
     }
 
     #[test]

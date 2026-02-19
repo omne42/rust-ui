@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn textarea_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/textarea/mod.rs");
+    let source = load_source("src/text_input/textarea/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,7 +26,7 @@ fn textarea_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn textarea_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/textarea/mod.rs");
+    let module_source = load_source("src/text_input/textarea/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -41,8 +41,8 @@ fn textarea_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn textarea_module_exposes_motion_contract() {
-    let source = load_source("src/textarea/mod.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let source = load_source("src/text_input/textarea/mod.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     for needle in ["pub mod motion;", "pub use motion::TextareaMotion;"] {
         assert!(
@@ -67,7 +67,7 @@ fn textarea_module_exposes_motion_contract() {
 
 #[test]
 fn textarea_module_does_not_define_local_state_primitives() {
-    let source = load_source("src/textarea/mod.rs");
+    let source = load_source("src/text_input/textarea/mod.rs");
 
     for needle in [
         "pub const DEFAULT_LABEL",
@@ -83,7 +83,7 @@ fn textarea_module_does_not_define_local_state_primitives() {
 
 #[test]
 fn textarea_logic_exposes_state_helpers() {
-    let source = load_source("src/textarea/logic.rs");
+    let source = load_source("src/text_input/textarea/logic.rs");
 
     for needle in [
         "pub use ui_state_primitives::button::normalize_optional_text;",
@@ -95,35 +95,26 @@ fn textarea_logic_exposes_state_helpers() {
         "resolve_label_with_fallback",
         "resolve_state",
         "pub fn normalize_default_value(default_value: Option<String>) -> String",
-        "pub fn normalize_on_value_change_handler(",
-        "on_value_change: Option<Callback<String>>",
-        "set_value: Option<WriteSignal<String>>",
-        "on_value_change.or_else(|| {",
-        "set_value.map(|set_value| Callback::new(move |next: String| set_value.set(next)))",
         "pub struct ValueAxisInput",
         "pub struct ValueAxisState",
         "pub enum ValueControlModeAttr",
         "pub enum ValueChangeSourceAttr",
         "pub const fn as_str(self) -> &'static str",
         "pub fn normalize_value_axis(input: ValueAxisInput) -> ValueAxisState",
+        "pub has_controlled_value: bool",
+        "pub has_on_value_change: bool",
         "let default_value = normalize_default_value(input.default_value);",
-        "let on_value_change = normalize_on_value_change_handler(input.on_value_change, input.set_value);",
         "ValueControlModeAttr::Controlled",
         "ValueControlModeAttr::Uncontrolled",
         "TextareaSourceAttr::Custom",
         "TextareaSourceAttr::Default",
         "ValueChangeSourceAttr::OnValueChange",
-        "ValueChangeSourceAttr::SetValue",
         "ValueChangeSourceAttr::None",
         "pub struct AccessibilityStateInput",
         "pub struct AccessibilityState",
         "pub fn normalize_accessibility_state(input: AccessibilityStateInput)",
-        "is_disabled: input.is_disabled.unwrap_or(input.disabled)",
-        "is_read_only: input.is_read_only.unwrap_or(input.read_only)",
-        ".is_required",
-        ".or(input.required)",
-        ".is_invalid",
-        ".or(input.invalid)",
+        "is_disabled: input.is_disabled.unwrap_or(false)",
+        "is_read_only: input.is_read_only.unwrap_or(false)",
         "pub fn compose_class_name(class_name: Option<String>, state: TextareaState)",
     ] {
         assert!(
@@ -135,7 +126,7 @@ fn textarea_logic_exposes_state_helpers() {
 
 #[test]
 fn textarea_view_has_textfield_a11y_and_state_contracts() {
-    let source = load_source("src/textarea/view.rs");
+    let source = load_source("src/text_input/textarea/view.rs");
 
     for needle in [
         "use_focus_ring",
@@ -147,28 +138,27 @@ fn textarea_view_has_textfield_a11y_and_state_contracts() {
         "value: Option<Signal<String>>",
         "default_value: Option<String>",
         "on_value_change: Option<Callback<String>>",
-        "set_value: Option<WriteSignal<String>>",
         "is_disabled: Option<bool>",
-        "disabled: bool",
         "is_read_only: Option<bool>",
-        "read_only: bool",
         "is_required: Option<Signal<bool>>",
-        "required: Option<Signal<bool>>",
         "is_invalid: Option<Signal<bool>>",
-        "invalid: Option<Signal<bool>>",
         "let value_axis = logic::normalize_value_axis(logic::ValueAxisInput {",
+        "has_controlled_value: value.is_some()",
+        "has_on_value_change: on_value_change.is_some()",
         "let value_state = use_controllable_state(",
-        "value_axis.value,",
-        "Some(value_axis.default_value),",
-        "value_axis.on_value_change,",
+        "value,",
+        "Some(value_axis.default_value.clone()),",
+        "on_value_change,",
         ");",
         "let request_value_change = value_state.request_change;",
         "let accessibility_state =",
         "logic::normalize_accessibility_state(logic::AccessibilityStateInput {",
         "let is_disabled = accessibility_state.is_disabled;",
         "let is_read_only = accessibility_state.is_read_only;",
-        "let is_required = accessibility_state.is_required;",
-        "let is_invalid = accessibility_state.is_invalid;",
+        "let is_required_input = is_required;",
+        "let is_invalid_input = is_invalid;",
+        "let is_required = Signal::derive(move || match is_required_input {",
+        "let is_invalid = Signal::derive(move || match is_invalid_input {",
         "logic::resolve_label_with_fallback(label, common.textarea_label.as_ref())",
         "logic::resolve_state(logic::TextareaStateInput {",
         "logic::compose_class_name(class_name.clone(), state.get())",
@@ -212,9 +202,8 @@ fn textarea_view_has_textfield_a11y_and_state_contracts() {
         "let is_controlled_value = value.is_some();",
         "let has_default_value = default_value.is_some();",
         "let has_on_value_change = on_value_change.is_some();",
-        "let has_legacy_set_value = set_value.is_some();",
         "let default_value = logic::normalize_default_value(default_value);",
-        "let on_value_change = logic::normalize_on_value_change_handler(on_value_change, set_value);",
+        "let on_value_change = logic::normalize_on_value_change_handler(on_value_change);",
     ] {
         assert!(
             !source.contains(forbidden),
@@ -225,8 +214,8 @@ fn textarea_view_has_textfield_a11y_and_state_contracts() {
 
 #[test]
 fn textarea_a11y_i18n_and_locale_contract_is_headless_driven() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let i18n_source = load_source("../ui-headless/src/i18n/common.rs");
     let a11y_source = load_source("../ui-headless/src/a11y.rs");
 
@@ -266,7 +255,7 @@ fn textarea_a11y_i18n_and_locale_contract_is_headless_driven() {
 
 #[test]
 fn textarea_state_markers_are_observable_queryable_and_source_explicit() {
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
 
     for needle in [
         "data-state=move || state.get().state_attr.as_str()",
@@ -302,7 +291,7 @@ fn textarea_state_markers_are_observable_queryable_and_source_explicit() {
 
 #[test]
 fn textarea_styles_include_state_and_source_selectors() {
-    let source = load_source("src/textarea/styles.rs");
+    let source = load_source("src/text_input/textarea/styles.rs");
 
     for selector in [
         ".ui-textarea[data-state=\"disabled\"]",
@@ -336,9 +325,9 @@ fn textarea_styles_include_state_and_source_selectors() {
 
 #[test]
 fn textarea_styles_depend_on_semantic_selectors_not_structural_guesses() {
-    let styles_source = load_source("src/textarea/styles.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     for needle in [
         ".ui-textarea[data-state=\"disabled\"]",
@@ -482,8 +471,8 @@ fn textarea_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn textarea_has_no_async_loading_protocol_and_keeps_sync_input_contract() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
 
     for forbidden in [
         "use_async_action",
@@ -533,7 +522,7 @@ fn textarea_docs_expose_hello_world_path_without_state_machine_wiring() {
 
 #[test]
 fn textarea_is_leaf_input_without_parent_item_parallel_slot_api() {
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     for forbidden in [
@@ -563,16 +552,16 @@ fn textarea_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn textarea_semantic_contract_matrix_covers_state_paths_and_platform_branches() {
-    let logic_source = load_source("src/textarea/logic.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     for needle in [
         "fn normalize_value_axis_centralizes_default_priority_and_sources()",
-        "fn normalize_value_axis_prefers_on_value_change_over_set_value_alias()",
+        "fn normalize_value_axis_tracks_on_value_change_source()",
         "fn normalize_value_axis_uses_closed_enumerated_source_markers()",
         "fn normalize_accessibility_state_prefers_is_prefixed_inputs()",
-        "fn normalize_accessibility_state_falls_back_to_legacy_aliases()",
+        "fn normalize_accessibility_state_uses_defaults_when_values_are_absent()",
         "on:input=move |ev| request_value_change.run(event_target_value(&ev))",
         "on:focus=move |_| focus_ring.handlers.on_focus.run(())",
         "on:blur=move |_| focus_ring.handlers.on_blur.run(())",
@@ -603,11 +592,11 @@ fn textarea_semantic_contract_matrix_covers_state_paths_and_platform_branches() 
 
 #[test]
 fn textarea_component_files_keep_responsibility_boundaries() {
-    let mod_source = load_source("src/textarea/mod.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let styles_source = load_source("src/textarea/styles.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     for needle in [
         "mod logic;",
@@ -739,11 +728,11 @@ fn textarea_component_files_keep_responsibility_boundaries() {
 #[test]
 fn textarea_component_directory_has_standard_file_layout() {
     for required in [
-        "src/textarea/mod.rs",
-        "src/textarea/logic.rs",
-        "src/textarea/styles.rs",
-        "src/textarea/view.rs",
-        "src/textarea/motion.rs",
+        "src/text_input/textarea/mod.rs",
+        "src/text_input/textarea/logic.rs",
+        "src/text_input/textarea/styles.rs",
+        "src/text_input/textarea/view.rs",
+        "src/text_input/textarea/motion.rs",
     ] {
         assert!(
             path_exists(required),
@@ -752,18 +741,18 @@ fn textarea_component_directory_has_standard_file_layout() {
     }
 
     assert!(
-        !path_exists("src/textarea/render.rs"),
+        !path_exists("src/text_input/textarea/render.rs"),
         "textarea component should not drift into `render.rs`; keep rendering in `view.rs`."
     );
     assert!(
-        !path_exists("src/textarea/spec.rs"),
-        "Textarea is a simple component and should not introduce `src/textarea/spec.rs`."
+        !path_exists("src/text_input/textarea/spec.rs"),
+        "Textarea is a simple component and should not introduce `src/text_input/textarea/spec.rs`."
     );
 }
 
 #[test]
 fn textarea_mod_rs_keeps_minimal_stable_exports() {
-    let mod_source = load_source("src/textarea/mod.rs");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
 
     for needle in [
         "mod logic;",
@@ -804,12 +793,12 @@ fn textarea_component_file_responsibilities_remain_scoped() {
 #[test]
 fn textarea_keeps_simple_surface_without_spec_module_sprawl() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let spec_path = manifest_dir.join("src/textarea/spec.rs");
-    let mod_source = load_source("src/textarea/mod.rs");
+    let spec_path = manifest_dir.join("src/text_input/textarea/spec.rs");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
 
     assert!(
         !spec_path.exists(),
-        "Textarea is a simple component and should not introduce `src/textarea/spec.rs`."
+        "Textarea is a simple component and should not introduce `src/text_input/textarea/spec.rs`."
     );
 
     for forbidden in [
@@ -843,11 +832,11 @@ fn textarea_component_files_check_script_covers_contract() {
 
 #[test]
 fn textarea_uses_token_first_static_css_pipeline_without_utility_or_css_in_rust() {
-    let styles_source = load_source("src/textarea/styles.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     for needle in [
         "pub const CSS: &str = r#\"",
@@ -917,7 +906,7 @@ fn textarea_uses_token_first_static_css_pipeline_without_utility_or_css_in_rust(
 
 #[test]
 fn textarea_visual_desire_reuses_theme_visual_baseline_and_heroui_contracts() {
-    let styles_source = load_source("src/textarea/styles.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
     let baseline_page =
         load_source("../../apps/docs-app/src/pages/components/pages/theme_visual_baseline.rs");
     let pages_registry = load_source("../../apps/docs-app/src/pages/components/pages.rs");
@@ -1010,7 +999,9 @@ fn textarea_tree_shaking_keeps_component_feature_and_css_boundaries() {
     }
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-textarea\")]\npub mod textarea;"),
+        lib_source.contains(
+            "#[cfg(feature = \"component-textarea\")]\n#[path = \"text_input/textarea/mod.rs\"]\npub mod textarea;"
+        ),
         "lib.rs should feature-gate textarea module export for tree-shaking.",
     );
     assert!(
@@ -1075,8 +1066,8 @@ fn textarea_tree_shaking_check_script_covers_feature_tree_wasm_and_budget() {
 #[test]
 fn textarea_type_system_and_machine_readable_markers_stay_in_sync() {
     let primitive_source = load_source("../ui-state-primitives/src/textarea.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let view_source = load_source("src/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
 
     for needle in [
         "pub enum TextareaVisualStateAttr",
@@ -1109,7 +1100,6 @@ fn textarea_type_system_and_machine_readable_markers_stay_in_sync() {
         "ValueControlModeAttr::Controlled",
         "ValueControlModeAttr::Uncontrolled",
         "ValueChangeSourceAttr::OnValueChange",
-        "ValueChangeSourceAttr::SetValue",
         "ValueChangeSourceAttr::None",
     ] {
         assert!(
@@ -1141,10 +1131,10 @@ fn textarea_type_system_and_machine_readable_markers_stay_in_sync() {
 
 #[test]
 fn textarea_platform_guards_keep_non_wasm_files_web_sys_free() {
-    let mod_source = load_source("src/textarea/mod.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let styles_source = load_source("src/textarea/styles.rs");
-    let view_source = load_source("src/textarea/view.rs");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
 
     for forbidden in [
         "web_sys",
@@ -1165,13 +1155,13 @@ fn textarea_platform_guards_keep_non_wasm_files_web_sys_free() {
 
 #[test]
 fn textarea_motion_covers_wasm_and_non_wasm_contract_paths() {
-    let motion_source = load_source("src/textarea/motion.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     for needle in [
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -1283,10 +1273,10 @@ fn textarea_platform_script_covers_ui_motion_native_wasm_and_stub_paths() {
 
 #[test]
 fn textarea_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let styles_source = load_source("src/textarea/styles.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
     let ui_motion_spring_source = load_source("../ui-motion/src/spring.rs");
     let ui_motion_spring_tests_source = load_source("../ui-motion/tests/spring.rs");
     let platform_script_source = load_source("../../scripts/check-ui-components-platforms.sh");
@@ -1351,7 +1341,7 @@ fn textarea_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split(
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
         "if !motion.enabled || ui_motion::web::prefers_reduced_motion() {",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -1381,9 +1371,9 @@ fn textarea_performance_governance_contract_is_budgeted_traceable_and_blocking()
     let perf_probe_source = load_source("../../crates/ui-headless/src/perf.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let check2_source = load_source("src/textarea/check2.md");
+    let check2_source = load_source("src/text_input/textarea/check2.md");
     let script_source = load_source("../../scripts/check-ui-components-performance.sh");
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
 
     for needle in [
         "\"button\" => UiPerfBudget {",
@@ -1489,7 +1479,7 @@ fn textarea_performance_governance_contract_is_budgeted_traceable_and_blocking()
 
 #[test]
 fn textarea_view_macro_complexity_is_bounded_with_semantic_subblocks() {
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
     let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
 
     assert!(
@@ -1540,7 +1530,7 @@ fn textarea_view_macro_complexity_is_bounded_with_semantic_subblocks() {
 
 #[test]
 fn textarea_view_functional_split_prefers_plain_functions_over_local_components() {
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
     let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
 
     assert_eq!(
@@ -1578,11 +1568,11 @@ fn textarea_view_functional_split_prefers_plain_functions_over_local_components(
 
 #[test]
 fn textarea_static_fragments_are_constantized_or_absent_for_simple_input_layout() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/textarea.rs");
     let script_source = load_source("../../scripts/check-ui-components-view-macro.sh");
-    let check2_source = load_source("src/textarea/check2.md");
+    let check2_source = load_source("src/text_input/textarea/check2.md");
 
     for forbidden in [
         "inner_html=",
@@ -1653,11 +1643,11 @@ fn textarea_static_fragments_are_constantized_or_absent_for_simple_input_layout(
 #[test]
 fn textarea_inner_html_usage_is_forbidden_in_component_and_docs_examples() {
     for rel_path in [
-        "src/textarea/mod.rs",
-        "src/textarea/logic.rs",
-        "src/textarea/styles.rs",
-        "src/textarea/view.rs",
-        "src/textarea/motion.rs",
+        "src/text_input/textarea/mod.rs",
+        "src/text_input/textarea/logic.rs",
+        "src/text_input/textarea/styles.rs",
+        "src/text_input/textarea/view.rs",
+        "src/text_input/textarea/motion.rs",
     ] {
         let source = load_source(rel_path);
         for forbidden in [
@@ -1710,8 +1700,8 @@ fn textarea_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isol
     let docs_app_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../ui-headless/src/trace.rs");
-    let textarea_view_source = load_source("src/textarea/view.rs");
-    let textarea_logic_source = load_source("src/textarea/logic.rs");
+    let textarea_view_source = load_source("src/text_input/textarea/view.rs");
+    let textarea_logic_source = load_source("src/text_input/textarea/logic.rs");
     let docs_textarea_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
@@ -1882,7 +1872,7 @@ fn textarea_dx_interactive_scope_keeps_isolated_canvas_and_context_visible_with_
  {
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let check2_source = load_source("src/textarea/check2.md");
+    let check2_source = load_source("src/text_input/textarea/check2.md");
 
     for needle in [
         "let section_class = \"docs-card playground\";",
@@ -1955,15 +1945,17 @@ fn textarea_dx_check_script_covers_hot_reload_and_isolated_canvas_contract() {
 fn textarea_engineering_contract_marks_spec_serde_path_as_na_for_simple_component_scope() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cargo_source = load_source("Cargo.toml");
-    let mod_source = load_source("src/textarea/mod.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let styles_source = load_source("src/textarea/styles.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
-    let checklist_source = load_source("src/textarea/check2.md");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     assert!(
-        !manifest_dir.join("src/textarea/spec.rs").exists(),
+        !manifest_dir
+            .join("src/text_input/textarea/spec.rs")
+            .exists(),
         "Textarea should keep spec/schema boundary as N/A for simple component scope."
     );
     assert!(
@@ -2013,11 +2005,11 @@ fn textarea_engineering_contract_keeps_tracing_semantics_unified_without_compone
     let cargo_source = load_source("Cargo.toml");
     let button_view_source = load_source("src/button/view.rs");
     let combined = [
-        load_source("src/textarea/mod.rs"),
-        load_source("src/textarea/logic.rs"),
-        load_source("src/textarea/view.rs"),
-        load_source("src/textarea/styles.rs"),
-        load_source("src/textarea/motion.rs"),
+        load_source("src/text_input/textarea/mod.rs"),
+        load_source("src/text_input/textarea/logic.rs"),
+        load_source("src/text_input/textarea/view.rs"),
+        load_source("src/text_input/textarea/styles.rs"),
+        load_source("src/text_input/textarea/motion.rs"),
     ]
     .join("\n");
 
@@ -2053,11 +2045,11 @@ fn textarea_engineering_contract_keeps_tracing_semantics_unified_without_compone
 
 #[test]
 fn textarea_engineering_contract_avoids_runtime_leaks_in_public_api_surface() {
-    let mod_source = load_source("src/textarea/mod.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let styles_source = load_source("src/textarea/styles.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
 
     let sources = [
         &mod_source,
@@ -2108,7 +2100,7 @@ fn textarea_engineering_check_script_covers_serde_tracing_and_runtime_boundaries
 
 #[test]
 fn textarea_check2_documents_ui_components_entrypoint_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] `ui-components` 固定入口文件落点正确。",
@@ -2290,7 +2282,7 @@ fn textarea_entrypoints_check_script_covers_fixed_entrypoint_contract() {
 
 #[test]
 fn textarea_check2_documents_agent_contract_schema_governance_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
@@ -2308,8 +2300,8 @@ fn textarea_check2_documents_agent_contract_schema_governance_rules() {
 
 #[test]
 fn textarea_agent_contract_markers_are_schema_like_and_machine_readable() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/textarea.rs");
     let combined = format!("{view_source}\n{logic_source}\n{primitives_source}");
 
@@ -2361,8 +2353,8 @@ fn textarea_agent_contract_markers_are_schema_like_and_machine_readable() {
 
 #[test]
 fn textarea_agent_contract_fields_are_type_derived_without_free_form_schema_string_splicing() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/textarea.rs");
     let combined = format!("{view_source}\n{logic_source}\n{primitives_source}");
 
@@ -2397,11 +2389,11 @@ fn textarea_agent_contract_fields_are_type_derived_without_free_form_schema_stri
 
 #[test]
 fn textarea_agent_contract_render_path_is_whitelist_safe_and_script_injection_free() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
-    let styles_source = load_source("src/textarea/styles.rs");
-    let mod_source = load_source("src/textarea/mod.rs");
-    let motion_source = load_source("src/textarea/motion.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
+    let styles_source = load_source("src/text_input/textarea/styles.rs");
+    let mod_source = load_source("src/text_input/textarea/mod.rs");
+    let motion_source = load_source("src/text_input/textarea/motion.rs");
     let combined =
         format!("{view_source}\n{logic_source}\n{styles_source}\n{mod_source}\n{motion_source}");
 
@@ -2438,7 +2430,7 @@ fn textarea_contract_hygiene_script_covers_agent_contract_schema_guards() {
 
 #[test]
 fn textarea_check2_documents_streaming_definition_is_llm_output_only_with_two_modes() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] 流式在这里仅指 LLM 输出渲染（只看两种显示模式）。",
@@ -2465,7 +2457,7 @@ fn textarea_streaming_check_script_covers_llm_two_mode_definition_contract() {
 
 #[test]
 fn textarea_check2_documents_snapshot_as_default_baseline_capability() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] `Snapshot` 是所有组件的基础能力（默认必须支持）。",
@@ -2481,8 +2473,8 @@ fn textarea_check2_documents_snapshot_as_default_baseline_capability() {
 
 #[test]
 fn textarea_snapshot_baseline_consumes_complete_result_and_renders_stably() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/textarea.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
@@ -2493,7 +2485,7 @@ fn textarea_snapshot_baseline_consumes_complete_result_and_renders_stably() {
         "#[prop(optional)] on_value_change: Option<Callback<String>>",
         "logic::normalize_value_axis(logic::ValueAxisInput {",
         "let value_state = use_controllable_state(",
-        "Some(value_axis.default_value),",
+        "Some(value_axis.default_value.clone()),",
         "data-state=move || state.get().state_attr.as_str()",
         "data-value=move || state.get().value_attr.as_str()",
         "data-value-control-mode=value_axis.control_mode_attr.as_str()",
@@ -2550,7 +2542,7 @@ fn textarea_streaming_check_script_covers_snapshot_baseline_contract() {
 
 #[test]
 fn textarea_check2_documents_streaming_required_optional_classification_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] `Streaming` 是否强制，按组件职责判断（不能一刀切）。",
@@ -2569,7 +2561,7 @@ fn textarea_check2_documents_streaming_required_optional_classification_rules() 
 
 #[test]
 fn textarea_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous() {
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
 
     for required in [
         "data-slot=\"textarea\"",
@@ -2609,8 +2601,8 @@ fn textarea_streaming_optional_scope_keeps_role_aria_and_data_markers_continuous
 
 #[test]
 fn textarea_streaming_validation_retry_resilience_boundaries_stay_outside_component_layer() {
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let combined = format!("{view_source}\n{logic_source}");
 
     for forbidden in [
@@ -2649,7 +2641,7 @@ fn textarea_streaming_check_script_covers_streaming_responsibility_contract() {
 
 #[test]
 fn textarea_check2_documents_semantics_first_testing_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
@@ -2700,7 +2692,7 @@ fn textarea_semantics_suite_is_contract_first_not_snapshot_only() {
 
 #[test]
 fn textarea_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests() {
-    let view_source = load_source("src/textarea/view.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
     let semantics_source = load_source("tests/textarea_semantics.rs");
 
     for marker in [
@@ -2749,7 +2741,7 @@ fn textarea_contract_hygiene_script_covers_semantics_first_contract_guards() {
 
 #[test]
 fn textarea_check2_documents_e2e_selector_and_stable_wait_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。",
@@ -2814,7 +2806,7 @@ fn textarea_e2e_check_script_covers_selector_contract() {
 
 #[test]
 fn textarea_check2_documents_e2e_repeatable_key_flow_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] 关键流程纳入可重复回归集合（Playwright/Cypress）。",
@@ -2877,7 +2869,7 @@ fn textarea_e2e_check_script_covers_selector_and_key_flow_contracts() {
 
 #[test]
 fn textarea_check2_documents_docs_sync_and_state_matrix_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] docs-app 文档、示例、参数矩阵、状态矩阵同步更新。",
@@ -2895,8 +2887,8 @@ fn textarea_check2_documents_docs_sync_and_state_matrix_rules() {
 #[test]
 fn textarea_docs_examples_sync_with_logic_api_names_and_state_matrix() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/textarea.rs");
 
     textarea_docs_page_covers_primary_playgrounds();
@@ -2922,7 +2914,6 @@ fn textarea_docs_examples_sync_with_logic_api_names_and_state_matrix() {
         "#[prop(optional, into)] value: Option<Signal<String>>",
         "#[prop(optional, into)] default_value: Option<String>",
         "#[prop(optional)] on_value_change: Option<Callback<String>>",
-        "#[prop(optional)] set_value: Option<WriteSignal<String>>",
         "pub fn normalize_value_axis(input: ValueAxisInput) -> ValueAxisState",
         "pub enum ValueControlModeAttr",
         "pub enum ValueChangeSourceAttr",
@@ -2955,7 +2946,7 @@ fn textarea_contract_hygiene_script_covers_docs_sync_and_state_matrix_contract()
 
 #[test]
 fn textarea_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
-    let has_readme = path_exists("src/textarea/README.md");
+    let has_readme = path_exists("src/text_input/textarea/README.md");
     let has_docs_page =
         path_exists("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
@@ -2973,7 +2964,7 @@ fn textarea_docs_entry_exists_as_readme_or_equivalent_docs_app_page() {
 #[test]
 fn textarea_docs_are_beginner_friendly_with_default_then_advanced_path() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let check2_source = load_source("src/textarea/check2.md");
+    let check2_source = load_source("src/text_input/textarea/check2.md");
 
     for needle in [
         "组件文档必须对新手友好（Documentation as Product）",
@@ -3061,7 +3052,7 @@ fn textarea_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiri
 
 #[test]
 fn textarea_check2_marks_documentation_as_product_complete() {
-    let check2_source = load_source("src/textarea/check2.md");
+    let check2_source = load_source("src/text_input/textarea/check2.md");
 
     for needle in [
         "- [x] 组件文档必须对新手友好（Documentation as Product）：组件 README 或等价文档入口必须存在。",
@@ -3098,7 +3089,7 @@ fn textarea_contract_hygiene_script_covers_documentation_as_product_contract() {
 
 #[test]
 fn textarea_check2_documents_interactive_playground_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] `apps/docs-app` 必须提供 Interactive Playground：用户可在线修改 props/状态并实时预览。",
@@ -3188,7 +3179,7 @@ fn textarea_dx_check_script_covers_interactive_playground_contract() {
 
 #[test]
 fn textarea_check2_documents_source_first_copy_paste_ready_rules() {
-    let checklist_source = load_source("src/textarea/check2.md");
+    let checklist_source = load_source("src/text_input/textarea/check2.md");
 
     for required in [
         "- [x] Source-first 文档必须 Copy-Paste Ready：提供一键复制组件源码或最小可用片段能力。",
@@ -3208,8 +3199,8 @@ fn textarea_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     let docs_source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let code_block_source = load_source("src/code_block/view.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
 
     for needle in [
         "pub(super) fn textarea() -> AnyView",
@@ -3285,8 +3276,8 @@ fn textarea_heroui_strategy_and_component_docs_are_synced_for_parameter_model_ch
     let docs_index_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
-    let view_source = load_source("src/textarea/view.rs");
-    let logic_source = load_source("src/textarea/logic.rs");
+    let view_source = load_source("src/text_input/textarea/view.rs");
+    let logic_source = load_source("src/text_input/textarea/logic.rs");
 
     for needle in [
         "### Textarea 同步记录（2026-02-17）",
@@ -3332,7 +3323,7 @@ fn textarea_heroui_strategy_and_component_docs_are_synced_for_parameter_model_ch
 
 #[test]
 fn textarea_check2_marks_heroui_strategy_and_component_docs_sync_complete() {
-    let check2_source = load_source("src/textarea/check2.md");
+    let check2_source = load_source("src/text_input/textarea/check2.md");
 
     for needle in [
         "- [x] HeroUI 对标文档与组件文档同步：参数模型变更需同步 `docs/spec/heroui-parameter-design-strategy.md`（必要时补充 `docs/research/spectrum-heroui-style-interface-study.md`），并保证组件文档可访问。",

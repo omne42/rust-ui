@@ -75,7 +75,7 @@ impl MeterRange {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -87,7 +87,7 @@ pub fn resolve_aria_label(aria_label: Option<String>, label: Option<String>) -> 
         return (label, is_custom);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_value_label(value: Option<String>) -> (Option<String>, bool) {
@@ -218,11 +218,11 @@ pub fn resolve_state(input: MeterStateInput) -> MeterState {
 pub fn compose_class_name(base_class_name: Option<String>, state: MeterState) -> String {
     let mut classes = vec![
         "ui-meter".to_string(),
-        state.variant_class.to_string(),
-        state.size_class.to_string(),
-        state.label_source_class.to_string(),
-        state.value_label_source_class.to_string(),
-        state.motion_source_class.to_string(),
+        state.variant_class.into(),
+        state.size_class.into(),
+        state.label_source_class.into(),
+        state.value_label_source_class.into(),
+        state.motion_source_class.into(),
     ];
 
     if state.has_custom_class_name {
@@ -293,11 +293,11 @@ mod tests {
     fn resolve_aria_label_defaults_and_detects_custom_source() {
         assert_eq!(
             resolve_aria_label(None, None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("\n\t".to_string()), None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(None, Some("  Completion  ".to_string())),
@@ -305,7 +305,7 @@ mod tests {
         );
         assert_eq!(
             resolve_aria_label(Some("  Meter  ".to_string()), Some("  Label  ".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(

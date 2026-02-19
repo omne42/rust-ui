@@ -15,10 +15,10 @@ impl Default for FlipButtonMotion {
 
 pub fn sanitize_motion(motion: FlipButtonMotion) -> FlipButtonMotion {
     let base = crate::button::motion::ButtonMotion::default();
+    let spring = crate::button::motion::sanitize_spring_with_fallback(motion.spring, base.spring);
     let sanitized = crate::button::motion::sanitize_motion(crate::button::motion::ButtonMotion {
-        spring: crate::button::motion::sanitize_spring_with_fallback(motion.spring, base.spring),
-        hover_scale: base.hover_scale,
-        tap_scale: base.tap_scale,
+        spring,
+        ..base
     });
 
     FlipButtonMotion {
@@ -134,7 +134,7 @@ pub fn attach_motion(
     _from: FlipDirection,
     motion: FlipButtonMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

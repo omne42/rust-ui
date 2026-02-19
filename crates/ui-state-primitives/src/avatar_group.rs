@@ -140,7 +140,7 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: AvatarGroupStateInput) -> AvatarGroupState {
@@ -246,10 +246,7 @@ mod tests {
 
     #[test]
     fn resolve_aria_label_defaults_and_trims() {
-        assert_eq!(
-            resolve_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
-        );
+        assert_eq!(resolve_aria_label(None), (DEFAULT_ARIA_LABEL.into(), false));
         assert_eq!(
             resolve_aria_label(Some("  Team  ".to_string())),
             ("Team".to_string(), true)

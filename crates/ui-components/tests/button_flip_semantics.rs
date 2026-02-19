@@ -1437,7 +1437,7 @@ fn flip_button_implementation_covers_reduced_motion_ssr_and_wasm_paths() {
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             flip_motion.contains(needle),
@@ -1554,7 +1554,7 @@ fn flip_button_branch_coverage_reduced_motion_ssr_and_wasm_is_locked() {
     for needle in [
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             flip_motion.contains(needle),

@@ -2,7 +2,6 @@ mod logic;
 pub mod styles;
 mod view;
 
-pub use crate::accordion::AccordionMotion as DisclosureGroupMotion;
 pub use logic::{DEFAULT_ARIA_LABEL, DisclosureGroupSelectionMode};
 pub use view::DisclosureGroup;
 

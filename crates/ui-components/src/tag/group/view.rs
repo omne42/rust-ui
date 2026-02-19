@@ -5,7 +5,6 @@ use super::{
         resolve_state,
     },
 };
-use crate::ai_space::use_ai_space_state;
 use crate::tag::{Tag as TagPrimitive, TagSize, TagVariant};
 use leptos::prelude::*;
 use ui_headless::{A11yDirection, OnPress, locale_attrs};
@@ -243,7 +242,6 @@ pub fn TagGroup(
     let agent_contract = Signal::derive(move || {
         super::logic::resolve_agent_contract(state.get(), agent_source.get(), has_remove_callback)
     });
-    let ai_space_state = StoredValue::new(use_ai_space_state());
 
     let label = StoredValue::new(label);
     let description = StoredValue::new(description);
@@ -295,18 +293,8 @@ pub fn TagGroup(
             data-ui-source=move || agent_contract.get().source.as_str()
             data-ui-stream-support=move || agent_contract.get().stream_support.as_str()
             data-ui-stream-fallback=move || agent_contract.get().stream_fallback.as_str()
-            data-ui-stream-mode=move || {
-                ai_space_state
-                    .get_value()
-                    .map(|state| state.get().mode.as_str())
-                    .unwrap_or("snapshot")
-            }
-            data-ui-output-status=move || {
-                ai_space_state
-                    .get_value()
-                    .map(|state| state.get().output_status.as_str())
-                    .unwrap_or(agent_contract.get().output_status.as_str())
-            }
+            data-ui-stream-mode="snapshot"
+            data-ui-output-status=move || agent_contract.get().output_status.as_str()
             data-ui-capability-remove=move || {
                 agent_contract.get().capabilities.can_remove.then_some("true")
             }

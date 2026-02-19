@@ -31,7 +31,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, &'static str) {
         return (label, "custom");
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), "default")
+    (DEFAULT_ARIA_LABEL.into(), "default")
 }
 
 pub fn resolve_root_class(class_name: Option<String>) -> (String, &'static str) {
@@ -51,7 +51,7 @@ pub fn resolve_state(input: BreadcrumbsStateInput<'_>) -> BreadcrumbsState {
         !item.is_last
             && item
                 .href
-                .is_some_and(|href| normalize_optional_text(Some(href.to_string())).is_some())
+                .is_some_and(|href| normalize_optional_text(Some(href.into())).is_some())
     });
 
     BreadcrumbsState {
@@ -75,11 +75,11 @@ mod tests {
         );
         assert_eq!(
             normalize_aria_label(Some("   ".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), "default")
+            (DEFAULT_ARIA_LABEL.into(), "default")
         );
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), "default")
+            (DEFAULT_ARIA_LABEL.into(), "default")
         );
     }
 

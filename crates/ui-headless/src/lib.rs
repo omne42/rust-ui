@@ -53,6 +53,7 @@ pub mod swatch;
 pub mod switch;
 pub mod tabs;
 pub mod text_field;
+#[cfg(feature = "logic-calendar")]
 pub mod time_field;
 pub mod tooltip;
 pub mod tooltip_position;
@@ -206,6 +207,7 @@ pub use text_field::{
     TextFieldAria, TextFieldInputAttrs, TextFieldLabelAttrs, TextFieldMessageAttrs,
     TextFieldOptions, use_text_field,
 };
+#[cfg(feature = "logic-calendar")]
 pub use time_field::{
     TimeFieldAria, TimeFieldAttrs, TimeFieldHandlers, TimeFieldOptions, TimeFieldState,
     use_time_field,

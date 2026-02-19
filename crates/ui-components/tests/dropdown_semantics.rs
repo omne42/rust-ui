@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn dropdown_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/dropdown/mod.rs");
+    let source = load_source("src/menu/dropdown/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +21,8 @@ fn dropdown_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn dropdown_uses_logic_state_model() {
-    let view_source = load_source("src/dropdown/view.rs");
-    let logic_source = load_source("src/dropdown/logic.rs");
+    let view_source = load_source("src/menu/dropdown/view.rs");
+    let logic_source = load_source("src/menu/dropdown/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/dropdown.rs");
 
     for needle in [
@@ -84,8 +84,8 @@ fn dropdown_uses_logic_state_model() {
 
 #[test]
 fn dropdown_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/dropdown/view.rs");
-    let logic_source = load_source("src/dropdown/logic.rs");
+    let source = load_source("src/menu/dropdown/view.rs");
+    let logic_source = load_source("src/menu/dropdown/logic.rs");
 
     for needle in [
         "is_open: Option<Signal<bool>>",
@@ -105,7 +105,7 @@ fn dropdown_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn dropdown_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/dropdown/view.rs");
+    let source = load_source("src/menu/dropdown/view.rs");
 
     for attr in [
         "data-slot=\"dropdown\"",
@@ -137,7 +137,7 @@ fn dropdown_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn dropdown_composes_button_popover_and_menu() {
-    let source = load_source("src/dropdown/view.rs");
+    let source = load_source("src/menu/dropdown/view.rs");
 
     for needle in [
         "<Button",
@@ -158,7 +158,7 @@ fn dropdown_composes_button_popover_and_menu() {
 
 #[test]
 fn dropdown_styles_include_persistent_and_disabled_markers() {
-    let source = load_source("src/dropdown/styles.rs");
+    let source = load_source("src/menu/dropdown/styles.rs");
 
     for selector in [
         ".ui-dropdown--disabled",
@@ -179,8 +179,8 @@ fn dropdown_styles_include_persistent_and_disabled_markers() {
 
 #[test]
 fn dropdown_exposes_motion_contract_and_internal_module() {
-    let mod_source = load_source("src/dropdown/mod.rs");
-    let motion_source = load_source("src/dropdown/motion.rs");
+    let mod_source = load_source("src/menu/dropdown/mod.rs");
+    let motion_source = load_source("src/menu/dropdown/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -197,8 +197,8 @@ fn dropdown_exposes_motion_contract_and_internal_module() {
 
 #[test]
 fn dropdown_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/dropdown/motion.rs");
-    let view_source = load_source("src/dropdown/view.rs");
+    let motion_source = load_source("src/menu/dropdown/motion.rs");
+    let view_source = load_source("src/menu/dropdown/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: DropdownMotion) -> DropdownMotion",
@@ -273,8 +273,8 @@ fn dropdown_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn dropdown_supports_is_prefixed_boolean_props_with_legacy_aliases() {
-    let view_source = load_source("src/dropdown/view.rs");
-    let logic_source = load_source("src/dropdown/logic.rs");
+    let view_source = load_source("src/menu/dropdown/view.rs");
+    let logic_source = load_source("src/menu/dropdown/logic.rs");
 
     for needle in [
         "is_disabled: Option<bool>",
@@ -306,7 +306,7 @@ fn dropdown_supports_is_prefixed_boolean_props_with_legacy_aliases() {
 
 #[test]
 fn dropdown_wires_open_triplet_into_headless_state() {
-    let source = load_source("src/dropdown/view.rs");
+    let source = load_source("src/menu/dropdown/view.rs");
 
     for needle in [
         "let normalized_open_state = logic::normalize_open_state(logic::OpenStateInput {",
@@ -325,7 +325,7 @@ fn dropdown_wires_open_triplet_into_headless_state() {
 
 #[test]
 fn dropdown_view_does_not_inline_default_fallback_rules() {
-    let source = load_source("src/dropdown/view.rs");
+    let source = load_source("src/menu/dropdown/view.rs");
 
     for forbidden in ["is_disabled.unwrap_or(disabled)", "is_open.or(open)"] {
         assert!(
@@ -337,7 +337,7 @@ fn dropdown_view_does_not_inline_default_fallback_rules() {
 
 #[test]
 fn dropdown_styles_depend_on_explicit_state_markers_only() {
-    let source = load_source("src/dropdown/styles.rs");
+    let source = load_source("src/menu/dropdown/styles.rs");
 
     for required in [
         ".ui-dropdown--disabled",
@@ -362,11 +362,11 @@ fn dropdown_styles_depend_on_explicit_state_markers_only() {
 
 #[test]
 fn dropdown_component_files_are_layered_and_spec_file_is_absent() {
-    let module_source = load_source("src/dropdown/mod.rs");
-    let logic_source = load_source("src/dropdown/logic.rs");
-    let styles_source = load_source("src/dropdown/styles.rs");
-    let view_source = load_source("src/dropdown/view.rs");
-    let motion_source = load_source("src/dropdown/motion.rs");
+    let module_source = load_source("src/menu/dropdown/mod.rs");
+    let logic_source = load_source("src/menu/dropdown/logic.rs");
+    let styles_source = load_source("src/menu/dropdown/styles.rs");
+    let view_source = load_source("src/menu/dropdown/view.rs");
+    let motion_source = load_source("src/menu/dropdown/motion.rs");
 
     for needle in [
         "mod logic;",
@@ -390,7 +390,7 @@ fn dropdown_component_files_are_layered_and_spec_file_is_absent() {
     assert!(motion_source.contains("pub struct DropdownMotion"));
     assert!(
         !Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("src/dropdown/spec.rs")
+            .join("src/menu/dropdown/spec.rs")
             .exists(),
         "Dropdown should not add spec.rs for this component scope."
     );
@@ -455,7 +455,7 @@ fn dropdown_docs_page_includes_interactive_playground_sections() {
 
 #[test]
 fn dropdown_docs_entry_has_readme_streaming_policy_and_source_paths() {
-    let readme = load_source("src/dropdown/README.md");
+    let readme = load_source("src/menu/dropdown/README.md");
 
     for needle in [
         "# Dropdown",
@@ -465,7 +465,7 @@ fn dropdown_docs_entry_has_readme_streaming_policy_and_source_paths() {
         "fallback=snapshot",
         "## Hello World",
         "## Source-first",
-        "crates/ui-components/src/dropdown/{mod,logic,view,styles,motion}.rs",
+        "crates/ui-components/src/menu/dropdown/{mod,logic,view,styles,motion}.rs",
         "crates/ui-state-primitives/src/dropdown.rs",
     ] {
         assert!(
@@ -477,7 +477,7 @@ fn dropdown_docs_entry_has_readme_streaming_policy_and_source_paths() {
 
 #[test]
 fn dropdown_readme_documents_display_config_code_and_css_test_sections() {
-    let readme = load_source("src/dropdown/README.md");
+    let readme = load_source("src/menu/dropdown/README.md");
 
     for needle in [
         "## docs-app 展示区（展示 / config / code / css test）",
@@ -508,7 +508,7 @@ fn dropdown_tree_shaking_feature_gates_are_explicit() {
 
     for needle in [
         "component-dropdown = [\"component-button\", \"component-menu\", \"component-popover\"]",
-        "#[cfg(feature = \"component-dropdown\")]\npub mod dropdown;",
+        "#[cfg(feature = \"component-dropdown\")]\n#[path = \"menu/dropdown/mod.rs\"]\npub mod dropdown;",
         "#[cfg(feature = \"component-dropdown\")]\n    out.push_str(crate::dropdown::styles::CSS);",
     ] {
         assert!(
@@ -524,7 +524,7 @@ fn dropdown_tree_shaking_feature_gates_are_explicit() {
 fn dropdown_platform_contract_preserves_headless_mutex_and_motion_stub_references() {
     let headless_lib = load_source("../ui-headless/src/lib.rs");
     let motion_lib = load_source("../ui-motion/src/lib.rs");
-    let view_source = load_source("src/dropdown/view.rs");
+    let view_source = load_source("src/menu/dropdown/view.rs");
 
     for needle in [
         "feature = \"web\"",
@@ -558,10 +558,10 @@ fn dropdown_platform_contract_preserves_headless_mutex_and_motion_stub_reference
 fn dropdown_inner_html_path_is_absent() {
     let combined = format!(
         "{}\n{}\n{}\n{}",
-        load_source("src/dropdown/logic.rs"),
-        load_source("src/dropdown/view.rs"),
-        load_source("src/dropdown/styles.rs"),
-        load_source("src/dropdown/motion.rs")
+        load_source("src/menu/dropdown/logic.rs"),
+        load_source("src/menu/dropdown/view.rs"),
+        load_source("src/menu/dropdown/styles.rs"),
+        load_source("src/menu/dropdown/motion.rs")
     );
 
     for forbidden in ["inner_html", "<script", "javascript:"] {
@@ -697,7 +697,7 @@ fn dropdown_heroui_strategy_and_docs_entry_stay_in_sync() {
 
 #[test]
 fn dropdown_check2_has_no_unchecked_checklist_items() {
-    let checklist = load_source("src/dropdown/check2.md");
+    let checklist = load_source("src/menu/dropdown/check2.md");
     assert!(
         !checklist.contains("- [ ]"),
         "Dropdown checklist should be fully checked after scoped verification."

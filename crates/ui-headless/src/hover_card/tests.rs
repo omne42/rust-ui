@@ -1,7 +1,7 @@
 use super::*;
 
 fn reset_owner() -> Owner {
-    let _ = any_spawner::Executor::init_futures_executor();
+    drop(any_spawner::Executor::init_futures_executor());
     let owner = Owner::new();
     owner.set();
     test_timers::reset();

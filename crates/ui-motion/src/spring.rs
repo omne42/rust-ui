@@ -111,8 +111,7 @@ struct SpringAnimatorInner {
 impl SpringAnimator {
     pub fn new(initial: f64, config: SpringConfig, apply: impl FnMut(f64) + 'static) -> Self {
         #[cfg(not(target_arch = "wasm32"))]
-        let _ = config;
-
+        let _config = config;
         Self {
             inner: Rc::new(SpringAnimatorInner {
                 #[cfg(target_arch = "wasm32")]
@@ -165,7 +164,7 @@ impl SpringAnimator {
                 return;
             };
             if let Some(window) = web_sys::window() {
-                let _ = window.cancel_animation_frame(handle);
+                drop(window.cancel_animation_frame(handle));
             }
             self.inner.last_ts_ms.set(None);
             self.inner.raf_closure.borrow_mut().take();

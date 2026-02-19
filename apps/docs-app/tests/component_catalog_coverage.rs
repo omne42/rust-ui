@@ -9,7 +9,7 @@ fn extract_component_fns(source: &str) -> BTreeSet<String> {
     for line in source.lines() {
         let trimmed = line.trim();
 
-        if trimmed == "#[component]" {
+        if trimmed == "#[component]" || trimmed == "#[leptos::component]" {
             pending_component = true;
             continue;
         }
@@ -66,12 +66,23 @@ fn walk_rs_files(root: &Path, out: &mut BTreeSet<String>) {
     }
 }
 
-fn ui_components_component_names() -> BTreeSet<String> {
-    let root: PathBuf =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../../crates/ui-components/src");
-
+fn crate_component_names(relative_root: &str) -> BTreeSet<String> {
+    let root: PathBuf = Path::new(env!("CARGO_MANIFEST_DIR")).join(relative_root);
     let mut out = BTreeSet::new();
     walk_rs_files(&root, &mut out);
+    out
+}
+
+fn workspace_component_names() -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for root in [
+        "../../crates/ui-components/src",
+        "../../crates/ui-layout/src",
+        "../../components/accordion/src",
+        "../../crates/ui-ai-runtime/src",
+    ] {
+        out.extend(crate_component_names(root));
+    }
     out
 }
 
@@ -93,7 +104,7 @@ fn internal_only_component_entries() -> BTreeSet<String> {
 
 #[test]
 fn docs_catalog_covers_all_ui_components_components() {
-    let mut expected = ui_components_component_names();
+    let mut expected = workspace_component_names();
     for internal_only in internal_only_component_entries() {
         expected.remove(&internal_only);
     }
@@ -104,7 +115,7 @@ fn docs_catalog_covers_all_ui_components_components() {
 
     assert_eq!(
         expected, actual,
-        "docs-app 组件目录需要覆盖 ui-components 全部 #[component] pub fn 组件（新增/删除组件必须同步更新 docs catalog）。"
+        "docs-app 组件目录需要覆盖 ui-components/ui-layout 全部 #[component] pub fn 组件（新增/删除组件必须同步更新 docs catalog）。"
     );
 }
 

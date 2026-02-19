@@ -141,7 +141,7 @@ pub fn resolve_state(input: TooltipPartStateInput) -> TooltipPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: TooltipPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if state.slot == TooltipSlot::Root {
         if state.has_custom_motion {

@@ -154,10 +154,9 @@ pub fn attach_motion(
         let indicator_el: leptos::web_sys::HtmlElement = indicator.unchecked_into();
         let style = indicator_el.style();
 
-        let _ = style.set_property("--ui-tabs-indicator-x", "0px");
-        let _ = style.set_property("--ui-tabs-indicator-w", "0px");
-        let _ = style.set_property("--ui-tabs-indicator-o", "0");
-
+        drop(style.set_property("--ui-tabs-indicator-x", "0px"));
+        drop(style.set_property("--ui-tabs-indicator-w", "0px"));
+        drop(style.set_property("--ui-tabs-indicator-o", "0"));
         let measure_layout = {
             let tab_refs = Arc::clone(&tab_refs);
             let selected_index = selected_index;
@@ -177,19 +176,19 @@ pub fn attach_motion(
         let style_for_x = style.clone();
         let set_x = move |v: f64| {
             let v = v.clamp(-10000.0, 10000.0);
-            let _ = style_for_x.set_property("--ui-tabs-indicator-x", &format!("{v}px"));
+            drop(style_for_x.set_property("--ui-tabs-indicator-x", &format!("{v}px")));
         };
 
         let style_for_w = style.clone();
         let set_w = move |v: f64| {
             let v = v.clamp(0.0, 10000.0);
-            let _ = style_for_w.set_property("--ui-tabs-indicator-w", &format!("{v}px"));
+            drop(style_for_w.set_property("--ui-tabs-indicator-w", &format!("{v}px")));
         };
 
         let style_for_o = style.clone();
         let set_o = move |v: f64| {
             let v = v.clamp(0.0, 1.0);
-            let _ = style_for_o.set_property("--ui-tabs-indicator-o", &format!("{v}"));
+            drop(style_for_o.set_property("--ui-tabs-indicator-o", &format!("{v}")));
         };
 
         let driver_instance = Rc::new(RefCell::new(IndicatorMotionDriver::new(
@@ -239,10 +238,9 @@ pub fn attach_motion(
     });
 
     Effect::new(move |_| {
-        let _ = selected_index.get();
-        let _ = list_ref.get();
-        let _ = indicator_ref.get();
-
+        std::hint::black_box(selected_index.get());
+        std::hint::black_box(list_ref.get());
+        std::hint::black_box(indicator_ref.get());
         let Some(driver) = driver.get_value() else {
             return;
         };
@@ -258,7 +256,7 @@ pub fn attach_motion(
     _selected_index: Signal<usize>,
     motion: TabsMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

@@ -115,7 +115,7 @@ pub struct SonnerPartState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -123,7 +123,7 @@ pub fn normalize_aria_label(value: Option<String>) -> (String, bool) {
     if let Some(value) = normalize_optional_text(value) {
         (value, true)
     } else {
-        (DEFAULT_ARIA_LABEL.to_string(), false)
+        (DEFAULT_ARIA_LABEL.into(), false)
     }
 }
 
@@ -195,7 +195,7 @@ mod tests {
 
         assert_eq!(
             normalize_aria_label(None),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             normalize_aria_label(Some(" Status host ".to_string())),

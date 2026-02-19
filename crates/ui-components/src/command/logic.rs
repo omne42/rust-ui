@@ -54,12 +54,12 @@ pub fn disabled_attr(is_disabled: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
 pub fn normalize_id_base(id_base: String) -> String {
-    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.to_string())
+    normalize_optional_text(Some(id_base)).unwrap_or_else(|| DEFAULT_ID_BASE.into())
 }
 
 pub fn resolve_placeholder(value: Option<String>) -> (String, bool) {
@@ -67,7 +67,7 @@ pub fn resolve_placeholder(value: Option<String>) -> (String, bool) {
         return (value, true);
     }
 
-    (DEFAULT_PLACEHOLDER.to_string(), false)
+    (DEFAULT_PLACEHOLDER.into(), false)
 }
 
 pub fn resolve_empty_label(value: Option<String>) -> (String, bool) {
@@ -75,7 +75,7 @@ pub fn resolve_empty_label(value: Option<String>) -> (String, bool) {
         return (value, true);
     }
 
-    (DEFAULT_EMPTY_LABEL.to_string(), false)
+    (DEFAULT_EMPTY_LABEL.into(), false)
 }
 
 pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
@@ -83,7 +83,7 @@ pub fn resolve_aria_label(value: Option<String>) -> (String, bool) {
         return (value, true);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 fn normalize_query(query: &str) -> String {
@@ -184,7 +184,7 @@ pub fn resolve_state(input: CommandPartStateInput) -> CommandPartState {
 }
 
 pub fn compose_class_name(class_name: Option<String>, state: CommandPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if matches!(state.slot, CommandSlot::Root) {
         if state.is_empty {
@@ -297,7 +297,7 @@ mod tests {
         );
         assert_eq!(
             resolve_placeholder(Some("".to_string())),
-            (DEFAULT_PLACEHOLDER.to_string(), false)
+            (DEFAULT_PLACEHOLDER.into(), false)
         );
 
         assert_eq!(
@@ -306,7 +306,7 @@ mod tests {
         );
         assert_eq!(
             resolve_empty_label(Some("".to_string())),
-            (DEFAULT_EMPTY_LABEL.to_string(), false)
+            (DEFAULT_EMPTY_LABEL.into(), false)
         );
 
         assert_eq!(
@@ -315,7 +315,7 @@ mod tests {
         );
         assert_eq!(
             resolve_aria_label(Some("".to_string())),
-            (DEFAULT_ARIA_LABEL.to_string(), false)
+            (DEFAULT_ARIA_LABEL.into(), false)
         );
     }
 

@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn toggle_group_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/button/toggle_group/mod.rs");
+    let module_source = load_source("src/button/toggle/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -22,7 +22,7 @@ fn toggle_group_is_exported_from_module_and_crate_root() {
         "toggle_group module should export orientation and selection mode contracts."
     );
     assert!(
-        crate_source.contains("pub use button::toggle_group::{")
+        crate_source.contains("pub use button::{")
             && crate_source.contains("ToggleGroup")
             && crate_source.contains("ToggleGroupItem")
             && crate_source.contains("ToggleGroupOrientation")
@@ -33,17 +33,17 @@ fn toggle_group_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn toggle_group_uses_logic_state_model() {
-    let view_source = load_source("src/button/toggle_group/view.rs");
-    let logic_source = load_source("src/button/toggle_group/logic.rs");
+    let view_source = load_source("src/button/toggle/view.rs");
+    let logic_source = load_source("src/button/toggle/logic.rs");
 
     for needle in [
         "pub enum ToggleGroupOrientation",
         "pub enum ToggleGroupSelectionMode",
-        "pub fn normalize_items(",
-        "pub fn sanitize_selected_ids(",
-        "pub fn toggle_selected_id(",
-        "pub fn resolve_state(",
-        "pub fn compose_class_name(",
+        "pub fn normalize_toggle_group_items(",
+        "pub fn sanitize_toggle_group_selected_ids(",
+        "pub fn toggle_toggle_group_selected_id(",
+        "pub fn resolve_toggle_group_state(",
+        "pub fn compose_toggle_group_class_name(",
     ] {
         assert!(
             logic_source.contains(needle),
@@ -56,9 +56,9 @@ fn toggle_group_uses_logic_state_model() {
         "let selected_ids = selected_state.value;",
         "let request_selected_ids_change = selected_state.request_change;",
         "let resolved_selected_ids = Signal::derive(move ||",
-        "logic::resolve_state(ToggleGroupStateInput {",
-        "logic::compose_class_name(class_name.get_value(), state.get())",
-        "logic::toggle_selected_id(",
+        "logic::resolve_toggle_group_state(super::ToggleGroupStateInput {",
+        "logic::compose_toggle_group_class_name(class_name.get_value(), state.get())",
+        "logic::toggle_toggle_group_selected_id(",
     ] {
         assert!(
             view_source.contains(needle),
@@ -69,14 +69,14 @@ fn toggle_group_uses_logic_state_model() {
 
 #[test]
 fn toggle_group_supports_controlled_and_uncontrolled_selection_contracts() {
-    let source = load_source("src/button/toggle_group/view.rs");
+    let source = load_source("src/button/toggle/view.rs");
 
     for needle in [
         "selected_ids: Option<Signal<BTreeSet<String>>>",
         "default_selected_ids: Option<BTreeSet<String>>",
         "on_selected_ids_change: Option<Callback<BTreeSet<String>>>",
-        "selection_mode: ToggleGroupSelectionMode",
-        "orientation: ToggleGroupOrientation",
+        "selection_mode: logic::ToggleGroupSelectionMode",
+        "orientation: logic::ToggleGroupOrientation",
         "on_change=on_item_change",
     ] {
         assert!(
@@ -88,7 +88,7 @@ fn toggle_group_supports_controlled_and_uncontrolled_selection_contracts() {
 
 #[test]
 fn toggle_group_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/button/toggle_group/view.rs");
+    let source = load_source("src/button/toggle/view.rs");
 
     for needle in [
         "data-slot=\"toggle-group\"",
@@ -114,7 +114,7 @@ fn toggle_group_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn toggle_group_styles_define_orientation_and_attached_layout_rules() {
-    let source = load_source("src/button/toggle_group/styles.rs");
+    let source = load_source("src/button/toggle/styles.rs");
 
     for needle in [
         ".ui-toggle-group {",

@@ -52,7 +52,7 @@ impl CheckboxFieldIndicatorPlacement {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -68,7 +68,7 @@ pub fn normalize_label(value: Option<String>) -> (String, bool) {
     if let Some(label) = normalize_optional_text(value) {
         (label, true)
     } else {
-        (DEFAULT_LABEL.to_string(), false)
+        (DEFAULT_LABEL.into(), false)
     }
 }
 
@@ -76,9 +76,9 @@ pub fn normalize_aria_label(value: Option<String>, fallback: &str) -> (String, b
     if let Some(label) = normalize_optional_text(value) {
         (label, true)
     } else if !fallback.trim().is_empty() {
-        (fallback.trim().to_string(), false)
+        (fallback.trim().into(), false)
     } else {
-        (DEFAULT_ARIA_LABEL.to_string(), false)
+        (DEFAULT_ARIA_LABEL.into(), false)
     }
 }
 
@@ -145,8 +145,8 @@ pub fn resolve_state(input: CheckboxFieldStateInput) -> CheckboxFieldState {
 pub fn compose_class_name(base_class_name: Option<String>, state: CheckboxFieldState) -> String {
     let mut classes = vec![
         "ui-checkbox-field".to_string(),
-        state.tone_class.to_string(),
-        state.indicator_placement_class.to_string(),
+        state.tone_class.into(),
+        state.indicator_placement_class.into(),
     ];
 
     if state.is_checked {
@@ -202,7 +202,7 @@ mod tests {
             normalize_label(Some("  Accept terms  ".to_string())),
             ("Accept terms".to_string(), true)
         );
-        assert_eq!(normalize_label(None), (DEFAULT_LABEL.to_string(), false));
+        assert_eq!(normalize_label(None), (DEFAULT_LABEL.into(), false));
 
         assert_eq!(
             normalize_aria_label(Some("  Custom aria  ".to_string()), "Ignored"),

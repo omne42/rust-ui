@@ -78,11 +78,11 @@ pub(super) fn switch_group() -> AnyView {
                     </SwitchGroup>
                     <span class="ui-muted">
                         "marketing="
-                        {move || marketing.get().to_string()}
+                        {move || marketing.get()}
                         " · updates="
-                        {move || product_updates.get().to_string()}
+                        {move || product_updates.get()}
                         " · security="
-                        {move || security_alerts.get().to_string()}
+                        {move || security_alerts.get()}
                     </span>
                 </div>
             </Playground>
@@ -108,9 +108,9 @@ pub(super) fn switch_group() -> AnyView {
                     </SwitchGroup>
                     <span class="ui-muted">
                         "critical="
-                        {move || critical_alerts.get().to_string()}
+                        {move || critical_alerts.get()}
                         " · maintenance="
-                        {move || maintenance_mode.get().to_string()}
+                        {move || maintenance_mode.get()}
                     </span>
                 </div>
             </Playground>

@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn fieldset_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/fieldset/mod.rs");
+    let source = load_source("src/field_form/fieldset/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,8 +26,8 @@ fn fieldset_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn fieldset_consumes_state_primitives_and_keeps_component_assembly_local() {
-    let logic_source = load_source("src/fieldset/logic.rs");
-    let view_source = load_source("src/fieldset/view.rs");
+    let logic_source = load_source("src/field_form/fieldset/logic.rs");
+    let view_source = load_source("src/field_form/fieldset/view.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/fieldset.rs");
 
     for needle in [
@@ -81,7 +81,7 @@ fn fieldset_consumes_state_primitives_and_keeps_component_assembly_local() {
 
 #[test]
 fn fieldset_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/fieldset/view.rs");
+    let source = load_source("src/field_form/fieldset/view.rs");
 
     for attr in [
         "style=move || motion_style.get_value()",
@@ -128,7 +128,7 @@ fn fieldset_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn fieldset_styles_include_state_markers() {
-    let source = load_source("src/fieldset/styles.rs");
+    let source = load_source("src/field_form/fieldset/styles.rs");
 
     for selector in [
         ".ui-fieldset--orientation-vertical",
@@ -167,7 +167,7 @@ fn fieldset_docs_page_covers_primary_playgrounds() {
         "<Playground title=\"Legend + Description\" code_signal=default_code>",
         "<Playground title=\"Horizontal + Invalid + Actions\" code_signal=invalid_code>",
         "title=\"Fieldset Workbench (Display + Config + Code + CSS Test)\"",
-        "test_source_path=\"crates/ui-components/src/fieldset/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui-components/src/field_form/fieldset/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "orientation=FieldsetOrientation::Horizontal",
         "tone=FieldsetTone::Muted",
@@ -219,8 +219,8 @@ fn fieldset_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn fieldset_logic_resolves_agent_contract_and_locale_helpers() {
-    let source = load_source("src/fieldset/logic.rs");
-    let view_source = load_source("src/fieldset/view.rs");
+    let source = load_source("src/field_form/fieldset/logic.rs");
+    let view_source = load_source("src/field_form/fieldset/view.rs");
 
     for needle in [
         "pub struct FieldsetAgentContract",

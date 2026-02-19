@@ -21,8 +21,8 @@ pub struct ActionBarStrings {
 impl ActionBarStrings {
     pub fn selection_label(&self, count: usize) -> String {
         match count {
-            0 => self.selection_empty_label.as_ref().to_string(),
-            1 => self.selection_single_label.as_ref().to_string(),
+            0 => self.selection_empty_label.as_ref().into(),
+            1 => self.selection_single_label.as_ref().into(),
             count => {
                 let template = self.selection_multiple_template.as_ref();
                 if template.contains("{count}") {

@@ -167,7 +167,7 @@ pub(super) fn sidebar_group() -> AnyView {
                         />
                     </SidebarGroup>
                     <div class="ui-sidebar__footer">
-                        <span class="ui-muted">"group action count: " {move || action_count.get().to_string()}</span>
+                        <span class="ui-muted">"group action count: " {move || action_count.get()}</span>
                     </div>
                 </Sidebar>
             </Playground>

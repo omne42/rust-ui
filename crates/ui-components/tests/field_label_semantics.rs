@@ -14,7 +14,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn field_label_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/field_label/mod.rs");
+    let source = load_source("src/field_form/field_label/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,7 +26,7 @@ fn field_label_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn field_label_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/field_label/mod.rs");
+    let module_source = load_source("src/field_form/field_label/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -34,15 +34,15 @@ fn field_label_is_exported_from_module_and_crate_root() {
         "field_label module should export `FieldLabel`."
     );
     assert!(
-        crate_source.contains("pub use field_label::{FieldLabel, FieldLabelTone};"),
+        crate_source.contains("pub use field_form::field_label::{FieldLabel, FieldLabelTone};"),
         "crate root should re-export FieldLabel contract."
     );
 }
 
 #[test]
 fn field_label_uses_primitives_and_headless_contract_model() {
-    let logic_source = load_source("src/field_label/logic.rs");
-    let view_source = load_source("src/field_label/view.rs");
+    let logic_source = load_source("src/field_form/field_label/logic.rs");
+    let view_source = load_source("src/field_form/field_label/view.rs");
     let primitive_source = load_source("../ui-state-primitives/src/field_label.rs");
     let headless_source = load_source("../ui-headless/src/field_label.rs");
     let primitive_lib_source = load_source("../ui-state-primitives/src/lib.rs");
@@ -129,7 +129,7 @@ fn field_label_uses_primitives_and_headless_contract_model() {
 
 #[test]
 fn field_label_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/field_label/view.rs");
+    let source = load_source("src/field_form/field_label/view.rs");
 
     for attr in [
         "data-slot=\"field-label\"",
@@ -159,7 +159,7 @@ fn field_label_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn field_label_styles_include_tone_state_and_markers() {
-    let source = load_source("src/field_label/styles.rs");
+    let source = load_source("src/field_form/field_label/styles.rs");
 
     for selector in [
         ".ui-field-label {",
@@ -262,7 +262,7 @@ fn field_label_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn field_label_component_files_follow_expected_layout_and_no_spec_file() {
-    let mod_source = load_source("src/field_label/mod.rs");
+    let mod_source = load_source("src/field_form/field_label/mod.rs");
 
     for needle in [
         "mod logic;",
@@ -277,14 +277,14 @@ fn field_label_component_files_follow_expected_layout_and_no_spec_file() {
     }
 
     assert!(
-        !path_exists("src/field_label/spec.rs"),
+        !path_exists("src/field_form/field_label/spec.rs"),
         "field_label should not introduce spec.rs for a simple form primitive."
     );
 }
 
 #[test]
 fn field_label_check2_marks_core_sections_complete() {
-    let source = load_source("src/field_label/check2.md");
+    let source = load_source("src/field_form/field_label/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -312,7 +312,7 @@ fn field_label_check2_marks_core_sections_complete() {
 
 #[test]
 fn field_label_check2_has_no_unchecked_checklist_items() {
-    let source = load_source("src/field_label/check2.md");
+    let source = load_source("src/field_form/field_label/check2.md");
     assert!(
         !source.contains("- [ ]"),
         "field_label check2 should not keep unchecked checklist items"

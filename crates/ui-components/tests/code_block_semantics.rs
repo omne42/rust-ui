@@ -159,7 +159,7 @@ fn code_block_motion_sanitizes_custom_contract_values() {
         "pub fn sanitize_motion(motion: CodeBlockMotion) -> CodeBlockMotion",
         "fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig",
         "fn sanitize_motion_falls_back_for_invalid_values()",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),

@@ -551,15 +551,11 @@ fn avatar_stays_as_ui_components_assembly_layer_without_platform_leakage() {
         );
     }
 
-    for required in [
-        "pub use avatar::{Avatar, AvatarSize};",
-        "pub use avatar::group::{AvatarGroup, AvatarGroupItem};",
-    ] {
-        assert!(
-            lib_source.contains(required),
-            "ui-components public API should expose stable avatar exports via `{required}`."
-        );
-    }
+    let required = "pub use avatar::{Avatar, AvatarGroup, AvatarGroupItem, AvatarSize};";
+    assert!(
+        lib_source.contains(required),
+        "ui-components public API should expose stable avatar exports via `{required}`."
+    );
 
     for forbidden in [
         "pub use web_sys::",
@@ -916,12 +912,13 @@ fn avatar_component_files_follow_layered_responsibilities() {
 
     for required in [
         "#[cfg(feature = \"component-avatar_group\")]",
-        "pub mod group;",
         "mod logic;",
         "pub mod styles;",
         "mod view;",
         "pub use logic::AvatarSize;",
+        "pub use logic::{AvatarGroupItemFields, AvatarGroupNormalizedInput};",
         "pub use view::Avatar;",
+        "pub use view::{AvatarGroup, AvatarGroupItem};",
     ] {
         assert!(
             mod_source.contains(required),
@@ -1031,8 +1028,8 @@ fn avatar_spec_rs_is_reserved_for_complex_schema_components_only() {
         "Avatar is a simple component and must not introduce `src/avatar/spec.rs`."
     );
     assert!(
-        !manifest_dir.join("src/avatar/group/spec.rs").exists(),
-        "AvatarGroup is a simple composition and must not introduce `src/avatar/group/spec.rs`."
+        !manifest_dir.join("src/avatar/spec.rs").exists(),
+        "AvatarGroup is a simple composition and must not introduce `src/avatar/spec.rs`."
     );
 
     for forbidden in ["mod spec;", "pub mod spec;", "pub use spec::"] {
@@ -1236,23 +1233,16 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     }
 
     let avatar_reexport_count = lib_source
-        .matches("pub use avatar::{Avatar, AvatarSize};")
-        .count();
-    let avatar_group_reexport_count = lib_source
-        .matches("pub use avatar::group::{AvatarGroup, AvatarGroupItem};")
+        .matches("pub use avatar::{Avatar, AvatarGroup, AvatarGroupItem, AvatarSize};")
         .count();
     assert_eq!(
         avatar_reexport_count, 2,
         "Avatar re-export should only exist inside gated feature bundles."
     );
-    assert_eq!(
-        avatar_group_reexport_count, 2,
-        "AvatarGroup re-export should only exist inside gated feature bundles."
-    );
 
     for needle in [
         "#[cfg(feature = \"component-avatar\")]\n    out.push_str(crate::avatar::styles::CSS);",
-        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar::group::styles::CSS);",
+        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
     ] {
         assert!(
             css_source.contains(needle),
@@ -1262,7 +1252,7 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
 
     for forbidden in [
         "#[cfg(feature = \"all-components\")]\n    out.push_str(crate::avatar::styles::CSS);",
-        "#[cfg(feature = \"all-components\")]\n    out.push_str(crate::avatar::group::styles::CSS);",
+        "#[cfg(feature = \"all-components\")]\n    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
     ] {
         assert!(
             !css_source.contains(forbidden),

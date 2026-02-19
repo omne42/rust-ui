@@ -88,7 +88,7 @@ pub fn normalize_remove_aria_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_REMOVE_ARIA_LABEL.to_string(), false)
+    (DEFAULT_REMOVE_ARIA_LABEL.into(), false)
 }
 
 pub fn resolve_state(input: TagStateInput) -> TagState {
@@ -166,7 +166,7 @@ mod tests {
         );
         assert_eq!(
             normalize_remove_aria_label(None),
-            (DEFAULT_REMOVE_ARIA_LABEL.to_string(), false)
+            (DEFAULT_REMOVE_ARIA_LABEL.into(), false)
         );
     }
 

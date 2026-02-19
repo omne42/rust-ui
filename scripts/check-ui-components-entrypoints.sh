@@ -20,7 +20,7 @@ echo "[entrypoints] contract: forbidden entrypoint files absent / headless canon
 cargo test -p ui-components --test button_semantics ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present
 
 echo "[entrypoints] contract: well entrypoint boundaries and forbidden file guards"
-cargo test -p ui-components --test well_semantics --no-default-features --features component-well,inject-css well_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_ui_layout_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present
 
 echo "[entrypoints] contract: tabs entrypoint boundaries and forbidden file guards"
 cargo test -p ui-components --test tabs_semantics tabs_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present
@@ -56,6 +56,6 @@ echo "[entrypoints] contract: slider forbidden entrypoint files absent / headles
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_ui_components_forbidden_entrypoint_files_are_absent_and_headless_paths_are_present
 
 echo "[entrypoints] contract: scroll-area fixed entry files and forbidden file guards"
-cargo test -p ui-components --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_ui_components_fixed_entry_files_follow_layered_boundaries
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_ui_layout_fixed_entry_files_follow_layered_boundaries
 
 echo "[entrypoints] OK"

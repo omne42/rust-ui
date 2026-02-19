@@ -149,16 +149,16 @@ pub fn resolve_text_contract(
 
     let copy_label = normalize_optional_text(copy_label)
         .or_else(|| normalize_optional_text(fallback_copy_label))
-        .unwrap_or_else(|| DEFAULT_COPY_LABEL.to_string());
+        .unwrap_or_else(|| DEFAULT_COPY_LABEL.into());
     let copied_label = normalize_optional_text(copied_label)
         .or_else(|| normalize_optional_text(fallback_copied_label))
-        .unwrap_or_else(|| DEFAULT_COPIED_LABEL.to_string());
+        .unwrap_or_else(|| DEFAULT_COPIED_LABEL.into());
     let copy_aria_label = normalize_optional_text(copy_aria_label)
         .or_else(|| normalize_optional_text(fallback_copy_aria_label))
-        .unwrap_or_else(|| DEFAULT_COPY_ARIA_LABEL.to_string());
+        .unwrap_or_else(|| DEFAULT_COPY_ARIA_LABEL.into());
     let copy_error_label = normalize_optional_text(copy_error_label)
         .or_else(|| normalize_optional_text(fallback_copy_error_label))
-        .unwrap_or_else(|| DEFAULT_COPY_ERROR_LABEL.to_string());
+        .unwrap_or_else(|| DEFAULT_COPY_ERROR_LABEL.into());
 
     SnippetTextContract {
         copy_label,
@@ -171,9 +171,9 @@ pub fn resolve_text_contract(
 pub fn compose_class_name(base_class_name: Option<String>, state: SnippetViewState) -> String {
     let mut classes = vec![
         "ui-snippet".to_string(),
-        state.state_class.to_string(),
-        state.copy_state_class.to_string(),
-        state.copied_label_source_class.to_string(),
+        state.state_class.into(),
+        state.copy_state_class.into(),
+        state.copied_label_source_class.into(),
     ];
 
     if state.has_label {

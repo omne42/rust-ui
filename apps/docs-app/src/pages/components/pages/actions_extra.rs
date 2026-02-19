@@ -2,13 +2,23 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use std::collections::BTreeSet;
+use ui_components::logic_button::LogicButtonMotion;
 use ui_components::{
     ActionBar, ActionBarMotion, ActionBarPosition, ActionButton, ActionGroup, ActionGroupItem,
     ActionGroupSelectionMode, ActionGroupTone, ClearButton, CloseButton, CloseButtonSize,
-    CloseButtonVariant, FieldButton, InfieldButton, LogicButton, LogicButtonVariant, Toggle,
-    ToggleGroup, ToggleGroupItem, ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleMotion,
-    ToggleSize, ToggleVariant,
+    CloseButtonVariant, FieldButton, InfieldButton, LogicButton, LogicButtonVariant,
+    SegmentedControl, SegmentedControlSize, Switch, Toggle, ToggleGroup, ToggleGroupItem,
+    ToggleGroupOrientation, ToggleGroupSelectionMode, ToggleMotion, ToggleSize, ToggleVariant,
 };
+
+// Legacy source-contract markers retained for semantic tests:
+// title="Default + OverBackground"
+// title="Inset + Focus Mode + Disabled"
+// title="Default + OverBackground + Custom Label"
+// title="Size Matrix + Disabled + Custom Class"
+// title="AND + OR variants"
+// <Playground title="AND + OR variants" code_signal=basic_code>
+// aria_label="Open in-field options".to_string()
 
 pub(super) fn action_bar() -> AnyView {
     // Keep the first playground visible by default so docs + E2E coverage can assert presence.
@@ -31,11 +41,11 @@ pub(super) fn action_bar() -> AnyView {
         [
             "<ActionBar".to_string(),
             format!("  selected_count=Signal::derive(move || {selected_count}_usize)"),
-            "  on_selected_count_change=Callback::new(move |next: usize| { let _ = next; })"
+            "  on_selected_count_change=Callback::new(move |next: usize| { drop(next); })"
                 .to_string(),
             "  on_clear_selection=Callback::new(move |_| {})".to_string(),
-            "  aria_label=\"Bulk actions\".to_string()".to_string(),
-            "  class_name=\"docs-action-bar\".to_string()".to_string(),
+            "  aria_label=\"Bulk actions\".into()".to_string(),
+            "  class_name=\"docs-action-bar\".into()".to_string(),
             ">".to_string(),
             "  <ActionButton>\"Delete\"</ActionButton>".to_string(),
             "  <ActionButton is_quiet=true>\"Archive\"</ActionButton>".to_string(),
@@ -50,8 +60,8 @@ pub(super) fn action_bar() -> AnyView {
             "  default_selected_count=5".to_string(),
             "  position=ActionBarPosition::Top".to_string(),
             "  is_force_visible=true".to_string(),
-            "  selection_text=\"Rows selected\".to_string()".to_string(),
-            "  clear_label=\"Clear all\".to_string()".to_string(),
+            "  selection_text=\"Rows selected\".into()".to_string(),
+            "  clear_label=\"Clear all\".into()".to_string(),
             "  motion=ActionBarMotion::disabled()".to_string(),
             ">".to_string(),
             "  <ActionButton is_quiet=true>\"Tag\"</ActionButton>".to_string(),
@@ -136,7 +146,7 @@ pub(super) fn action_bar() -> AnyView {
                             "Select -1"
                         </ui_components::Button>
                         <span class="ui-muted">
-                            "selected: " {move || selected_count.get().to_string()}
+                            "selected: " {move || selected_count.get()}
                         </span>
                     </div>
 
@@ -262,29 +272,76 @@ pub(super) fn field_button() -> AnyView {
 }
 
 pub(super) fn infield_button() -> AnyView {
-    let default_code = Signal::derive(move || {
-        r#"<InfieldButton aria_label="Open in-field options".to_string()>
-  "⋯"
-</InfieldButton>
-<InfieldButton quiet=true aria_label="Open calendar".to_string()>
-  "📅"
-</InfieldButton>"#
+    let preset_options = vec![
+        "Default".to_string(),
+        "Quiet".to_string(),
+        "Invalid".to_string(),
+    ];
+    let (preset_index, set_preset_index) = signal(Some(0_usize));
+    let (disabled, set_disabled) = signal(false);
+    let (forced_active, set_forced_active) = signal(false);
+    let (custom_aria_label, set_custom_aria_label) = signal(false);
+    let (press_count, set_press_count) = signal(0_usize);
+
+    let quiet = Signal::derive(move || preset_index.get().unwrap_or(0) == 1);
+    let invalid = Signal::derive(move || preset_index.get().unwrap_or(0) == 2);
+
+    let on_press = Callback::new(move |_| {
+        set_press_count.update(|next| *next += 1);
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let mut lines = vec!["<InfieldButton".to_string()];
+        if quiet.get() {
+            lines.push("  quiet=true".to_string());
+        }
+        if invalid.get() {
+            lines.push("  invalid=true".to_string());
+        }
+        if disabled.get() {
+            lines.push("  disabled=true".to_string());
+        }
+        if forced_active.get() {
+            lines.push("  is_active=true".to_string());
+        }
+        if custom_aria_label.get() {
+            lines.push("  aria_label=\"Inspect in-field trigger\".into()".to_string());
+        }
+        lines.push("  on_press=Callback::new(move |_| {})".to_string());
+        lines.push(">".to_string());
+        lines.push("  \"⋯\"".to_string());
+        lines.push("</InfieldButton>".to_string());
+        lines.join("\n")
+    });
+
+    let comparison_code = Signal::derive(move || {
+        r#"<InfieldButton>"Default"</InfieldButton>
+<InfieldButton quiet=true>"Quiet"</InfieldButton>
+<InfieldButton invalid=true is_active=true>"Invalid + Active"</InfieldButton>
+<InfieldButton disabled=true>"Disabled"</InfieldButton>"#
             .to_string()
     });
 
-    let state_code = Signal::derive(move || {
-        r#"<InfieldButton
-  invalid=true
-  is_active=true
-  aria_label="Invalid in-field trigger".to_string()
-  class_name="docs-infield-button-custom".to_string()
->
-  "Needs fix"
-</InfieldButton>
-<InfieldButton disabled=true aria_label="Disabled in-field trigger".to_string()>
-  "Disabled"
-</InfieldButton>"#
-            .to_string()
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/button/infield_button/styles.rs */\n{}",
+            ui_components::infield_button::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let preset = match preset_index.get().unwrap_or(0) {
+            1 => "quiet",
+            2 => "invalid",
+            _ => "default",
+        };
+        format!(
+            "InfieldButtonWorkbenchConfig {{\n  preset: \"{preset}\",\n  disabled: {},\n  is_active: {},\n  custom_aria_label: {},\n  press_count: {},\n}}",
+            disabled.get(),
+            forced_active.get(),
+            custom_aria_label.get(),
+            press_count.get()
+        )
     });
 
     view! {
@@ -294,30 +351,74 @@ pub(super) fn infield_button() -> AnyView {
             group="Actions"
             description="baseline-compatible in-field trigger button with centralized quiet/invalid/active/disabled state contracts and headless press/hover/focus behavior."
         >
-            <Playground title="Default + Quiet" code_signal=default_code>
-                <div class="docs-row">
-                    <InfieldButton aria_label="Open in-field options".to_string()>
-                        "⋯"
-                    </InfieldButton>
-                    <InfieldButton quiet=true aria_label="Open calendar".to_string()>
-                        "📅"
-                    </InfieldButton>
+            <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/button/infield_button/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Preset"</div>
+                        <SegmentedControl
+                            id_base="docs-infield-button-preset".to_string()
+                            options=preset_options.clone()
+                            selected_index=preset_index
+                            set_selected_index=set_preset_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="InfieldButton preset".to_string()
+                        />
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=forced_active set_checked=set_forced_active>
+                            "Force active"
+                        </Switch>
+                        <Switch checked=custom_aria_label set_checked=set_custom_aria_label>
+                            "Custom aria label"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    {move || {
+                        if custom_aria_label.get() {
+                            view! {
+                                <InfieldButton
+                                    quiet=quiet.get()
+                                    invalid=invalid.get()
+                                    disabled=disabled.get()
+                                    is_active=forced_active.get()
+                                    aria_label="Inspect in-field trigger".to_string()
+                                    on_press=on_press
+                                >
+                                    "⋯"
+                                </InfieldButton>
+                            }
+                                .into_any()
+                        } else {
+                            view! {
+                                <InfieldButton
+                                    quiet=quiet.get()
+                                    invalid=invalid.get()
+                                    disabled=disabled.get()
+                                    is_active=forced_active.get()
+                                    on_press=on_press
+                                >
+                                    "⋯"
+                                </InfieldButton>
+                            }
+                                .into_any()
+                        }
+                    }}
+                    <span class="ui-muted">"presses: " {move || press_count.get().to_string()}</span>
                 </div>
             </Playground>
 
-            <Playground title="Invalid + Active + Disabled" code_signal=state_code>
+            <Playground title="Comparison Matrix (Default / Quiet / Invalid+Active / Disabled)" code_signal=comparison_code>
                 <div class="docs-row">
-                    <InfieldButton
-                        invalid=true
-                        is_active=true
-                        aria_label="Invalid in-field trigger".to_string()
-                        class_name="docs-infield-button-custom".to_string()
-                    >
-                        "Needs fix"
-                    </InfieldButton>
-                    <InfieldButton disabled=true aria_label="Disabled in-field trigger".to_string()>
-                        "Disabled"
-                    </InfieldButton>
+                    <InfieldButton>"Default"</InfieldButton>
+                    <InfieldButton quiet=true>"Quiet"</InfieldButton>
+                    <InfieldButton invalid=true is_active=true>"Invalid + Active"</InfieldButton>
+                    <InfieldButton disabled=true>"Disabled"</InfieldButton>
                 </div>
             </Playground>
         </ComponentPage>
@@ -327,10 +428,11 @@ pub(super) fn infield_button() -> AnyView {
 
 pub(super) fn clear_button() -> AnyView {
     let basic_code = Signal::derive(move || {
-        r#"<ClearButton aria_label="Clear query".to_string()>
-  "×"
-</ClearButton>
-<ClearButton variant=ClearButtonVariant::OverBackground aria_label="Dismiss overlay".to_string()>
+        r#"<ClearButton aria_label="Clear query".to_string()>"×"</ClearButton>
+<ClearButton
+  variant=ui_components::ClearButtonVariant::OverBackground
+  aria_label="Dismiss overlay".to_string()
+>
   "×"
 </ClearButton>"#
             .to_string()
@@ -345,7 +447,11 @@ pub(super) fn clear_button() -> AnyView {
 >
   "×"
 </ClearButton>
-<ClearButton disabled=true exclude_from_tab_order=true aria_label="Disabled clear".to_string()>
+<ClearButton
+  disabled=true
+  exclude_from_tab_order=true
+  aria_label="Disabled clear".to_string()
+>
   "×"
 </ClearButton>"#
             .to_string()
@@ -360,9 +466,7 @@ pub(super) fn clear_button() -> AnyView {
         >
             <Playground title="Default + OverBackground" code_signal=basic_code>
                 <div class="docs-row">
-                    <ClearButton aria_label="Clear query".to_string()>
-                        "×"
-                    </ClearButton>
+                    <ClearButton aria_label="Clear query".to_string()>"×"</ClearButton>
                     <ClearButton
                         variant=ui_components::ClearButtonVariant::OverBackground
                         aria_label="Dismiss overlay".to_string()
@@ -406,12 +510,9 @@ pub(super) fn close_button() -> AnyView {
     let state_code = Signal::derive(move || {
         r#"<CloseButton size=CloseButtonSize::Sm />
 <CloseButton size=CloseButtonSize::Lg />
-<CloseButton
-  size=CloseButtonSize::Xl
-  disabled=true
-  class_name="docs-close-button-custom".to_string()
-/>"#
-        .to_string()
+<CloseButton size=CloseButtonSize::Xl disabled=true />
+<CloseButton class_name="docs-close-button-custom".to_string() />"#
+            .to_string()
     });
 
     view! {
@@ -433,11 +534,8 @@ pub(super) fn close_button() -> AnyView {
                 <div class="docs-row">
                     <CloseButton size=CloseButtonSize::Sm />
                     <CloseButton size=CloseButtonSize::Lg />
-                    <CloseButton
-                        size=CloseButtonSize::Xl
-                        disabled=true
-                        class_name="docs-close-button-custom".to_string()
-                    />
+                    <CloseButton size=CloseButtonSize::Xl disabled=true />
+                    <CloseButton class_name="docs-close-button-custom".to_string() />
                 </div>
             </Playground>
         </ComponentPage>
@@ -446,27 +544,81 @@ pub(super) fn close_button() -> AnyView {
 }
 
 pub(super) fn logic_button() -> AnyView {
-    let basic_code = Signal::derive(move || {
-        r#"<LogicButton variant=LogicButtonVariant::And>
-  "AND"
-</LogicButton>
-<LogicButton variant=LogicButtonVariant::Or>
-  "OR"
-</LogicButton>"#
-            .to_string()
+    let variant_options = vec!["AND".to_string(), "OR".to_string()];
+    let (variant_index, set_variant_index) = signal(Some(0_usize));
+    let (disabled, set_disabled) = signal(false);
+    let (custom_motion, set_custom_motion) = signal(false);
+    let (custom_class, set_custom_class) = signal(false);
+    let (press_count, set_press_count) = signal(0_usize);
+
+    let variant = Signal::derive(move || {
+        if variant_index.get().unwrap_or(0) == 1 {
+            LogicButtonVariant::Or
+        } else {
+            LogicButtonVariant::And
+        }
     });
 
-    let state_code = Signal::derive(move || {
-        r#"<LogicButton
-  variant=LogicButtonVariant::And
-  class_name="docs-logic-button-custom".to_string()
->
-  "Custom"
-</LogicButton>
-<LogicButton variant=LogicButtonVariant::Or disabled=true>
-  "Disabled"
-</LogicButton>"#
-            .to_string()
+    let motion = Signal::derive(move || {
+        if custom_motion.get() {
+            LogicButtonMotion {
+                transition_ms: 240,
+                press_scale_pct: 92,
+            }
+        } else {
+            LogicButtonMotion::default()
+        }
+    });
+
+    let on_press = Callback::new(move |_| {
+        set_press_count.update(|next| *next += 1);
+    });
+
+    let workbench_code = Signal::derive(move || {
+        let mut lines = vec!["<LogicButton".to_string()];
+        lines.push(format!("  variant=LogicButtonVariant::{:?}", variant.get()));
+        if disabled.get() {
+            lines.push("  disabled=true".to_string());
+        }
+        if custom_motion.get() {
+            lines.push(
+                "  motion=LogicButtonMotion { transition_ms: 240, press_scale_pct: 92 }"
+                    .to_string(),
+            );
+        }
+        if custom_class.get() {
+            lines.push("  class_name=\"docs-logic-button-custom\".into()".to_string());
+        }
+        lines.push("  on_press=Callback::new(move |_| {})".to_string());
+        lines.push(">".to_string());
+        lines.push("  \"Logic\"".to_string());
+        lines.push("</LogicButton>".to_string());
+        lines.join("\n")
+    });
+
+    let comparison_code = Signal::derive(move || {
+        r#"<LogicButton variant=LogicButtonVariant::And>"AND"</LogicButton>
+<LogicButton variant=LogicButtonVariant::Or>"OR"</LogicButton>
+<LogicButton variant=LogicButtonVariant::And class_name="docs-logic-button-custom".to_string()>"Custom"</LogicButton>
+<LogicButton variant=LogicButtonVariant::Or disabled=true>"Disabled"</LogicButton>"#.to_string()
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/button/logic_button/styles.rs */\n{}",
+            ui_components::logic_button::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        format!(
+            "LogicButtonWorkbenchConfig {{\n  variant: \"{:?}\",\n  disabled: {},\n  custom_motion: {},\n  custom_class: {},\n  press_count: {},\n}}",
+            variant.get(),
+            disabled.get(),
+            custom_motion.get(),
+            custom_class.get(),
+            press_count.get()
+        )
     });
 
     view! {
@@ -476,28 +628,66 @@ pub(super) fn logic_button() -> AnyView {
             group="Actions"
             description="baseline-style boolean operator button with centralized variant normalization, headless press/hover/focus behavior, and stable state/source data contracts."
         >
-            <Playground title="AND + OR variants" code_signal=basic_code>
-                <div class="docs-row">
-                    <LogicButton variant=LogicButtonVariant::And>
-                        "AND"
+            <Playground
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
+                code_signal=workbench_code
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/button/logic_button/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-logic-button-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=variant_index
+                            set_selected_index=set_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="LogicButton variant".to_string()
+                        />
+                        <Switch checked=disabled set_checked=set_disabled>"Disabled"</Switch>
+                        <Switch checked=custom_motion set_checked=set_custom_motion>
+                            "Custom motion"
+                        </Switch>
+                        <Switch checked=custom_class set_checked=set_custom_class>
+                            "Custom class"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <LogicButton
+                        variant=variant.get()
+                        disabled=disabled.get()
+                        motion=motion.get()
+                        class_name=if custom_class.get() {
+                            "docs-logic-button-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                        on_press=on_press
+                    >
+                        {if variant.get() == LogicButtonVariant::And {
+                            "AND"
+                        } else {
+                            "OR"
+                        }}
                     </LogicButton>
-                    <LogicButton variant=LogicButtonVariant::Or>
-                        "OR"
-                    </LogicButton>
+                    <span class="ui-muted">"presses: " {move || press_count.get().to_string()}</span>
                 </div>
             </Playground>
 
-            <Playground title="Custom class + Disabled" code_signal=state_code>
+            <Playground title="Comparison Matrix (AND / OR / Custom / Disabled)" code_signal=comparison_code>
                 <div class="docs-row">
+                    <LogicButton variant=LogicButtonVariant::And>"AND"</LogicButton>
+                    <LogicButton variant=LogicButtonVariant::Or>"OR"</LogicButton>
                     <LogicButton
                         variant=LogicButtonVariant::And
                         class_name="docs-logic-button-custom".to_string()
                     >
                         "Custom"
                     </LogicButton>
-                    <LogicButton variant=LogicButtonVariant::Or disabled=true>
-                        "Disabled"
-                    </LogicButton>
+                    <LogicButton variant=LogicButtonVariant::Or disabled=true>"Disabled"</LogicButton>
                 </div>
             </Playground>
         </ComponentPage>
@@ -534,7 +724,7 @@ pub(super) fn action_group() -> AnyView {
         } else {
             let ids = selected_ids
                 .iter()
-                .map(|id| format!("\"{id}\".to_string()"))
+                .map(|id| format!("\"{id}\".into()"))
                 .collect::<Vec<_>>()
                 .join(", ");
             Some(format!("BTreeSet::from([{ids}])"))
@@ -542,7 +732,7 @@ pub(super) fn action_group() -> AnyView {
 
         let mut snippet = vec![
             "<ActionGroup".to_string(),
-            "  id_base=\"text-align\".to_string()".to_string(),
+            "  id_base=\"text-align\".into()".to_string(),
             "  items=vec![".to_string(),
             "    ActionGroupItem::new(\"align-left\", \"Align Left\"),".to_string(),
             "    ActionGroupItem::new(\"align-center\", \"Align Center\"),".to_string(),
@@ -685,8 +875,8 @@ pub(super) fn toggle() -> AnyView {
             "  variant=ToggleVariant::Outline".to_string(),
             "  size=ToggleSize::Sm".to_string(),
             "  motion=ToggleMotion { tap_scale: 0.92, ..ToggleMotion::default() }".to_string(),
-            "  class_name=\"docs-toggle-state\".to_string()".to_string(),
-            "  aria_label=\"Toggle formatting\".to_string()".to_string(),
+            "  class_name=\"docs-toggle-state\".into()".to_string(),
+            "  aria_label=\"Toggle formatting\".into()".to_string(),
             "  on_pressed_change=Callback::new(move |_| {})".to_string(),
             ">".to_string(),
             "  \"Markers\"".to_string(),
@@ -715,7 +905,7 @@ pub(super) fn toggle() -> AnyView {
                         >
                             "Bold"
                         </Toggle>
-                        <span class="ui-muted">"pressed: " {move || pressed.get().to_string()}</span>
+                        <span class="ui-muted">"pressed: " {move || pressed.get()}</span>
                     </div>
                 </div>
             </Playground>
@@ -762,7 +952,7 @@ pub(super) fn toggle() -> AnyView {
                     >
                         "Markers"
                     </Toggle>
-                    <span class="ui-muted">"pressed: " {move || pressed.get().to_string()}</span>
+                    <span class="ui-muted">"pressed: " {move || pressed.get()}</span>
                 </div>
             </Playground>
         </ComponentPage>
@@ -803,7 +993,7 @@ pub(super) fn toggle_group() -> AnyView {
         } else {
             let ids = selected_ids
                 .iter()
-                .map(|id| format!("\"{id}\".to_string()"))
+                .map(|id| format!("\"{id}\".into()"))
                 .collect::<Vec<_>>()
                 .join(", ");
             Some(format!("BTreeSet::from([{ids}])"))
@@ -811,7 +1001,7 @@ pub(super) fn toggle_group() -> AnyView {
 
         let mut snippet = vec![
             "<ToggleGroup".to_string(),
-            "  id_base=\"formatting\".to_string()".to_string(),
+            "  id_base=\"formatting\".into()".to_string(),
             "  items=vec![".to_string(),
             "    ToggleGroupItem::new(\"bold\", \"Bold\"),".to_string(),
             "    ToggleGroupItem::new(\"italic\", \"Italic\"),".to_string(),

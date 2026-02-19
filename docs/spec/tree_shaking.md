@@ -48,8 +48,9 @@
 
 兼容策略（建议）：
 
-- 当前默认特性为 `default = ["inject-css", "all-components"]`。
-- 生产应用推荐显式关闭默认特性并按需启用组件特性。
+- 当前默认特性为最小集：`default = ["inject-css"]`。
+- docs/demo 全量场景显式启用 `all-components`（或 `dev-all-components`）。
+- 生产应用把按需 feature 固化在 `Cargo.toml`，构建命令无需额外参数。
 
 ## 3.3 CSS 裁剪契约
 

@@ -80,7 +80,7 @@ pub(super) fn alert_dialog() -> AnyView {
                         "Open destructive"
                     </Button>
                     <span class="ui-muted">
-                        "confirmed: " {move || confirmed.get().to_string()}
+                        "confirmed: " {move || confirmed.get()}
                     </span>
                 </div>
 
@@ -106,7 +106,7 @@ pub(super) fn alert_dialog() -> AnyView {
                             "Open marker alert"
                         </Button>
                         <span class="ui-muted">
-                            "confirmed: " {move || confirmed.get().to_string()}
+                            "confirmed: " {move || confirmed.get()}
                         </span>
                     </div>
                     <div class="ui-muted">

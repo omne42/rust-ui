@@ -47,7 +47,6 @@
         "crates/ui-theme/Cargo.toml",
         "crates/ui-motion/Cargo.toml",
         "crates/ui-components/Cargo.toml",
-        "crates/ui-compat/Cargo.toml",
         "apps/web-demo/Cargo.toml",
         "apps/docs-app/Cargo.toml"
       ],

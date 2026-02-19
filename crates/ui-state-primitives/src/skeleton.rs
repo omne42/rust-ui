@@ -42,7 +42,7 @@ pub struct SkeletonState {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -59,7 +59,7 @@ pub fn resolve_state(input: SkeletonStateInput) -> SkeletonState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: SkeletonState) -> String {
-    let mut classes = vec!["ui-skeleton".to_string(), state.variant_class.to_string()];
+    let mut classes = vec!["ui-skeleton".to_string(), state.variant_class.into()];
 
     if state.has_shimmer {
         classes.push("ui-skeleton--shimmer".to_string());

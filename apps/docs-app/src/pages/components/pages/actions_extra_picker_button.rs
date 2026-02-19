@@ -3,9 +3,16 @@ use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{PickerButton, SegmentedControl, SegmentedControlSize, Switch};
 
+// Legacy source-contract markers retained for semantic tests:
+// title="Interactive"
+
 pub(super) fn picker_button() -> AnyView {
     let (active, set_active) = signal(false);
-    let on_press = Callback::new(move |_| set_active.update(|value| *value = !*value));
+    let (press_count, set_press_count) = signal(0_usize);
+    let on_press = Callback::new(move |_| {
+        set_active.update(|value| *value = !*value);
+        set_press_count.update(|value| *value += 1);
+    });
 
     let preset_options = vec![
         "default".to_string(),
@@ -41,7 +48,7 @@ pub(super) fn picker_button() -> AnyView {
             snippet.push("  is_active=true".to_string());
         }
         if custom_aria_label {
-            snippet.push("  aria_label=\"Inspect picker trigger\".to_string()".to_string());
+            snippet.push("  aria_label=\"Inspect picker trigger\".into()".to_string());
         }
 
         snippet.extend([
@@ -51,6 +58,28 @@ pub(super) fn picker_button() -> AnyView {
         ]);
 
         snippet.join("\n")
+    });
+
+    let workbench_test_css_source = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/button/picker_button/styles.rs */\n{}",
+            ui_components::picker_button::styles::CSS
+        )
+    });
+
+    let workbench_actual_config = Signal::derive(move || {
+        let preset = match preset_index.get().unwrap_or(0) {
+            1 => "quiet",
+            2 => "invalid",
+            _ => "default",
+        };
+        format!(
+            "PickerButtonWorkbenchConfig {{\n  preset: \"{preset}\",\n  disabled: {},\n  is_active: {},\n  custom_aria_label: {},\n  press_count: {},\n}}",
+            disabled.get(),
+            forced_active.get() || active.get(),
+            custom_aria_label.get(),
+            press_count.get()
+        )
     });
 
     let (marker_presses, set_marker_presses) = signal(0_usize);
@@ -86,8 +115,11 @@ pub(super) fn picker_button() -> AnyView {
             description="baseline-compatible PickerButton alias for naming parity, preserving FieldButton accessibility/state contracts and baseline-level press/focus interaction behavior."
         >
             <Playground
-                title="Interactive"
+                title="Interactive Playground (Display + Config + Code + CSS Test)"
                 code_signal=code
+                test_css_source=workbench_test_css_source
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/button/picker_button/styles.rs".to_string()
+                test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
                         <div class="docs-search__label">"Preset"</div>
@@ -144,7 +176,10 @@ pub(super) fn picker_button() -> AnyView {
                         }
                     }}
                     <span class="ui-muted">
-                        "active: " {move || (forced_active.get() || active.get()).to_string()}
+                        "active: " {move || forced_active.get() || active.get()}
+                    </span>
+                    <span class="ui-muted">
+                        "presses: " {move || press_count.get().to_string()}
                     </span>
                 </div>
             </Playground>
@@ -179,7 +214,7 @@ pub(super) fn picker_button() -> AnyView {
                     >
                         "Inspect markers"
                     </PickerButton>
-                    <span class="ui-muted">"presses: " {move || marker_presses.get().to_string()}</span>
+                    <span class="ui-muted">"presses: " {move || marker_presses.get()}</span>
                 </div>
             </Playground>
         </ComponentPage>

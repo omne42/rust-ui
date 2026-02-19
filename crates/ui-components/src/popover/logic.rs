@@ -11,7 +11,7 @@ pub fn modal_attr(is_modal: bool) -> &'static str {
 pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
     value.and_then(|value| {
         let trimmed = value.trim();
-        (!trimmed.is_empty()).then(|| trimmed.to_string())
+        (!trimmed.is_empty()).then(|| trimmed.into())
     })
 }
 
@@ -56,7 +56,7 @@ pub fn resolve_state(input: PopoverPartStateInput) -> PopoverPartState {
 }
 
 pub fn compose_class_name(base_class_name: Option<String>, state: PopoverPartState) -> String {
-    let mut classes = vec![state.base_class.to_string()];
+    let mut classes = vec![state.base_class.into()];
 
     if state.slot == PopoverSlot::Root {
         if state.has_custom_motion {

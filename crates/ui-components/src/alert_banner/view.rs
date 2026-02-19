@@ -52,11 +52,10 @@ pub fn AlertBanner(
         .as_deref()
         .map(str::trim)
         .filter(|v| !v.is_empty())
-        .map(|v| v.to_string())
-        .map(|label| (label, "custom"))
+        .map(|label| (label.into(), "custom"))
         .or_else(|| {
             tone.default_icon_label()
-                .map(|label| (label.to_string(), "tone-default"))
+                .map(|label| (label.into(), "tone-default"))
         })
         .unwrap_or_else(|| (String::new(), "none"));
     let icon_label_source = icon_label.1;
@@ -122,14 +121,13 @@ pub fn AlertBanner(
                 </span>
             </Show>
 
-            <Show when=move || start_content.is_some()>
-                <span class="ui-alert-banner__start" data-slot="alert-banner-start">
-                    {start_content
-                        .expect("checked start_content")
-                        .get_value()
-                        .run()}
-                </span>
-            </Show>
+            {start_content.map(|content| {
+                view! {
+                    <span class="ui-alert-banner__start" data-slot="alert-banner-start">
+                        {content.get_value().run()}
+                    </span>
+                }
+            })}
 
             <div class="ui-alert-banner__body" data-slot="alert-banner-body">
                 {state.show_title.then(|| {
@@ -153,14 +151,13 @@ pub fn AlertBanner(
                 </div>
             </div>
 
-            <Show when=move || end_content.is_some()>
-                <span class="ui-alert-banner__end" data-slot="alert-banner-end">
-                    {end_content
-                        .expect("checked end_content")
-                        .get_value()
-                        .run()}
-                </span>
-            </Show>
+            {end_content.map(|content| {
+                view! {
+                    <span class="ui-alert-banner__end" data-slot="alert-banner-end">
+                        {content.get_value().run()}
+                    </span>
+                }
+            })}
         </section>
     }
 }

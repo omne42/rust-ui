@@ -59,13 +59,13 @@ pub fn toggle_selected_id(
         ActionGroupSelectionMode::Single => {
             let mut next = BTreeSet::new();
             if !selected_ids.contains(id) {
-                next.insert(id.to_string());
+                next.insert(id.into());
             }
             next
         }
         ActionGroupSelectionMode::Multiple => {
             let mut next = selected_ids;
-            if !next.insert(id.to_string()) {
+            if !next.insert(id.into()) {
                 next.remove(id);
             }
             next

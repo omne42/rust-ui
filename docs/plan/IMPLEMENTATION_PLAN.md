@@ -36,7 +36,7 @@
 
 满足以下全部条件才算 Phase 1 完成：
 
-- Workspace 中存在核心五层 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`，并且边界清晰（`ui-compat` 作为兼容层独立治理）
+- Workspace 中存在核心五层 `ui-state-primitives/ui-headless/ui-theme/ui-motion/ui-components`，并且边界清晰
 - 存在可提交 demo（`apps/web-demo`），能展示：
   - Button 的 pressed/disabled/focus-visible 状态
   - Overlay v1（Popover 或 Modal）可被打开/关闭（Esc + 点击外部）
@@ -73,7 +73,6 @@
 │   ├── ui-theme
 │   ├── ui-motion
 │   ├── ui-components
-│   └── ui-compat
 ├── apps
 │   ├── web-demo
 │   ├── docs-app
@@ -92,7 +91,6 @@
 - `ui-theme`：tokens + CSS variables（不依赖 `ui-components`）
 - `ui-motion`：动效执行后端（web/ssr 分支都可编译）
 - `ui-components`：Leptos 组件（不直接使用 `web-sys`，通过 `ui-headless` 间接接触 DOM）
-- `ui-compat`：兼容命名与桥接层（不承载核心组件实现）
 
 ## 2. Feature 策略（先简单、可演进）
 
@@ -114,7 +112,7 @@
 
 采用混合分发（Hybrid Distribution）：
 
-- Package 分发：`ui-state-primitives` / `ui-headless` / `ui-theme` / `ui-motion` / `ui-compat`
+- Package 分发：`ui-state-primitives` / `ui-headless` / `ui-theme` / `ui-motion`
 - Source 分发：`ui-components`（按需拉取组件源码，shadcn-like）
 
 约束：

@@ -35,9 +35,14 @@ pub fn SkeletonGroup(
             data-state=state.state_attr
             data-visibility=state.visibility_attr
             data-loading-mode=state.loading_mode_attr
+            data-loading-source=state.loading_source_attr
+            data-skeleton-only-source=state.skeleton_only_source_attr
             data-variant=state.variant_attr
+            data-variant-source=state.variant_source_attr
             data-layout=state.layout_attr
+            data-layout-source=state.layout_source_attr
             data-density=state.density_attr
+            data-density-source=state.density_source_attr
             data-loading=state.is_loading.then_some("true")
             data-loaded=state.is_loaded.then_some("true")
             data-skeleton-only=state.is_skeleton_only.then_some("true")

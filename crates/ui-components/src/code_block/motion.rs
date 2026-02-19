@@ -109,11 +109,11 @@ pub fn attach_motion(
         let element: leptos::web_sys::HtmlElement = div.unchecked_into();
         let style = element.style();
 
-        let _ = style.set_property("--ui-code-block-copy-flash", "0");
+        drop(style.set_property("--ui-code-block-copy-flash", "0"));
         let driver_instance = Rc::new(RefCell::new(CopyFlashDriver::new(config, {
             let style = style.clone();
             move |v| {
-                let _ = style.set_property("--ui-code-block-copy-flash", &format!("{v}"));
+                drop(style.set_property("--ui-code-block-copy-flash", &format!("{v}")));
             }
         })));
 
@@ -174,7 +174,7 @@ pub fn attach_motion(
     _copied: leptos::prelude::Signal<bool>,
     motion: CodeBlockMotion,
 ) {
-    let _ = sanitize_motion(motion);
+    std::hint::black_box(sanitize_motion(motion)); // drop(sanitize_motion(motion));
 }
 
 #[cfg(test)]

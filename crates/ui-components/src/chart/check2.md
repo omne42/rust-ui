@@ -70,6 +70,12 @@
   - 对外 API 禁止暴露 `web-sys`/DOM 细节类型；平台差异封装在内部模块。
 
 ### 2. 小骨架（API 设计检查 + 状态管理检查）
+- [x] 纯逻辑与细粒度响应阻抗匹配：采用 Reducer + Selector 分层，`logic.rs` 负责状态转移，`view.rs` 负责 Leptos 响应式切片，避免整块状态广播。
+  - Reducer（状态转移）规范：`logic.rs` 保持纯函数（输入旧状态 + Action，输出新状态或最小变更），不在该层持有 `Signal`。
+  - Selector（细粒度响应）规范：`view.rs` 负责把 reducer 接入 Leptos，并以 `Memo` 或 `Signal::derive` 按需切片，只把被消费的状态片段绑定到对应 DOM。
+  - 通知边界：切片值实现 `PartialEq` 时，若值未变化则不通知下游，相关 DOM 绑定不更新。
+  - 成本边界：每次 `set/update` 仍会执行状态转移与切片重算；大状态或高频路径必须拆分 `Signal`/状态域，避免把 clone 成本当作恒定可忽略。
+  - 反模式禁止：`view.rs` 只做挂载与消费切片，禁止重新实现状态机分支或复制 `logic.rs` 判定规则。
 - [x] API 命名契约统一：公共 props/回调严格使用 `is_*`、`on_*`、`default_*` 前缀；同语义在全库同名，禁止别名漂移。
   - 布尔状态统一 `is_*`（如 `is_open`/`is_disabled`），事件统一 `on_*`，默认值统一 `default_*`。
   - 同一语义 across 组件必须同名（如都用 `on_open_change`，禁止同义别名并存）。
@@ -86,6 +92,114 @@
   - 输入边界统一进入 `logic.rs`，输出统一为可渲染语义状态与来源标记。
   - 事件处理器只触发状态变更，不重建状态机规则。
   - 样式层只消费状态标记，不承担状态判定职责。
+- [x] 副作用必须走命令契约：`logic.rs` 只决定“做什么”，`view.rs`/adapter 负责“怎么做”（Command Pattern / Elm Architecture）。
+  - `logic.rs` 纯函数返回值必须允许表达副作用意图（如 `(State, Vec<Command>)` 或等价结构），不能只返回状态并把副作用决策散落在 view 回调里。
+  - `logic.rs` 禁止依赖 `web_sys`/DOM 事件对象；禁止把 `Event`/`Element` 直接下沉到逻辑层。
+  - `Command` 只表达意图（如 `PreventDefault`/`StopPropagation`/`FocusById`），不包含平台实现细节。
+  - `view.rs`/adapter 匹配 `Command` 后调用具体平台 API；逻辑单测断言 `Command`，集成测验证命令到副作用执行映射。
+  - 规范来源：`docs/spec/side_effect_command_pattern.md`。
+- [x] WASM 泛型膨胀受控：避免在组件核心逻辑路径滥用泛型导致单态化乘法扩散（Generic Bloat）。
+  - 对 wasm 目标，单态化会放大产物体积；默认优先使用具体类型（`bool`/`enum`/`f64`）表达状态与行为。
+  - 核心接口若无必要，不应把 `T: Trait` 直接暴露到组件交互主路径；可在边界使用 `&dyn Trait`（或等价动态分发）收敛代码生成规模。
+  - 只有确认存在复用收益和体积可控证据时才引入泛型；禁止“为泛型而泛型”。
+  - 验收需结合最小特性构建与体积/特性树检查（见 Tree Shaking 门禁）。
+  - 规范来源：`docs/spec/wasm_generic_bloat.md`。
+- [x] 几何依赖交互必须走“两段式渲染 + 布局快照”：逻辑层负责意图与修正，视图层负责测量（Geometry Paradox）。
+  - 几何依赖组件（tooltip/popover/menu 等）必须采用 `Intent -> Measure -> Rectification` 协商流程，禁止一次状态更新直接拍板最终布局。
+  - `logic.rs` 只接收 `LayoutSnapshot` 纯数据并做几何计算；禁止直接读取 DOM、`web_sys` 或元素引用。
+  - `view.rs`/adapter 必须负责测量并回传 `LayoutSnapshot`，不得绕过逻辑层在视图里直接决定 `actual_placement`。
+  - 必须有收敛防护：修正逻辑幂等 + 稳定相等门（状态不变不再回写），避免测量/更新死循环。
+  - 规范来源：`docs/spec/ui_physics_two_pass_rendering.md`。
+- [x] 异步阻抗必须走“状态元数据 + 异步命令”分层：逻辑层不持有 `Future`，执行层负责任务生命周期（Async Impedance）。
+  - `logic.rs` 状态只保存请求元数据（如 `RequestId`、loading/error/result），严禁把 `Future` 或 runtime 句柄塞进状态结构。
+  - 输入触发异步时，`logic.rs` 必须返回命令（如 `FetchData { id, query }` / `CancelRequest { id }`），而不是直接执行异步。
+  - `view.rs`/effect adapter 负责执行任务并在完成后回发 `Action::DataReceived`/`Action::DataFailed` 给逻辑层。
+  - 必须处理竞态：只接受当前活动 `RequestId` 的回包；旧请求回包必须丢弃，新请求应可取消旧请求或保证逻辑忽略旧回包。
+  - 规范来源：`docs/spec/async_state_as_data_command.md`。
+- [x] `ui-headless` 必须去状态化：交互状态机归 `ui-state-primitives`/`logic.rs`，headless 仅做语义映射（Headless Purification）。
+  - 禁止在组件公共路径直接使用“内部持状态”的 headless hook（包括第三方现成 hook）；headless 不能成为第二状态源。
+  - `focus trap`、`roving tabindex`、`grid nav` 等复杂交互状态机必须在 primitives/logic 可单测，不得藏在 headless 内部状态里。
+  - `ui-headless` 输出应是 `attrs/handlers/action-intent`；状态更新必须回流到 `logic.rs` 决策，不在 headless/view 层旁路改业务状态。
+  - 若复用第三方能力，必须通过 adapter 去状态化：外部状态由本仓 primitives/logic 持有，第三方只做映射/计算。
+  - 规范来源：`docs/spec/headless_purification.md`。
+- [x] 高频交互必须采用宏观/微观双状态机：宏观状态归 logic，微观物理归 view/motion（Macro/Micro Duality）。
+  - 拖拽/手势等连续交互期间，禁止每帧走 `View -> Action -> logic -> View` 全链路，避免 JS/WASM 桥接开销压垮帧预算。
+  - `logic.rs` 仅处理离散边界动作（如 `DragStart`/`DragEnd`）与最终归宿判定（关闭/回弹/保持打开），不维护每帧像素偏移。
+  - `view.rs`/`ui-motion` 在 `Dragging` 期间可本地维护 `offset/velocity` 并直接驱动样式变量或 spring，保证跟手性。
+  - 拖拽结束必须回流 `Action::DragEnd { final_offset, final_velocity }` 与 logic 和解，重新收敛为单一宏观状态真相源。
+  - 规范来源：`docs/spec/macro_micro_dual_state_machine.md`。
+- [x] 集合类组件必须实现动态注册协议：子项发现与导航顺序不能靠父层静态推断（Registration Protocol）。
+  - `Accordion/Tabs/Menu/Select` 等组件必须提供 `RegistrationContext`（或等价机制），子项挂载上报 `Register(id)`、卸载上报 `Unregister(id)`。
+  - `logic.rs`/primitives 必须维护显式有序结构（如 `items_order`），禁止仅靠 `HashSet<Id>` 支撑键盘导航。
+  - `view.rs`/adapter 必须把 DOM 顺序变化或稳定序号回传逻辑层，确保 roving/focus 导航与真实拓扑一致。
+  - 动态增删后要自动收敛：失效焦点迁移到有效项、无效 `expanded_keys` 清理、顺序重排后导航索引重建。
+  - 规范来源：`docs/spec/collection_registration_protocol.md`。
+- [x] 环境输入必须走“订阅流 + 语义采样”：Logic 感知环境，但只接收过滤后的高层信号（Environment as Phantom Input）。
+  - `resize/media/intersection` 等环境事件必须由 `view.rs`/adapter 监听并节流/去抖/阈值过滤，禁止原始事件逐条直灌 `logic.rs`。
+  - `logic.rs` 只消费语义化 action（如 `BreakpointChanged`、`ColorSchemeChanged`、`VisibilityChanged`），不持有 observer/runtime 句柄。
+  - 高频关注（如自动跟随定位）走 Pull 模式：logic 发 `Start/Stop` 命令，view/motion 本地循环执行；低频变化才 Push action。
+  - 必须证明状态可收敛：环境波动不会触发状态风暴，宏观状态在关键阈值变化后稳定一致。
+  - 规范来源：`docs/spec/environment_subscription_streams.md`。
+- [x] 组件必须满足 Kernel/Shell 工业化总线契约：底座、逻辑内核、视图外壳各司其职并可收敛。
+  - Infrastructure：workspace 分层与 token 防御链必须可追溯，禁止跨层偷耦合实现。
+  - Kernel：状态机/命令/注册协议是唯一宏观决策源；不得持有 DOM/runtime/observer 句柄。
+  - Shell：负责状态切片、命令执行、DOM 测量、环境桥接；不得旁路写宏观业务状态。
+  - 高频连续路径必须本地执行，边界事件回流 logic 收敛；低频语义变化走 action。
+  - 规范来源：`docs/spec/kernel_shell_architecture.md`。
+- [x] SSR/Hydration 必须遵循“状态先于代码”协议：首帧一致、种子确定、恢复而非重建（Hydration Discontinuity）。
+  - 逻辑层初始化禁止直接读取 `now/random` 作为首帧依据；必须通过可重放 provider 注入确定性种子。
+  - SSR 必须输出可反序列化 `server-state` 快照，客户端 hydration 必须走 `Logic::hydrate(...)` 恢复状态，不得直接重跑 `Logic::new()`。
+  - 逻辑状态需支持 `Serialize + Deserialize`，并保证 hydration 首帧语义与 SSR HTML 一致，避免 mismatch/flicker。
+  - `id`/`aria-*` 关联必须跨 SSR/CSR 稳定（如 `aria-labelledby` 不漂移），随机 ID 禁止直接在初始化路径生成。
+  - 规范来源：`docs/spec/ssr_hydration_discontinuity.md`。
+- [x] 容器类组件必须显式管理插槽投影策略：显示决策与生存策略一体化（Phantom Projection）。
+  - `Tabs/Accordion` 等容器状态需包含 `RenderMode`（`Lazy/KeepAlive/Eager` 或等价），禁止只在 `view` 层临时 `if/else` 决定渲染。
+  - `Lazy` 模式：未激活面板不挂载；需定义重访时是否保留状态的明确语义，避免隐式状态丢失。
+  - `KeepAlive` 模式：未激活面板保持挂载但必须支持降耗通知（如 `NotifyHidden/NotifyVisible`），防止隐藏态持续耗资源。
+  - 策略切换必须可收敛：可见性、状态保留与副作用生命周期一致，不得出现“隐藏但仍高频运行”的幽灵负载。
+  - 规范来源：`docs/spec/slot_projection_strategy.md`。
+- [x] 组件必须满足四层能力基线：Core/Shell/Protocol/Infrastructure 形成完整工业闭环。
+  - Core：纯状态机无副作用、支持状态回放（time-travel 友好）、状态可序列化恢复（SSR hydration）、ID 生成可确定性复现。
+  - Shell：细粒度响应切片、Foreign Zone 安全接入第三方、Projection Manager 管理 slot 生命周期（Lazy/KeepAlive/Eager）。
+  - Protocol：DOM/Async/SideEffects 先命令化再执行；Agent Contract 让 AI/自动化稳定读取组件能力与状态。
+  - Infrastructure：workspace 分层不破、release-plz fixed-mode 自动版本级联、token 防御性样式链稳定可追溯。
+  - 规范来源：`docs/spec/core_shell_protocol_infra_baseline.md`。
+- [x] 大规模集合通信必须遵守“事件光锥”限制：父链 props 不是批量状态传播通道（Event Light Cone）。
+  - `Table/Grid/Tree` 等集合组件默认采用 Context Bus + Selector Subscription，子节点按需订阅最小状态切片。
+  - 禁止把 `is_selected`/`is_active` 等全量派生状态通过 `Table -> Row -> Cell` 层层 props 广播。
+  - 批量操作（全选/全取消）优先使用压缩状态（如 `SelectionState::All`），避免 N 次布尔更新写入。
+  - 复杂度目标：批量操作路径 O(1)/O(log N)，并通过 selector `PartialEq` 稳定比较避免无效刷新。
+  - 规范来源：`docs/spec/event_light_cone_signal_bus.md`。
+- [x] 跨系统调试必须走统一因果总线：仅看单组件 time-travel 不足以定位链路级故障（Unified Causality Bus）。
+  - 每个用户输入初始事件必须生成 `TraceId`，并在 Action/Command/SignalBus/Focus/Layout 等派生链路持续透传。
+  - 事件日志必须结构化记录 `trace_id + system + event_kind + payload_summary + timestamp`，禁止匿名派生事件。
+  - 调试工具应支持按 `TraceId` 聚合因果图，复原“谁触发了谁”而非只看局部状态快照。
+  - 追踪实现需保证交互路径开销可控：开发全量追踪，生产可采样但链路仍可关联。
+  - 规范来源：`docs/spec/unified_causality_bus.md`。
+- [x] 协议演化必须抗“架构热寂”：版本升级有新陈代谢机制，而非无限兼容堆叠（Compile-time Evolution）。
+  - 协议版本必须纳入 Schema Registry，定义受支持窗口与淘汰节奏；禁止 `logic` 长期堆积 `match v1/v2/v3/...` 运行时分支。
+  - 新版本落地必须同时提交纯函数迁移（如 `migrate_v1_to_v2`）与对应测试，迁移函数可链式组合。
+  - 工具链需提供 codemod/lint：自动扫描旧协议调用并重写；超过窗口的旧版本在 CI 中编译失败。
+  - 生命周期固定为 `deprecated -> compile error -> remove`，确保历史兼容代码能被有计划地删除。
+  - 规范来源：`docs/spec/compile_time_evolution_migration.md`。
+- [x] 组件行为与业务意义必须分层：底层发语义意图，上层做业务翻译与策略编排（Intent Stack）。
+  - 通用组件 `logic.rs` 只输出通用意图（如 `InteractionSubmitted`），禁止直接发业务命令（如 `ShowToast(\"已加购\")`）。
+  - 业务组件/容器负责把通用意图翻译为业务意图（如 `ItemAddedToCart`），应用编排层再决定最终命令（Toast/动画/A-B）。
+  - A/B 策略变更应主要落在编排层；若需要改底层组件逻辑，视为职责污染并回收设计。
+  - 意图链路应可观测（可与 `TraceId` 关联），确保“组件触发 -> 业务翻译 -> 最终行为”可追踪。
+  - 规范来源：`docs/spec/intent_stack_semantic_layering.md`。
+- [x] 架构规则必须可执行：以 Fitness Functions 持续验证，禁止仅靠文档宣言（Architectural Immune System）。
+  - 至少建立架构健身函数：依赖无环、core 无框架耦合、组件目录契约、feature gate 边界。
+  - 健身函数必须进入 CI 主路径并阻断违规 PR；不允许“先合并后修复”的口头承诺流程。
+  - 新增架构规则需同步补充对应健身函数（或给出 N/A 证据），否则判定规则未落地。
+  - 失败信息要可诊断：明确违规规则、触发文件、最小修复路径，避免架构漂移长期潜伏。
+  - 规范来源：`docs/spec/architectural_fitness_functions.md`。
+- [x] 平台目标必须是“可退位”的生态：交付工厂与法则，而非只交付组件本体（Platform Abdication）。
+  - 核心团队优先维护治理文档、脚手架与质量门禁，使外部团队可独立构建同质量组件。
+  - 领域原语扩展（如金融域）必须有标准接入路径，并复用同一套分层约束/语义契约/CI 免疫系统。
+  - 成功标准包含“核心团队不介入也能高质量扩展生态”，而非仅统计核心组件数量。
+  - 若领域扩展必须频繁修改核心组件内部逻辑，视为平台退位机制失效并触发架构整改。
+  - 规范来源：`docs/spec/platform_abdication_ecosystem.md`。
 - [x] 离散状态必须类型约束：`variant/size/mode/status` 等离散输入使用 `enum`；禁止用多个 `Option<bool>`/字符串自由组合表达互斥状态。
   - 互斥状态优先用 `enum` 建模，利用编译器封住无效组合。
   - 字符串输入若需兼容外部配置，必须先映射到类型化枚举再进入逻辑层。

@@ -930,7 +930,7 @@ fn sheet_cross_platform_compile_contract_has_explicit_cfg_and_no_non_wasm_web_sy
         "#[cfg(target_arch = \"wasm32\")]",
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
     ] {
         assert!(
             motion_source.contains(needle),
@@ -1037,7 +1037,7 @@ fn sheet_ui_motion_non_wasm_stub_contract_is_predictable_and_tooling_safe() {
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
         "pub fn attach_motion(",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "if !is_open.get() {",
         "finish_exit.run(());",
     ] {
@@ -1316,7 +1316,7 @@ fn sheet_motion_sanitizes_custom_contract_values() {
         "fn sanitize_spring(value: ui_motion::spring::SpringConfig)",
         "initial_offset_px",
         "let motion = StoredValue::new(sanitize_motion(motion));",
-        "let _ = sanitize_motion(motion);",
+        "drop(sanitize_motion(motion));",
         "fn sanitize_motion_falls_back_for_invalid_values()",
         "fn sanitize_motion_clamps_offset_range()",
     ] {

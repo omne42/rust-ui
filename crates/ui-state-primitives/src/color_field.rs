@@ -35,7 +35,7 @@ pub fn normalize_label(value: Option<String>) -> (String, bool) {
         return (label, true);
     }
 
-    (DEFAULT_LABEL.to_string(), false)
+    (DEFAULT_LABEL.into(), false)
 }
 
 pub fn normalize_placeholder(value: Option<String>) -> (String, bool) {
@@ -43,7 +43,7 @@ pub fn normalize_placeholder(value: Option<String>) -> (String, bool) {
         return (placeholder, true);
     }
 
-    (DEFAULT_PLACEHOLDER.to_string(), false)
+    (DEFAULT_PLACEHOLDER.into(), false)
 }
 
 pub fn normalize_aria_label(value: Option<String>, label: &str) -> (String, bool) {
@@ -55,7 +55,7 @@ pub fn normalize_aria_label(value: Option<String>, label: &str) -> (String, bool
         return (format!("{label} value"), false);
     }
 
-    (DEFAULT_ARIA_LABEL.to_string(), false)
+    (DEFAULT_ARIA_LABEL.into(), false)
 }
 
 pub fn normalize_color_value(value: Option<String>) -> Option<String> {
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn normalize_contracts_use_defaults_and_trim_custom_values() {
-        assert_eq!(normalize_label(None), (DEFAULT_LABEL.to_string(), false));
+        assert_eq!(normalize_label(None), (DEFAULT_LABEL.into(), false));
         assert_eq!(
             normalize_label(Some("  Fill color  ".to_string())),
             ("Fill color".to_string(), true)
@@ -138,7 +138,7 @@ mod tests {
 
         assert_eq!(
             normalize_placeholder(None),
-            (DEFAULT_PLACEHOLDER.to_string(), false)
+            (DEFAULT_PLACEHOLDER.into(), false)
         );
         assert_eq!(
             normalize_placeholder(Some("  #ABCDEF  ".to_string())),

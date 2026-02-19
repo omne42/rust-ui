@@ -1,7 +1,7 @@
 use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
-use ui_components::text_area::TextAreaMotion;
+use ui_components::text_input::text_area::TextAreaMotion;
 use ui_components::{
     Checkbox, CheckboxGroup, CheckboxSize, CheckboxVariant, Form, FormLabelAlign,
     FormLabelPosition, Input, InputGroup, InputOtp, InputSize, InputVariant, NumberField, Radio,
@@ -187,7 +187,7 @@ pub(super) fn form() -> AnyView {
             lines.push(format!("  label_align=FormLabelAlign::{label_align:?}"));
         }
         if custom_class {
-            lines.push("  class_name=\"docs-form-custom\".to_string()".to_string());
+            lines.push("  class_name=\"docs-form-custom\".into()".to_string());
         }
         lines.push(">".to_string());
         lines.push("  <Input id=\"name\" label=\"Name\" ... />".to_string());
@@ -216,8 +216,8 @@ pub(super) fn form() -> AnyView {
 
     let form_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/form/styles.rs */\n{}",
-            ui_components::form::styles::CSS
+            "/* crates/ui-components/src/field_form/form/styles.rs */\n{}",
+            ui_components::field_form::form::styles::CSS
         )
     });
 
@@ -248,7 +248,7 @@ pub(super) fn form() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=form_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/form/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/form/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="可调 label-position/align/required/disabled/read-only/class，并在同一面板查看 code + config + scoped css test。"
                 controls=move || {
@@ -684,9 +684,9 @@ let (marker_disabled, set_marker_disabled) = signal(false);
 
                     <span class="ui-muted" data-slot="search-field-marker-summary">
                         "value: " {move || marker_value.get()}
-                        " · invalid: " {move || marker_invalid.get().to_string()}
-                        " · read-only: " {move || marker_read_only.get().to_string()}
-                        " · disabled: " {move || marker_disabled.get().to_string()}
+                        " · invalid: " {move || marker_invalid.get()}
+                        " · read-only: " {move || marker_read_only.get()}
+                        " · disabled: " {move || marker_disabled.get()}
                     </span>
                 </div>
             </Playground>
@@ -742,7 +742,7 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     </li>
                     <li>
                         <code>"data-value-control-mode / data-default-value-source / data-value-change-source"</code>
-                        " = controlled|uncontrolled + default|custom + on_value_change|set_value|none"
+                        " = controlled|uncontrolled + default|custom + on_value_change|none"
                     </li>
                     <li>
                         <code>"data-clear-label-source / data-class-source"</code>
@@ -765,17 +765,17 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     "."
                 </p>
                 <ui_components::Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<SearchField\n  id=\"search\".to_string()\n  label=\"Search\".to_string()\n  default_value=\"rust ui\".to_string()\n/>".to_string()
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\n<SearchField\n  id=\"search\".into()\n  label=\"Search\".into()\n  default_value=\"rust ui\".into()\n/>".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-search-field-source-copy".to_string()
                 />
                 <ul data-slot="search-field-source-paths">
-                    <li><code>"crates/ui-components/src/search_field/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/search_field/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/search_field/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/search_field/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/search_field/motion.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/search_field/mod.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/search_field/logic.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/search_field/view.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/search_field/styles.rs"</code></li>
+                    <li><code>"crates/ui-components/src/text_input/search_field/motion.rs"</code></li>
                     <li><code>"crates/ui-state-primitives/src/search_field.rs"</code></li>
                     <li><code>"crates/ui-headless/src/search_field.rs"</code></li>
                 </ul>
@@ -858,8 +858,8 @@ pub(super) fn number_field() -> AnyView {
     let workbench_code = Signal::derive(move || {
         let mut lines = vec![
             "<NumberField".to_string(),
-            "  id=\"docs-number-field-workbench\".to_string()".to_string(),
-            "  label=\"Quantity\".to_string()".to_string(),
+            "  id=\"docs-number-field-workbench\".into()".to_string(),
+            "  label=\"Quantity\".into()".to_string(),
             "  value=value".to_string(),
             "  set_value=set_value".to_string(),
             format!("  min={}", workbench_min.get()),
@@ -871,11 +871,11 @@ pub(super) fn number_field() -> AnyView {
         }
         if workbench_required_raw.get() {
             lines.push("  required=Signal::derive(|| true)".to_string());
-            lines.push("  description=\"Required field\".to_string()".to_string());
+            lines.push("  description=\"Required field\".into()".to_string());
         }
         if workbench_invalid_raw.get() {
             lines.push("  invalid=Signal::derive(|| true)".to_string());
-            lines.push("  error=\"Out of range\".to_string()".to_string());
+            lines.push("  error=\"Out of range\".into()".to_string());
         }
         lines.push("/>".to_string());
         lines.join("\n")
@@ -883,8 +883,8 @@ pub(super) fn number_field() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/number_field/styles.rs */\n{}",
-            ui_components::number_field::styles::CSS
+            "/* crates/ui-components/src/text_input/number_field/styles.rs */\n{}",
+            ui_components::text_input::number_field::styles::CSS
         )
     });
 
@@ -919,7 +919,7 @@ pub(super) fn number_field() -> AnyView {
                         min=0
                         max=100
                     />
-                    <span class="ui-muted">"value: " {move || value.get().to_string()}</span>
+                    <span class="ui-muted">"value: " {move || value.get()}</span>
                 </div>
             </Playground>
 
@@ -974,7 +974,7 @@ pub(super) fn number_field() -> AnyView {
                 description="Display + Config + Code + CSS Test workbench for number-field semantics and stepping contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/number_field/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/text_input/number_field/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="number-field-workbench-controls">
@@ -1036,7 +1036,7 @@ pub(super) fn number_field() -> AnyView {
                     />
                     <span class="ui-muted">
                         "value: "
-                        {move || workbench_value.get().to_string()}
+                        {move || workbench_value.get()}
                         " | last on_change: "
                         {move || workbench_last_change.get()}
                     </span>
@@ -1098,35 +1098,35 @@ pub(super) fn input_otp() -> AnyView {
             ""
         };
         let description_line = if workbench_show_description.get() {
-            "  description=\"We sent a code to your device.\".to_string()\n"
+            "  description=\"We sent a code to your device.\".into()\n"
         } else {
             ""
         };
         let error_line = if workbench_show_error.get() {
-            "  error=\"Code does not match.\".to_string()\n"
+            "  error=\"Code does not match.\".into()\n"
         } else {
             ""
         };
         let class_line = if workbench_custom_class.get() {
-            "  class_name=\"docs-input-otp-workbench\".to_string()\n"
+            "  class_name=\"docs-input-otp-workbench\".into()\n"
         } else {
             ""
         };
         let aria_line = if workbench_custom_aria.get() {
-            "  aria_label=\"Verification code\".to_string()\n"
+            "  aria_label=\"Verification code\".into()\n"
         } else {
             ""
         };
 
         format!(
-            "let (value, set_value) = signal(String::new());\n\n<InputOtp\n  id_base=\"docs-otp-workbench\".to_string()\n  label=\"One-time code\".to_string()\n  value=value\n  set_value=set_value\n  length={length}\n{disabled_line}{required_line}{invalid_line}{description_line}{error_line}{class_line}{aria_line}/>"
+            "let (value, set_value) = signal(String::new());\n\n<InputOtp\n  id_base=\"docs-otp-workbench\".into()\n  label=\"One-time code\".into()\n  value=value\n  set_value=set_value\n  length={length}\n{disabled_line}{required_line}{invalid_line}{description_line}{error_line}{class_line}{aria_line}/>"
         )
     });
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/input_otp/styles.rs */\n{}",
-            ui_components::input_otp::styles::CSS
+            "/* crates/ui-components/src/text_input/input_otp/styles.rs */\n{}",
+            ui_components::text_input::input_otp::styles::CSS
         )
     });
 
@@ -1159,8 +1159,7 @@ pub(super) fn input_otp() -> AnyView {
   length=6
   invalid=Signal::derive(move || true)
   error="Code does not match.".to_string()
-/>"#
-            .to_string()
+/>"#.to_string()
     });
 
     view! {
@@ -1188,7 +1187,7 @@ pub(super) fn input_otp() -> AnyView {
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/input_otp/styles.rs".to_string()
+                test_source_path="crates/ui-components/src/text_input/input_otp/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1322,6 +1321,77 @@ pub(super) fn checkbox() -> AnyView {
     let (marketing, set_marketing) = signal(true);
     let (disabled_checked, set_disabled_checked) = signal(true);
     let (disabled_unchecked, set_disabled_unchecked) = signal(false);
+    let (interactive_checked, set_interactive_checked) = signal(true);
+    let (interactive_disabled, set_interactive_disabled) = signal(false);
+    let (interactive_custom_class, set_interactive_custom_class) = signal(false);
+    let variant_options = vec!["Default".to_string(), "Accent".to_string()];
+    let size_options = vec!["Default".to_string(), "Sm".to_string(), "Lg".to_string()];
+    let (interactive_variant_index, set_interactive_variant_index) = signal(Some(0_usize));
+    let (interactive_size_index, set_interactive_size_index) = signal(Some(0_usize));
+    let interactive_variant =
+        Signal::derive(move || match interactive_variant_index.get().unwrap_or(0) {
+            1 => CheckboxVariant::Accent,
+            _ => CheckboxVariant::Default,
+        });
+    let interactive_size =
+        Signal::derive(move || match interactive_size_index.get().unwrap_or(0) {
+            1 => CheckboxSize::Sm,
+            2 => CheckboxSize::Lg,
+            _ => CheckboxSize::Default,
+        });
+
+    let interactive_code = Signal::derive(move || {
+        let mut lines = vec![
+            "let (checked, set_checked) = signal(true);".to_string(),
+            "".to_string(),
+            "<Checkbox".to_string(),
+            "  checked=checked".to_string(),
+            "  set_checked=set_checked".to_string(),
+        ];
+
+        if interactive_variant.get() != CheckboxVariant::Default {
+            lines.push(format!(
+                "  variant=CheckboxVariant::{:?}",
+                interactive_variant.get()
+            ));
+        }
+        if interactive_size.get() != CheckboxSize::Default {
+            lines.push(format!("  size=CheckboxSize::{:?}", interactive_size.get()));
+        }
+        if interactive_disabled.get() {
+            lines.push("  disabled=true".to_string());
+        }
+        if interactive_custom_class.get() {
+            lines.push("  class_name=\"docs-checkbox-custom\".into()".to_string());
+        }
+
+        lines.push(">".to_string());
+        lines.push("  \"Interactive consent\"".to_string());
+        lines.push("</Checkbox>".to_string());
+        lines.join("\n")
+    });
+
+    let interactive_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/checkbox/styles.rs */\n{}",
+            ui_components::checkbox::styles::CSS
+        )
+    });
+
+    let interactive_config = Signal::derive(move || {
+        format!(
+            "CheckboxActualConfig {{\n  checked: {},\n  disabled: {},\n  variant: {:?},\n  size: {:?},\n  class_name: {},\n}}",
+            interactive_checked.get(),
+            interactive_disabled.get(),
+            interactive_variant.get(),
+            interactive_size.get(),
+            if interactive_custom_class.get() {
+                "\"docs-checkbox-custom\""
+            } else {
+                "None"
+            }
+        )
+    });
 
     let code = Signal::derive(move || {
         r#"let (checked, set_checked) = signal(false);
@@ -1365,6 +1435,72 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
             group="Forms"
             description="Pressable checkbox with baseline-level spring indicator and baseline-style root state attrs."
         >
+            <Playground
+                title="Interactive Playground"
+                description="Display + Config + Code + CSS Test: edit checkbox props and inspect actual state contracts."
+                code_signal=interactive_code
+                test_css_source=interactive_test_css
+                test_source_path="crates/ui-components/src/checkbox/styles.rs".to_string()
+                test_config_signal=interactive_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <div class="docs-search__label">"Variant"</div>
+                        <SegmentedControl
+                            id_base="docs-checkbox-variant".to_string()
+                            options=variant_options.clone()
+                            selected_index=interactive_variant_index
+                            set_selected_index=set_interactive_variant_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Checkbox variant".to_string()
+                        />
+
+                        <div class="docs-search__label">"Size"</div>
+                        <SegmentedControl
+                            id_base="docs-checkbox-size".to_string()
+                            options=size_options.clone()
+                            selected_index=interactive_size_index
+                            set_selected_index=set_interactive_size_index
+                            size=SegmentedControlSize::Sm
+                            aria_label="Checkbox size".to_string()
+                        />
+
+                        <Switch checked=interactive_checked set_checked=set_interactive_checked>
+                            "Checked"
+                        </Switch>
+                        <Switch checked=interactive_disabled set_checked=set_interactive_disabled>
+                            "Disabled"
+                        </Switch>
+                        <Switch
+                            checked=interactive_custom_class
+                            set_checked=set_interactive_custom_class
+                        >
+                            "Custom class"
+                        </Switch>
+                    </div>
+                }
+            >
+                <div class="docs-stack docs-stack--tight">
+                    <Checkbox
+                        checked=interactive_checked
+                        set_checked=set_interactive_checked
+                        variant=interactive_variant.get()
+                        size=interactive_size.get()
+                        disabled=interactive_disabled.get()
+                        class_name=if interactive_custom_class.get() {
+                            "docs-checkbox-custom".to_string()
+                        } else {
+                            String::new()
+                        }
+                    >
+                        "Interactive consent"
+                    </Checkbox>
+                    <span class="ui-muted">
+                        "checked: " {move || interactive_checked.get()}
+                        " · disabled: " {move || interactive_disabled.get()}
+                    </span>
+                </div>
+            </Playground>
+
             <Playground title="Controlled + on_change" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
@@ -1375,7 +1511,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                         >
                             "Accept terms"
                         </Checkbox>
-                        <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+                        <span class="ui-muted">"checked: " {move || checked.get()}</span>
                     </div>
                     <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
                 </div>
@@ -1394,7 +1530,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                         </Checkbox>
                         <span class="ui-muted">
                             "marketing: "
-                            {move || marketing.get().to_string()}
+                            {move || marketing.get()}
                         </span>
                     </div>
                     <div class="docs-row">
@@ -1436,6 +1572,13 @@ pub(super) fn checkbox_group() -> AnyView {
     let (optional_sms, set_optional_sms) = signal(true);
     let optional_selected_count =
         Signal::derive(move || usize::from(optional_email.get()) + usize::from(optional_sms.get()));
+    let (interactive_alpha, set_interactive_alpha) = signal(true);
+    let (interactive_beta, set_interactive_beta) = signal(false);
+    let (interactive_required, set_interactive_required) = signal(true);
+    let (interactive_invalid, set_interactive_invalid) = signal(false);
+    let (interactive_disabled, set_interactive_disabled) = signal(false);
+    let (interactive_description, set_interactive_description) = signal(true);
+    let (interactive_error, set_interactive_error) = signal(true);
 
     let code = Signal::derive(move || {
         r#"let invalid = Signal::derive(move || !(apple.get() || banana.get()));
@@ -1451,6 +1594,73 @@ pub(super) fn checkbox_group() -> AnyView {
   <Checkbox checked=banana set_checked=set_banana>"Banana"</Checkbox>
 </CheckboxGroup>"#
             .to_string()
+    });
+
+    let interactive_code = Signal::derive(move || {
+        let mut lines = vec![
+            "let (alpha, set_alpha) = signal(true);".to_string(),
+            "let (beta, set_beta) = signal(false);".to_string(),
+            "".to_string(),
+            "<CheckboxGroup".to_string(),
+            "  id=\"docs-checkbox-group-interactive\".into()".to_string(),
+            "  label=\"Release channels\".into()".to_string(),
+        ];
+
+        if interactive_description.get() {
+            lines.push("  description=\"Choose at least one channel.\".into()".to_string());
+        }
+        if interactive_error.get() {
+            lines.push("  error=\"At least one channel is required.\".into()".to_string());
+        }
+        lines.push(format!(
+            "  required=Signal::derive(|| {})",
+            interactive_required.get()
+        ));
+        lines.push(format!(
+            "  invalid=Signal::derive(|| {})",
+            interactive_invalid.get()
+        ));
+        if interactive_disabled.get() {
+            lines.push("  disabled=true".to_string());
+        }
+
+        lines.push(">".to_string());
+        lines.push(
+            "  <Checkbox checked=alpha set_checked=set_alpha>\"Email\"</Checkbox>".to_string(),
+        );
+        lines.push("  <Checkbox checked=beta set_checked=set_beta>\"SMS\"</Checkbox>".to_string());
+        lines.push("</CheckboxGroup>".to_string());
+
+        lines.join("\n")
+    });
+
+    let interactive_test_css = Signal::derive(move || {
+        format!(
+            "/* crates/ui-components/src/checkbox/styles.rs */\n{}\n\n/* checkbox group */\n{}",
+            ui_components::checkbox::styles::CSS,
+            ui_components::checkbox::styles::CHECKBOX_GROUP_CSS
+        )
+    });
+
+    let interactive_config = Signal::derive(move || {
+        format!(
+            "CheckboxGroupActualConfig {{\n  required: {},\n  invalid: {},\n  disabled: {},\n  description: {},\n  error: {},\n  alpha: {},\n  beta: {},\n}}",
+            interactive_required.get(),
+            interactive_invalid.get(),
+            interactive_disabled.get(),
+            if interactive_description.get() {
+                "present"
+            } else {
+                "absent"
+            },
+            if interactive_error.get() {
+                "present"
+            } else {
+                "absent"
+            },
+            interactive_alpha.get(),
+            interactive_beta.get()
+        )
     });
 
     let states_code = Signal::derive(move || {
@@ -1480,6 +1690,77 @@ pub(super) fn checkbox_group() -> AnyView {
             group="Forms"
             description="Fieldset wrapper with normalized labels, validation semantics, and baseline-style root state attrs."
         >
+            <Playground
+                title="Interactive Playground"
+                description="Display + Config + Code + CSS Test: edit group validation/required state and inspect contracts."
+                code_signal=interactive_code
+                test_css_source=interactive_test_css
+                test_source_path="crates/ui-components/src/checkbox/styles.rs".to_string()
+                test_config_signal=interactive_config
+                controls=move || view! {
+                    <div class="docs-stack docs-stack--tight">
+                        <Switch checked=interactive_required set_checked=set_interactive_required>
+                            "Required"
+                        </Switch>
+                        <Switch checked=interactive_invalid set_checked=set_interactive_invalid>
+                            "Invalid"
+                        </Switch>
+                        <Switch checked=interactive_disabled set_checked=set_interactive_disabled>
+                            "Disabled"
+                        </Switch>
+                        <Switch checked=interactive_description set_checked=set_interactive_description>
+                            "Description"
+                        </Switch>
+                        <Switch checked=interactive_error set_checked=set_interactive_error>
+                            "Error message"
+                        </Switch>
+                    </div>
+                }
+            >
+                {move || {
+                    let description = if interactive_description.get() {
+                        "Choose at least one channel.".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let error = if interactive_error.get() {
+                        "At least one channel is required.".to_string()
+                    } else {
+                        String::new()
+                    };
+                    let required = Signal::derive(move || interactive_required.get());
+                    let invalid = Signal::derive(move || interactive_invalid.get());
+                    view! {
+                        <div class="docs-stack docs-stack--tight">
+                            <CheckboxGroup
+                                id="docs-checkbox-group-interactive".to_string()
+                                label="Release channels".to_string()
+                                description=description
+                                error=error
+                                required=required
+                                invalid=invalid
+                                disabled=interactive_disabled.get()
+                            >
+                                <Checkbox checked=interactive_alpha set_checked=set_interactive_alpha>
+                                    "Email"
+                                </Checkbox>
+                                <Checkbox checked=interactive_beta set_checked=set_interactive_beta>
+                                    "SMS"
+                                </Checkbox>
+                            </CheckboxGroup>
+                            <span class="ui-muted">
+                                "selected count: "
+                                {move || {
+                                    (usize::from(interactive_alpha.get()) + usize::from(interactive_beta.get()))
+                                        .to_string()
+                                }}
+                            </span>
+                        </div>
+                    }
+                        .into_any()
+                }}
+            </Playground>
+
             <Playground title="Validation + Required" code_signal=code>
                 <div class="docs-stack">
                     <CheckboxGroup
@@ -1520,7 +1801,7 @@ pub(super) fn checkbox_group() -> AnyView {
                             }
                         }}
                         " · invalid: "
-                        {move || invalid.get().to_string()}
+                        {move || invalid.get()}
                     </span>
 
                     <div class="docs-row">
@@ -1566,7 +1847,7 @@ pub(super) fn checkbox_group() -> AnyView {
                         </CheckboxGroup>
                         <span class="ui-muted">
                             "optional selected count: "
-                            {move || optional_selected_count.get().to_string()}
+                            {move || optional_selected_count.get()}
                         </span>
                     </div>
                 </div>
@@ -1580,7 +1861,7 @@ pub(super) fn switch() -> AnyView {
 
     let (system_enabled, set_system_enabled) = signal(true);
     let (last_change, set_last_change) = signal("none".to_string());
-    let on_system_change = Callback::new(move |next: bool| {
+    let on_system_checked_change = Callback::new(move |next: bool| {
         set_last_change.set(if next {
             "true".to_string()
         } else {
@@ -1597,7 +1878,7 @@ pub(super) fn switch() -> AnyView {
 <Switch
   checked=checked
   set_checked=set_checked
-  on_change=Callback::new(move |_| {})
+  on_checked_change=Callback::new(move |_| {})
 >
   "Notifications"
 </Switch>"#
@@ -1628,19 +1909,21 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
             group="Forms"
             description="Switch toggle with baseline-level spring thumb motion and baseline-style root state attrs."
         >
-            <Playground title="Controlled + on_change" code_signal=code>
+            <Playground title="Controlled + on_checked_change" code_signal=code>
                 <div class="docs-stack">
                     <div class="docs-row">
                         <Switch
                             checked=checked
                             set_checked=set_checked
-                            on_change=on_system_change
+                            on_checked_change=on_system_checked_change
                         >
                             "Notifications"
                         </Switch>
-                        <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+                        <span class="ui-muted">"checked: " {move || checked.get()}</span>
                     </div>
-                    <span class="ui-muted">"last on_change: " {move || last_change.get()}</span>
+                    <span class="ui-muted">
+                        "last on_checked_change: " {move || last_change.get()}
+                    </span>
                 </div>
             </Playground>
 
@@ -1652,7 +1935,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                         </Switch>
                         <span class="ui-muted">
                             "system enabled: "
-                            {move || system_enabled.get().to_string()}
+                            {move || system_enabled.get()}
                         </span>
                     </div>
                     <div class="docs-row">
@@ -1746,8 +2029,7 @@ let disabled_indices = Signal::derive(move || if disable_middle.get() { vec![1] 
   aria_label="No options available".to_string()
   selected_index=empty_selected
   set_selected_index=set_empty_selected
-/>"#
-        .to_string()
+/>"#.to_string()
     });
 
     view! {
@@ -1770,7 +2052,7 @@ let disabled_indices = Signal::derive(move || if disable_middle.get() { vec![1] 
                         "selected: "
                         {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                         " · has selection: "
-                        {move || has_selection.get().to_string()}
+                        {move || has_selection.get()}
                     </span>
                 </div>
             </Playground>
@@ -1856,7 +2138,7 @@ let disabled_indices = Signal::derive(move || if disable_middle.get() { vec![1] 
                         " · orientation: "
                         {move || if billing_is_horizontal.get() { "horizontal" } else { "vertical" }}
                         " · group disabled: "
-                        {move || billing_group_disabled.get().to_string()}
+                        {move || billing_group_disabled.get()}
                         " · disabled options: "
                         {move || if billing_disable_middle.get() { "1" } else { "0" }}
                     </span>
@@ -1943,7 +2225,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                         is_checked=Signal::derive(move || checked.get())
                         on_checked_change=on_checked_change
                     />
-                    <span class="ui-muted">"checked: " {move || checked.get().to_string()}</span>
+                    <span class="ui-muted">"checked: " {move || checked.get()}</span>
                 </div>
             </Playground>
 
@@ -2016,8 +2298,7 @@ pub(super) fn segmented_control() -> AnyView {
 
     let hello_code = Signal::derive(move || {
         r#"let (value, set_value) = signal(Some(0_usize));
-<SegmentedControl id_base="seg".to_string() options=vec!["Overview".to_string(), "Details".to_string()] selected_index=value set_selected_index=set_value />"#
-            .to_string()
+<SegmentedControl id_base="seg".to_string() options=vec!["Overview".to_string(), "Details".to_string()] selected_index=value set_selected_index=set_value />"#.to_string()
     });
 
     let code = Signal::derive(move || {
@@ -2077,8 +2358,7 @@ let (is_small, set_is_small) = signal(false);
   set_selected_index=set_value
   orientation=if is_vertical.get() { SegmentedControlOrientation::Vertical } else { SegmentedControlOrientation::Horizontal }
   size=if is_small.get() { SegmentedControlSize::Sm } else { SegmentedControlSize::Default }
-/>"#
-            .to_string()
+/>"#.to_string()
     });
 
     view! {
@@ -2111,7 +2391,7 @@ let (is_small, set_is_small) = signal(false);
                         "selected: "
                         {move || selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
                         " · has selection: "
-                        {move || has_selection.get().to_string()}
+                        {move || has_selection.get()}
                         " · disabled options: 1"
                     </span>
                 </div>
@@ -2210,10 +2490,10 @@ let (is_small, set_is_small) = signal(false);
                     <span class="ui-muted" data-slot="segmented-control-marker-summary">
                         "selected: "
                         {move || interactive_selected.get().map(|v| v.to_string()).unwrap_or_else(|| "None".to_string())}
-                        " · vertical: " {move || interactive_vertical.get().to_string()}
+                        " · vertical: " {move || interactive_vertical.get()}
                         " · size: " {move || if interactive_small.get() { "sm" } else { "default" }}
-                        " · disabled: " {move || interactive_disabled.get().to_string()}
-                        " · disable last: " {move || interactive_disable_last.get().to_string()}
+                        " · disabled: " {move || interactive_disabled.get()}
+                        " · disable last: " {move || interactive_disable_last.get()}
                     </span>
                 </div>
             </Playground>
@@ -2263,7 +2543,7 @@ let (is_small, set_is_small) = signal(false);
                     "."
                 </p>
                 <ui_components::Snippet
-                    text="use leptos::prelude::*;\nuse ui_components::*;\n\nlet (value, set_value) = signal(Some(0_usize));\n<SegmentedControl id_base=\"seg\".to_string() options=vec![\"Overview\".to_string(), \"Details\".to_string()] selected_index=value set_selected_index=set_value />".to_string()
+                    text="use leptos::prelude::*;\nuse ui_components::*;\n\nlet (value, set_value) = signal(Some(0_usize));\n<SegmentedControl id_base=\"seg\".into() options=vec![\"Overview\".into(), \"Details\".into()] selected_index=value set_selected_index=set_value />".to_string()
                     label="Copy starter".to_string()
                     copyable=true
                     class_name="docs-segmented-control-source-copy".to_string()

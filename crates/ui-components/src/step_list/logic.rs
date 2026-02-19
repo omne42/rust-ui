@@ -77,8 +77,8 @@ pub fn normalize_selection_axis(input: StepListSelectionAxisInput) -> StepListSe
 pub fn compose_class_name(base_class_name: Option<String>, state: StepListState) -> String {
     let mut classes = vec![
         "ui-step-list".to_string(),
-        state.orientation_class.to_string(),
-        state.size_class.to_string(),
+        state.orientation_class.into(),
+        state.size_class.into(),
     ];
 
     if state.is_emphasized {

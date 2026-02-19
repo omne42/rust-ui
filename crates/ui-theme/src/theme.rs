@@ -508,8 +508,8 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
             default_fg: FEATURED_ECLIPSE,
             primary: FEATURED_ACCENT,
             primary_fg: FEATURED_SNOW,
-            secondary: FEATURED_LIGHT_DEFAULT,
-            secondary_fg: FEATURED_ECLIPSE,
+            secondary: semantic_scales.secondary.shade_500,
+            secondary_fg: FEATURED_SNOW,
             success: FEATURED_LIGHT_SUCCESS,
             success_fg: FEATURED_ECLIPSE,
             warning: FEATURED_LIGHT_WARNING,
@@ -522,7 +522,7 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
             default_fg: FEATURED_SNOW,
             primary: FEATURED_ACCENT,
             primary_fg: FEATURED_SNOW,
-            secondary: FEATURED_DARK_SEGMENT,
+            secondary: semantic_scales.secondary.shade_500,
             secondary_fg: FEATURED_SNOW,
             success: FEATURED_LIGHT_SUCCESS,
             success_fg: FEATURED_ECLIPSE,
@@ -613,6 +613,10 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
                     font_size_150_px: 14,
                     // Baseline: 16px for font-size-200 at medium scale.
                     font_size_200_px: 16,
+                    // Baseline text metrics ladder follows Spectrum/HeroUI-style readable line boxes.
+                    line_height_100_px: 16,
+                    line_height_150_px: 20,
+                    line_height_200_px: 24,
                 },
                 ComponentLayoutTokens {
                     // Baseline: 32px for component-height-100 at medium scale.
@@ -637,6 +641,9 @@ fn resolve_tokens(ctx: ThemeContext) -> ThemeTokens {
                     font_size_150_px: 16,
                     // Baseline: 19px for font-size-200 at large scale.
                     font_size_200_px: 19,
+                    line_height_100_px: 20,
+                    line_height_150_px: 24,
+                    line_height_200_px: 28,
                 },
                 ComponentLayoutTokens {
                     // Baseline: 40px for component-height-100 at large scale.

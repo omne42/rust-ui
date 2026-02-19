@@ -107,38 +107,38 @@ fn setup_global_listeners(state: FocusVisibleState) {
     });
 
     // We use capture to catch focus-related events reliably and early.
-    let _ = target.add_event_listener_with_callback_and_bool(
+    drop(target.add_event_listener_with_callback_and_bool(
         "keydown",
         keydown.as_ref().unchecked_ref(),
         true,
-    );
-    let _ = target.add_event_listener_with_callback_and_bool(
+    ));
+    drop(target.add_event_listener_with_callback_and_bool(
         "pointerdown",
         pointerdown.as_ref().unchecked_ref(),
         true,
-    );
-    let _ = target.add_event_listener_with_callback_and_bool(
+    ));
+    drop(target.add_event_listener_with_callback_and_bool(
         "focusin",
         focusin.as_ref().unchecked_ref(),
         true,
-    );
+    ));
 
     on_cleanup(move || {
-        let _ = target.remove_event_listener_with_callback_and_bool(
+        drop(target.remove_event_listener_with_callback_and_bool(
             "keydown",
             keydown.as_ref().unchecked_ref(),
             true,
-        );
-        let _ = target.remove_event_listener_with_callback_and_bool(
+        ));
+        drop(target.remove_event_listener_with_callback_and_bool(
             "pointerdown",
             pointerdown.as_ref().unchecked_ref(),
             true,
-        );
-        let _ = target.remove_event_listener_with_callback_and_bool(
+        ));
+        drop(target.remove_event_listener_with_callback_and_bool(
             "focusin",
             focusin.as_ref().unchecked_ref(),
             true,
-        );
+        ));
 
         drop(keydown);
         drop(pointerdown);

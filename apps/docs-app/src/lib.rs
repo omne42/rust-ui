@@ -17,8 +17,8 @@ Ensure `.cargo/config.toml` is picked up (workspace root), or set `RUSTFLAGS=\"-
 
 use leptos::prelude::*;
 use ui_components::{
-    ButtonSize, ButtonVariant, IconButton, Sheet, SheetPlacement, Theme, ThemeMode,
-    ThemeToggleButton, UiRoot,
+    Button, ButtonSize, ButtonVariant, Sheet, SheetPlacement, Theme, ThemeMode, ThemeToggleButton,
+    UiRoot,
 };
 use ui_headless::{provide_focus_visible, provide_overlay_stack, provide_ui_trace};
 
@@ -94,7 +94,7 @@ pub fn App() -> impl IntoView {
         }
 
         if page == "Welcome" {
-            base.to_string()
+            base.into()
         } else {
             format!("{page} · {base}")
         }
@@ -110,7 +110,7 @@ pub fn App() -> impl IntoView {
     Effect::new(move |_| {
         let current = route.get();
         if let Some(section) = route::route_section(&current) {
-            toc.set_active(Some(section.to_string()));
+            toc.set_active(Some(section.into()));
             route::scroll_to_id(section);
         } else {
             toc.set_active(None);
@@ -138,10 +138,11 @@ pub fn App() -> impl IntoView {
                     </div>
 
                     <div class="docs-header__actions">
-                        <IconButton
+                        <Button
                             aria_label="Open navigation".to_string()
                             variant=ButtonVariant::Ghost
                             size=ButtonSize::IconSm
+                            is_icon_only=true
                             class_name="docs-header__nav-toggle".to_string()
                             on_press=open_nav
                         >
@@ -153,7 +154,7 @@ pub fn App() -> impl IntoView {
                                     stroke_linecap="round"
                                 />
                             </svg>
-                        </IconButton>
+                        </Button>
 
                         <command_menu::DocsCommandMenu navigate=navigate />
                         <ThemeToggleButton mode=theme_mode set_mode=set_theme_mode />

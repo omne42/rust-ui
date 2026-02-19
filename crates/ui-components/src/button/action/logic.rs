@@ -174,7 +174,7 @@ pub(crate) mod action_button_group_logic {
     pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
         value.and_then(|value| {
             let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| trimmed.to_string())
+            (!trimmed.is_empty()).then(|| trimmed.into())
         })
     }
 
@@ -222,8 +222,8 @@ pub(crate) mod action_button_group_logic {
     ) -> String {
         let mut classes = vec![
             "ui-action-button-group".to_string(),
-            state.orientation.class_name().to_string(),
-            state.density.class_name().to_string(),
+            state.orientation.class_name().into(),
+            state.density.class_name().into(),
         ];
 
         if state.is_justified {
@@ -444,7 +444,7 @@ pub(crate) mod action_group_logic {
     pub fn normalize_optional_text(value: Option<String>) -> Option<String> {
         value.and_then(|value| {
             let trimmed = value.trim();
-            (!trimmed.is_empty()).then(|| trimmed.to_string())
+            (!trimmed.is_empty()).then(|| trimmed.into())
         })
     }
 
@@ -456,7 +456,8 @@ pub(crate) mod action_group_logic {
             return (label, true);
         }
 
-        (fallback_aria_label.to_string(), false)
+        // (fallback_aria_label.to_string(), false)
+        (fallback_aria_label.into(), false)
     }
 
     fn normalize_item(mut item: ActionGroupItem, index: usize) -> ActionGroupItem {
@@ -557,8 +558,8 @@ pub(crate) mod action_group_logic {
     pub fn compose_class_name(base_class_name: Option<String>, state: ActionGroupState) -> String {
         let mut classes = vec![
             "ui-action-group".to_string(),
-            state.tone_class.to_string(),
-            state.selection_mode_class.to_string(),
+            state.tone_class.into(),
+            state.selection_mode_class.into(),
         ];
 
         if state.is_disabled {

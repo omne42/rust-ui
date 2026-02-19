@@ -84,5 +84,5 @@ fn schedule_focus_out_check(
     })
     .unchecked_into();
 
-    let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(&callback, 0);
+    drop(window.set_timeout_with_callback_and_timeout_and_arguments_0(&callback, 0));
 }

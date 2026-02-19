@@ -28,7 +28,7 @@ pub fn route_with_section(route: &str, section: &str) -> String {
 
     let section = section.trim();
     if section.is_empty() {
-        return path.to_string();
+        return path.into();
     }
 
     format!("{path}?section={section}")
@@ -70,10 +70,7 @@ fn set_hash_route(route: &str) {
         return;
     };
     let route = normalize_route(route);
-    let _ = window
-        .location()
-        .set_hash(&format!("#/{route}"))
-        .map_err(|_| ());
+    drop(window.location().set_hash(&format!("#/{route}")));
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -110,7 +107,7 @@ pub fn scroll_to_id(id: &str) {
         return;
     };
 
-    let id = id.to_string();
+    let id: String = id.into();
     let callback = Closure::once_into_js(move || {
         _ = try_scroll(&id);
     });
@@ -119,7 +116,7 @@ pub fn scroll_to_id(id: &str) {
         return;
     };
 
-    let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(callback, 0);
+    drop(window.set_timeout_with_callback_and_timeout_and_arguments_0(callback, 0));
 }
 
 #[cfg(not(target_arch = "wasm32"))]

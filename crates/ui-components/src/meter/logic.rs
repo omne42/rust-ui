@@ -62,17 +62,11 @@ mod tests {
     fn resolve_aria_label_defaults_and_detects_custom_source() {
         assert_eq!(
             resolve_aria_label(None, None),
-            (
-                ui_state_primitives::meter::DEFAULT_ARIA_LABEL.to_string(),
-                false
-            )
+            (ui_state_primitives::meter::DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(Some("\n\t".to_string()), None),
-            (
-                ui_state_primitives::meter::DEFAULT_ARIA_LABEL.to_string(),
-                false
-            )
+            (ui_state_primitives::meter::DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(None, Some("  Completion  ".to_string())),
@@ -80,10 +74,7 @@ mod tests {
         );
         assert_eq!(
             resolve_aria_label(Some("  Meter  ".to_string()), Some("  Label  ".to_string())),
-            (
-                ui_state_primitives::meter::DEFAULT_ARIA_LABEL.to_string(),
-                false
-            )
+            (ui_state_primitives::meter::DEFAULT_ARIA_LABEL.into(), false)
         );
         assert_eq!(
             resolve_aria_label(

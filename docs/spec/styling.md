@@ -8,6 +8,17 @@
 > - 开发体验：不要在开发阶段频繁改 `styles.rs`；用应用侧热更新 CSS 覆盖来迭代，收敛后再回填到 `styles.rs`。
 > - 体积策略：组件 CSS 注入应与组件 feature 同步裁剪（见 `docs/spec/tree_shaking.md`）。
 
+## 样式孤岛防御（强制补充）
+
+详见：`docs/spec/style_island_defense.md`。
+
+本文件在样式孤岛场景下的硬约束补充如下：
+
+- 组件 `styles.rs` 必须采用防御性变量链：`var(--ui-*, var(--ui-fallback-*))`。
+- 禁止在组件层把 Hex/RGB/裸尺寸写成 fallback 终值。
+- fallback 终值必须由 token 层统一产出（SSOT），不允许组件私有一套默认值。
+- 注入层采用“默认注入 + 裸奔容错”：即使上层漏挂 `UiRoot`，组件仍应可读可用。
+
 ## Design Tokens 基线（强制）
 
 `ui-theme` 是仓库内 **唯一** 的设计 token 与主题上下文层，负责：

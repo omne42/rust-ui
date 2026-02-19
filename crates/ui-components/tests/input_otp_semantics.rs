@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn input_otp_uses_single_hidden_input_with_one_time_code_attributes() {
-    let source = load_source("src/input_otp/view.rs");
+    let source = load_source("src/text_input/input_otp/view.rs");
 
     assert!(
         source.contains("class=\"ui-input-otp__input\""),
@@ -31,7 +31,7 @@ fn input_otp_uses_single_hidden_input_with_one_time_code_attributes() {
 
 #[test]
 fn input_otp_slots_are_hidden_from_screen_readers_and_track_active_state() {
-    let source = load_source("src/input_otp/view.rs");
+    let source = load_source("src/text_input/input_otp/view.rs");
 
     assert!(
         source.contains("aria-hidden=\"true\""),
@@ -49,7 +49,7 @@ fn input_otp_slots_are_hidden_from_screen_readers_and_track_active_state() {
 
 #[test]
 fn input_otp_integrates_headless_hooks_for_behavior_and_field_semantics() {
-    let source = load_source("src/input_otp/view.rs");
+    let source = load_source("src/text_input/input_otp/view.rs");
 
     assert!(
         source.contains("use_input_otp"),
@@ -71,8 +71,8 @@ fn input_otp_integrates_headless_hooks_for_behavior_and_field_semantics() {
 
 #[test]
 fn input_otp_mounts_locale_and_i18n_default_label_contracts() {
-    let source = load_source("src/input_otp/view.rs");
-    let i18n_source = load_source("src/input_otp/i18n.rs");
+    let source = load_source("src/text_input/input_otp/view.rs");
+    let i18n_source = load_source("src/text_input/input_otp/i18n.rs");
 
     for needle in [
         "#[prop(optional, into)] lang: Option<String>",
@@ -101,7 +101,7 @@ fn input_otp_mounts_locale_and_i18n_default_label_contracts() {
 
 #[test]
 fn input_otp_styles_define_caret_blink_and_focus_visible_outline() {
-    let source = load_source("src/input_otp/styles.rs");
+    let source = load_source("src/text_input/input_otp/styles.rs");
 
     assert!(
         source.contains("ui-input-otp__caret"),
@@ -204,7 +204,7 @@ fn input_otp_docs_page_exposes_interactive_display_config_code_css_test_contract
         "description=\"展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。\"",
         "code_signal=workbench_code",
         "test_css_source=workbench_test_css_source",
-        "test_source_path=\"crates/ui-components/src/input_otp/styles.rs\".to_string()",
+        "test_source_path=\"crates/ui-components/src/text_input/input_otp/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "controls=move || view!",
         "<Playground title=\"State Comparison\" code_signal=state_compare_code>",
@@ -218,7 +218,7 @@ fn input_otp_docs_page_exposes_interactive_display_config_code_css_test_contract
 
 #[test]
 fn input_otp_readme_covers_display_config_code_css_test_and_comparison_sections() {
-    let source = load_source("src/input_otp/README.md");
+    let source = load_source("src/text_input/input_otp/README.md");
 
     for needle in [
         "## 展示区（Display）",
@@ -232,4 +232,27 @@ fn input_otp_readme_covers_display_config_code_css_test_and_comparison_sections(
             "input_otp README should include `{needle}` for required documentation structure.",
         );
     }
+}
+
+#[test]
+fn input_otp_text_metrics_use_typography_tokens() {
+    let source = load_source("src/text_input/input_otp/styles.rs");
+
+    for needle in [
+        "--ui-input-otp-label-font-size: var(--ui-font-size-150);",
+        "--ui-input-otp-label-line-height: var(--ui-line-height-150);",
+        "--ui-input-otp-slot-line-height: var(--ui-line-height-200);",
+        "--ui-input-otp-meta-font-size: var(--ui-font-size-150);",
+        "--ui-input-otp-meta-line-height: var(--ui-line-height-150);",
+    ] {
+        assert!(
+            source.contains(needle),
+            "InputOtp styles should include tokenized text metric `{needle}`."
+        );
+    }
+
+    assert!(
+        !source.contains("line-height: 1;"),
+        "InputOtp styles should not hardcode `line-height: 1;` for slot text."
+    );
 }

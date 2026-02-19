@@ -62,7 +62,7 @@ fn setup_focus_trap(options: FocusTrapOptions) -> FocusTrapHandlers {
         let previous_focus = previous_focus.clone();
         on_cleanup(move || {
             if let Some(el) = previous_focus.borrow_mut().take() {
-                let _ = el.focus();
+                drop(el.focus());
             }
         });
     }
@@ -99,15 +99,14 @@ fn setup_focus_trap(_options: FocusTrapOptions) -> FocusTrapHandlers {
 fn focus_first_in_container(document: &web_sys::Document, container: &web_sys::HtmlDivElement) {
     let focusable = collect_focusable(container);
     if let Some(first) = focusable.first() {
-        let _ = first.focus();
+        drop(first.focus());
         return;
     }
 
     // Fallback: focus the container itself (requires the component to set tabindex).
-    let _ = container.focus();
-
+    drop(container.focus());
     // Ensure the browser has a chance to update activeElement.
-    let _ = document.active_element();
+    drop(document.active_element());
 }
 
 #[cfg(all(feature = "web", target_arch = "wasm32"))]
@@ -120,7 +119,7 @@ fn trap_tab_key(
 
     let focusable = collect_focusable(container);
     if focusable.is_empty() {
-        let _ = container.focus();
+        drop(container.focus());
         return true;
     }
 
@@ -143,12 +142,12 @@ fn trap_tab_key(
     if shift {
         if active_index.is_none() || active_index == Some(0) {
             let last = focusable[last_index].clone();
-            let _ = last.focus();
+            drop(last.focus());
             return true;
         }
     } else if active_index.is_none() || active_index == Some(last_index) {
         let first = focusable[0].clone();
-        let _ = first.focus();
+        drop(first.focus());
         return true;
     }
 
@@ -157,10 +156,10 @@ fn trap_tab_key(
         if !container.contains(Some(active.unchecked_ref())) {
             if shift {
                 let last = focusable[last_index].clone();
-                let _ = last.focus();
+                drop(last.focus());
             } else {
                 let first = focusable[0].clone();
-                let _ = first.focus();
+                drop(first.focus());
             }
             return true;
         }

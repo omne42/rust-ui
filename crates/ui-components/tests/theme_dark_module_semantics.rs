@@ -9,7 +9,7 @@ fn load_source(rel_path: &str) -> String {
 
 #[test]
 fn theme_dark_module_exports_dark_theme_contract() {
-    let source = load_source("src/theme_dark/mod.rs");
+    let source = load_source("src/theme/dark/mod.rs");
 
     for needle in [
         "pub use ui_theme::Theme;",

@@ -93,7 +93,7 @@ pub fn Toaster(
             data-queue=root_state.queue_attr
             data-position=root_state.position_attr
             data-portal=root_state.portal_attr
-            data-max-toasts=root_state.max_toasts.to_string()
+            data-max-toasts=root_state.max_toasts
             data-position-source=root_state.position_source_attr
             data-portal-source=root_state.portal_source_attr
             data-max-toasts-source=root_state.max_toasts_source_attr
