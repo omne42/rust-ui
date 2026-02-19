@@ -10,6 +10,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `workspace`: completes a full gate loop (`cargo fmt --all`, `./scripts/check.sh`, `cargo test --workspace --no-fail-fast`) after fixing docs/semantics regressions in `file_trigger`, `skeleton`, `time_field`, and `tree` contracts so all checks pass together.
 
+- `ui-components` + `docs-app` (**breaking**): finalizes `checkbox` domain migration by moving implementation to `crates/ui-components/src/checkbox/*`, removing `crates/ui-components/src/checkbox_field/checkbox/*` (including `group/*`), inlining `CheckboxGroup` into the top-level `checkbox` module, and dropping legacy compatibility paths/aliases (no `checkbox::group::*` fallback).
+
 - `ui-components`: syncs `button/copy/check2.md` checklist to mark the `spec.rs` rule as satisfied (button remains the only complex component using `spec.rs`).
 
 - `ui-components`: completes button-family namespace consolidation under `button/*` (including `action`, `copy`, and toggle variants), aligns migrated semantics contracts (`search_input_button`, `tag_group`, `upstream_name_parity`), and hardens motion/style hygiene checks so full `./scripts/check.sh` passes end-to-end.
