@@ -1,4 +1,4 @@
-use crate::ripple::{logic, motion::RippleMotion};
+use crate::ripple::{RippleMotion, logic};
 use leptos::{html, prelude::*};
 use ui_headless::{A11yDirection, locale_attrs};
 

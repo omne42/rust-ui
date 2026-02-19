@@ -1,4 +1,4 @@
-use crate::RippleMotion;
+use ui_visual_primitive::ripple::RippleMotion;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct PressableFeedbackMotion {
@@ -72,7 +72,7 @@ pub fn sanitize_motion(motion: PressableFeedbackMotion) -> PressableFeedbackMoti
             .clamp(0.82, 1.0),
         highlight_opacity: sanitize_number(motion.highlight_opacity, default.highlight_opacity)
             .clamp(0.0, 0.4),
-        ripple: crate::ripple::motion::sanitize_motion(motion.ripple),
+        ripple: ui_visual_primitive::ripple::sanitize_motion(motion.ripple),
     }
 }
 

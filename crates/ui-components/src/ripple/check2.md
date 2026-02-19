@@ -34,7 +34,7 @@
   - 禁止放在 `ui-headless`：视觉 class 选择、CSS 规则、组件 slot 布局、组件专属动效编排、业务文案。
   - 允许留在组件层：纯视觉一次性交互且不形成可复用语义契约（例如单组件局部微交互）。
 - [x] `ui-motion` 定义：动效能力与契约执行层（spring、keyframes、WAAPI/RAF backend），只负责时间函数、插值与运行时驱动，不承载组件业务语义与状态决策。
-  - `crates/ui-components/src/ripple/motion.rs` 仅保留动效合同映射：`sanitize_motion/source_attr/attach_motion/trigger_ripple(_at)`；执行仍通过 `ui_motion::web::animate`，non-wasm 走 no-op；`reduced-motion` 通过 `ui_motion::web::prefers_reduced_motion()` 直接跳过。
+  - `crates/ui-visual-primitive/src/ripple.rs` 仅保留通用动效合同映射：`sanitize_motion/source_attr/attach_motion/trigger_ripple(_at)`；执行仍通过 `ui_motion::web::animate`，non-wasm 走 no-op；`reduced-motion` 通过 `ui_motion::web::prefers_reduced_motion()` 直接跳过。
   - 放在 `crates/ui-motion`：通用动画数学与执行后端（spring solver、keyframe sampling、easing registry、driver adapters），以及 `wasm/non-wasm` 适配与 `reduced-motion` 执行策略。
   - 放在 `crates/ui-components/src/<component>/motion.rs`：把组件语义状态（open/closed、enter/exit、active/inactive）映射为 `ui-motion` contract，绑定目标节点并调用 attach。
   - 禁止放在 `crates/ui-motion`：组件 slot 结构、组件专属状态机、ARIA/keyboard 语义、业务文案与业务分支。
@@ -147,7 +147,7 @@
   - 简单组件不得为了“形式统一”新增 `spec.rs`；说明文档应留在 `check2.md`/组件文档。
   - 新增 `spec.rs` 必须同步给出契约测试与版本演进说明。
 - [x] 组件层遵循 token-first 静态样式契约：样式通过 `styles.rs` 聚合注入；运行时仅传必要 CSS 变量；不把 Utility-First/CSS-in-Rust 当组件库默认范式。
-  - 证据：`crates/ui-components/src/ripple/styles.rs` 仅消费 `var(--ui-*)`，`crates/ui-components/src/ripple/motion.rs::attach_motion` 仅注入 `--ui-ripple-duration-ms`，`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-ripple")]` 聚合样式。
+  - 证据：`crates/ui-components/src/ripple/styles.rs` 仅消费 `var(--ui-*)`，`crates/ui-visual-primitive/src/ripple.rs::attach_motion` 仅注入 `--ui-ripple-duration-ms`，`crates/ui-components/src/css.rs` 通过 `#[cfg(feature = "component-ripple")]` 聚合样式。
   - 样式规则统一落在 `styles.rs`，由 `crates/ui-components/src/css.rs` 聚合并通过 `UiRoot` 注入。
   - 颜色/间距/圆角/阴影等视觉值必须来自 `var(--ui-*)`，禁止组件私有 token 体系。
   - Utility-First 仅作为 `apps/*` 应用层布局手段，不得反向污染组件库契约。
@@ -201,7 +201,7 @@
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
-  - 证据：`crates/ui-components/src/ripple/motion.rs` wasm 分支显式检查 `ui_motion::web::prefers_reduced_motion()` 并跳过动画，non-wasm 分支提供稳定降级；配合上述 native/wasm compile-only 命令均通过。
+  - 证据：`crates/ui-visual-primitive/src/ripple.rs` wasm 分支显式检查 `ui_motion::web::prefers_reduced_motion()` 并跳过动画，non-wasm 分支提供稳定降级；配合上述 native/wasm compile-only 命令均通过。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。

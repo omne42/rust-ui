@@ -30,7 +30,7 @@
     - `XxxMotion`：对外可选配置（默认值合理）
     - `attach_motion(...)`：把 hook 状态与 DOM ref 连接到 motion 引擎（web 下启用，SSR/no-op）
   - 列表类组件可复用统一的 highlight contract：
-    - `ui_components::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion}`
+    - `ui_visual_primitive::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion}`
 - **Motion Engine（ui-motion）**
   - v0：keyframes + options → WAAPI（web）
   - v0：补齐 spring runtime（rAF）与 presets（tokens）

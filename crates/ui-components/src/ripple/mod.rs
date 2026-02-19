@@ -1,7 +1,6 @@
 mod logic;
-pub mod motion;
 pub mod styles;
 mod view;
 
-pub use motion::RippleMotion;
+pub use ui_visual_primitive::ripple::{RippleMotion, trigger_ripple, trigger_ripple_at};
 pub use view::MotionRipple;

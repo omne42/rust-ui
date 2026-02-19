@@ -122,8 +122,8 @@ pub const CSS: &str = r#"
 
 .ui-tray__title,
 .ui-tray__title[data-slot="tray-title"] {
-  font-size: 1rem;
-  line-height: 1.2;
+  font-size: var(--ui-heading-h5-font-size, 1rem);
+  line-height: var(--ui-heading-h5-line-height, 1.2);
   font-weight: 700;
   margin: 0;
 }

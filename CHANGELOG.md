@@ -12,6 +12,10 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 - `ui-visual-primitive` (**breaking**): migrates shared non-layout visual primitive `active_highlight` out of `ui-components`/`ui-layout` into new internal crate `crates/ui-visual-primitive`, removes compatibility wrappers, and updates source-level semantics/docs contracts to reference the new canonical path.
 
+- `ui-visual-primitive` + `ui-components` + `docs-app` (**breaking**): migrates shared non-layout visual primitive `ripple` motion runtime from `crates/ui-components/src/ripple/motion.rs` into `crates/ui-visual-primitive/src/ripple.rs`, removes the old `ui_components::ripple::motion::*` path (now `ui_components::ripple::trigger_ripple(_at)`), and updates feature wiring/semantic contracts/docs to the new primitive boundary.
+
+- `ui-components`: aligns alert/dialog/sheet-family title typography with the new heading token variables (`--ui-heading-h6-*`) to avoid hardcoded title font-size/line-height values.
+
 - `workspace`: completes a full gate loop (`cargo fmt --all`, `./scripts/check.sh`, `cargo test --workspace --no-fail-fast`) after fixing docs/semantics regressions in `file_trigger`, `skeleton`, `time_field`, and `tree` contracts so all checks pass together.
 
 - `ui-components` + `docs-app` (**breaking**): finalizes `checkbox` domain migration by moving implementation to `crates/ui-components/src/checkbox/*`, removing `crates/ui-components/src/checkbox_field/checkbox/*` (including `group/*`), inlining `CheckboxGroup` into the top-level `checkbox` module, and dropping legacy compatibility paths/aliases (no `checkbox::group::*` fallback).

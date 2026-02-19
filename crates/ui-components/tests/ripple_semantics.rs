@@ -11,7 +11,7 @@ fn load_source(rel_path: &str) -> String {
 fn ripple_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/ripple/mod.rs");
 
-    for needle in ["pub mod logic", "pub mod view"] {
+    for needle in ["pub mod logic", "pub mod view", "pub mod motion"] {
         assert!(
             !source.contains(needle),
             "Ripple internals should stay private; found `{needle}`."
@@ -144,7 +144,7 @@ fn ripple_styles_include_state_and_source_contracts() {
 
 #[test]
 fn ripple_motion_sanitizes_and_supports_origin_triggering() {
-    let source = load_source("src/ripple/motion.rs");
+    let source = load_source("../ui-visual-primitive/src/ripple.rs");
 
     for needle in [
         "default_text_field_motion_tokens",
@@ -220,9 +220,8 @@ fn ripple_docs_playgrounds_lock_state_matrix_contract_values() {
         "is_bounded=false",
         "duration_ms: 620",
         "duration_ms: 520",
-        "ui_components::ripple::motion::trigger_ripple_at(",
-        "18.0,",
-        "48.0,",
+        "ui_components::ripple::trigger_ripple_at(",
+        "18.0, 48.0",
         "class_name=\"docs-ripple-custom\".to_string()",
         "\"Unbounded + Origin\"",
     ] {
@@ -330,7 +329,7 @@ fn ripple_tree_shaking_keeps_component_feature_and_css_boundaries() {
         "default = [\"inject-css\", \"all-components\"]",
         "all-components = [",
         "web-demo-components = [",
-        "component-ripple = []",
+        "component-ripple = [\"dep:ui-visual-primitive\"]",
         "inject-css = []",
     ] {
         assert!(
@@ -498,7 +497,7 @@ fn ripple_wasm_debug_contract_reuses_global_debug_trace_and_keeps_feature_isolat
     let e2e_source = load_source("../../e2e/tests/docs_app_ripple_contract.spec.mjs");
     let view_source = load_source("src/ripple/view.rs");
     let logic_source = load_source("src/ripple/logic.rs");
-    let motion_source = load_source("src/ripple/motion.rs");
+    let motion_source = load_source("../ui-visual-primitive/src/ripple.rs");
     let check2_source = load_source("src/ripple/check2.md");
 
     assert!(
@@ -614,8 +613,8 @@ fn ripple_dx_playground_supports_css_hot_reload_without_wasm_rebuild() {
         "title=\"Hello World\"",
         "title=\"Animation Matrix\"",
         "title=\"Custom Boundary + Class\"",
-        "ui_components::ripple::motion::trigger_ripple(",
-        "ui_components::ripple::motion::trigger_ripple_at(",
+        "ui_components::ripple::trigger_ripple(",
+        "ui_components::ripple::trigger_ripple_at(",
     ] {
         assert!(
             docs_source.contains(needle),

@@ -61,9 +61,9 @@ pub const CSS: &str = r#"
 .ui-modal__title,
 .ui-modal__title[data-slot="modal-title"] {
   margin: 0;
-  font-size: 16px;
+  font-size: var(--ui-heading-h5-font-size, 16px);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--ui-heading-h5-line-height, 1.2);
 }
 
 .ui-modal__title[data-title-source="custom"] {

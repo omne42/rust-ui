@@ -106,8 +106,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-dialog__title[data-slot="dialog-title"] {
-  font-size: 16px;
-  line-height: 1.2;
+  font-size: var(--ui-heading-h5-font-size, 16px);
+  line-height: var(--ui-heading-h5-line-height, 1.2);
   font-weight: 700;
   margin: 0;
 }

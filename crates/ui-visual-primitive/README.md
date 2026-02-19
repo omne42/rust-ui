@@ -13,6 +13,7 @@
 ## Current primitives
 
 - `active_highlight`: shared active-row highlight style + motion driver.
+- `ripple`: shared ripple motion contract + trigger helpers.
 
 ## Dependency boundary
 

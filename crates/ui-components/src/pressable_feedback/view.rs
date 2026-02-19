@@ -4,10 +4,10 @@ use crate::pressable_feedback::{
     logic::{self},
     motion,
 };
-use crate::ripple::motion::trigger_ripple;
 use crate::{MotionRipple, OnPress};
 use leptos::{ev, html, prelude::*};
 use ui_headless::{PressOptions, use_press};
+use ui_visual_primitive::ripple::trigger_ripple;
 
 #[component]
 pub fn PressableFeedback(

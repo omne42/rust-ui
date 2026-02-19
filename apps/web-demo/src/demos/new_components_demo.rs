@@ -48,7 +48,7 @@ pub fn NewComponentsDemo() -> impl IntoView {
     // Ripple demo surface
     let ripple_ref: NodeRef<html::Span> = NodeRef::new();
     let on_ripple_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(ripple_ref, RippleMotion::default());
+        ui_components::ripple::trigger_ripple(ripple_ref, RippleMotion::default());
     };
 
     view! {

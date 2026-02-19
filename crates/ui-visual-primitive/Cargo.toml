@@ -10,6 +10,7 @@ path = "src/lib.rs"
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-motion = { path = "../ui-motion" }
+ui-theme = { path = "../ui-theme" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 js-sys = "0.3.85"

@@ -144,8 +144,8 @@ pub const CSS: &str = r#"
 }
 
 .ui-alert-dialog__title[data-slot="alert-dialog-title"] {
-  font-size: 16px;
-  line-height: 1.2;
+  font-size: var(--ui-heading-h5-font-size, 16px);
+  line-height: var(--ui-heading-h5-line-height, 1.2);
   font-weight: 700;
   margin: 0;
 }

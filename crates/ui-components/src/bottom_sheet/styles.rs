@@ -85,8 +85,8 @@ pub const CSS: &str = r#"
 
 .ui-bottom-sheet__title {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.35;
+  font-size: var(--ui-heading-h5-font-size, 1rem);
+  line-height: var(--ui-heading-h5-line-height, 1.35);
   font-weight: 700;
 }
 

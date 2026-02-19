@@ -3425,27 +3425,22 @@ pub(super) fn motion_ripple() -> AnyView {
     };
 
     let on_hello_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(hello_ref, RippleMotion::default());
+        ui_components::ripple::trigger_ripple(hello_ref, RippleMotion::default());
     };
     let on_default_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(default_ref, default_motion);
+        ui_components::ripple::trigger_ripple(default_ref, default_motion);
     };
     let on_slow_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(slow_ref, slow_motion);
+        ui_components::ripple::trigger_ripple(slow_ref, slow_motion);
     };
     let on_static_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(static_ref, static_motion);
+        ui_components::ripple::trigger_ripple(static_ref, static_motion);
     };
     let on_custom_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple(custom_ref, custom_motion);
+        ui_components::ripple::trigger_ripple(custom_ref, custom_motion);
     };
     let on_unbounded_click = move |_| {
-        ui_components::ripple::motion::trigger_ripple_at(
-            unbounded_ref,
-            unbounded_motion,
-            18.0,
-            48.0,
-        );
+        ui_components::ripple::trigger_ripple_at(unbounded_ref, unbounded_motion, 18.0, 48.0);
     };
 
     let hello_world_code = Signal::derive(move || {

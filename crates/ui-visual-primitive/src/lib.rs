@@ -2,3 +2,4 @@
 //! Not intended as a direct end-user component surface.
 
 pub mod active_highlight;
+pub mod ripple;

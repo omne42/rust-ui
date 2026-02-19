@@ -40,8 +40,8 @@ pub const CSS: &str = r#"
 
 .ui-alert__title {
   font-weight: 650;
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: var(--ui-heading-h6-font-size, 14px);
+  line-height: var(--ui-heading-h6-line-height, 1.2);
 }
 
 .ui-alert__description {
