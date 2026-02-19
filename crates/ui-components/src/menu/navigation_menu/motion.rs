@@ -1,5 +1,5 @@
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
-    let default = crate::active_highlight::ActiveHighlightMotion::default().spring;
+    let default = ui_visual_primitive::active_highlight::ActiveHighlightMotion::default().spring;
 
     ui_motion::spring::SpringConfig {
         stiffness: if value.stiffness.is_finite() && value.stiffness > 0.0 {
@@ -26,9 +26,9 @@ fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring:
 }
 
 pub fn sanitize_motion(
-    motion: crate::active_highlight::ActiveHighlightMotion,
-) -> crate::active_highlight::ActiveHighlightMotion {
-    crate::active_highlight::ActiveHighlightMotion {
+    motion: ui_visual_primitive::active_highlight::ActiveHighlightMotion,
+) -> ui_visual_primitive::active_highlight::ActiveHighlightMotion {
+    ui_visual_primitive::active_highlight::ActiveHighlightMotion {
         spring: sanitize_spring(motion.spring),
     }
 }
@@ -39,15 +39,17 @@ mod tests {
 
     #[test]
     fn sanitize_motion_clamps_invalid_spring_values() {
-        let default = crate::active_highlight::ActiveHighlightMotion::default();
-        let motion = sanitize_motion(crate::active_highlight::ActiveHighlightMotion {
-            spring: ui_motion::spring::SpringConfig {
-                stiffness: f64::NAN,
-                damping: -1.0,
-                mass: 0.0,
-                precision: f64::INFINITY,
+        let default = ui_visual_primitive::active_highlight::ActiveHighlightMotion::default();
+        let motion = sanitize_motion(
+            ui_visual_primitive::active_highlight::ActiveHighlightMotion {
+                spring: ui_motion::spring::SpringConfig {
+                    stiffness: f64::NAN,
+                    damping: -1.0,
+                    mass: 0.0,
+                    precision: f64::INFINITY,
+                },
             },
-        });
+        );
 
         assert_eq!(motion.spring.stiffness, default.spring.stiffness);
         assert_eq!(motion.spring.damping, default.spring.damping);

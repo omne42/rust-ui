@@ -1,0 +1,16 @@
+[package]
+name = "ui-visual-primitive"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-motion = { path = "../ui-motion" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["ResizeObserver", "ResizeObserverEntry"] }

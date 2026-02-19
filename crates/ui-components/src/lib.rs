@@ -20,8 +20,6 @@ pub(crate) use wasm_debug_proxy;
 #[cfg(target_arch = "wasm32")]
 mod observability;
 
-#[cfg(feature = "component-active_highlight")]
-mod active_highlight;
 mod css;
 
 #[cfg(feature = "component-accordion")]
@@ -428,7 +426,6 @@ mod web_demo_components {
         open_set,
     };
     pub use action_menu::{ActionMenu, ActionMenuItemSpec, ActionMenuMotion};
-    pub use active_highlight::ActiveHighlightMotion;
     pub use alert::{Alert, AlertMotion, AlertVariant};
     pub use alert_dialog::{
         AlertDialog, AlertDialogAutoFocusButton, AlertDialogMotion, AlertDialogVariant,
@@ -522,6 +519,7 @@ mod web_demo_components {
         provide_toast_store,
     };
     pub use tooltip::{Tooltip, TooltipMotion};
+    pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
 }
 
 #[cfg(feature = "inject-css")]
@@ -536,7 +534,6 @@ mod all_components {
     };
     pub use action_bar::{ActionBar, ActionBarMotion, ActionBarPosition};
     pub use action_menu::{ActionMenu, ActionMenuItemSpec, ActionMenuMotion};
-    pub use active_highlight::ActiveHighlightMotion;
     pub use alert::{Alert, AlertMotion, AlertVariant};
     pub use alert_banner::{AlertBanner, AlertBannerFill, AlertBannerMotion, AlertBannerTone};
     pub use alert_dialog::{
@@ -761,6 +758,7 @@ mod all_components {
     pub use tooltip::TooltipMotion;
     pub use tray::{Tray, TrayMotion};
     pub use tree::{Tree, TreeDensity, TreeMotion, TreeNode, TreeTone};
+    pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
     pub use underlay::{Underlay, UnderlayMotion};
     pub use visually_hidden::VisuallyHidden;
 }

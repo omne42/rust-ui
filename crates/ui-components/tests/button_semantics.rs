@@ -2401,7 +2401,7 @@ fn ui_components_css_registry_remains_feature_gated_and_non_global() {
         "#[cfg(feature = \"component-button\")]",
         "out.push_str(crate::button::styles::CSS);",
         "#[cfg(feature = \"component-active_highlight\")]",
-        "out.push_str(crate::active_highlight::CSS);",
+        "out.push_str(ui_visual_primitive::active_highlight::CSS);",
         "#[cfg(not(feature = \"inject-css\"))]",
         "pub fn push_components_css(_out: &mut String) {}",
     ] {
@@ -2438,7 +2438,7 @@ fn ui_root_centralizes_theme_injection_and_i18n_context() {
 
 #[test]
 fn active_highlight_stays_shared_motion_primitive_without_component_semantics() {
-    let source = load_source("src/active_highlight.rs");
+    let source = load_source("../ui-visual-primitive/src/active_highlight.rs");
 
     for needle in [
         "pub const CSS: &str =",

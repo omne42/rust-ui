@@ -8,6 +8,8 @@ The format is based on Keep a Changelog, and this project adheres to Semantic Ve
 
 ### Added
 
+- `ui-visual-primitive` (**breaking**): migrates shared non-layout visual primitive `active_highlight` out of `ui-components`/`ui-layout` into new internal crate `crates/ui-visual-primitive`, removes compatibility wrappers, and updates source-level semantics/docs contracts to reference the new canonical path.
+
 - `workspace`: completes a full gate loop (`cargo fmt --all`, `./scripts/check.sh`, `cargo test --workspace --no-fail-fast`) after fixing docs/semantics regressions in `file_trigger`, `skeleton`, `time_field`, and `tree` contracts so all checks pass together.
 
 - `ui-components` + `docs-app` (**breaking**): finalizes `checkbox` domain migration by moving implementation to `crates/ui-components/src/checkbox/*`, removing `crates/ui-components/src/checkbox_field/checkbox/*` (including `group/*`), inlining `CheckboxGroup` into the top-level `checkbox` module, and dropping legacy compatibility paths/aliases (no `checkbox::group::*` fallback).

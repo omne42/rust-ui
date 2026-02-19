@@ -1,4 +1,4 @@
-use crate::active_highlight::ActiveHighlightMotion;
+use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct MenuMotion {

@@ -192,7 +192,7 @@
   - 组件不得假设动画句柄一定存在；no-op 分支行为需可预测。
   - toolchain 场景（测试/文档/静态分析）不得因 motion 依赖阻塞编译。
 - [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。
-  - 已核验（N/A-无独立 `selection_indicator/motion.rs`）：`selection_indicator` 无本地动效实现，分支覆盖继承宿主与共享能力：`crates/ui-components/src/active_highlight.rs` 显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]`，`crates/ui-motion/src/spring.rs` 通过 `ui_motion::web::prefers_reduced_motion()` 降级；平台 compile-only 与 reduced-motion 契约由 `scripts/check-ui-components-platforms.sh` 持续回归。语义标记输出来自宿主 `list/menu item` 统一 `data-*`/`aria-*`，不按平台分裂。
+  - 已核验（N/A-无独立 `selection_indicator/motion.rs`）：`selection_indicator` 无本地动效实现，分支覆盖继承宿主与共享能力：`crates/ui-visual-primitive/src/active_highlight.rs` 显式 `#[cfg(target_arch = "wasm32")] / #[cfg(not(target_arch = "wasm32"))]`，`crates/ui-motion/src/spring.rs` 通过 `ui_motion::web::prefers_reduced_motion()` 降级；平台 compile-only 与 reduced-motion 契约由 `scripts/check-ui-components-platforms.sh` 持续回归。语义标记输出来自宿主 `list/menu item` 统一 `data-*`/`aria-*`，不按平台分裂。
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
@@ -242,11 +242,11 @@
 
 ### 5. 文件落点检查（必须提及）
 - [x] `ui-components` 固定入口文件落点正确。
-  - 已核验（N/A-无独立 `selection_indicator` 入口文件面）：`crates/ui-components/src/lib.rs` 保持总入口与 feature gate 导出边界（含 `mod css;`、`pub mod root;`、`#[cfg(feature = "component-list")]` / `#[cfg(feature = "component-menu_item")]`）；`lib.rs` 通过 `#[cfg(feature = "inject-css")] pub fn push_components_css(...)` 作为稳定外部入口委托到 `css.rs`。`crates/ui-components/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入（如 `component-list`/`component-menu_item`）；`crates/ui-components/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css，并通过 `provide_ui_i18n` 提供全局 i18n 上下文。`crates/ui-components/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui-components/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在；对应 canonical 能力位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。门禁沿用 `scripts/check-ui-components-entrypoints.sh` 共享入口契约检查。
+  - 已核验（N/A-无独立 `selection_indicator` 入口文件面）：`crates/ui-components/src/lib.rs` 保持总入口与 feature gate 导出边界（含 `mod css;`、`pub mod root;`、`#[cfg(feature = "component-list")]` / `#[cfg(feature = "component-menu_item")]`）；`lib.rs` 通过 `#[cfg(feature = "inject-css")] pub fn push_components_css(...)` 作为稳定外部入口委托到 `css.rs`。`crates/ui-components/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入（如 `component-list`/`component-menu_item`）；`crates/ui-components/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css，并通过 `provide_ui_i18n` 提供全局 i18n 上下文。`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver。`crates/ui-components/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在；对应 canonical 能力位于 `crates/ui-headless/src/{controllable_state,presence,a11y}.rs`。门禁沿用 `scripts/check-ui-components-entrypoints.sh` 共享入口契约检查。
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
-  - `crates/ui-components/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
+  - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。

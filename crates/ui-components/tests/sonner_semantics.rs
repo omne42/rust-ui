@@ -2229,7 +2229,7 @@ fn sonner_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let check2_source = load_source("src/sonner/check2.md");
 
     for needle in [

@@ -3,10 +3,10 @@ mod motion;
 pub mod styles;
 mod view;
 
-pub use crate::active_highlight::ActiveHighlightMotion as CarouselMotion;
 pub use logic::{
     DEFAULT_ARIA_LABEL, DEFAULT_ID_BASE, DEFAULT_LOOP_NAVIGATION, DEFAULT_ORIENTATION,
 };
+pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as CarouselMotion;
 pub use view::Carousel;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

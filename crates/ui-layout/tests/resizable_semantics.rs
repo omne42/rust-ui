@@ -1129,7 +1129,7 @@ fn resizable_ui_layout_entrypoint_files_follow_boundary_contract() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable_state_source =
         load_source("../ui-headless/src/controllable_state.rs");
     let headless_presence_source = load_source("../ui-headless/src/presence.rs");

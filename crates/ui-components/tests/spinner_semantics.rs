@@ -809,7 +809,7 @@ fn spinner_ui_components_entry_points_stay_correct() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
 
     for needle in [
         "#[cfg(feature = \"component-spinner\")]",

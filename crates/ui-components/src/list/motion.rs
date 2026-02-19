@@ -1,4 +1,4 @@
-use crate::active_highlight::ActiveHighlightMotion;
+use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
 
 fn sanitize_spring(value: ui_motion::spring::SpringConfig) -> ui_motion::spring::SpringConfig {
     let default = ActiveHighlightMotion::default().spring;

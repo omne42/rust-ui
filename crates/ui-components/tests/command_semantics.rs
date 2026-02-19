@@ -37,7 +37,7 @@ fn command_module_exposes_slot_and_state_contracts() {
         "DEFAULT_EMPTY_LABEL",
         "DEFAULT_ARIA_LABEL",
         "DEFAULT_DISABLED",
-        "pub use crate::active_highlight::ActiveHighlightMotion as CommandMotion;",
+        "pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as CommandMotion;",
     ] {
         assert!(
             source.contains(needle),
@@ -156,7 +156,7 @@ fn command_uses_active_highlight_motion_contract() {
     let source = load_source("src/command/view.rs");
 
     for needle in [
-        "use crate::active_highlight::{",
+        "use ui_visual_primitive::active_highlight::{",
         "attach_active_highlight_motion",
         "ActiveHighlightMotion",
         "let options_ref: NodeRef<html::Div> = NodeRef::new();",

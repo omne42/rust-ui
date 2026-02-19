@@ -1571,7 +1571,7 @@ fn sheet_engineering_and_entry_boundaries_stay_consistent() {
     let lib = load_source("src/lib.rs");
     let css = load_source("src/css.rs");
     let root = load_source("src/root.rs");
-    let active_highlight = load_source("src/active_highlight.rs");
+    let active_highlight = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let sheet_mod = load_source("src/sheet/mod.rs");
     let cargo = load_source("Cargo.toml");
     let check2 = load_source("src/sheet/check2.md");

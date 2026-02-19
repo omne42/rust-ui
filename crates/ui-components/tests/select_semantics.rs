@@ -2691,7 +2691,7 @@ fn select_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable = load_source("../ui-headless/src/controllable_state.rs");
     let headless_presence = load_source("../ui-headless/src/presence.rs");
     let headless_a11y = load_source("../ui-headless/src/a11y.rs");

@@ -665,13 +665,19 @@ fn shared_element_transition_section5_file_placement_contracts_are_documented_an
         "shared_element_transition directory should only keep checklist metadata."
     );
 
-    for required in ["lib.rs", "css.rs", "root.rs", "active_highlight.rs"] {
+    for required in ["lib.rs", "css.rs", "root.rs"] {
         assert!(
             src_dir.join(required).exists(),
             "ui-components source root should keep required entry file `{}`.",
             required
         );
     }
+    assert!(
+        manifest_dir
+            .join("../ui-visual-primitive/src/active_highlight.rs")
+            .exists(),
+        "shared active_highlight primitive should live in ui-visual-primitive."
+    );
 
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(

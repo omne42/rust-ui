@@ -2,7 +2,7 @@
 pub fn push_components_css(out: &mut String) {
     out.push_str("\n@layer ui {\n");
     #[cfg(feature = "component-active_highlight")]
-    out.push_str(crate::active_highlight::CSS);
+    out.push_str(ui_visual_primitive::active_highlight::CSS);
     #[cfg(feature = "component-avatar")]
     out.push_str(crate::avatar::styles::CSS);
     #[cfg(feature = "component-avatar_group")]

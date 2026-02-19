@@ -32,7 +32,7 @@ fn navigation_menu_module_exposes_slot_and_state_contracts() {
         "DEFAULT_ID_BASE",
         "DEFAULT_ARIA_LABEL",
         "DEFAULT_ACTIVATE_ON_FOCUS",
-        "pub use crate::active_highlight::ActiveHighlightMotion as NavigationMenuMotion;",
+        "pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as NavigationMenuMotion;",
     ] {
         assert!(
             source.contains(needle),
@@ -186,7 +186,7 @@ fn navigation_menu_uses_active_highlight_motion_contract() {
     let source = load_source("src/menu/navigation_menu/view.rs");
 
     for needle in [
-        "use crate::active_highlight::{",
+        "use ui_visual_primitive::active_highlight::{",
         "attach_active_highlight_motion",
         "ActiveHighlightMotion",
         "let list_ref: NodeRef<html::Div> = NodeRef::new();",

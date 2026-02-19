@@ -1844,7 +1844,7 @@ fn ui_components_entry_files_keep_expected_boundary_layout() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     for needle in [

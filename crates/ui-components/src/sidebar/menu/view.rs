@@ -1,4 +1,3 @@
-use crate::active_highlight::attach_active_highlight_motion;
 use crate::sidebar_menu::SidebarMenuMotion;
 use crate::sidebar_menu::logic::{
     self, SidebarMenuItem, SidebarMenuState, SidebarMenuStateInput, SidebarMenuSubItem,
@@ -7,6 +6,7 @@ use leptos::{ev, html, prelude::*};
 use std::collections::BTreeSet;
 use std::sync::Arc;
 use ui_headless as overlay_open;
+use ui_visual_primitive::active_highlight::attach_active_highlight_motion;
 
 #[derive(Clone)]
 struct SidebarMenuRenderCtx {

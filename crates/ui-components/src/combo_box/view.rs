@@ -41,7 +41,7 @@ fn ComboBoxPanel(
 
     let options_ref: NodeRef<html::Div> = NodeRef::new();
     let highlight_ref: NodeRef<html::Div> = NodeRef::new();
-    crate::active_highlight::attach_active_highlight_motion(
+    ui_visual_primitive::active_highlight::attach_active_highlight_motion(
         options_ref,
         highlight_ref,
         aria.active_index,

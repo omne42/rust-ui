@@ -1,4 +1,3 @@
-use crate::active_highlight::ActiveHighlightMotion;
 use crate::autocomplete::{AutocompleteMotion, logic};
 use leptos::{ev, html, portal::Portal, prelude::*};
 use std::{collections::HashSet, sync::Arc};
@@ -9,6 +8,7 @@ use ui_headless::{
     PopoverPositionOptions, TextFieldOptions, use_combo_box, use_focus_ring, use_popover_position,
     use_text_field, use_ui_i18n,
 };
+use ui_visual_primitive::active_highlight::ActiveHighlightMotion;
 
 #[component]
 fn AutocompletePanel(
@@ -43,7 +43,7 @@ fn AutocompletePanel(
 
     let options_ref: NodeRef<html::Div> = NodeRef::new();
     let highlight_ref: NodeRef<html::Div> = NodeRef::new();
-    crate::active_highlight::attach_active_highlight_motion(
+    ui_visual_primitive::active_highlight::attach_active_highlight_motion(
         options_ref,
         highlight_ref,
         aria.active_index,

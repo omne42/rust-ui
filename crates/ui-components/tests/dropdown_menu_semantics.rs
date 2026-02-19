@@ -299,7 +299,8 @@ fn dropdown_menu_minimal_feature_gate_keeps_dependency_chain_and_module_paths_wi
     }
 
     assert!(
-        menu_motion_source.contains("use crate::active_highlight::ActiveHighlightMotion;"),
+        menu_motion_source
+            .contains("use ui_visual_primitive::active_highlight::ActiveHighlightMotion;"),
         "menu motion should import ActiveHighlightMotion from module path to keep feature-gated builds stable."
     );
 }

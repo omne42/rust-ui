@@ -46,7 +46,7 @@ all-components = [
 dev-all-components = ["all-components"]
 
 component-accordion = []
-component-active_highlight = []
+component-active_highlight = ["dep:ui-visual-primitive"]
 component-aspect_ratio = []
 component-auto_height = []
 component-button = []
@@ -71,6 +71,7 @@ component-well = []
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../ui-headless" }
 ui-motion = { path = "../ui-motion" }
+ui-visual-primitive = { path = "../ui-visual-primitive", optional = true }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-theme = { path = "../ui-theme" }
 tracing = { version = "0.1", optional = true }

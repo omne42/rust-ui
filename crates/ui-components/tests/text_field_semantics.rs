@@ -939,13 +939,13 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable_source = load_source("../ui-headless/src/controllable_state.rs");
     let headless_presence_source = load_source("../ui-headless/src/presence.rs");
     let headless_a11y_source = load_source("../ui-headless/src/a11y.rs");
 
     for needle in [
-        "#[cfg(feature = \"component-active_highlight\")]\nmod active_highlight;",
+        "pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion;",
         "#[cfg(feature = \"component-text_field\")]\n#[path = \"text_input/text_field/mod.rs\"]\npub mod text_field;",
         "pub mod root;",
         "pub use root::UiRoot;",
@@ -978,7 +978,7 @@ fn text_field_ui_components_fixed_entry_files_follow_layer_contracts() {
     for needle in [
         "#[cfg(feature = \"inject-css\")]",
         "pub fn push_components_css(out: &mut String)",
-        "#[cfg(feature = \"component-active_highlight\")]\n    out.push_str(crate::active_highlight::CSS);",
+        "#[cfg(feature = \"component-active_highlight\")]\n    out.push_str(ui_visual_primitive::active_highlight::CSS);",
         "#[cfg(feature = \"component-text_field\")]\n    out.push_str(crate::text_field::styles::CSS);",
     ] {
         assert!(

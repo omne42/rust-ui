@@ -34,7 +34,7 @@ fn carousel_module_exposes_slot_and_state_contracts() {
         "DEFAULT_ARIA_LABEL",
         "DEFAULT_ORIENTATION",
         "DEFAULT_LOOP_NAVIGATION",
-        "pub use crate::active_highlight::ActiveHighlightMotion as CarouselMotion;",
+        "pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as CarouselMotion;",
     ] {
         assert!(
             source.contains(needle),
@@ -177,7 +177,7 @@ fn carousel_uses_active_highlight_motion_for_indicators() {
     let source = load_source("src/carousel/view.rs");
 
     for needle in [
-        "use crate::active_highlight::{",
+        "use ui_visual_primitive::active_highlight::{",
         "attach_active_highlight_motion",
         "ActiveHighlightMotion",
         "let indicator_list_ref: NodeRef<html::Div> = NodeRef::new();",

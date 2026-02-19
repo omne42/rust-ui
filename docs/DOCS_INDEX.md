@@ -98,6 +98,7 @@
 | `crates/ui-headless/README.md` | Package | Active | `ui-headless` 交互/A11y 契约 |
 | `crates/ui-theme/README.md` | Package | Active | `ui-theme` token 与变量用法 |
 | `crates/ui-motion/README.md` | Package | Active | `ui-motion` 运行时与 API |
+| `crates/ui-visual-primitive/README.md` | Package | Active | `ui-visual-primitive` 内部视觉原语边界 |
 | `crates/ui-components/README.md` | Package | Active | `ui-components` 组合与用法 |
 
 ## G. 应用级 README

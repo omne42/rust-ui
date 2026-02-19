@@ -1,4 +1,3 @@
-use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
 use crate::carousel::{
     CarouselItem, CarouselItemResolved, CarouselMotion, CarouselOrientation,
     CarouselPartStateInput, CarouselSlot, logic,
@@ -6,6 +5,9 @@ use crate::carousel::{
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
 use ui_headless as overlay_open;
+use ui_visual_primitive::active_highlight::{
+    ActiveHighlightMotion, attach_active_highlight_motion,
+};
 
 #[component]
 pub fn Carousel(

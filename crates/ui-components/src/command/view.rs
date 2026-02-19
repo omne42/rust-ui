@@ -1,8 +1,10 @@
-use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
 use crate::command::{CommandGroup, CommandMotion, CommandPartStateInput, CommandSlot, logic};
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
 use ui_headless::{ListBoxOptions, use_listbox};
+use ui_visual_primitive::active_highlight::{
+    ActiveHighlightMotion, attach_active_highlight_motion,
+};
 
 #[component]
 pub fn Command(

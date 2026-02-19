@@ -1,4 +1,3 @@
-use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
 use crate::navigation_menu::{
     NavigationMenuItem, NavigationMenuMotion, NavigationMenuPartStateInput, NavigationMenuSlot,
     logic,
@@ -6,6 +5,9 @@ use crate::navigation_menu::{
 use leptos::{ev, html, prelude::*};
 use std::sync::Arc;
 use ui_headless as overlay_open;
+use ui_visual_primitive::active_highlight::{
+    ActiveHighlightMotion, attach_active_highlight_motion,
+};
 
 #[cfg(target_arch = "wasm32")]
 fn focus_item(item_refs: &Arc<Vec<NodeRef<html::A>>>, index: usize) {

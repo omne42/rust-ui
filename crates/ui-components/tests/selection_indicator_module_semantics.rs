@@ -1980,7 +1980,7 @@ fn selection_indicator_check2_includes_platform_and_motion_branch_rules() {
         "- [x] `ui-motion` 非 wasm 提供 no-op/stub（`crates/ui-motion/src/lib.rs`），保证 SSR/tooling 可编译。",
         "`/root/.cargo/bin/cargo test -p ui-motion --test non_wasm_stub` 均通过",
         "- [x] 组件实现覆盖 `reduced-motion` / SSR / wasm 分支。",
-        "`crates/ui-components/src/active_highlight.rs` 显式 `#[cfg(target_arch = \"wasm32\")] / #[cfg(not(target_arch = \"wasm32\"))]`",
+        "`crates/ui-visual-primitive/src/active_highlight.rs` 显式 `#[cfg(target_arch = \"wasm32\")] / #[cfg(not(target_arch = \"wasm32\"))]`",
         "- [x] 覆盖 reduced-motion / SSR / wasm 分支。",
     ] {
         assert!(
@@ -1998,7 +1998,7 @@ fn selection_indicator_platform_and_motion_branch_guards_are_centralized() {
     let motion_lib = load_source("../ui-motion/src/lib.rs");
     let motion_spring = load_source("../ui-motion/src/spring.rs");
     let motion_stub_test = load_source("../ui-motion/tests/non_wasm_stub.rs");
-    let active_highlight = load_source("src/active_highlight.rs");
+    let active_highlight = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let list_view = load_source("src/list/view.rs");
     let menu_item_view = load_source("src/menu/item/view.rs");
 
@@ -2886,14 +2886,14 @@ fn selection_indicator_check2_includes_ui_components_entrypoint_rules() {
         "`crates/ui-components/src/css.rs` 以 `push_components_css` 聚合组件样式并按 `component-*` 条件注入",
         "`crates/ui-components/src/root.rs` 的 `UiRoot` 集中注入 base css + theme vars + 可选 component css",
         "`provide_ui_i18n` 提供全局 i18n 上下文",
-        "`crates/ui-components/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver",
+        "`crates/ui-visual-primitive/src/active_highlight.rs` 仅承载共享高亮样式与 motion driver",
         "`crates/ui-components/src/overlay_open.rs` / `presence.rs` / `a11y.rs` 在组件层不存在",
         "`crates/ui-headless/src/{controllable_state,presence,a11y}.rs`",
         "`scripts/check-ui-components-entrypoints.sh` 共享入口契约检查",
         "`crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
         "`crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
         "`crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
-        "`crates/ui-components/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
+        "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
         "`crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
         "`crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
         "`crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",
@@ -2910,7 +2910,7 @@ fn selection_indicator_ui_components_fixed_entry_files_follow_layered_boundaries
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable = load_source("../ui-headless/src/controllable_state.rs");
     let headless_presence = load_source("../ui-headless/src/presence.rs");
     let headless_a11y = load_source("../ui-headless/src/a11y.rs");

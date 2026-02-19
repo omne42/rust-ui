@@ -1,9 +1,9 @@
-use crate::active_highlight::attach_active_highlight_motion;
 use crate::list::logic;
 use crate::list::motion::{ListMotion, ListSectionMotion};
 use leptos::{children::Children, html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{FocusRingOptions, ListBoxOptions, use_focus_ring, use_listbox};
+use ui_visual_primitive::active_highlight::attach_active_highlight_motion;
 
 #[component]
 pub fn List(

@@ -1,8 +1,10 @@
-use crate::active_highlight::{ActiveHighlightMotion, attach_active_highlight_motion};
 use crate::menu::logic;
 use leptos::{html, prelude::*};
 use std::{collections::HashSet, sync::Arc};
 use ui_headless::{MenuItemKind, MenuItemOptions, MenuOptions, use_menu, use_menu_item};
+use ui_visual_primitive::active_highlight::{
+    ActiveHighlightMotion, attach_active_highlight_motion,
+};
 
 #[component]
 pub fn Menu(

@@ -380,7 +380,7 @@ component-action_bar = ["component-button"]
 component-action_button_group = ["component-button"]
 component-action_group = ["component-button"]
 component-action_menu = ["component-button", "component-menu", "component-popover"]
-component-active_highlight = []
+component-active_highlight = ["dep:ui-visual-primitive"]
 component-alert = []
 component-alert_banner = []
 component-alert_dialog = ["component-overlay", "component-button"]
@@ -548,7 +548,7 @@ component-sidebar_footer = []
 component-sidebar_group = ["component-sidebar"]
 component-sidebar_header = []
 component-sidebar_inset = []
-component-sidebar_menu = []
+component-sidebar_menu = ["component-active_highlight"]
 component-sidebar_menu_action = []
 component-sidebar_menu_badge = []
 component-sidebar_rail = []
@@ -600,6 +600,7 @@ ui-ai-runtime = { path = "../ui-ai-runtime", optional = true }
 ui-accordion = { path = "../../components/accordion", optional = true }
 ui-layout = { path = "../ui-layout", default-features = false, features = ["inject-css"] }
 ui-motion = { path = "../ui-motion" }
+ui-visual-primitive = { path = "../ui-visual-primitive", optional = true }
 ui-logic-calendar = { path = "../ui-logic-calendar", optional = true }
 ui-state-primitives = { path = "../ui-state-primitives" }
 ui-theme = { path = "../ui-theme" }

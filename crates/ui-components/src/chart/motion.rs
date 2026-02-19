@@ -1,4 +1,4 @@
-pub type ChartMotion = crate::active_highlight::ActiveHighlightMotion;
+pub type ChartMotion = ui_visual_primitive::active_highlight::ActiveHighlightMotion;
 
 pub fn sanitize_motion(motion: ChartMotion) -> ChartMotion {
     motion
@@ -12,7 +12,7 @@ pub fn attach_motion(
     option_id: leptos::prelude::Callback<usize, String>,
     motion: ChartMotion,
 ) {
-    crate::active_highlight::attach_active_highlight_motion(
+    ui_visual_primitive::active_highlight::attach_active_highlight_motion(
         container_ref,
         highlight_ref,
         active_index,
@@ -29,7 +29,7 @@ pub fn attach_motion(
     option_id: leptos::prelude::Callback<usize, String>,
     motion: ChartMotion,
 ) {
-    crate::active_highlight::attach_active_highlight_motion(
+    ui_visual_primitive::active_highlight::attach_active_highlight_motion(
         container_ref,
         highlight_ref,
         active_index,

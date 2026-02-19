@@ -3,8 +3,8 @@ mod motion;
 pub mod styles;
 mod view;
 
-pub use crate::active_highlight::ActiveHighlightMotion as NavigationMenuMotion;
 pub use logic::{DEFAULT_ACTIVATE_ON_FOCUS, DEFAULT_ARIA_LABEL, DEFAULT_ID_BASE};
+pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as NavigationMenuMotion;
 pub use view::NavigationMenu;
 
 #[derive(Clone, Debug, PartialEq, Eq)]

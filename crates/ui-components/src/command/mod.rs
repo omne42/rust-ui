@@ -2,10 +2,10 @@ mod logic;
 pub mod styles;
 mod view;
 
-pub use crate::active_highlight::ActiveHighlightMotion as CommandMotion;
 pub use logic::{
     DEFAULT_ARIA_LABEL, DEFAULT_DISABLED, DEFAULT_EMPTY_LABEL, DEFAULT_ID_BASE, DEFAULT_PLACEHOLDER,
 };
+pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion as CommandMotion;
 pub use view::Command;
 
 #[derive(Clone, Debug, PartialEq, Eq)]

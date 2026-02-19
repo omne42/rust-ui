@@ -1403,14 +1403,13 @@ fn ui_components_entry_file_locations_follow_contract() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let _active_highlight = load_source("src/active_highlight.rs");
+    let _active_highlight = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     for needle in [
         "#[cfg(feature = \"component-accordion\")]",
         "pub use ui_accordion as accordion;",
-        "#[cfg(feature = \"component-active_highlight\")]",
-        "mod active_highlight;",
+        "pub use ui_visual_primitive::active_highlight::ActiveHighlightMotion;",
     ] {
         assert!(
             lib_source.contains(needle),

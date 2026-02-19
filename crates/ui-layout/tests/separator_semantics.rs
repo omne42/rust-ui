@@ -2068,7 +2068,7 @@ fn separator_ui_layout_fixed_entry_files_follow_layered_boundaries() {
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
     let headless_controllable = load_source("../../crates/ui-headless/src/controllable_state.rs");
     let headless_presence = load_source("../../crates/ui-headless/src/presence.rs");
     let headless_a11y = load_source("../../crates/ui-headless/src/a11y.rs");
@@ -2142,8 +2142,10 @@ fn separator_ui_layout_fixed_entry_files_follow_layered_boundaries() {
     }
 
     assert!(
-        manifest_dir.join("src/active_highlight.rs").exists(),
-        "ui-layout should keep shared `src/active_highlight.rs` entry."
+        manifest_dir
+            .join("../ui-visual-primitive/src/active_highlight.rs")
+            .exists(),
+        "ui-layout should keep shared `../ui-visual-primitive/src/active_highlight.rs` entry."
     );
     assert!(
         !manifest_dir.join("src/overlay_open.rs").exists(),
@@ -2183,7 +2185,7 @@ fn separator_ui_layout_fixed_entry_files_follow_layered_boundaries() {
         "`crates/ui-layout/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。",
         "`crates/ui-layout/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。",
         "`crates/ui-layout/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。",
-        "`crates/ui-layout/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
+        "`crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。",
         "`crates/ui-layout/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。",
         "`crates/ui-layout/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。",
         "`crates/ui-layout/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。",

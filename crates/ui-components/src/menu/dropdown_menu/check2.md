@@ -203,7 +203,7 @@
   - `crates/ui-components/src/lib.rs`：总模块入口 + 对外 `pub use`（公共 API 面）；组件模块受 `component-*` feature gate 约束；不暴露内部平台细节类型。
   - `crates/ui-components/src/css.rs`：组件 CSS 聚合入口（`push_components_css`）；按 feature 条件注入；禁止无条件聚合全部组件 CSS。
   - `crates/ui-components/src/root.rs`：`UiRoot` 统一注入 base css + theme vars +（可选）components css，并提供全局 i18n 上下文；主题与注入策略必须集中在此。
-  - `crates/ui-components/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
+  - `crates/ui-visual-primitive/src/active_highlight.rs`：共享高亮条样式与 motion driver；只承载通用高亮动效能力，不承载具体组件业务语义。
   - `crates/ui-components/src/overlay_open.rs`：当前仓库中不应存在；open-state 原语固定在 `crates/ui-headless/src/controllable_state.rs`，组件通过 headless API 消费。
   - `crates/ui-components/src/presence.rs`：当前仓库中不应存在；presence 原语固定在 `crates/ui-headless/src/presence.rs`，组件通过 `ui_headless::use_presence` 消费。
   - `crates/ui-components/src/a11y.rs`：当前仓库中不应存在；共享 A11y 工具固定在 `crates/ui-headless/src/a11y.rs`（如 `aria_controls_when_open`），组件只负责挂载。
@@ -305,5 +305,5 @@
 ### 10. DropdownMenu 本次逐项修复记录（2026-02-18）
 - 已修复最小特性依赖链断裂：`crates/ui-components/Cargo.toml` 将 `component-dropdown_menu` 改为依赖 `component-button`、`component-menu`、`component-popover`，确保 `--no-default-features --features component-dropdown_menu,inject-css` 可独立编译。
 - 已修复 `view` 层根导出耦合：`crates/ui-components/src/menu/dropdown_menu/view.rs` 改为模块路径导入 `button/menu/popover`，避免非 `all-components` 模式下符号缺失。
-- 已修复依赖链阻塞点：`crates/ui-components/src/menu/motion.rs` 改为 `use crate::active_highlight::ActiveHighlightMotion;`，确保 `component-menu` 在最小特性编译路径可用。
+- 已修复依赖链阻塞点：`crates/ui-components/src/menu/motion.rs` 改为 `use ui_visual_primitive::active_highlight::ActiveHighlightMotion;`，确保 `component-menu` 在最小特性编译路径可用。
 - 已新增回归测试锁定：`crates/ui-components/tests/dropdown_menu_semantics.rs` 增加 `dropdown_menu_minimal_feature_gate_keeps_dependency_chain_and_module_paths_wired`，防止后续再次破坏特性依赖和模块导入路径。

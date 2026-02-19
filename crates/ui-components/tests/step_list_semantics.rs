@@ -1153,7 +1153,7 @@ fn step_list_ui_components_entrypoint_files_and_forbidden_files_contract_hold() 
     let lib_source = load_source("src/lib.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let active_highlight_source = load_source("src/active_highlight.rs");
+    let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
 
     for required in [
         "#[cfg(feature = \"component-step_list\")]",

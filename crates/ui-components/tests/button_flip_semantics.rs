@@ -43,12 +43,18 @@ fn ui_components_fixed_entry_files_follow_contract() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src_dir = manifest_dir.join("src");
 
-    for required in ["lib.rs", "css.rs", "root.rs", "active_highlight.rs"] {
+    for required in ["lib.rs", "css.rs", "root.rs"] {
         assert!(
             src_dir.join(required).exists(),
             "ui-components fixed entry file should exist: `{required}`."
         );
     }
+    assert!(
+        manifest_dir
+            .join("../ui-visual-primitive/src/active_highlight.rs")
+            .exists(),
+        "shared active_highlight primitive should exist in ui-visual-primitive."
+    );
 
     for forbidden in ["overlay_open.rs", "presence.rs", "a11y.rs"] {
         assert!(

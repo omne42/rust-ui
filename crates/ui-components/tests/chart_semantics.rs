@@ -137,8 +137,9 @@ fn chart_motion_contract_lives_in_chart_motion_rs() {
         "chart module should expose motion.rs."
     );
     assert!(
-        motion_source
-            .contains("pub type ChartMotion = crate::active_highlight::ActiveHighlightMotion;"),
+        motion_source.contains(
+            "pub type ChartMotion = ui_visual_primitive::active_highlight::ActiveHighlightMotion;"
+        ),
         "chart motion should map to active highlight motion contract."
     );
 
