@@ -1,6 +1,7 @@
 use crate::search_index::search;
 use leptos::{ev, html, prelude::*};
 use ui_components::{Button, ButtonSize, ButtonVariant, Dialog, DialogSize, SearchInputButton};
+use ui_layout::{Flex, FlexAlign, FlexDirection, FlexGap};
 
 fn truncate_chars(input: &str, max_chars: usize) -> String {
     let input = input.trim();
@@ -274,22 +275,27 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                     on_press=on_press
                     aria_label=record_title.clone()
                 >
-                    <span
+                    <div
                         class="docs-command-menu__button-inner"
                         data-active=move || is_active.get().then_some("true")
                         on:mouseenter=move |_| on_mouse_enter.run(())
                     >
-                        <span class="docs-command-menu__label">
-                            <span class="docs-command-menu__topline">
+                        <Flex
+                            direction=FlexDirection::Column
+                            align=FlexAlign::Start
+                            gap=FlexGap::Xs
+                            class_name="docs-command-menu__label".to_string()
+                        >
+                            <Flex align=FlexAlign::Baseline gap=FlexGap::Sm class_name="docs-command-menu__topline".to_string()>
                                 <span class="docs-command-menu__title">{record_title.clone()}</span>
                                 <span class="docs-command-menu__subtitle">{record_subtitle.clone()}</span>
-                            </span>
+                            </Flex>
                             {move || snippet.get().map(|snippet| view! {
                                 <span class="docs-command-menu__snippet">{snippet}</span>
                             })}
-                        </span>
+                        </Flex>
                         <code class="docs-command-menu__route">{record_route_label.clone()}</code>
-                    </span>
+                    </div>
                 </Button>
             </li>
         }
@@ -317,7 +323,7 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                 size=DialogSize::Sm
                 show_close_button=true
             >
-                <div class="docs-command-menu__body">
+                <Flex direction=FlexDirection::Column gap=FlexGap::Sm class_name="docs-command-menu__body".to_string()>
                     <input
                         class="docs-command-menu__input"
                         type="search"
@@ -353,7 +359,7 @@ pub fn DocsCommandMenu(navigate: Callback<String>) -> impl IntoView {
                             </ul>
                         </Show>
                     </div>
-                </div>
+                </Flex>
             </Dialog>
         </div>
     }

@@ -2,6 +2,9 @@ use super::component_catalog;
 use leptos::prelude::*;
 use ui_components::Snippet;
 use ui_headless::{UiPerfBudget, UiPerfProbe};
+use ui_layout::{
+    Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap, Heading, HeadingLevel,
+};
 
 const ACCORDION_README_MD: &str = include_str!("../../../../../components/accordion/src/README.md");
 const CHECKBOX_README_MD: &str =
@@ -149,15 +152,28 @@ pub fn ComponentPage(
     let readme_html = component_readme_markdown(slug).map(crate::markdown::markdown_to_html);
 
     view! {
-        <section class="docs-card docs-prose docs-page-header">
-            <div class="docs-page-header__top">
-                <div>
-                    <h2 class="docs-page-title">{title}</h2>
+        <Card class_name="docs-prose docs-page-header".to_string()>
+            <Flex
+                justify=FlexJustify::SpaceBetween
+                align=FlexAlign::Start
+                gap=FlexGap::Md
+                class_name="docs-page-header__top".to_string()
+            >
+                <Flex direction=FlexDirection::Column gap=FlexGap::Xs>
+                    <Heading level=HeadingLevel::H2 class_name="docs-page-title".to_string()>
+                        {title}
+                    </Heading>
                     {description.map(|description| view! {
                         <p class="docs-page-description">{description}</p>
                     })}
-                </div>
-                <div class="docs-page-header__actions">
+                </Flex>
+                <Flex
+                    wrap=FlexWrap::Wrap
+                    justify=FlexJustify::End
+                    align=FlexAlign::Center
+                    gap=FlexGap::Sm
+                    class_name="docs-page-header__actions".to_string()
+                >
                     {prev.map(|doc| view! {
                         <a class="docs-page-nav" href=format!("#/components/{}", doc.slug)>
                             "← " {doc.name}
@@ -171,24 +187,31 @@ pub fn ComponentPage(
                     <a class="docs-page-back" href="#/components">
                         "All components"
                     </a>
-                </div>
-            </div>
-            <div class="docs-page-meta">
-                <div class="docs-page-meta__left">
+                </Flex>
+            </Flex>
+            <Flex
+                justify=FlexJustify::SpaceBetween
+                align=FlexAlign::Center
+                gap=FlexGap::Sm
+                class_name="docs-page-meta".to_string()
+            >
+                <Flex align=FlexAlign::Center gap=FlexGap::Sm class_name="docs-page-meta__left".to_string()>
                     <span class="docs-page-group">{group}</span>
                     <code class="docs-page-slug">{slug}</code>
-                </div>
+                </Flex>
                 <Snippet
                     text=import_text
                     label="Import".to_string()
                     copyable=true
                     class_name="docs-page-import".to_string()
                 />
-            </div>
-        </section>
+            </Flex>
+        </Card>
 
         {readme_html.map(|html| view! {
-            <section class="docs-card docs-prose" data-slot="component-readme" inner_html=html></section>
+            <Card class_name="docs-prose".to_string()>
+                <div data-slot="component-readme" inner_html=html></div>
+            </Card>
         })}
 
         <UiPerfProbe name=perf_name budget=perf_budget>

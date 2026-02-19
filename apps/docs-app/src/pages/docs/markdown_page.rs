@@ -1,4 +1,5 @@
 use leptos::{html, prelude::*};
+use ui_layout::Card;
 
 #[component]
 pub fn MarkdownPage(markdown: &'static str) -> impl IntoView {
@@ -102,8 +103,8 @@ pub fn MarkdownPage(markdown: &'static str) -> impl IntoView {
     }
 
     view! {
-        <section class="docs-card docs-prose">
+        <Card class_name="docs-prose".to_string()>
             <div node_ref=container_ref inner_html=move || html.get_value()></div>
-        </section>
+        </Card>
     }
 }

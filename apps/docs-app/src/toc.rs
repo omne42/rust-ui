@@ -1,5 +1,6 @@
 use leptos::prelude::*;
 use std::collections::BTreeMap;
+use ui_layout::{Flex, FlexDirection, FlexGap};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct TocItem {
@@ -130,7 +131,7 @@ pub fn DocsTocPanel(route: ReadSignal<String>, navigate: Callback<String>) -> An
 
     view! {
         <Show when=move || !items.get().is_empty()>
-            <div class="docs-toc__inner">
+            <Flex direction=FlexDirection::Column gap=FlexGap::Sm class_name="docs-toc__inner".to_string()>
                 <div class="docs-toc__title">"On this page"</div>
                 <ul class="docs-toc__list">
                     <For
@@ -162,7 +163,7 @@ pub fn DocsTocPanel(route: ReadSignal<String>, navigate: Callback<String>) -> An
                         }
                     />
                 </ul>
-            </div>
+            </Flex>
         </Show>
     }
     .into_any()

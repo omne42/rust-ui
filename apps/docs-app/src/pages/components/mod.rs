@@ -3,6 +3,7 @@ mod shell;
 
 use leptos::prelude::*;
 use ui_components::{SegmentedControl, SegmentedControlSize};
+use ui_layout::{Card, Flex, FlexDirection, FlexGap, Heading, HeadingLevel};
 
 const GROUP_ORDER: &[&str] = &[
     "Actions",
@@ -78,8 +79,8 @@ pub fn ComponentsIndex() -> impl IntoView {
         .collect();
 
     view! {
-        <section class="docs-card docs-prose">
-            <h2>"Components"</h2>
+        <Card class_name="docs-prose".to_string()>
+            <Heading level=HeadingLevel::H2>"Components"</Heading>
             <p>"Every public component should have at least one playground here."</p>
             <p class="docs-components-summary">
                 {move || {
@@ -92,7 +93,7 @@ pub fn ComponentsIndex() -> impl IntoView {
                 }}
             </p>
 
-            <div class="docs-search">
+            <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-search".to_string()>
                 <label class="docs-search__label">
                     "Search"
                 </label>
@@ -103,9 +104,9 @@ pub fn ComponentsIndex() -> impl IntoView {
                     prop:value=move || query.get()
                     on:input=move |ev| set_query.set(event_target_value(&ev))
                 />
-            </div>
+            </Flex>
 
-            <div class="docs-components-filter">
+            <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-components-filter".to_string()>
                 <div class="docs-search__label">"Group"</div>
                 <div class="docs-scroll-x docs-scroll-x--segmented">
                     <SegmentedControl
@@ -117,10 +118,10 @@ pub fn ComponentsIndex() -> impl IntoView {
                         aria_label="Component group filter".to_string()
                     />
                 </div>
-            </div>
-        </section>
+            </Flex>
+        </Card>
 
-        <section class="docs-card">
+        <Card>
             <Show when=move || filtered.with(|docs| docs.is_empty())>
                 <div class="docs-empty">
                     "No matching components."
@@ -146,7 +147,7 @@ pub fn ComponentsIndex() -> impl IntoView {
                     />
                 </div>
             </Show>
-        </section>
+        </Card>
     }
 }
 

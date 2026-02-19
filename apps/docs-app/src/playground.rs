@@ -3,6 +3,9 @@ use leptos::prelude::*;
 use std::collections::HashSet;
 use ui_components::{Button, ButtonSize, ButtonVariant, CodeBlock, OnPress, push_components_css};
 use ui_headless::UiPerfProbe;
+use ui_layout::{
+    Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, Heading, HeadingLevel,
+};
 
 const DEFAULT_PLAYGROUND_IMPORTS: &str = "use leptos::prelude::*;\nuse ui_components::*;";
 
@@ -182,7 +185,6 @@ pub fn Playground(
     let has_code = Signal::derive(move || show_code);
     let controls = StoredValue::new(controls);
     let has_controls = controls.get_value().is_some();
-    let section_class = "docs-card playground";
     let scope_id = anchor_id
         .clone()
         .map(|id| format!("playground-scope-{id}"))
@@ -219,16 +221,21 @@ pub fn Playground(
     });
 
     view! {
-        <section class=section_class id=anchor_id>
+        <section class="playground" id=anchor_id>
             <style>{move || compose_scoped_css(&scope_selector.get_value(), &test_css.get())}</style>
 
-            <div class="playground__header">
-                <div class="playground__title">
-                    <h2>{title}</h2>
+            <Flex
+                justify=FlexJustify::SpaceBetween
+                align=FlexAlign::Start
+                gap=FlexGap::Sm
+                class_name="playground__header".to_string()
+            >
+                <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="playground__title".to_string()>
+                    <Heading level=HeadingLevel::H2>{title}</Heading>
                     {description.map(|description| view! { <div class="docs-subtitle">{description}</div> })}
-                </div>
+                </Flex>
 
-                <div class="playground__actions">
+                <Flex align=FlexAlign::Center gap=FlexGap::Xs class_name="playground__actions".to_string()>
                     {on_link.map(|on_link| {
                         view! {
                             <Button
@@ -293,27 +300,31 @@ pub fn Playground(
                     >
                         {move || if show_test_panel.get() { "Hide test" } else { "Show test" }}
                     </Button>
-                </div>
-            </div>
+                </Flex>
+            </Flex>
 
-            <div class="playground__body">
+            <Flex direction=FlexDirection::Column gap=FlexGap::Sm class_name="playground__body".to_string()>
                 <UiPerfProbe name=format!("Playground::{title}")>
-                    <div class="playground__preview" data-playground-scope=scope_id.clone()>
-                        <div class="playground__preview-stage">{children()}</div>
+                    <div data-playground-scope=scope_id.clone()>
+                        <Card class_name="playground__preview".to_string()>
+                            <div class="playground__preview-stage">{children()}</div>
+                        </Card>
                     </div>
                 </UiPerfProbe>
-            </div>
+            </Flex>
 
             {move || {
                 has_controls.then(|| {
                     view! {
                         <Show when=move || show_settings_panel.get()>
-                            <aside class="playground__panel playground__controls" data-slot="playground-controls">
-                                {controls
-                                    .get_value()
-                                    .map(|panel| panel.run())
-                                    .unwrap_or_else(|| ().into_any())}
-                            </aside>
+                            <div data-slot="playground-controls">
+                                <Card class_name="playground__panel playground__controls".to_string()>
+                                    {controls
+                                        .get_value()
+                                        .map(|panel| panel.run())
+                                        .unwrap_or_else(|| ().into_any())}
+                                </Card>
+                            </div>
                         </Show>
                     }
                 })
@@ -323,8 +334,10 @@ pub fn Playground(
                 has_code.get().then(|| {
                     view! {
                         <Show when=move || show_code_panel.get()>
-                            <div class="playground__panel playground__code" data-slot="playground-code">
-                                <CodeBlock code=resolved_code.get() />
+                            <div data-slot="playground-code">
+                                <Card class_name="playground__panel playground__code".to_string()>
+                                    <CodeBlock code=resolved_code.get() />
+                                </Card>
                             </div>
                         </Show>
                     }
@@ -332,42 +345,49 @@ pub fn Playground(
             }}
 
             <Show when=move || show_test_panel.get()>
-                <section class="playground__panel playground__test" data-slot="playground-test">
-                    <div class="docs-stack docs-stack--tight">
-                        <div class="docs-search__label">"Scoped CSS"</div>
-                        {test_source_path
-                            .get_value()
-                            .map(|path| {
-                                view! { <div class="ui-muted">{format!("Source: {path}")}</div> }
+                <div data-slot="playground-test">
+                    <Card class_name="playground__panel playground__test".to_string()>
+                        <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-stack docs-stack--tight".to_string()>
+                            <div class="docs-search__label">"Scoped CSS"</div>
+                            {test_source_path
+                                .get_value()
+                                .map(|path| {
+                                    view! { <div class="ui-muted">{format!("Source: {path}")}</div> }
+                                })}
+                            <textarea
+                                class="playground__test-editor"
+                                prop:value=move || test_css.get()
+                                on:input=move |ev| set_test_css.set(event_target_value(&ev))
+                                placeholder="/* Original CSS is loaded. Edit directly, or use :scope for local targeting. */"
+                            ></textarea>
+                            <div class="ui-muted">
+                                "Original CSS is loaded. Use :scope to target this playground only."
+                            </div>
+                            {test_config_signal.map(|signal| {
+                                view! {
+                                    <>
+                                        <div class="docs-search__label">"Actual config"</div>
+                                        <CodeBlock code=signal.get() />
+                                    </>
+                                }
                             })}
-                        <textarea
-                            class="playground__test-editor"
-                            prop:value=move || test_css.get()
-                            on:input=move |ev| set_test_css.set(event_target_value(&ev))
-                            placeholder="/* Original CSS is loaded. Edit directly, or use :scope for local targeting. */"
-                        ></textarea>
-                        <div class="ui-muted">
-                            "Original CSS is loaded. Use :scope to target this playground only."
-                        </div>
-                        {test_config_signal.map(|signal| {
-                            view! {
-                                <>
-                                    <div class="docs-search__label">"Actual config"</div>
-                                    <CodeBlock code=signal.get() />
-                                </>
-                            }
-                        })}
-                        <div class="docs-row docs-row--end">
-                            <Button
-                                variant=ButtonVariant::Secondary
-                                size=ButtonSize::Sm
-                                on_press=on_reset_test_css
+                            <Flex
+                                justify=FlexJustify::End
+                                align=FlexAlign::Center
+                                gap=FlexGap::Sm
+                                class_name="docs-row docs-row--end".to_string()
                             >
-                                "Restore original CSS"
-                            </Button>
-                        </div>
-                    </div>
-                </section>
+                                <Button
+                                    variant=ButtonVariant::Secondary
+                                    size=ButtonSize::Sm
+                                    on_press=on_reset_test_css
+                                >
+                                    "Restore original CSS"
+                                </Button>
+                            </Flex>
+                        </Flex>
+                    </Card>
+                </div>
             </Show>
         </section>
     }

@@ -21,6 +21,10 @@ use ui_components::{
     UiRoot,
 };
 use ui_headless::{provide_focus_visible, provide_overlay_stack, provide_ui_trace};
+use ui_layout::{
+    Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, Grid, GridColumns, GridGap, Header,
+    Heading, HeadingLevel,
+};
 
 #[cfg(target_arch = "wasm32")]
 fn set_document_title(title: &str) {
@@ -128,16 +132,24 @@ pub fn App() -> impl IntoView {
                 <style>{debug_overlay::CSS}</style>
                 <debug_overlay::UiDebugOverlay enabled=true />
             </Show>
-            <div class="docs-shell">
-                <header class="docs-header">
-                    <div class="docs-header__title">
-                        <h1 class="docs-title">"rust-ui docs"</h1>
-                        <div class="docs-subtitle">
-                            "Type-driven, layered Leptos UI (core/headless/theme/motion/components)."
-                        </div>
-                    </div>
+            <Flex direction=FlexDirection::Column gap=FlexGap::Md class_name="docs-shell".to_string()>
+                <Header bordered=true class_name="docs-header".to_string()>
+                    <Flex
+                        justify=FlexJustify::SpaceBetween
+                        align=FlexAlign::Center
+                        gap=FlexGap::Md
+                        class_name="docs-header__layout".to_string()
+                    >
+                        <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-header__title".to_string()>
+                            <Heading level=HeadingLevel::H1 class_name="docs-title".to_string()>
+                                "rust-ui docs"
+                            </Heading>
+                            <div class="docs-subtitle">
+                                "Type-driven, layered Leptos UI (core/headless/theme/motion/components)."
+                            </div>
+                        </Flex>
 
-                    <div class="docs-header__actions">
+                        <Flex align=FlexAlign::Center gap=FlexGap::Sm class_name="docs-header__actions".to_string()>
                         <Button
                             aria_label="Open navigation".to_string()
                             variant=ButtonVariant::Ghost
@@ -158,22 +170,23 @@ pub fn App() -> impl IntoView {
 
                         <command_menu::DocsCommandMenu navigate=navigate />
                         <ThemeToggleButton mode=theme_mode set_mode=set_theme_mode />
-                    </div>
-                </header>
+                        </Flex>
+                    </Flex>
+                </Header>
 
-                <div class="docs-layout">
-                    <nav class="docs-nav">
+                <Grid columns=GridColumns::Three gap=GridGap::Md class_name="docs-layout".to_string()>
+                    <Card class_name="docs-nav".to_string()>
                         <pages::nav::DocsNav route=route navigate=navigate />
-                    </nav>
+                    </Card>
 
-                    <main class="docs-main">
+                    <Flex direction=FlexDirection::Column gap=FlexGap::Sm class_name="docs-main".to_string()>
                         {move || pages::route_view(route_path.get())}
-                    </main>
+                    </Flex>
 
-                    <aside class="docs-toc">
+                    <Card class_name="docs-toc".to_string()>
                         <toc::DocsTocPanel route=route navigate=navigate />
-                    </aside>
-                </div>
+                    </Card>
+                </Grid>
 
                 <Show when=move || nav_present.get()>
                     <Sheet
@@ -185,21 +198,26 @@ pub fn App() -> impl IntoView {
                     >
                         move || {
                             view! {
-                                <div class="docs-mobile-nav">
-                                    <div class="docs-mobile-nav__header">
+                                <Flex direction=FlexDirection::Column gap=FlexGap::Sm class_name="docs-mobile-nav".to_string()>
+                                    <Flex
+                                        justify=FlexJustify::SpaceBetween
+                                        align=FlexAlign::Center
+                                        gap=FlexGap::Sm
+                                        class_name="docs-mobile-nav__header".to_string()
+                                    >
                                         <h2 id="docs-mobile-nav-title" class="docs-mobile-nav__title">
                                             "Navigation"
                                         </h2>
-                                    </div>
+                                    </Flex>
                                     <div class="docs-mobile-nav__body">
                                         <pages::nav::DocsNav route=route navigate=navigate />
                                     </div>
-                                </div>
+                                </Flex>
                             }
                         }
                     </Sheet>
                 </Show>
-            </div>
+            </Flex>
         </UiRoot>
     }
 }

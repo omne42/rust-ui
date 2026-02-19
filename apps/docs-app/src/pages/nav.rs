@@ -1,5 +1,6 @@
 use crate::pages::{components::component_catalog, docs::docs_catalog};
 use leptos::prelude::*;
+use ui_layout::{Flex, FlexDirection, FlexGap};
 
 const GROUP_ORDER: &[&str] = &[
     "Actions",
@@ -32,7 +33,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
     });
 
     view! {
-        <div class="docs-nav__inner">
+        <Flex direction=FlexDirection::Column gap=FlexGap::Md class_name="docs-nav__inner".to_string()>
             <For
                 each=move || DOC_GROUP_ORDER.iter().copied()
                 key=|group| *group
@@ -48,7 +49,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                     }
 
                     view! {
-                        <div class="docs-nav-section">
+                        <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-nav-section".to_string()>
                             <div class="docs-nav-title">{group}</div>
                             <For
                                 each=move || items.clone()
@@ -71,13 +72,13 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                     }
                                 }
                             />
-                        </div>
+                        </Flex>
                     }
                     .into_any()
                 }
             />
 
-            <div class="docs-nav-section">
+            <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-nav-section".to_string()>
                 <div class="docs-nav-title">"Components"</div>
                 <a
                     href="#/components"
@@ -103,7 +104,11 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                 </div>
 
                 <Show when=move || !filtered.get().is_empty()>
-                    <div class="docs-nav-search-results">
+                    <Flex
+                        direction=FlexDirection::Column
+                        gap=FlexGap::Xs
+                        class_name="docs-nav-search-results".to_string()
+                    >
                         <For
                             each=move || filtered.get()
                             key=|doc| doc.slug
@@ -123,7 +128,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                 }
                             }
                         />
-                    </div>
+                    </Flex>
                 </Show>
 
                 <Show when=move || filter.get().trim().is_empty()>
@@ -138,7 +143,7 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                 .collect::<Vec<_>>();
 
                             view! {
-                                <div class="docs-nav-section">
+                                <Flex direction=FlexDirection::Column gap=FlexGap::Xs class_name="docs-nav-section".to_string()>
                                     <div class="docs-nav-title">{group}</div>
                                     <For
                                         each=move || items.clone()
@@ -158,12 +163,12 @@ pub fn DocsNav(route: ReadSignal<String>, navigate: Callback<String>) -> impl In
                                             }
                                         }
                                     />
-                                </div>
+                                </Flex>
                             }
                         }
                     />
                 </Show>
-            </div>
-        </div>
+            </Flex>
+        </Flex>
     }
 }

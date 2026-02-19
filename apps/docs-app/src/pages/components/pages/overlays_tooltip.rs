@@ -2,6 +2,7 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{Button, ButtonVariant, Tooltip, TooltipMotion};
+use ui_layout::{Flex, FlexAlign, FlexDirection, FlexGap, FlexWrap};
 
 pub(super) fn tooltip() -> AnyView {
     let code = Signal::derive(move || {
@@ -71,14 +72,19 @@ pub(super) fn tooltip() -> AnyView {
             description="Tooltip with delay/warmup/cooldown and anchor positioning."
         >
             <Playground title="Hover / focus" code_signal=code>
-                <div class="docs-row">
+                <Flex
+                    align=FlexAlign::Center
+                    gap=FlexGap::Sm
+                    wrap=FlexWrap::Wrap
+                    class_name="docs-row".to_string()
+                >
                     <Tooltip content=move || view! { "This is a tooltip" }>
                         <Button variant=ButtonVariant::Secondary>"Hover me"</Button>
                     </Tooltip>
                     <Tooltip content=move || view! { "Disabled" } disabled=true>
                         <Button variant=ButtonVariant::Secondary is_disabled=true>"Disabled"</Button>
                     </Tooltip>
-                </div>
+                </Flex>
             </Playground>
 
             <Playground
@@ -86,7 +92,12 @@ pub(super) fn tooltip() -> AnyView {
                 description="Inspect `data-state`, `data-delay-source`, `data-trigger-source`, `data-press-source`, and `data-id-source` contracts."
                 code_signal=markers_code
             >
-                <div class="docs-row">
+                <Flex
+                    align=FlexAlign::Center
+                    gap=FlexGap::Sm
+                    wrap=FlexWrap::Wrap
+                    class_name="docs-row".to_string()
+                >
                     <Tooltip
                         delay_ms=300
                         close_delay_ms=200
@@ -99,23 +110,32 @@ pub(super) fn tooltip() -> AnyView {
                             ..TooltipMotion::default()
                         }
                         content=move || view! {
-                            <div class="docs-stack docs-stack--tight">
+                            <Flex
+                                direction=FlexDirection::Column
+                                gap=FlexGap::Xs
+                                class_name="docs-stack docs-stack--tight".to_string()
+                            >
                                 <div>"Marker contracts"</div>
                                 <div class="ui-muted">
                                     "Inspect data-delay-source/data-trigger-source/data-id-source."
                                 </div>
-                            </div>
+                            </Flex>
                         }
                     >
                         <Button variant=ButtonVariant::Secondary>
                             "Inspect tooltip"
                         </Button>
                     </Tooltip>
-                </div>
+                </Flex>
             </Playground>
 
             <Playground title="Custom Motion Contract" code_signal=motion_code>
-                <div class="docs-row">
+                <Flex
+                    align=FlexAlign::Center
+                    gap=FlexGap::Sm
+                    wrap=FlexWrap::Wrap
+                    class_name="docs-row".to_string()
+                >
                     <Tooltip
                         motion=custom_motion
                         content=move || view! { "Custom spring + placement offset" }
@@ -132,7 +152,7 @@ pub(super) fn tooltip() -> AnyView {
                             "Default motion"
                         </Button>
                     </Tooltip>
-                </div>
+                </Flex>
             </Playground>
         </ComponentPage>
     }

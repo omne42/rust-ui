@@ -3,6 +3,7 @@ pub mod docs;
 pub mod nav;
 
 use leptos::prelude::*;
+use ui_layout::{Card, Heading, HeadingLevel};
 
 pub fn title_for_path(path: &str) -> String {
     if let Some(doc) = docs::docs_catalog().iter().find(|doc| doc.route == path) {
@@ -26,12 +27,12 @@ pub fn title_for_path(path: &str) -> String {
 
 fn not_found(route: String) -> AnyView {
     view! {
-        <section class="docs-card docs-prose">
-            <h2>"Not found"</h2>
+        <Card class_name="docs-prose".to_string()>
+            <Heading level=HeadingLevel::H2>"Not found"</Heading>
             <p>
                 "Unknown route: " <code>{route}</code>
             </p>
-        </section>
+        </Card>
     }
     .into_any()
 }

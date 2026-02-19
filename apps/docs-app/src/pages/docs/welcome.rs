@@ -1,6 +1,7 @@
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{Button, ButtonVariant};
+use ui_layout::{Card, Heading, HeadingLevel};
 
 #[component]
 pub fn Welcome() -> impl IntoView {
@@ -11,15 +12,15 @@ pub fn Welcome() -> impl IntoView {
 </UiRoot>"#;
 
     view! {
-        <section class="docs-card docs-prose">
-            <h2>"Welcome"</h2>
+        <Card class_name="docs-prose".to_string()>
+            <Heading level=HeadingLevel::H2>"Welcome"</Heading>
             <p>
                 "This repo builds a layered Leptos UI system (baseline-style): "
                 <code>"ui-state-primitives"</code> ", " <code>"ui-headless"</code> ", " <code>"ui-theme"</code> ", "
                 <code>"ui-motion"</code> ", " <code>"ui-components"</code> "."
             </p>
             <p>"Use the left nav to explore docs and component playgrounds."</p>
-        </section>
+        </Card>
 
         <Playground title="Hello Button" description="Basic usage" code=code>
             <Button variant=ButtonVariant::Default>"Hello"</Button>
