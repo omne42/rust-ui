@@ -1,0 +1,23 @@
+use serde::{Deserialize, Serialize};
+
+/// Component protocol contract for `ui-components/src/button/action`.
+///
+/// This schema is intentionally minimal and versioned so component-specific
+/// protocol fields can evolve without breaking deserialization.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionComponentSchemaVersion {
+    #[default]
+    V1,
+}
+
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct ActionComponentSpec {
+    #[serde(default)]
+    pub schema_version: ActionComponentSchemaVersion,
+}
+
+#[cfg(test)]
+#[path = "../../test/action/protocol.rs"]
+mod tests;

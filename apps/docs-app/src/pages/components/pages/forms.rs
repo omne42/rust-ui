@@ -216,7 +216,7 @@ pub(super) fn form() -> AnyView {
 
     let form_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_form/form/styles.rs */\n{}",
+            "/* components/form/src/styles.rs */\n{}",
             ui_components::field_form::form::styles::CSS
         )
     });
@@ -248,7 +248,7 @@ pub(super) fn form() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=form_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/form/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/form/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="可调 label-position/align/required/disabled/read-only/class，并在同一面板查看 code + config + scoped css test。"
                 controls=move || {
@@ -771,11 +771,11 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     class_name="docs-search-field-source-copy".to_string()
                 />
                 <ul data-slot="search-field-source-paths">
-                    <li><code>"crates/ui-components/src/text_input/search_field/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/search_field/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/search_field/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/search_field/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/search_field/motion.rs"</code></li>
+                    <li><code>"components/text-input/src/search_field/mod.rs"</code></li>
+                    <li><code>"components/text-input/src/search_field/logic.rs"</code></li>
+                    <li><code>"components/text-input/src/search_field/view.rs"</code></li>
+                    <li><code>"components/text-input/src/search_field/styles.rs"</code></li>
+                    <li><code>"components/text-input/src/search_field/motion.rs"</code></li>
                     <li><code>"crates/ui-state-primitives/src/search_field.rs"</code></li>
                     <li><code>"crates/ui-headless/src/search_field.rs"</code></li>
                 </ul>
@@ -883,7 +883,7 @@ pub(super) fn number_field() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/text_input/number_field/styles.rs */\n{}",
+            "/* components/text-input/src/number_field/styles.rs */\n{}",
             ui_components::text_input::number_field::styles::CSS
         )
     });
@@ -974,7 +974,7 @@ pub(super) fn number_field() -> AnyView {
                 description="Display + Config + Code + CSS Test workbench for number-field semantics and stepping contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/text_input/number_field/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/text-input/src/number_field/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="number-field-workbench-controls">
@@ -1125,7 +1125,7 @@ pub(super) fn input_otp() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/text_input/input_otp/styles.rs */\n{}",
+            "/* components/text-input/src/input_otp/styles.rs */\n{}",
             ui_components::text_input::input_otp::styles::CSS
         )
     });
@@ -1187,7 +1187,7 @@ pub(super) fn input_otp() -> AnyView {
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/text_input/input_otp/styles.rs".to_string()
+                test_source_path="components/text-input/src/input_otp/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1373,7 +1373,7 @@ pub(super) fn checkbox() -> AnyView {
 
     let interactive_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/checkbox/styles.rs */\n{}",
+            "/* components/checkbox/src/styles.rs */\n{}",
             ui_components::checkbox::styles::CSS
         )
     });
@@ -1440,7 +1440,7 @@ let (disabled_unchecked, set_disabled_unchecked) = signal(false);
                 description="Display + Config + Code + CSS Test: edit checkbox props and inspect actual state contracts."
                 code_signal=interactive_code
                 test_css_source=interactive_test_css
-                test_source_path="crates/ui-components/src/checkbox/styles.rs".to_string()
+                test_source_path="components/checkbox/src/styles.rs".to_string()
                 test_config_signal=interactive_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1636,9 +1636,9 @@ pub(super) fn checkbox_group() -> AnyView {
 
     let interactive_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/checkbox/styles.rs */\n{}\n\n/* checkbox group */\n{}",
+            "/* components/checkbox/src/styles.rs */\n{}\n\n/* components/checkbox-group/src/styles.rs */\n{}",
             ui_components::checkbox::styles::CSS,
-            ui_components::checkbox::styles::CHECKBOX_GROUP_CSS
+            ui_components::checkbox_group::styles::CSS
         )
     });
 
@@ -1695,7 +1695,7 @@ pub(super) fn checkbox_group() -> AnyView {
                 description="Display + Config + Code + CSS Test: edit group validation/required state and inspect contracts."
                 code_signal=interactive_code
                 test_css_source=interactive_test_css
-                test_source_path="crates/ui-components/src/checkbox/styles.rs".to_string()
+                test_source_path="components/checkbox-group/src/styles.rs".to_string()
                 test_config_signal=interactive_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

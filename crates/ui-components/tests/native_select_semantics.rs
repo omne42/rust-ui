@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn native_select_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/native_select/mod.rs");
+    let module_source = load_source("../../components/native-select/src/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -30,8 +58,8 @@ fn native_select_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn native_select_uses_logic_state_model() {
-    let view_source = load_source("src/native_select/view.rs");
-    let logic_source = load_source("src/native_select/logic.rs");
+    let view_source = load_source("../../components/native-select/src/view.rs");
+    let logic_source = load_source("../../components/native-select/src/logic.rs");
 
     for needle in [
         "pub enum NativeSelectSize",
@@ -65,7 +93,7 @@ fn native_select_uses_logic_state_model() {
 
 #[test]
 fn native_select_supports_controlled_uncontrolled_and_placeholder_contracts() {
-    let source = load_source("src/native_select/view.rs");
+    let source = load_source("../../components/native-select/src/view.rs");
 
     for needle in [
         "selected_index: Option<Signal<Option<usize>>>",
@@ -86,7 +114,7 @@ fn native_select_supports_controlled_uncontrolled_and_placeholder_contracts() {
 
 #[test]
 fn native_select_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/native_select/view.rs");
+    let source = load_source("../../components/native-select/src/view.rs");
 
     for needle in [
         "data-slot=\"native-select\"",
@@ -117,7 +145,7 @@ fn native_select_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn native_select_styles_include_size_invalid_disabled_and_empty_markers() {
-    let source = load_source("src/native_select/styles.rs");
+    let source = load_source("../../components/native-select/src/styles.rs");
 
     for needle in [
         ".ui-native-select {",

@@ -60,7 +60,7 @@ pub(super) fn tag() -> AnyView {
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                test_source_path="crates/ui-components/src/tag/view.rs".to_string()
+                test_source_path="components/tag/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <Tag>"Hello Tag"</Tag>
@@ -71,7 +71,7 @@ pub(super) fn tag() -> AnyView {
             <Playground
                 title="Variant + Size Matrix"
                 code_signal=matrix_code
-                test_source_path="crates/ui-components/src/tag/view.rs".to_string()
+                test_source_path="components/tag/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <Tag variant=TagVariant::Default size=TagSize::Sm>
@@ -92,7 +92,7 @@ pub(super) fn tag() -> AnyView {
             <Playground
                 title="Removable + Disabled + Custom Class"
                 code_signal=states_code
-                test_source_path="crates/ui-components/src/tag/view.rs".to_string()
+                test_source_path="components/tag/src/view.rs".to_string()
             >
                 <div class="docs-stack">
                     <div class="docs-row">
@@ -271,7 +271,7 @@ pub(super) fn collapsible() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/collapsible/styles.rs */\n{}",
+            "/* components/collapsible/src/styles.rs */\n{}",
             ui_components::collapsible::styles::CSS
         )
     });
@@ -370,7 +370,7 @@ pub(super) fn collapsible() -> AnyView {
                 title="Interactive Playground (Display + Config + Code + CSS Test)"
                 code_signal=interactive_code
                 test_css_source=test_css_source
-                test_source_path="crates/ui-components/src/collapsible/styles.rs".to_string()
+                test_source_path="components/collapsible/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

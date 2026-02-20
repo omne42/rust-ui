@@ -1,15 +1,46 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_help_text_component_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let path = workspace_dir.join("components/help-text").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn ui_components_reexports_help_text_component_crate() {
+    let field_form_mod_source = load_ui_components_source("src/field_form.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        field_form_mod_source.contains("#[cfg(feature = \"component-help_text\")]")
+            && field_form_mod_source.contains("pub use ui_help_text as help_text;"),
+        "ui-components field_form module should re-export the external ui-help-text crate as `help_text`.",
+    );
+    assert!(
+        cargo_source.contains("component-help_text = [\"dep:ui-help-text\"]"),
+        "component-help_text feature should depend on dep:ui-help-text after extraction.",
+    );
+    assert!(
+        cargo_source
+            .contains("ui-help-text = { path = \"../../components/help-text\", optional = true }"),
+        "ui-components Cargo.toml should include the optional ui-help-text dependency.",
+    );
+}
+
 #[test]
 fn help_text_does_not_expose_logic_or_render_modules() {
-    let source = load_source("src/field_form/help_text/mod.rs");
+    let source = load_help_text_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod render"] {
         assert!(
@@ -21,8 +52,8 @@ fn help_text_does_not_expose_logic_or_render_modules() {
 
 #[test]
 fn help_text_uses_logic_state_model() {
-    let logic_source = load_source("src/field_form/help_text/logic.rs");
-    let render_source = load_source("src/field_form/help_text/view.rs");
+    let logic_source = load_help_text_component_source("src/logic.rs");
+    let render_source = load_help_text_component_source("src/view.rs");
 
     for needle in [
         "pub enum HelpTextTone",
@@ -59,7 +90,7 @@ fn help_text_uses_logic_state_model() {
 
 #[test]
 fn help_text_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/field_form/help_text/view.rs");
+    let source = load_help_text_component_source("src/view.rs");
 
     for attr in [
         "data-slot=\"help-text\"",
@@ -85,7 +116,7 @@ fn help_text_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn help_text_styles_include_state_markers() {
-    let source = load_source("src/field_form/help_text/styles.rs");
+    let source = load_help_text_component_source("src/styles.rs");
 
     for selector in [
         ".ui-help-text--tone-auto",
@@ -108,7 +139,8 @@ fn help_text_styles_include_state_markers() {
 
 #[test]
 fn help_text_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let source =
+        load_ui_components_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     for needle in [
         "pub(super) fn help_text() -> AnyView",
@@ -117,6 +149,7 @@ fn help_text_docs_page_covers_primary_playgrounds() {
         "description=\"baseline-style form assistance primitive that resolves description vs error message and tone/icon state through centralized logic contracts.\"",
         "<Playground title=\"Description (Neutral)\" code_signal=description_code>",
         "<Playground title=\"Invalid + Error Icon\" code_signal=error_code>",
+        "test_source_path=\"components/help-text/src/styles.rs\".to_string()",
         "<HelpText",
     ] {
         assert!(
@@ -128,7 +161,8 @@ fn help_text_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn help_text_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let source =
+        load_ui_components_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     for needle in [
         "title=\"Description (Neutral)\"",

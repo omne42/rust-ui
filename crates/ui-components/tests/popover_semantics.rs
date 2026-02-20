@@ -1,9 +1,35 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+
+    if let Some(suffix) = rel_path.strip_prefix("src/popover/") {
+        workspace_dir.join("components/popover/src").join(suffix)
+    } else if rel_path == "src/lib.rs" {
+        workspace_dir.join("crates/ui-components/src/lib.rs")
+    } else if rel_path == "src/css.rs" {
+        workspace_dir.join("crates/ui-components/src/css.rs")
+    } else if rel_path == "Cargo.toml" {
+        workspace_dir.join("crates/ui-components/Cargo.toml")
+    } else if let Some(suffix) = rel_path.strip_prefix("../../") {
+        workspace_dir.join(suffix)
+    } else {
+        manifest_dir.join(rel_path)
+    }
+}
+
+fn load_source(rel_path: &str) -> String {
+    let path = resolve_path(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_popover_test_source(rel_path: &str) -> String {
+    let path = resolve_path("src/popover/test").join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -168,6 +194,8 @@ fn popover_docs_page_contains_state_source_playground() {
 fn popover_motion_contract_exposes_default_and_placement_offset_helpers() {
     let mod_source = load_source("src/popover/mod.rs");
     let motion_source = load_source("src/popover/motion.rs");
+    let motion_test_source = load_popover_test_source("motion.rs");
+    let combined = format!("{motion_source}\n{motion_test_source}");
 
     for needle in [
         "pub mod motion;",
@@ -178,7 +206,7 @@ fn popover_motion_contract_exposes_default_and_placement_offset_helpers() {
         "fn placement_offset_y_follows_vertical_direction_contract()",
     ] {
         assert!(
-            mod_source.contains(needle) || motion_source.contains(needle),
+            mod_source.contains(needle) || combined.contains(needle),
             "Popover motion contract should include `{needle}` for baseline-level spring configuration and directional offsets."
         );
     }
@@ -187,6 +215,8 @@ fn popover_motion_contract_exposes_default_and_placement_offset_helpers() {
 #[test]
 fn popover_motion_contract_sanitizes_custom_values() {
     let source = load_source("src/popover/motion.rs");
+    let motion_test_source = load_popover_test_source("motion.rs");
+    let combined = format!("{source}\n{motion_test_source}");
 
     for needle in [
         "pub fn sanitize_motion(motion: PopoverMotion) -> PopoverMotion",
@@ -198,7 +228,7 @@ fn popover_motion_contract_sanitizes_custom_values() {
         "fn sanitize_motion_clamps_scale_and_offset()",
     ] {
         assert!(
-            source.contains(needle),
+            combined.contains(needle),
             "Popover motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }

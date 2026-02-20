@@ -1,0 +1,19 @@
+[package]
+name = "ui-select"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-components = { path = "../../crates/ui-components", default-features = false, features = ["component-button", "component-list", "component-popover"] }
+ui-headless = { path = "../../crates/ui-headless" }
+ui-motion = { path = "../../crates/ui-motion" }
+ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+serde = { version = "1.0", features = ["derive"] }

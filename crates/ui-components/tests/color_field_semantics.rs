@@ -4,6 +4,34 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -15,7 +43,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn color_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color/field/mod.rs");
+    let source = load_source("../../components/color-field/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -27,8 +55,8 @@ fn color_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_field_consumes_state_primitives_and_centralized_logic() {
-    let logic_source = load_source("src/color/field/logic.rs");
-    let view_source = load_source("src/color/field/view.rs");
+    let logic_source = load_source("../../components/color-field/src/logic.rs");
+    let view_source = load_source("../../components/color-field/src/view.rs");
     let primitives_source = load_source("../ui-state-primitives/src/color_field.rs");
 
     for needle in [
@@ -78,7 +106,7 @@ fn color_field_consumes_state_primitives_and_centralized_logic() {
 
 #[test]
 fn color_field_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color/field/view.rs");
+    let source = load_source("../../components/color-field/src/view.rs");
 
     for attr in [
         "data-slot=\"color-field\"",
@@ -102,7 +130,7 @@ fn color_field_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_field_styles_include_valid_invalid_disabled_and_custom_contracts() {
-    let source = load_source("src/color/field/styles.rs");
+    let source = load_source("../../components/color-field/src/styles.rs");
 
     for selector in [
         ".ui-color-field",
@@ -224,7 +252,7 @@ fn color_field_e2e_contract_covers_repeatable_flow_and_copy_ready_source() {
 
 #[test]
 fn color_field_check2_marks_component_governance_complete() {
-    let check2_source = load_source("src/color/field/check2.md");
+    let check2_source = load_source("../../components/color-field/src/check2.md");
 
     assert!(
         !check2_source.contains("- [ ]"),

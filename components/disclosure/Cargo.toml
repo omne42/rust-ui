@@ -1,0 +1,24 @@
+[package]
+name = "ui-disclosure"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/mod.rs"
+
+[features]
+default = []
+disclosure-group = ["dep:ui-accordion"]
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../../crates/ui-headless" }
+ui-motion = { path = "../../crates/ui-motion" }
+ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+ui-accordion = { path = "../accordion", optional = true }
+serde = { version = "1.0", features = ["derive"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["Element", "HtmlElement", "ResizeObserver", "ResizeObserverEntry", "CssStyleDeclaration"] }

@@ -511,8 +511,8 @@ impl Stream for StreamBuilder {
 }
 
 /*
-#[cfg(test)]
-mod tests {
+#[cfg(legacy_disabled)]
+mod legacy_checks {
     use crate::{
         async_views::{FutureViewExt, Suspend},
         html::element::{em, main, p, ElementChild, HtmlElement, Main},

@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn modal_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/modal/mod.rs");
+    let source = load_source("../../components/modal/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +49,7 @@ fn modal_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn modal_is_exported_from_module_and_exposes_state_contracts() {
-    let module_source = load_source("src/modal/mod.rs");
+    let module_source = load_source("../../components/modal/src/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     for needle in [
@@ -44,7 +72,7 @@ fn modal_is_exported_from_module_and_exposes_state_contracts() {
 
 #[test]
 fn modal_logic_exposes_state_helpers() {
-    let source = load_source("src/modal/logic.rs");
+    let source = load_source("../../components/modal/src/logic.rs");
 
     for needle in [
         "pub const DEFAULT_ID_BASE: &str = \"ui-modal\";",
@@ -66,7 +94,7 @@ fn modal_logic_exposes_state_helpers() {
 
 #[test]
 fn modal_view_uses_logic_contracts_and_source_markers() {
-    let source = load_source("src/modal/view.rs");
+    let source = load_source("../../components/modal/src/view.rs");
 
     for needle in [
         "logic::normalize_id_base(id_base)",
@@ -104,7 +132,7 @@ fn modal_view_uses_logic_contracts_and_source_markers() {
 
 #[test]
 fn modal_only_sets_describedby_when_description_exists() {
-    let source = load_source("src/modal/view.rs");
+    let source = load_source("../../components/modal/src/view.rs");
 
     assert!(
         source.contains("if let Some(description) = description"),
@@ -126,7 +154,7 @@ fn modal_only_sets_describedby_when_description_exists() {
 
 #[test]
 fn modal_styles_include_state_and_source_markers() {
-    let source = load_source("src/modal/styles.rs");
+    let source = load_source("../../components/modal/src/styles.rs");
 
     for selector in [
         ".ui-modal[data-motion-source=\"custom\"]",
@@ -268,7 +296,7 @@ fn modal_docs_include_interactive_playground_contract_panels() {
         "test_css_source=interactive_test_css",
         "test_config_signal=interactive_config",
         "controls=move || view!",
-        "test_source_path=\"crates/ui-components/src/modal/styles.rs\".to_string()",
+        "test_source_path=\"components/modal/src/styles.rs\".to_string()",
     ] {
         assert!(
             docs_source.contains(needle),
@@ -279,7 +307,7 @@ fn modal_docs_include_interactive_playground_contract_panels() {
 
 #[test]
 fn modal_readme_and_docs_shell_register_display_config_code_css_contract() {
-    let readme_source = load_source("src/modal/README.md");
+    let readme_source = load_source("../../components/modal/src/README.md");
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
 
     assert!(

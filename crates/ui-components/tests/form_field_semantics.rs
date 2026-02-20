@@ -4,6 +4,34 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -14,7 +42,7 @@ fn path_exists(rel_path: &str) -> bool {
 
 #[test]
 fn form_field_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/field_form/form_field/mod.rs");
+    let source = load_source("../../components/form-field/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,9 +54,9 @@ fn form_field_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn form_field_uses_logic_state_model() {
-    let mod_source = load_source("src/field_form/form_field/mod.rs");
-    let logic_source = load_source("src/field_form/form_field/logic.rs");
-    let view_source = load_source("src/field_form/form_field/view.rs");
+    let mod_source = load_source("../../components/form-field/src/mod.rs");
+    let logic_source = load_source("../../components/form-field/src/logic.rs");
+    let view_source = load_source("../../components/form-field/src/view.rs");
 
     for needle in [
         "pub struct FormFieldStateInput",
@@ -72,7 +100,7 @@ fn form_field_uses_logic_state_model() {
 
 #[test]
 fn form_field_composes_switch_and_checkbox_indicators() {
-    let source = load_source("src/field_form/form_field/view.rs");
+    let source = load_source("../../components/form-field/src/view.rs");
 
     for needle in [
         "FormFieldIndicatorVariant::Switch",
@@ -92,7 +120,7 @@ fn form_field_composes_switch_and_checkbox_indicators() {
 
 #[test]
 fn form_field_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/field_form/form_field/view.rs");
+    let source = load_source("../../components/form-field/src/view.rs");
 
     for attr in [
         "data-slot=\"form-field\"",
@@ -120,7 +148,7 @@ fn form_field_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn form_field_styles_include_state_marker_contracts() {
-    let source = load_source("src/field_form/form_field/styles.rs");
+    let source = load_source("../../components/form-field/src/styles.rs");
 
     for selector in [
         ".ui-form-field--placement-end",
@@ -203,7 +231,7 @@ fn form_field_feature_dependency_chain_supports_minimal_component_builds() {
 
 #[test]
 fn form_field_view_mounts_locale_and_headless_a11y_contracts() {
-    let source = load_source("src/field_form/form_field/view.rs");
+    let source = load_source("../../components/form-field/src/view.rs");
 
     for needle in [
         "#[prop(optional, into)] lang: Option<String>",
@@ -225,7 +253,7 @@ fn form_field_view_mounts_locale_and_headless_a11y_contracts() {
 #[test]
 fn form_field_tree_shaking_boundaries_stay_feature_gated() {
     let lib_source = load_source("src/lib.rs");
-    let domain_mod_source = load_source("src/field_form/mod.rs");
+    let domain_mod_source = load_source("src/field_form.rs");
     let css_source = load_source("src/css.rs");
 
     assert!(
@@ -297,7 +325,7 @@ fn form_field_e2e_contract_covers_repeatable_key_flow_and_copy_ready_source() {
 
 #[test]
 fn form_field_check2_marks_component_governance_complete() {
-    let check2_source = load_source("src/field_form/form_field/check2.md");
+    let check2_source = load_source("../../components/form-field/src/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",
@@ -323,7 +351,7 @@ fn form_field_check2_marks_component_governance_complete() {
 
 #[test]
 fn form_field_check2_marks_forbidden_anti_patterns_complete() {
-    let check2_source = load_source("src/field_form/form_field/check2.md");
+    let check2_source = load_source("../../components/form-field/src/check2.md");
 
     for needle in [
         "- [x] 在 `status-primitives`（当前 `ui-state-primitives`）写 DOM/样式逻辑。",
@@ -344,7 +372,7 @@ fn form_field_check2_marks_forbidden_anti_patterns_complete() {
 
 #[test]
 fn form_field_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/field_form/form_field/check2.md");
+    let check2_source = load_source("../../components/form-field/src/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -371,7 +399,7 @@ fn form_field_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn form_field_check2_has_no_unchecked_checklist_items() {
-    let check2_source = load_source("src/field_form/form_field/check2.md");
+    let check2_source = load_source("../../components/form-field/src/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "FormField check2.md should not keep unchecked checklist items after completion."

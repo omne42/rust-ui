@@ -4,6 +4,34 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -123,7 +151,7 @@ fn number_field_docs_interactive_playground_exposes_config_code_css_test_section
         "data-slot=\"number-field-workbench-controls\"",
         "id_base=\"docs-number-field-workbench-bounds\".to_string()",
         "id_base=\"docs-number-field-workbench-step\".to_string()",
-        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/text_input/number_field/styles.rs\".to_string()",
+        "test_source_path=\"/root/autodl-tmp/zjj/p/rust-ui/components/text-input/src/number_field/styles.rs\".to_string()",
     ] {
         assert!(
             source.contains(needle),
@@ -152,7 +180,7 @@ fn number_field_check2_marks_core_sections_complete() {
         "- [x] 门禁完整通过（fmt/clippy/test/smoke 等）。",
         "### 10. NumberField 本轮验收证据",
         "component-number_field -> component-button",
-        "crates/ui-components/src/text_input/number_field/view.rs",
+        "components/text-input/src/number_field/view.rs",
     ] {
         assert!(
             source.contains(needle),

@@ -366,11 +366,21 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css, "  --ui-content3: {};", layout_semantic.content_3);
     css_writeln!(css, "  --ui-content4: {};", layout_semantic.content_4);
     css_writeln!(css, "  --ui-danger-fg: {};", colors.danger_fg);
+    css_writeln!(css, "  --ui-fallback-fg: {};", colors.fg);
+    css_writeln!(css, "  --ui-fallback-fg-muted: {};", colors.fg_muted);
+    css_writeln!(css, "  --ui-fallback-bg-muted: {};", colors.bg_muted);
+    css_writeln!(css, "  --ui-fallback-border: {};", colors.border);
+    css_writeln!(css, "  --ui-fallback-accent: {};", colors.accent);
+    css_writeln!(css, "  --ui-fallback-accent-fg: {};", colors.accent_fg);
+    css_writeln!(css, "  --ui-fallback-danger: {};", semantic_roles.danger);
+    css_writeln!(css, "  --ui-fallback-danger-fg: {};", colors.danger_fg);
     css_writeln!(css);
 
     css_writeln!(css, "  --ui-radius-sm: {}px;", layout.radius.sm_px);
     css_writeln!(css, "  --ui-radius-md: {}px;", layout.radius.md_px);
     css_writeln!(css, "  --ui-radius-lg: {}px;", layout.radius.lg_px);
+    css_writeln!(css, "  --ui-fallback-radius-md: {}px;", layout.radius.md_px);
+    css_writeln!(css, "  --ui-fallback-radius-lg: {}px;", layout.radius.lg_px);
     css_writeln!(css);
 
     css_writeln!(css, "  --ui-space-3xs: {}px;", layout.space.space_3xs_px);
@@ -379,10 +389,14 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(css, "  --ui-space-sm: {}px;", layout.space.sm_px);
     css_writeln!(css, "  --ui-space-md: {}px;", layout.space.md_px);
     css_writeln!(css, "  --ui-space-lg: {}px;", layout.space.lg_px);
+    css_writeln!(css, "  --ui-fallback-space-xs: {}px;", layout.space.xs_px);
+    css_writeln!(css, "  --ui-fallback-space-sm: {}px;", layout.space.sm_px);
+    css_writeln!(css, "  --ui-fallback-space-md: {}px;", layout.space.md_px);
     css_writeln!(css);
 
     css_writeln!(css, "  --ui-shadow-sm: {};", layout.shadow.sm);
     css_writeln!(css, "  --ui-shadow-md: {};", layout.shadow.md);
+    css_writeln!(css, "  --ui-fallback-shadow-sm: {};", layout.shadow.sm);
     css_writeln!(css);
 
     css_writeln!(
@@ -403,6 +417,16 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
     css_writeln!(
         css,
         "  --ui-line-height-150: {}px;",
+        typography.line_height_150_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-font-size-150: {}px;",
+        typography.font_size_150_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-line-height-150: {}px;",
         typography.line_height_150_px
     );
     css_writeln!(
@@ -485,6 +509,30 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         "  --ui-heading-h6-line-height: {}px;",
         typography.heading_h6_line_height_px
     );
+    css_writeln!(
+        css,
+        "  --ui-fallback-heading-h6-font-size: {}px;",
+        typography.heading_h6_font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-heading-h6-line-height: {}px;",
+        typography.heading_h6_line_height_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-heading-h6-line-height-inline: {}px;",
+        typography.line_height_150_px
+    );
+    css_writeln!(css, "  --ui-fallback-alert-icon-size: 20px;");
+    css_writeln!(css, "  --ui-fallback-alert-icon-size-inline: 18px;");
+    css_writeln!(css, "  --ui-fallback-alert-icon-margin-top-inline: 1px;");
+    css_writeln!(css, "  --ui-fallback-alert-body-gap: 2px;");
+    css_writeln!(css, "  --ui-fallback-alert-body-font-size: 13px;");
+    css_writeln!(css, "  --ui-fallback-alert-body-line-height: 1.45;");
+    css_writeln!(css, "  --ui-fallback-alert-sr-only-size: 1px;");
+    css_writeln!(css, "  --ui-fallback-alert-translate-y: 0px;");
+    css_writeln!(css, "  --ui-fallback-alert-scale: 1;");
     // Semantic aliases used by some component styles.
     css_writeln!(
         css,
@@ -814,6 +862,33 @@ pub fn theme_to_css_variables(theme: &Theme) -> String {
         "  --ui-button-size-xl-icon: {}px;",
         button_layout.xl.icon_size_px
     );
+    css_writeln!(css);
+
+    css_writeln!(
+        css,
+        "  --ui-fallback-common-white: {};",
+        common_colors.white
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-font-size-150: {}px;",
+        typography.font_size_150_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-line-height-150: {}px;",
+        typography.line_height_150_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-button-size-s-font-size: {}px;",
+        button_layout.s.font_size_px
+    );
+    css_writeln!(
+        css,
+        "  --ui-fallback-button-size-s-line-height: {}px;",
+        button_layout.s.line_height_px
+    );
     css_writeln!(css, "}}");
     css
 }
@@ -828,29 +903,5 @@ pub const SAFE_AREA_CSS: &str = r#"
 "#;
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn semantic_overrides_emit_css_block() {
-        let css = SemanticOverrides::new()
-            .set(SemanticVariable::Primary, "oklch(66% 0.14 255)")
-            .set(SemanticVariable::LayoutBackground, "oklch(98% 0 0)")
-            .to_css_block(":root");
-
-        assert!(css.contains(":root {"));
-        assert!(css.contains("--ui-primary: oklch(66% 0.14 255);"));
-        assert!(css.contains("--ui-layout-background: oklch(98% 0 0);"));
-    }
-
-    #[test]
-    fn semantic_overrides_last_write_wins() {
-        let css = SemanticOverrides::new()
-            .set(SemanticVariable::Primary, "oklch(60% 0.1 250)")
-            .set(SemanticVariable::Primary, "oklch(64% 0.12 252)")
-            .to_css_block(":root");
-
-        assert!(!css.contains("--ui-primary: oklch(60% 0.1 250);"));
-        assert!(css.contains("--ui-primary: oklch(64% 0.12 252);"));
-    }
-}
+#[path = "test/css.rs"]
+mod tests;

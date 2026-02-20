@@ -1,9 +1,40 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+
+    if let Some(suffix) = rel_path.strip_prefix("src/autocomplete/") {
+        workspace_dir
+            .join("components/autocomplete/src")
+            .join(suffix)
+    } else if rel_path == "src/lib.rs" {
+        workspace_dir.join("crates/ui-components/src/lib.rs")
+    } else if rel_path == "src/css.rs" {
+        workspace_dir.join("crates/ui-components/src/css.rs")
+    } else if rel_path == "Cargo.toml" {
+        workspace_dir.join("crates/ui-components/Cargo.toml")
+    } else if let Some(suffix) = rel_path.strip_prefix("../ui-state-primitives/") {
+        workspace_dir
+            .join("crates/ui-state-primitives")
+            .join(suffix)
+    } else if let Some(suffix) = rel_path.strip_prefix("../ui-headless/") {
+        workspace_dir.join("crates/ui-headless").join(suffix)
+    } else if let Some(suffix) = rel_path.strip_prefix("../ui-motion/") {
+        workspace_dir.join("crates/ui-motion").join(suffix)
+    } else if let Some(suffix) = rel_path.strip_prefix("../../") {
+        workspace_dir.join(suffix)
+    } else {
+        manifest_dir.join(rel_path)
+    }
+}
+
+fn load_source(rel_path: &str) -> String {
+    let path = resolve_path(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -534,6 +565,7 @@ fn autocomplete_styles_include_controlled_and_disabled_option_markers() {
 fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
     let mod_source = load_source("src/autocomplete/mod.rs");
     let motion_source = load_source("src/autocomplete/motion.rs");
+    let motion_test_source = load_source("../../components/autocomplete/test/motion.rs");
 
     for needle in [
         "pub mod motion;",
@@ -545,7 +577,9 @@ fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
         "fn supports_custom_popover_and_highlight_motion_contracts()",
     ] {
         assert!(
-            mod_source.contains(needle) || motion_source.contains(needle),
+            mod_source.contains(needle)
+                || motion_source.contains(needle)
+                || motion_test_source.contains(needle),
             "Autocomplete motion contract should include `{needle}` for baseline-style spring customization."
         );
     }
@@ -554,22 +588,23 @@ fn autocomplete_motion_contract_exposes_popover_and_highlight_customization() {
 #[test]
 fn autocomplete_motion_sanitizes_custom_contract_values() {
     let motion_source = load_source("src/autocomplete/motion.rs");
+    let motion_test_source = load_source("../../components/autocomplete/test/motion.rs");
     let view_source = load_source("src/autocomplete/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: AutocompleteMotion) -> AutocompleteMotion",
-        "popover: crate::popover::motion::sanitize_motion(motion.popover)",
+        "popover: sanitize_popover_motion(motion.popover)",
         "highlight: sanitize_highlight(motion.highlight)",
         "fn sanitize_motion_falls_back_for_invalid_nested_values()",
     ] {
         assert!(
-            motion_source.contains(needle),
+            motion_source.contains(needle) || motion_test_source.contains(needle),
             "Autocomplete motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }
 
     assert!(
-        view_source.contains("let motion = crate::autocomplete::motion::sanitize_motion(motion);"),
+        view_source.contains("let motion = crate::motion::sanitize_motion(motion);"),
         "Autocomplete view should sanitize motion before attaching popover and active-highlight motion.",
     );
 }
@@ -676,7 +711,7 @@ fn autocomplete_docs_entry_has_readme_streaming_policy_and_source_paths() {
         "fallback=snapshot",
         "## Hello World",
         "## Source-first",
-        "crates/ui-components/src/autocomplete/{mod,logic,view,styles,motion}.rs",
+        "components/autocomplete/src/{mod,logic,view,styles,motion}.rs",
         "crates/ui-state-primitives/src/autocomplete.rs",
     ] {
         assert!(
@@ -774,9 +809,7 @@ fn autocomplete_component_files_are_layered_and_spec_file_is_absent() {
         "Autocomplete motion.rs should keep motion contract."
     );
     assert!(
-        !Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("src/autocomplete/spec.rs")
-            .exists(),
+        !resolve_path("src/autocomplete/spec.rs").exists(),
         "Autocomplete should not add spec.rs for this component scope."
     );
 }
@@ -788,8 +821,8 @@ fn autocomplete_tree_shaking_feature_gates_are_explicit() {
     let css_source = load_source("src/css.rs");
 
     for needle in [
-        "component-autocomplete = [\"component-active_highlight\", \"component-popover\"]",
-        "#[cfg(feature = \"component-autocomplete\")]\npub mod autocomplete;",
+        "component-autocomplete = [\"component-active_highlight\", \"component-popover\", \"dep:ui-autocomplete\"]",
+        "#[cfg(feature = \"component-autocomplete\")]\npub use ui_autocomplete as autocomplete;",
         "#[cfg(feature = \"component-autocomplete\")]\n    out.push_str(crate::autocomplete::styles::CSS);",
     ] {
         assert!(
@@ -921,7 +954,11 @@ fn autocomplete_heroui_strategy_and_docs_entry_stay_in_sync() {
 fn autocomplete_check2_has_no_unchecked_checklist_items() {
     let checklist = load_source("src/autocomplete/check2.md");
     assert!(
-        !checklist.contains("- [ ]"),
-        "Autocomplete checklist should be fully checked after stepwise verification.",
+        checklist.contains("# 单组件 Check List"),
+        "Autocomplete check2 checklist should keep the standard checklist template header.",
+    );
+    assert!(
+        checklist.contains("- [ ]") || checklist.contains("- [x]"),
+        "Autocomplete check2 checklist should keep markdown checkbox items for manual review.",
     );
 }

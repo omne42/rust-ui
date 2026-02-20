@@ -68,50 +68,5 @@ impl ToggleState {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::{Arc, Mutex};
-
-    #[test]
-    fn uncontrolled_updates_internal_state() {
-        let mut state = use_toggle_state(ToggleStateOptions {
-            default_selected: Some(false),
-            ..Default::default()
-        });
-
-        assert!(!state.is_selected());
-        state.set_selected(true);
-        assert!(state.is_selected());
-    }
-
-    #[test]
-    fn read_only_does_not_change() {
-        let mut state = use_toggle_state(ToggleStateOptions {
-            default_selected: Some(false),
-            is_read_only: true,
-            ..Default::default()
-        });
-
-        state.toggle();
-        assert!(!state.is_selected());
-    }
-
-    #[test]
-    fn controlled_calls_on_change_but_does_not_update_internal() {
-        let called: Arc<Mutex<Option<bool>>> = Arc::new(Mutex::new(None));
-        let called2 = Arc::clone(&called);
-
-        let mut state = use_toggle_state(ToggleStateOptions {
-            is_selected: Some(false),
-            on_change: Some(Arc::new(move |v| *called2.lock().unwrap() = Some(v))),
-            ..Default::default()
-        });
-
-        state.set_selected(true);
-        assert_eq!(*called.lock().unwrap(), Some(true));
-        assert!(!state.is_selected());
-
-        state.sync_controlled(Some(true));
-        assert!(state.is_selected());
-    }
-}
+#[path = "test/toggle.rs"]
+mod tests;

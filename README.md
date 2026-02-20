@@ -33,6 +33,13 @@ These scripts:
 - unset `NO_COLOR` (Trunk treats it as a boolean env var)
 - force `RUSTFLAGS="--cfg erase_components"` (prevents Tachys tuple blowups in WASM)
 - check `wasm32-unknown-unknown` + `wasm-bindgen` are installed
+- auto-patch `trunk` once so browser `Build failure` overlays include cargo stderr details
+
+To skip the auto-patch step:
+
+```bash
+TRUNK_PATCH_ERROR_DETAILS=0 ./scripts/dev-docs-app.sh
+```
 
 ## Smoke checks (blank-screen guard)
 

@@ -1,0 +1,16 @@
+[package]
+name = "ui-form-field"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/mod.rs"
+
+[features]
+default = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-checkbox = { path = "../checkbox" }
+ui-headless = { path = "../../crates/ui-headless" }

@@ -1,0 +1,20 @@
+[package]
+name = "ui-drop-zone"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/mod.rs"
+
+[features]
+default = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../../crates/ui-headless" }
+ui-motion = { path = "../../crates/ui-motion" }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["DataTransfer", "DragEvent", "File", "FileList", "HtmlInputElement", "ResizeObserver", "ResizeObserverEntry"] }

@@ -111,11 +111,11 @@ done
 
 echo "[platform] source guard: non-wasm action-bar files must not reference web_sys"
 for file in \
-  crates/ui-components/src/action_bar/mod.rs \
-  crates/ui-components/src/action_bar/i18n.rs \
-  crates/ui-components/src/action_bar/logic.rs \
-  crates/ui-components/src/action_bar/styles.rs \
-  crates/ui-components/src/action_bar/view.rs
+  components/action-bar/src/mod.rs \
+  components/action-bar/src/i18n.rs \
+  components/action-bar/src/logic.rs \
+  components/action-bar/src/styles.rs \
+  components/action-bar/src/view.rs
 do
   if rg -n "web_sys" "$file" >/dev/null; then
     echo "[platform] forbidden web_sys reference in non-wasm path file: $file" >&2
@@ -125,14 +125,14 @@ done
 
 echo "[platform] source guard: non-wasm tag files must not reference web_sys"
 for file in \
-  crates/ui-components/src/tag/mod.rs \
-  crates/ui-components/src/tag/logic.rs \
-  crates/ui-components/src/tag/styles.rs \
-  crates/ui-components/src/tag/view.rs \
-  crates/ui-components/src/tag/group/mod.rs \
-  crates/ui-components/src/tag/group/logic.rs \
-  crates/ui-components/src/tag/group/styles.rs \
-  crates/ui-components/src/tag/group/view.rs
+  components/tag/src/mod.rs \
+  components/tag/src/logic.rs \
+  components/tag/src/styles.rs \
+  components/tag/src/view.rs \
+  components/tag/src/group/mod.rs \
+  components/tag/src/group/logic.rs \
+  components/tag/src/group/styles.rs \
+  components/tag/src/group/view.rs
 do
   if rg -n "web_sys" "$file" >/dev/null; then
     echo "[platform] forbidden web_sys reference in non-wasm path file: $file" >&2
@@ -156,10 +156,10 @@ done
 
 echo "[platform] source guard: non-wasm textarea files must not reference web_sys"
 for file in \
-  crates/ui-components/src/text_input/textarea/mod.rs \
-  crates/ui-components/src/text_input/textarea/logic.rs \
-  crates/ui-components/src/text_input/textarea/styles.rs \
-  crates/ui-components/src/text_input/textarea/view.rs
+  components/text-input/src/textarea/mod.rs \
+  components/text-input/src/textarea/logic.rs \
+  components/text-input/src/textarea/styles.rs \
+  components/text-input/src/textarea/view.rs
 do
   if rg -n "web_sys" "$file" >/dev/null; then
     echo "[platform] forbidden web_sys reference in non-wasm path file: $file" >&2
@@ -169,11 +169,11 @@ done
 
 echo "[platform] source guard: non-wasm time-field files must not reference web_sys"
 for file in \
-  crates/ui-components/src/text_input/time_field/mod.rs \
-  crates/ui-components/src/text_input/time_field/i18n.rs \
-  crates/ui-components/src/text_input/time_field/logic.rs \
-  crates/ui-components/src/text_input/time_field/styles.rs \
-  crates/ui-components/src/text_input/time_field/view.rs
+  components/text-input/src/time_field/mod.rs \
+  components/text-input/src/time_field/i18n.rs \
+  components/text-input/src/time_field/logic.rs \
+  components/text-input/src/time_field/styles.rs \
+  components/text-input/src/time_field/view.rs
 do
   if rg -n "web_sys" "$file" >/dev/null; then
     echo "[platform] forbidden web_sys reference in non-wasm path file: $file" >&2
@@ -206,34 +206,34 @@ if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' crates/ui-components/src/but
 fi
 
 echo "[platform] source guard: action-bar motion must keep explicit wasm/non-wasm branches"
-if ! rg -n -F '#[cfg(target_arch = "wasm32")]' crates/ui-components/src/action_bar/motion.rs >/dev/null; then
+if ! rg -n -F '#[cfg(target_arch = "wasm32")]' components/action-bar/src/motion.rs >/dev/null; then
   echo "[platform] missing wasm cfg branch in action-bar motion" >&2
   exit 1
 fi
 
-if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' crates/ui-components/src/action_bar/motion.rs >/dev/null; then
+if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' components/action-bar/src/motion.rs >/dev/null; then
   echo "[platform] missing non-wasm cfg branch in action-bar motion" >&2
   exit 1
 fi
 
 echo "[platform] source guard: textarea motion must keep explicit wasm/non-wasm branches"
-if ! rg -n -F '#[cfg(target_arch = "wasm32")]' crates/ui-components/src/text_input/textarea/motion.rs >/dev/null; then
+if ! rg -n -F '#[cfg(target_arch = "wasm32")]' components/text-input/src/textarea/motion.rs >/dev/null; then
   echo "[platform] missing wasm cfg branch in textarea motion" >&2
   exit 1
 fi
 
-if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' crates/ui-components/src/text_input/textarea/motion.rs >/dev/null; then
+if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' components/text-input/src/textarea/motion.rs >/dev/null; then
   echo "[platform] missing non-wasm cfg branch in textarea motion" >&2
   exit 1
 fi
 
 echo "[platform] source guard: time-field motion must keep explicit wasm/non-wasm branches"
-if ! rg -n -F '#[cfg(target_arch = "wasm32")]' crates/ui-components/src/text_input/time_field/motion.rs >/dev/null; then
+if ! rg -n -F '#[cfg(target_arch = "wasm32")]' components/text-input/src/time_field/motion.rs >/dev/null; then
   echo "[platform] missing wasm cfg branch in time-field motion" >&2
   exit 1
 fi
 
-if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' crates/ui-components/src/text_input/time_field/motion.rs >/dev/null; then
+if ! rg -n -F '#[cfg(not(target_arch = "wasm32"))]' components/text-input/src/time_field/motion.rs >/dev/null; then
   echo "[platform] missing non-wasm cfg branch in time-field motion" >&2
   exit 1
 fi

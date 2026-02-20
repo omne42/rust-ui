@@ -32,7 +32,6 @@ pub mod modal;
 pub mod modality;
 pub mod number_field;
 pub mod overlay_stack;
-pub mod perf;
 pub mod popover_position;
 pub mod presence;
 pub mod press;
@@ -146,7 +145,6 @@ pub use number_field::{
 pub use overlay_stack::{
     OverlayRegistration, provide_overlay_stack, use_overlay_stack, use_overlay_stack_registration,
 };
-pub use perf::{UiPerfBudget, UiPerfProbe};
 pub use popover_position::{
     PopoverPlacement, PopoverPositionOptions, PopoverPositionState, use_popover_position,
 };

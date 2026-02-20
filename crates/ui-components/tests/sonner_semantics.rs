@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn sonner_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sonner/mod.rs");
+    let source = load_source("../../components/toast/src/sonner/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view", "pub mod motion"] {
         assert!(
@@ -21,7 +49,7 @@ fn sonner_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sonner_is_publicly_exported_from_module_and_crate_root() {
-    let sonner_mod = load_source("src/sonner/mod.rs");
+    let sonner_mod = load_source("../../components/toast/src/sonner/mod.rs");
     let crate_root = load_source("src/lib.rs");
 
     assert!(
@@ -40,8 +68,8 @@ fn sonner_is_publicly_exported_from_module_and_crate_root() {
 
 #[test]
 fn sonner_api_naming_contract_matches_overlay_family_without_alias_drift() {
-    let sonner_view = load_source("src/sonner/view.rs");
-    let toast_view = load_source("src/toast/view.rs");
+    let sonner_view = load_source("../../components/toast/src/sonner/view.rs");
+    let toast_view = load_source("../../components/toast/src/toast/view.rs");
 
     for needle in [
         "#[prop(optional, default = logic::DEFAULT_PORTAL)] portal: bool",
@@ -84,7 +112,7 @@ fn sonner_api_naming_contract_matches_overlay_family_without_alias_drift() {
 
 #[test]
 fn sonner_has_no_controllable_state_axis_and_no_half_controlled_api() {
-    let source = load_source("src/sonner/view.rs");
+    let source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "#[prop(optional)] position: SonnerPosition",
@@ -125,7 +153,7 @@ fn sonner_has_no_controllable_state_axis_and_no_half_controlled_api() {
 
 #[test]
 fn sonner_module_exposes_slot_and_part_state_contracts() {
-    let mod_source = load_source("src/sonner/mod.rs");
+    let mod_source = load_source("../../components/toast/src/sonner/mod.rs");
     let primitive_source = load_source("../ui-state-primitives/src/sonner.rs");
 
     for needle in [
@@ -159,7 +187,7 @@ fn sonner_module_exposes_slot_and_part_state_contracts() {
 
 #[test]
 fn sonner_view_uses_logic_state_contracts() {
-    let source = load_source("src/sonner/view.rs");
+    let source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "use ui_headless::{A11yDirection, region_attrs};",
@@ -217,7 +245,7 @@ fn sonner_view_uses_logic_state_contracts() {
 
 #[test]
 fn sonner_state_markers_are_closed_sets_and_selector_friendly() {
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
     let primitive_source = load_source("../ui-state-primitives/src/sonner.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_sonner_contract.spec.mjs");
 
@@ -300,7 +328,7 @@ fn sonner_state_markers_are_closed_sets_and_selector_friendly() {
 
 #[test]
 fn sonner_mounts_headless_region_a11y_contract_in_view() {
-    let source = load_source("src/sonner/view.rs");
+    let source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "use ui_headless::{A11yDirection, region_attrs};",
@@ -326,9 +354,9 @@ fn sonner_mounts_headless_region_a11y_contract_in_view() {
 
 #[test]
 fn sonner_a11y_i18n_contract_uses_headless_and_no_view_text_hardcode() {
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
     let headless_a11y = load_source("../../crates/ui-headless/src/a11y.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
 
@@ -370,8 +398,8 @@ fn sonner_a11y_i18n_contract_uses_headless_and_no_view_text_hardcode() {
 
 #[test]
 fn sonner_a11y_label_source_priority_and_locale_passthrough_are_stable() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/sonner.rs");
     let headless_a11y = load_source("../../crates/ui-headless/src/a11y.rs");
 
@@ -416,7 +444,7 @@ fn sonner_a11y_label_source_priority_and_locale_passthrough_are_stable() {
 
 #[test]
 fn sonner_view_tracks_store_source_resolution() {
-    let source = load_source("src/sonner/view.rs");
+    let source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "if let Some(provided_store) = store",
@@ -436,7 +464,7 @@ fn sonner_view_tracks_store_source_resolution() {
 
 #[test]
 fn sonner_composes_toast_viewport_and_forwards_stateful_props() {
-    let source = load_source("src/sonner/view.rs");
+    let source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "<ToastViewport",
@@ -455,8 +483,8 @@ fn sonner_composes_toast_viewport_and_forwards_stateful_props() {
 
 #[test]
 fn sonner_delegates_interaction_semantics_to_toast_headless_layer() {
-    let sonner_view = load_source("src/sonner/view.rs");
-    let toast_view = load_source("src/toast/view.rs");
+    let sonner_view = load_source("../../components/toast/src/sonner/view.rs");
+    let toast_view = load_source("../../components/toast/src/toast/view.rs");
 
     for needle in ["<ToastViewport", "store=store", "motion=motion"] {
         assert!(
@@ -493,7 +521,7 @@ fn sonner_delegates_interaction_semantics_to_toast_headless_layer() {
 
 #[test]
 fn sonner_logic_models_positions_queue_and_part_state() {
-    let source = load_source("src/sonner/logic.rs");
+    let source = load_source("../../components/toast/src/sonner/logic.rs");
 
     for needle in [
         "pub use ui_state_primitives::sonner::{",
@@ -518,8 +546,8 @@ fn sonner_logic_models_positions_queue_and_part_state() {
 
 #[test]
 fn sonner_default_values_have_single_logic_source() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
 
     assert!(
         view_source.contains("logic::normalize_props(logic::SonnerNormalizeInput {")
@@ -572,9 +600,9 @@ fn sonner_default_values_have_single_logic_source() {
 
 #[test]
 fn sonner_state_normalization_is_centralized_in_logic() {
-    let logic_source = load_source("src/sonner/logic.rs");
-    let view_source = load_source("src/sonner/view.rs");
-    let styles_source = load_source("src/sonner/styles.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
 
     for needle in [
         "pub struct SonnerNormalizeInput",
@@ -637,8 +665,8 @@ fn sonner_state_normalization_is_centralized_in_logic() {
 
 #[test]
 fn sonner_discrete_state_axes_are_enum_typed() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/sonner.rs");
 
     for needle in [
@@ -690,7 +718,7 @@ fn sonner_discrete_state_axes_are_enum_typed() {
 
 #[test]
 fn sonner_state_primitives_live_in_ui_state_primitives() {
-    let logic_source = load_source("src/sonner/logic.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
 
     for needle in [
         "use ui_state_primitives::sonner as sonner_state;",
@@ -708,8 +736,8 @@ fn sonner_state_primitives_live_in_ui_state_primitives() {
 
 #[test]
 fn sonner_state_primitive_source_boundary_is_enforced() {
-    let logic_source = load_source("src/sonner/logic.rs");
-    let view_source = load_source("src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "use ui_state_primitives::sonner as sonner_state;",
@@ -768,8 +796,8 @@ fn sonner_state_primitive_source_boundary_is_enforced() {
 
 #[test]
 fn sonner_has_no_async_interaction_protocol_surface() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
 
     for forbidden in [
         "is_loading",
@@ -788,7 +816,7 @@ fn sonner_has_no_async_interaction_protocol_surface() {
 
 #[test]
 fn sonner_async_na_reason_is_explicit_in_checklist() {
-    let checklist_source = load_source("src/sonner/check2.md");
+    let checklist_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "- [x] 如果无异步相关，直接打勾。异步交互语义统一：`is_loading`、error/retry、disabled、`aria-busy` 映射一致；优先复用统一 async action 原语（如 `use_async_action`），禁止每组件自定义一套加载/错误协议。",
@@ -805,13 +833,13 @@ fn sonner_async_na_reason_is_explicit_in_checklist() {
 
 #[test]
 fn sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_boundaries() {
-    let checklist_source = load_source("src/sonner/check2.md");
+    let checklist_source = load_source("../../components/toast/src/sonner/check2.md");
     let cargo_source = load_source("Cargo.toml");
-    let sonner_mod_source = load_source("src/sonner/mod.rs");
-    let sonner_logic_source = load_source("src/sonner/logic.rs");
-    let sonner_motion_source = load_source("src/sonner/motion.rs");
-    let sonner_view_source = load_source("src/sonner/view.rs");
-    let toast_view_source = load_source("src/toast/view.rs");
+    let sonner_mod_source = load_source("../../components/toast/src/sonner/mod.rs");
+    let sonner_logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let sonner_motion_source = load_source("../../components/toast/src/sonner/motion.rs");
+    let sonner_view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let toast_view_source = load_source("../../components/toast/src/toast/view.rs");
     let headless_controllable_source =
         load_source("../../crates/ui-headless/src/controllable_state.rs");
     let headless_trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -828,7 +856,7 @@ fn sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_
     }
 
     assert!(
-        cargo_source.contains("component-sonner = []"),
+        cargo_source.contains("component-sonner = [\"dep:ui-toast\"]"),
         "component-sonner feature should stay dependency-light for engineering boundary."
     );
 
@@ -887,7 +915,7 @@ fn sonner_engineering_capability_contract_keeps_serde_tracing_and_async_runtime_
 fn sonner_api_dx_exposes_hello_world_without_manual_state_wiring() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let readme_source = load_source("src/sonner/README.md");
+    let readme_source = load_source("../../components/toast/src/sonner/README.md");
 
     for needle in [
         "let hello_world_code = Signal::derive(move || r#\"<Sonner />\"#.to_string());",
@@ -907,8 +935,8 @@ fn sonner_api_dx_exposes_hello_world_without_manual_state_wiring() {
 fn sonner_dx_hello_world_is_short_and_requires_no_state_wiring() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let readme_source = load_source("src/sonner/README.md");
-    let view_source = load_source("src/sonner/view.rs");
+    let readme_source = load_source("../../components/toast/src/sonner/README.md");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     let marker = "let hello_world_code = Signal::derive(move || r#\"";
     let start = docs_source
@@ -977,7 +1005,7 @@ fn sonner_dx_hello_world_is_short_and_requires_no_state_wiring() {
 
 #[test]
 fn sonner_non_composite_api_avoids_parallel_array_conventions() {
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
 
@@ -996,12 +1024,12 @@ fn sonner_non_composite_api_avoids_parallel_array_conventions() {
 
 #[test]
 fn sonner_non_composite_api_stays_explicit_without_itemspec_sugar() {
-    let view_source = load_source("src/sonner/view.rs");
-    let mod_source = load_source("src/sonner/mod.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let mod_source = load_source("../../components/toast/src/sonner/mod.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let readme_source = load_source("src/sonner/README.md");
-    let checklist_source = load_source("src/sonner/check2.md");
+    let readme_source = load_source("../../components/toast/src/sonner/README.md");
+    let checklist_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for forbidden in [
         "items:",
@@ -1046,7 +1074,7 @@ fn sonner_non_composite_api_stays_explicit_without_itemspec_sugar() {
 
 #[test]
 fn sonner_styles_include_state_and_source_marker_contracts() {
-    let source = load_source("src/sonner/styles.rs");
+    let source = load_source("../../components/toast/src/sonner/styles.rs");
 
     for needle in [
         "var(--ui-overlay-viewport-inset",
@@ -1102,8 +1130,8 @@ fn sonner_styles_include_state_and_source_marker_contracts() {
 
 #[test]
 fn sonner_styles_depend_on_semantic_state_not_dom_structure_guessing() {
-    let styles_source = load_source("src/sonner/styles.rs");
-    let view_source = load_source("src/sonner/view.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         ".ui-sonner[data-state=\"inline\"]",
@@ -1146,8 +1174,8 @@ fn sonner_styles_depend_on_semantic_state_not_dom_structure_guessing() {
 fn sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only() {
     let semantics_source = load_source("tests/sonner_semantics.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_sonner_contract.spec.mjs");
-    let view_source = load_source("src/sonner/view.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "fn sonner_view_uses_logic_state_contracts()",
@@ -1256,8 +1284,8 @@ fn sonner_semantic_test_matrix_covers_contract_paths_not_snapshot_only() {
 
 #[test]
 fn sonner_motion_contract_is_delegated_without_local_driver_reimplementation() {
-    let motion_source = load_source("src/sonner/motion.rs");
-    let view_source = load_source("src/sonner/view.rs");
+    let motion_source = load_source("../../components/toast/src/sonner/motion.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: crate::toast::ToastMotion) -> crate::toast::ToastMotion",
@@ -1284,12 +1312,12 @@ fn sonner_motion_contract_is_delegated_without_local_driver_reimplementation() {
 
 #[test]
 fn sonner_component_files_respect_layered_responsibilities() {
-    let mod_source = load_source("src/sonner/mod.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
-    let view_source = load_source("src/sonner/view.rs");
-    let styles_source = load_source("src/sonner/styles.rs");
-    let motion_source = load_source("src/sonner/motion.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let mod_source = load_source("../../components/toast/src/sonner/mod.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
+    let motion_source = load_source("../../components/toast/src/sonner/motion.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in ["mod logic;", "mod motion;", "pub mod styles;", "mod view;"] {
         assert!(
@@ -1299,11 +1327,11 @@ fn sonner_component_files_respect_layered_responsibilities() {
     }
 
     for required in [
-        "src/sonner/mod.rs",
-        "src/sonner/logic.rs",
-        "src/sonner/styles.rs",
-        "src/sonner/view.rs",
-        "src/sonner/motion.rs",
+        "../../components/toast/src/sonner/mod.rs",
+        "../../components/toast/src/sonner/logic.rs",
+        "../../components/toast/src/sonner/styles.rs",
+        "../../components/toast/src/sonner/view.rs",
+        "../../components/toast/src/sonner/motion.rs",
     ] {
         assert!(
             Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -1313,7 +1341,10 @@ fn sonner_component_files_respect_layered_responsibilities() {
         );
     }
 
-    for absent in ["src/sonner/render.rs", "src/sonner/spec.rs"] {
+    for absent in [
+        "../../components/toast/src/sonner/render.rs",
+        "../../components/toast/src/sonner/spec.rs",
+    ] {
         assert!(
             !Path::new(env!("CARGO_MANIFEST_DIR")).join(absent).exists(),
             "Sonner should avoid non-standard file drift: `{absent}`."
@@ -1364,11 +1395,11 @@ fn sonner_component_files_respect_layered_responsibilities() {
 
 #[test]
 fn sonner_component_file_responsibilities_are_strictly_scoped() {
-    let mod_source = load_source("src/sonner/mod.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
-    let styles_source = load_source("src/sonner/styles.rs");
-    let view_source = load_source("src/sonner/view.rs");
-    let motion_source = load_source("src/sonner/motion.rs");
+    let mod_source = load_source("../../components/toast/src/sonner/mod.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let motion_source = load_source("../../components/toast/src/sonner/motion.rs");
 
     for needle in [
         "mod logic;",
@@ -1495,11 +1526,11 @@ fn sonner_component_file_responsibilities_are_strictly_scoped() {
 
 #[test]
 fn sonner_ui_components_layer_assembles_four_layers_without_public_dom_leakage() {
-    let mod_source = load_source("src/sonner/mod.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
-    let view_source = load_source("src/sonner/view.rs");
-    let styles_source = load_source("src/sonner/styles.rs");
-    let motion_source = load_source("src/sonner/motion.rs");
+    let mod_source = load_source("../../components/toast/src/sonner/mod.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
+    let motion_source = load_source("../../components/toast/src/sonner/motion.rs");
     let lib_source = load_source("src/lib.rs");
 
     for needle in [
@@ -1537,7 +1568,7 @@ fn sonner_ui_components_layer_assembles_four_layers_without_public_dom_leakage()
 
 #[test]
 fn sonner_view_macro_complexity_stays_bounded_and_semantically_flat() {
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     assert_eq!(
         view_source.matches("view! {").count(),
@@ -1586,7 +1617,7 @@ fn sonner_view_macro_complexity_stays_bounded_and_semantically_flat() {
 
 #[test]
 fn sonner_view_functional_split_prefers_no_extra_local_components_for_simple_layout() {
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     assert_eq!(
         view_source.matches("#[component]").count(),
@@ -1623,12 +1654,12 @@ fn sonner_view_functional_split_prefers_no_extra_local_components_for_simple_lay
 
 #[test]
 fn sonner_does_not_define_spec_module_for_simple_host_component() {
-    let mod_source = load_source("src/sonner/mod.rs");
+    let mod_source = load_source("../../components/toast/src/sonner/mod.rs");
 
     assert!(
         !mod_source.contains("mod spec;")
             && !Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("src/sonner/spec.rs")
+                .join("../../components/toast/src/sonner/spec.rs")
                 .exists(),
         "Sonner should not define spec.rs for simple host contract."
     );
@@ -1636,8 +1667,8 @@ fn sonner_does_not_define_spec_module_for_simple_host_component() {
 
 #[test]
 fn sonner_spec_module_policy_stays_na_with_docs_in_check2_and_readme() {
-    let check2_source = load_source("src/sonner/check2.md");
-    let readme_source = load_source("src/sonner/README.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
+    let readme_source = load_source("../../components/toast/src/sonner/README.md");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
 
@@ -1687,7 +1718,7 @@ fn sonner_docs_app_interactive_playground_supports_props_state_preview_and_repea
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_sonner_contract.spec.mjs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "<Playground title=\"Hello World\" code_signal=hello_world_code>",
@@ -1743,8 +1774,8 @@ fn sonner_source_first_docs_are_copy_paste_ready_and_synced() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
-    let readme_source = load_source("src/sonner/README.md");
-    let check2_source = load_source("src/sonner/check2.md");
+    let readme_source = load_source("../../components/toast/src/sonner/README.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "const DEFAULT_PLAYGROUND_IMPORTS: &str = \"use leptos::prelude::*;\\nuse ui_components::*;\";",
@@ -1779,11 +1810,11 @@ fn sonner_source_first_docs_are_copy_paste_ready_and_synced() {
     for needle in [
         "## Source-first / Copy-Paste Ready",
         "apps/docs-app/src/playground.rs::compose_copy_ready_code",
-        "crates/ui-components/src/sonner/mod.rs",
-        "crates/ui-components/src/sonner/logic.rs",
-        "crates/ui-components/src/sonner/view.rs",
-        "crates/ui-components/src/sonner/styles.rs",
-        "crates/ui-components/src/sonner/motion.rs",
+        "components/toast/src/sonner/mod.rs",
+        "components/toast/src/sonner/logic.rs",
+        "components/toast/src/sonner/view.rs",
+        "components/toast/src/sonner/styles.rs",
+        "components/toast/src/sonner/motion.rs",
         "`component-sonner` 与 `component-toast`",
     ] {
         assert!(
@@ -1810,8 +1841,8 @@ fn sonner_heroui_benchmark_docs_and_component_docs_stay_synced() {
     let docs_registry_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let docs_page_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let readme_source = load_source("src/sonner/README.md");
-    let check2_source = load_source("src/sonner/check2.md");
+    let readme_source = load_source("../../components/toast/src/sonner/README.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "### Sonner 同步记录（2026-02-18）",
@@ -1870,11 +1901,11 @@ fn sonner_forbidden_antipatterns_are_blocked_by_layer_and_contract_guards() {
     let headless_a11y_source = load_source("../../crates/ui-headless/src/a11y.rs");
     let headless_controllable_source =
         load_source("../../crates/ui-headless/src/controllable_state.rs");
-    let sonner_logic_source = load_source("src/sonner/logic.rs");
-    let sonner_view_source = load_source("src/sonner/view.rs");
-    let sonner_mod_source = load_source("src/sonner/mod.rs");
-    let toaster_view_source = load_source("src/toaster/view.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let sonner_logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let sonner_view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let sonner_mod_source = load_source("../../components/toast/src/sonner/mod.rs");
+    let toaster_view_source = load_source("../../components/toaster/src/view.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for forbidden in [
         "web_sys::",
@@ -1990,7 +2021,7 @@ fn sonner_visual_desire_default_theme_baseline_is_wired_for_docs_and_e2e_regress
     let baseline_registry_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
     let baseline_e2e_source =
         load_source("../../e2e/tests/docs_app_theme_visual_baseline.spec.mjs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "mod theme_visual_baseline;",
@@ -2047,8 +2078,8 @@ fn sonner_visual_desire_default_theme_baseline_is_wired_for_docs_and_e2e_regress
 fn sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults() {
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "pub(super) fn sonner() -> AnyView",
@@ -2089,10 +2120,10 @@ fn sonner_docs_examples_and_matrices_stay_synced_with_logic_defaults() {
 
 #[test]
 fn sonner_documentation_is_beginner_friendly_with_readme_or_equivalent_entry() {
-    let readme = load_source("src/sonner/README.md");
+    let readme = load_source("../../components/toast/src/sonner/README.md");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "## 先用起来（默认路径）",
@@ -2164,10 +2195,10 @@ fn sonner_css_is_aggregated() {
 
 #[test]
 fn sonner_token_first_static_style_contract_is_enforced() {
-    let styles_source = load_source("src/sonner/styles.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "pub const CSS: &str",
@@ -2230,11 +2261,11 @@ fn sonner_ui_components_fixed_entry_files_follow_layered_boundaries() {
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
     let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "#[cfg(feature = \"component-sonner\")]",
-        "pub mod sonner;",
+        "pub use ui_toast::sonner;",
         "pub use sonner::{Sonner, SonnerPosition};",
     ] {
         assert!(
@@ -2313,9 +2344,9 @@ fn sonner_ui_components_fixed_entry_files_follow_layered_boundaries() {
 
 #[test]
 fn sonner_agent_contract_schema_is_typed_traceable_and_whitelisted() {
-    let logic_source = load_source("src/sonner/logic.rs");
-    let view_source = load_source("src/sonner/view.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "pub enum SonnerAgentIntent",
@@ -2377,9 +2408,9 @@ fn sonner_agent_contract_schema_is_typed_traceable_and_whitelisted() {
 
 #[test]
 fn sonner_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_output_status() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "pub enum SonnerAgentStreamSupport {",
@@ -2446,10 +2477,10 @@ fn sonner_streaming_policy_is_optional_with_snapshot_fallback_and_explicit_outpu
 
 #[test]
 fn sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably() {
-    let view_source = load_source("src/sonner/view.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "#[prop(optional)] position: SonnerPosition",
@@ -2521,7 +2552,7 @@ fn sonner_snapshot_baseline_consumes_complete_configuration_and_renders_stably()
 #[test]
 fn sonner_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable() {
     let e2e_source = load_source("../../e2e/tests/docs_app_sonner_contract.spec.mjs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "body:not(:has(#boot))",
@@ -2573,7 +2604,7 @@ fn sonner_e2e_selectors_are_semantic_and_wasm_wait_strategy_is_stable() {
 #[test]
 fn sonner_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths() {
     let e2e_source = load_source("../../e2e/tests/docs_app_sonner_contract.spec.mjs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
         "docs-app sonner key flow is repeatable with semantic breakpoints",
@@ -2623,8 +2654,8 @@ fn sonner_e2e_repeatable_key_flow_covers_overlay_focus_keyboard_and_async_paths(
 
 #[test]
 fn sonner_static_fragments_are_constantized_or_absent_for_simple_host_layout() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
     let primitives_source = load_source("../../crates/ui-state-primitives/src/sonner.rs");
 
     for forbidden in [
@@ -2662,10 +2693,10 @@ fn sonner_static_fragments_are_constantized_or_absent_for_simple_host_layout() {
 
 #[test]
 fn sonner_inner_html_usage_is_absent_and_untrusted_html_paths_are_blocked() {
-    let view_source = load_source("src/sonner/view.rs");
-    let logic_source = load_source("src/sonner/logic.rs");
-    let motion_source = load_source("src/sonner/motion.rs");
-    let styles_source = load_source("src/sonner/styles.rs");
+    let view_source = load_source("../../components/toast/src/sonner/view.rs");
+    let logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let motion_source = load_source("../../components/toast/src/sonner/motion.rs");
+    let styles_source = load_source("../../components/toast/src/sonner/styles.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
 
@@ -2714,10 +2745,10 @@ fn sonner_inner_html_usage_is_absent_and_untrusted_html_paths_are_blocked() {
 fn sonner_wasm_debug_capability_reuses_global_trace_overlay_and_stays_feature_isolated() {
     let cargo_source = load_source("Cargo.toml");
     let crate_root_source = load_source("src/lib.rs");
-    let sonner_mod_source = load_source("src/sonner/mod.rs");
-    let sonner_logic_source = load_source("src/sonner/logic.rs");
-    let sonner_motion_source = load_source("src/sonner/motion.rs");
-    let sonner_view_source = load_source("src/sonner/view.rs");
+    let sonner_mod_source = load_source("../../components/toast/src/sonner/mod.rs");
+    let sonner_logic_source = load_source("../../components/toast/src/sonner/logic.rs");
+    let sonner_motion_source = load_source("../../components/toast/src/sonner/motion.rs");
+    let sonner_view_source = load_source("../../components/toast/src/sonner/view.rs");
     let docs_lib_source = load_source("../../apps/docs-app/src/lib.rs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let trace_source = load_source("../../crates/ui-headless/src/trace.rs");
@@ -2858,11 +2889,11 @@ fn sonner_tree_shaking_feature_gates_exist() {
     let css_source = load_source("src/css.rs");
 
     for needle in [
-        "component-sonner = []",
-        "component-toast = [\"component-close_button\"]",
-        "component-toaster = []",
+        "component-sonner = [\"dep:ui-toast\"]",
+        "component-toast = [\"component-close_button\", \"dep:ui-toast\"]",
+        "component-toaster = [\"dep:ui-toast\"]",
         "#[cfg(feature = \"component-sonner\")]",
-        "pub mod sonner;",
+        "pub use ui_toast::sonner;",
         "out.push_str(crate::sonner::styles::CSS);",
     ] {
         assert!(
@@ -2886,7 +2917,7 @@ fn sonner_tree_shaking_keeps_component_feature_and_css_boundaries() {
         "default = [\"inject-css\", \"all-components\"]",
         "all-components = [",
         "web-demo-components = [",
-        "component-sonner = []",
+        "component-sonner = [\"dep:ui-toast\"]",
         "\"component-sonner\"",
         "inject-css = []",
     ] {
@@ -2897,7 +2928,7 @@ fn sonner_tree_shaking_keeps_component_feature_and_css_boundaries() {
     }
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-sonner\")]\npub mod sonner;"),
+        lib_source.contains("#[cfg(feature = \"component-sonner\")]\npub use ui_toast::sonner;"),
         "lib.rs should feature-gate sonner module export for tree-shaking.",
     );
 
@@ -3000,7 +3031,7 @@ fn sonner_headless_web_ssr_mutex_compile_error_is_present() {
 
 #[test]
 fn sonner_motion_non_wasm_stub_exists() {
-    let toast_motion = load_source("src/toast/motion.rs");
+    let toast_motion = load_source("../../components/toast/src/toast/motion.rs");
 
     for needle in [
         "#[cfg(not(target_arch = \"wasm32\"))]",
@@ -3017,8 +3048,8 @@ fn sonner_motion_non_wasm_stub_exists() {
 
 #[test]
 fn sonner_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_split() {
-    let toast_motion = load_source("src/toast/motion.rs");
-    let sonner_view = load_source("src/sonner/view.rs");
+    let toast_motion = load_source("../../components/toast/src/toast/motion.rs");
+    let sonner_view = load_source("../../components/toast/src/sonner/view.rs");
 
     for needle in [
         "#[cfg(target_arch = \"wasm32\")]",
@@ -3061,13 +3092,13 @@ fn sonner_component_paths_cover_reduced_motion_ssr_and_wasm_without_semantic_spl
 fn sonner_performance_governance_contract_is_budgeted_repeatable_attributable_and_blocking() {
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
-    let perf_probe_source = load_source("../../crates/ui-headless/src/perf.rs");
+    let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let script_source = load_source("../../scripts/check-ui-components-performance.sh");
     let todo_source = load_source("../../docs/plan/TODO.md");
-    let check2_source = load_source("src/sonner/check2.md");
-    let sonner_view = load_source("src/sonner/view.rs");
-    let toast_motion = load_source("src/toast/motion.rs");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
+    let sonner_view = load_source("../../components/toast/src/sonner/view.rs");
+    let toast_motion = load_source("../../components/toast/src/toast/motion.rs");
 
     for needle in [
         "\"button\" => UiPerfBudget {",
@@ -3230,13 +3261,14 @@ fn sonner_dx_workbench_uses_interactive_playground_and_marks_persist_state_na() 
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let docs_source =
         load_source("../../apps/docs-app/src/pages/components/pages/overlays_extra.rs");
-    let check2_source = load_source("src/sonner/check2.md");
+    let check2_source = load_source("../../components/toast/src/sonner/check2.md");
 
     for needle in [
-        "let section_class = \"docs-card playground\";",
-        "<div class=\"playground__preview\" data-playground-scope=scope_id.clone()>",
+        "<div data-playground-scope=scope_id.clone()>",
+        "<Card class_name=\"playground__preview\".to_string()>",
         "<div class=\"playground__preview-stage\">{children()}</div>",
-        "<aside class=\"playground__panel playground__controls\" data-slot=\"playground-controls\">",
+        "<div data-slot=\"playground-controls\">",
+        "<Card class_name=\"playground__panel playground__controls\".to_string()>",
     ] {
         assert!(
             playground_source.contains(needle),

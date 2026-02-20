@@ -76,9 +76,8 @@ fn crate_component_names(relative_root: &str) -> BTreeSet<String> {
 fn workspace_component_names() -> BTreeSet<String> {
     let mut out = BTreeSet::new();
     for root in [
-        "../../crates/ui-components/src",
+        "../../components",
         "../../crates/ui-layout/src",
-        "../../components/accordion/src",
         "../../crates/ui-ai-runtime/src",
     ] {
         out.extend(crate_component_names(root));

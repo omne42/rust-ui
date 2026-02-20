@@ -12,8 +12,6 @@ fn push_components_css_emits_expected_layer_and_selectors() {
 
     let required_selectors = [
         (".ui-alert", ".ui-alert {"),
-        (".ui-alert-banner", ".ui-alert-banner {"),
-        (".ui-inline-alert", ".ui-inline-alert {"),
         (".ui-avatar", ".ui-avatar {"),
         (".ui-avatar-group", ".ui-avatar-group {"),
         (".ui-button", ".ui-button {"),
@@ -82,7 +80,7 @@ fn push_components_css_emits_expected_layer_and_selectors() {
         (".ui-link", ".ui-link {"),
         (".ui-legend", ".ui-legend {"),
         (".ui-link-button", ".ui-link-button"),
-        (".ui-breadcrumbs", ".ui-breadcrumbs {"),
+        (".ui-breadcrumb", ".ui-breadcrumb {"),
         (".ui-code", ".ui-code {"),
         (".ui-code-block", ".ui-code-block {"),
         (".ui-snippet", ".ui-snippet {"),

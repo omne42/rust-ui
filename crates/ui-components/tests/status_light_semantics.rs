@@ -1,7 +1,24 @@
 use std::fs;
 use std::path::Path;
 
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
 fn load_source(rel_path: &str) -> String {
+    if let Some(component_rel_path) = rel_path.strip_prefix("src/status_light/") {
+        let path = workspace_dir()
+            .join("components/status-light/src")
+            .join(component_rel_path);
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
@@ -134,7 +151,7 @@ fn status_light_component_layer_keeps_assembly_boundaries_and_public_api() {
 
     for required in [
         "#[cfg(feature = \"component-status_light\")]",
-        "pub mod status_light;",
+        "pub use ui_status_light as status_light;",
         "pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};",
     ] {
         assert!(
@@ -734,7 +751,7 @@ fn status_light_respects_ui_components_entrypoint_contracts() {
 
     for required in [
         "#[cfg(feature = \"component-status_light\")]",
-        "pub mod status_light;",
+        "pub use ui_status_light as status_light;",
         "pub use status_light::{StatusLight, StatusLightRole, StatusLightVariant};",
     ] {
         assert!(
@@ -1347,7 +1364,7 @@ fn status_light_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
     let playground_source = load_source("../../apps/docs-app/src/playground.rs");
     let component_shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let status_light_docs = load_status_light_docs_section();
-    let code_block_view_source = load_source("src/code_block/view.rs");
+    let code_block_view_source = load_source("../../components/code-block/src/view.rs");
     let e2e_source = load_source("../../e2e/tests/docs_app_status_light_contract.spec.mjs");
 
     for needle in [
@@ -1392,8 +1409,7 @@ fn status_light_docs_are_copy_paste_ready_with_imports_copy_button_and_sync() {
         );
     }
 
-    let source_path_marker =
-        "test_source_path=\"crates/ui-components/src/status_light/view.rs\".to_string()";
+    let source_path_marker = "test_source_path=\"components/status-light/src/view.rs\".to_string()";
     let source_path_count = status_light_docs.matches(source_path_marker).count();
     assert!(
         source_path_count >= 4,

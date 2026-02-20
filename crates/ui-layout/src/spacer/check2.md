@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`spacer_semantics.rs` 持续断言 `role/aria/data-*` 契约与状态来源，不依赖视觉快照作为主证据。回归：`crates/ui-layout/tests/spacer_semantics.rs::spacer_semantics_tests_prioritize_contract_assertions`）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`spacer_semantics.rs` 持续断言 `role/aria/data-*` 契约与状态来源，不依赖视觉快照作为主证据。回归：`crates/ui-layout/tests/spacer_semantics.rs::spacer_semantics_checks_prioritize_contract_assertions`）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -240,7 +240,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`spacer_semantics.rs` 已覆盖 `role/aria/data-*`、状态来源、平台 guard、文档同步等契约断言。回归：`crates/ui-layout/tests/spacer_semantics.rs::spacer_semantics_tests_prioritize_contract_assertions`）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`spacer_semantics.rs` 已覆盖 `role/aria/data-*`、状态来源、平台 guard、文档同步等契约断言。回归：`crates/ui-layout/tests/spacer_semantics.rs::spacer_semantics_checks_prioritize_contract_assertions`）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

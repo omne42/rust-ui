@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn kbd_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/kbd/mod.rs");
+    let source = load_source("../../components/kbd/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +49,8 @@ fn kbd_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn kbd_uses_logic_state_model() {
-    let view_source = load_source("src/kbd/view.rs");
-    let logic_source = load_source("src/kbd/logic.rs");
+    let view_source = load_source("../../components/kbd/src/view.rs");
+    let logic_source = load_source("../../components/kbd/src/logic.rs");
 
     for needle in [
         "pub struct KbdStateInput",
@@ -52,7 +80,7 @@ fn kbd_uses_logic_state_model() {
 
 #[test]
 fn kbd_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/kbd/view.rs");
+    let source = load_source("../../components/kbd/src/view.rs");
 
     for attr in [
         "data-slot=\"kbd\"",
@@ -72,7 +100,7 @@ fn kbd_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn kbd_styles_include_size_and_state_markers() {
-    let source = load_source("src/kbd/styles.rs");
+    let source = load_source("../../components/kbd/src/styles.rs");
 
     for selector in [
         ".ui-kbd--size-sm",
@@ -138,7 +166,7 @@ fn kbd_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn kbd_check2_keeps_kbd_scope_and_na_rationale_explicit() {
-    let source = load_source("src/kbd/check2.md");
+    let source = load_source("../../components/kbd/src/check2.md");
 
     for needle in [
         "已核验（kbd，2026-02-18）：本组件是静态按键标签展示",
@@ -154,7 +182,7 @@ fn kbd_check2_keeps_kbd_scope_and_na_rationale_explicit() {
 
 #[test]
 fn kbd_check2_marks_semantics_streaming_and_docs_contract_complete() {
-    let source = load_source("src/kbd/check2.md");
+    let source = load_source("../../components/kbd/src/check2.md");
 
     for needle in [
         "- [x] 语义标记统一升级为 Agent Contract（Schema 化），让 Agent 不依赖 DOM 猜测理解组件状态与意图。",
@@ -175,7 +203,7 @@ fn kbd_check2_marks_semantics_streaming_and_docs_contract_complete() {
 
 #[test]
 fn kbd_check2_marks_final_merge_gates_complete() {
-    let source = load_source("src/kbd/check2.md");
+    let source = load_source("../../components/kbd/src/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -202,7 +230,7 @@ fn kbd_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn kbd_check2_has_no_remaining_unchecked_items() {
-    let source = load_source("src/kbd/check2.md");
+    let source = load_source("../../components/kbd/src/check2.md");
 
     assert!(
         !source.contains("- [ ]"),
@@ -212,7 +240,7 @@ fn kbd_check2_has_no_remaining_unchecked_items() {
 
 #[test]
 fn kbd_readme_covers_display_config_code_css_test_and_comparisons() {
-    let source = load_source("src/kbd/README.md");
+    let source = load_source("../../components/kbd/src/README.md");
 
     for needle in [
         "## Playground 展示区（Display / Config / Code / CSS Test）",

@@ -1,9 +1,26 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+
+    if let Some(suffix) = rel_path.strip_prefix("src/bottom_sheet/") {
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        return workspace_dir
+            .join("components/bottom-sheet/src")
+            .join(suffix);
+    }
+
+    manifest_dir.join(rel_path)
+}
+
+fn load_source(rel_path: &str) -> String {
+    let path = resolve_path(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -154,8 +171,9 @@ fn bottom_sheet_close_button_contracts_are_preserved() {
 }
 
 #[test]
-fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_tests() {
+fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_checks() {
     let source = load_source("src/bottom_sheet/motion.rs");
+    let test_source = load_source("../../components/bottom-sheet/test/motion.rs");
 
     for needle in [
         "pub struct BottomSheetMotion",
@@ -164,7 +182,7 @@ fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_tests() {
         "fn supports_custom_sheet_motion_contract()",
     ] {
         assert!(
-            source.contains(needle),
+            source.contains(needle) || test_source.contains(needle),
             "BottomSheet motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
@@ -173,6 +191,7 @@ fn bottom_sheet_motion_contract_exposes_default_and_custom_sheet_tests() {
 #[test]
 fn bottom_sheet_motion_sanitizes_custom_contract_values() {
     let motion_source = load_source("src/bottom_sheet/motion.rs");
+    let motion_test_source = load_source("../../components/bottom-sheet/test/motion.rs");
     let view_source = load_source("src/bottom_sheet/view.rs");
 
     for needle in [
@@ -181,7 +200,7 @@ fn bottom_sheet_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_delegates_to_sheet_contract()",
     ] {
         assert!(
-            motion_source.contains(needle),
+            motion_source.contains(needle) || motion_test_source.contains(needle),
             "BottomSheet motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }

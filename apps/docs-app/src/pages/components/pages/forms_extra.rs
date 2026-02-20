@@ -186,7 +186,7 @@ pub(super) fn error_message() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/error_message/styles.rs */\n{}",
+            "/* components/error-message/src/styles.rs */\n{}",
             ui_components::error_message::styles::CSS
         )
     });
@@ -292,7 +292,7 @@ pub(super) fn error_message() -> AnyView {
                 description="Use settings to mutate one instance, then inspect copy-ready code and scoped CSS test panel."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/error_message/styles.rs".to_string()
+                test_source_path="components/error-message/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || {
                     view! {
@@ -469,8 +469,8 @@ pub(super) fn description() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_form/description/styles.rs */\n{}",
-            ui_components::field_form::description::styles::CSS
+            "/* components/description/src/styles.rs */\n{}",
+            ui_components::description::styles::CSS
         )
     });
 
@@ -542,7 +542,7 @@ pub(super) fn description() -> AnyView {
                 description="Interactive display/config/code/css-test playground for Description state contracts."
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/field_form/description/styles.rs".to_string()
+                test_source_path="components/description/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1167,7 +1167,7 @@ pub(super) fn label() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/label/styles.rs */\n{}",
+            "/* components/label/src/styles.rs */\n{}",
             ui_components::label::styles::CSS
         )
     });
@@ -1263,7 +1263,7 @@ pub(super) fn label() -> AnyView {
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/label/styles.rs".to_string()
+                test_source_path="components/label/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1895,7 +1895,7 @@ pub(super) fn help_text() -> AnyView {
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/field_form/help_text/styles.rs */\n{}",
+            "/* components/help-text/src/styles.rs */\n{}",
             ui_components::field_form::help_text::styles::CSS
         )
     });
@@ -1954,7 +1954,7 @@ pub(super) fn help_text() -> AnyView {
                 title="Interactive Playground"
                 code_signal=interactive_code
                 test_css_source=test_css_source
-                test_source_path="crates/ui-components/src/field_form/help_text/styles.rs".to_string()
+                test_source_path="components/help-text/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 description="展示区 + Config 区 + Code 区 + CSS Test 区；支持 description/error/disabled/tone 的多场景对比。"
                 controls=move || view! {
@@ -2280,11 +2280,11 @@ let on_fine_value_change = Callback::new(move |next: f64| set_fine_value_raw.set
                     class_name="docs-slider-source-copy".to_string()
                 />
                 <ul data-slot="slider-source-paths">
-                    <li><code>"crates/ui-components/src/slider/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/slider/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/slider/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/slider/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/slider/motion.rs"</code></li>
+                    <li><code>"components/slider/src/mod.rs"</code></li>
+                    <li><code>"components/slider/src/logic.rs"</code></li>
+                    <li><code>"components/slider/src/view.rs"</code></li>
+                    <li><code>"components/slider/src/styles.rs"</code></li>
+                    <li><code>"components/slider/src/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="slider-source-prerequisites">
                     <li><code>"component-slider"</code></li>
@@ -2346,7 +2346,7 @@ let (strong_tone, set_strong_tone) = signal(false);
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/calendar/styles.rs */\n{}",
+            "/* components/calendar/src/styles.rs */\n{}",
             ui_components::calendar::styles::CSS
         )
     });
@@ -2421,7 +2421,7 @@ let (strong_tone, set_strong_tone) = signal(false);
                 title="Interactive Playground (State + Source Markers)"
                 code_signal=interactive_code
                 test_css_source=test_css_source
-                test_source_path="/root/code/personal/omne/rust-ui/crates/ui-components/src/calendar/styles.rs".to_string()
+                test_source_path="/root/code/personal/omne/rust-ui/components/calendar/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 description="Workbench canvas: 展示区覆盖默认/强强调对比，Config/Code/CSS Test 区用于契约校验。"
                 controls=move || view! {
@@ -2631,11 +2631,11 @@ let (strong_tone, set_strong_tone) = signal(false);
                     class_name="docs-calendar-source-copy".to_string()
                 />
                 <ul data-slot="calendar-source-paths">
-                    <li><code>"crates/ui-components/src/calendar/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/calendar/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/calendar/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/calendar/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/calendar/motion.rs"</code></li>
+                    <li><code>"components/calendar/src/mod.rs"</code></li>
+                    <li><code>"components/calendar/src/logic.rs"</code></li>
+                    <li><code>"components/calendar/src/view.rs"</code></li>
+                    <li><code>"components/calendar/src/styles.rs"</code></li>
+                    <li><code>"components/calendar/src/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="calendar-source-prerequisites">
                     <li><code>"component-calendar"</code></li>
@@ -2760,7 +2760,7 @@ pub(super) fn date_picker() -> AnyView {
     });
 
     let workbench_test_css_source: Signal<String> = Signal::derive(move || {
-        include_str!("../../../../../../crates/ui-components/src/text_input/date_picker/styles.rs")
+        include_str!("../../../../../../components/text-input/src/date_picker/styles.rs")
             .to_string()
     });
 
@@ -2809,7 +2809,7 @@ pub(super) fn date_picker() -> AnyView {
                 description="Workbench canvas: preview (展示) + settings panel (config) + copy-ready source (code) + scoped css verification (css test)."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/text_input/date_picker/styles.rs".to_string()
+                test_source_path="components/text-input/src/date_picker/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="date-picker-workbench-controls">
@@ -3280,11 +3280,11 @@ let on_value_change = Callback::new(move |next: Option<String>| {
                     class_name="docs-time-field-source-copy".to_string()
                 />
                 <ul data-slot="time-field-source-paths">
-                    <li><code>"crates/ui-components/src/text_input/time_field/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/time_field/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/time_field/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/time_field/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/time_field/motion.rs"</code></li>
+                    <li><code>"components/text-input/src/time_field/mod.rs"</code></li>
+                    <li><code>"components/text-input/src/time_field/logic.rs"</code></li>
+                    <li><code>"components/text-input/src/time_field/view.rs"</code></li>
+                    <li><code>"components/text-input/src/time_field/styles.rs"</code></li>
+                    <li><code>"components/text-input/src/time_field/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="time-field-source-prerequisites">
                     <li><code>"component-time_field"</code></li>
@@ -3385,7 +3385,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/text_input/date_range_picker/styles.rs */\n{}",
+            "/* components/text-input/src/date_range_picker/styles.rs */\n{}",
             ui_components::text_input::date_range_picker::styles::CSS
         )
     });
@@ -3494,7 +3494,7 @@ let (end_day, set_end_day) = signal(Some(19_u8));
                 description="展示区含实时配置与对比样例；Config/Code/CSS Test 区用于契约回归。"
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/text_input/date_range_picker/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/text-input/src/date_range_picker/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="date-range-picker-workbench-controls">

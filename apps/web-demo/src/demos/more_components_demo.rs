@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use ui_components::{
-    AlertDialog, AlertDialogVariant, Button, ContextualHelp, Dialog, Drawer, DrawerPlacement,
-    InlineAlert, InlineAlertFill, InlineAlertTone, Input, InputSize, InputVariant, OnPress,
+    Alert, AlertDialog, AlertDialogVariant, AlertFill, AlertLayout, AlertTone, Button,
+    ContextualHelp, Dialog, Drawer, DrawerPlacement, Input, InputSize, InputVariant, OnPress,
 };
 
 #[component]
@@ -131,7 +131,7 @@ pub fn MoreComponentsDemo() -> impl IntoView {
                         </div>
                     </ContextualHelp>
                 </div>
-                <p>"Input / InlineAlert / Dialog / Drawer / AlertDialog / ContextualHelp"</p>
+                <p>"Input / Alert / Dialog / Drawer / AlertDialog / ContextualHelp"</p>
 
                 <div class="demo-grid-2">
                     <div class="demo-stack">
@@ -155,29 +155,36 @@ pub fn MoreComponentsDemo() -> impl IntoView {
                                 {move || if input_invalid.get() { "Clear invalid" } else { "Mark invalid" }}
                             </Button>
                         </div>
-                        <InlineAlert tone=InlineAlertTone::Info fill=InlineAlertFill::Subtle title="Value".to_string()>
+                        <Alert
+                            layout=AlertLayout::Inline
+                            tone=AlertTone::Info
+                            fill=AlertFill::Subtle
+                            title="Value".to_string()
+                        >
                             {move || input_value.get()}
-                        </InlineAlert>
+                        </Alert>
                     </div>
 
                     <div class="demo-stack">
-                        <div class="demo-kv">"InlineAlert"</div>
-                        <InlineAlert
-                            tone=InlineAlertTone::Neutral
-                            fill=InlineAlertFill::Border
+                        <div class="demo-kv">"Alert (Inline layout)"</div>
+                        <Alert
+                            layout=AlertLayout::Inline
+                            tone=AlertTone::Neutral
+                            fill=AlertFill::Border
                             title="Neutral".to_string()
                             description="Uses token-based styling.".to_string()
                         >
                             "Extra content slot."
-                        </InlineAlert>
-                        <InlineAlert
-                            tone=InlineAlertTone::Negative
-                            fill=InlineAlertFill::Border
+                        </Alert>
+                        <Alert
+                            layout=AlertLayout::Inline
+                            tone=AlertTone::Negative
+                            fill=AlertFill::Border
                             title="Error".to_string()
                             description="Negative tone maps to danger tokens.".to_string()
                         >
                             ""
-                        </InlineAlert>
+                        </Alert>
                     </div>
                 </div>
 

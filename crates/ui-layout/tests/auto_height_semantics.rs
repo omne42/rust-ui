@@ -7,6 +7,12 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_auto_height_test_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/auto_height/test").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
 #[test]
 fn auto_height_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/auto_height/mod.rs");
@@ -132,8 +138,10 @@ fn auto_height_motion_uses_resize_observer_and_spring() {
 }
 
 #[test]
-fn auto_height_motion_contract_exposes_default_and_custom_tests() {
+fn auto_height_motion_contract_exposes_default_and_custom_checks() {
     let source = load_source("src/auto_height/motion.rs");
+    let motion_checks_source = load_auto_height_test_source("motion.rs");
+    let combined = format!("{source}\n{motion_checks_source}");
 
     for needle in [
         "pub struct AutoHeightMotion",
@@ -141,7 +149,7 @@ fn auto_height_motion_contract_exposes_default_and_custom_tests() {
         "fn supports_custom_motion_contract_values()",
     ] {
         assert!(
-            source.contains(needle),
+            combined.contains(needle),
             "AutoHeight motion module should include `{needle}` for baseline-level motion contract coverage."
         );
     }
@@ -150,6 +158,8 @@ fn auto_height_motion_contract_exposes_default_and_custom_tests() {
 #[test]
 fn auto_height_motion_sanitizes_custom_contract_values() {
     let motion_source = load_source("src/auto_height/motion.rs");
+    let motion_checks_source = load_auto_height_test_source("motion.rs");
+    let motion_combined = format!("{motion_source}\n{motion_checks_source}");
     let view_source = load_source("src/auto_height/view.rs");
 
     for needle in [
@@ -159,7 +169,7 @@ fn auto_height_motion_sanitizes_custom_contract_values() {
         "sanitize_motion(motion);",
     ] {
         assert!(
-            motion_source.contains(needle),
+            motion_combined.contains(needle),
             "AutoHeight motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }

@@ -659,6 +659,5 @@ pub fn attach_panel_motion(
 }
 
 #[cfg(test)]
-mod tests {
-    include!("../test/motion_tests.rs");
-}
+#[path = "../test/motion.rs"]
+mod tests;

@@ -1,5 +1,6 @@
 pub mod markdown;
 pub mod pages;
+pub mod perf_probe;
 pub mod playground;
 pub mod route;
 pub mod router;

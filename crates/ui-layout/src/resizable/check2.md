@@ -240,7 +240,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`resizable_semantics.rs` 以语义断言为主，覆盖状态来源/可访问性/键盘路径与 Agent Contract；并显式阻止快照优先断言模式。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_semantic_tests_are_contract_first_and_snapshot_secondary`）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`resizable_semantics.rs` 以语义断言为主，覆盖状态来源/可访问性/键盘路径与 Agent Contract；并显式阻止快照优先断言模式。回归：`crates/ui-layout/tests/resizable_semantics.rs::resizable_semantic_checks_are_contract_first_and_snapshot_secondary`）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

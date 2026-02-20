@@ -107,6 +107,5 @@ pub fn project_streaming_accordion_markup(input: &str) -> AccordionStreamingProj
 }
 
 #[cfg(test)]
-mod tests {
-    include!("../test/streaming_tests.rs");
-}
+#[path = "../test/streaming.rs"]
+mod tests;

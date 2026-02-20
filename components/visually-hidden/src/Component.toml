@@ -1,0 +1,47 @@
+schema_version = "1"
+
+[component]
+name = "VisuallyHidden"
+crate = "ui-visually-hidden"
+
+[[inputs]]
+name = "is_focusable"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "focusable"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<ui_headless::a11y::A11yDirection>"
+default = "None"
+controlled = false
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"

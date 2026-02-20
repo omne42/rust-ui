@@ -1,0 +1,252 @@
+use crate::{SheetMotion, SheetPlacement, logic, motion};
+use leptos::{ev, html, portal::Portal, prelude::*};
+use ui_headless::{
+    A11yDirection, FocusTrapOptions, ModalOptions, OnPress, OverlayDialogA11yAttrs,
+    overlay_dialog_attrs, use_focus_trap, use_modal, use_overlay_stack_registration,
+};
+
+#[derive(Clone, Copy)]
+struct SheetStateInputs {
+    placement: SheetPlacement,
+    is_dismissable: bool,
+    is_keyboard_dismiss_disabled: bool,
+    has_custom_motion: bool,
+    has_custom_aria_labelledby: bool,
+    has_custom_aria_describedby: bool,
+    has_on_exit_complete: bool,
+}
+
+fn resolve_part_state(
+    slot: logic::SheetSlot,
+    open: bool,
+    inputs: SheetStateInputs,
+) -> logic::SheetPartState {
+    logic::resolve_state(logic::SheetPartStateInput {
+        slot,
+        open,
+        placement: inputs.placement,
+        is_dismissable: inputs.is_dismissable,
+        is_keyboard_dismiss_disabled: inputs.is_keyboard_dismiss_disabled,
+        has_custom_motion: inputs.has_custom_motion,
+        has_custom_aria_labelledby: inputs.has_custom_aria_labelledby,
+        has_custom_aria_describedby: inputs.has_custom_aria_describedby,
+        has_on_exit_complete: inputs.has_on_exit_complete,
+    })
+}
+
+fn render_backdrop(
+    backdrop_state: logic::SheetPartState,
+    backdrop_class: StoredValue<String>,
+    is_dismissable: bool,
+    on_close: OnPress,
+) -> impl IntoView {
+    view! {
+        <div
+            class=move || backdrop_class.with_value(|class_name| class_name.clone())
+            data-slot=backdrop_state.slot_attr
+            data-state=backdrop_state.state_attr
+            on:click=move |_| {
+                if is_dismissable {
+                    on_close.run(());
+                }
+            }
+        ></div>
+    }
+}
+
+#[derive(Clone, Copy)]
+struct SheetPanelInputs {
+    panel_state: logic::SheetPartState,
+    panel_class: StoredValue<String>,
+    aria_labelledby: Signal<Option<String>>,
+    aria_describedby: Signal<Option<String>>,
+    panel_lang: StoredValue<Option<String>>,
+    panel_dir: Option<&'static str>,
+    panel_ref: NodeRef<html::Div>,
+    children: StoredValue<ChildrenFn>,
+}
+
+fn render_panel(inputs: SheetPanelInputs) -> impl IntoView {
+    let SheetPanelInputs {
+        panel_state,
+        panel_class,
+        aria_labelledby,
+        aria_describedby,
+        panel_lang,
+        panel_dir,
+        panel_ref,
+        children,
+    } = inputs;
+
+    view! {
+        <div
+            class=move || panel_class.with_value(|class_name| class_name.clone())
+            data-slot=panel_state.slot_attr
+            data-state=panel_state.state_attr
+            data-dismiss=panel_state.dismiss_attr
+            data-keyboard-dismiss=panel_state.keyboard_dismiss_attr
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby=move || aria_labelledby.get()
+            aria-describedby=move || aria_describedby.get()
+            lang=move || panel_lang.with_value(|value| value.clone())
+            dir=panel_dir
+            tabindex="-1"
+            node_ref=panel_ref
+            on:click=move |ev| ev.stop_propagation()
+            on:pointerdown=move |ev| ev.stop_propagation()
+        >
+            {children.with_value(|children| children())}
+        </div>
+    }
+}
+
+#[component]
+pub fn Sheet(
+    open: Signal<bool>,
+    on_close: OnPress,
+    children: ChildrenFn,
+    #[prop(optional)] placement: SheetPlacement,
+    #[prop(optional)] aria_labelledby: Option<String>,
+    #[prop(optional)] aria_describedby: Option<String>,
+    #[prop(optional, into)] lang: Option<String>,
+    #[prop(optional)] dir: Option<A11yDirection>,
+    #[prop(optional, default = logic::DEFAULT_DISMISSABLE)] is_dismissable: bool,
+    #[prop(optional, default = logic::DEFAULT_KEYBOARD_DISMISS_DISABLED)]
+    is_keyboard_dismiss_disabled: bool,
+    #[prop(optional)] motion: SheetMotion,
+    /// Called after the close animation finishes (useful for presence/unmount).
+    #[prop(optional)]
+    on_exit_complete: Option<Callback<()>>,
+) -> impl IntoView {
+    let registration = use_overlay_stack_registration();
+    use_modal(ModalOptions::from_signal(open));
+
+    let panel_a11y: OverlayDialogA11yAttrs = overlay_dialog_attrs(
+        logic::normalize_optional_text(aria_labelledby),
+        logic::normalize_optional_text(aria_describedby),
+        logic::normalize_optional_text(lang),
+        dir,
+    );
+    let has_custom_motion = motion != SheetMotion::default();
+
+    let state_inputs = SheetStateInputs {
+        placement,
+        is_dismissable,
+        is_keyboard_dismiss_disabled,
+        has_custom_motion,
+        has_custom_aria_labelledby: panel_a11y.aria_labelledby.is_some(),
+        has_custom_aria_describedby: panel_a11y.aria_describedby.is_some(),
+        has_on_exit_complete: on_exit_complete.is_some(),
+    };
+    let agent_contract = logic::agent_contract();
+
+    let root_state = resolve_part_state(logic::SheetSlot::Root, open.get_untracked(), state_inputs);
+    let root_class = logic::compose_class_name(root_state);
+    let root_class = StoredValue::new(root_class);
+
+    let backdrop_state = resolve_part_state(logic::SheetSlot::Backdrop, false, state_inputs);
+    let backdrop_class = logic::compose_class_name(backdrop_state);
+    let backdrop_class = StoredValue::new(backdrop_class);
+
+    let panel_state = resolve_part_state(logic::SheetSlot::Panel, false, state_inputs);
+    let panel_class = logic::compose_class_name(panel_state);
+    let panel_class = StoredValue::new(panel_class);
+
+    let panel_lang = StoredValue::new(panel_a11y.lang);
+    let panel_dir = panel_a11y.dir;
+    let aria_labelledby: Signal<Option<String>> = panel_a11y.aria_labelledby.into();
+    let aria_describedby: Signal<Option<String>> = panel_a11y.aria_describedby.into();
+    let children = StoredValue::new(children);
+
+    let root_ref: NodeRef<html::Div> = NodeRef::new();
+    let on_exit_complete = on_exit_complete.unwrap_or_else(|| Callback::new(|_| {}));
+    motion::attach_motion(root_ref, open, placement, on_exit_complete, motion);
+
+    let panel_ref: NodeRef<html::Div> = NodeRef::new();
+    let focus_trap = use_focus_trap(FocusTrapOptions::enabled(panel_ref));
+    let on_close_for_backdrop = on_close;
+
+    let on_key_down = {
+        let is_topmost = registration.is_topmost;
+        move |ev: ev::KeyboardEvent| {
+            let key = ev.key();
+            if focus_trap.on_key_down.run((key.clone(), ev.shift_key())) {
+                ev.prevent_default();
+            }
+            #[cfg(target_arch = "wasm32")]
+            let is_composing = ev.is_composing();
+            #[cfg(not(target_arch = "wasm32"))]
+            let is_composing = false;
+
+            #[cfg(target_arch = "wasm32")]
+            let default_prevented = ev.default_prevented();
+            #[cfg(not(target_arch = "wasm32"))]
+            let default_prevented = false;
+
+            if logic::should_close_on_escape(
+                &key,
+                is_topmost.get(),
+                is_composing,
+                default_prevented,
+                is_keyboard_dismiss_disabled,
+            ) {
+                ev.stop_propagation();
+                ev.prevent_default();
+                on_close.run(());
+            }
+        }
+    };
+
+    view! {
+        <Portal>
+            <div
+                class=move || root_class.with_value(|class_name| class_name.clone())
+                data-ui-overlay-portal=""
+                data-slot=root_state.slot_attr
+                data-state=move || logic::state_attr_for_open(open.get())
+                data-open=move || open.get().then_some("true")
+                data-closed=move || (!open.get()).then_some("true")
+                data-placement=root_state.placement_attr
+                data-dismiss=root_state.dismiss_attr
+                data-keyboard-dismiss=root_state.keyboard_dismiss_attr
+                data-dismissable=is_dismissable.then_some("true")
+                data-keyboard-dismiss-disabled=is_keyboard_dismiss_disabled.then_some("true")
+                data-motion-source=root_state.motion_source_attr
+                data-placement-source=root_state.placement_source_attr
+                data-dismiss-source=root_state.dismiss_source_attr
+                data-keyboard-dismiss-source=root_state.keyboard_dismiss_source_attr
+                data-aria-labelledby-source=root_state.aria_labelledby_source_attr
+                data-aria-describedby-source=root_state.aria_describedby_source_attr
+                data-ui-schema=agent_contract.schema_attr
+                data-ui-intent=agent_contract.intent_attr
+                data-ui-action=agent_contract.action_attr
+                data-ui-state-axis=agent_contract.state_axis_attr
+                data-ui-source-axis=agent_contract.source_axis_attr
+                data-ui-render-mode=agent_contract.render_mode_attr
+                data-ui-streaming=agent_contract.streaming_attr
+                data-ui-fallback=agent_contract.fallback_attr
+                data-ui-output-status=agent_contract.output_status_attr
+                data-custom-aria-labelledby=root_state.has_custom_aria_labelledby.then_some("true")
+                data-custom-aria-describedby=root_state.has_custom_aria_describedby.then_some("true")
+                data-exit-source=root_state.exit_source_attr
+                data-custom-motion=root_state.has_custom_motion.then_some("true")
+                data-custom-exit=root_state.has_on_exit_complete.then_some("true")
+                node_ref=root_ref
+                on:keydown=on_key_down
+            >
+                {render_backdrop(backdrop_state, backdrop_class, is_dismissable, on_close_for_backdrop)}
+                {render_panel(SheetPanelInputs {
+                    panel_state,
+                    panel_class,
+                    aria_labelledby,
+                    aria_describedby,
+                    panel_lang,
+                    panel_dir,
+                    panel_ref,
+                    children,
+                })}
+            </div>
+        </Portal>
+    }
+}

@@ -196,10 +196,19 @@ body {
 .docs-nav {
   position: sticky;
   top: 92px;
+  max-height: calc(100svh - 108px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .docs-nav__inner {
   min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 4px;
 }
 
 @media (max-width: 900px) {

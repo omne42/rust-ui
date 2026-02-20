@@ -4,7 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn workspace_root(manifest_dir: &Path) -> &Path {
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
 }
 
 #[test]
@@ -99,7 +132,7 @@ fn action_bar_component_files_follow_layered_responsibilities() {
 
     for needle in [
         "logic::resolve_view_state(logic::ActionBarViewStateInput {",
-        "use crate::button::{Button, ButtonSize, ButtonVariant};",
+        "use ui_button::{Button, ButtonSize, ButtonVariant};",
         "<Button",
         "variant=ButtonVariant::Link",
         "motion::attach_motion(root_ref, visible, motion);",
@@ -153,9 +186,12 @@ fn action_bar_spec_boundary_reuses_button_spec_without_local_spec_file() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let button_mod_source = load_source("src/button/mod.rs");
     let action_bar_mod_source = load_source("src/action_bar/mod.rs");
+    let workspace_dir = workspace_root(manifest_dir);
+    let button_spec_in_ui_components = manifest_dir.join("src/button/spec.rs");
+    let button_spec_in_components = workspace_dir.join("components/button/src/spec.rs");
 
     assert!(
-        manifest_dir.join("src/button/spec.rs").exists(),
+        button_spec_in_ui_components.exists() || button_spec_in_components.exists(),
         "button should keep canonical spec.rs boundary for complex schema contract."
     );
     assert!(
@@ -223,7 +259,7 @@ fn action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_s
     for needle in [
         "logic::resolve_view_state(logic::ActionBarViewStateInput {",
         "logic::compose_class_name(class_name.get_value(), state.get())",
-        "use crate::button::{Button, ButtonSize, ButtonVariant};",
+        "use ui_button::{Button, ButtonSize, ButtonVariant};",
         "motion::attach_motion(root_ref, visible, motion)",
     ] {
         assert!(
@@ -243,7 +279,7 @@ fn action_bar_stays_in_ui_components_assembly_layer_and_public_api_boundary_is_s
 
     for needle in [
         "#[cfg(feature = \"component-action_bar\")]",
-        "pub mod action_bar;",
+        "pub use ui_action_bar as action_bar;",
         "pub use action_bar::{ActionBar, ActionBarMotion, ActionBarPosition};",
     ] {
         assert!(
@@ -829,7 +865,7 @@ fn action_bar_mounts_headless_contract_in_view_not_logic_layer() {
 
     for needle in [
         "use ui_headless::i18n;",
-        "use crate::button::{Button, ButtonSize, ButtonVariant};",
+        "use ui_button::{Button, ButtonSize, ButtonVariant};",
         "<Button",
         "variant=ButtonVariant::Link",
         "size=ButtonSize::S",
@@ -1412,7 +1448,7 @@ fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
         "default = [\"inject-css\", \"all-components\"]",
         "all-components = [",
         "web-demo-components = [",
-        "component-action_bar = [\"component-button\"]",
+        "component-action_bar = [\"component-button\", \"dep:ui-action-bar\"]",
         "inject-css = []",
     ] {
         assert!(
@@ -1422,7 +1458,9 @@ fn action_bar_tree_shaking_keeps_component_feature_and_css_boundaries() {
     }
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-action_bar\")]\npub mod action_bar;"),
+        lib_source.contains(
+            "#[cfg(feature = \"component-action_bar\")]\npub use ui_action_bar as action_bar;"
+        ),
         "lib.rs should feature-gate action_bar module export for tree-shaking.",
     );
     assert!(
@@ -1526,8 +1564,8 @@ fn action_bar_platform_check_script_covers_default_ssr_wasm_compile_paths() {
         "cargo check -p ui-headless --no-default-features --features ssr",
         "cargo check -p ui-headless --target wasm32-unknown-unknown --no-default-features --features web",
         "cargo check -p ui-components --target wasm32-unknown-unknown --no-default-features --features component-action_bar,inject-css",
-        "crates/ui-components/src/action_bar/view.rs",
-        "crates/ui-components/src/action_bar/motion.rs",
+        "components/action-bar/src/view.rs",
+        "components/action-bar/src/motion.rs",
         "cfg(target_arch = \"wasm32\")",
         "cfg(not(target_arch = \"wasm32\"))",
     ] {
@@ -1698,7 +1736,7 @@ fn action_bar_reduced_motion_ssr_wasm_branches_keep_semantics_consistent() {
 fn action_bar_performance_governance_budget_is_defined_and_blocking() {
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
     let pages_source = load_source("../../apps/docs-app/src/pages/components/pages.rs");
-    let perf_probe_source = load_source("../../crates/ui-headless/src/perf.rs");
+    let perf_probe_source = load_source("../../apps/docs-app/src/perf_probe.rs");
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
     let debug_overlay_source = load_source("../../apps/docs-app/src/debug_overlay.rs");
     let todo_source = load_source("../../docs/plan/TODO.md");

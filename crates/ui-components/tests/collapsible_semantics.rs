@@ -1,7 +1,24 @@
 use std::fs;
 use std::path::Path;
 
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
 fn load_source(rel_path: &str) -> String {
+    if let Some(component_rel_path) = rel_path.strip_prefix("src/collapsible/") {
+        let path = workspace_dir()
+            .join("components/collapsible/src")
+            .join(component_rel_path);
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
@@ -23,6 +40,7 @@ fn collapsible_does_not_expose_logic_or_view_modules() {
 fn collapsible_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/collapsible/mod.rs");
     let crate_source = load_source("src/lib.rs");
+    let cargo_source = load_source("Cargo.toml");
 
     assert!(
         module_source.contains("pub use view::Collapsible;"),
@@ -33,8 +51,22 @@ fn collapsible_is_exported_from_module_and_crate_root() {
         "collapsible module should expose a motion contract alias.",
     );
     assert!(
+        crate_source.contains("pub use ui_collapsible as collapsible;"),
+        "crate root should re-export external ui-collapsible crate as `collapsible`.",
+    );
+    assert!(
         crate_source.contains("pub use collapsible::{Collapsible, CollapsibleMotion};"),
-        "crate root should re-export `Collapsible` and `CollapsibleMotion`.",
+        "crate root prelude should re-export `Collapsible` and `CollapsibleMotion`.",
+    );
+    assert!(
+        cargo_source.contains("component-collapsible = [\"dep:ui-collapsible\"]"),
+        "component-collapsible feature should depend on dep:ui-collapsible after extraction.",
+    );
+    assert!(
+        cargo_source.contains(
+            "ui-collapsible = { path = \"../../components/collapsible\", optional = true }"
+        ),
+        "ui-components Cargo.toml should include optional ui-collapsible dependency.",
     );
 }
 

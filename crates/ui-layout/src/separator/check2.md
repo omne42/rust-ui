@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`separator_semantics.rs` 以 `role/aria/data-state/data-state-source` 契约断言为主（如 `separator_emits_baseline_style_state_data_attributes`、`separator_state_markers_are_observable_searchable_and_enumerated`、`separator_a11y_i18n_l10n_contract_is_headless_backed_and_locale_ready`）；测试矩阵按适用范围覆盖：N/A：`Separator` 无可控状态轴，不存在受控/非受控与 disabled 交互分支；N/A：`Separator` 非交互原语，无 keyboard/pointer 路径；SSR/wasm 差异由 `separator_motion_stays_ui_motion_driven_and_semantic_free` 约束 `cfg(wasm32/non-wasm)`。无 snapshot 断言依赖。回归：`separator_semantics_tests_prioritize_contract_over_snapshots`。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`separator_semantics.rs` 以 `role/aria/data-state/data-state-source` 契约断言为主（如 `separator_emits_baseline_style_state_data_attributes`、`separator_state_markers_are_observable_searchable_and_enumerated`、`separator_a11y_i18n_l10n_contract_is_headless_backed_and_locale_ready`）；测试矩阵按适用范围覆盖：N/A：`Separator` 无可控状态轴，不存在受控/非受控与 disabled 交互分支；N/A：`Separator` 非交互原语，无 keyboard/pointer 路径；SSR/wasm 差异由 `separator_motion_stays_ui_motion_driven_and_semantic_free` 约束 `cfg(wasm32/non-wasm)`。无 snapshot 断言依赖。回归：`separator_semantics_checks_prioritize_contract_over_snapshots`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -168,7 +168,7 @@
   - `reduced-motion` 下动画应跳过或降级为最小必要反馈。
   - SSR 输出必须与客户端 hydration 兼容，避免首帧语义错位。
   - wasm 分支允许增强交互，但语义契约不得与 SSR 分支分裂。
-- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：`Separator` 为静态分隔原语，无交互状态机与异步更新链路，采用 mount-only 预算与等价证据：docs 统一预算探针链路 `component_page_perf_budget + UiPerfProbe`（`apps/docs-app/src/pages/components/shell.rs`、`crates/ui-headless/src/perf.rs`）提供 `data-perf-*` 标记并由 `e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-violation != true`；组件侧通过稳定来源标记（`data-state`/`data-state-source`/`data-orientation`/`data-element`/`data-motion-source`）保证可归因。`render_count` 精确自动化当前仍在 `docs/plan/TODO.md` 跟踪，按清单使用可重复 profiling/trace 等价证据并保持阻断回归。验证命令：`cargo test -p ui-layout --test separator_semantics --no-default-features --features component-separator,inject-css separator_performance_governance_contract_is_mount_only_traceable_and_blocking` -> `SEPARATOR_PERF_GOVERNANCE=pass`。）
+- [x] 性能治理：关键路径有预算（首次渲染/更新耗时/内存），回归可检测、可归因、可阻断。（N/A：`Separator` 为静态分隔原语，无交互状态机与异步更新链路，采用 mount-only 预算与等价证据：docs 统一预算探针链路 `component_page_perf_budget + UiPerfProbe`（`apps/docs-app/src/pages/components/shell.rs`、`apps/docs-app/src/perf_probe.rs`）提供 `data-perf-*` 标记并由 `e2e/tests/docs_app_components_coverage.spec.mjs` 持续断言 `data-perf-violation != true`；组件侧通过稳定来源标记（`data-state`/`data-state-source`/`data-orientation`/`data-element`/`data-motion-source`）保证可归因。`render_count` 精确自动化当前仍在 `docs/plan/TODO.md` 跟踪，按清单使用可重复 profiling/trace 等价证据并保持阻断回归。验证命令：`cargo test -p ui-layout --test separator_semantics --no-default-features --features component-separator,inject-css separator_performance_governance_contract_is_mount_only_traceable_and_blocking` -> `SEPARATOR_PERF_GOVERNANCE=pass`。）
   - 关键交互组件需定义最小预算项（首渲染、关键更新、内存/分配趋势）。
   - 回归检测至少具备可重复基线与失败阈值，不靠主观“感觉变慢”。
   - 性能问题需可归因到状态、渲染、样式或动效路径之一。
@@ -240,7 +240,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`separator_semantics.rs` 已覆盖关键语义轴与来源字段：`data-state/data-state-source/data-ui-schema/data-ui-intent/data-ui-action/data-output-mode/data-streaming-fallback/data-output-status + role/aria-*`；快照断言被显式禁止。回归：`separator_semantics_tests_prioritize_contract_over_snapshots`、`separator_agent_contract_schema_is_typed_and_traceable`、`separator_streaming_scope_is_snapshot_only_and_machine_readable`。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`separator_semantics.rs` 已覆盖关键语义轴与来源字段：`data-state/data-state-source/data-ui-schema/data-ui-intent/data-ui-action/data-output-mode/data-streaming-fallback/data-output-status + role/aria-*`；快照断言被显式禁止。回归：`separator_semantics_checks_prioritize_contract_over_snapshots`、`separator_agent_contract_schema_is_typed_and_traceable`、`separator_streaming_scope_is_snapshot_only_and_machine_readable`。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。

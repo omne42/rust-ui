@@ -850,8 +850,8 @@ impl Mountable for AnyViewWithAttrsState {
 }
 
 /*
-#[cfg(test)]
-mod tests {
+#[cfg(legacy_disabled)]
+mod legacy_checks {
     use super::IntoAny;
     use crate::{
         html::element::{p, span},

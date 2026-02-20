@@ -1,15 +1,45 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_empty_component_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let path = workspace_dir.join("components/empty").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn ui_components_reexports_empty_component_crate() {
+    let lib_source = load_ui_components_source("src/lib.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        lib_source.contains("#[cfg(feature = \"component-empty\")]")
+            && lib_source.contains("pub use ui_empty as empty;"),
+        "ui-components should re-export the external ui-empty crate as `empty`.",
+    );
+    assert!(
+        cargo_source.contains("component-empty = [\"dep:ui-empty\"]"),
+        "component-empty feature should depend on dep:ui-empty after extraction.",
+    );
+    assert!(
+        cargo_source.contains("ui-empty = { path = \"../../components/empty\", optional = true }"),
+        "ui-components Cargo.toml should include the optional ui-empty dependency.",
+    );
+}
+
 #[test]
 fn empty_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/empty/mod.rs");
+    let source = load_empty_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +51,8 @@ fn empty_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn empty_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/empty/mod.rs");
-    let crate_source = load_source("src/lib.rs");
+    let module_source = load_empty_component_source("src/mod.rs");
+    let crate_source = load_ui_components_source("src/lib.rs");
 
     assert!(
         module_source.contains("pub use logic::EmptyMediaVariant;"),
@@ -40,7 +70,7 @@ fn empty_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn empty_logic_exposes_state_helpers() {
-    let source = load_source("src/empty/logic.rs");
+    let source = load_empty_component_source("src/logic.rs");
 
     for needle in [
         "pub enum EmptyMediaVariant",
@@ -57,7 +87,7 @@ fn empty_logic_exposes_state_helpers() {
 
 #[test]
 fn empty_view_uses_logic_state_contracts() {
-    let source = load_source("src/empty/view.rs");
+    let source = load_empty_component_source("src/view.rs");
 
     for needle in [
         "pub fn Empty(",
@@ -84,7 +114,7 @@ fn empty_view_uses_logic_state_contracts() {
 
 #[test]
 fn empty_styles_include_state_and_source_markers() {
-    let source = load_source("src/empty/styles.rs");
+    let source = load_empty_component_source("src/styles.rs");
 
     for selector in [
         ".ui-empty {",
@@ -107,7 +137,7 @@ fn empty_styles_include_state_and_source_markers() {
 
 #[test]
 fn empty_css_is_aggregated() {
-    let source = load_source("src/css.rs");
+    let source = load_ui_components_source("src/css.rs");
 
     assert!(
         source.contains("out.push_str(crate::empty::styles::CSS);"),
@@ -117,8 +147,9 @@ fn empty_css_is_aggregated() {
 
 #[test]
 fn empty_docs_page_contains_state_source_playground() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs",
+    );
 
     for needle in [
         "pub(super) fn empty() -> AnyView",
@@ -132,15 +163,16 @@ fn empty_docs_page_contains_state_source_playground() {
     ] {
         assert!(
             source.contains(needle),
-            "display_extra_empty docs page should contain `{needle}`."
+            "display_extra_empty docs page should contain `{needle}`.",
         );
     }
 }
 
 #[test]
 fn empty_docs_default_playgrounds_lock_contract_values() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs",
+    );
 
     for needle in [
         "id_base=\"docs-empty-media-variant\".to_string()",
@@ -161,8 +193,9 @@ fn empty_docs_default_playgrounds_lock_contract_values() {
 
 #[test]
 fn empty_docs_state_source_playground_locks_contract_values() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs",
+    );
 
     for needle in [
         "title=\"Comparison Matrix (Header / Action / Source Markers)\"",
@@ -189,8 +222,9 @@ fn empty_docs_state_source_playground_locks_contract_values() {
 
 #[test]
 fn empty_docs_page_covers_primary_playgrounds() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs",
+    );
 
     for needle in [
         "pub(super) fn empty() -> AnyView",
@@ -210,8 +244,9 @@ fn empty_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn empty_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source =
-        load_source("../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra_empty.rs",
+    );
 
     for needle in [
         "id_base=\"docs-empty-media-variant\".to_string()",

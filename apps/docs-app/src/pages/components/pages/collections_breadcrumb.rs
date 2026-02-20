@@ -119,7 +119,7 @@ pub(super) fn breadcrumb() -> AnyView {
 
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/breadcrumb/styles.rs */\n{}",
+            "/* components/breadcrumb/src/styles.rs */\n{}",
             ui_components::breadcrumb::styles::CSS
         )
     });
@@ -148,7 +148,7 @@ pub(super) fn breadcrumb() -> AnyView {
                 title="Trail"
                 code_signal=code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/breadcrumb/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/breadcrumb/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

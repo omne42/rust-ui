@@ -4,12 +4,48 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_alert_dialog_test_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir
+        .join("../../components/alert-dialog/src/test")
+        .join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn alert_dialog_does_not_expose_logic_module() {
-    let source = load_source("src/alert_dialog/mod.rs");
+    let source = load_source("../../components/alert-dialog/src/mod.rs");
 
     assert!(
         !source.contains("pub mod logic"),
@@ -29,7 +65,7 @@ fn alert_dialog_feature_gate_declares_required_component_dependencies() {
 
 #[test]
 fn alert_dialog_module_exposes_slot_and_state_contracts() {
-    let source = load_source("src/alert_dialog/mod.rs");
+    let source = load_source("../../components/alert-dialog/src/mod.rs");
 
     for needle in [
         "pub enum AlertDialogSlot",
@@ -49,8 +85,87 @@ fn alert_dialog_module_exposes_slot_and_state_contracts() {
 }
 
 #[test]
+fn alert_dialog_module_exposes_protocol_contract() {
+    let mod_source = load_source("../../components/alert-dialog/src/mod.rs");
+    let protocol_source = load_source("../../components/alert-dialog/src/protocol.rs");
+
+    assert!(
+        mod_source.contains("pub mod protocol;"),
+        "alert_dialog::mod should expose `protocol` so schema contracts stay discoverable."
+    );
+
+    for needle in [
+        "pub enum AlertDialogComponentSchemaVersion",
+        "pub struct AlertDialogComponentSpec",
+        "Serialize",
+        "Deserialize",
+    ] {
+        assert!(
+            protocol_source.contains(needle),
+            "alert_dialog protocol should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_manifest_declares_projection_contract() {
+    let source = load_source("../../components/alert-dialog/src/Component.toml");
+
+    for needle in [
+        "schema_version = \"1\"",
+        "name = \"AlertDialog\"",
+        "crate = \"ui-alert-dialog\"",
+        "name = \"open\"",
+        "name = \"id_base\"",
+        "name = \"title\"",
+        "name = \"confirm_label\"",
+        "name = \"is_confirm_disabled\"",
+        "name = \"is_secondary_disabled\"",
+        "name = \"lang\"",
+        "name = \"dir\"",
+        "name = \"on_close\"",
+        "name = \"on_confirm\"",
+        "name = \"overlay_alertdialog_role\"",
+        "name = \"variant_state_markers\"",
+        "name = \"locale_context_lang_dir_passthrough\"",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert-dialog Component.toml should include `{needle}`."
+        );
+    }
+}
+
+#[test]
+fn alert_dialog_rbi_projects_public_api_surface() {
+    let source = load_source("../../components/alert-dialog/src/alert_dialog.rbi");
+
+    for needle in [
+        "pub enum AlertDialogVariant",
+        "pub enum AlertDialogAutoFocusButton",
+        "pub struct AlertDialogMotion",
+        "pub enum AlertDialogComponentSchemaVersion",
+        "pub struct AlertDialogComponentSpec",
+        "pub const DEFAULT_ID_BASE: &str;",
+        "pub const DEFAULT_CONFIRM_LABEL: &str;",
+        "pub fn AlertDialog(",
+        "is_confirm_disabled: Option<bool>",
+        "confirm_disabled: Option<bool>",
+        "is_secondary_disabled: Option<bool>",
+        "secondary_disabled: Option<bool>",
+        "lang: Option<String>",
+        "dir: Option<ui_headless::a11y::A11yDirection>",
+    ] {
+        assert!(
+            source.contains(needle),
+            "alert-dialog RBI projection should include `{needle}`."
+        );
+    }
+}
+
+#[test]
 fn alert_dialog_logic_exposes_state_helpers() {
-    let source = load_source("src/alert_dialog/logic.rs");
+    let source = load_source("../../components/alert-dialog/src/logic.rs");
 
     for needle in [
         "pub fn state_attr(is_open: bool)",
@@ -62,6 +177,7 @@ fn alert_dialog_logic_exposes_state_helpers() {
         "pub fn normalize_id_base(value: String)",
         "pub fn normalize_cancel_label(value: Option<String>)",
         "pub fn normalize_secondary_label(value: Option<String>)",
+        "pub fn resolve_disabled_flag(",
         "pub fn resolve_state(input: AlertDialogPartStateInput) -> AlertDialogPartState",
         "pub fn compose_class_name(base_class_name: Option<String>, state: AlertDialogPartState)",
         "pub fn data_attr(self) -> &'static str",
@@ -75,7 +191,7 @@ fn alert_dialog_logic_exposes_state_helpers() {
 
 #[test]
 fn alert_dialog_view_uses_logic_contracts_and_source_markers() {
-    let source = load_source("src/alert_dialog/view.rs");
+    let source = load_source("../../components/alert-dialog/src/view.rs");
 
     for needle in [
         "logic::normalize_id_base(id_base)",
@@ -83,6 +199,18 @@ fn alert_dialog_view_uses_logic_contracts_and_source_markers() {
         "logic::normalize_optional_text(description)",
         "logic::normalize_cancel_label(cancel_label)",
         "logic::normalize_secondary_label(secondary_label)",
+        "#[prop(optional)] is_confirm_disabled: Option<bool>",
+        "#[prop(optional)] confirm_disabled: Option<bool>",
+        "#[prop(optional)] is_secondary_disabled: Option<bool>",
+        "#[prop(optional)] secondary_disabled: Option<bool>",
+        "logic::resolve_disabled_flag(",
+        "#[prop(optional, into)] lang: Option<String>",
+        "#[prop(optional)] dir: Option<A11yDirection>",
+        "locale_attrs(lang, dir)",
+        "let locale_lang = StoredValue::new(locale.lang);",
+        "let locale_dir = locale.dir;",
+        "lang=move || locale_lang.with_value(|value| value.clone())",
+        "dir=locale_dir",
         "logic::resolve_state(AlertDialogPartStateInput {",
         "slot: AlertDialogSlot::Root",
         "logic::compose_class_name(None, root_state.get())",
@@ -123,7 +251,7 @@ fn alert_dialog_view_uses_logic_contracts_and_source_markers() {
 
 #[test]
 fn alert_dialog_composes_overlay_with_alert_role_and_optional_describedby() {
-    let source = load_source("src/alert_dialog/view.rs");
+    let source = load_source("../../components/alert-dialog/src/view.rs");
 
     for needle in [
         "<Overlay",
@@ -143,7 +271,7 @@ fn alert_dialog_composes_overlay_with_alert_role_and_optional_describedby() {
 
 #[test]
 fn alert_dialog_confirm_and_secondary_close_before_running_callbacks() {
-    let source = load_source("src/alert_dialog/view.rs");
+    let source = load_source("../../components/alert-dialog/src/view.rs");
 
     for needle in [
         "let on_confirm_press",
@@ -163,7 +291,7 @@ fn alert_dialog_confirm_and_secondary_close_before_running_callbacks() {
 
 #[test]
 fn alert_dialog_supports_autofocus_button_contract() {
-    let source = load_source("src/alert_dialog/view.rs");
+    let source = load_source("../../components/alert-dialog/src/view.rs");
 
     for needle in [
         "AlertDialogAutoFocusButton",
@@ -182,7 +310,7 @@ fn alert_dialog_supports_autofocus_button_contract() {
 
 #[test]
 fn alert_dialog_styles_include_state_and_source_markers() {
-    let source = load_source("src/alert_dialog/styles.rs");
+    let source = load_source("../../components/alert-dialog/src/styles.rs");
 
     for selector in [
         ".ui-alert-dialog[data-motion-source=\"custom\"]",
@@ -229,8 +357,10 @@ fn alert_dialog_styles_include_state_and_source_markers() {
 }
 
 #[test]
-fn alert_dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
-    let source = load_source("src/alert_dialog/motion.rs");
+fn alert_dialog_motion_contract_exposes_default_and_custom_overlay_checks() {
+    let source = load_source("../../components/alert-dialog/src/motion.rs");
+    let motion_checks_source = load_alert_dialog_test_source("motion.rs");
+    let combined = format!("{source}\n{motion_checks_source}");
 
     for needle in [
         "pub struct AlertDialogMotion",
@@ -239,7 +369,7 @@ fn alert_dialog_motion_contract_exposes_default_and_custom_overlay_tests() {
         "fn supports_custom_overlay_motion_contract()",
     ] {
         assert!(
-            source.contains(needle),
+            combined.contains(needle),
             "AlertDialog motion module should include `{needle}` for baseline-level contract coverage."
         );
     }
@@ -299,8 +429,10 @@ fn alert_dialog_e2e_contract_uses_semantic_selectors() {
 
 #[test]
 fn alert_dialog_motion_sanitizes_custom_contract_values() {
-    let motion_source = load_source("src/alert_dialog/motion.rs");
-    let view_source = load_source("src/alert_dialog/view.rs");
+    let motion_source = load_source("../../components/alert-dialog/src/motion.rs");
+    let motion_checks_source = load_alert_dialog_test_source("motion.rs");
+    let motion_combined = format!("{motion_source}\n{motion_checks_source}");
+    let view_source = load_source("../../components/alert-dialog/src/view.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: AlertDialogMotion) -> AlertDialogMotion",
@@ -308,7 +440,7 @@ fn alert_dialog_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_delegates_to_overlay_contract()",
     ] {
         assert!(
-            motion_source.contains(needle),
+            motion_combined.contains(needle),
             "AlertDialog motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }

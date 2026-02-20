@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn checkbox_group_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/checkbox/mod.rs");
+    let source = load_source("../../components/checkbox-group/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +49,8 @@ fn checkbox_group_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn checkbox_group_uses_logic_state_model() {
-    let view_source = load_source("src/checkbox/view.rs");
-    let logic_source = load_source("src/checkbox/logic.rs");
+    let view_source = load_source("../../components/checkbox-group/src/view.rs");
+    let logic_source = load_source("../../components/checkbox-group/src/logic.rs");
 
     for needle in [
         "pub struct CheckboxGroupState",
@@ -52,8 +80,8 @@ fn checkbox_group_uses_logic_state_model() {
 
 #[test]
 fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
-    let view_source = load_source("src/checkbox/view.rs");
-    let logic_source = load_source("src/checkbox/logic.rs");
+    let view_source = load_source("../../components/checkbox-group/src/view.rs");
+    let logic_source = load_source("../../components/checkbox-group/src/logic.rs");
 
     for needle in [
         "resolve_checkbox_group_ids",
@@ -76,7 +104,7 @@ fn checkbox_group_resolves_ids_and_normalizes_text_inputs() {
 
 #[test]
 fn checkbox_group_uses_headless_text_field_contract() {
-    let source = load_source("src/checkbox/logic.rs");
+    let source = load_source("../../components/checkbox-group/src/logic.rs");
 
     for needle in [
         "use_text_field",
@@ -92,7 +120,7 @@ fn checkbox_group_uses_headless_text_field_contract() {
 
 #[test]
 fn checkbox_group_emits_baseline_state_data_attributes() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("../../components/checkbox-group/src/view.rs");
 
     for needle in [
         "data-slot=\"checkbox-group\"",
@@ -116,7 +144,7 @@ fn checkbox_group_emits_baseline_state_data_attributes() {
 
 #[test]
 fn checkbox_group_only_renders_error_slot_when_invalid() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("../../components/checkbox-group/src/view.rs");
 
     for needle in [
         "<Show when=move || state.get().shows_error>",
@@ -182,7 +210,7 @@ fn checkbox_group_docs_include_interactive_playground_contract_panels() {
         "test_css_source=interactive_test_css",
         "test_config_signal=interactive_config",
         "controls=move || view!",
-        "test_source_path=\"crates/ui-components/src/checkbox/styles.rs\".to_string()",
+        "test_source_path=\"components/checkbox-group/src/styles.rs\".to_string()",
         "title=\"Validation + Required\"",
         "title=\"Disabled + Optional\"",
     ] {
@@ -195,7 +223,7 @@ fn checkbox_group_docs_include_interactive_playground_contract_panels() {
 
 #[test]
 fn checkbox_group_readme_and_docs_shell_register_display_config_code_css_contract() {
-    let readme_source = load_source("src/checkbox/README.md");
+    let readme_source = load_source("../../components/checkbox-group/src/README.md");
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
 
     assert!(
@@ -203,8 +231,8 @@ fn checkbox_group_readme_and_docs_shell_register_display_config_code_css_contrac
         "checkbox-group README should document display/config/code/css test playground layout.",
     );
     assert!(
-        shell_source.contains("\"checkbox-group\" => Some(CHECKBOX_README_MD)"),
-        "docs shell should map checkbox-group slug to CHECKBOX_README_MD.",
+        shell_source.contains("\"checkbox-group\" => Some(CHECKBOX_GROUP_README_MD)"),
+        "docs shell should map checkbox-group slug to CHECKBOX_GROUP_README_MD.",
     );
 }
 
@@ -228,11 +256,11 @@ fn checkbox_group_css_aggregation_uses_new_top_level_contract() {
     let css_source = load_source("src/css.rs");
 
     assert!(
-        css_source.contains("out.push_str(crate::checkbox::styles::CHECKBOX_GROUP_CSS);"),
-        "css aggregation should use merged checkbox group css constant.",
+        css_source.contains("out.push_str(crate::checkbox_group::styles::CSS);"),
+        "css aggregation should use top-level checkbox_group css constant.",
     );
     assert!(
-        !css_source.contains("out.push_str(crate::checkbox::group::styles::CSS);"),
-        "css aggregation should not keep legacy checkbox::group css path.",
+        !css_source.contains("out.push_str(crate::checkbox::styles::CHECKBOX_GROUP_CSS);"),
+        "css aggregation should not keep merged checkbox::styles::CHECKBOX_GROUP_CSS path.",
     );
 }

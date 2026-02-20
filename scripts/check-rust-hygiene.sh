@@ -6,6 +6,8 @@ cd "$ROOT_DIR"
 
 MAX_REPORT_LINES=80
 
+./scripts/check-api-contracts.sh
+
 unwrap_expect_count=0
 let_underscore_count=0
 string_clone_count=0
@@ -127,6 +129,24 @@ while IFS= read -r file; do
 done < <(find crates apps -type f -name '*.rs' -path '*/src/*' | sort)
 
 status=0
+
+# Layer boundary guard: state primitives must stay framework/DOM-free.
+if rg -n '\bleptos\b|web_sys|wasm_bindgen|gloo|js_sys' \
+  crates/ui-state-primitives/src \
+  --glob '!**/test/**' >/dev/null; then
+  status=1
+  echo "[rust-hygiene] ui-state-primitives must not depend on framework/DOM bindings" >&2
+  rg -n '\bleptos\b|web_sys|wasm_bindgen|gloo|js_sys' \
+    crates/ui-state-primitives/src \
+    --glob '!**/test/**' >&2 || true
+fi
+
+# Layer boundary guard: ui-headless must not render components directly.
+if rg -n '#\[component\]|view!\s*\{' crates/ui-headless/src --glob '!**/test/**' >/dev/null; then
+  status=1
+  echo "[rust-hygiene] ui-headless must not contain #[component] or view! rendering" >&2
+  rg -n '#\[component\]|view!\s*\{' crates/ui-headless/src --glob '!**/test/**' >&2 || true
+fi
 
 if [[ "$unwrap_expect_count" -gt 0 ]]; then
   status=1

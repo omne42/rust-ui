@@ -70,7 +70,7 @@
 - `crates/ui-components/src/legend`
 - `crates/ui-components/src/progress`
 - `crates/ui-components/src/sidebar_trigger`
-- `crates/ui-components/src/theme_dark`
+- `components/theme-dark`
 
 ### shard-05
 
@@ -81,7 +81,7 @@
 - `crates/ui-components/src/link`
 - `crates/ui-components/src/progress_bar`
 - `crates/ui-components/src/sidenav`
-- `crates/ui-components/src/theme_default`
+- `components/theme-default`
 
 ### shard-06
 
@@ -92,7 +92,7 @@
 - `crates/ui-components/src/link_button`
 - `crates/ui-components/src/progress_circle`
 - `crates/ui-components/src/skeleton`
-- `crates/ui-components/src/theme_express`
+- `components/theme-express`
 
 ### shard-07
 
@@ -102,7 +102,7 @@
 - `crates/ui-components/src/grid_list`
 - `crates/ui-components/src/list`
 - `crates/ui-components/src/skeleton_group`
-- `crates/ui-components/src/theme_light`
+- `components/theme-light`
 
 ### shard-08
 
@@ -112,7 +112,7 @@
 - `crates/ui-components/src/gridlist`
 - `crates/ui-components/src/list_box`
 - `crates/ui-components/src/slider`
-- `crates/ui-components/src/thumbnail`
+- `components/thumbnail`
 
 ### shard-09
 
@@ -227,7 +227,7 @@
 - `crates/ui-components/src/color_picker`
 - `crates/ui-components/src/empty`
 - `crates/ui-components/src/icons_workflow`
-- `crates/ui-components/src/modal`
+- `components/modal`
 - `crates/ui-components/src/select`
 - `crates/ui-components/src/surface`
 - `crates/ui-components/src/tray`
@@ -239,7 +239,7 @@
 - `crates/ui-components/src/empty_state`
 - `crates/ui-components/src/iconset`
 - `crates/ui-components/src/native_select`
-- `crates/ui-components/src/selection_indicator`
+- `components/selection-indicator`
 - `crates/ui-components/src/swatch`
 - `crates/ui-components/src/tree`
 
@@ -261,14 +261,14 @@
 - `crates/ui-components/src/error_view`
 - `crates/ui-components/src/image`
 - `crates/ui-components/src/number`
-- `crates/ui-components/src/shared_element_transition`
+- `components/shared-element-transition`
 - `crates/ui-components/src/switch_group`
 
 ### shard-23
 
 - `crates/ui-components/src/button_group`
 - `crates/ui-components/src/color_thumb`
-- `crates/ui-components/src/example_theme`
+- `components/example-theme`
 - `crates/ui-components/src/infield_button`
 - `crates/ui-components/src/number_field`
 - `crates/ui-components/src/sheet`
@@ -289,7 +289,7 @@
 ### shard-25
 
 - `crates/ui-components/src/button_share`
-- `crates/ui-components/src/combo_box`
+- `components/combo-box`
 - `crates/ui-components/src/field_button`
 - `crates/ui-components/src/input`
 - `crates/ui-components/src/overlay_arrow`

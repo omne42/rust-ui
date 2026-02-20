@@ -230,7 +230,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color/area/styles.rs */\n{}",
+            "/* components/color-area/src/styles.rs */\n{}",
             ui_components::color::area::styles::CSS
         )
     });
@@ -278,7 +278,7 @@ let on_value_change = Callback::new(move |next: (f32, f32)| set_value.set(next))
                 description="展示 / Config / Code / CSS Test 集成工作台（含可调主样例 + 固定对照样例）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/color/area/styles.rs".to_string()
+                test_source_path="components/color-area/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -994,7 +994,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color/editor/styles.rs */\n{}",
+            "/* components/color-editor/src/styles.rs */\n{}",
             ui_components::color::editor::styles::CSS
         )
     });
@@ -1050,7 +1050,7 @@ let format_signal: Signal<ColorEditorFormat> = format.into();
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color/editor/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/color-editor/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1282,7 +1282,7 @@ pub(super) fn color_handle() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/color/handle/styles.rs */\n{}",
+            "/* components/color-handle/src/styles.rs */\n{}",
             ui_components::color::handle::styles::CSS
         )
     });
@@ -1384,7 +1384,7 @@ pub(super) fn color_handle() -> AnyView {
                 description="Button-style playground with interactive config, copy-ready code, and scoped CSS test panel."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/color/handle/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/color-handle/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="color-handle-workbench-controls">
@@ -1731,7 +1731,7 @@ pub(super) fn color_loupe() -> AnyView {
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
-                test_source_path="crates/ui-components/src/color/loupe/styles.rs".to_string()
+                test_source_path="components/color-loupe/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

@@ -872,11 +872,11 @@ store.push_simple("Synced");"#
                     class_name="docs-toaster-source-copy".to_string()
                 />
                 <ul data-slot="toaster-source-paths">
-                    <li><code>"crates/ui-components/src/toaster/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/toaster/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/toaster/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/toaster/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/toaster/motion.rs"</code></li>
+                    <li><code>"components/toaster/src/mod.rs"</code></li>
+                    <li><code>"components/toaster/src/logic.rs"</code></li>
+                    <li><code>"components/toaster/src/view.rs"</code></li>
+                    <li><code>"components/toaster/src/styles.rs"</code></li>
+                    <li><code>"components/toaster/src/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="toaster-source-prerequisites">
                     <li><code>"component-toaster"</code></li>
@@ -1105,7 +1105,7 @@ let (status_raw, set_status_raw) = signal(AiOutputStatus::Verified);
                 title="LLM Render Modes (Snapshot + Streaming)"
                 description="`Underlay` is not a text-reader surface, so streaming is optional with explicit `fallback=snapshot`; output status stays observable via `data-ui-output-status`."
                 code_signal=ai_stream_code
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/underlay/view.rs".to_string()
+                test_source_path="components/underlay/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight" data-slot="underlay-ai-demo">
                     <div class="docs-row" data-slot="underlay-ai-controls">

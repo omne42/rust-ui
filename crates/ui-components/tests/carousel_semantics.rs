@@ -1,9 +1,26 @@
 use std::fs;
 use std::path::Path;
 
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
+fn carousel_component_src_dir() -> std::path::PathBuf {
+    workspace_dir().join("components/carousel/src")
+}
+
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = if let Some(rest) = rel_path.strip_prefix("src/carousel/") {
+        carousel_component_src_dir().join(rest)
+    } else {
+        manifest_dir.join(rel_path)
+    };
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -47,16 +64,31 @@ fn carousel_module_exposes_slot_and_state_contracts() {
 fn carousel_is_exported_from_module_and_crate_root() {
     let module_source = load_source("src/carousel/mod.rs");
     let crate_source = load_source("src/lib.rs");
+    let cargo_source = load_source("Cargo.toml");
 
     assert!(
         module_source.contains("pub use view::Carousel;"),
         "carousel module should export `Carousel`."
     );
     assert!(
+        crate_source.contains("#[cfg(feature = \"component-carousel\")]")
+            && crate_source.contains("pub use ui_carousel as carousel;"),
+        "ui-components should re-export external ui-carousel crate as `carousel`."
+    );
+    assert!(
         crate_source.contains(
             "pub use carousel::{Carousel, CarouselItem, CarouselMotion, CarouselOrientation};"
         ),
         "crate root should re-export carousel contracts."
+    );
+    assert!(
+        cargo_source.contains("component-carousel = [\"dep:ui-carousel\"]"),
+        "component-carousel feature should depend on dep:ui-carousel after extraction.",
+    );
+    assert!(
+        cargo_source
+            .contains("ui-carousel = { path = \"../../components/carousel\", optional = true }"),
+        "ui-components Cargo.toml should include optional ui-carousel dependency."
     );
 }
 

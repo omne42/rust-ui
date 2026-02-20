@@ -1,15 +1,45 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_chip_component_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let path = workspace_dir.join("components/chip").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn ui_components_reexports_chip_component_crate() {
+    let lib_source = load_ui_components_source("src/lib.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        lib_source.contains("#[cfg(feature = \"component-chip\")]")
+            && lib_source.contains("pub use ui_chip as chip;"),
+        "ui-components should re-export the external ui-chip crate as `chip`.",
+    );
+    assert!(
+        cargo_source.contains("component-chip = [\"dep:ui-chip\"]"),
+        "component-chip feature should depend on dep:ui-chip after extraction.",
+    );
+    assert!(
+        cargo_source.contains("ui-chip = { path = \"../../components/chip\", optional = true }"),
+        "ui-components Cargo.toml should include the optional ui-chip dependency.",
+    );
+}
+
 #[test]
 fn chip_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/chip/mod.rs");
+    let source = load_chip_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,9 +51,9 @@ fn chip_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn chip_uses_logic_state_model() {
-    let view_source = load_source("src/chip/view.rs");
-    let logic_source = load_source("src/chip/logic.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/chip.rs");
+    let view_source = load_chip_component_source("src/view.rs");
+    let logic_source = load_chip_component_source("src/logic.rs");
+    let primitive_source = load_ui_components_source("../ui-state-primitives/src/chip.rs");
 
     for needle in [
         "pub use ui_state_primitives::chip::{",
@@ -84,7 +114,7 @@ fn chip_uses_logic_state_model() {
 
 #[test]
 fn chip_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/chip/view.rs");
+    let source = load_chip_component_source("src/view.rs");
 
     for attr in [
         "data-slot=\"chip\"",
@@ -111,7 +141,7 @@ fn chip_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn chip_styles_include_variant_size_and_state_source_markers() {
-    let source = load_source("src/chip/styles.rs");
+    let source = load_chip_component_source("src/styles.rs");
 
     for selector in [
         ".ui-chip--size-sm",
@@ -139,7 +169,8 @@ fn chip_styles_include_variant_size_and_state_source_markers() {
 
 #[test]
 fn chip_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let source =
+        load_ui_components_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
         "pub(super) fn chip() -> AnyView",
@@ -148,6 +179,7 @@ fn chip_docs_page_covers_primary_playgrounds() {
         "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
         "title=\"Comparison Matrix (Variant / Size / Disabled / Custom)\"",
         "test_css_source=chip_test_css_source",
+        "test_source_path=\"components/chip/src/styles.rs\".to_string()",
         "test_config_signal=workbench_config",
     ] {
         assert!(
@@ -159,7 +191,8 @@ fn chip_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn chip_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let source =
+        load_ui_components_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
         "id_base=\"docs-chip-variant\".to_string()",

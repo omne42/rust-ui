@@ -1,20 +1,63 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
-fn path_exists(rel_path: &str) -> bool {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    manifest_dir.join(rel_path).exists()
+fn load_error_view_component_source(rel_path: &str) -> String {
+    let path = workspace_dir().join("components/error-view").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_workspace_source(rel_path: &str) -> String {
+    let path = workspace_dir().join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn component_path_exists(rel_path: &str) -> bool {
+    workspace_dir()
+        .join("components/error-view")
+        .join(rel_path)
+        .exists()
+}
+
+#[test]
+fn ui_components_reexports_error_view_component_crate() {
+    let lib_source = load_ui_components_source("src/lib.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        lib_source.contains("#[cfg(feature = \"component-error_view\")]")
+            && lib_source.contains("pub use ui_error_view as error_view;"),
+        "ui-components should re-export the external ui-error-view crate as `error_view`.",
+    );
+    assert!(
+        cargo_source.contains("component-error_view = [\"dep:ui-error-view\"]"),
+        "component-error_view feature should depend on dep:ui-error-view after extraction.",
+    );
+    assert!(
+        cargo_source.contains(
+            "ui-error-view = { path = \"../../components/error-view\", optional = true }"
+        ),
+        "ui-components Cargo.toml should include the optional ui-error-view dependency.",
+    );
 }
 
 #[test]
 fn error_view_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/error_view/mod.rs");
+    let source = load_error_view_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,9 +69,9 @@ fn error_view_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn error_view_uses_logic_state_model() {
-    let logic_source = load_source("src/error_view/logic.rs");
-    let view_source = load_source("src/error_view/view.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/error_view.rs");
+    let logic_source = load_error_view_component_source("src/logic.rs");
+    let view_source = load_error_view_component_source("src/view.rs");
+    let primitive_source = load_workspace_source("crates/ui-state-primitives/src/error_view.rs");
 
     for needle in [
         "pub use ui_state_primitives::error_view::{",
@@ -73,7 +116,7 @@ fn error_view_uses_logic_state_model() {
 
 #[test]
 fn error_view_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/error_view/view.rs");
+    let source = load_error_view_component_source("src/view.rs");
 
     for attr in [
         "data-slot=\"error-view\"",
@@ -110,7 +153,7 @@ fn error_view_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn error_view_styles_include_visibility_tone_and_markers() {
-    let source = load_source("src/error_view/styles.rs");
+    let source = load_error_view_component_source("src/styles.rs");
 
     for selector in [
         ".ui-error-view--tone-negative",
@@ -139,7 +182,7 @@ fn error_view_styles_include_visibility_tone_and_markers() {
 
 #[test]
 fn error_view_motion_contract_is_present() {
-    let source = load_source("src/error_view/motion.rs");
+    let source = load_error_view_component_source("src/motion.rs");
 
     for needle in [
         "pub struct ErrorViewMotion",
@@ -158,7 +201,7 @@ fn error_view_motion_contract_is_present() {
 
 #[test]
 fn error_view_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    let source = load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
         "pub(super) fn error_view() -> AnyView",
@@ -178,7 +221,7 @@ fn error_view_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn error_view_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    let source = load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
 
     for needle in [
         "title=\"Invalid Visibility\"",
@@ -208,9 +251,9 @@ fn error_view_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn error_view_docs_include_readme_or_equivalent_entry() {
-    let has_readme = path_exists("src/error_view/README.md");
+    let has_readme = component_path_exists("src/README.md");
     let docs_source =
-        load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+        load_workspace_source("apps/docs-app/src/pages/components/pages/display_extra.rs");
     assert!(
         has_readme || docs_source.contains("pub(super) fn error_view() -> AnyView"),
         "ErrorView should provide README or equivalent docs-app page."
@@ -219,7 +262,7 @@ fn error_view_docs_include_readme_or_equivalent_entry() {
 
 #[test]
 fn error_view_e2e_contract_uses_semantic_selectors_and_stable_waits() {
-    let source = load_source("../../e2e/tests/docs_app_error_view_contract.spec.mjs");
+    let source = load_workspace_source("e2e/tests/docs_app_error_view_contract.spec.mjs");
 
     for needle in [
         "body:not(:has(#boot))",
@@ -244,7 +287,7 @@ fn error_view_e2e_contract_uses_semantic_selectors_and_stable_waits() {
 
 #[test]
 fn error_view_check2_is_marked_complete() {
-    let source = load_source("src/error_view/check2.md");
+    let source = load_error_view_component_source("src/check2.md");
     assert!(
         !source.contains("- [ ]"),
         "error_view/check2.md should not keep unchecked checklist items after completion."

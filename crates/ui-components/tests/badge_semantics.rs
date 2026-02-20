@@ -1,9 +1,19 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_badge_component_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let path = workspace_dir.join("components/badge").join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -13,8 +23,28 @@ fn path_exists(rel_path: &str) -> bool {
 }
 
 #[test]
+fn ui_components_reexports_badge_component_crate() {
+    let lib_source = load_ui_components_source("src/lib.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        lib_source.contains("#[cfg(feature = \"component-badge\")]")
+            && lib_source.contains("pub use ui_badge as badge;"),
+        "ui-components should re-export the external ui-badge crate as `badge`.",
+    );
+    assert!(
+        cargo_source.contains("component-badge = [\"dep:ui-badge\"]"),
+        "component-badge feature should depend on dep:ui-badge after extraction.",
+    );
+    assert!(
+        cargo_source.contains("ui-badge = { path = \"../../components/badge\", optional = true }"),
+        "ui-components Cargo.toml should include the optional ui-badge dependency.",
+    );
+}
+
+#[test]
 fn badge_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/badge/mod.rs");
+    let source = load_badge_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -26,9 +56,10 @@ fn badge_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn badge_consumes_state_primitives_and_keeps_component_assembly_local() {
-    let view_source = load_source("src/badge/view.rs");
-    let logic_source = load_source("src/badge/logic.rs");
-    let primitives_source = load_source("../../crates/ui-state-primitives/src/badge.rs");
+    let view_source = load_badge_component_source("src/view.rs");
+    let logic_source = load_badge_component_source("src/logic.rs");
+    let primitives_source =
+        load_ui_components_source("../../crates/ui-state-primitives/src/badge.rs");
 
     for needle in [
         "pub use ui_state_primitives::badge::{",
@@ -68,7 +99,7 @@ fn badge_consumes_state_primitives_and_keeps_component_assembly_local() {
 
 #[test]
 fn badge_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/badge/view.rs");
+    let source = load_badge_component_source("src/view.rs");
 
     for attr in [
         "data-slot=\"badge\"",
@@ -101,7 +132,7 @@ fn badge_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn badge_styles_include_variant_fill_and_custom_class_markers() {
-    let source = load_source("src/badge/styles.rs");
+    let source = load_badge_component_source("src/styles.rs");
 
     for selector in [
         ".ui-badge--variant-default",
@@ -125,7 +156,8 @@ fn badge_styles_include_variant_fill_and_custom_class_markers() {
 
 #[test]
 fn badge_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let source =
+        load_ui_components_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
         "pub(super) fn badge() -> AnyView",
@@ -135,7 +167,7 @@ fn badge_docs_page_covers_primary_playgrounds() {
         "Playground title=\"Variant Matrix\"",
         "Playground title=\"Custom Class + Outline\"",
         "title=\"Badge Workbench (Display + Config + Code + CSS Test)\"",
-        "test_source_path=\"crates/ui-components/src/badge/styles.rs\".to_string()",
+        "test_source_path=\"components/badge/src/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
     ] {
         assert!(
@@ -147,7 +179,8 @@ fn badge_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn badge_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display.rs");
+    let source =
+        load_ui_components_source("../../apps/docs-app/src/pages/components/pages/display.rs");
 
     for needle in [
         "title=\"Hello World\"",
@@ -175,8 +208,8 @@ fn badge_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn badge_logic_resolves_agent_contract_and_locale_helpers() {
-    let source = load_source("src/badge/logic.rs");
-    let view_source = load_source("src/badge/view.rs");
+    let source = load_badge_component_source("src/logic.rs");
+    let view_source = load_badge_component_source("src/view.rs");
 
     for needle in [
         "pub struct BadgeAgentContract",
@@ -213,7 +246,7 @@ fn badge_e2e_contract_file_exists_and_uses_semantic_selectors() {
         "badge should provide docs-app e2e contract file: `{rel}`."
     );
 
-    let source = load_source(rel);
+    let source = load_ui_components_source(rel);
     for needle in [
         "body:not(:has(#boot))",
         "data-component=\"badge\"",

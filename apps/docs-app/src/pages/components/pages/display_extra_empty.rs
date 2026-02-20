@@ -75,7 +75,7 @@ pub(super) fn empty() -> AnyView {
 
     let empty_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/empty/styles.rs */\n{}",
+            "/* components/empty/src/styles.rs */\n{}",
             ui_components::empty::styles::CSS
         )
     });
@@ -121,7 +121,7 @@ pub(super) fn empty() -> AnyView {
                 description="可调 media/content/class/source，并在同一面板查看 code + config + scoped css test。"
                 code_signal=workbench_code
                 test_css_source=empty_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/empty/styles.rs".to_string()
+                test_source_path="components/empty/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 controls=move || {
                     view! {

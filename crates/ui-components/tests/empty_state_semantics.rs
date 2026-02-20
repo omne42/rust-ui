@@ -1,15 +1,47 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_empty_state_component_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+    let path = workspace_dir.join("components/empty-state").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn ui_components_reexports_empty_state_component_crate() {
+    let lib_source = load_ui_components_source("src/lib.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        lib_source.contains("#[cfg(feature = \"component-empty_state\")]")
+            && lib_source.contains("pub use ui_empty_state as empty_state;"),
+        "ui-components should re-export the external ui-empty-state crate as `empty_state`.",
+    );
+    assert!(
+        cargo_source.contains("component-empty_state = [\"dep:ui-empty-state\"]"),
+        "component-empty_state feature should depend on dep:ui-empty-state after extraction.",
+    );
+    assert!(
+        cargo_source.contains(
+            "ui-empty-state = { path = \"../../components/empty-state\", optional = true }"
+        ),
+        "ui-components Cargo.toml should include the optional ui-empty-state dependency.",
+    );
+}
+
 #[test]
 fn empty_state_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/empty_state/mod.rs");
+    let source = load_empty_state_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,9 +53,10 @@ fn empty_state_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn empty_state_uses_logic_state_model() {
-    let logic_source = load_source("src/empty_state/logic.rs");
-    let view_source = load_source("src/empty_state/view.rs");
-    let primitive_source = load_source("../ui-state-primitives/src/empty_state.rs");
+    let logic_source = load_empty_state_component_source("src/logic.rs");
+    let view_source = load_empty_state_component_source("src/view.rs");
+    let primitive_source =
+        load_ui_components_source("../../crates/ui-state-primitives/src/empty_state.rs");
 
     for needle in [
         "pub use ui_state_primitives::empty_state::{",
@@ -94,7 +127,7 @@ fn empty_state_uses_logic_state_model() {
 
 #[test]
 fn empty_state_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/empty_state/view.rs");
+    let source = load_empty_state_component_source("src/view.rs");
 
     for attr in [
         "data-slot=\"empty-state\"",
@@ -128,7 +161,7 @@ fn empty_state_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn empty_state_styles_include_tone_align_and_markers() {
-    let source = load_source("src/empty_state/styles.rs");
+    let source = load_empty_state_component_source("src/styles.rs");
 
     for selector in [
         ".ui-empty-state--tone-default",
@@ -161,7 +194,9 @@ fn empty_state_styles_include_tone_align_and_markers() {
 
 #[test]
 fn empty_state_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+    );
 
     for needle in [
         "pub(super) fn empty_state() -> AnyView",
@@ -181,7 +216,9 @@ fn empty_state_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn empty_state_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/display_extra.rs");
+    let source = load_ui_components_source(
+        "../../apps/docs-app/src/pages/components/pages/display_extra.rs",
+    );
 
     for needle in [
         "title=\"Tone + Alignment + Actions\"",

@@ -3,7 +3,13 @@ use std::path::Path;
 
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = if let Some(suffix) = rel_path.strip_prefix("src/avatar/") {
+        manifest_dir
+            .join("../../components/avatar-group/src")
+            .join(suffix)
+    } else {
+        manifest_dir.join(rel_path)
+    };
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -45,7 +51,6 @@ fn avatar_group_uses_logic_state_model() {
         "pub fn resolve_avatar_group_aria_label_with_fallback(",
         "AvatarGroupRenderState",
         "resolve_render_state",
-        "resolve_state",
         "pub fn compose_avatar_group_class_name(",
         "ui-avatar-group--custom-class",
     ] {
@@ -333,7 +338,9 @@ fn avatar_group_does_not_define_component_motion_runtime() {
     let styles_source = load_source("src/avatar/styles.rs");
 
     assert!(
-        !manifest_dir.join("src/avatar/motion.rs").exists(),
+        !manifest_dir
+            .join("../../components/avatar-group/src/motion.rs")
+            .exists(),
         "AvatarGroup should not define `src/avatar/motion.rs` when no runtime animation contract is needed."
     );
 
@@ -951,7 +958,7 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
     }
 
     for required in [
-        "use crate::avatar::logic::{self, AvatarSize};",
+        "use crate::logic::{self, AvatarSize};",
         "view! {",
         "logic::normalize_avatar_group_input(",
         "logic::resolve_avatar_group_render_state(",
@@ -979,7 +986,9 @@ fn avatar_group_component_files_follow_layered_responsibilities() {
     }
 
     assert!(
-        !manifest_dir.join("src/avatar/motion.rs").exists(),
+        !manifest_dir
+            .join("../../components/avatar-group/src/motion.rs")
+            .exists(),
         "AvatarGroup is static in current scope; `motion.rs` should remain absent until motion contract is required."
     );
 }
@@ -990,7 +999,9 @@ fn avatar_group_does_not_introduce_spec_rs_and_keeps_lightweight_exports() {
     let group_mod_source = load_source("src/avatar/mod.rs");
 
     assert!(
-        !manifest_dir.join("src/avatar/spec.rs").exists(),
+        !manifest_dir
+            .join("../../components/avatar-group/src/spec.rs")
+            .exists(),
         "AvatarGroup should not introduce `src/avatar/spec.rs` without stable external schema need."
     );
 
@@ -1024,7 +1035,7 @@ fn avatar_group_token_first_static_styles_contract_is_enforced_via_ui_root_css_p
 
     for required in [
         "#[cfg(feature = \"component-avatar_group\")]",
-        "out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
+        "out.push_str(crate::avatar_group::styles::CSS);",
     ] {
         assert!(
             css_source.contains(required),
@@ -1155,13 +1166,13 @@ fn avatar_group_tree_shaking_contract_enforces_source_mode_reachability_boundari
     let cargo_source = load_source("Cargo.toml");
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-avatar\")]\npub mod avatar;"),
+        lib_source.contains("#[cfg(feature = \"component-avatar\")]\npub use ui_avatar as avatar;"),
         "avatar module should stay behind component-avatar gate for source-mode reachability."
     );
 
     for needle in [
-        "component-avatar = []",
-        "component-avatar_group = [\"component-avatar\"]",
+        "component-avatar = [\"dep:ui-avatar\"]",
+        "component-avatar_group = [\"component-avatar\", \"dep:ui-avatar-group\"]",
     ] {
         assert!(
             cargo_source.contains(needle),
@@ -1171,7 +1182,7 @@ fn avatar_group_tree_shaking_contract_enforces_source_mode_reachability_boundari
 
     for needle in [
         "#[cfg(feature = \"component-avatar\")]\n    out.push_str(crate::avatar::styles::CSS);",
-        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
+        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar_group::styles::CSS);",
     ] {
         assert!(
             css_source.contains(needle),
@@ -1197,6 +1208,7 @@ fn avatar_group_machine_readable_contract_uses_typed_inputs_and_semantic_markers
     let logic_source = load_source("src/avatar/logic.rs");
     let view_source = load_source("src/avatar/view.rs");
     let styles_source = load_source("src/avatar/styles.rs");
+    let logic_test_source = load_source("../../components/avatar-group/test/logic.rs");
 
     for required in [
         "pub struct AvatarGroupStateInput",
@@ -1265,7 +1277,11 @@ fn avatar_group_machine_readable_contract_uses_typed_inputs_and_semantic_markers
 
     let required = "resolve_render_state_maps_discrete_status_and_sources_to_enums";
     assert!(
-        logic_source.contains(required) || primitive_source.contains(required),
+        logic_source.contains(required)
+            || primitive_source.contains(required)
+            || logic_test_source.contains(
+                "resolve_avatar_group_render_state_maps_discrete_status_and_sources_to_enums",
+            ),
         "Typed state contract should keep a regression anchor `{required}`."
     );
 }

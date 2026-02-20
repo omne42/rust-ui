@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 use ui_components::{
-    BreadcrumbItem, Breadcrumbs, Code, CodeVariant, Kbd, Link, ProgressBar, Snippet,
+    Breadcrumb, BreadcrumbItem, Code, CodeVariant, Kbd, Link, ProgressBar, Snippet,
 };
 use ui_layout::{Spacer, SpacerAxis, SpacerSize};
 
@@ -36,7 +36,7 @@ pub fn TypographyDemo() -> impl IntoView {
                     </Link>
                 </div>
 
-                <Breadcrumbs items=breadcrumbs />
+                <Breadcrumb items=breadcrumbs />
 
                 <div class="demo-row">
                     <Code>"inline code"</Code>

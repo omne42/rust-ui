@@ -1,0 +1,71 @@
+schema_version = "1"
+
+[component]
+name = "Checkbox"
+crate = "ui-checkbox"
+
+[[inputs]]
+name = "checked"
+ty = "ReadSignal<bool>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "set_checked"
+ty = "WriteSignal<bool>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "on_change"
+ty = "Option<Callback<bool>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "variant"
+ty = "CheckboxVariant"
+default = "CheckboxVariant::Default"
+controlled = false
+
+[[inputs]]
+name = "size"
+ty = "CheckboxSize"
+default = "CheckboxSize::Default"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "CheckboxMotion"
+default = "CheckboxMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"

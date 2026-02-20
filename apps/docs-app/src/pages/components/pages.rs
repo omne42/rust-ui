@@ -4,7 +4,6 @@ mod actions_extra_picker_button;
 mod collections;
 mod collections_breadcrumb;
 mod collections_breadcrumb_catalog;
-mod collections_breadcrumb_primitives;
 mod collections_command;
 mod collections_core_catalog;
 mod collections_extra;
@@ -387,18 +386,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
         theme_visual_baseline::theme_visual_baseline
     ),
     component_doc!("Alert", "alert", "Display", display::alert),
-    component_doc!(
-        "AlertBanner",
-        "alert-banner",
-        "Display",
-        display_extra::alert_banner
-    ),
-    component_doc!(
-        "InlineAlert",
-        "inline-alert",
-        "Display",
-        display::inline_alert
-    ),
     component_doc!("Badge", "badge", "Display", display::badge),
     component_doc!(
         "StatusLight",
@@ -534,12 +521,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     component_doc!("FileTrigger", "file-trigger", "Files", files::file_trigger),
     component_doc!("DropZone", "drop-zone", "Files", files::drop_zone),
     collections_breadcrumb_catalog::BREADCRUMB_DOC,
-    collections_breadcrumb_catalog::BREADCRUMB_LIST_DOC,
-    collections_breadcrumb_catalog::BREADCRUMB_ITEM_DOC,
-    collections_breadcrumb_catalog::BREADCRUMB_LINK_DOC,
-    collections_breadcrumb_catalog::BREADCRUMB_PAGE_DOC,
-    collections_breadcrumb_catalog::BREADCRUMB_SEPARATOR_DOC,
-    collections_breadcrumb_catalog::BREADCRUMB_ELLIPSIS_DOC,
     collections_item_catalog::ITEM_DOC,
     collections_item_catalog::ITEM_GROUP_DOC,
     collections_item_catalog::ITEM_SEPARATOR_DOC,
@@ -550,12 +531,6 @@ pub(super) const CATALOG: &[ComponentDoc] = &[
     collections_item_catalog::ITEM_ACTIONS_DOC,
     collections_item_catalog::ITEM_HEADER_DOC,
     collections_item_catalog::ITEM_FOOTER_DOC,
-    component_doc!(
-        "Breadcrumbs",
-        "breadcrumbs",
-        "Collections",
-        collections::breadcrumbs
-    ),
     collections_core_catalog::ACCORDION_DOC,
     component_doc!(
         "AccordionItem",

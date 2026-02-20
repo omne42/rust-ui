@@ -1,0 +1,145 @@
+schema_version = "1"
+
+[component]
+name = "ActionBar"
+crate = "ui-action-bar"
+
+[[inputs]]
+name = "selected_count"
+ty = "Option<Signal<usize>>"
+default = "None"
+controlled = true
+
+[[inputs]]
+name = "default_selected_count"
+ty = "Option<usize>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_selected_count_change"
+ty = "Option<Callback<usize>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "on_clear_selection"
+ty = "Option<Callback<()>>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "position"
+ty = "ActionBarPosition"
+default = "ActionBarPosition::Bottom"
+controlled = false
+
+[[inputs]]
+name = "is_force_visible"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "aria_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "clear_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "selection_text"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "ActionBarMotion"
+default = "ActionBarMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "children"
+ty = "Option<Children>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "data-state"
+ty = "visible | hidden"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-selection"
+ty = "empty | single | multiple"
+scope = "root-attribute"
+
+[[outputs]]
+name = "data-control-mode"
+ty = "controlled | uncontrolled"
+scope = "root-attribute"
+
+[[outputs]]
+name = "on_selected_count_change"
+ty = "Callback<usize>"
+scope = "event"
+
+[[capabilities]]
+name = "controlled_and_uncontrolled_selected_count"
+enabled = true
+
+[[capabilities]]
+name = "toolbar_semantics_and_a11y_markers"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_direction_context"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract_with_reduced_motion_fallback"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "ui-button"
+kind = "action-slot-composition"

@@ -23,7 +23,7 @@ cargo test -p ui-layout --test well_semantics --no-default-features --features c
 echo "[contract-hygiene] contract: well semantics tests stay contract-first (data/aria/role/source over snapshot)"
 cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_check2_documents_semantics_first_testing_rules
 cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-layout --test well_semantics --no-default-features --features component-well,inject-css well_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 echo "[contract-hygiene] contract: tabs agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-components --test tabs_semantics tabs_agent_contract_markers_are_schema_like_and_machine_readable
@@ -32,28 +32,28 @@ cargo test -p ui-components --test tabs_semantics tabs_agent_contract_render_pat
 echo "[contract-hygiene] contract: tabs semantics tests stay contract-first (data/aria/role/source over snapshot)"
 cargo test -p ui-components --test tabs_semantics tabs_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test tabs_semantics tabs_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-components --test tabs_semantics tabs_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test tabs_semantics tabs_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 echo "[contract-hygiene] contract: tag agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_is_schema_typed_and_machine_readable
 cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test tag_semantics --no-default-features --features component-tag,inject-css tag_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 echo "[contract-hygiene] contract: tag-group agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-components --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_agent_contract_is_schema_typed_and_machine_readable
 cargo test -p ui-components --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-components --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-components --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test tag_group_semantics --no-default-features --features component-tag_group,inject-css tag_group_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 echo "[contract-hygiene] contract: swatch agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_is_schema_typed_and_machine_readable
 cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test swatch_semantics --no-default-features --features component-swatch,inject-css swatch_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 
 echo "[contract-hygiene] contract: textarea agent-contract schema-like markers + whitelist-safe render path"
 cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_agent_contract_markers_are_schema_like_and_machine_readable
@@ -62,7 +62,7 @@ cargo test -p ui-components --test textarea_semantics --no-default-features --fe
 echo "[contract-hygiene] contract: textarea semantics tests stay contract-first (data/aria/role/source over snapshot)"
 cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_check2_documents_docs_sync_and_state_matrix_rules
 cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_examples_sync_with_logic_api_names_and_state_matrix
 cargo test -p ui-components --test textarea_semantics --no-default-features --features component-textarea,inject-css textarea_docs_entry_exists_as_readme_or_equivalent_docs_app_page
@@ -79,7 +79,7 @@ cargo test -p ui-components --test time_field_semantics --no-default-features --
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantics_suite_prioritizes_contract_assertions_over_snapshots
-cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_entry_exists_as_readme_or_equivalent_docs_app_page
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_are_beginner_friendly_with_default_then_advanced_path
 cargo test -p ui-components --test time_field_semantics --no-default-features --features component-time_field,inject-css time_field_docs_hello_world_snippet_is_zero_threshold_and_not_architecture_wiring
@@ -96,7 +96,7 @@ cargo test -p ui-components --test slider_semantics --no-default-features --feat
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_semantics_first_testing_rules
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_docs_sync_and_state_matrix_rules
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_docs_examples_sync_with_logic_api_names_and_state_matrix
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_documentation_as_product_rules
@@ -113,7 +113,7 @@ cargo test -p ui-components --test slider_semantics --no-default-features --feat
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_check2_documents_final_merge_gate_rules
-cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_tests
+cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_capabilities_are_backed_by_contract_checks
 cargo test -p ui-components --test slider_semantics --no-default-features --features component-slider,inject-css slider_final_merge_gate_marks_full_repo_gate_as_component_scoped_na
 
 echo "[contract-hygiene] contract: scroll-area agent-contract schema-like markers + whitelist-safe render path"
@@ -123,7 +123,7 @@ cargo test -p ui-layout --test scroll_area_semantics --no-default-features --fea
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_agent_contract_render_path_is_whitelist_safe_and_script_injection_free
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_check2_documents_semantics_first_testing_rules
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_semantics_suite_is_contract_first_not_snapshot_only
-cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_check2_documents_docs_sync_and_state_matrix_rules
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_docs_examples_sync_with_logic_api_names_and_state_matrix
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_docs_entry_exists_as_readme_or_equivalent_docs_app_page
@@ -141,7 +141,7 @@ cargo test -p ui-layout --test scroll_area_semantics --no-default-features --fea
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_forbidden_antipatterns_block_parallel_array_api_and_platform_type_leaks
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_forbidden_antipatterns_avoid_temporary_patch_drift_and_keep_primitives_sunk
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_check2_documents_final_merge_gate_rules
-cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_final_merge_gate_capabilities_are_backed_by_contract_tests
+cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_final_merge_gate_capabilities_are_backed_by_contract_checks
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_final_merge_gate_marks_full_repo_gate_as_deferred_by_requirement
 cargo test -p ui-layout --test scroll_area_semantics --no-default-features --features component-scroll_area,inject-css scroll_area_check2_has_no_unchecked_checklist_items
 

@@ -4,12 +4,48 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_checkbox_test_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir
+        .join("../../components/checkbox/test")
+        .join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn checkbox_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/checkbox/mod.rs");
+    let source = load_source("../../components/checkbox/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +57,7 @@ fn checkbox_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn checkbox_uses_headless_hooks() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("../../components/checkbox/src/view.rs");
 
     for needle in ["use_checkbox", "use_focus_ring", "use_hover"] {
         assert!(
@@ -33,8 +69,8 @@ fn checkbox_uses_headless_hooks() {
 
 #[test]
 fn checkbox_uses_logic_state_model() {
-    let view_source = load_source("src/checkbox/view.rs");
-    let logic_source = load_source("src/checkbox/logic.rs");
+    let view_source = load_source("../../components/checkbox/src/view.rs");
+    let logic_source = load_source("../../components/checkbox/src/logic.rs");
 
     for needle in [
         "pub struct CheckboxState",
@@ -65,7 +101,7 @@ fn checkbox_uses_logic_state_model() {
 
 #[test]
 fn checkbox_attaches_motion_drivers() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("../../components/checkbox/src/view.rs");
 
     for needle in ["attach_root_motion", "attach_indicator_motion"] {
         assert!(
@@ -77,7 +113,7 @@ fn checkbox_attaches_motion_drivers() {
 
 #[test]
 fn checkbox_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/checkbox/view.rs");
+    let source = load_source("../../components/checkbox/src/view.rs");
 
     for attr in [
         "data-slot=\"checkbox\"",
@@ -102,7 +138,7 @@ fn checkbox_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn checkbox_motion_uses_spring_animator() {
-    let source = load_source("src/checkbox/motion.rs");
+    let source = load_source("../../components/checkbox/src/motion.rs");
 
     assert!(
         source.contains("SpringAnimator"),
@@ -112,7 +148,7 @@ fn checkbox_motion_uses_spring_animator() {
 
 #[test]
 fn checkbox_styles_respect_prefers_reduced_motion() {
-    let source = load_source("src/checkbox/styles.rs");
+    let source = load_source("../../components/checkbox/src/styles.rs");
 
     assert!(
         source.contains("prefers-reduced-motion: reduce"),
@@ -126,7 +162,7 @@ fn checkbox_styles_respect_prefers_reduced_motion() {
 
 #[test]
 fn checkbox_styles_include_motion_marker_contracts() {
-    let source = load_source("src/checkbox/styles.rs");
+    let source = load_source("../../components/checkbox/src/styles.rs");
 
     for selector in [
         ".ui-checkbox[data-motion-source=\"custom\"]",
@@ -141,7 +177,9 @@ fn checkbox_styles_include_motion_marker_contracts() {
 
 #[test]
 fn checkbox_motion_sanitizes_custom_contract_values() {
-    let source = load_source("src/checkbox/motion.rs");
+    let source = load_source("../../components/checkbox/src/motion.rs");
+    let tests_source = load_checkbox_test_source("motion.rs");
+    let combined_source = format!("{source}\n{tests_source}");
 
     for needle in [
         "pub fn sanitize_motion(motion: CheckboxMotion) -> CheckboxMotion",
@@ -155,7 +193,7 @@ fn checkbox_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_clamps_scale_values_and_keeps_valid_springs()",
     ] {
         assert!(
-            source.contains(needle),
+            combined_source.contains(needle),
             "Checkbox motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }
@@ -213,7 +251,7 @@ fn checkbox_docs_include_interactive_playground_contract_panels() {
         "test_css_source=interactive_test_css",
         "test_config_signal=interactive_config",
         "controls=move || view!",
-        "test_source_path=\"crates/ui-components/src/checkbox/styles.rs\".to_string()",
+        "test_source_path=\"components/checkbox/src/styles.rs\".to_string()",
         "title=\"Controlled + on_change\"",
         "title=\"Variant + Disabled matrix\"",
     ] {
@@ -226,7 +264,7 @@ fn checkbox_docs_include_interactive_playground_contract_panels() {
 
 #[test]
 fn checkbox_readme_and_docs_shell_register_display_config_code_css_contract() {
-    let readme_source = load_source("src/checkbox/README.md");
+    let readme_source = load_source("../../components/checkbox/src/README.md");
     let shell_source = load_source("../../apps/docs-app/src/pages/components/shell.rs");
 
     assert!(

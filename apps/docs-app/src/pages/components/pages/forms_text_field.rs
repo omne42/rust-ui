@@ -206,11 +206,11 @@ let (marker_disabled, set_marker_disabled) = signal(false);
                     class_name="docs-text-field-source-copy".to_string()
                 />
                 <ul data-slot="text-field-source-paths">
-                    <li><code>"crates/ui-components/src/text_input/text_field/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/text_field/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/text_field/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/text_field/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/text_input/text_field/motion.rs"</code></li>
+                    <li><code>"components/text-input/src/text_field/mod.rs"</code></li>
+                    <li><code>"components/text-input/src/text_field/logic.rs"</code></li>
+                    <li><code>"components/text-input/src/text_field/view.rs"</code></li>
+                    <li><code>"components/text-input/src/text_field/styles.rs"</code></li>
+                    <li><code>"components/text-input/src/text_field/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="text-field-source-prerequisites">
                     <li><code>"component-text_field"</code></li>

@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn pressable_feedback_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/pressable_feedback/mod.rs");
+    let source = load_source("../../components/pressable-feedback/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +49,8 @@ fn pressable_feedback_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn pressable_feedback_uses_logic_state_model() {
-    let logic_source = load_source("src/pressable_feedback/logic.rs");
-    let view_source = load_source("src/pressable_feedback/view.rs");
+    let logic_source = load_source("../../components/pressable-feedback/src/logic.rs");
+    let view_source = load_source("../../components/pressable-feedback/src/view.rs");
 
     for needle in [
         "pub enum PressableFeedbackTone",
@@ -58,7 +86,7 @@ fn pressable_feedback_uses_logic_state_model() {
 
 #[test]
 fn pressable_feedback_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/pressable_feedback/view.rs");
+    let source = load_source("../../components/pressable-feedback/src/view.rs");
 
     for attr in [
         "data-slot=\"pressable-feedback\"",
@@ -87,7 +115,7 @@ fn pressable_feedback_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn pressable_feedback_styles_include_effect_boundary_and_markers() {
-    let source = load_source("src/pressable_feedback/styles.rs");
+    let source = load_source("../../components/pressable-feedback/src/styles.rs");
 
     for selector in [
         ".ui-pressable-feedback--tone-default",
@@ -114,7 +142,7 @@ fn pressable_feedback_styles_include_effect_boundary_and_markers() {
 
 #[test]
 fn pressable_feedback_motion_contract_is_present() {
-    let source = load_source("src/pressable_feedback/motion.rs");
+    let source = load_source("../../components/pressable-feedback/src/motion.rs");
 
     for needle in [
         "pub struct PressableFeedbackMotion",

@@ -1,9 +1,30 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let workspace_dir = manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"));
+
+    if let Some(suffix) = rel_path.strip_prefix("src/keyboard/") {
+        workspace_dir.join("components/keyboard/src").join(suffix)
+    } else if rel_path == "src/lib.rs" {
+        workspace_dir.join("crates/ui-components/src/lib.rs")
+    } else if rel_path == "src/css.rs" {
+        workspace_dir.join("crates/ui-components/src/css.rs")
+    } else if rel_path == "Cargo.toml" {
+        workspace_dir.join("crates/ui-components/Cargo.toml")
+    } else if let Some(suffix) = rel_path.strip_prefix("../../") {
+        workspace_dir.join(suffix)
+    } else {
+        manifest_dir.join(rel_path)
+    }
+}
+
+fn load_source(rel_path: &str) -> String {
+    let path = resolve_path(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -103,6 +124,7 @@ fn keyboard_docs_page_covers_primary_playgrounds() {
         "title=\"Interactive Playground (展示 / Config / Code / CSS Test)\"",
         "title=\"Comparison Matrix (Tone / Compact / Source Markers)\"",
         "test_css_source=keyboard_test_css_source",
+        "test_source_path=\"components/keyboard/src/styles.rs\".to_string()",
         "test_config_signal=workbench_config",
         "<Keyboard",
     ] {

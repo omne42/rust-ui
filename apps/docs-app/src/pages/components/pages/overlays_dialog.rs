@@ -118,7 +118,7 @@ let on_exit_complete = Callback::new(move |_| {});
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/dialog/styles.rs */\n{}",
+            "/* components/dialog/src/styles.rs */\n{}",
             ui_components::dialog::styles::CSS
         )
     });
@@ -274,7 +274,7 @@ let on_exit_complete = Callback::new(move |_| {});
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/dialog/styles.rs".to_string()
+                test_source_path="components/dialog/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

@@ -100,7 +100,7 @@ pub(super) fn file_trigger() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/file_trigger/styles.rs */\n{}",
+            "/* components/file-trigger/src/styles.rs */\n{}",
             ui_components::file_trigger::styles::CSS
         )
     });
@@ -164,7 +164,7 @@ pub(super) fn file_trigger() -> AnyView {
                 description="展示区支持文件选择结果回显；Config 区切换 accept/multiple/disabled/motion；Code + CSS Test 区用于契约回归。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/file_trigger/styles.rs".to_string()
+                test_source_path="components/file-trigger/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">

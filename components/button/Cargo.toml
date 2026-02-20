@@ -1,0 +1,38 @@
+[package]
+name = "ui-button"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+button-wasm-debug = []
+component-action_button_group = []
+component-action_group = []
+component-button_copy = []
+component-button_flip = []
+component-button_group = []
+component-button_search_input = []
+component-button_share = []
+component-button_theme_toggle = []
+component-toggle = []
+component-toggle_button = []
+component-toggle_button_group = []
+component-toggle_group = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../../crates/ui-headless" }
+ui-motion = { path = "../../crates/ui-motion" }
+ui-state-primitives = { path = "../../crates/ui-state-primitives" }
+ui-theme = { path = "../../crates/ui-theme" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+tracing = "0.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.85"
+web-sys = { version = "0.3.85", features = ["CssStyleDeclaration", "console"] }

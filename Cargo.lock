@@ -4656,11 +4656,331 @@ dependencies = [
 ]
 
 [[package]]
+name = "ui-action-bar"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-button",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
 name = "ui-ai-runtime"
 version = "0.0.0"
 dependencies = [
  "leptos",
 ]
+
+[[package]]
+name = "ui-alert"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-alert-dialog"
+version = "0.0.0"
+
+[[package]]
+name = "ui-asset"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-thumbnail",
+]
+
+[[package]]
+name = "ui-autocomplete"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-avatar"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-avatar-group"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-avatar",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-badge"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-bottom-sheet"
+version = "0.0.0"
+
+[[package]]
+name = "ui-breadcrumb"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-button"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "serde",
+ "serde_json",
+ "tracing",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-calendar"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-logic-calendar",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-carousel"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-chart"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-checkbox"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-checkbox-field"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-checkbox",
+]
+
+[[package]]
+name = "ui-checkbox-group"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+]
+
+[[package]]
+name = "ui-chip"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-circular-progress"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-coachmark"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-components",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-code"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-code-block"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-collapsible"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-disclosure",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-color-area"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-color-editor"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-field"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-handle"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-loupe"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-picker"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-slider"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-color-swatch"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-swatch-picker"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-thumb"
+version = "0.0.0"
+
+[[package]]
+name = "ui-color-wheel"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-combo-box"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-command"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-command-dialog"
+version = "0.0.0"
 
 [[package]]
 name = "ui-components"
@@ -4673,15 +4993,272 @@ dependencies = [
  "tachys",
  "tracing",
  "ui-accordion",
+ "ui-action-bar",
  "ui-ai-runtime",
+ "ui-alert",
+ "ui-asset",
+ "ui-autocomplete",
+ "ui-avatar",
+ "ui-avatar-group",
+ "ui-badge",
+ "ui-breadcrumb",
+ "ui-calendar",
+ "ui-carousel",
+ "ui-chart",
+ "ui-checkbox",
+ "ui-checkbox-field",
+ "ui-checkbox-group",
+ "ui-chip",
+ "ui-circular-progress",
+ "ui-code",
+ "ui-code-block",
+ "ui-collapsible",
+ "ui-color-area",
+ "ui-color-slider",
+ "ui-color-wheel",
+ "ui-combo-box",
+ "ui-command",
+ "ui-date-input-group",
+ "ui-description",
+ "ui-direction",
+ "ui-disclosure",
+ "ui-drawer",
+ "ui-drop-zone",
+ "ui-empty",
+ "ui-empty-state",
+ "ui-error-message",
+ "ui-error-view",
+ "ui-example-theme",
+ "ui-field",
+ "ui-field-error",
+ "ui-field-label",
+ "ui-fieldset",
+ "ui-flip-card",
  "ui-headless",
+ "ui-help-text",
+ "ui-hover-card",
+ "ui-icon",
+ "ui-illustrated-message",
+ "ui-image",
+ "ui-item",
+ "ui-kbd",
+ "ui-keyboard",
+ "ui-labeled-value",
  "ui-layout",
+ "ui-legend",
+ "ui-link",
+ "ui-list",
  "ui-logic-calendar",
+ "ui-meter",
+ "ui-motion",
+ "ui-native-select",
+ "ui-pagination",
+ "ui-popover",
+ "ui-pressable-feedback",
+ "ui-preview-card",
+ "ui-progress",
+ "ui-radio",
+ "ui-ripple",
+ "ui-segmented-control",
+ "ui-sheet",
+ "ui-skeleton",
+ "ui-slider",
+ "ui-snippet",
+ "ui-spinner",
+ "ui-state-primitives",
+ "ui-status-light",
+ "ui-step-list",
+ "ui-table",
+ "ui-tabs",
+ "ui-tag",
+ "ui-text",
+ "ui-theme",
+ "ui-thumbnail",
+ "ui-toast",
+ "ui-tooltip",
+ "ui-tray",
+ "ui-tree",
+ "ui-underlay",
+ "ui-visual-primitive",
+ "ui-visually-hidden",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-contextual-help"
+version = "0.0.0"
+
+[[package]]
+name = "ui-date-input-group"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-description"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-dialog"
+version = "0.0.0"
+
+[[package]]
+name = "ui-direction"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-disclosure"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "serde",
+ "ui-accordion",
+ "ui-headless",
  "ui-motion",
  "ui-state-primitives",
- "ui-theme",
- "ui-visual-primitive",
  "web-sys",
+]
+
+[[package]]
+name = "ui-drawer"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-button",
+ "ui-headless",
+ "ui-motion",
+ "ui-sheet",
+]
+
+[[package]]
+name = "ui-drop-zone"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-empty"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+]
+
+[[package]]
+name = "ui-empty-state"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-error-message"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-error-view"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-example-theme"
+version = "0.0.0"
+dependencies = [
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-field"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-field-error"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-field-label"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-fieldset"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-file-trigger"
+version = "0.0.0"
+
+[[package]]
+name = "ui-flip-card"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-form"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+]
+
+[[package]]
+name = "ui-form-field"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-checkbox",
+ "ui-headless",
 ]
 
 [[package]]
@@ -4696,6 +5273,91 @@ dependencies = [
  "ui-state-primitives",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "ui-help-text"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-hover-card"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-icon"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-illustrated-message"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-image"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-item"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-kbd"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-keyboard"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-label"
+version = "0.0.0"
+
+[[package]]
+name = "ui-labeled-value"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
 ]
 
 [[package]]
@@ -4715,7 +5377,65 @@ dependencies = [
 ]
 
 [[package]]
+name = "ui-legend"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-link"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+]
+
+[[package]]
+name = "ui-list"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-illustrated-message",
+ "ui-motion",
+ "ui-visual-primitive",
+]
+
+[[package]]
 name = "ui-logic-calendar"
+version = "0.0.0"
+
+[[package]]
+name = "ui-menu"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-components",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-meter"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-modal"
 version = "0.0.0"
 
 [[package]]
@@ -4728,12 +5448,381 @@ dependencies = [
 ]
 
 [[package]]
+name = "ui-native-select"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+]
+
+[[package]]
+name = "ui-overlay"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-overlays"
+version = "0.0.0"
+
+[[package]]
+name = "ui-pagination"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-button",
+ "ui-headless",
+]
+
+[[package]]
+name = "ui-popover"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-pressable-feedback"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-ripple",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-preview-card"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-preview-link-card"
+version = "0.0.0"
+
+[[package]]
+name = "ui-progress"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-radio"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-ripple"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+ "ui-visual-primitive",
+]
+
+[[package]]
+name = "ui-segmented-control"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-select"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-components",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-selection-indicator"
+version = "0.0.0"
+
+[[package]]
+name = "ui-shared-element-transition"
+version = "0.0.0"
+
+[[package]]
+name = "ui-sheet"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+]
+
+[[package]]
+name = "ui-sidebar"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+]
+
+[[package]]
+name = "ui-skeleton"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-slider"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-snippet"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-spinner"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-circular-progress",
+ "ui-headless",
+ "ui-state-primitives",
+ "ui-theme",
+]
+
+[[package]]
 name = "ui-state-primitives"
 version = "0.0.0"
 
 [[package]]
+name = "ui-status-light"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-step-list"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-swatch"
+version = "0.0.0"
+
+[[package]]
+name = "ui-switch"
+version = "0.0.0"
+
+[[package]]
+name = "ui-table"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+]
+
+[[package]]
+name = "ui-tabs"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-tag"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-text"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+]
+
+[[package]]
+name = "ui-text-input"
+version = "0.0.0"
+dependencies = [
+ "ui-components",
+]
+
+[[package]]
 name = "ui-theme"
 version = "0.0.0"
+
+[[package]]
+name = "ui-theme-dark"
+version = "0.0.0"
+dependencies = [
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-theme-default"
+version = "0.0.0"
+dependencies = [
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-theme-express"
+version = "0.0.0"
+dependencies = [
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-theme-light"
+version = "0.0.0"
+dependencies = [
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-thumbnail"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-toast"
+version = "0.0.0"
+dependencies = [
+ "js-sys",
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+ "web-sys",
+]
+
+[[package]]
+name = "ui-toaster"
+version = "0.0.0"
+
+[[package]]
+name = "ui-tooltip"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+ "ui-theme",
+]
+
+[[package]]
+name = "ui-tray"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-button",
+ "ui-headless",
+ "ui-motion",
+ "ui-sheet",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-tree"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
+
+[[package]]
+name = "ui-underlay"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "serde",
+ "ui-ai-runtime",
+ "ui-headless",
+ "ui-motion",
+ "ui-state-primitives",
+]
 
 [[package]]
 name = "ui-visual-primitive"
@@ -4744,6 +5833,15 @@ dependencies = [
  "ui-motion",
  "ui-theme",
  "web-sys",
+]
+
+[[package]]
+name = "ui-visually-hidden"
+version = "0.0.0"
+dependencies = [
+ "leptos",
+ "ui-headless",
+ "ui-state-primitives",
 ]
 
 [[package]]

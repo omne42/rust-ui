@@ -25,7 +25,7 @@ web-demo-components = [
     "component-avatar",
     "component-avatar_group",
     "component-badge",
-    "component-breadcrumbs",
+    "component-breadcrumb",
     "component-button",
     "component-button_copy",
     "component-button_flip",
@@ -58,7 +58,6 @@ web-demo-components = [
     "component-hover_card",
     "component-illustrated_message",
     "component-image",
-    "component-inline_alert",
     "component-input",
     "component-input_otp",
     "component-kbd",
@@ -111,7 +110,6 @@ all-components = [
     "component-action_menu",
     "component-active_highlight",
     "component-alert",
-    "component-alert_banner",
     "component-alert_dialog",
     "component-asset",
     "component-autocomplete",
@@ -120,7 +118,6 @@ all-components = [
     "component-badge",
     "component-bottom_sheet",
     "component-breadcrumb",
-    "component-breadcrumbs",
     "component-button",
     "component-button_copy",
     "component-button_flip",
@@ -195,7 +192,6 @@ all-components = [
     "component-illustrated_message",
     "component-image",
     "component-infield_button",
-    "component-inline_alert",
     "component-input",
     "component-input_group",
     "component-input_otp",
@@ -376,25 +372,23 @@ component-domain-color = [
 ]
 
 component-accordion = ["dep:ui-accordion"]
-component-action_bar = ["component-button"]
+component-action_bar = ["component-button", "dep:ui-action-bar"]
 component-action_button_group = ["component-button"]
 component-action_group = ["component-button"]
 component-action_menu = ["component-button", "component-menu", "component-popover"]
 component-active_highlight = ["dep:ui-visual-primitive"]
-component-alert = []
-component-alert_banner = []
+component-alert = ["dep:ui-alert"]
 component-alert_dialog = ["component-overlay", "component-button"]
-component-asset = ["component-thumbnail"]
-component-autocomplete = ["component-active_highlight", "component-popover"]
-component-avatar = []
-component-avatar_group = ["component-avatar"]
-component-badge = []
+component-asset = ["dep:ui-asset"]
+component-autocomplete = ["component-active_highlight", "component-popover", "dep:ui-autocomplete"]
+component-avatar = ["dep:ui-avatar"]
+component-avatar_group = ["component-avatar", "dep:ui-avatar-group"]
+component-badge = ["dep:ui-badge"]
 component-bottom_sheet = [
     "component-sheet",
     "component-button",
 ]
-component-breadcrumb = []
-component-breadcrumbs = []
+component-breadcrumb = ["dep:ui-breadcrumb"]
 component-button = ["dep:serde", "dep:serde_json"]
 component-button_copy = ["component-button", "component-snippet"]
 component-button_flip = ["component-button"]
@@ -406,14 +400,14 @@ component-button_share = [
     "component-button_group",
 ]
 component-button_theme_toggle = ["component-button"]
-component-calendar = ["dep:ui-logic-calendar"]
-component-carousel = ["component-active_highlight"]
-component-chart = ["component-active_highlight"]
-component-checkbox = []
-component-checkbox_field = ["component-checkbox"]
-component-checkbox_group = ["component-checkbox"]
-component-chip = []
-component-circular_progress = []
+component-calendar = ["dep:ui-calendar"]
+component-carousel = ["dep:ui-carousel"]
+component-chart = ["dep:ui-chart"]
+component-checkbox = ["dep:ui-checkbox"]
+component-checkbox_field = ["component-checkbox", "dep:ui-checkbox-field"]
+component-checkbox_group = ["component-checkbox", "dep:ui-checkbox-group"]
+component-chip = ["dep:ui-chip"]
+component-circular_progress = ["dep:ui-circular-progress"]
 component-clear_button = []
 component-close_button = []
 component-coachmark = [
@@ -421,10 +415,10 @@ component-coachmark = [
     "component-button",
     "component-contextual_help",
 ]
-component-code = []
-component-code_block = ["component-button", "component-snippet"]
-component-collapsible = ["component-disclosure"]
-component-color_area = []
+component-code = ["dep:ui-code"]
+component-code_block = ["dep:ui-code-block"]
+component-collapsible = ["dep:ui-collapsible"]
+component-color_area = ["dep:ui-color-area"]
 component-color_editor = [
     "component-color_area",
     "component-color_field",
@@ -436,72 +430,81 @@ component-color_field = ["component-color_swatch", "component-clear_button"]
 component-color_handle = ["component-color_thumb"]
 component-color_loupe = ["component-color_swatch"]
 component-color_picker = ["component-color_swatch", "component-popover"]
-component-color_slider = []
+component-color_slider = ["dep:ui-color-slider"]
 component-color_swatch = ["component-illustrated_message"]
 component-color_swatch_picker = []
 component-color_thumb = ["component-color_swatch"]
-component-color_wheel = []
-component-combo_box = ["component-active_highlight", "component-popover"]
-component-command = ["component-active_highlight"]
+component-color_wheel = ["dep:ui-color-wheel"]
+component-combo_box = [
+    "component-active_highlight",
+    "component-popover",
+    "dep:ui-combo-box",
+]
+component-command = ["dep:ui-command"]
 component-command_dialog = ["component-command", "component-modal"]
 component-context_menu = ["component-dropdown_menu"]
 component-contextual_help = ["component-button", "component-popover"]
 component-date_field = ["component-clear_button"]
-component-date_input_group = []
+component-date_input_group = ["dep:ui-date-input-group"]
 component-date_picker = [
     "component-button",
     "component-calendar",
     "component-popover",
+    "ui-headless/logic-calendar",
+    "dep:ui-logic-calendar",
 ]
 component-date_range_picker = [
     "component-date_picker",
 ]
-component-description = []
+component-description = ["dep:ui-description"]
 component-dialog = ["component-overlay", "component-button"]
-component-direction = []
-component-disclosure = []
-component-disclosure_group = ["component-disclosure"]
-component-drawer = ["component-sheet", "component-button"]
-component-drop_zone = []
+component-direction = ["dep:ui-direction"]
+component-disclosure = ["dep:ui-disclosure"]
+component-disclosure_group = ["component-disclosure", "ui-disclosure/disclosure-group"]
+component-drawer = ["dep:ui-drawer"]
+component-drop_zone = ["dep:ui-drop-zone"]
 component-dropdown = ["component-button", "component-menu", "component-popover"]
 component-dropdown_menu = ["component-button", "component-menu", "component-popover"]
-component-empty = []
-component-empty_state = []
-component-error_message = []
-component-error_view = []
-component-example_theme = []
-component-field = []
-component-field_error = []
-component-field_group = ["component-field"]
-component-field_label = []
-component-fieldset = []
+component-empty = ["dep:ui-empty"]
+component-empty_state = ["dep:ui-empty-state"]
+component-error_message = ["dep:ui-error-message"]
+component-error_view = ["dep:ui-error-view"]
+component-example_theme = ["dep:ui-example-theme"]
+component-field = ["dep:ui-field"]
+component-field_error = ["dep:ui-field-error"]
+component-field_group = ["component-field", "ui-field/field-group"]
+component-field_label = ["dep:ui-field-label"]
+component-fieldset = ["dep:ui-fieldset"]
 component-file_trigger = []
-component-flip_card = []
+component-flip_card = ["dep:ui-flip-card"]
 component-form = []
 component-form_field = ["component-switch", "component-checkbox"]
-component-help_text = []
-component-hover_card = []
-component-icon = []
-component-icons = []
+component-help_text = ["dep:ui-help-text"]
+component-hover_card = ["dep:ui-hover-card"]
+component-icon = ["dep:ui-icon"]
+component-icons = ["dep:ui-icon"]
 component-icons_ui = ["component-iconset"]
-component-icons_workflow = []
+component-icons_workflow = ["dep:ui-icon"]
 component-iconset = ["component-icon"]
-component-illustrated_message = []
-component-image = []
+component-illustrated_message = ["dep:ui-illustrated-message"]
+component-image = ["dep:ui-image"]
 component-infield_button = []
-component-inline_alert = []
 component-input = ["component-clear_button"]
 component-input_group = ["component-input"]
 component-input_otp = []
-component-item = []
-component-kbd = []
-component-keyboard = []
+component-item = ["dep:ui-item"]
+component-kbd = ["dep:ui-kbd"]
+component-keyboard = ["dep:ui-keyboard"]
 component-label = []
-component-labeled_value = []
-component-legend = []
-component-link = []
+component-labeled_value = ["dep:ui-labeled-value"]
+component-legend = ["dep:ui-legend"]
+component-link = ["dep:ui-link"]
 component-link_button = []
-component-list = ["component-active_highlight", "component-illustrated_message"]
+component-list = [
+    "component-active_highlight",
+    "component-illustrated_message",
+    "dep:ui-list",
+]
 component-logic_button = []
 component-menu = ["component-active_highlight"]
 component-menu_item = ["component-menu"]
@@ -512,9 +515,9 @@ component-menu_trigger = [
     "component-popover",
 ]
 component-menubar = []
-component-meter = []
+component-meter = ["dep:ui-meter"]
 component-modal = ["component-overlay"]
-component-native_select = []
+component-native_select = ["dep:ui-native-select"]
 component-navigation_menu = ["component-active_highlight"]
 component-number = []
 component-number_field = ["component-button"]
@@ -527,21 +530,21 @@ component-overlays = [
     "component-sheet",
     "component-button",
 ]
-component-pagination = ["component-button"]
+component-pagination = ["component-button", "dep:ui-pagination"]
 component-picker_button = ["component-button"]
-component-popover = []
-component-pressable_feedback = ["component-ripple"]
-component-preview_card = []
+component-popover = ["dep:ui-popover"]
+component-pressable_feedback = ["component-ripple", "dep:ui-pressable-feedback"]
+component-preview_card = ["dep:ui-preview-card"]
 component-preview_link_card = []
-component-progress = []
-component-progress_bar = []
-component-progress_circle = []
-component-radio = []
-component-ripple = ["dep:ui-visual-primitive"]
+component-progress = ["dep:ui-progress"]
+component-progress_bar = ["dep:ui-progress"]
+component-progress_circle = ["dep:ui-progress"]
+component-radio = ["dep:ui-radio"]
+component-ripple = ["dep:ui-ripple"]
 component-search_field = ["component-clear_button"]
-component-segmented_control = []
+component-segmented_control = ["dep:ui-segmented-control"]
 component-select = ["component-button", "component-list", "component-popover"]
-component-sheet = []
+component-sheet = ["dep:ui-sheet"]
 component-sidebar = []
 component-sidebar_content = []
 component-sidebar_footer = []
@@ -553,22 +556,22 @@ component-sidebar_menu_action = []
 component-sidebar_menu_badge = []
 component-sidebar_rail = []
 component-sidebar_trigger = []
-component-skeleton = []
-component-skeleton_group = ["component-skeleton"]
-component-slider = []
-component-snippet = []
-component-sonner = []
-component-spinner = ["component-circular_progress"]
-component-status_light = []
-component-step_list = []
+component-skeleton = ["dep:ui-skeleton"]
+component-skeleton_group = ["component-skeleton", "ui-skeleton/skeleton-group"]
+component-slider = ["dep:ui-slider"]
+component-snippet = ["dep:ui-snippet"]
+component-sonner = ["dep:ui-toast"]
+component-spinner = ["dep:ui-spinner"]
+component-status_light = ["dep:ui-status-light"]
+component-step_list = ["dep:ui-step-list"]
 component-swatch = []
 component-switch = []
 component-switch_group = ["component-switch"]
-component-table = []
-component-tabs = []
-component-tag = []
-component-tag_group = ["component-tag"]
-component-text = []
+component-table = ["dep:ui-table"]
+component-tabs = ["dep:ui-tabs"]
+component-tag = ["dep:ui-tag"]
+component-tag_group = ["component-tag", "ui-tag/tag-group"]
+component-text = ["dep:ui-text"]
 component-text_area = []
 component-text_field = []
 component-textarea = []
@@ -576,28 +579,108 @@ component-theme_dark = []
 component-theme_default = []
 component-theme_express = []
 component-theme_light = []
-component-thumbnail = []
+component-thumbnail = ["dep:ui-thumbnail"]
 component-time_field = [
     "component-clear_button",
     "ui-headless/logic-calendar",
     "dep:ui-logic-calendar",
 ]
-component-toast = ["component-close_button"]
-component-toaster = []
+component-toast = ["component-close_button", "dep:ui-toast"]
+component-toaster = ["dep:ui-toast"]
 component-toggle = ["component-button", "component-toggle_button"]
 component-toggle_button = ["component-button"]
 component-toggle_button_group = ["component-button"]
 component-toggle_group = ["component-button", "component-toggle_button"]
-component-tooltip = []
-component-tray = []
-component-tree = []
-component-underlay = ["dep:ui-ai-runtime"]
-component-visually_hidden = []
+component-tooltip = ["dep:ui-tooltip"]
+component-tray = ["dep:ui-tray"]
+component-tree = ["dep:ui-tree"]
+component-underlay = ["dep:ui-ai-runtime", "dep:ui-underlay"]
+component-visually_hidden = ["dep:ui-visually-hidden"]
 [dependencies]
 leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
 ui-headless = { path = "../ui-headless" }
 ui-ai-runtime = { path = "../ui-ai-runtime", optional = true }
 ui-accordion = { path = "../../components/accordion", optional = true }
+ui-action-bar = { path = "../../components/action-bar", optional = true }
+ui-autocomplete = { path = "../../components/autocomplete", optional = true }
+ui-alert = { path = "../../components/alert", optional = true }
+ui-asset = { path = "../../components/asset", optional = true }
+ui-avatar = { path = "../../components/avatar", optional = true }
+ui-avatar-group = { path = "../../components/avatar-group", optional = true }
+ui-badge = { path = "../../components/badge", optional = true }
+ui-breadcrumb = { path = "../../components/breadcrumb", optional = true }
+ui-checkbox = { path = "../../components/checkbox", optional = true }
+ui-checkbox-field = { path = "../../components/checkbox-field", optional = true }
+ui-checkbox-group = { path = "../../components/checkbox-group", optional = true }
+ui-chip = { path = "../../components/chip", optional = true }
+ui-carousel = { path = "../../components/carousel", optional = true }
+ui-circular-progress = { path = "../../components/circular-progress", optional = true }
+ui-collapsible = { path = "../../components/collapsible", optional = true }
+ui-color-area = { path = "../../components/color-area", optional = true }
+ui-color-slider = { path = "../../components/color-slider", optional = true }
+ui-color-wheel = { path = "../../components/color-wheel", optional = true }
+ui-combo-box = { path = "../../components/combo-box", optional = true }
+ui-code-block = { path = "../../components/code-block", optional = true }
+ui-chart = { path = "../../components/chart", optional = true }
+ui-code = { path = "../../components/code", optional = true }
+ui-command = { path = "../../components/command", optional = true }
+ui-disclosure = { path = "../../components/disclosure", optional = true }
+ui-date-input-group = { path = "../../components/date-input-group", optional = true }
+ui-direction = { path = "../../components/direction", optional = true }
+ui-description = { path = "../../components/description", optional = true }
+ui-drawer = { path = "../../components/drawer", optional = true }
+ui-drop-zone = { path = "../../components/drop-zone", optional = true }
+ui-empty = { path = "../../components/empty", optional = true }
+ui-empty-state = { path = "../../components/empty-state", optional = true }
+ui-tabs = { path = "../../components/tabs", optional = true }
+ui-flip-card = { path = "../../components/flip-card", optional = true }
+ui-error-message = { path = "../../components/error-message", optional = true }
+ui-error-view = { path = "../../components/error-view", optional = true }
+ui-example-theme = { path = "../../components/example-theme", optional = true }
+ui-field = { path = "../../components/field", optional = true }
+ui-field-error = { path = "../../components/field-error", optional = true }
+ui-field-label = { path = "../../components/field-label", optional = true }
+ui-fieldset = { path = "../../components/fieldset", optional = true }
+ui-help-text = { path = "../../components/help-text", optional = true }
+ui-hover-card = { path = "../../components/hover-card", optional = true }
+ui-icon = { path = "../../components/icon", optional = true }
+ui-kbd = { path = "../../components/kbd", optional = true }
+ui-keyboard = { path = "../../components/keyboard", optional = true }
+ui-illustrated-message = { path = "../../components/illustrated-message", optional = true }
+ui-list = { path = "../../components/list", optional = true }
+ui-meter = { path = "../../components/meter", optional = true }
+ui-pagination = { path = "../../components/pagination", optional = true }
+ui-popover = { path = "../../components/popover", optional = true }
+ui-pressable-feedback = { path = "../../components/pressable-feedback", optional = true }
+ui-preview-card = { path = "../../components/preview-card", optional = true }
+ui-image = { path = "../../components/image", optional = true }
+ui-item = { path = "../../components/item", optional = true }
+ui-native-select = { path = "../../components/native-select", optional = true }
+ui-link = { path = "../../components/link", optional = true }
+ui-ripple = { path = "../../components/ripple", optional = true }
+ui-radio = { path = "../../components/radio", optional = true }
+ui-labeled-value = { path = "../../components/labeled-value", optional = true }
+ui-legend = { path = "../../components/legend", optional = true }
+ui-spinner = { path = "../../components/spinner", optional = true }
+ui-sheet = { path = "../../components/sheet", optional = true }
+ui-skeleton = { path = "../../components/skeleton", optional = true }
+ui-step-list = { path = "../../components/step-list", optional = true }
+ui-status-light = { path = "../../components/status-light", optional = true }
+ui-slider = { path = "../../components/slider", optional = true }
+ui-calendar = { path = "../../components/calendar", optional = true }
+ui-segmented-control = { path = "../../components/segmented-control", optional = true }
+ui-thumbnail = { path = "../../components/thumbnail", optional = true }
+ui-snippet = { path = "../../components/snippet", optional = true }
+ui-tag = { path = "../../components/tag", optional = true }
+ui-text = { path = "../../components/text", optional = true }
+ui-table = { path = "../../components/table", optional = true }
+ui-progress = { path = "../../components/progress", optional = true }
+ui-tray = { path = "../../components/tray", optional = true }
+ui-tooltip = { path = "../../components/tooltip", optional = true }
+ui-toast = { path = "../../components/toast", optional = true }
+ui-tree = { path = "../../components/tree", optional = true }
+ui-underlay = { path = "../../components/underlay", optional = true }
+ui-visually-hidden = { path = "../../components/visually-hidden", optional = true }
 ui-layout = { path = "../ui-layout", default-features = false, features = ["inject-css"] }
 ui-motion = { path = "../ui-motion" }
 ui-visual-primitive = { path = "../ui-visual-primitive", optional = true }

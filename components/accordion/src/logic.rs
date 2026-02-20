@@ -525,6 +525,5 @@ pub fn toggle_open_for_items(
 }
 
 #[cfg(test)]
-mod tests {
-    include!("../test/logic_tests.rs");
-}
+#[path = "../test/logic.rs"]
+mod tests;

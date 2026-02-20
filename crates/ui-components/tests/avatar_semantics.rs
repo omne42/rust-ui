@@ -3,7 +3,21 @@ use std::path::Path;
 
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = if let Some(suffix) = rel_path.strip_prefix("src/avatar/") {
+        manifest_dir
+            .join("../../components/avatar/src")
+            .join(suffix)
+    } else if let Some(suffix) = rel_path.strip_prefix("src/avatar-group/") {
+        manifest_dir
+            .join("../../components/avatar-group/src")
+            .join(suffix)
+    } else if let Some(suffix) = rel_path.strip_prefix("src/button/") {
+        manifest_dir
+            .join("../../components/button/src")
+            .join(suffix)
+    } else {
+        manifest_dir.join(rel_path)
+    };
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -342,7 +356,9 @@ fn avatar_stays_static_and_delegates_motion_runtime_to_ui_motion_layer() {
     let ui_motion_source = load_source("../ui-motion/src/lib.rs");
 
     assert!(
-        !manifest_dir.join("src/avatar/motion.rs").exists(),
+        !manifest_dir
+            .join("../../components/avatar/src/motion.rs")
+            .exists(),
         "Avatar is a static component and should not introduce `src/avatar/motion.rs`."
     );
 
@@ -551,11 +567,15 @@ fn avatar_stays_as_ui_components_assembly_layer_without_platform_leakage() {
         );
     }
 
-    let required = "pub use avatar::{Avatar, AvatarGroup, AvatarGroupItem, AvatarSize};";
-    assert!(
-        lib_source.contains(required),
-        "ui-components public API should expose stable avatar exports via `{required}`."
-    );
+    for required in [
+        "pub use avatar::{Avatar, AvatarSize};",
+        "pub use avatar_group::{AvatarGroup, AvatarGroupItem};",
+    ] {
+        assert!(
+            lib_source.contains(required),
+            "ui-components public API should expose stable avatar exports via `{required}`."
+        );
+    }
 
     for forbidden in [
         "pub use web_sys::",
@@ -911,14 +931,11 @@ fn avatar_component_files_follow_layered_responsibilities() {
     let view_source = load_source("src/avatar/view.rs");
 
     for required in [
-        "#[cfg(feature = \"component-avatar_group\")]",
         "mod logic;",
         "pub mod styles;",
         "mod view;",
         "pub use logic::AvatarSize;",
-        "pub use logic::{AvatarGroupItemFields, AvatarGroupNormalizedInput};",
         "pub use view::Avatar;",
-        "pub use view::{AvatarGroup, AvatarGroupItem};",
     ] {
         assert!(
             mod_source.contains(required),
@@ -937,8 +954,8 @@ fn avatar_component_files_follow_layered_responsibilities() {
         "pub fn normalize_input(",
         "pub fn normalize_lang(",
         "pub fn compose_class_name(",
-        "resolve_state(",
-        "resolve_image_render_state(",
+        "resolve_state,",
+        "resolve_image_render_state,",
     ] {
         assert!(
             logic_source.contains(required),
@@ -1011,7 +1028,9 @@ fn avatar_component_files_follow_layered_responsibilities() {
     }
 
     assert!(
-        !manifest_dir.join("src/avatar/motion.rs").exists(),
+        !manifest_dir
+            .join("../../components/avatar/src/motion.rs")
+            .exists(),
         "Avatar is static in current scope; `motion.rs` should remain absent until motion contract is required."
     );
 }
@@ -1024,12 +1043,10 @@ fn avatar_spec_rs_is_reserved_for_complex_schema_components_only() {
     let button_spec_source = load_source("src/button/spec.rs");
 
     assert!(
-        !manifest_dir.join("src/avatar/spec.rs").exists(),
+        !manifest_dir
+            .join("../../components/avatar/src/spec.rs")
+            .exists(),
         "Avatar is a simple component and must not introduce `src/avatar/spec.rs`."
-    );
-    assert!(
-        !manifest_dir.join("src/avatar/spec.rs").exists(),
-        "AvatarGroup is a simple composition and must not introduce `src/avatar/spec.rs`."
     );
 
     for forbidden in ["mod spec;", "pub mod spec;", "pub use spec::"] {
@@ -1200,8 +1217,8 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     let web_demo_cargo_source = load_source("../../apps/web-demo/Cargo.toml");
 
     for needle in [
-        "component-avatar = []",
-        "component-avatar_group = [\"component-avatar\"]",
+        "component-avatar = [\"dep:ui-avatar\"]",
+        "component-avatar_group = [\"component-avatar\", \"dep:ui-avatar-group\"]",
         "web-demo-components = [",
         "\"component-avatar\"",
         "\"component-avatar_group\"",
@@ -1216,7 +1233,7 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     }
 
     assert!(
-        lib_source.contains("#[cfg(feature = \"component-avatar\")]\npub mod avatar;"),
+        lib_source.contains("#[cfg(feature = \"component-avatar\")]\npub use ui_avatar as avatar;"),
         "avatar module must stay feature-gated in lib.rs."
     );
 
@@ -1233,16 +1250,23 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
     }
 
     let avatar_reexport_count = lib_source
-        .matches("pub use avatar::{Avatar, AvatarGroup, AvatarGroupItem, AvatarSize};")
+        .matches("pub use avatar::{Avatar, AvatarSize};")
+        .count();
+    let avatar_group_reexport_count = lib_source
+        .matches("pub use avatar_group::{AvatarGroup, AvatarGroupItem};")
         .count();
     assert_eq!(
         avatar_reexport_count, 2,
         "Avatar re-export should only exist inside gated feature bundles."
     );
+    assert_eq!(
+        avatar_group_reexport_count, 2,
+        "AvatarGroup re-export should only exist inside gated feature bundles."
+    );
 
     for needle in [
         "#[cfg(feature = \"component-avatar\")]\n    out.push_str(crate::avatar::styles::CSS);",
-        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
+        "#[cfg(feature = \"component-avatar_group\")]\n    out.push_str(crate::avatar_group::styles::CSS);",
     ] {
         assert!(
             css_source.contains(needle),
@@ -1252,7 +1276,7 @@ fn avatar_tree_shaking_contract_enforces_component_feature_gates_and_budgeted_ci
 
     for forbidden in [
         "#[cfg(feature = \"all-components\")]\n    out.push_str(crate::avatar::styles::CSS);",
-        "#[cfg(feature = \"all-components\")]\n    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);",
+        "#[cfg(feature = \"all-components\")]\n    out.push_str(crate::avatar_group::styles::CSS);",
     ] {
         assert!(
             !css_source.contains(forbidden),
@@ -1295,6 +1319,7 @@ fn avatar_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
     let logic_source = load_source("src/avatar/logic.rs");
     let view_source = load_source("src/avatar/view.rs");
     let styles_source = load_source("src/avatar/styles.rs");
+    let logic_test_source = load_source("../../components/avatar/test/logic.rs");
 
     for required in [
         "pub enum AvatarSize",
@@ -1368,7 +1393,9 @@ fn avatar_machine_readable_contract_uses_typed_inputs_and_semantic_markers() {
         "resolve_state_tracks_size_source_and_flags",
     ] {
         assert!(
-            logic_source.contains(required) || primitive_source.contains(required),
+            logic_source.contains(required)
+                || primitive_source.contains(required)
+                || logic_test_source.contains(required),
             "Typed state contract should keep a regression anchor `{required}`."
         );
     }

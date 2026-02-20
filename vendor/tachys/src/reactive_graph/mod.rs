@@ -872,8 +872,8 @@ mod reactive_stores {
     reactive_impl!(ArcField, <V>, V, false, ArcField<V>: Get<Value = V>);
 }
 /*
-#[cfg(test)]
-mod tests {
+#[cfg(legacy_disabled)]
+mod legacy_checks {
     use crate::{
         html::element::{button, main, HtmlElement},
         renderer::mock_dom::MockDom,

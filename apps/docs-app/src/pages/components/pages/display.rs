@@ -3,11 +3,11 @@ use crate::playground::Playground;
 use leptos::{html, prelude::*};
 use ui_components::color::area::A11yDirection;
 use ui_components::{
-    Alert, AlertVariant, Avatar, AvatarGroup, AvatarGroupItem, AvatarSize, Badge, BadgeVariant,
-    Chip, ChipSize, ChipVariant, CircularProgress, Code, CodeBlock, CodeVariant,
-    IllustratedMessage, Image, ImageMotion, ImageRadius, ImageShadow, InlineAlert, InlineAlertFill,
-    InlineAlertTone, Kbd, KbdSize, Link, Meter, MeterSize, MeterVariant, MotionRipple, Progress,
-    ProgressBar, ProgressBarSize, ProgressBarVariant, ProgressCircle, RippleMotion,
+    Alert, AlertFill, AlertLayout, AlertMotion, AlertTone, AlertVariant, Avatar, AvatarGroup,
+    AvatarGroupItem, AvatarSize, Badge, BadgeVariant, Chip, ChipSize, ChipVariant,
+    CircularProgress, Code, CodeBlock, CodeVariant, IllustratedMessage, Image, ImageMotion,
+    ImageRadius, ImageShadow, Kbd, KbdSize, Link, Meter, MeterSize, MeterVariant, MotionRipple,
+    Progress, ProgressBar, ProgressBarSize, ProgressBarVariant, ProgressCircle, RippleMotion,
     SegmentedControl, SegmentedControlSize, Skeleton, SkeletonVariant, SlidingNumber, Snippet,
     Spinner, SpinnerSize, StaticNumber, StatusLight, StatusLightRole, StatusLightVariant, Switch,
 };
@@ -22,34 +22,75 @@ fn into_owned_string(value: &str) -> String {
 
 pub(super) fn alert() -> AnyView {
     let hello_world_code = Signal::derive(move || {
-        r#"<Alert title="Notice".to_string()>
-  <Button variant=ButtonVariant::Secondary>"Dismiss"</Button>
+        r#"<Alert
+  tone=AlertTone::Info
+  fill=AlertFill::Border
+  title="Updates available".to_string()
+  description="A new version is ready to install.".to_string()
+>
+  "Install now to keep your workspace secure."
 </Alert>"#
             .to_string()
     });
 
-    let variants_code = Signal::derive(move || {
-        r#"<Alert variant=AlertVariant::Default title="Notice".to_string() description="Something happened.".to_string()>
-  <Button variant=ButtonVariant::Secondary>"Undo"</Button>
+    let tone_fill_code = Signal::derive(move || {
+        r#"<Alert
+  tone=AlertTone::Info
+  fill=AlertFill::Border
+  title="Updates available".to_string()
+  description="A new version is ready to install.".to_string()
+>
+  "Install now to keep your workspace secure."
 </Alert>
-<Alert variant=AlertVariant::Accent title="Syncing".to_string() description="Deployment is in progress.".to_string()>
-  <Button variant=ButtonVariant::Secondary>"View logs"</Button>
-</Alert>
-<Alert variant=AlertVariant::Danger title="Failed".to_string() description="Publishing failed.".to_string()>
-  <Button variant=ButtonVariant::Secondary>"Retry"</Button>
-</Alert>"#.to_string()
+<Alert
+  tone=AlertTone::Negative
+  fill=AlertFill::Subtle
+  title="Deployment failed".to_string()
+  description="Rollback completed. Review incident timeline.".to_string()
+>
+  "Check logs before retrying."
+</Alert>"#
+            .to_string()
     });
 
-    let compact_code = Signal::derive(move || {
+    let custom_code = Signal::derive(move || {
         r#"<Alert
-  variant=AlertVariant::Accent
-  description="Custom class without title".to_string()
+  tone=AlertTone::Notice
+  fill=AlertFill::Bold
+  is_hide_icon=true
+  title="Maintenance window".to_string()
+  description="Service may be degraded during migration.".to_string()
+  start_content=move || view! { <span>"↳"</span> }
+  end_content=move || view! { <Button variant=ButtonVariant::Secondary size=ButtonSize::Sm>"Details"</Button> }
   class_name="docs-alert-custom".to_string()
 >
-  <Button variant=ButtonVariant::Secondary>"Review"</Button>
-</Alert>
-<Alert variant=AlertVariant::Default title="Heads up".to_string()>
-  <Button variant=ButtonVariant::Secondary>"Dismiss"</Button>
+  "Follow status page for live updates."
+</Alert>"#
+            .to_string()
+    });
+
+    let compatibility_code = Signal::derive(move || {
+        r#"<Alert
+  variant=AlertVariant::Danger
+  fill=AlertFill::Border
+  title="Legacy variant mapping".to_string()
+  description="`variant` now maps into tone semantics.".to_string()
+  motion=AlertMotion { spring: Default::default() }
+>
+  "Use tone/fill for new code; variant remains a compatibility input."
+</Alert>"#
+            .to_string()
+    });
+
+    let inline_layout_code = Signal::derive(move || {
+        r#"<Alert
+  layout=AlertLayout::Inline
+  tone=AlertTone::Info
+  fill=AlertFill::Subtle
+  title="Inline mode".to_string()
+  description="Use layout=Inline to replace old InlineAlert.".to_string()
+>
+  "Compact inline content."
 </Alert>"#
             .to_string()
     });
@@ -59,456 +100,92 @@ pub(super) fn alert() -> AnyView {
             title="Alert"
             slug="alert"
             group="Display"
-            description="Inline alert surface with centralized variant/content state attrs and action slot semantics."
+            description="Unified notification surface with tone/fill, optional icon + slots, and motion contracts."
         >
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+                test_source_path="components/status-light/src/view.rs".to_string()
             >
                 <div class="docs-stack">
-                    <Alert title="Notice".to_string()>
-                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                            "Dismiss"
-                        </ui_components::Button>
+                    <Alert
+                        tone=AlertTone::Info
+                        fill=AlertFill::Border
+                        title="Updates available".to_string()
+                        description="A new version is ready to install.".to_string()
+                    >
+                        "Install now to keep your workspace secure."
                     </Alert>
                 </div>
             </Playground>
 
-            <Playground title="Variants + Live Region" code_signal=variants_code>
+            <Playground title="Tone + Fill" code_signal=tone_fill_code>
                 <div class="docs-stack">
                     <Alert
-                        variant=AlertVariant::Default
-                        title="Notice".to_string()
-                        description="Something happened.".to_string()
+                        tone=AlertTone::Info
+                        fill=AlertFill::Border
+                        title="Updates available".to_string()
+                        description="A new version is ready to install.".to_string()
                     >
-                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                            "Undo"
-                        </ui_components::Button>
+                        "Install now to keep your workspace secure."
                     </Alert>
                     <Alert
-                        variant=AlertVariant::Accent
-                        title="Syncing".to_string()
-                        description="Deployment is in progress.".to_string()
+                        tone=AlertTone::Negative
+                        fill=AlertFill::Subtle
+                        title="Deployment failed".to_string()
+                        description="Rollback completed. Review incident timeline.".to_string()
                     >
-                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                            "View logs"
-                        </ui_components::Button>
-                    </Alert>
-                    <Alert
-                        variant=AlertVariant::Danger
-                        title="Failed".to_string()
-                        description="Publishing failed.".to_string()
-                    >
-                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                            "Retry"
-                        </ui_components::Button>
+                        "Check logs before retrying."
                     </Alert>
                 </div>
             </Playground>
 
-            <Playground title="Custom Class + Compact" code_signal=compact_code>
-                <div class="docs-stack">
-                    <Alert
-                        variant=AlertVariant::Accent
-                        description="Custom class without title".to_string()
-                        class_name="docs-alert-custom".to_string()
-                    >
-                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                            "Review"
+            <Playground title="Slots + Hidden Icon + Custom Class" code_signal=custom_code>
+                <Alert
+                    tone=AlertTone::Notice
+                    fill=AlertFill::Bold
+                    is_hide_icon=true
+                    title="Maintenance window".to_string()
+                    description="Service may be degraded during migration.".to_string()
+                    start_content=move || view! { <span>"↳"</span> }
+                    end_content=move || view! {
+                        <ui_components::Button
+                            variant=ui_components::ButtonVariant::Secondary
+                            size=ui_components::ButtonSize::Sm
+                        >
+                            "Details"
                         </ui_components::Button>
-                    </Alert>
-                    <Alert variant=AlertVariant::Default title="Heads up".to_string()>
-                        <ui_components::Button variant=ui_components::ButtonVariant::Secondary>
-                            "Dismiss"
-                        </ui_components::Button>
-                    </Alert>
-                </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
-}
-
-pub(super) fn inline_alert() -> AnyView {
-    let code = Signal::derive(move || {
-        r#"<InlineAlert tone=InlineAlertTone::Info title="Info".to_string()>
-  "Message"
-</InlineAlert>"#
-            .to_string()
-    });
-
-    let matrix_code = Signal::derive(move || {
-        r#"<InlineAlert tone=InlineAlertTone::Info fill=InlineAlertFill::Subtle title="Info".to_string() description="Subtle fill".to_string()>
-  "This is an inline alert."
-</InlineAlert>
-<InlineAlert tone=InlineAlertTone::Positive fill=InlineAlertFill::Border title="Success".to_string() description="Border fill".to_string()>
-  "Everything looks good."
-</InlineAlert>
-<InlineAlert tone=InlineAlertTone::Notice fill=InlineAlertFill::Subtle title="Notice".to_string() description="Review before publish.".to_string()>
-  "Check your settings."
-</InlineAlert>
-<InlineAlert tone=InlineAlertTone::Negative fill=InlineAlertFill::Border title="Error".to_string() description="Border fill".to_string()>
-  "Something went wrong."
-</InlineAlert>"#.to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
-        r#"<InlineAlert
-  tone=InlineAlertTone::Info
-  fill=InlineAlertFill::Bold
-  title="Custom class + slots".to_string()
-  description="With start/end content and icon hidden.".to_string()
-  hide_icon=true
-  class_name="docs-inline-alert-custom".to_string()
-  start_content=move || view! { <span>"↳"</span> }
-  end_content=move || view! { <ui_components::Button variant=ui_components::ButtonVariant::Secondary size=ui_components::ButtonSize::Sm>"Fix"</ui_components::Button> }
->
-  "Action required."
-</InlineAlert>"#.to_string()
-    });
-
-    let tone_options = vec![
-        "Neutral".to_string(),
-        "Info".to_string(),
-        "Positive".to_string(),
-        "Notice".to_string(),
-        "Negative".to_string(),
-    ];
-    let fill_options = vec![
-        "Border".to_string(),
-        "Subtle".to_string(),
-        "Bold".to_string(),
-    ];
-
-    let (tone_index, set_tone_index) = signal(Some(1_usize));
-    let (fill_index, set_fill_index) = signal(Some(0_usize));
-    let (hide_icon, set_hide_icon) = signal(false);
-    let (custom_class, set_custom_class) = signal(false);
-    let (show_title, set_show_title) = signal(true);
-    let (show_description, set_show_description) = signal(true);
-    let (show_start, set_show_start) = signal(false);
-    let (show_end, set_show_end) = signal(false);
-
-    let tone = Signal::derive(move || match tone_index.get().unwrap_or(1) {
-        0 => InlineAlertTone::Neutral,
-        2 => InlineAlertTone::Positive,
-        3 => InlineAlertTone::Notice,
-        4 => InlineAlertTone::Negative,
-        _ => InlineAlertTone::Info,
-    });
-
-    let fill = Signal::derive(move || match fill_index.get().unwrap_or(0) {
-        1 => InlineAlertFill::Subtle,
-        2 => InlineAlertFill::Bold,
-        _ => InlineAlertFill::Border,
-    });
-
-    let interactive_code = Signal::derive(move || {
-        let tone = tone.get();
-        let fill = fill.get();
-        let hide_icon = hide_icon.get();
-        let custom_class = custom_class.get();
-        let show_title = show_title.get();
-        let show_description = show_description.get();
-        let show_start = show_start.get();
-        let show_end = show_end.get();
-
-        let mut lines = vec![
-            "<InlineAlert".to_string(),
-            format!("  tone=InlineAlertTone::{tone:?}"),
-            format!("  fill=InlineAlertFill::{fill:?}"),
-        ];
-
-        if hide_icon {
-            lines.push("  hide_icon=true".to_string());
-        }
-        if show_title {
-            lines.push("  title=\"Interactive title\".into()".to_string());
-        }
-        if show_description {
-            lines.push("  description=\"Interactive description\".into()".to_string());
-        }
-        if custom_class {
-            lines.push("  class_name=\"docs-inline-alert-custom\".into()".to_string());
-        }
-        if show_start {
-            lines.push("  start_content=move || view! { <span>\"↳\"</span> }".to_string());
-        }
-        if show_end {
-            lines.push("  end_content=move || view! { <span>\"Action\"</span> }".to_string());
-        }
-
-        lines.extend([
-            " >".replace(" ", ""),
-            "  \"Preview message\"".to_string(),
-            "</InlineAlert>".to_string(),
-        ]);
-        lines.join("\n")
-    });
-
-    let test_css_source = Signal::derive(move || {
-        format!(
-            "/* crates/ui-components/src/inline_alert/styles.rs */\n{}",
-            ui_components::inline_alert::styles::CSS
-        )
-    });
-
-    let actual_config = Signal::derive(move || {
-        let tone = tone.get();
-        let fill = fill.get();
-        let hide_icon = hide_icon.get();
-        let custom_class = custom_class.get();
-        let show_title = show_title.get();
-        let show_description = show_description.get();
-        let show_start = show_start.get();
-        let show_end = show_end.get();
-
-        let mut class = vec![
-            "ui-inline-alert".to_string(),
-            tone.class_name().into(),
-            fill.class_name().into(),
-        ];
-
-        if custom_class {
-            class.push("docs-inline-alert-custom".to_string());
-        }
-
-        format!(
-            "InlineAlertActualConfig {{\n  tone: {tone:?},\n  fill: {fill:?},\n  hide_icon: {hide_icon},\n  has_title: {show_title},\n  has_description: {show_description},\n  has_start_content: {show_start},\n  has_end_content: {show_end},\n  has_custom_class: {custom_class},\n  class: \"{}\",\n}}",
-            class.join(" ")
-        )
-    });
-
-    view! {
-        <ComponentPage
-            title="InlineAlert"
-            slug="inline-alert"
-            group="Display"
-            description="Compact alert with tone/fill variants and optional icon."
-        >
-            <Playground title="Inline alerts" code_signal=code>
-                <div class="docs-stack">
-                    <InlineAlert
-                        tone=InlineAlertTone::Info
-                        fill=InlineAlertFill::Subtle
-                        title="Info".to_string()
-                        description="Subtle fill".to_string()
-                    >
-                        "This is an inline alert."
-                    </InlineAlert>
-                    <InlineAlert
-                        tone=InlineAlertTone::Negative
-                        fill=InlineAlertFill::Border
-                        title="Error".to_string()
-                        description="Border fill".to_string()
-                    >
-                        "Something went wrong."
-                    </InlineAlert>
-                </div>
-            </Playground>
-
-            <Playground title="Tone + Fill Matrix" code_signal=matrix_code>
-                <div class="docs-stack">
-                    <InlineAlert
-                        tone=InlineAlertTone::Info
-                        fill=InlineAlertFill::Subtle
-                        title="Info".to_string()
-                        description="Subtle fill".to_string()
-                    >
-                        "This is an inline alert."
-                    </InlineAlert>
-                    <InlineAlert
-                        tone=InlineAlertTone::Positive
-                        fill=InlineAlertFill::Border
-                        title="Success".to_string()
-                        description="Border fill".to_string()
-                    >
-                        "Everything looks good."
-                    </InlineAlert>
-                    <InlineAlert
-                        tone=InlineAlertTone::Notice
-                        fill=InlineAlertFill::Subtle
-                        title="Notice".to_string()
-                        description="Review before publish.".to_string()
-                    >
-                        "Check your settings."
-                    </InlineAlert>
-                    <InlineAlert
-                        tone=InlineAlertTone::Negative
-                        fill=InlineAlertFill::Border
-                        title="Error".to_string()
-                        description="Border fill".to_string()
-                    >
-                        "Something went wrong."
-                    </InlineAlert>
-                </div>
-            </Playground>
-
-            <Playground title="Slots + Custom Class" code_signal=custom_code>
-                <div class="docs-stack">
-                    <InlineAlert
-                        tone=InlineAlertTone::Info
-                        fill=InlineAlertFill::Bold
-                        title="Custom class + slots".to_string()
-                        description="With start/end content and icon hidden.".to_string()
-                        hide_icon=true
-                        class_name="docs-inline-alert-custom".to_string()
-                        start_content=move || view! { <span>"↳"</span> }
-                        end_content=move || {
-                            view! {
-                                <ui_components::Button
-                                    variant=ui_components::ButtonVariant::Secondary
-                                    size=ui_components::ButtonSize::Sm
-                                >
-                                    "Fix"
-                                </ui_components::Button>
-                            }
-                        }
-                    >
-                        "Action required."
-                    </InlineAlert>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Interactive Playground (Display + Config + Code + CSS Test)"
-                code_signal=interactive_code
-                test_css_source=test_css_source
-                test_source_path="crates/ui-components/src/inline_alert/styles.rs".to_string()
-                test_config_signal=actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight">
-                        <div class="docs-search__label">"Tone"</div>
-                        <SegmentedControl
-                            id_base="docs-inline-alert-tone".to_string()
-                            options=tone_options.clone()
-                            selected_index=tone_index
-                            set_selected_index=set_tone_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Inline alert tone".to_string()
-                        />
-
-                        <div class="docs-search__label">"Fill"</div>
-                        <SegmentedControl
-                            id_base="docs-inline-alert-fill".to_string()
-                            options=fill_options.clone()
-                            selected_index=fill_index
-                            set_selected_index=set_fill_index
-                            size=SegmentedControlSize::Sm
-                            aria_label="Inline alert fill".to_string()
-                        />
-
-                        <Switch checked=hide_icon set_checked=set_hide_icon>
-                            "Hide icon"
-                        </Switch>
-                        <Switch checked=custom_class set_checked=set_custom_class>
-                            "Custom class"
-                        </Switch>
-                        <Switch checked=show_title set_checked=set_show_title>
-                            "Show title"
-                        </Switch>
-                        <Switch checked=show_description set_checked=set_show_description>
-                            "Show description"
-                        </Switch>
-                        <Switch checked=show_start set_checked=set_show_start>
-                            "Start slot"
-                        </Switch>
-                        <Switch checked=show_end set_checked=set_show_end>
-                            "End slot"
-                        </Switch>
-                    </div>
-                }
-            >
-                {move || {
-                    let tone = tone.get();
-                    let fill = fill.get();
-                    let hide_icon = hide_icon.get();
-                    let custom_class = custom_class.get();
-                    let show_title = show_title.get();
-                    let show_description = show_description.get();
-                    let show_start = show_start.get();
-                    let show_end = show_end.get();
-
-                    let title = if show_title {
-                        "Interactive title".to_string()
-                    } else {
-                        String::new()
-                    };
-                    let description = if show_description {
-                        "Interactive description".to_string()
-                    } else {
-                        String::new()
-                    };
-                    let class_name = if custom_class {
-                        "docs-inline-alert-custom".to_string()
-                    } else {
-                        String::new()
-                    };
-
-                    view! {
-                        <div class="docs-stack" style="width: min(100%, 540px);">
-                            {match (show_start, show_end) {
-                                (true, true) => view! {
-                                    <InlineAlert
-                                        tone=tone
-                                        fill=fill
-                                        title=title.clone()
-                                        description=description.clone()
-                                        hide_icon=hide_icon
-                                        class_name=class_name.clone()
-                                        start_content=move || view! { <span>"↳"</span> }
-                                        end_content=move || view! { <span>"Action"</span> }
-                                    >
-                                        "Preview message"
-                                    </InlineAlert>
-                                }
-                                    .into_any(),
-                                (true, false) => view! {
-                                    <InlineAlert
-                                        tone=tone
-                                        fill=fill
-                                        title=title.clone()
-                                        description=description.clone()
-                                        hide_icon=hide_icon
-                                        class_name=class_name.clone()
-                                        start_content=move || view! { <span>"↳"</span> }
-                                    >
-                                        "Preview message"
-                                    </InlineAlert>
-                                }
-                                    .into_any(),
-                                (false, true) => view! {
-                                    <InlineAlert
-                                        tone=tone
-                                        fill=fill
-                                        title=title.clone()
-                                        description=description.clone()
-                                        hide_icon=hide_icon
-                                        class_name=class_name.clone()
-                                        end_content=move || view! { <span>"Action"</span> }
-                                    >
-                                        "Preview message"
-                                    </InlineAlert>
-                                }
-                                    .into_any(),
-                                (false, false) => view! {
-                                    <InlineAlert
-                                        tone=tone
-                                        fill=fill
-                                        title=title
-                                        description=description
-                                        hide_icon=hide_icon
-                                        class_name=class_name
-                                    >
-                                        "Preview message"
-                                    </InlineAlert>
-                                }
-                                    .into_any(),
-                            }}
-                        </div>
                     }
-                }}
+                    class_name="docs-alert-custom".to_string()
+                >
+                    "Follow status page for live updates."
+                </Alert>
+            </Playground>
+
+            <Playground title="Variant Compatibility + Motion" code_signal=compatibility_code>
+                <Alert
+                    variant=AlertVariant::Danger
+                    fill=AlertFill::Border
+                    title="Legacy variant mapping".to_string()
+                    description="`variant` now maps into tone semantics.".to_string()
+                    motion=AlertMotion {
+                        spring: Default::default(),
+                    }
+                >
+                    "Use tone/fill for new code; variant remains a compatibility input."
+                </Alert>
+            </Playground>
+
+            <Playground title="Inline Layout" code_signal=inline_layout_code>
+                <Alert
+                    layout=AlertLayout::Inline
+                    tone=AlertTone::Info
+                    fill=AlertFill::Subtle
+                    title="Inline mode".to_string()
+                    description="Use layout=Inline to replace old InlineAlert.".to_string()
+                >
+                    "Compact inline content."
+                </Alert>
             </Playground>
         </ComponentPage>
     }
@@ -594,7 +271,7 @@ pub(super) fn badge() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/badge/styles.rs */\n{}",
+            "/* components/badge/src/styles.rs */\n{}",
             ui_components::badge::styles::CSS
         )
     });
@@ -667,7 +344,7 @@ pub(super) fn badge() -> AnyView {
                 title="Badge Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="crates/ui-components/src/badge/styles.rs".to_string()
+                test_source_path="components/badge/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 description="Button-like workbench: display compare + live config/code/css test."
                 controls=move || view! {
@@ -796,7 +473,7 @@ pub(super) fn status_light() -> AnyView {
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+                test_source_path="components/status-light/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <StatusLight>"Idle"</StatusLight>
@@ -806,7 +483,7 @@ pub(super) fn status_light() -> AnyView {
             <Playground
                 title="Variants"
                 code_signal=variants_code
-                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+                test_source_path="components/status-light/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <StatusLight variant=StatusLightVariant::Default>"Idle"</StatusLight>
@@ -818,7 +495,7 @@ pub(super) fn status_light() -> AnyView {
             <Playground
                 title="Live Region Role"
                 code_signal=role_code
-                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+                test_source_path="components/status-light/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <StatusLight role=StatusLightRole::Status>"Background sync complete"</StatusLight>
@@ -835,7 +512,7 @@ pub(super) fn status_light() -> AnyView {
             <Playground
                 title="Custom Class + Static"
                 code_signal=custom_code
-                test_source_path="crates/ui-components/src/status_light/view.rs".to_string()
+                test_source_path="components/status-light/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <StatusLight class_name="docs-status-light-custom".to_string()>"Queued"</StatusLight>
@@ -957,7 +634,7 @@ pub(super) fn chip() -> AnyView {
 
     let chip_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/chip/styles.rs */\n{}",
+            "/* components/chip/src/styles.rs */\n{}",
             ui_components::chip::styles::CSS
         )
     });
@@ -992,7 +669,7 @@ pub(super) fn chip() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=chip_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/chip/styles.rs".to_string()
+                test_source_path="components/chip/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="可调 variant/size/disabled/dismiss/custom，并在同一面板查看 code + config + scoped css test。"
                 controls=move || {
@@ -1629,7 +1306,7 @@ pub(super) fn meter() -> AnyView {
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/meter/styles.rs */\n{}",
+            "/* components/meter/src/styles.rs */\n{}",
             ui_components::meter::styles::CSS
         )
     });
@@ -1768,7 +1445,7 @@ pub(super) fn meter() -> AnyView {
                 description="展示区提供当前配置与对比样例；Config/Code/CSS Test 区用于契约验证。"
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/meter/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/meter/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="meter-workbench-controls">
@@ -2005,7 +1682,7 @@ pub(super) fn code() -> AnyView {
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/code/styles.rs */\n{}",
+            "/* components/code/src/styles.rs */\n{}",
             ui_components::code::styles::CSS
         )
     });
@@ -2064,7 +1741,7 @@ cargo test -p ui-components"#}
                 title="Interactive Playground"
                 code_signal=interactive_code
                 test_css_source=test_css_source
-                test_source_path="crates/ui-components/src/code/styles.rs".to_string()
+                test_source_path="components/code/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 description="展示区 + Config 区 + Code 区 + CSS Test 区；包含 inline/block 与 custom class 的对比展示。"
                 controls=move || view! {
@@ -2180,7 +1857,7 @@ pub(super) fn kbd() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/kbd/styles.rs */\n{}",
+            "/* components/kbd/src/styles.rs */\n{}",
             ui_components::kbd::styles::CSS
         )
     });
@@ -2260,7 +1937,7 @@ pub(super) fn kbd() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for size/keys/class contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/kbd/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/kbd/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="kbd-workbench-controls">
@@ -2615,7 +2292,7 @@ pub(super) fn link() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/link/styles.rs */\n{}",
+            "/* components/link/src/styles.rs */\n{}",
             ui_components::link::styles::CSS
         )
     });
@@ -2639,7 +2316,7 @@ pub(super) fn link() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/link/styles.rs".to_string()
+                test_source_path="components/link/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="切换 href/target/disabled/rel/class/lang，并在同一面板查看实际 config + code + scoped css test。"
                 controls=move || {
@@ -3162,7 +2839,7 @@ pub(super) fn image() -> AnyView {
     });
     let test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/image/styles.rs */\n{}",
+            "/* components/image/src/styles.rs */\n{}",
             ui_components::image::styles::CSS
         )
     });
@@ -3268,7 +2945,7 @@ pub(super) fn image() -> AnyView {
                 description="Interactive panel with scoped CSS test + actual config snapshot."
                 code_signal=workbench_code
                 test_css_source=test_css_source
-                test_source_path="crates/ui-components/src/image/styles.rs".to_string()
+                test_source_path="components/image/src/styles.rs".to_string()
                 test_config_signal=actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -3627,7 +3304,7 @@ pub(super) fn static_number() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/text_input/number/styles.rs */\n{}",
+            "/* components/text-input/src/number/styles.rs */\n{}",
             ui_components::text_input::number::styles::CSS
         )
     });
@@ -3742,7 +3419,7 @@ pub(super) fn static_number() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for number formatting contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/text_input/number/styles.rs".to_string()
+                test_source_path="components/text-input/src/number/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="static-number-workbench-controls">
@@ -3963,7 +3640,7 @@ pub(super) fn sliding_number() -> AnyView {
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/text_input/number/styles.rs */\n{}",
+            "/* components/text-input/src/number/styles.rs */\n{}",
             ui_components::text_input::number::styles::CSS
         )
     });
@@ -4100,7 +3777,7 @@ pub(super) fn sliding_number() -> AnyView {
                 description="Button-style playground with display/config/code/css-test panels for sliding number motion and format contracts."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="crates/ui-components/src/text_input/number/styles.rs".to_string()
+                test_source_path="components/text-input/src/number/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="sliding-number-workbench-controls">

@@ -18,12 +18,5 @@ pub fn attach_motion(_node_ref: leptos::prelude::NodeRef<leptos::html::Div>, mot
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn sanitize_motion_preserves_default_contract() {
-        let motion = sanitize_motion(FlexMotion::default());
-        assert_eq!(motion, FlexMotion::default());
-    }
-}
+#[path = "test/motion.rs"]
+mod tests;

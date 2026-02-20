@@ -1,9 +1,26 @@
 use std::fs;
 use std::path::Path;
 
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
+fn spinner_component_src_dir() -> std::path::PathBuf {
+    workspace_dir().join("components/spinner/src")
+}
+
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = if let Some(rest) = rel_path.strip_prefix("src/spinner/") {
+        spinner_component_src_dir().join(rest)
+    } else {
+        manifest_dir.join(rel_path)
+    };
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -588,8 +605,7 @@ fn spinner_files_keep_single_responsibility_boundaries() {
 
 #[test]
 fn spinner_does_not_introduce_spec_rs_for_simple_contract() {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let spec_path = manifest_dir.join("src/spinner/spec.rs");
+    let spec_path = spinner_component_src_dir().join("spec.rs");
     assert!(
         !spec_path.exists(),
         "Spinner is a simple component and should not introduce `spec.rs`."
@@ -807,18 +823,29 @@ fn spinner_engineering_unified_contract_is_not_applicable_for_simple_component()
 #[test]
 fn spinner_ui_components_entry_points_stay_correct() {
     let lib_source = load_source("src/lib.rs");
+    let cargo_source = load_source("Cargo.toml");
     let css_source = load_source("src/css.rs");
     let root_source = load_source("src/root.rs");
     let active_highlight_source = load_source("../ui-visual-primitive/src/active_highlight.rs");
 
     for needle in [
         "#[cfg(feature = \"component-spinner\")]",
-        "pub mod spinner;",
+        "pub use ui_spinner as spinner;",
         "pub use spinner::{Spinner, SpinnerSize};",
     ] {
         assert!(
             lib_source.contains(needle),
             "ui-components lib entry should include `{needle}`."
+        );
+    }
+
+    for needle in [
+        "component-spinner = [\"dep:ui-spinner\"]",
+        "ui-spinner = { path = \"../../components/spinner\", optional = true }",
+    ] {
+        assert!(
+            cargo_source.contains(needle),
+            "ui-components Cargo entry should include `{needle}`."
         );
     }
 
@@ -858,24 +885,18 @@ fn spinner_ui_components_entry_points_stay_correct() {
 
 #[test]
 fn spinner_directory_file_layout_is_standard() {
-    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    for expected in [
-        "src/spinner/mod.rs",
-        "src/spinner/logic.rs",
-        "src/spinner/styles.rs",
-        "src/spinner/view.rs",
-        "src/spinner/motion.rs",
-    ] {
+    let component_src = spinner_component_src_dir();
+    for expected in ["mod.rs", "logic.rs", "styles.rs", "view.rs", "motion.rs"] {
         assert!(
-            manifest_dir.join(expected).exists(),
-            "spinner directory should include `{expected}`."
+            component_src.join(expected).exists(),
+            "spinner component directory should include `{expected}`."
         );
     }
 
-    for forbidden in ["src/spinner/render.rs", "src/spinner/spec.rs"] {
+    for forbidden in ["render.rs", "spec.rs"] {
         assert!(
-            !manifest_dir.join(forbidden).exists(),
-            "spinner directory should not include `{forbidden}`."
+            !component_src.join(forbidden).exists(),
+            "spinner component directory should not include `{forbidden}`."
         );
     }
 }

@@ -1,7 +1,31 @@
 use std::fs;
 use std::path::Path;
 
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
 fn load_source(rel_path: &str) -> String {
+    if let Some(component_rel_path) = rel_path.strip_prefix("src/menu/") {
+        let path = workspace_dir()
+            .join("components/menu/src")
+            .join(component_rel_path);
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+    if let Some(component_rel_path) = rel_path.strip_prefix("src/popover/") {
+        let path = workspace_dir()
+            .join("components/popover/src")
+            .join(component_rel_path);
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
@@ -441,6 +465,8 @@ fn action_menu_has_no_async_loading_protocol_and_keeps_sync_action_contract() {
 fn action_menu_open_axis_is_complete_controllable_contract_without_half_controlled_state() {
     let view_source = load_source("src/menu/action_menu/view.rs");
     let headless_controllable_source = load_source("../ui-headless/src/controllable_state.rs");
+    let headless_controllable_test_source =
+        load_source("../ui-headless/src/test/controllable_state.rs");
 
     for needle in [
         "open: Option<Signal<bool>>",
@@ -453,13 +479,15 @@ fn action_menu_open_axis_is_complete_controllable_contract_without_half_controll
         "let open = open_state.open;",
         "let request_open_change = open_state.request_open_change;",
         "request_open_change.run(next_open);",
-        "request_open_change.run(false);",
+        "let on_close: OnPress = Callback::new(move |_| request_open_change.run(false));",
         "controlled_open_does_not_update_internal_state",
         "uncontrolled_open_updates_state_and_calls_on_change",
         "request_open_change_ignores_noop_updates",
     ] {
         assert!(
-            view_source.contains(needle) || headless_controllable_source.contains(needle),
+            view_source.contains(needle)
+                || headless_controllable_source.contains(needle)
+                || headless_controllable_test_source.contains(needle),
             "ActionMenu controllable contract should include `{needle}`."
         );
     }
@@ -805,8 +833,8 @@ fn action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild()
     let ui_theme_tokens_source = load_source("../ui-theme/src/tokens.rs");
     let ui_theme_theme_source = load_source("../ui-theme/src/theme.rs");
     let ui_theme_css_source = load_source("../ui-theme/src/css.rs");
-    let ui_theme_scale_tests = load_source("../ui-theme/tests/token_scale_baseline.rs");
-    let ui_theme_wcag_tests = load_source("../ui-theme/tests/wcag_contrast.rs");
+    let ui_theme_scale_checks = load_source("../ui-theme/tests/token_scale_baseline.rs");
+    let ui_theme_wcag_checks = load_source("../ui-theme/tests/wcag_contrast.rs");
     let styling_spec_source = load_source("../../docs/spec/styling.md");
 
     for needle in [
@@ -830,8 +858,8 @@ fn action_menu_theme_layering_uses_ui_theme_tokens_without_local_theme_rebuild()
                 || ui_theme_theme_source.contains(needle)
                 || ui_theme_css_source.contains(needle)
                 || ui_root_source.contains(needle)
-                || ui_theme_scale_tests.contains(needle)
-                || ui_theme_wcag_tests.contains(needle)
+                || ui_theme_scale_checks.contains(needle)
+                || ui_theme_wcag_checks.contains(needle)
                 || styling_spec_source.contains(needle),
             "Theme layering contract should include `{needle}`."
         );
@@ -1093,6 +1121,7 @@ fn action_menu_docs_page_contains_state_source_playground() {
 fn action_menu_motion_sanitizes_custom_contract_values() {
     let motion_source = load_source("src/menu/action_menu/motion.rs");
     let view_source = load_source("src/menu/action_menu/view.rs");
+    let motion_test_source = load_source("../../components/menu/test/action_menu/motion.rs");
 
     for needle in [
         "pub fn sanitize_motion(motion: ActionMenuMotion) -> ActionMenuMotion",
@@ -1100,7 +1129,7 @@ fn action_menu_motion_sanitizes_custom_contract_values() {
         "fn sanitize_motion_delegates_to_popover_contract()",
     ] {
         assert!(
-            motion_source.contains(needle),
+            motion_source.contains(needle) || motion_test_source.contains(needle),
             "ActionMenu motion should include `{needle}` so invalid custom motion contracts cannot leak into runtime behavior.",
         );
     }

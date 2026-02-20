@@ -1,0 +1,43 @@
+use super::*;
+
+#[test]
+fn default_motion_matches_alert_spring_contract() {
+    let motion = AlertMotion::default();
+    assert_eq!(motion.spring, ui_motion::presets::spring_soft());
+}
+
+#[test]
+fn supports_custom_spring_motion_contract() {
+    let motion = AlertMotion {
+        spring: ui_motion::spring::SpringConfig {
+            stiffness: 320.0,
+            damping: 22.0,
+            mass: 1.0,
+            precision: 0.002,
+        },
+    };
+
+    assert_eq!(motion.spring.stiffness, 320.0);
+    assert_eq!(motion.spring.damping, 22.0);
+    assert_eq!(motion.spring.mass, 1.0);
+    assert_eq!(motion.spring.precision, 0.002);
+}
+
+#[test]
+fn sanitize_motion_falls_back_for_invalid_values() {
+    let default = AlertMotion::default();
+
+    let motion = sanitize_motion(AlertMotion {
+        spring: ui_motion::spring::SpringConfig {
+            stiffness: f64::NAN,
+            damping: -1.0,
+            mass: 0.0,
+            precision: f64::INFINITY,
+        },
+    });
+
+    assert_eq!(motion.spring.stiffness, default.spring.stiffness);
+    assert_eq!(motion.spring.damping, default.spring.damping);
+    assert_eq!(motion.spring.mass, default.spring.mass);
+    assert_eq!(motion.spring.precision, default.spring.precision);
+}

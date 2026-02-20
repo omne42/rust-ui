@@ -1,9 +1,24 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn resolve_path(rel_path: &str) -> std::path::PathBuf {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+
+    if let Some(suffix) = rel_path.strip_prefix("src/label/") {
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        return workspace_dir.join("components/label/src").join(suffix);
+    }
+
+    manifest_dir.join(rel_path)
+}
+
+fn load_source(rel_path: &str) -> String {
+    let path = resolve_path(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 

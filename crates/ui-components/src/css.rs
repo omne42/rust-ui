@@ -6,7 +6,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-avatar")]
     out.push_str(crate::avatar::styles::CSS);
     #[cfg(feature = "component-avatar_group")]
-    out.push_str(crate::avatar::styles::AVATAR_GROUP_CSS);
+    out.push_str(crate::avatar_group::styles::CSS);
     #[cfg(feature = "component-action_bar")]
     out.push_str(crate::action_bar::styles::CSS);
     #[cfg(feature = "component-button")]
@@ -48,7 +48,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-checkbox_field")]
     out.push_str(crate::checkbox_field::styles::CSS);
     #[cfg(feature = "component-checkbox_group")]
-    out.push_str(crate::checkbox::styles::CHECKBOX_GROUP_CSS);
+    out.push_str(crate::checkbox_group::styles::CSS);
     #[cfg(feature = "component-switch")]
     out.push_str(crate::switch::styles::CSS);
     #[cfg(feature = "component-switch_group")]
@@ -63,10 +63,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::carousel::styles::CSS);
     #[cfg(feature = "component-alert")]
     out.push_str(crate::alert::styles::CSS);
-    #[cfg(feature = "component-alert_banner")]
-    out.push_str(crate::alert_banner::styles::CSS);
-    #[cfg(feature = "component-inline_alert")]
-    out.push_str(crate::inline_alert::styles::CSS);
     #[cfg(feature = "component-chip")]
     out.push_str(crate::chip::styles::CSS);
     #[cfg(feature = "component-chart")]
@@ -137,8 +133,6 @@ pub fn push_components_css(out: &mut String) {
     out.push_str(crate::legend::styles::CSS);
     #[cfg(feature = "component-breadcrumb")]
     out.push_str(crate::breadcrumb::styles::CSS);
-    #[cfg(feature = "component-breadcrumbs")]
-    out.push_str(crate::breadcrumbs::styles::CSS);
     #[cfg(feature = "component-code")]
     out.push_str(crate::code::styles::CSS);
     #[cfg(feature = "component-code_block")]
@@ -146,7 +140,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-snippet")]
     out.push_str(crate::snippet::styles::CSS);
     #[cfg(feature = "component-text")]
-    out.push_str(crate::text_input::text::styles::CSS);
+    out.push_str(crate::text::styles::CSS);
     #[cfg(feature = "component-visually_hidden")]
     out.push_str(crate::visually_hidden::CSS);
     #[cfg(feature = "component-label")]
@@ -308,7 +302,10 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-illustrated_message")]
     out.push_str(crate::illustrated_message::styles::CSS);
     #[cfg(feature = "component-toast")]
-    out.push_str(crate::toast::styles::CSS);
+    {
+        out.push_str(crate::toast::styles::CLOSE_BUTTON_CSS);
+        out.push_str(crate::toast::styles::CSS);
+    }
     #[cfg(feature = "component-sonner")]
     out.push_str(crate::sonner::styles::CSS);
     #[cfg(feature = "component-toaster")]
@@ -350,7 +347,7 @@ pub fn push_components_css(out: &mut String) {
     #[cfg(feature = "component-direction")]
     out.push_str(crate::direction::styles::CSS);
     #[cfg(feature = "component-description")]
-    out.push_str(crate::field_form::description::styles::CSS);
+    out.push_str(crate::description::styles::CSS);
     #[cfg(feature = "component-help_text")]
     out.push_str(crate::field_form::help_text::styles::CSS);
     #[cfg(feature = "component-item")]

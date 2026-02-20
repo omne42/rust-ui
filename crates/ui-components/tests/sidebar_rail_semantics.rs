@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn sidebar_rail_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/sidebar/rail/mod.rs");
+    let source = load_source("../../components/sidebar/src/rail/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,7 +49,7 @@ fn sidebar_rail_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn sidebar_rail_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/sidebar/rail/mod.rs");
+    let module_source = load_source("../../components/sidebar/src/rail/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -36,8 +64,8 @@ fn sidebar_rail_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn sidebar_rail_uses_logic_state_model() {
-    let logic_source = load_source("src/sidebar/rail/logic.rs");
-    let view_source = load_source("src/sidebar/rail/view.rs");
+    let logic_source = load_source("../../components/sidebar/src/rail/logic.rs");
+    let view_source = load_source("../../components/sidebar/src/rail/view.rs");
 
     for needle in [
         "pub fn normalize_optional_text(",
@@ -69,7 +97,7 @@ fn sidebar_rail_uses_logic_state_model() {
 
 #[test]
 fn sidebar_rail_supports_controlled_and_uncontrolled_open_state() {
-    let source = load_source("src/sidebar/rail/view.rs");
+    let source = load_source("../../components/sidebar/src/rail/view.rs");
 
     for needle in [
         "open: Option<Signal<bool>>",
@@ -87,7 +115,7 @@ fn sidebar_rail_supports_controlled_and_uncontrolled_open_state() {
 
 #[test]
 fn sidebar_rail_emits_baseline_root_state_data_attributes() {
-    let source = load_source("src/sidebar/rail/view.rs");
+    let source = load_source("../../components/sidebar/src/rail/view.rs");
 
     for needle in [
         "data-slot=\"sidebar-rail\"",
@@ -109,7 +137,7 @@ fn sidebar_rail_emits_baseline_root_state_data_attributes() {
 
 #[test]
 fn sidebar_rail_styles_include_state_markers() {
-    let source = load_source("src/sidebar/rail/styles.rs");
+    let source = load_source("../../components/sidebar/src/rail/styles.rs");
 
     for needle in [
         ".ui-sidebar-rail {",

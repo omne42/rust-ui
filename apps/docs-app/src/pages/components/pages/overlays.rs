@@ -683,7 +683,7 @@ pub(super) fn modal() -> AnyView {
 
     let interactive_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/modal/styles.rs */\n{}",
+            "/* components/modal/src/styles.rs */\n{}",
             ui_components::modal::styles::CSS
         )
     });
@@ -812,7 +812,7 @@ let custom_motion = OverlayMotion {
                 description="Display + Config + Code + CSS Test: toggle source contracts and inspect actual normalized config."
                 code_signal=interactive_code
                 test_css_source=interactive_test_css
-                test_source_path="crates/ui-components/src/modal/styles.rs".to_string()
+                test_source_path="components/modal/src/styles.rs".to_string()
                 test_config_signal=interactive_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -1149,11 +1149,11 @@ pub(super) fn sheet() -> AnyView {
                     class_name="docs-sheet-source-copy".to_string()
                 />
                 <ul data-slot="sheet-source-paths">
-                    <li><code>"crates/ui-components/src/sheet/mod.rs"</code></li>
-                    <li><code>"crates/ui-components/src/sheet/logic.rs"</code></li>
-                    <li><code>"crates/ui-components/src/sheet/view.rs"</code></li>
-                    <li><code>"crates/ui-components/src/sheet/styles.rs"</code></li>
-                    <li><code>"crates/ui-components/src/sheet/motion.rs"</code></li>
+                    <li><code>"components/sheet/src/mod.rs"</code></li>
+                    <li><code>"components/sheet/src/logic.rs"</code></li>
+                    <li><code>"components/sheet/src/view.rs"</code></li>
+                    <li><code>"components/sheet/src/styles.rs"</code></li>
+                    <li><code>"components/sheet/src/motion.rs"</code></li>
                 </ul>
                 <ul data-slot="sheet-source-prerequisites">
                     <li><code>"component-sheet"</code></li>

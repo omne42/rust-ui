@@ -1,0 +1,19 @@
+[package]
+name = "ui-list"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/mod.rs"
+
+[features]
+default = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-headless = { path = "../../crates/ui-headless" }
+ui-motion = { path = "../../crates/ui-motion" }
+ui-visual-primitive = { path = "../../crates/ui-visual-primitive" }
+ui-illustrated-message = { path = "../illustrated-message" }
+serde = { version = "1.0", features = ["derive"] }

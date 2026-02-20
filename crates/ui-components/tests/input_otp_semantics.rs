@@ -4,6 +4,34 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -204,7 +232,7 @@ fn input_otp_docs_page_exposes_interactive_display_config_code_css_test_contract
         "description=\"展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。\"",
         "code_signal=workbench_code",
         "test_css_source=workbench_test_css_source",
-        "test_source_path=\"crates/ui-components/src/text_input/input_otp/styles.rs\".to_string()",
+        "test_source_path=\"components/text-input/src/input_otp/styles.rs\".to_string()",
         "test_config_signal=workbench_actual_config",
         "controls=move || view!",
         "<Playground title=\"State Comparison\" code_signal=state_compare_code>",

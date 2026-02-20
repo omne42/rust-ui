@@ -28,8 +28,8 @@ fn crate_root_does_not_register_shared_element_transition_compat_module() {
 #[test]
 fn shared_element_transition_status_primitives_boundary_is_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let state_primitives_root = load_source("../../crates/ui-state-primitives/src/lib.rs");
 
@@ -73,8 +73,8 @@ fn shared_element_transition_status_primitives_boundary_is_documented_and_enforc
 #[test]
 fn shared_element_transition_ui_headless_boundary_is_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let headless_lib = load_source("../../crates/ui-headless/src/lib.rs");
     let headless_a11y = load_source("../../crates/ui-headless/src/a11y.rs");
@@ -140,8 +140,8 @@ fn shared_element_transition_ui_headless_boundary_is_documented_and_enforced() {
 #[test]
 fn shared_element_transition_ui_motion_boundary_is_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let ui_motion_lib = load_source("../../crates/ui-motion/src/lib.rs");
     let ui_motion_web = load_source("../../crates/ui-motion/src/web.rs");
@@ -214,8 +214,8 @@ fn shared_element_transition_ui_motion_boundary_is_documented_and_enforced() {
 #[test]
 fn shared_element_transition_ui_theme_boundary_is_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let ui_theme_tokens = load_source("../../crates/ui-theme/src/tokens.rs");
     let ui_theme_theme = load_source("../../crates/ui-theme/src/theme.rs");
@@ -327,8 +327,8 @@ fn shared_element_transition_ui_theme_boundary_is_documented_and_enforced() {
 #[test]
 fn shared_element_transition_ui_components_boundary_is_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let css_aggregator = load_source("src/css.rs");
     let ui_root = load_source("src/root.rs");
@@ -414,8 +414,8 @@ fn shared_element_transition_ui_components_boundary_is_documented_and_enforced()
 #[test]
 fn shared_element_transition_api_naming_contract_is_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
 
     let mut entries: Vec<String> = fs::read_dir(&component_dir)
@@ -454,8 +454,8 @@ fn shared_element_transition_api_naming_contract_is_documented_and_enforced() {
 #[test]
 fn shared_element_transition_section2_state_api_contracts_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
 
     let mut entries: Vec<String> = fs::read_dir(&component_dir)
@@ -501,8 +501,8 @@ fn shared_element_transition_section2_state_api_contracts_are_documented_and_enf
 #[test]
 fn shared_element_transition_section3_semantics_and_style_contracts_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let css_aggregator = load_source("src/css.rs");
     let ui_root = load_source("src/root.rs");
@@ -569,8 +569,8 @@ fn shared_element_transition_section3_semantics_and_style_contracts_are_document
 #[test]
 fn shared_element_transition_section4_platform_performance_contracts_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let headless_lib = load_source("../../crates/ui-headless/src/lib.rs");
     let motion_lib = load_source("../../crates/ui-motion/src/lib.rs");
@@ -647,8 +647,8 @@ fn shared_element_transition_section4_platform_performance_contracts_are_documen
 fn shared_element_transition_section5_file_placement_contracts_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let src_dir = manifest_dir.join("src");
-    let component_dir = src_dir.join("shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
 
     let mut entries: Vec<String> = fs::read_dir(&component_dir)
         .unwrap_or_else(|e| panic!("read_dir failed for {:?}: {}", component_dir, e))
@@ -703,8 +703,8 @@ fn shared_element_transition_section5_file_placement_contracts_are_documented_an
 #[test]
 fn shared_element_transition_section6_agent_contracts_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
 
     let mut entries: Vec<String> = fs::read_dir(&component_dir)
@@ -746,8 +746,8 @@ fn shared_element_transition_section6_agent_contracts_are_documented_and_enforce
 #[test]
 fn shared_element_transition_section7_docs_and_e2e_contracts_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
 
     let mut entries: Vec<String> = fs::read_dir(&component_dir)
@@ -793,8 +793,8 @@ fn shared_element_transition_section7_docs_and_e2e_contracts_are_documented_and_
 #[test]
 fn shared_element_transition_anti_patterns_are_documented_and_enforced() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let component_dir = manifest_dir.join("src/shared_element_transition");
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let component_dir = manifest_dir.join("../../components/shared-element-transition/src");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
     let crate_root = load_source("src/lib.rs");
     let state_primitives_root = load_source("../../crates/ui-state-primitives/src/lib.rs");
     let headless_lib = load_source("../../crates/ui-headless/src/lib.rs");
@@ -848,7 +848,7 @@ fn shared_element_transition_anti_patterns_are_documented_and_enforced() {
 
 #[test]
 fn shared_element_transition_final_gate_verdict_is_documented_and_enforced() {
-    let check2_source = load_source("src/shared_element_transition/check2.md");
+    let check2_source = load_source("../../components/shared-element-transition/src/check2.md");
 
     for required in [
         "- [x] 架构正确（边界不破）。",

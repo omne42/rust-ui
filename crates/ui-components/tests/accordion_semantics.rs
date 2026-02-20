@@ -590,7 +590,7 @@ fn accordion_motion_defaults_come_from_ui_theme_tokens() {
 #[test]
 fn accordion_motion_sanitizes_custom_contract_values() {
     let source = load_source("src/accordion/motion.rs");
-    let tests_source = load_accordion_test_source("motion_tests.rs");
+    let tests_source = load_accordion_test_source("motion.rs");
     let combined_source = format!("{source}\n{tests_source}");
 
     for needle in [
@@ -1488,7 +1488,7 @@ fn docs_perf_probe_budgets_are_wired_for_component_pages() {
     let coverage_source = load_source("../../e2e/tests/docs_app_components_coverage.spec.mjs");
 
     for needle in [
-        "use ui_headless::{UiPerfBudget, UiPerfProbe};",
+        "use crate::perf_probe::{UiPerfBudget, UiPerfProbe};",
         "fn component_page_perf_budget(slug: &'static str) -> UiPerfBudget",
         "\"button\" => UiPerfBudget {",
         "\"input\" => UiPerfBudget {",

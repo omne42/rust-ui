@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn color_editor_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/color/editor/mod.rs");
+    let source = load_source("../../components/color-editor/src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,9 +49,9 @@ fn color_editor_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn color_editor_uses_logic_state_model() {
-    let logic_source = load_source("src/color/editor/logic.rs");
+    let logic_source = load_source("../../components/color-editor/src/logic.rs");
     let primitive_source = load_source("../ui-state-primitives/src/color_editor.rs");
-    let view_source = load_source("src/color/editor/view.rs");
+    let view_source = load_source("../../components/color-editor/src/view.rs");
 
     for needle in [
         "pub use ui_state_primitives::color_editor::{",
@@ -83,7 +111,7 @@ fn color_editor_uses_logic_state_model() {
 
 #[test]
 fn color_editor_exposes_baseline_style_data_markers() {
-    let source = load_source("src/color/editor/view.rs");
+    let source = load_source("../../components/color-editor/src/view.rs");
 
     for attr in [
         "data-slot=\"color-editor\"",
@@ -107,7 +135,7 @@ fn color_editor_exposes_baseline_style_data_markers() {
 
 #[test]
 fn color_editor_styles_include_format_disabled_alpha_and_custom_contracts() {
-    let source = load_source("src/color/editor/styles.rs");
+    let source = load_source("../../components/color-editor/src/styles.rs");
 
     for selector in [
         ".ui-color-editor",
@@ -194,7 +222,7 @@ fn color_editor_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn color_editor_readme_documents_docs_workbench_contract() {
-    let source = load_source("src/color/editor/README.md");
+    let source = load_source("../../components/color-editor/src/README.md");
 
     for needle in [
         "## Docs Playground（展示 / Config / Code / CSS Test）",
@@ -238,9 +266,9 @@ fn color_editor_feature_dependency_chain_covers_composed_children() {
 
 #[test]
 fn color_editor_component_has_motion_contract_module() {
-    let mod_source = load_source("src/color/editor/mod.rs");
-    let motion_source = load_source("src/color/editor/motion.rs");
-    let view_source = load_source("src/color/editor/view.rs");
+    let mod_source = load_source("../../components/color-editor/src/mod.rs");
+    let motion_source = load_source("../../components/color-editor/src/motion.rs");
+    let view_source = load_source("../../components/color-editor/src/view.rs");
 
     for needle in ["pub mod motion;", "pub use motion::ColorEditorMotion;"] {
         assert!(
@@ -268,7 +296,7 @@ fn color_editor_component_has_motion_contract_module() {
 
 #[test]
 fn color_editor_check2_marks_all_items_completed() {
-    let source = load_source("src/color/editor/check2.md");
+    let source = load_source("../../components/color-editor/src/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义",

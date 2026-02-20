@@ -1,0 +1,67 @@
+schema_version = "1"
+
+[component]
+name = "CheckboxGroup"
+crate = "ui-checkbox-group"
+
+[[inputs]]
+name = "id"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "label"
+ty = "String"
+default = "required"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "error"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "invalid"
+ty = "Signal<bool>"
+default = "Signal::derive(|| false)"
+controlled = true
+
+[[inputs]]
+name = "required"
+ty = "Signal<bool>"
+default = "Signal::derive(|| false)"
+controlled = true
+
+[[inputs]]
+name = "disabled"
+ty = "bool"
+default = "false"
+controlled = false
+
+[[inputs]]
+name = "aria_describedby"
+ty = "Signal<Option<String>>"
+default = "Signal::derive(|| None)"
+controlled = true
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"

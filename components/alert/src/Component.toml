@@ -1,0 +1,127 @@
+schema_version = "1"
+
+[component]
+name = "Alert"
+crate = "ui-alert"
+
+[[inputs]]
+name = "tone"
+ty = "Option<AlertTone>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "variant"
+ty = "Option<AlertVariant>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "layout"
+ty = "Option<AlertLayout>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "fill"
+ty = "Option<AlertFill>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "title"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_hide_icon"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "hide_icon"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "icon_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "start_content"
+ty = "Option<ViewFn>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "end_content"
+ty = "Option<ViewFn>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "AlertMotion"
+default = "AlertMotion::default()"
+controlled = false
+
+[[outputs]]
+name = "semantic-markers"
+ty = "data-* + role + aria-live"
+
+[[capabilities]]
+name = "a11y_status_region"
+enabled = true
+
+[[capabilities]]
+name = "i18n_locale_context"
+enabled = true
+
+[[capabilities]]
+name = "motion_contract"
+enabled = true
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "animation-engine"
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"

@@ -1,0 +1,23 @@
+use serde::{Deserialize, Serialize};
+
+/// Component protocol contract for `components/text-input/src/input_otp`.
+///
+/// This schema is intentionally minimal and versioned so component-specific
+/// protocol fields can evolve without breaking deserialization.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum InputOtpComponentSchemaVersion {
+    #[default]
+    V1,
+}
+
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct InputOtpComponentSpec {
+    #[serde(default)]
+    pub schema_version: InputOtpComponentSchemaVersion,
+}
+
+#[cfg(test)]
+#[path = "../../test/input_otp/protocol.rs"]
+mod tests;

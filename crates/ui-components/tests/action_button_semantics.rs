@@ -4,6 +4,21 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(suffix) = rel_path.strip_prefix("src/button/") {
+        let migrated = manifest_dir
+            .join("../../components/button/src")
+            .join(suffix);
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -59,13 +74,17 @@ fn action_button_spec_boundary_reuses_button_spec_without_local_spec_file() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let button_mod_source = load_source("src/button/mod.rs");
     let action_mod_source = load_source("src/button/action/mod.rs");
+    let button_spec = manifest_dir.join("src/button/spec.rs");
+    let migrated_button_spec = manifest_dir.join("../../components/button/src/spec.rs");
+    let action_spec = manifest_dir.join("src/button/action/spec.rs");
+    let migrated_action_spec = manifest_dir.join("../../components/button/src/action/spec.rs");
 
     assert!(
-        manifest_dir.join("src/button/spec.rs").exists(),
+        button_spec.exists() || migrated_button_spec.exists(),
         "Button should keep the canonical spec.rs boundary for complex schema contract."
     );
     assert!(
-        !manifest_dir.join("src/button/action/spec.rs").exists(),
+        !action_spec.exists() && !migrated_action_spec.exists(),
         "ActionButton should not introduce a parallel spec.rs file."
     );
 

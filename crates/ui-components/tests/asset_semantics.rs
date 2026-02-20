@@ -4,12 +4,40 @@ use std::path::Path;
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
+    if path.exists() {
+        return fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+    }
+
+    if let Some(component_path) = rel_path.strip_prefix("src/") {
+        let mut parts = component_path.splitn(2, '/');
+        let component = parts.next().unwrap_or_default();
+        let Some(suffix) = parts.next() else {
+            return fs::read_to_string(&path)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"));
+        };
+
+        let component_dir = component.replace('_', "-");
+        let workspace_dir = manifest_dir
+            .parent()
+            .and_then(Path::parent)
+            .unwrap_or_else(|| {
+                panic!("workspace root should be two levels above {manifest_dir:?}")
+            });
+        let migrated = workspace_dir.join(format!("components/{component_dir}/src/{suffix}"));
+
+        if migrated.exists() {
+            return fs::read_to_string(&migrated)
+                .unwrap_or_else(|e| panic!("read_to_string failed for {migrated:?}: {e}"));
+        }
+    }
+
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
 #[test]
 fn asset_does_not_expose_view_module() {
-    let source = load_source("src/asset/mod.rs");
+    let source = load_source("../../components/asset/src/mod.rs");
 
     assert!(
         !source.contains("pub mod view"),
@@ -24,7 +52,7 @@ fn asset_does_not_expose_view_module() {
 
 #[test]
 fn asset_is_exported_from_module_and_crate_root() {
-    let module_source = load_source("src/asset/mod.rs");
+    let module_source = load_source("../../components/asset/src/mod.rs");
     let crate_source = load_source("src/lib.rs");
 
     assert!(
@@ -39,7 +67,7 @@ fn asset_is_exported_from_module_and_crate_root() {
 
 #[test]
 fn asset_wraps_thumbnail_contract() {
-    let source = load_source("src/asset/view.rs");
+    let source = load_source("../../components/asset/src/view.rs");
 
     for needle in [
         "pub fn Asset(",
@@ -63,7 +91,7 @@ fn asset_wraps_thumbnail_contract() {
 
 #[test]
 fn asset_styles_include_variant_state_and_accessibility_markers() {
-    let source = load_source("src/asset/styles.rs");
+    let source = load_source("../../components/asset/src/styles.rs");
 
     for selector in [
         ".ui-asset--variant-file",
@@ -86,7 +114,7 @@ fn asset_styles_include_variant_state_and_accessibility_markers() {
 
 #[test]
 fn asset_logic_tracks_label_content_and_class_sources() {
-    let source = load_source("src/asset/logic.rs");
+    let source = load_source("../../components/asset/src/logic.rs");
 
     for needle in [
         "pub const DEFAULT_FILE_LABEL: &str = \"File\";",

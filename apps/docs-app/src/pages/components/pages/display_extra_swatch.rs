@@ -78,7 +78,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                test_source_path="crates/ui-components/src/color/swatch_core/view.rs".to_string()
+                test_source_path="components/swatch/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <Swatch color="#ffcc00".to_string() />
@@ -88,7 +88,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             <Playground
                 title="Size + Shape + Rounding"
                 code_signal=size_code
-                test_source_path="crates/ui-components/src/color/swatch_core/view.rs".to_string()
+                test_source_path="components/swatch/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <Swatch color="#ffcc00".to_string() size=SwatchSize::Xs />
@@ -107,7 +107,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             <Playground
                 title="Mixed + Nothing + Disabled + Controlled"
                 code_signal=state_code
-                test_source_path="crates/ui-components/src/color/swatch_core/view.rs".to_string()
+                test_source_path="components/swatch/src/view.rs".to_string()
             >
                 <div class="docs-stack docs-stack--tight">
                     <Swatch
@@ -132,7 +132,7 @@ let on_selected_change = Callback::new(move |next: bool| set_selected.set(next))
             <Playground
                 title="Custom Motion Contract"
                 code_signal=motion_code
-                test_source_path="crates/ui-components/src/color/swatch_core/view.rs".to_string()
+                test_source_path="components/swatch/src/view.rs".to_string()
             >
                 <div class="docs-row">
                     <Swatch

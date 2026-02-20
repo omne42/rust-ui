@@ -1,9 +1,26 @@
 use std::fs;
 use std::path::Path;
 
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
+fn legend_component_src_dir() -> std::path::PathBuf {
+    workspace_dir().join("components/legend/src")
+}
+
 fn load_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let path = manifest_dir.join(rel_path);
+    let path = if let Some(rest) = rel_path.strip_prefix("src/legend/") {
+        legend_component_src_dir().join(rest)
+    } else {
+        manifest_dir.join(rel_path)
+    };
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
@@ -21,6 +38,23 @@ fn legend_does_not_expose_logic_or_view_modules() {
     assert!(
         source.contains("pub use logic::{"),
         "Legend module should re-export state contracts through logic boundary."
+    );
+
+    let crate_source = load_source("src/lib.rs");
+    let cargo_source = load_source("Cargo.toml");
+    assert!(
+        crate_source.contains("pub use ui_legend as legend;")
+            && crate_source.contains("pub use legend::{Legend, LegendTone};"),
+        "ui-components crate root should re-export ui-legend contracts."
+    );
+    assert!(
+        cargo_source.contains("component-legend = [\"dep:ui-legend\"]"),
+        "component-legend feature should depend on dep:ui-legend after extraction."
+    );
+    assert!(
+        cargo_source
+            .contains("ui-legend = { path = \"../../components/legend\", optional = true }"),
+        "ui-components Cargo.toml should include optional ui-legend dependency."
     );
 }
 

@@ -1,0 +1,67 @@
+schema_version = "1"
+
+[component]
+name = "Avatar"
+crate = "ui-avatar"
+
+[[inputs]]
+name = "name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "src"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "size"
+ty = "AvatarSize"
+default = "AvatarSize::Md"
+controlled = false
+
+[[inputs]]
+name = "alt"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "class_name"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[capabilities]]
+name = "image_fallback"
+enabled = true
+
+[[capabilities]]
+name = "a11y_i18n_l10n"
+enabled = true
+
+[[dependencies]]
+name = "ui-state-primitives"
+kind = "state-normalization"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "a11y-interaction"
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"

@@ -65,40 +65,5 @@ impl OverlayTriggerState {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::sync::{Arc, Mutex};
-
-    #[test]
-    fn uncontrolled_updates_internal_state() {
-        let mut state = use_overlay_trigger_state(OverlayTriggerStateOptions {
-            default_open: Some(false),
-            ..Default::default()
-        });
-
-        assert!(!state.is_open());
-        state.open();
-        assert!(state.is_open());
-        state.close();
-        assert!(!state.is_open());
-    }
-
-    #[test]
-    fn controlled_calls_on_change_but_does_not_update_internal() {
-        let called: Arc<Mutex<Option<bool>>> = Arc::new(Mutex::new(None));
-        let called2 = Arc::clone(&called);
-
-        let mut state = use_overlay_trigger_state(OverlayTriggerStateOptions {
-            is_open: Some(false),
-            on_open_change: Some(Arc::new(move |v| *called2.lock().unwrap() = Some(v))),
-            ..Default::default()
-        });
-
-        state.open();
-        assert_eq!(*called.lock().unwrap(), Some(true));
-        assert!(!state.is_open());
-
-        state.sync_controlled(Some(true));
-        assert!(state.is_open());
-    }
-}
+#[path = "test/overlay_trigger.rs"]
+mod tests;

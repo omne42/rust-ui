@@ -2,125 +2,15 @@ use crate::pages::components::ComponentPage;
 use crate::playground::Playground;
 use leptos::prelude::*;
 use ui_components::{
-    AlertBanner, AlertBannerFill, AlertBannerMotion, AlertBannerTone, Chart, ChartKind, ChartPoint,
-    ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem, ColorSwatchRounding, ColorSwatchShape,
-    ColorSwatchSize, EmptyState, EmptyStateAlign, EmptyStateTone, ErrorView, ErrorViewMotion,
-    ErrorViewTone, FlipCard, FlipCardMotion, Icon, IconSize, IconTone, Keyboard, KeyboardTone,
-    LabeledValue, LabeledValueOrientation, LabeledValueTone, PressableFeedback,
-    PressableFeedbackEffect, PressableFeedbackMotion, PressableFeedbackTone, RippleMotion,
-    SegmentedControl, SegmentedControlSize, Skeleton, SkeletonGroup, SkeletonGroupDensity,
-    SkeletonGroupLayout, SkeletonGroupVariant, SkeletonVariant, Switch, Text, TextAlign,
-    TextElement, TextTone, TextWeight,
+    Chart, ChartKind, ChartPoint, ColorSwatch, ColorSwatchPicker, ColorSwatchPickerItem,
+    ColorSwatchRounding, ColorSwatchShape, ColorSwatchSize, EmptyState, EmptyStateAlign,
+    EmptyStateTone, ErrorView, ErrorViewMotion, ErrorViewTone, FlipCard, FlipCardMotion, Icon,
+    IconSize, IconTone, Keyboard, KeyboardTone, LabeledValue, LabeledValueOrientation,
+    LabeledValueTone, PressableFeedback, PressableFeedbackEffect, PressableFeedbackMotion,
+    PressableFeedbackTone, RippleMotion, SegmentedControl, SegmentedControlSize, Skeleton,
+    SkeletonGroup, SkeletonGroupDensity, SkeletonGroupLayout, SkeletonGroupVariant,
+    SkeletonVariant, Switch, Text, TextAlign, TextElement, TextTone, TextWeight,
 };
-
-pub(super) fn alert_banner() -> AnyView {
-    let tone_code = Signal::derive(move || {
-        r#"<AlertBanner
-  tone=AlertBannerTone::Info
-  fill=AlertBannerFill::Border
-  title="Updates available".to_string()
-  description="A new version is ready to install.".to_string()
->
-  "Install now to keep your workspace secure."
-</AlertBanner>
-<AlertBanner
-  tone=AlertBannerTone::Negative
-  fill=AlertBannerFill::Subtle
-  title="Deployment failed".to_string()
-  description="Rollback completed. Review incident timeline.".to_string()
->
-  "Check logs before retrying."
-</AlertBanner>"#
-            .to_string()
-    });
-
-    let custom_code = Signal::derive(move || {
-        r#"<AlertBanner
-  tone=AlertBannerTone::Notice
-  fill=AlertBannerFill::Bold
-  is_hide_icon=true
-  title="Maintenance window".to_string()
-  description="Service may be degraded during migration.".to_string()
-  class_name="docs-alert-banner-custom".to_string()
->
-  "Follow status page for live updates."
-</AlertBanner>"#
-            .to_string()
-    });
-
-    let motion_code = Signal::derive(move || {
-        r#"<AlertBanner
-  tone=AlertBannerTone::Info
-  fill=AlertBannerFill::Border
-  title="Motion tuned".to_string()
-  description="Custom spring contract for alert reveal.".to_string()
-  motion=AlertBannerMotion {
-    spring: Default::default(),
-  }
->
-  "Inspect data-motion-source/data-custom-motion markers."
-</AlertBanner>"#
-            .to_string()
-    });
-
-    view! {
-        <ComponentPage
-            title="AlertBanner"
-            slug="alert-banner"
-            group="Display"
-            description="baseline-compatible alert banner with centralized tone/fill/content contracts and baseline-level spring reveal motion."
-        >
-            <Playground title="Tone + Fill" code_signal=tone_code>
-                <div class="docs-stack">
-                    <AlertBanner
-                        tone=AlertBannerTone::Info
-                        fill=AlertBannerFill::Border
-                        title="Updates available".to_string()
-                        description="A new version is ready to install.".to_string()
-                    >
-                        "Install now to keep your workspace secure."
-                    </AlertBanner>
-                    <AlertBanner
-                        tone=AlertBannerTone::Negative
-                        fill=AlertBannerFill::Subtle
-                        title="Deployment failed".to_string()
-                        description="Rollback completed. Review incident timeline.".to_string()
-                    >
-                        "Check logs before retrying."
-                    </AlertBanner>
-                </div>
-            </Playground>
-
-            <Playground title="Bold + Hidden Icon + Custom Class" code_signal=custom_code>
-                <AlertBanner
-                    tone=AlertBannerTone::Notice
-                    fill=AlertBannerFill::Bold
-                    is_hide_icon=true
-                    title="Maintenance window".to_string()
-                    description="Service may be degraded during migration.".to_string()
-                    class_name="docs-alert-banner-custom".to_string()
-                >
-                    "Follow status page for live updates."
-                </AlertBanner>
-            </Playground>
-
-            <Playground title="Custom motion contract" code_signal=motion_code>
-                <AlertBanner
-                    tone=AlertBannerTone::Info
-                    fill=AlertBannerFill::Border
-                    title="Motion tuned".to_string()
-                    description="Custom spring contract for alert reveal.".to_string()
-                    motion=AlertBannerMotion {
-                        spring: Default::default(),
-                    }
-                >
-                    "Inspect data-motion-source/data-custom-motion markers."
-                </AlertBanner>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
-}
 
 pub(super) fn labeled_value() -> AnyView {
     let orientation_options = vec!["Stacked".to_string(), "Inline".to_string()];
@@ -255,7 +145,7 @@ pub(super) fn labeled_value() -> AnyView {
                 title="Interactive Playground"
                 description="展示 / Config / Code / CSS Test 集成工作台（含多场景对比）。"
                 code_signal=workbench_code
-                test_source_path="crates/ui-components/src/labeled_value/styles.rs".to_string()
+                test_source_path="components/labeled-value/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight">
@@ -428,7 +318,7 @@ pub(super) fn keyboard() -> AnyView {
 
     let keyboard_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/keyboard/styles.rs */\n{}",
+            "/* components/keyboard/src/styles.rs */\n{}",
             ui_components::keyboard::styles::CSS
         )
     });
@@ -459,7 +349,7 @@ pub(super) fn keyboard() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=keyboard_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/keyboard/styles.rs".to_string()
+                test_source_path="components/keyboard/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="可调 tone/key/is_compact/aria/class，并在同一面板查看 code + config + scoped css test。"
                 controls=move || {
@@ -1918,7 +1808,7 @@ pub(super) fn flip_card() -> AnyView {
 
     let flip_card_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/flip_card/styles.rs */\n{}",
+            "/* components/flip-card/src/styles.rs */\n{}",
             ui_components::flip_card::styles::CSS
         )
     });
@@ -2007,7 +1897,7 @@ pub(super) fn flip_card() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=flip_card_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/flip_card/styles.rs".to_string()
+                test_source_path="components/flip-card/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="可调翻转初始态/hover/disabled/id/class/motion，并在同一面板查看 code + config + scoped css test。"
                 controls=move || {
@@ -2434,7 +2324,7 @@ pub(super) fn chart() -> AnyView {
 
     let chart_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/chart/styles.rs */\n{}",
+            "/* components/chart/src/styles.rs */\n{}",
             ui_components::chart::styles::CSS
         )
     });
@@ -2508,7 +2398,7 @@ pub(super) fn chart() -> AnyView {
                 title="Interactive Playground (展示 / Config / Code / CSS Test)"
                 code_signal=workbench_code
                 test_css_source=chart_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/chart/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/chart/src/styles.rs".to_string()
                 test_config_signal=workbench_config
                 description="可调 kind/dataset/disabled/grid/class/lang，并在同一面板查看 code + config + scoped css test。"
                 controls=move || {

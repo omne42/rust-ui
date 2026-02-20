@@ -98,7 +98,7 @@
   - 不引入这类语法糖：若为配置式输入，仅允许类型化 `ItemSpec`，并在内部映射为显式 `Item` 语义树。
 
 ### 3. 实现细节（A11y / i18n-l10n / 可观测 / 样式与动效）
-- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ScrollShadow` 不承载用户可见业务文案，仅输出稳定语义容器标记；无硬编码可见文本。i18n/l10n 接入维持全局 `UiRoot` 注入链路，组件层不重写文案协议。回归：`scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot`、`scroll_shadow_docs_are_beginner_friendly_with_default_then_advanced_path`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`。）
+- [x] 存在 A11y 实现、国际化与本地化实现（至少具备接入点，不硬编码用户可见文本）。（`ScrollShadow` 不承载用户可见业务文案，仅输出稳定语义容器标记；无硬编码可见文本。i18n/l10n 接入维持全局 `UiRoot` 注入链路，组件层不重写文案协议。回归：`scroll_shadow_semantic_checks_prioritize_contract_over_visual_snapshot`、`scroll_shadow_docs_are_beginner_friendly_with_default_then_advanced_path`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`。）
   - 交互元素必须具备可验证语义：`role`/`aria-*`/键盘可达路径完整，且和 headless 契约一致。
   - 用户可见文本来源必须可覆盖：优先 props，其次应用注入（`UiRoot`/i18n bundle），最后组件兜底文案；禁止把业务可见文案硬编码在 `view.rs`。
   - 组件需透传或消费 `lang` / `dir`（LTR/RTL）上下文，不得假设单语言单方向。
@@ -112,7 +112,7 @@
   - `styles.rs` 中状态分支选择器必须基于 `data-*`/`aria-*`/稳定 class，禁止用 `:nth-child`、深层级选择器猜测状态。
   - 运行时样式仅允许传递必要 CSS 变量（custom properties）；禁止把业务样式逻辑塞进 inline style。
   - 视觉状态切换必须可由语义标记直接解释，不能依赖“某节点是否恰好存在”。
-- [x] 测试验证“语义契约”而不只验证视觉快照。（`scroll_shadow_semantics` 已覆盖核心语义标记与交互路径：`data-state/data-scrollable/data-shadow-*/data-max-height` 与来源标记、滚动事件派生路径、以及 `wasm/non-wasm` 分支约束。按适用范围：受控/非受控与 disabled 轴为 N/A（组件无该公共状态轴），键盘路径为 N/A（组件不定义键盘交互语义，仅消费滚动结果），指针/滚动路径由 `on:scroll` 派生测试覆盖，SSR/wasm 差异由平台契约测试覆盖。回归：`crates/ui-layout/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot`。）
+- [x] 测试验证“语义契约”而不只验证视觉快照。（`scroll_shadow_semantics` 已覆盖核心语义标记与交互路径：`data-state/data-scrollable/data-shadow-*/data-max-height` 与来源标记、滚动事件派生路径、以及 `wasm/non-wasm` 分支约束。按适用范围：受控/非受控与 disabled 轴为 N/A（组件无该公共状态轴），键盘路径为 N/A（组件不定义键盘交互语义，仅消费滚动结果），指针/滚动路径由 `on:scroll` 派生测试覆盖，SSR/wasm 差异由平台契约测试覆盖。回归：`crates/ui-layout/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_semantic_checks_prioritize_contract_over_visual_snapshot`。）
   - 至少存在语义测试覆盖关键状态与交互路径（role/aria/data-state/source markers）。
   - 测试矩阵必须覆盖关键分支：受控/非受控、disabled、键盘路径、指针路径、SSR/wasm 差异（按适用范围）。
   - 视觉快照只能作为补充，不得替代语义契约断言。
@@ -240,7 +240,7 @@
   - 数据校验、断线恢复、重试策略由上层负责，组件层只负责稳定渲染。
 
 ### 7. 测试与文档（验证闭环）
-- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`ScrollShadow` 的语义测试主线已固定在 `crates/ui-layout/tests/scroll_shadow_semantics.rs`：关键状态轴与来源契约覆盖 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height/data-custom-class`，并包含交互路径 `on:scroll -> compute_scroll_shadow_edges -> resolve_edge_state`；断言聚焦语义契约而非视觉快照（测试中禁止 `assert_snapshot!/toMatchSnapshot`）。该组件不定义键盘交互语义，键盘路径按 N/A 标注；`role/aria-*` 语义由上层可交互组件负责，本组件保持稳定语义 data markers 输出。新增/变更语义字段的同步约束通过专用测试锁定：`scroll_shadow_check2_marks_semantic_contract_first_testing_complete`。回归：`crates/ui-layout/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot` 与 `scroll_shadow_check2_marks_semantic_contract_first_testing_complete`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-layout --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_check2_marks_semantic_contract_first_testing_complete` 通过。）
+- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。（`ScrollShadow` 的语义测试主线已固定在 `crates/ui-layout/tests/scroll_shadow_semantics.rs`：关键状态轴与来源契约覆盖 `data-state/data-scrollable/data-shadow-top/data-shadow-bottom/data-max-height/data-custom-class`，并包含交互路径 `on:scroll -> compute_scroll_shadow_edges -> resolve_edge_state`；断言聚焦语义契约而非视觉快照（测试中禁止 `assert_snapshot!/toMatchSnapshot`）。该组件不定义键盘交互语义，键盘路径按 N/A 标注；`role/aria-*` 语义由上层可交互组件负责，本组件保持稳定语义 data markers 输出。新增/变更语义字段的同步约束通过专用测试锁定：`scroll_shadow_check2_marks_semantic_contract_first_testing_complete`。回归：`crates/ui-layout/tests/scroll_shadow_semantics.rs` 的 `scroll_shadow_semantic_checks_prioritize_contract_over_visual_snapshot` 与 `scroll_shadow_check2_marks_semantic_contract_first_testing_complete`；实测：`TMPDIR=/root/autodl-tmp/tmp $HOME/.cargo/bin/cargo test -p ui-layout --test scroll_shadow_semantics --no-default-features --features component-scroll_shadow,inject-css scroll_shadow_check2_marks_semantic_contract_first_testing_complete` 通过。）
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
@@ -295,7 +295,7 @@
 ### 9. 合并门禁（最终裁决）
 - [x] 架构正确（边界不破）。（状态原语下沉并由组件消费路径已锁定：`scroll_shadow_state_primitives_are_sourced_from_ui_state_primitives`、`scroll_shadow_component_file_responsibilities_are_layered_correctly`、`scroll_shadow_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless`。）
 - [x] 行为正确（状态与交互语义成立）。（滚动派生与离散状态闭包已由语义回归覆盖：`scroll_shadow_state_normalization_is_centralized_in_logic_layer`、`scroll_shadow_discrete_state_axes_are_enum_typed_and_closed`、`scroll_shadow_streaming_requirement_is_optional_with_snapshot_fallback_and_semantic_continuity`。）
-- [x] 可访问性达标（默认可用）。（本组件作为滚动容器保持稳定语义标记与可读状态，不引入破坏性 A11y 分支：`scroll_shadow_semantic_tests_prioritize_contract_over_visual_snapshot`、`scroll_shadow_emits_baseline_style_state_data_attributes`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`。）
+- [x] 可访问性达标（默认可用）。（本组件作为滚动容器保持稳定语义标记与可读状态，不引入破坏性 A11y 分支：`scroll_shadow_semantic_checks_prioritize_contract_over_visual_snapshot`、`scroll_shadow_emits_baseline_style_state_data_attributes`、`scroll_shadow_agent_contract_markers_are_schema_like_machine_readable_and_whitelist_safe`。）
 - [x] 默认主题美学质量达标（与可访问性同级门禁）。（视觉值走 token-first 并与主题变量基线一致：`scroll_shadow_theme_contract_is_token_first_and_avoids_hardcoded_visual_constants`、`scroll_shadow_token_first_static_style_contract_is_satisfied`、`scroll_shadow_heroui_strategy_and_component_docs_are_synced_for_parameter_model_changes`。）
 - [x] 可测试（契约可断言）。（语义契约与反模式回归已形成可重复断言闭环：`scroll_shadow_check2_marks_semantic_contract_first_testing_complete`、`scroll_shadow_check2_marks_forbidden_anti_patterns_complete`、`scroll_shadow_state_observability_contract_uses_stable_closed_markers`。）
 - [x] 可维护（命名和模式一致）。（命名与职责分层保持一致，未引入别名漂移与职责污染：`scroll_shadow_api_naming_contract_is_consistent_without_alias_drift`、`scroll_shadow_component_directory_standard_files_are_present_and_layered_without_render_spec_drift`、`scroll_shadow_anti_pattern_no_temporary_patch_contract_drift_tokens_in_scroll_shadow_scope`。）

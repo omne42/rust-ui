@@ -812,8 +812,8 @@ impl<const V: &'static str> IntoStyle for crate::view::static_types::Static<V> {
 }
 
 /*
-#[cfg(test)]
-mod tests {
+#[cfg(legacy_disabled)]
+mod legacy_checks {
     use crate::{
         html::{
             element::{p, HtmlElement},

@@ -37,6 +37,10 @@ if ! require_cmd trunk; then
   exit 1
 fi
 
+if [[ "${TRUNK_PATCH_ERROR_DETAILS:-1}" != "0" ]]; then
+  "$ROOT_DIR/scripts/ensure-trunk-error-details.sh"
+fi
+
 if ! require_cmd wasm-bindgen; then
   echo "dev-docs-app: missing wasm-bindgen; install: cargo install wasm-bindgen-cli --version 0.2.108" >&2
   exit 1

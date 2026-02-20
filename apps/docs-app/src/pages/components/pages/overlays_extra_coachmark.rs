@@ -135,7 +135,7 @@ pub(super) fn coachmark() -> AnyView {
 
     let workbench_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/coachmark/styles.rs */\n{}",
+            "/* components/coachmark/src/styles.rs */\n{}",
             ui_components::coachmark::styles::CSS
         )
     });
@@ -305,7 +305,7 @@ pub(super) fn coachmark() -> AnyView {
                 description="Config panel drives a single live instance; use Show code and Show test to inspect copy-ready code and scoped CSS."
                 code_signal=workbench_code
                 test_css_source=workbench_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/coachmark/styles.rs".to_string()
+                test_source_path="components/coachmark/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || {
                     view! {

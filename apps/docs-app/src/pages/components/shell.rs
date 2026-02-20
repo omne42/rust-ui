@@ -1,28 +1,28 @@
 use super::component_catalog;
+use crate::perf_probe::{UiPerfBudget, UiPerfProbe};
 use leptos::prelude::*;
 use ui_components::Snippet;
-use ui_headless::{UiPerfBudget, UiPerfProbe};
 use ui_layout::{
     Card, Flex, FlexAlign, FlexDirection, FlexGap, FlexJustify, FlexWrap, Heading, HeadingLevel,
 };
 
 const ACCORDION_README_MD: &str = include_str!("../../../../../components/accordion/src/README.md");
-const CHECKBOX_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/checkbox/README.md");
+const CHECKBOX_README_MD: &str = include_str!("../../../../../components/checkbox/src/README.md");
+const CHECKBOX_GROUP_README_MD: &str =
+    include_str!("../../../../../components/checkbox-group/src/README.md");
 const CHECKBOX_FIELD_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/checkbox_field/README.md");
+    include_str!("../../../../../components/checkbox-field/src/README.md");
 const DATE_PICKER_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/text_input/date_picker/README.md");
+    include_str!("../../../../../components/text-input/src/date_picker/README.md");
 const DROPDOWN_MENU_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/menu/dropdown_menu/README.md");
-const MODAL_README_MD: &str =
-    include_str!("../../../../../crates/ui-components/src/modal/README.md");
+    include_str!("../../../../../components/menu/src/dropdown_menu/README.md");
+const MODAL_README_MD: &str = include_str!("../../../../../components/modal/src/README.md");
 
 fn component_readme_markdown(slug: &str) -> Option<&'static str> {
     match slug {
         "accordion" => Some(ACCORDION_README_MD),
         "checkbox" => Some(CHECKBOX_README_MD),
-        "checkbox-group" => Some(CHECKBOX_README_MD),
+        "checkbox-group" => Some(CHECKBOX_GROUP_README_MD),
         "checkbox-field" => Some(CHECKBOX_FIELD_README_MD),
         "date-picker" => Some(DATE_PICKER_README_MD),
         "dropdown-menu" => Some(DROPDOWN_MENU_README_MD),

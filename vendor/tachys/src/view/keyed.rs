@@ -801,8 +801,8 @@ fn unpack_moves(diff: &Diff) -> (Vec<DiffOpMove>, Vec<DiffOpAdd>) {
     (moves, adds)
 }
 /*
-#[cfg(test)]
-mod tests {
+#[cfg(legacy_disabled)]
+mod legacy_checks {
     use crate::{
         html::element::{li, ul, HtmlElement, Li},
         renderer::mock_dom::MockDom,

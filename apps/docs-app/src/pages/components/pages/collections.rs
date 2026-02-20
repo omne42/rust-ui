@@ -5,10 +5,10 @@ use std::collections::BTreeSet;
 use std::sync::Arc;
 use ui_components::{
     Accordion, AccordionItem, AccordionSelectionMode, AccordionStreamingProjection,
-    AccordionVariant, AiOutputStatus, AiRenderMode, AiSpace, Autocomplete, BreadcrumbItem,
-    Breadcrumbs, ComboBox, Disclosure, DropdownMenu, DropdownMenuMotion, List, Menu, MenuItemKind,
-    MenuTrigger, Pagination, SegmentedControl, SegmentedControlSize, Select, Switch, Tabs,
-    TabsKeyboardActivation, Tag, TagGroup, open_set, project_streaming_accordion_markup,
+    AccordionVariant, AiOutputStatus, AiRenderMode, AiSpace, Autocomplete, ComboBox, Disclosure,
+    DropdownMenu, DropdownMenuMotion, List, Menu, MenuItemKind, MenuTrigger, Pagination,
+    SegmentedControl, SegmentedControlSize, Select, Switch, Tabs, TabsKeyboardActivation, Tag,
+    TagGroup, open_set, project_streaming_accordion_markup,
 };
 use ui_headless::PopoverPlacement;
 
@@ -218,419 +218,6 @@ fn compose_streaming_demo_code(
     } else {
         format!("STREAMING_INPUT\n{input_code}\n\nSNAPSHOT\n{snapshot}")
     }
-}
-
-pub(super) fn breadcrumbs() -> AnyView {
-    let items = vec![
-        BreadcrumbItem {
-            label: "Home".to_string(),
-            href: Some("#/docs/welcome".to_string()),
-        },
-        BreadcrumbItem {
-            label: "Components".to_string(),
-            href: Some("#/components".to_string()),
-        },
-        BreadcrumbItem {
-            label: "Breadcrumbs".to_string(),
-            href: None,
-        },
-    ];
-
-    let label_only_items = vec![
-        BreadcrumbItem {
-            label: "Library".to_string(),
-            href: None,
-        },
-        BreadcrumbItem {
-            label: "UI".to_string(),
-            href: None,
-        },
-        BreadcrumbItem {
-            label: "Current".to_string(),
-            href: None,
-        },
-    ];
-
-    let empty_items = Vec::<BreadcrumbItem>::new();
-    let items_compare = items.clone();
-    let label_only_items_compare = label_only_items.clone();
-    let empty_items_compare = empty_items.clone();
-    let (workbench_include_links, set_workbench_include_links) = signal(true);
-    let (workbench_empty, set_workbench_empty) = signal(false);
-    let (workbench_long_trail, set_workbench_long_trail) = signal(false);
-    let (workbench_custom_aria, set_workbench_custom_aria) = signal(false);
-    let (workbench_custom_class, set_workbench_custom_class) = signal(false);
-
-    let workbench_items = Signal::derive(move || {
-        if workbench_empty.get() {
-            return Vec::<BreadcrumbItem>::new();
-        }
-
-        if workbench_long_trail.get() {
-            let mut long_items = vec![
-                BreadcrumbItem {
-                    label: "Home".to_string(),
-                    href: Some("#/docs".to_string()),
-                },
-                BreadcrumbItem {
-                    label: "Design".to_string(),
-                    href: Some("#/docs/design".to_string()),
-                },
-                BreadcrumbItem {
-                    label: "Tokens".to_string(),
-                    href: Some("#/docs/design/tokens".to_string()),
-                },
-                BreadcrumbItem {
-                    label: "Navigation".to_string(),
-                    href: Some("#/docs/design/tokens/navigation".to_string()),
-                },
-                BreadcrumbItem {
-                    label: "Current".to_string(),
-                    href: None,
-                },
-            ];
-
-            if !workbench_include_links.get() {
-                let non_last = long_items.len().saturating_sub(1);
-                for item in long_items.iter_mut().take(non_last) {
-                    item.href = None;
-                }
-            }
-
-            return long_items;
-        }
-
-        if workbench_include_links.get() {
-            vec![
-                BreadcrumbItem {
-                    label: "Home".to_string(),
-                    href: Some("#/docs/welcome".to_string()),
-                },
-                BreadcrumbItem {
-                    label: "Collections".to_string(),
-                    href: Some("#/components/collections".to_string()),
-                },
-                BreadcrumbItem {
-                    label: "Breadcrumbs".to_string(),
-                    href: None,
-                },
-            ]
-        } else {
-            vec![
-                BreadcrumbItem {
-                    label: "Library".to_string(),
-                    href: None,
-                },
-                BreadcrumbItem {
-                    label: "UI".to_string(),
-                    href: None,
-                },
-                BreadcrumbItem {
-                    label: "Current".to_string(),
-                    href: None,
-                },
-            ]
-        }
-    });
-
-    let code = Signal::derive(move || {
-        r##"let items = vec![
-  BreadcrumbItem { label: "Home".to_string(), href: Some("#/docs/welcome".to_string()) },
-  BreadcrumbItem { label: "Components".to_string(), href: Some("#/components".to_string()) },
-  BreadcrumbItem { label: "Breadcrumbs".to_string(), href: None },
-];
-<Breadcrumbs items=items />"##
-            .to_string()
-    });
-
-    let states_code = Signal::derive(move || {
-        r#"<Breadcrumbs
-  items=vec![
-    BreadcrumbItem { label: "Library".to_string(), href: None },
-    BreadcrumbItem { label: "UI".to_string(), href: None },
-    BreadcrumbItem { label: "Current".to_string(), href: None },
-  ]
-  aria_label="Label-only trail".to_string()
-/>
-<Breadcrumbs items=Vec::<BreadcrumbItem>::new() aria_label="Empty trail".to_string() />"#
-            .to_string()
-    });
-    let workbench_code = Signal::derive(move || {
-        let include_links = workbench_include_links.get();
-        let use_empty = workbench_empty.get();
-        let use_long_trail = workbench_long_trail.get();
-        let use_custom_aria = workbench_custom_aria.get();
-        let use_custom_class = workbench_custom_class.get();
-        let mut lines: Vec<String> = vec!["<Breadcrumbs".into()];
-
-        if use_empty {
-            lines.push("  items=Vec::<BreadcrumbItem>::new()".into());
-        } else if use_long_trail {
-            lines.push("  items=vec![".into());
-            lines.push(format!(
-                "    BreadcrumbItem {{ label: \"Home\".to_string(), href: {} }},",
-                if include_links {
-                    "Some(\"#/docs\".to_string())"
-                } else {
-                    "None"
-                }
-            ));
-            lines.push(format!(
-                "    BreadcrumbItem {{ label: \"Design\".to_string(), href: {} }},",
-                if include_links {
-                    "Some(\"#/docs/design\".to_string())"
-                } else {
-                    "None"
-                }
-            ));
-            lines.push(format!(
-                "    BreadcrumbItem {{ label: \"Tokens\".to_string(), href: {} }},",
-                if include_links {
-                    "Some(\"#/docs/design/tokens\".to_string())"
-                } else {
-                    "None"
-                }
-            ));
-            lines.push(format!(
-                "    BreadcrumbItem {{ label: \"Navigation\".to_string(), href: {} }},",
-                if include_links {
-                    "Some(\"#/docs/design/tokens/navigation\".to_string())"
-                } else {
-                    "None"
-                }
-            ));
-            lines.push("    BreadcrumbItem { label: \"Current\".to_string(), href: None },".into());
-            lines.push("  ]".into());
-        } else {
-            lines.push("  items=vec![".into());
-            lines.push(format!(
-                "    BreadcrumbItem {{ label: \"Home\".to_string(), href: {} }},",
-                if include_links {
-                    "Some(\"#/docs/welcome\".to_string())"
-                } else {
-                    "None"
-                }
-            ));
-            lines.push(format!(
-                "    BreadcrumbItem {{ label: \"Collections\".to_string(), href: {} }},",
-                if include_links {
-                    "Some(\"#/components/collections\".to_string())"
-                } else {
-                    "None"
-                }
-            ));
-            lines.push(
-                "    BreadcrumbItem { label: \"Breadcrumbs\".to_string(), href: None },".into(),
-            );
-            lines.push("  ]".into());
-        }
-
-        if use_custom_aria {
-            lines.push("  aria_label=\"Docs breadcrumb trail\".to_string()".into());
-        }
-        if use_custom_class {
-            lines.push("  class_name=\"docs-breadcrumbs-custom\".to_string()".into());
-        }
-
-        lines.push("/>".into());
-        lines.join("\n")
-    });
-    let test_css_source = Signal::derive(move || {
-        format!(
-            "/* crates/ui-components/src/breadcrumbs/styles.rs */\n{}",
-            ui_components::breadcrumbs::styles::CSS
-        )
-    });
-    let actual_config = Signal::derive(move || {
-        let items = workbench_items.get();
-        let item_count = items.len();
-        let has_links = items
-            .iter()
-            .enumerate()
-            .any(|(index, item)| index + 1 < item_count && item.href.is_some());
-        let data_state = if item_count == 0 {
-            "empty"
-        } else if has_links {
-            "with-links"
-        } else {
-            "label-only"
-        };
-        let aria_source = if workbench_custom_aria.get() {
-            "custom"
-        } else {
-            "default"
-        };
-        let class_source = if workbench_custom_class.get() {
-            "custom"
-        } else {
-            "default"
-        };
-        let class_name = if workbench_custom_class.get() {
-            "ui-breadcrumbs docs-breadcrumbs-custom"
-        } else {
-            "ui-breadcrumbs"
-        };
-
-        format!(
-            "BreadcrumbsActualConfig {{\n  item_count: {item_count},\n  has_links: {has_links},\n  data_state: \"{data_state}\",\n  aria_source: \"{aria_source}\",\n  class_source: \"{class_source}\",\n  class: \"{class_name}\",\n}}"
-        )
-    });
-
-    view! {
-        <ComponentPage
-            title="Breadcrumbs"
-            slug="breadcrumbs"
-            group="Collections"
-            description="Breadcrumb nav with current-page semantics and baseline-style root state attrs."
-        >
-            <Playground title="Trail" code_signal=code>
-                <Breadcrumbs items=items.clone() />
-            </Playground>
-
-            <Playground title="Label-Only + Empty" code_signal=states_code>
-                <div class="docs-row">
-                    <div class="docs-stack">
-                        <Breadcrumbs
-                            items=label_only_items.clone()
-                            aria_label="Label-only trail".to_string()
-                        />
-                        <span class="ui-muted">"all labels (no links)"</span>
-                    </div>
-                    <div class="docs-stack">
-                        <Breadcrumbs items=empty_items.clone() aria_label="Empty trail".to_string() />
-                        <span class="ui-muted">"empty trail (0 items)"</span>
-                    </div>
-                </div>
-            </Playground>
-
-            <Playground
-                title="Workbench (Display + Config + Code + CSS Test)"
-                description="展示区提供当前配置与多场景对比；Config/Code/CSS Test 区用于契约回归。"
-                code_signal=workbench_code
-                test_css_source=test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/breadcrumbs/styles.rs".to_string()
-                test_config_signal=actual_config
-                controls=move || view! {
-                    <div class="docs-stack docs-stack--tight" data-slot="breadcrumbs-workbench-controls">
-                        <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_include_links.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_include_links.get() {
-                                    "Links: on"
-                                } else {
-                                    "Links: off"
-                                }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_empty.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_empty.get() {
-                                    "Empty: on"
-                                } else {
-                                    "Empty: off"
-                                }}
-                            </ui_components::Button>
-                        </div>
-
-                        <div class="docs-row">
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_long_trail.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_long_trail.get() {
-                                    "Trail: long"
-                                } else {
-                                    "Trail: default"
-                                }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_custom_aria.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_custom_aria.get() {
-                                    "Aria: custom"
-                                } else {
-                                    "Aria: default"
-                                }}
-                            </ui_components::Button>
-                            <ui_components::Button
-                                variant=ui_components::ButtonVariant::Secondary
-                                on_press=Callback::new(move |_| {
-                                    set_workbench_custom_class.update(|v| *v = !*v)
-                                })
-                            >
-                                {move || if workbench_custom_class.get() {
-                                    "Class: custom"
-                                } else {
-                                    "Class: default"
-                                }}
-                            </ui_components::Button>
-                        </div>
-                    </div>
-                }
-            >
-                <div class="docs-stack" data-slot="breadcrumbs-workbench-preview">
-                    <div class="docs-stack docs-stack--tight">
-                        <span class="ui-muted">"当前配置"</span>
-                        {move || {
-                            let items = workbench_items.get();
-                            let aria_label = if workbench_custom_aria.get() {
-                                "Docs breadcrumb trail".to_string()
-                            } else {
-                                String::new()
-                            };
-                            let class_name = if workbench_custom_class.get() {
-                                "docs-breadcrumbs-custom".to_string()
-                            } else {
-                                String::new()
-                            };
-
-                            view! {
-                                <Breadcrumbs
-                                    items=items
-                                    aria_label=aria_label
-                                    class_name=class_name
-                                />
-                            }
-                        }}
-                    </div>
-
-                    <div class="docs-row">
-                        <div class="docs-stack docs-stack--tight" style="min-width: 16rem;">
-                            <span class="ui-muted">"对比：With links"</span>
-                            <Breadcrumbs items=items_compare />
-                        </div>
-                        <div class="docs-stack docs-stack--tight" style="min-width: 16rem;">
-                            <span class="ui-muted">"对比：Label-only"</span>
-                            <Breadcrumbs
-                                items=label_only_items_compare
-                                aria_label="Label-only trail".to_string()
-                            />
-                        </div>
-                        <div class="docs-stack docs-stack--tight" style="min-width: 16rem;">
-                            <span class="ui-muted">"对比：Empty"</span>
-                            <Breadcrumbs
-                                items=empty_items_compare
-                                aria_label="Empty trail".to_string()
-                            />
-                        </div>
-                    </div>
-                </div>
-            </Playground>
-        </ComponentPage>
-    }
-    .into_any()
 }
 
 pub(super) fn accordion() -> AnyView {
@@ -1294,7 +881,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
 
     let disclosure_test_css_source = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/disclosure/styles.rs */\n{}",
+            "/* components/disclosure/src/styles.rs */\n{}",
             ui_components::disclosure::styles::CSS
         )
     });
@@ -1381,7 +968,7 @@ let on_open_change = Callback::new(move |next: bool| set_open.set(next));
                 title="Workbench (Display + Config + Code + CSS Test)"
                 code_signal=workbench_code
                 test_css_source=disclosure_test_css_source
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/disclosure/styles.rs".to_string()
+                test_source_path="components/disclosure/src/styles.rs".to_string()
                 test_config_signal=disclosure_actual_config
                 description="Disclosure workbench: 对比展示 + config + code + scoped CSS test."
                 controls=move || view! {
@@ -2927,7 +2514,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
 
     let workbench_test_css = Signal::derive(move || {
         format!(
-            "/* crates/ui-components/src/combo_box/styles.rs */\n{}",
+            "/* components/combo-box/src/styles.rs */\n{}",
             ui_components::combo_box::styles::CSS,
         )
     });
@@ -3069,7 +2656,7 @@ let (selected_empty, set_selected_empty) = signal(None::<usize>);
                 description="按钮式 workbench：单画布调参，支持 settings / code / css-test 面板联动。"
                 code_signal=workbench_code
                 test_css_source=workbench_test_css
-                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/crates/ui-components/src/combo_box/styles.rs".to_string()
+                test_source_path="/root/autodl-tmp/zjj/p/rust-ui/components/combo-box/src/styles.rs".to_string()
                 test_config_signal=workbench_actual_config
                 controls=move || view! {
                     <div class="docs-stack docs-stack--tight" data-slot="combo-box-workbench-controls">
@@ -4145,7 +3732,7 @@ let invalid = Signal::derive(move || tags.get().is_empty());
             <Playground
                 title="Hello World"
                 code_signal=hello_world_code
-                test_source_path="crates/ui-components/src/tag/group/view.rs".to_string()
+                test_source_path="components/tag/src/group/view.rs".to_string()
             >
                 <TagGroup
                     tags=hello_tags
@@ -4156,7 +3743,7 @@ let invalid = Signal::derive(move || tags.get().is_empty());
             <Playground
                 title="Removable + State"
                 code_signal=code
-                test_source_path="crates/ui-components/src/tag/group/view.rs".to_string()
+                test_source_path="components/tag/src/group/view.rs".to_string()
             >
                 <div class="docs-stack">
                     <TagGroup
@@ -4179,7 +3766,7 @@ let invalid = Signal::derive(move || tags.get().is_empty());
             <Playground
                 title="Validation + Required"
                 code_signal=states_code
-                test_source_path="crates/ui-components/src/tag/group/view.rs".to_string()
+                test_source_path="components/tag/src/group/view.rs".to_string()
             >
                 <div class="docs-stack">
                     <TagGroup
@@ -4201,7 +3788,7 @@ let invalid = Signal::derive(move || tags.get().is_empty());
             <Playground
                 title="Disabled + Empty"
                 code_signal=disabled_empty_code
-                test_source_path="crates/ui-components/src/tag/group/view.rs".to_string()
+                test_source_path="components/tag/src/group/view.rs".to_string()
             >
                 <div class="docs-row">
                     <div class="docs-stack">

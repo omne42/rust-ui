@@ -844,8 +844,8 @@ where
     }
 }
 /*
-#[cfg(all(test, feature = "testing"))]
-mod tests {
+#[cfg(all(legacy_disabled, feature = "legacy_feature"))]
+mod legacy_checks {
     #[cfg(all(feature = "nightly", rustc_nightly))]
     use super::RenderHtml;
     use super::{main, p, HtmlElement};

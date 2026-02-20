@@ -145,7 +145,7 @@
   - 验证命令（反向依赖）：`cargo tree -e features -i ui-layout -p web-demo`，检查是否被 `all-components` 或隐式特性全量拉起。
   - CI 检查（最小特性编译）：新增任务仅开启目标最小特性（示例：`cargo check -p ui-layout --target wasm32-unknown-unknown --no-default-features --features component-accordion,inject-css`）。
   - CI 检查（体积预算）：对“最小特性构建产物”设定预算并阻断回归（可用固定阈值，如 `< 50KB`，或基于仓库基线的相对阈值）；不得只做编译通过而不做体积约束。
-- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`tone/elevation` 由 `ui-state-primitives::surface` 的 `SurfaceTone/SurfaceElevation` 枚举建模；`logic.rs` 通过 `SurfaceControlInput/SurfaceRootInput` 统一归一；`view.rs` 暴露 `data-tone/data-elevation/data-state/data-*-source` 机器可读标记；source marker 使用封闭值集合（`default/custom/plain/bordered/padded/framed` 等）。回归：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_closed_state_sets_and_tests_make_contract_regressions_locatable`。）
+- [x] 类型系统 + 语义标记共同提供机器可读状态；关键输入空间受类型约束。（`tone/elevation` 由 `ui-state-primitives::surface` 的 `SurfaceTone/SurfaceElevation` 枚举建模；`logic.rs` 通过 `SurfaceControlInput/SurfaceRootInput` 统一归一；`view.rs` 暴露 `data-tone/data-elevation/data-state/data-*-source` 机器可读标记；source marker 使用封闭值集合（`default/custom/plain/bordered/padded/framed` 等）。回归：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_closed_state_sets_and_checks_make_contract_regressions_locatable`。）
   - 离散输入与状态轴必须优先使用 `enum`/新类型建模，避免字符串协议与布尔爆炸。
   - 无效状态要么在类型层不可表达，要么在 `logic.rs` 被统一归一化并可测试。
   - 关键状态必须通过稳定语义标记对外可读，供测试与 Agent 自动化消费。
@@ -302,7 +302,7 @@
 - [x] 可解释（人和自动化都能读懂）。（机器可读语义 + 文档入口齐全：`surface_agent_contract_markers_are_schema_like_and_machine_readable` + `surface_docs_are_beginner_friendly_with_default_then_advanced_path`。）
 - [x] 改动在正确层。（跨层职责守卫通过：`surface_component_files_follow_layered_responsibilities` + `surface_anti_pattern_reusable_state_invariants_are_sunk_to_primitives_or_headless`。）
 - [x] 命名与全库一致。（`is_*`/legacy 兼容策略与全库契约一致：`surface_api_naming_keeps_is_prefixed_props_with_compatibility_path`。）
-- [x] 无效状态被限制或归一化。（类型化离散状态 + 归一化闭集约束：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_closed_state_sets_and_tests_make_contract_regressions_locatable`。）
+- [x] 无效状态被限制或归一化。（类型化离散状态 + 归一化闭集约束：`surface_type_system_and_semantic_markers_form_machine_readable_contract` + `surface_closed_state_sets_and_checks_make_contract_regressions_locatable`。）
 - [x] 暴露必要语义标记。（`data-*`/`aria-*`/`role` 持续可读：`surface_semantic_contract_markers_in_view_are_backed_by_semantics_suite_assertions`。）
 - [x] 覆盖 reduced-motion / SSR / wasm 分支。（平台与降级分支覆盖：`surface_reduced_motion_ssr_wasm_branches_are_covered_without_semantic_split` + `surface_motion_covers_wasm_and_non_wasm_contract_paths`。）
 - [x] 文档与示例同步更新。（docs-app、README、Source-first 与 HeroUI 对齐同步：`surface_check2_marks_docs_examples_and_matrices_synced_complete` + `surface_check2_marks_documentation_as_product_complete` + `surface_check2_marks_source_first_copy_paste_ready_complete` + `surface_check2_marks_heroui_strategy_and_component_docs_sync_complete`。）

@@ -660,8 +660,8 @@ impl<const V: &'static str> IntoClass for crate::view::static_types::Static<V> {
     fn reset(_state: &mut Self::State) {}
 }
 
-/* #[cfg(test)]
-mod tests {
+/* #[cfg(legacy_disabled)]
+mod legacy_checks {
     use crate::{
         html::{
             class::class,

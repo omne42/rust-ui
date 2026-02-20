@@ -1,0 +1,80 @@
+#[cfg(test)]
+use ui_state_primitives::avatar::AvatarRenderMode;
+pub use ui_state_primitives::avatar::{
+    AvatarImageRenderInput, AvatarLabelSource, AvatarSize, AvatarState, AvatarStateInput,
+    normalize_optional_text, resolve_accessibility, resolve_image_render_state, resolve_initials,
+    resolve_state,
+};
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AvatarNormalizedInput {
+    pub name: Option<String>,
+    pub src: Option<String>,
+    pub alt: Option<String>,
+    pub class_name: Option<String>,
+    pub has_name: bool,
+    pub has_src: bool,
+    pub has_alt: bool,
+    pub has_custom_class_name: bool,
+    pub image_src: String,
+}
+
+pub fn normalize_lang(value: Option<String>) -> Option<String> {
+    normalize_optional_text(value)
+}
+
+pub fn normalize_input(
+    name: Option<String>,
+    src: Option<String>,
+    alt: Option<String>,
+    class_name: Option<String>,
+) -> AvatarNormalizedInput {
+    let name = normalize_optional_text(name);
+    let src = normalize_optional_text(src);
+    let alt = normalize_optional_text(alt);
+    let class_name = normalize_optional_text(class_name);
+    let image_src = src.clone().unwrap_or_default();
+
+    AvatarNormalizedInput {
+        has_name: name.is_some(),
+        has_src: src.is_some(),
+        has_alt: alt.is_some(),
+        has_custom_class_name: class_name.is_some(),
+        name,
+        src,
+        alt,
+        class_name,
+        image_src,
+    }
+}
+
+pub fn compose_class_name(base_class_name: Option<String>, state: AvatarState) -> String {
+    let mut classes = vec![
+        "ui-avatar".to_string(),
+        state.size_class.into(),
+        state.label_source_class.into(),
+    ];
+
+    if state.has_name {
+        classes.push("ui-avatar--has-name".to_string());
+    }
+    if state.has_src {
+        classes.push("ui-avatar--has-src".to_string());
+    }
+    if state.has_alt {
+        classes.push("ui-avatar--has-alt".to_string());
+    }
+
+    if state.has_custom_class_name {
+        classes.push("ui-avatar--custom-class".to_string());
+        if let Some(base_class_name) = base_class_name {
+            classes.push(base_class_name);
+        }
+    }
+
+    classes.join(" ")
+}
+
+#[cfg(test)]
+#[path = "../test/logic.rs"]
+mod tests;

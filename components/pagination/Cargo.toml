@@ -1,0 +1,17 @@
+[package]
+name = "ui-pagination"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/mod.rs"
+
+[features]
+default = []
+
+[dependencies]
+leptos = { version = "0.8.15", default-features = false, features = ["csr"] }
+ui-button = { path = "../button" }
+ui-headless = { path = "../../crates/ui-headless" }
+serde = { version = "1.0", features = ["derive"] }

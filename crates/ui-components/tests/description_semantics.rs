@@ -1,15 +1,58 @@
 use std::fs;
 use std::path::Path;
 
-fn load_source(rel_path: &str) -> String {
+fn workspace_dir() -> std::path::PathBuf {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    manifest_dir
+        .parent()
+        .and_then(Path::parent)
+        .unwrap_or_else(|| panic!("workspace root should be two levels above {manifest_dir:?}"))
+        .to_path_buf()
+}
+
+fn load_ui_components_source(rel_path: &str) -> String {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let path = manifest_dir.join(rel_path);
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_description_component_source(rel_path: &str) -> String {
+    let path = workspace_dir()
+        .join("components/description")
+        .join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_workspace_source(rel_path: &str) -> String {
+    let path = workspace_dir().join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+#[test]
+fn ui_components_reexports_description_component_crate() {
+    let lib_source = load_ui_components_source("src/lib.rs");
+    let cargo_source = load_ui_components_source("Cargo.toml");
+
+    assert!(
+        lib_source.contains("#[cfg(feature = \"component-description\")]")
+            && lib_source.contains("pub use ui_description as description;"),
+        "ui-components should re-export the external ui-description crate as `description`.",
+    );
+    assert!(
+        cargo_source.contains("component-description = [\"dep:ui-description\"]"),
+        "component-description feature should depend on dep:ui-description after extraction.",
+    );
+    assert!(
+        cargo_source.contains(
+            "ui-description = { path = \"../../components/description\", optional = true }"
+        ),
+        "ui-components Cargo.toml should include the optional ui-description dependency.",
+    );
+}
+
 #[test]
 fn description_does_not_expose_logic_or_view_modules() {
-    let source = load_source("src/field_form/description/mod.rs");
+    let source = load_description_component_source("src/mod.rs");
 
     for needle in ["pub mod logic", "pub mod view"] {
         assert!(
@@ -21,8 +64,8 @@ fn description_does_not_expose_logic_or_view_modules() {
 
 #[test]
 fn description_uses_logic_state_model() {
-    let logic_source = load_source("src/field_form/description/logic.rs");
-    let view_source = load_source("src/field_form/description/view.rs");
+    let logic_source = load_description_component_source("src/logic.rs");
+    let view_source = load_description_component_source("src/view.rs");
 
     for needle in [
         "pub enum DescriptionTone",
@@ -57,7 +100,7 @@ fn description_uses_logic_state_model() {
 
 #[test]
 fn description_emits_baseline_style_state_data_attributes() {
-    let source = load_source("src/field_form/description/view.rs");
+    let source = load_description_component_source("src/view.rs");
 
     for attr in [
         "data-slot=\"description\"",
@@ -79,7 +122,7 @@ fn description_emits_baseline_style_state_data_attributes() {
 
 #[test]
 fn description_styles_include_tone_state_and_markers() {
-    let source = load_source("src/field_form/description/styles.rs");
+    let source = load_description_component_source("src/styles.rs");
 
     for selector in [
         ".ui-description--tone-default",
@@ -104,7 +147,7 @@ fn description_styles_include_tone_state_and_markers() {
 
 #[test]
 fn description_docs_page_covers_primary_playgrounds() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let source = load_workspace_source("apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     for needle in [
         "pub(super) fn description() -> AnyView",
@@ -127,7 +170,7 @@ fn description_docs_page_covers_primary_playgrounds() {
 
 #[test]
 fn description_docs_playgrounds_lock_state_matrix_contract_values() {
-    let source = load_source("../../apps/docs-app/src/pages/components/pages/forms_extra.rs");
+    let source = load_workspace_source("apps/docs-app/src/pages/components/pages/forms_extra.rs");
 
     for needle in [
         "text=\"This appears below the field as guidance.\".to_string()",
@@ -154,7 +197,7 @@ fn description_docs_playgrounds_lock_state_matrix_contract_values() {
 
 #[test]
 fn description_check2_marks_architecture_layer_definitions_complete() {
-    let check2_source = load_source("src/field_form/description/check2.md");
+    let check2_source = load_description_component_source("src/check2.md");
 
     for needle in [
         "- [x] `status-primitives` 定义：纯状态原语层（受控/非受控、toggle、selection、list、overlay open state、expansion 等）。不依赖 Leptos/DOM/web-sys；只包含 Rust 数据结构和方法，不含视图与事件绑定。",
@@ -172,7 +215,7 @@ fn description_check2_marks_architecture_layer_definitions_complete() {
 
 #[test]
 fn description_check2_marks_semantics_first_testing_complete() {
-    let check2_source = load_source("src/field_form/description/check2.md");
+    let check2_source = load_description_component_source("src/check2.md");
 
     for needle in [
         "- [x] 语义测试优先：验证 `data-*` / `aria-*` / role / 状态来源契约，不只视觉快照。",
@@ -188,7 +231,7 @@ fn description_check2_marks_semantics_first_testing_complete() {
 
 #[test]
 fn description_check2_marks_final_merge_gates_complete() {
-    let check2_source = load_source("src/field_form/description/check2.md");
+    let check2_source = load_description_component_source("src/check2.md");
 
     for needle in [
         "- [x] 架构正确（边界不破）。",
@@ -215,7 +258,7 @@ fn description_check2_marks_final_merge_gates_complete() {
 
 #[test]
 fn description_check2_has_no_remaining_unchecked_items() {
-    let check2_source = load_source("src/field_form/description/check2.md");
+    let check2_source = load_description_component_source("src/check2.md");
     assert!(
         !check2_source.contains("- [ ]"),
         "description/check2.md should not keep unchecked checklist items once governance is complete."

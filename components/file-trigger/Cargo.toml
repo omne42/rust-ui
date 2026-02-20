@@ -1,0 +1,13 @@
+[package]
+name = "ui-file-trigger"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+
+[dependencies]

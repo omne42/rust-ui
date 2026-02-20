@@ -1,0 +1,170 @@
+schema_version = "1"
+
+[component]
+name = "AlertDialog"
+crate = "ui-alert-dialog"
+
+[[inputs]]
+name = "open"
+ty = "Signal<bool>"
+default = "required"
+controlled = true
+
+[[inputs]]
+name = "id_base"
+ty = "String"
+default = "\"ui-alert-dialog\""
+controlled = false
+
+[[inputs]]
+name = "title"
+ty = "String"
+default = "\"Alert\""
+controlled = false
+
+[[inputs]]
+name = "description"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "confirm_label"
+ty = "String"
+default = "\"Confirm\""
+controlled = false
+
+[[inputs]]
+name = "cancel_label"
+ty = "Option<String>"
+default = "Some(\"Cancel\")"
+controlled = false
+
+[[inputs]]
+name = "secondary_label"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_confirm_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "confirm_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "is_secondary_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "secondary_disabled"
+ty = "Option<bool>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "auto_focus_button"
+ty = "AlertDialogAutoFocusButton"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "variant"
+ty = "AlertDialogVariant"
+default = "Default"
+controlled = false
+
+[[inputs]]
+name = "motion"
+ty = "AlertDialogMotion"
+default = "AlertDialogMotion::default()"
+controlled = false
+
+[[inputs]]
+name = "lang"
+ty = "Option<String>"
+default = "None"
+controlled = false
+
+[[inputs]]
+name = "dir"
+ty = "Option<A11yDirection>"
+default = "None"
+controlled = false
+
+[[outputs]]
+name = "on_close"
+ty = "OnPress"
+scope = "root"
+
+[[outputs]]
+name = "on_confirm"
+ty = "OnPress"
+scope = "confirm-action"
+
+[[outputs]]
+name = "on_cancel"
+ty = "Option<OnPress>"
+scope = "cancel-action"
+
+[[outputs]]
+name = "on_secondary"
+ty = "Option<OnPress>"
+scope = "secondary-action"
+
+[[outputs]]
+name = "on_exit_complete"
+ty = "Option<Callback<()>>"
+scope = "overlay-exit"
+
+[[capabilities]]
+name = "overlay_alertdialog_role"
+enabled = true
+
+[[capabilities]]
+name = "variant_state_markers"
+enabled = true
+
+[[capabilities]]
+name = "source_markers_for_id_title_description_actions_motion"
+enabled = true
+
+[[capabilities]]
+name = "optional_secondary_action"
+enabled = true
+
+[[capabilities]]
+name = "focus_target_contract"
+enabled = true
+
+[[capabilities]]
+name = "locale_context_lang_dir_passthrough"
+enabled = true
+
+[[dependencies]]
+name = "leptos"
+kind = "render-runtime"
+
+[[dependencies]]
+name = "ui-headless"
+kind = "press-contract"
+
+[[dependencies]]
+name = "ui-motion"
+kind = "overlay-motion-contract"
+
+[[dependencies]]
+name = "ui-components/overlay"
+kind = "overlay-shell"
+
+[[dependencies]]
+name = "ui-components/button"
+kind = "action-button-rendering"

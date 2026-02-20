@@ -182,21 +182,21 @@
 - 参数模型同步：`Tag` 维持 token primitive 定位，参数聚焦 `variant/size/disabled/removable/on_remove/remove_aria_label/class_name/lang/dir`，避免引入并行别名与组件外状态对象必填接线。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Tag", "tag", "Collections", collections_groups::tag)` 暴露入口；`#/components/tag` 可索引访问。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections_groups.rs` 提供 `Hello World`、`Variant + Size Matrix`、`Removable + Disabled + Custom Class`，并与当前参数语义保持一致。
-- Copy-Paste Ready 同步：`Tag` playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `crates/ui-components/src/tag/view.rs` 便于源码追溯。
+- Copy-Paste Ready 同步：`Tag` playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `components/tag/src/view.rs` 便于源码追溯。
 
 ### TagGroup 同步记录（2026-02-17）
 
 - 参数模型同步：`TagGroup` 维持 collection primitive 定位，参数聚焦 `tags/disabled/on_remove/variant/size/id_base/label/description/error/invalid/required/aria_* /class_name/lang/dir`，继续保持 `on_remove` 驱动的显式组合语义。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("TagGroup", "tag-group", "Collections", collections::tag_group)` 暴露入口；`#/components/tag-group` 可索引访问。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/collections.rs` 提供 `Hello World`、`Removable + State`、`Validation + Required`、`Disabled + Empty`，覆盖默认路径与状态矩阵。
-- Copy-Paste Ready 同步：`TagGroup` playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `crates/ui-components/src/tag/group/view.rs` 便于源码追溯。
+- Copy-Paste Ready 同步：`TagGroup` playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `components/tag/src/group/view.rs` 便于源码追溯。
 
 ### Swatch 同步记录（2026-02-17）
 
 - 参数模型同步：`Swatch` 保持 display primitive 定位，参数聚焦 `color/label/size/border/rounding/shape/is_nothing/is_mixed_value/is_disabled/is_decorative/selected/default_selected/on_selected_change/lang/dir/class_name/motion`，维持统一 `is_* / on_* / default_*` 语义命名。
 - docs 入口同步：`apps/docs-app/src/pages/components/pages.rs` 通过 `component_doc!("Swatch", "swatch", "Display", display_extra_swatch::swatch)` 暴露入口；`#/components/swatch` 可索引访问。
 - 示例矩阵同步：`apps/docs-app/src/pages/components/pages/display_extra_swatch.rs` 提供 `Hello World`、`Size + Shape + Rounding`、`Mixed + Nothing + Disabled + Controlled`、`Custom Motion Contract`，覆盖默认路径、状态矩阵与受控示例。
-- Copy-Paste Ready 同步：Swatch playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `crates/ui-components/src/color/swatch_core/view.rs` 便于源码追溯。
+- Copy-Paste Ready 同步：Swatch playground 代码通过 `code_signal` 进入 `Playground`，由 `compose_copy_ready_code` 自动补齐 imports；`test_source_path` 指向 `components/swatch/src/view.rs` 便于源码追溯。
 - HeroUI 对齐结论：继续遵循“先用起来，再进阶”，默认 API 路径前置，高级控制后置；参数语义变更需先同步本策略文档与 docs 入口。
 
 ### Toaster 同步记录（2026-02-18）

@@ -7,6 +7,18 @@ fn load_source(rel_path: &str) -> String {
     fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
 }
 
+fn load_resizable_test_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("src/resizable/test").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
+fn load_ui_motion_test_source(rel_path: &str) -> String {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let path = manifest_dir.join("../ui-motion/src/test").join(rel_path);
+    fs::read_to_string(&path).unwrap_or_else(|e| panic!("read_to_string failed for {path:?}: {e}"))
+}
+
 #[test]
 fn resizable_does_not_expose_logic_or_view_modules() {
     let source = load_source("src/resizable/mod.rs");
@@ -59,6 +71,8 @@ fn resizable_does_not_add_unnecessary_spec_rs_surface() {
 #[test]
 fn resizable_uses_logic_state_model() {
     let logic_source = load_source("src/resizable/logic.rs");
+    let logic_checks_source = load_resizable_test_source("logic.rs");
+    let logic_combined = format!("{logic_source}\n{logic_checks_source}");
     let view_source = load_source("src/resizable/view.rs");
     let headless_source = load_source("../ui-headless/src/resizable.rs");
     let primitive_source = load_source("../ui-state-primitives/src/resizable.rs");
@@ -80,7 +94,7 @@ fn resizable_uses_logic_state_model() {
         "pub fn compose_class_name(",
     ] {
         assert!(
-            logic_source.contains(needle),
+            logic_combined.contains(needle),
             "Resizable logic should include `{needle}` via primitive composition."
         );
     }
@@ -459,7 +473,7 @@ fn resizable_docs_playgrounds_lock_state_matrix_contract_values() {
 }
 
 #[test]
-fn resizable_semantic_tests_are_contract_first_and_snapshot_secondary() {
+fn resizable_semantic_checks_are_contract_first_and_snapshot_secondary() {
     let check2_source = load_source("src/resizable/check2.md");
     let suite_source = load_source("tests/resizable_semantics.rs");
     let view_source = load_source("src/resizable/view.rs");
@@ -779,6 +793,8 @@ fn resizable_agent_contract_markers_are_typed_and_snapshot_based() {
 #[test]
 fn resizable_type_system_and_semantic_markers_form_machine_readable_contract() {
     let logic_source = load_source("src/resizable/logic.rs");
+    let logic_checks_source = load_resizable_test_source("logic.rs");
+    let logic_combined = format!("{logic_source}\n{logic_checks_source}");
     let view_source = load_source("src/resizable/view.rs");
     let suite_source = load_source("tests/resizable_semantics.rs");
 
@@ -803,7 +819,7 @@ fn resizable_type_system_and_semantic_markers_form_machine_readable_contract() {
         "normalize_bounds(",
     ] {
         assert!(
-            logic_source.contains(needle),
+            logic_combined.contains(needle),
             "Type-constrained state contract should include `{needle}` in logic.rs."
         );
     }
@@ -1353,6 +1369,8 @@ fn resizable_ssr_cross_platform_compile_contract_is_explicit() {
 fn resizable_motion_non_wasm_noop_stub_contract_is_predictable() {
     let motion_source = load_source("src/resizable/motion.rs");
     let ui_motion_source = load_source("../ui-motion/src/lib.rs");
+    let ui_motion_checks_source = load_ui_motion_test_source("lib.rs");
+    let ui_motion_combined = format!("{ui_motion_source}\n{ui_motion_checks_source}");
     let suite_source = load_source("tests/resizable_semantics.rs");
 
     for needle in [
@@ -1384,7 +1402,7 @@ fn resizable_motion_non_wasm_noop_stub_contract_is_predictable() {
         "fn non_wasm_web_backend_is_predictable_noop()",
     ] {
         assert!(
-            ui_motion_source.contains(needle),
+            ui_motion_combined.contains(needle),
             "ui-motion should keep stable non-wasm no-op stub `{needle}`."
         );
     }

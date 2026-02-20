@@ -192,6 +192,5 @@ impl AccordionComponentSpec {
 }
 
 #[cfg(test)]
-mod tests {
-    include!("../test/protocol_tests.rs");
-}
+#[path = "../test/protocol.rs"]
+mod tests;

@@ -287,7 +287,7 @@
   - 每个交互组件至少有对应 `*_semantics.rs` 测试覆盖关键状态轴与动作语义。
   - 断言应聚焦语义契约（状态来源/可访问性/键盘路径），快照仅作补充。
   - 新增/变更语义字段必须同步补测试，否则不得打勾。
-  - ScrollArea 本轮验收：已新增并实跑 `scroll_area_check2_documents_semantics_first_testing_rules`、`scroll_area_semantics_suite_is_contract_first_not_snapshot_only`、`scroll_area_semantic_markers_changed_in_view_must_be_covered_by_semantics_tests`，并通过 `scroll_area_contract_hygiene_script_covers_semantics_first_testing_rules` 将该三项纳入 `scripts/check-ui-layout-contract-hygiene.sh` 阻断回归；语义断言覆盖 `role/aria-*`、关键 `data-*` 与 `data-ui-*` 源标记，未引入 snapshot-only 依赖。
+  - ScrollArea 本轮验收：已新增并实跑 `scroll_area_check2_documents_semantics_first_testing_rules`、`scroll_area_semantics_suite_is_contract_first_not_snapshot_only`、`scroll_area_semantic_markers_changed_in_view_must_be_covered_by_semantics_checks`，并通过 `scroll_area_contract_hygiene_script_covers_semantics_first_testing_rules` 将该三项纳入 `scripts/check-ui-layout-contract-hygiene.sh` 阻断回归；语义断言覆盖 `role/aria-*`、关键 `data-*` 与 `data-ui-*` 源标记，未引入 snapshot-only 依赖。
 - [x] E2E 选择器稳定：使用语义标记，WASM 场景有稳定等待策略。
   - E2E 选择器优先 `data-*` 语义标记，禁止依赖脆弱 DOM 层级或文本定位。
   - WASM 场景必须使用稳定等待策略（语义状态就绪而非固定 sleep）。
@@ -360,4 +360,4 @@
 - [x] 文档与示例同步更新。
 - [x] 门禁完整通过（fmt/clippy/test/smoke 等）。
   - 说明：本项按 `scroll_area` 负责范围执行（`fmt/clippy/test/check/e2e/tree-shaking/contract scripts`）；仓库级全量 smoke 属于整仓门禁，在并行开发环境下标记为 `N/A`，不作为 `scroll_area` 单组件阻断。
-  - ScrollArea 本轮验收：最终裁决条目由 `scroll_area_check2_documents_final_merge_gate_rules`、`scroll_area_final_merge_gate_capabilities_are_backed_by_contract_tests`、`scroll_area_final_merge_gate_marks_full_repo_gate_as_deferred_by_requirement`、`scroll_area_check2_has_no_unchecked_checklist_items` 锁定，并由 `scroll_area_contract_hygiene_script_covers_final_merge_gate_contract` 纳入 `scripts/check-ui-layout-contract-hygiene.sh` 阻断回归。
+  - ScrollArea 本轮验收：最终裁决条目由 `scroll_area_check2_documents_final_merge_gate_rules`、`scroll_area_final_merge_gate_capabilities_are_backed_by_contract_checks`、`scroll_area_final_merge_gate_marks_full_repo_gate_as_deferred_by_requirement`、`scroll_area_check2_has_no_unchecked_checklist_items` 锁定，并由 `scroll_area_contract_hygiene_script_covers_final_merge_gate_contract` 纳入 `scripts/check-ui-layout-contract-hygiene.sh` 阻断回归。
